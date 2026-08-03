@@ -181,7 +181,7 @@ function renderComposer() {
   elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
   elements['composer-help'].textContent = editing
     ? 'Save updates the selected item · Escape cancels'
-    : 'Enter adds · Shift+Enter makes a new line';
+    : 'Enter adds · Shift+Enter makes a new line · Up/Down navigate items';
   setFieldError(elements['composer-source'], elements['composer-error']);
 }
 
@@ -217,6 +217,33 @@ function selectedType() {
   return elements['mode-switch'].querySelector('input:checked')?.value === 'equation'
     ? 'equation'
     : 'text';
+}
+
+function navigateItems(key) {
+  const napkin = activeNapkin();
+  if (napkin.items.length === 0) return false;
+
+  const current = napkin.items.findIndex(({ id }) => id === napkin.selectedItemId);
+  let next;
+  if (current === -1) {
+    next = key === 'ArrowUp' || key === 'End' ? napkin.items.length - 1 : 0;
+  } else if (key === 'ArrowUp') {
+    next = Math.max(0, current - 1);
+  } else if (key === 'ArrowDown') {
+    next = Math.min(napkin.items.length - 1, current + 1);
+  } else if (key === 'Home') {
+    next = 0;
+  } else if (key === 'End') {
+    next = napkin.items.length - 1;
+  } else {
+    return false;
+  }
+
+  state = selectItem(state, napkin.items[next].id);
+  renderTranscript();
+  focusSelectedItem();
+  saveSelectionSoon();
+  return true;
 }
 
 async function submitComposer() {
@@ -318,7 +345,21 @@ elements['composer-form'].addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && editingItemId !== null) {
     event.preventDefault();
     stopEditing();
+    return;
   }
+  if (editingItemId !== null || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+
+  const navigationKeys = ['ArrowUp', 'ArrowDown', 'Home', 'End'];
+  if (!navigationKeys.includes(event.key)) return;
+
+  const target = event.target;
+  if (target.matches('textarea')) {
+    // Preserve caret movement in multiline drafts. In a single-line draft,
+    // vertical arrows do not move the caret and can navigate the transcript.
+    if (!['ArrowUp', 'ArrowDown'].includes(event.key) || target.value.includes('\n')) return;
+  }
+
+  if (navigateItems(event.key)) event.preventDefault();
 });
 
 elements['transcript'].addEventListener('click', (event) => {
@@ -332,8 +373,6 @@ elements['transcript'].addEventListener('click', (event) => {
 elements['transcript'].addEventListener('keydown', (event) => {
   const button = event.target.closest('.item-select');
   if (!button) return;
-  const napkin = activeNapkin();
-  const index = napkin.items.findIndex(({ id }) => id === button.dataset.itemId);
   if (event.key === 'Enter') {
     event.preventDefault();
     startEditing(button.dataset.itemId);
@@ -341,15 +380,7 @@ elements['transcript'].addEventListener('keydown', (event) => {
   }
   if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
   event.preventDefault();
-  let next = index;
-  if (event.key === 'ArrowUp') next = Math.max(0, index - 1);
-  if (event.key === 'ArrowDown') next = Math.min(napkin.items.length - 1, index + 1);
-  if (event.key === 'Home') next = 0;
-  if (event.key === 'End') next = napkin.items.length - 1;
-  state = selectItem(state, napkin.items[next].id);
-  renderTranscript();
-  focusSelectedItem();
-  saveSelectionSoon();
+  navigateItems(event.key);
 });
 
 elements['retry-save'].addEventListener('click', () => void saveState().catch(() => {}));

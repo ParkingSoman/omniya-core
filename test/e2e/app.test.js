@@ -103,6 +103,16 @@ test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async 
   assert.match(await equationItem.textContent(), /Fundamental theorem example/);
   await textButton.click();
 
+  const composerSource = page.getByLabel('Content', { exact: true });
+  await composerSource.fill('unsaved draft');
+  await composerSource.press('ArrowDown');
+  assert.equal(await itemButton.getAttribute('aria-current'), 'step');
+  assert.equal(await composerSource.inputValue(), 'unsaved draft');
+  await composerSource.focus();
+  await composerSource.press('ArrowUp');
+  assert.equal(await textButton.getAttribute('aria-current'), 'step');
+  assert.equal(await composerSource.inputValue(), 'unsaved draft');
+
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Text notes');
   await page.getByRole('button', { name: 'Create napkin' }).click();
