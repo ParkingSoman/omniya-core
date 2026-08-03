@@ -1,0 +1,26 @@
+{
+  "name": "omniya-core",
+  "version": "0.1.0",
+  "description": "Open-source workspace for blind mathematicians to create, organize, navigate, and return to mathematical proofs over time.",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --experimental-vm-modules node_modules/vsce/bin/vsce.js package.json",
+    "build": "node scripts/build.js"
+  },
+  "keywords": [
+    "mathematics",
+    "accessibility",
+    "screen-reader",
+    "latex",
+    "mathml"
+  ],
+  "author": "Axiya",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "mathjax-full": "^3.2.2",
+    "fast-xml-parser": "^4.4.0"
+  },
+  "devDependencies": {}
+}
