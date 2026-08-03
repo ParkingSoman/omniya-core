@@ -9,7 +9,80 @@ body {
   max-width: 60rem;
 }
 
+section {
+  border-top: 1px solid CanvasText;
+  margin-block: 1.5rem;
+  padding-block-start: 0.5rem;
+}
+
+label:not(.inline-label), textarea, input:not([type="radio"]), select {
+  display: block;
+}
+
+textarea, input:not([type="radio"]), select {
+  box-sizing: border-box;
+  margin-block: 0.25rem 0.75rem;
+  max-width: 40rem;
+  width: 100%;
+}
+
+button {
+  margin: 0.25rem;
+  min-height: 2rem;
+}
+
+.control-row {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.control-row select {
+  margin: 0;
+  width: auto;
+}
+
+.inline-label {
+  margin-inline-end: 1rem;
+}
+
+.help {
+  margin-block-start: -0.5rem;
+}
+
+.error {
+  color: #b00020;
+  font-weight: 600;
+}
+
+#item-list {
+  border: 1px solid CanvasText;
+  min-height: 3rem;
+  padding: 0.25rem;
+}
+
+[role="option"] {
+  border: 1px solid transparent;
+  padding: 0.5rem;
+}
+
+[role="option"][aria-selected="true"] {
+  background: Highlight;
+  color: HighlightText;
+}
+
+#selected-math:empty {
+  display: none;
+}
+
 :focus-visible {
   outline: 0.2rem solid Highlight;
   outline-offset: 0.15rem;
+}
+
+@media (forced-colors: active) {
+  [role="option"][aria-selected="true"] {
+    border-color: Highlight;
+  }
 }

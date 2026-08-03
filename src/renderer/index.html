@@ -10,9 +10,80 @@
   <body>
     <header>
       <h1>Math napkins</h1>
+      <p>A small offline workspace for text and accessible mathematics.</p>
     </header>
     <main id="app" aria-busy="true">
-      <p>Loading your napkins…</p>
+      <section aria-labelledby="napkins-heading">
+        <h2 id="napkins-heading">Napkins</h2>
+        <div class="control-row">
+          <label for="napkin-select">Napkin</label>
+          <select id="napkin-select"></select>
+          <button id="new-napkin-button" type="button">New napkin</button>
+        </div>
+        <form id="new-napkin-form" hidden>
+          <label for="napkin-name">Napkin name</label>
+          <input id="napkin-name" required autocomplete="off">
+          <p id="napkin-name-error" class="error" hidden></p>
+          <button type="submit">Create napkin</button>
+          <button id="cancel-new-napkin" type="button">Cancel</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="composer-heading">
+        <h2 id="composer-heading">Add item</h2>
+        <form id="composer-form">
+          <fieldset>
+            <legend>Item type</legend>
+            <label class="inline-label"><input type="radio" name="item-type" value="text" checked> Text</label>
+            <label class="inline-label"><input type="radio" name="item-type" value="equation"> Equation</label>
+          </fieldset>
+          <label for="composer-source">Content</label>
+          <textarea id="composer-source" rows="4" required aria-describedby="composer-help composer-error"></textarea>
+          <p id="composer-help" class="help">Press Control+Enter, or Command+Enter on macOS, to add the item.</p>
+          <p id="composer-error" class="error" hidden></p>
+          <label for="composer-note">Note</label>
+          <textarea id="composer-note" rows="3"></textarea>
+          <button type="submit">Add item</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="items-heading">
+        <h2 id="items-heading">Items</h2>
+        <p id="item-list-help" class="help">Use Up and Down Arrow, Home, and End to select an item. Press Enter to edit it.</p>
+        <p id="empty-message">This napkin has no items.</p>
+        <div id="item-list" role="listbox" tabindex="0" aria-labelledby="items-heading" aria-describedby="item-list-help"></div>
+      </section>
+
+      <section id="selected-item" aria-labelledby="selected-heading">
+        <h2 id="selected-heading">Selected item</h2>
+        <div id="selected-view">
+          <p id="no-selection">No item selected.</p>
+          <div id="selected-content" hidden>
+            <p><strong>Type:</strong> <span id="selected-type"></span></p>
+            <p><strong>Source:</strong> <span id="selected-source"></span></p>
+            <p><strong>Note:</strong> <span id="selected-note"></span></p>
+            <div id="selected-math"></div>
+            <button id="edit-item-button" type="button">Edit selected item</button>
+          </div>
+        </div>
+        <form id="edit-form" hidden>
+          <p id="edit-type"></p>
+          <label for="edit-source">Edit content</label>
+          <textarea id="edit-source" rows="4" required aria-describedby="edit-error"></textarea>
+          <p id="edit-error" class="error" hidden></p>
+          <label for="edit-note">Edit note</label>
+          <textarea id="edit-note" rows="3"></textarea>
+          <button type="submit">Save changes</button>
+          <button id="cancel-edit" type="button">Cancel</button>
+        </form>
+      </section>
+
+      <p id="save-status" role="status" aria-live="polite" aria-atomic="true"></p>
+      <div id="app-error" role="alert" hidden>
+        <span id="app-error-message"></span>
+        <button id="retry-save" type="button" hidden>Retry save</button>
+      </div>
     </main>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
