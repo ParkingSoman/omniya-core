@@ -37,6 +37,29 @@ test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async 
   await transcript.waitFor({ state: 'attached' });
   await composer.waitFor();
   assert.equal(await page.getByRole('button', { name: 'New napkin' }).count(), 1);
+  assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
+  assert.equal(await page.locator('article[tabindex="0"]').count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Add item' }).count(), 1);
+
+  const firstArticle = page.locator('article').nth(0);
+  const secondArticle = page.locator('article').nth(1);
+  if (await firstArticle.count() && await secondArticle.count()) {
+    await firstArticle.focus();
+    await firstArticle.press('ArrowDown');
+    assert.equal(await secondArticle.getAttribute('tabindex'), '0');
+    assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
+    await page.keyboard.press('Enter');
+    assert.equal(await page.getByRole('heading', { name: /Editing item 2/ }).count(), 1);
+    assert.equal(await page.getByRole('button', { name: 'Save changes' }).count(), 1);
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
+  }
+
+  await page.getByRole('button', { name: 'Add item' }).click();
+  assert.equal(await page.getByRole('heading', { name: /Adding to/ }).count(), 1);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  await page.getByRole('button', { name: 'Back to reading' }).click();
+  assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
 
   const newNapkinButton = page.getByRole('button', { name: 'New napkin' });
   const textMode = page.locator('#mode-switch input[value="text"]');
