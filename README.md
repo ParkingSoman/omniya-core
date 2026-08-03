@@ -13,7 +13,7 @@ Omniya Core is an early experiment for blind mathematicians to create, navigate,
 
 The UI is read-first: a left napkin rail and a center transcript show only committed text, MathML, and notes. `Add item` opens a separate compact add mode; Enter on a focused article opens the same panel in edit mode. This keeps reading and writing from competing for the same keyboard commands.
 
-There are no accounts, cloud services, collaboration features, AI features, rich text, import/export, deletion, reordering, or release packaging.
+There are no accounts, cloud services, collaboration features, AI features, rich text, import/export, reordering, or release packaging.
 
 ## Run from source
 
@@ -31,6 +31,7 @@ All application code and MathJax resources are installed locally. The running ap
 - Use Tab and Shift+Tab to move through ordinary controls.
 - In Read mode, use Up/Down Arrow or Home/End to move between focused items.
 - Press Enter on a focused item to edit it.
+- Press Backspace on a focused item to delete it; focus moves to the next item, or the previous item when deleting the last item.
 - Activate `Add item` to enter Add mode; focus moves to Content.
 - In Add mode, press Enter to add, Shift+Enter for a new line, and Escape to discard and return to reading.
 - In Edit mode, choose Save changes or press Escape/Cancel to return to reading.

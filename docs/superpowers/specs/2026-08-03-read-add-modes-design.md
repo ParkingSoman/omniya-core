@@ -64,6 +64,7 @@ The WAI-ARIA feed pattern is useful inspiration for article-level focus, positio
 - `ArrowUp` / `ArrowDown` select and focus the previous/next article without wrapping.
 - `Home` / `End` select and focus the first/last article.
 - `Enter` opens the focused article in edit mode.
+- `Backspace` deletes the focused committed item and moves focus to the next item, or the previous item when deleting the last item.
 - `Tab` never walks through every note, MathML descendant, or item control.
 
 ### Add mode
@@ -97,6 +98,7 @@ VS Code provides a comparable model: one Tab stop per major workbench area, arro
 
 - Failed LaTeX conversion keeps Add/Edit mode open, preserves the draft, and focuses the associated error.
 - Successful Add/Edit returns to Read mode, selects the committed article, and autosaves.
+- Backspace deletion updates selection and autosaves immediately; deleting the final item leaves the napkin empty.
 - Unfinished Add/Edit drafts are never persisted.
 - Save failures keep the in-memory state and expose the existing Retry save action.
 
@@ -113,4 +115,4 @@ The Electron tests will cover:
 
 ## Scope
 
-No accounts, cloud sync, collaboration, AI, rich text, item deletion, reordering, or visual-polish pass is introduced. The implementation remains vanilla HTML, CSS, and JavaScript modules in the existing Electron shell.
+No accounts, cloud sync, collaboration, AI, rich text, reordering, or visual-polish pass is introduced. The implementation remains vanilla HTML, CSS, and JavaScript modules in the existing Electron shell.

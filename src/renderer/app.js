@@ -1,6 +1,7 @@
 import {
   addItem,
   createNapkin,
+  deleteItem,
   getActiveNapkin,
   selectItem,
   switchNapkin,
@@ -334,6 +335,14 @@ async function submitComposer() {
   await saveState().catch(() => {});
 }
 
+async function deleteFocusedItem(itemId) {
+  state = deleteItem(state, itemId);
+  renderAll();
+  focusSelectedArticle();
+  elements['save-status'].textContent = 'Deleted item';
+  await saveState().catch(() => {});
+}
+
 elements['new-napkin-button'].addEventListener('click', () => {
   if (mode !== 'read') returnToRead();
   elements['new-napkin-form'].hidden = false;
@@ -431,6 +440,11 @@ elements['transcript'].addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
     event.preventDefault();
     openEditMode(article.dataset.itemId);
+    return;
+  }
+  if (event.key === 'Backspace') {
+    event.preventDefault();
+    void deleteFocusedItem(article.dataset.itemId);
     return;
   }
   if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;

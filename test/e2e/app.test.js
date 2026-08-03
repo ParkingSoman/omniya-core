@@ -126,7 +126,19 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.getByRole('button', { name: 'Add item' }).click();
   await source.fill('The proof starts here.');
   await source.press('Enter');
-  assert.equal(await articles.count(), 1);
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await source.fill('Remove this item.');
+  await source.press('Enter');
+  const textNotesArticles = page.locator('article.napkin-article');
+  assert.equal(await textNotesArticles.count(), 2);
+  await textNotesArticles.nth(1).focus();
+  await textNotesArticles.nth(1).press('Backspace');
+  assert.equal(await textNotesArticles.count(), 1);
+  assert.equal(await textNotesArticles.first().getAttribute('tabindex'), '0');
+  assert.match(await textNotesArticles.first().textContent(), /The proof starts here/);
+  await textNotesArticles.first().press('Backspace');
+  assert.equal(await textNotesArticles.count(), 0);
+  assert.equal(await page.getByText('No items yet. Add the first item below.').count(), 1);
 
   await napkinRail.getByRole('button', { name: 'Proof ideas' }).click();
   assert.equal(await articles.count(), 2);

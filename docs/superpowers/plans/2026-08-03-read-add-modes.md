@@ -17,7 +17,7 @@
 - Arrow keys must not override normal cursor movement while editing textareas.
 - Unfinished Add/Edit drafts are never persisted.
 - The app remains fully offline and keeps its current secure preload boundary.
-- No accounts, cloud sync, collaboration, AI, rich text, item deletion, reordering, or release packaging is introduced.
+- No accounts, cloud sync, collaboration, AI, rich text, reordering, or release packaging is introduced.
 
 ---
 
@@ -247,6 +247,8 @@ assert.equal(await page.getByRole('article', { name: /Text item/ }).count(), 1);
 ```
 
 Run axe in initial, populated, add, edit, and error states. Capture an ARIA snapshot for landmarks, mode headings, article positions, MathML, and status messaging.
+
+Also focus the last article and press Backspace, asserting that the adjacent article receives `tabindex="0"`; press Backspace on the final remaining article and assert the empty-state message and `selectedItemId: null` behavior.
 
 - [ ] **Step 2: Update keyboard documentation**
 

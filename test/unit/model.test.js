@@ -5,6 +5,7 @@ import {
   addItem,
   createInitialState,
   createNapkin,
+  deleteItem,
   getActiveNapkin,
   selectItem,
   switchNapkin,
@@ -110,6 +111,32 @@ test('updates source, note, and regenerated MathML atomically', () => {
     note: 'new',
     mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"><msup/></math>'
   });
+});
+
+test('deletes an item and selects the next, previous, or empty position', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const first = addItem(initial, {
+    type: 'text', source: 'first', note: '', mathml: null
+  }, { idFactory: ids('item-1') });
+  const second = addItem(first, {
+    type: 'text', source: 'second', note: '', mathml: null
+  }, { idFactory: ids('item-2') });
+  const third = addItem(second, {
+    type: 'text', source: 'third', note: '', mathml: null
+  }, { idFactory: ids('item-3') });
+
+  const withoutSecond = deleteItem(third, 'item-2');
+  assert.deepEqual(getActiveNapkin(withoutSecond).items.map(({ id }) => id), ['item-1', 'item-3']);
+  assert.equal(getActiveNapkin(withoutSecond).selectedItemId, 'item-3');
+
+  const withoutThird = deleteItem(withoutSecond, 'item-3');
+  assert.deepEqual(getActiveNapkin(withoutThird).items.map(({ id }) => id), ['item-1']);
+  assert.equal(getActiveNapkin(withoutThird).selectedItemId, 'item-1');
+
+  const withoutLast = deleteItem(withoutThird, 'item-1');
+  assert.deepEqual(getActiveNapkin(withoutLast).items, []);
+  assert.equal(getActiveNapkin(withoutLast).selectedItemId, null);
+  assert.throws(() => deleteItem(withoutLast, 'missing'), /Item not found/);
 });
 
 test('selects only items belonging to the active napkin', () => {

@@ -216,6 +216,25 @@ export function updateItem(state, itemId, changes) {
   };
 }
 
+export function deleteItem(state, itemId) {
+  assertValidState(state);
+  const activeNapkin = getActiveNapkin(state);
+  const index = activeNapkin.items.findIndex(({ id }) => id === itemId);
+  if (index === -1) throw new RangeError('Item not found');
+
+  const items = activeNapkin.items.filter(({ id }) => id !== itemId);
+  const selectedItemId = activeNapkin.selectedItemId === itemId
+    ? (items[index]?.id ?? items[index - 1]?.id ?? null)
+    : activeNapkin.selectedItemId;
+
+  return {
+    ...state,
+    napkins: state.napkins.map((napkin) => napkin.id === state.activeNapkinId
+      ? { ...napkin, items, selectedItemId }
+      : napkin)
+  };
+}
+
 export function selectItem(state, itemId) {
   assertValidState(state);
   const activeNapkin = getActiveNapkin(state);
