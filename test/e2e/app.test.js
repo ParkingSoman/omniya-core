@@ -54,6 +54,8 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.getByRole('button', { name: 'Add item' }).click();
   assert.equal(await page.getByRole('heading', { name: 'Adding to Proof ideas' }).count(), 1);
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  assert.equal(await page.locator('#reading-actions').isHidden(), true);
+  assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 0);
   await assertNoAxeViolations(page);
   await source.fill('Let a be positive.');
   await page.getByRole('button', { name: 'Add note' }).click();
