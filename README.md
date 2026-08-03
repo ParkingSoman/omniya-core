@@ -11,6 +11,8 @@ Omniya Core is an early experiment for blind mathematicians to create, navigate,
 - Navigate items with the keyboard and edit earlier items.
 - Save committed changes to Electron's local `userData` directory.
 
+The UI is intentionally condensed: a left napkin rail, a center transcript of work, and a small composer dock at the bottom. The composer switches between Text and Equation and reveals the note field only when needed.
+
 There are no accounts, cloud services, collaboration features, AI features, rich text, import/export, deletion, reordering, or release packaging.
 
 ## Run from source
@@ -30,7 +32,7 @@ All application code and MathJax resources are installed locally. The running ap
 - In the item list, use Up/Down Arrow or Home/End to change selection.
 - Press Enter in the item list to edit the selected item.
 - Press Escape while editing to discard the draft and return to the item list.
-- Press Control+Enter, or Command+Enter on macOS, to add an item from the composer.
+- Press Enter in the composer to add an item; use Shift+Enter for a new line.
 
 Only completed Add and Save actions are persisted; unfinished form drafts are not.
 

@@ -22,65 +22,86 @@ async function launch(dataDirectory) {
   return { electronApp, page };
 }
 
-test('supports the complete offline keyboard napkin workflow', { timeout: 60_000 }, async (t) => {
+test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async (t) => {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-e2e-'));
   let session = await launch(dataDirectory);
   t.after(async () => session.electronApp.close().catch(() => {}));
 
   const { page } = session;
-  const napkinSelect = page.getByLabel('Napkin', { exact: true });
-  await napkinSelect.waitFor();
-  assert.deepEqual(await napkinSelect.locator('option').allTextContents(), ['Untitled Napkin']);
+  const napkinRail = page.getByRole('complementary', { name: 'Napkins' });
+  const transcript = page.getByRole('list', { name: 'Napkin items' });
+  const composer = page.getByRole('form', { name: 'Add to napkin' });
+
+  await napkinRail.waitFor();
+  await page.locator('#current-napkin-name').waitFor();
+  await transcript.waitFor({ state: 'attached' });
+  await composer.waitFor();
+  assert.equal(await page.getByRole('button', { name: 'New napkin' }).count(), 1);
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Proof ideas');
   await page.getByRole('button', { name: 'Create napkin' }).click();
-  assert.equal(await napkinSelect.inputValue(), await napkinSelect.locator('option', { hasText: 'Proof ideas' }).getAttribute('value'));
+  assert.equal(await napkinRail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
 
-  await page.getByLabel('Equation', { exact: true }).check();
+  await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
   await page.getByLabel('Content', { exact: true }).fill('x^2 + y^2');
+  await page.getByRole('button', { name: 'Add note' }).click();
   await page.getByLabel('Note', { exact: true }).fill('Pythagorean expression');
-  await page.getByRole('button', { name: 'Add item' }).click();
+  await page.getByLabel('Content', { exact: true }).press('Enter');
 
-  const listbox = page.getByRole('listbox', { name: 'Items' });
-  await listbox.focus();
-  assert.equal(await listbox.getByRole('option').count(), 1);
-  assert.ok(await page.locator('#selected-item math msup').count());
+  const item = transcript.getByRole('listitem').first();
+  await item.waitFor();
+  assert.ok(await item.locator('math msup').count());
+  assert.match(await item.textContent(), /Pythagorean expression/);
 
-  await listbox.press('Enter');
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'edit-source');
-  await page.getByLabel('Edit content', { exact: true }).fill('x^3 + y^3');
-  await page.getByLabel('Edit note', { exact: true }).fill('Updated note');
-  await page.getByRole('button', { name: 'Save changes' }).click();
-  assert.match(await page.locator('#selected-item math').getAttribute('data-latex'), /x\^3/);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'item-list');
+  const itemButton = item.getByRole('button', { name: /Equation/ });
+  await itemButton.focus();
+  await itemButton.press('Enter');
+  assert.equal(await composer.getByRole('button', { name: 'Save item' }).count(), 1);
+  await page.getByLabel('Content', { exact: true }).fill('x^3 + y^3');
+  await page.getByRole('button', { name: 'Save item' }).click();
+  assert.match(await item.locator('math').getAttribute('data-latex'), /x\^3/);
+
+  await page.locator('#mode-switch label').filter({ hasText: 'Text' }).click();
+  await page.getByLabel('Content', { exact: true }).fill('A supporting sentence.');
+  await page.getByLabel('Content', { exact: true }).press('Enter');
+  assert.equal(await transcript.getByRole('listitem').count(), 2);
+  const secondItem = transcript.getByRole('listitem').nth(1);
+  const secondButton = secondItem.getByRole('button');
+  await secondButton.focus();
+  await secondButton.press('ArrowUp');
+  assert.equal(await transcript.getByRole('listitem').first().getByRole('button').getAttribute('aria-current'), 'step');
+  await transcript.getByRole('listitem').first().getByRole('button').press('ArrowDown');
+  assert.equal(await secondItem.getByRole('button').getAttribute('aria-current'), 'step');
+  await secondItem.getByRole('button').press('Home');
+  assert.equal(await transcript.getByRole('listitem').first().getByRole('button').getAttribute('aria-current'), 'step');
+  await transcript.getByRole('listitem').first().getByRole('button').press('End');
+  assert.equal(await secondItem.getByRole('button').getAttribute('aria-current'), 'step');
+  await transcript.getByRole('listitem').first().getByRole('button').click();
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Text notes');
   await page.getByRole('button', { name: 'Create napkin' }).click();
-  await page.getByLabel('Text', { exact: true }).check();
+  await page.locator('#mode-switch label').filter({ hasText: 'Text' }).click();
   await page.getByLabel('Content', { exact: true }).fill('The proof starts here.');
-  await page.getByLabel('Note', { exact: true }).fill('Opening thought');
-  await page.getByLabel('Note', { exact: true }).press(process.platform === 'darwin' ? 'Meta+Enter' : 'Control+Enter');
-  assert.equal(await listbox.getByRole('option').count(), 1);
+  await page.getByLabel('Content', { exact: true }).press('Enter');
+  assert.equal(await transcript.getByRole('listitem').count(), 1);
 
-  await napkinSelect.selectOption({ label: 'Proof ideas' });
-  assert.equal(await listbox.getByRole('option').count(), 1);
-  await listbox.focus();
-  await listbox.press('Home');
-  await listbox.press('Enter');
-  await page.getByLabel('Edit content', { exact: true }).fill('discard this');
-  await page.getByLabel('Edit content', { exact: true }).press('Escape');
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'item-list');
+  await napkinRail.getByRole('button', { name: 'Proof ideas' }).click();
+  assert.equal(await transcript.getByRole('listitem').count(), 2);
+  assert.match(await transcript.locator('math').getAttribute('data-latex'), /x\^3/);
 
   await page.evaluate(axe.source);
   const scan = await page.evaluate(() => globalThis.axe.run());
   assert.deepEqual(scan.violations, []);
 
+  const ariaSnapshot = await page.getByRole('main').ariaSnapshot();
+  assert.match(ariaSnapshot, /Add to napkin/);
+  assert.match(ariaSnapshot, /Napkin items/);
+
   await session.electronApp.close();
   session = await launch(dataDirectory);
-  await session.page.getByLabel('Napkin', { exact: true }).waitFor();
-  assert.equal(await session.page.getByLabel('Napkin', { exact: true }).inputValue(),
-    await session.page.getByLabel('Napkin', { exact: true }).locator('option', { hasText: 'Proof ideas' }).getAttribute('value'));
-  assert.match(await session.page.locator('#selected-item math').getAttribute('data-latex'), /x\^3/);
+  await session.page.getByRole('complementary', { name: 'Napkins' }).waitFor();
+  await session.page.getByRole('button', { name: 'Proof ideas' }).click();
+  assert.match(await session.page.locator('math').getAttribute('data-latex'), /x\^3/);
 });

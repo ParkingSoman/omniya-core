@@ -8,82 +8,80 @@
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
-    <header>
-      <h1>Math napkins</h1>
-      <p>A small offline workspace for text and accessible mathematics.</p>
-    </header>
-    <main id="app" aria-busy="true">
-      <section aria-labelledby="napkins-heading">
-        <h2 id="napkins-heading">Napkins</h2>
-        <div class="control-row">
-          <label for="napkin-select">Napkin</label>
-          <select id="napkin-select"></select>
-          <button id="new-napkin-button" type="button">New napkin</button>
+    <div id="app-shell" aria-busy="true">
+      <aside id="napkin-rail" aria-label="Napkins">
+        <div class="rail-brand"><span class="brand-mark" aria-hidden="true">∴</span><span>Omniya</span></div>
+        <div class="rail-heading">
+          <h1>Napkins</h1>
+          <button id="new-napkin-button" type="button" aria-label="New napkin">+</button>
         </div>
+        <nav id="napkin-list" aria-label="Saved napkins"></nav>
         <form id="new-napkin-form" hidden>
           <label for="napkin-name">Napkin name</label>
           <input id="napkin-name" required autocomplete="off">
           <p id="napkin-name-error" class="error" hidden></p>
-          <button type="submit">Create napkin</button>
-          <button id="cancel-new-napkin" type="button">Cancel</button>
-        </form>
-      </section>
-
-      <section aria-labelledby="composer-heading">
-        <h2 id="composer-heading">Add item</h2>
-        <form id="composer-form">
-          <fieldset>
-            <legend>Item type</legend>
-            <label class="inline-label"><input type="radio" name="item-type" value="text" checked> Text</label>
-            <label class="inline-label"><input type="radio" name="item-type" value="equation"> Equation</label>
-          </fieldset>
-          <label for="composer-source">Content</label>
-          <textarea id="composer-source" rows="4" required aria-describedby="composer-help composer-error"></textarea>
-          <p id="composer-help" class="help">Press Control+Enter, or Command+Enter on macOS, to add the item.</p>
-          <p id="composer-error" class="error" hidden></p>
-          <label for="composer-note">Note</label>
-          <textarea id="composer-note" rows="3"></textarea>
-          <button type="submit">Add item</button>
-        </form>
-      </section>
-
-      <section aria-labelledby="items-heading">
-        <h2 id="items-heading">Items</h2>
-        <p id="item-list-help" class="help">Use Up and Down Arrow, Home, and End to select an item. Press Enter to edit it.</p>
-        <p id="empty-message">This napkin has no items.</p>
-        <div id="item-list" role="listbox" tabindex="0" aria-labelledby="items-heading" aria-describedby="item-list-help"></div>
-      </section>
-
-      <section id="selected-item" aria-labelledby="selected-heading">
-        <h2 id="selected-heading">Selected item</h2>
-        <div id="selected-view">
-          <p id="no-selection">No item selected.</p>
-          <div id="selected-content" hidden>
-            <p><strong>Type:</strong> <span id="selected-type"></span></p>
-            <p><strong>Source:</strong> <span id="selected-source"></span></p>
-            <p><strong>Note:</strong> <span id="selected-note"></span></p>
-            <div id="selected-math"></div>
-            <button id="edit-item-button" type="button">Edit selected item</button>
+          <div class="form-actions">
+            <button type="submit">Create napkin</button>
+            <button id="cancel-new-napkin" type="button">Cancel</button>
           </div>
-        </div>
-        <form id="edit-form" hidden>
-          <p id="edit-type"></p>
-          <label for="edit-source">Edit content</label>
-          <textarea id="edit-source" rows="4" required aria-describedby="edit-error"></textarea>
-          <p id="edit-error" class="error" hidden></p>
-          <label for="edit-note">Edit note</label>
-          <textarea id="edit-note" rows="3"></textarea>
-          <button type="submit">Save changes</button>
-          <button id="cancel-edit" type="button">Cancel</button>
         </form>
-      </section>
+      </aside>
 
-      <p id="save-status" role="status" aria-live="polite" aria-atomic="true"></p>
-      <div id="app-error" role="alert" hidden>
-        <span id="app-error-message"></span>
-        <button id="retry-save" type="button" hidden>Retry save</button>
-      </div>
-    </main>
+      <main id="workspace">
+        <header id="workspace-header">
+          <div>
+            <p class="eyebrow">NAPKIN</p>
+            <h2 id="current-napkin-name">Loading…</h2>
+          </div>
+          <div class="header-meta">
+            <span id="item-count">0 items</span>
+            <span id="save-status" role="status" aria-live="polite" aria-atomic="true"></span>
+          </div>
+        </header>
+
+        <section id="transcript-section" aria-labelledby="transcript-heading">
+          <div class="transcript-heading">
+            <h3 id="transcript-heading">Work</h3>
+            <p id="transcript-help">Arrow keys move between items. Enter edits the focused item.</p>
+          </div>
+          <p id="empty-message">Start with a thought below.</p>
+          <ol id="transcript" aria-label="Napkin items"></ol>
+        </section>
+
+        <section id="composer-dock" aria-labelledby="composer-heading">
+          <form id="composer-form" aria-label="Add to napkin">
+            <div class="composer-bar">
+              <h3 id="composer-heading">Add to napkin</h3>
+              <fieldset id="mode-switch" aria-label="Input type">
+                <legend class="sr-only">Input type</legend>
+                <label><input type="radio" name="item-type" value="text" checked> <span>Text</span></label>
+                <label><input type="radio" name="item-type" value="equation"> <span>Equation</span></label>
+              </fieldset>
+              <button id="note-toggle" type="button" aria-expanded="false">Add note</button>
+            </div>
+
+            <label for="composer-source" class="sr-only">Content</label>
+            <textarea id="composer-source" rows="1" required aria-describedby="composer-help composer-error"></textarea>
+            <div id="note-row" hidden>
+              <label for="composer-note">Note</label>
+              <textarea id="composer-note" rows="2"></textarea>
+            </div>
+            <p id="composer-help">Enter adds · Shift+Enter makes a new line</p>
+            <p id="composer-error" class="error" hidden></p>
+            <div class="composer-footer">
+              <span id="editing-indicator" class="muted"></span>
+              <button id="composer-submit" type="submit">Add item</button>
+              <button id="composer-cancel" type="button" hidden>Cancel</button>
+            </div>
+          </form>
+        </section>
+
+        <div id="app-error" role="alert" hidden>
+          <span id="app-error-message"></span>
+          <button id="retry-save" type="button" hidden>Retry save</button>
+        </div>
+      </main>
+    </div>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
