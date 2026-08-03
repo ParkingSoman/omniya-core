@@ -22,147 +22,110 @@ async function launch(dataDirectory) {
   return { electronApp, page };
 }
 
-test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async (t) => {
+async function assertNoAxeViolations(page) {
+  await page.evaluate(axe.source);
+  const scan = await page.evaluate(() => globalThis.axe.run());
+  assert.deepEqual(scan.violations, []);
+}
+
+test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async (t) => {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-e2e-'));
   let session = await launch(dataDirectory);
   t.after(async () => session.electronApp.close().catch(() => {}));
 
   const { page } = session;
   const napkinRail = page.getByRole('complementary', { name: 'Napkins' });
-  const transcript = page.getByRole('list', { name: 'Napkin items' });
-  const composer = page.getByRole('form', { name: 'Add to napkin' });
+  const reading = page.getByRole('region', { name: 'Reading' });
+  const articles = page.locator('article.napkin-article');
+  const source = page.getByLabel('Content', { exact: true });
 
   await napkinRail.waitFor();
-  await page.locator('#current-napkin-name').waitFor();
-  await transcript.waitFor({ state: 'attached' });
-  await composer.waitFor();
-  assert.equal(await page.getByRole('button', { name: 'New napkin' }).count(), 1);
-  assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
-  assert.equal(await page.locator('article[tabindex="0"]').count(), 1);
+  await page.getByRole('heading', { name: 'Reading' }).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Add item' }).count(), 1);
-
-  const firstArticle = page.locator('article').nth(0);
-  const secondArticle = page.locator('article').nth(1);
-  if (await firstArticle.count() && await secondArticle.count()) {
-    await firstArticle.focus();
-    await firstArticle.press('ArrowDown');
-    assert.equal(await secondArticle.getAttribute('tabindex'), '0');
-    assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
-    await page.keyboard.press('Enter');
-    assert.equal(await page.getByRole('heading', { name: /Editing item 2/ }).count(), 1);
-    assert.equal(await page.getByRole('button', { name: 'Save changes' }).count(), 1);
-    await page.getByRole('button', { name: 'Cancel' }).click();
-    assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
-  }
-
-  await page.getByRole('button', { name: 'Add item' }).click();
-  assert.equal(await page.getByRole('heading', { name: /Adding to/ }).count(), 1);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  await page.getByRole('button', { name: 'Back to reading' }).click();
-  assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
-
-  const newNapkinButton = page.getByRole('button', { name: 'New napkin' });
-  const textMode = page.locator('#mode-switch input[value="text"]');
-  const equationMode = page.locator('#mode-switch input[value="equation"]');
-  await newNapkinButton.focus();
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  assert.equal(await page.evaluate(() => document.activeElement?.value), 'text');
-  assert.notEqual(await textMode.evaluate((input) => getComputedStyle(input.parentElement).outlineStyle), 'none');
-  await page.keyboard.press('ArrowRight');
-  assert.equal(await equationMode.isChecked(), true);
-  assert.equal(await page.evaluate(() => document.activeElement?.value), 'equation');
-  await page.keyboard.press('ArrowLeft');
-  assert.equal(await textMode.isChecked(), true);
+  assert.equal(await page.locator('#composer-dock').isHidden(), true);
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Proof ideas');
   await page.getByRole('button', { name: 'Create napkin' }).click();
   assert.equal(await napkinRail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Add item' }).count(), 1);
 
-  await page.locator('#mode-switch label').filter({ hasText: 'Text' }).click();
-  await page.getByLabel('Content', { exact: true }).fill('Let a be positive.');
+  await page.getByRole('button', { name: 'Add item' }).click();
+  assert.equal(await page.getByRole('heading', { name: 'Adding to Proof ideas' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  await source.fill('Let a be positive.');
   await page.getByRole('button', { name: 'Add note' }).click();
   await page.getByLabel('Note', { exact: true }).fill('Define the domain.');
-  await page.getByLabel('Content', { exact: true }).press('Enter');
+  await source.press('Enter');
 
-  const textItem = transcript.getByRole('listitem').first();
-  await textItem.waitFor();
-  assert.match(await textItem.textContent(), /Let a be positive/);
-  assert.match(await textItem.textContent(), /Define the domain/);
+  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
+  assert.equal(await articles.count(), 1);
+  assert.match(await articles.first().textContent(), /Let a be positive/);
+  assert.match(await articles.first().textContent(), /Define the domain/);
 
+  await page.getByRole('button', { name: 'Add item' }).click();
   await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
-  await page.getByLabel('Content', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
+  await source.fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
   await page.getByRole('button', { name: 'Add note' }).click();
   await page.getByLabel('Note', { exact: true }).fill('Fundamental theorem example.');
-  await page.getByLabel('Content', { exact: true }).press('Enter');
+  await source.press('Enter');
 
-  const equationItem = transcript.getByRole('listitem').nth(1);
-  await equationItem.waitFor();
-  assert.ok(await equationItem.locator('math mfrac').count());
-  assert.ok(await equationItem.locator('math msubsup').count());
-  assert.match(await equationItem.textContent(), /Fundamental theorem example/);
+  assert.equal(await articles.count(), 2);
+  assert.ok(await articles.nth(1).locator('math mfrac').count());
+  assert.ok(await articles.nth(1).locator('math msubsup').count());
+  assert.match(await articles.nth(1).textContent(), /Fundamental theorem example/);
 
-  const itemButton = equationItem.getByRole('button', { name: /Equation/ });
-  await itemButton.focus();
-  await itemButton.press('Enter');
-  assert.equal(await composer.getByRole('button', { name: 'Save item' }).count(), 1);
-  await page.getByLabel('Content', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
-  await page.getByRole('button', { name: 'Save item' }).click();
-  assert.match(await equationItem.locator('math').getAttribute('data-latex'), /3x\^2/);
-
-  assert.equal(await transcript.getByRole('listitem').count(), 2);
-  const textButton = textItem.getByRole('button');
-  await itemButton.focus();
-  await itemButton.press('ArrowUp');
-  assert.equal(await textButton.getAttribute('aria-current'), 'step');
-  await textButton.press('ArrowDown');
-  assert.equal(await itemButton.getAttribute('aria-current'), 'step');
-  await itemButton.press('Home');
-  assert.equal(await textButton.getAttribute('aria-current'), 'step');
-  await textButton.press('End');
-  assert.equal(await itemButton.getAttribute('aria-current'), 'step');
-  assert.match(await textItem.textContent(), /Define the domain/);
-  assert.match(await equationItem.textContent(), /Fundamental theorem example/);
-  await textButton.click();
-
-  const composerSource = page.getByLabel('Content', { exact: true });
-  await composerSource.fill('unsaved draft');
-  await composerSource.press('ArrowDown');
-  assert.equal(await itemButton.getAttribute('aria-current'), 'step');
-  assert.equal(await composerSource.inputValue(), 'unsaved draft');
-  assert.equal(await page.evaluate(() => document.activeElement?.className), 'item-select');
+  const firstArticle = articles.nth(0);
+  const secondArticle = articles.nth(1);
+  await firstArticle.focus();
+  await firstArticle.press('ArrowDown');
+  assert.equal(await secondArticle.getAttribute('tabindex'), '0');
+  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
   await page.keyboard.press('Enter');
-  assert.equal(await composer.getByRole('button', { name: 'Save item' }).count(), 1);
-  await composer.getByRole('button', { name: 'Cancel' }).click();
-  await composerSource.focus();
-  await composerSource.press('ArrowUp');
-  assert.equal(await textButton.getAttribute('aria-current'), 'step');
-  assert.equal(await composerSource.inputValue(), '');
+  assert.equal(await page.getByRole('heading', { name: 'Editing item 2' }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Save changes' }).count(), 1);
+  await source.fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
+  assert.match(await articles.nth(1).locator('math').getAttribute('data-latex'), /3x\^2/);
+
+  await secondArticle.focus();
+  await secondArticle.press('ArrowUp');
+  assert.equal(await firstArticle.getAttribute('tabindex'), '0');
+  await firstArticle.press('Home');
+  assert.equal(await firstArticle.getAttribute('tabindex'), '0');
+  await firstArticle.press('End');
+  assert.equal(await secondArticle.getAttribute('tabindex'), '0');
+
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await source.fill('unfinished draft');
+  await source.press('Escape');
+  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
+  assert.equal(await articles.count(), 2);
+
+  await page.getByRole('button', { name: 'Keyboard help' }).click();
+  assert.equal(await page.getByRole('dialog', { name: 'Keyboard help' }).count(), 1);
+  await page.getByRole('button', { name: 'Close' }).click();
+  await assertNoAxeViolations(page);
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Text notes');
   await page.getByRole('button', { name: 'Create napkin' }).click();
-  await page.locator('#mode-switch label').filter({ hasText: 'Text' }).click();
-  await page.getByLabel('Content', { exact: true }).fill('The proof starts here.');
-  await page.getByLabel('Content', { exact: true }).press('Enter');
-  assert.equal(await transcript.getByRole('listitem').count(), 1);
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await source.fill('The proof starts here.');
+  await source.press('Enter');
+  assert.equal(await articles.count(), 1);
 
   await napkinRail.getByRole('button', { name: 'Proof ideas' }).click();
-  assert.equal(await transcript.getByRole('listitem').count(), 2);
-  assert.match(await transcript.locator('math').getAttribute('data-latex'), /3x\^2/);
-
-  await page.evaluate(axe.source);
-  const scan = await page.evaluate(() => globalThis.axe.run());
-  assert.deepEqual(scan.violations, []);
-
+  assert.equal(await articles.count(), 2);
+  assert.match(await articles.nth(1).locator('math').getAttribute('data-latex'), /3x\^2/);
   const ariaSnapshot = await page.getByRole('main').ariaSnapshot();
-  assert.match(ariaSnapshot, /Add to napkin/);
-  assert.match(ariaSnapshot, /Napkin items/);
+  assert.match(ariaSnapshot, /Reading/);
+  assert.match(ariaSnapshot, /Napkin content/);
 
   await session.electronApp.close();
   session = await launch(dataDirectory);
   await session.page.getByRole('complementary', { name: 'Napkins' }).waitFor();
   await session.page.getByRole('button', { name: 'Proof ideas' }).click();
-  assert.match(await session.page.locator('math').getAttribute('data-latex'), /3x\^2/);
+  assert.match(await session.page.locator('article math').getAttribute('data-latex'), /3x\^2/);
 });

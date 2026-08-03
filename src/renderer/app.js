@@ -10,15 +10,20 @@ import {
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name', 'item-count',
-  'save-status', 'transcript', 'transcript-help', 'empty-message', 'composer-form',
-  'composer-heading', 'mode-switch', 'note-toggle', 'composer-source', 'note-row',
-  'composer-note', 'composer-help', 'composer-error', 'editing-indicator',
-  'composer-submit', 'composer-cancel', 'app-error', 'app-error-message', 'retry-save'
+  'save-status', 'reading-section', 'mode-label', 'reading-heading', 'reading-help',
+  'empty-message', 'transcript', 'reading-actions', 'open-add-button',
+  'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
+  'composer-form', 'composer-mode-label', 'composer-heading', 'composer-back',
+  'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
+  'composer-help', 'composer-error', 'editing-indicator', 'composer-submit',
+  'composer-discard', 'composer-cancel', 'app-error', 'app-error-message', 'retry-save'
 ].map((id) => [id, document.getElementById(id)]));
 
 let state;
+let mode = 'read';
 let editingItemId = null;
 let noteVisible = false;
+let draft = { source: '', note: '', type: 'text' };
 let selectionSaveTimer;
 let saveChain = Promise.resolve();
 
@@ -92,7 +97,7 @@ function renderNapkins() {
 
 function itemSummary(item, index, count) {
   const kind = item.type === 'equation' ? 'Equation' : 'Text';
-  return `${kind} ${index + 1} of ${count}: ${item.source}`;
+  return `${kind} item ${index + 1} of ${count}: ${item.source}`;
 }
 
 function appendMathML(container, mathml) {
@@ -112,16 +117,17 @@ function renderTranscript() {
   elements['item-count'].textContent = `${napkin.items.length} ${napkin.items.length === 1 ? 'item' : 'items'}`;
 
   for (const [index, item] of napkin.items.entries()) {
-    const row = document.createElement('li');
-    row.className = 'item-row';
-    row.dataset.itemId = item.id;
+    const article = document.createElement('article');
+    article.className = 'napkin-article';
+    article.tabIndex = item.id === napkin.selectedItemId ? 0 : -1;
+    article.dataset.itemId = item.id;
+    article.setAttribute('aria-posinset', String(index + 1));
+    article.setAttribute('aria-setsize', String(napkin.items.length));
 
-    const select = document.createElement('button');
-    select.type = 'button';
-    select.className = 'item-select';
-    select.dataset.itemId = item.id;
-    select.setAttribute('aria-label', itemSummary(item, index, napkin.items.length));
-    if (item.id === napkin.selectedItemId) select.setAttribute('aria-current', 'step');
+    const heading = document.createElement('h4');
+    heading.className = 'article-heading';
+    heading.id = `item-heading-${item.id}`;
+    heading.setAttribute('aria-label', itemSummary(item, index, napkin.items.length));
 
     const number = document.createElement('span');
     number.className = 'item-number';
@@ -132,7 +138,14 @@ function renderTranscript() {
     const source = document.createElement('span');
     source.className = 'item-source';
     source.textContent = item.source;
-    select.append(number, kind, source);
+    heading.append(number, kind, source);
+
+    const summary = document.createElement('p');
+    summary.className = 'sr-only';
+    summary.id = `item-summary-${item.id}`;
+    summary.textContent = `Source: ${item.source}${item.note ? `. Note: ${item.note}` : ''}`;
+    article.setAttribute('aria-labelledby', heading.id);
+    article.setAttribute('aria-describedby', summary.id);
 
     const content = document.createElement('div');
     content.className = 'item-content';
@@ -145,43 +158,58 @@ function renderTranscript() {
       content.append(text);
     }
 
-    row.append(select, content);
+    article.append(heading, summary, content);
     if (item.note) {
       const note = document.createElement('p');
       note.className = 'item-note';
       note.textContent = `Note: ${item.note}`;
-      row.append(note);
+      article.append(note);
     }
-    elements['transcript'].append(row);
+    elements['transcript'].append(article);
   }
 }
 
 function renderHeader() {
-  const napkin = activeNapkin();
-  elements['current-napkin-name'].textContent = napkin.name;
+  elements['current-napkin-name'].textContent = activeNapkin().name;
+}
+
+function renderMode() {
+  const reading = mode === 'read';
+  elements['reading-actions'].hidden = !reading;
+  elements['composer-dock'].hidden = reading;
+  elements['reading-help'].textContent = reading
+    ? 'Arrow keys move between items. Enter edits the focused item.'
+    : 'Reading remains available above. Escape returns without saving.';
 }
 
 function renderComposer() {
-  const editing = editingItemId !== null;
+  const editing = mode === 'edit';
   const item = editing ? activeItem() : null;
-  elements['composer-heading'].textContent = editing ? 'Edit item' : 'Add to napkin';
-  elements['composer-submit'].textContent = editing ? 'Save item' : 'Add item';
+  const values = editing
+    ? { source: item?.source ?? '', note: item?.note ?? '', type: item?.type ?? 'text' }
+    : draft;
+
+  elements['composer-mode-label'].textContent = editing ? 'EDITING' : 'ADDING';
+  elements['composer-heading'].textContent = editing
+    ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
+    : `Adding to ${activeNapkin().name}`;
+  elements['composer-submit'].textContent = editing ? 'Save changes' : 'Add item';
+  elements['composer-discard'].hidden = editing;
   elements['composer-cancel'].hidden = !editing;
-  elements['editing-indicator'].textContent = editing ? 'Editing the selected item' : '';
-  elements['composer-source'].value = item?.source ?? '';
-  elements['composer-note'].value = item?.note ?? '';
+  elements['editing-indicator'].textContent = editing ? 'Changes are not saved until you choose Save changes.' : '';
+  elements['composer-source'].value = values.source;
+  elements['composer-note'].value = values.note;
   elements['mode-switch'].querySelectorAll('input').forEach((input) => {
     input.disabled = editing;
-    input.checked = editing ? input.value === item.type : input.value === 'text';
+    input.checked = input.value === values.type;
   });
-  noteVisible = editing ? Boolean(item.note) : false;
+  if (editing) noteVisible = Boolean(values.note);
   elements['note-row'].hidden = !noteVisible;
-  elements['note-toggle'].hidden = editing && noteVisible;
   elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
   elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
   elements['composer-help'].textContent = editing
-    ? 'Save updates the selected item · Escape cancels'
-    : 'Enter adds · Shift+Enter makes a new line · Up/Down navigate items';
+    ? 'Save changes commits the item · Escape cancels'
+    : 'Enter adds · Shift+Enter makes a new line · Escape cancels';
   setFieldError(elements['composer-source'], elements['composer-error']);
 }
 
@@ -189,42 +217,55 @@ function renderAll() {
   renderNapkins();
   renderHeader();
   renderTranscript();
-  renderComposer();
+  renderMode();
+  if (mode !== 'read') renderComposer();
 }
 
-function focusSelectedItem() {
+function focusSelectedArticle() {
+  const napkin = activeNapkin();
   const item = activeItem();
-  const button = item && elements['transcript'].querySelector(`button.item-select[data-item-id="${CSS.escape(item.id)}"]`);
-  (button ?? elements['composer-source']).focus();
+  const article = item && elements['transcript'].querySelector(
+    `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
+  );
+  (article ?? elements['open-add-button']).focus();
 }
 
-function startEditing(itemId = activeNapkin().selectedItemId) {
-  if (!itemId) return;
-  state = selectItem(state, itemId);
-  editingItemId = itemId;
-  renderTranscript();
-  renderComposer();
+function resetDraft() {
+  draft = { source: '', note: '', type: 'text' };
+  noteVisible = false;
+}
+
+function returnToRead({ discardDraft = true } = {}) {
+  if (discardDraft) resetDraft();
+  mode = 'read';
+  editingItemId = null;
+  renderAll();
+  focusSelectedArticle();
+}
+
+function openAddMode() {
+  mode = 'add';
+  editingItemId = null;
+  resetDraft();
+  renderAll();
   elements['composer-source'].focus();
 }
 
-function stopEditing() {
-  editingItemId = null;
-  renderComposer();
-  focusSelectedItem();
-}
-
-function selectedType() {
-  return elements['mode-switch'].querySelector('input:checked')?.value === 'equation'
-    ? 'equation'
-    : 'text';
+function openEditMode(itemId = activeNapkin().selectedItemId) {
+  if (!itemId) return;
+  state = selectItem(state, itemId);
+  mode = 'edit';
+  editingItemId = itemId;
+  renderAll();
+  elements['composer-source'].focus();
 }
 
 function navigateItems(key) {
+  if (mode !== 'read') return false;
   const napkin = activeNapkin();
   if (napkin.items.length === 0) return false;
-
   const current = napkin.items.findIndex(({ id }) => id === napkin.selectedItemId);
-  let next;
+  let next = current;
   if (current === -1) {
     next = key === 'ArrowUp' || key === 'End' ? napkin.items.length - 1 : 0;
   } else if (key === 'ArrowUp') {
@@ -238,19 +279,27 @@ function navigateItems(key) {
   } else {
     return false;
   }
-
   state = selectItem(state, napkin.items[next].id);
   renderTranscript();
-  focusSelectedItem();
+  focusSelectedArticle();
+  elements['save-status'].textContent = `Item ${next + 1} of ${napkin.items.length}`;
   saveSelectionSoon();
   return true;
 }
 
+function selectedType() {
+  return elements['mode-switch'].querySelector('input:checked')?.value === 'equation'
+    ? 'equation'
+    : 'text';
+}
+
 async function submitComposer() {
+  if (mode !== 'add' && mode !== 'edit') return;
   const source = elements['composer-source'].value;
   const note = elements['composer-note'].value;
-  const editing = editingItemId !== null;
+  const editing = mode === 'edit';
   const type = editing ? activeItem().type : selectedType();
+  draft = { source, note, type };
   setFieldError(elements['composer-source'], elements['composer-error']);
 
   if (!source.trim()) {
@@ -273,16 +322,20 @@ async function submitComposer() {
 
   if (editing) {
     state = updateItem(state, editingItemId, { source, note, mathml });
-    editingItemId = null;
   } else {
     state = addItem(state, { type, source, note, mathml });
   }
+  resetDraft();
+  mode = 'read';
+  editingItemId = null;
   renderAll();
-  focusSelectedItem();
+  focusSelectedArticle();
+  elements['save-status'].textContent = editing ? 'Saved item' : 'Added item';
   await saveState().catch(() => {});
 }
 
 elements['new-napkin-button'].addEventListener('click', () => {
+  if (mode !== 'read') returnToRead();
   elements['new-napkin-form'].hidden = false;
   elements['napkin-name'].value = '';
   setFieldError(elements['napkin-name'], elements['napkin-name-error']);
@@ -304,20 +357,27 @@ elements['new-napkin-form'].addEventListener('submit', async (event) => {
     return;
   }
   elements['new-napkin-form'].hidden = true;
+  mode = 'read';
   renderAll();
-  elements['composer-source'].focus();
+  elements['open-add-button'].focus();
   await saveState().catch(() => {});
 });
 
 elements['napkin-list'].addEventListener('click', async (event) => {
   const button = event.target.closest('[data-napkin-id]');
   if (!button) return;
-  editingItemId = null;
+  returnToRead();
   state = switchNapkin(state, button.dataset.napkinId);
   renderAll();
   elements['save-status'].textContent = `Opened ${activeNapkin().name}`;
+  focusSelectedArticle();
   await saveState().catch(() => {});
 });
+
+elements['open-add-button'].addEventListener('click', openAddMode);
+elements['composer-back'].addEventListener('click', () => returnToRead());
+elements['composer-discard'].addEventListener('click', () => returnToRead());
+elements['composer-cancel'].addEventListener('click', () => returnToRead());
 
 elements['note-toggle'].addEventListener('click', () => {
   noteVisible = !noteVisible;
@@ -325,6 +385,16 @@ elements['note-toggle'].addEventListener('click', () => {
   elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
   elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
   if (noteVisible) elements['composer-note'].focus();
+});
+
+elements['composer-source'].addEventListener('input', () => {
+  draft.source = elements['composer-source'].value;
+});
+elements['composer-note'].addEventListener('input', () => {
+  draft.note = elements['composer-note'].value;
+});
+elements['mode-switch'].addEventListener('change', () => {
+  draft.type = selectedType();
 });
 
 elements['composer-source'].addEventListener('keydown', (event) => {
@@ -339,48 +409,48 @@ elements['composer-form'].addEventListener('submit', (event) => {
   void submitComposer();
 });
 
-elements['composer-cancel'].addEventListener('click', stopEditing);
-
 elements['composer-form'].addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && editingItemId !== null) {
+  if (event.key === 'Escape' && (mode === 'add' || mode === 'edit')) {
     event.preventDefault();
-    stopEditing();
-    return;
+    returnToRead();
   }
-  if (editingItemId !== null || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
-
-  const navigationKeys = ['ArrowUp', 'ArrowDown', 'Home', 'End'];
-  if (!navigationKeys.includes(event.key)) return;
-
-  const target = event.target;
-  if (target.matches('textarea')) {
-    // Preserve caret movement in multiline drafts. In a single-line draft,
-    // vertical arrows do not move the caret and can navigate the transcript.
-    if (!['ArrowUp', 'ArrowDown'].includes(event.key) || target.value.includes('\n')) return;
-  }
-
-  if (navigateItems(event.key)) event.preventDefault();
 });
 
 elements['transcript'].addEventListener('click', (event) => {
-  const button = event.target.closest('.item-select');
-  if (!button) return;
-  state = selectItem(state, button.dataset.itemId);
+  const article = event.target.closest('.napkin-article');
+  if (!article) return;
+  state = selectItem(state, article.dataset.itemId);
   renderTranscript();
+  focusSelectedArticle();
   saveSelectionSoon();
 });
 
 elements['transcript'].addEventListener('keydown', (event) => {
-  const button = event.target.closest('.item-select');
-  if (!button) return;
+  const article = event.target.closest('.napkin-article');
+  if (!article) return;
   if (event.key === 'Enter') {
     event.preventDefault();
-    startEditing(button.dataset.itemId);
+    openEditMode(article.dataset.itemId);
     return;
   }
   if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
   event.preventDefault();
   navigateItems(event.key);
+});
+
+elements['keyboard-help-button'].addEventListener('click', () => {
+  if (typeof elements['keyboard-help'].showModal === 'function') {
+    elements['keyboard-help'].showModal();
+  } else {
+    elements['keyboard-help'].hidden = false;
+  }
+});
+elements['close-keyboard-help'].addEventListener('click', () => {
+  if (typeof elements['keyboard-help'].close === 'function') {
+    elements['keyboard-help'].close();
+  } else {
+    elements['keyboard-help'].hidden = true;
+  }
 });
 
 elements['retry-save'].addEventListener('click', () => void saveState().catch(() => {}));
