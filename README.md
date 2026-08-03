@@ -1,48 +1,63 @@
 # Omniya Core
 
-**Omniya Core** is an open-source workspace for blind mathematicians to create, organize, navigate, and return to mathematical proofs over time.
+Omniya Core is an early experiment for blind mathematicians to create, navigate, and return to mathematical work. This repository currently contains a deliberately bare-bones Electron prototype for testing the idea of “math napkins.” It is not a finished product or a substitute for design work with blind mathematicians.
 
-## What It Is
+## Prototype capabilities
 
-Most mathematical software is designed visually and made accessible afterward.
+- Create and switch between local napkins.
+- Add plain text or LaTeX equations in a linear sequence.
+- Convert LaTeX to native MathML entirely offline.
+- Attach a plain-text note to every item.
+- Navigate items with the keyboard and edit earlier items.
+- Save committed changes to Electron's local `userData` directory.
 
-Omniya Core takes the opposite approach. It will be designed from the beginning with blind mathematicians, engineers, and screen-reader users.
+There are no accounts, cloud services, collaboration features, AI features, rich text, import/export, deletion, reordering, or release packaging.
 
-## Current Stage
+## Run from source
 
-The project is still at an early stage.
+The prototype requires a current Node.js installation.
 
-The first goal is to understand how blind mathematicians currently create and keep track of proofs, then build small experiments around those workflows.
+```bash
+npm install
+npm start
+```
 
-The structure of the workspace has intentionally not been finalized yet.
+All application code and MathJax resources are installed locally. The running app does not make network requests.
 
-## About Axiya
+## Keyboard interaction
 
-Omniya Core is maintained by **Axiya**, a company building accessibility-first tools for technical work.
+- Use Tab and Shift+Tab to move through ordinary controls.
+- In the item list, use Up/Down Arrow or Home/End to change selection.
+- Press Enter in the item list to edit the selected item.
+- Press Escape while editing to discard the draft and return to the item list.
+- Press Control+Enter, or Command+Enter on macOS, to add an item from the composer.
 
-Axiya also plans to build separate commercial products that use Omniya Core's open infrastructure.
+Only completed Add and Save actions are persisted; unfinished form drafts are not.
 
-## Open Source
+## Tests
 
-Omniya Core is licensed under the **Apache License 2.0**.
+```bash
+npm test
+npm run test:e2e
+npm run test:all
+```
 
-Anyone can:
+The unit tests cover the small state model, local JSON storage, and LaTeX-to-MathML conversion. The single Electron test exercises the complete offline workflow, keyboard focus, relaunch persistence, and an automated axe scan.
 
-* Use it
-* Modify it
-* Contribute to it
-* Fork it
-* Build products on top of it
+Automated tests cannot establish that the workflow is genuinely usable. Before expanding this prototype, manually complete the workflow with VoiceOver on macOS and NVDA on Windows, and then evaluate it with blind mathematicians. Pay particular attention to item-selection announcements, MathML navigation, editing context, error recovery, and focus after every action.
 
-## Contributing
+## Minimal structure
 
-We are looking for:
+- `src/main.js` creates the secure Electron window and three IPC handlers.
+- `src/preload.cjs` exposes load, save, and LaTeX conversion methods.
+- `src/domain/model.js` contains the napkin data operations.
+- `src/main/mathml.js` and `src/main/storage.js` contain the two Node-side helpers.
+- `src/renderer/app.js` contains the complete renderer behavior.
 
-* Blind mathematicians
-* Blind STEM students
-* Screen-reader users
-* Accessibility engineers
-* Designers
-* Developers
+The data file is named `napkins.json` inside the platform-specific directory returned by Electron's `app.getPath('userData')`.
 
-The goal is to shape Omniya Core collaboratively before its architecture becomes fixed.
+## Project direction
+
+Most mathematical software is designed visually and made accessible afterward. Omniya Core is intended to explore the opposite approach with blind mathematicians, screen-reader users, accessibility engineers, and blind STEM students before its architecture becomes fixed.
+
+The project is maintained by Axiya and licensed under the Apache License 2.0.
