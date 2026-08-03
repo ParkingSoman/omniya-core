@@ -1,0 +1,231 @@
+export const SCHEMA_VERSION = 1;
+
+function defaultIdFactory() {
+  return globalThis.crypto.randomUUID();
+}
+
+function requiredTrimmed(value, message) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new TypeError(message);
+  }
+  return value.trim();
+}
+
+function normalizeNote(note) {
+  if (typeof note !== 'string') {
+    throw new TypeError('Item note must be a string');
+  }
+  return note;
+}
+
+function normalizeItem(item, id) {
+  if (!item || (item.type !== 'text' && item.type !== 'equation')) {
+    throw new TypeError('Item type must be text or equation');
+  }
+
+  const source = requiredTrimmed(item.source, 'Item source is required');
+  const note = normalizeNote(item.note);
+
+  if (item.type === 'text' && item.mathml !== null) {
+    throw new TypeError('Text items cannot contain MathML');
+  }
+  if (item.type === 'equation' &&
+      (typeof item.mathml !== 'string' || !item.mathml.trim().startsWith('<math'))) {
+    throw new TypeError('Equation items require MathML');
+  }
+
+  return {
+    id,
+    type: item.type,
+    source,
+    note,
+    mathml: item.type === 'text' ? null : item.mathml.trim()
+  };
+}
+
+export function createInitialState({ idFactory = defaultIdFactory } = {}) {
+  const napkinId = idFactory();
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    activeNapkinId: napkinId,
+    napkins: [{
+      id: napkinId,
+      name: 'Untitled Napkin',
+      selectedItemId: null,
+      items: []
+    }]
+  };
+}
+
+export function validateState(value) {
+  const issues = [];
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { ok: false, issues: ['State must be an object'] };
+  }
+  if (value.schemaVersion !== SCHEMA_VERSION) {
+    issues.push(`schemaVersion must be ${SCHEMA_VERSION}`);
+  }
+  if (!Array.isArray(value.napkins) || value.napkins.length === 0) {
+    issues.push('State must contain at least one napkin');
+    return { ok: false, issues };
+  }
+
+  const napkinIds = new Set();
+  const itemIds = new Set();
+
+  for (const napkin of value.napkins) {
+    if (!napkin || typeof napkin !== 'object' || Array.isArray(napkin)) {
+      issues.push('Every napkin must be an object');
+      continue;
+    }
+    if (typeof napkin.id !== 'string' || napkin.id === '') {
+      issues.push('Every napkin must have a string id');
+    } else if (napkinIds.has(napkin.id)) {
+      issues.push(`Duplicate napkin id: ${napkin.id}`);
+    } else {
+      napkinIds.add(napkin.id);
+    }
+    if (typeof napkin.name !== 'string' || napkin.name.trim() === '') {
+      issues.push(`Napkin ${napkin.id ?? '(unknown)'} requires a name`);
+    }
+    if (!Array.isArray(napkin.items)) {
+      issues.push(`Napkin ${napkin.id ?? '(unknown)'} items must be an array`);
+      continue;
+    }
+
+    const napkinItemIds = new Set();
+    for (const item of napkin.items) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        issues.push('Every item must be an object');
+        continue;
+      }
+      if (typeof item.id !== 'string' || item.id === '') {
+        issues.push('Every item must have a string id');
+      } else {
+        if (itemIds.has(item.id)) issues.push(`Duplicate item id: ${item.id}`);
+        itemIds.add(item.id);
+        napkinItemIds.add(item.id);
+      }
+      if (item.type !== 'text' && item.type !== 'equation') {
+        issues.push(`Item ${item.id ?? '(unknown)'} type must be text or equation`);
+      }
+      if (typeof item.source !== 'string' || item.source.trim() === '') {
+        issues.push(`Item ${item.id ?? '(unknown)'} source is required`);
+      }
+      if (typeof item.note !== 'string') {
+        issues.push(`Item ${item.id ?? '(unknown)'} note must be a string`);
+      }
+      if (item.type === 'text' && item.mathml !== null) {
+        issues.push('Text items cannot contain MathML');
+      }
+      if (item.type === 'equation' &&
+          (typeof item.mathml !== 'string' || !item.mathml.trim().startsWith('<math'))) {
+        issues.push('Equation items require MathML');
+      }
+    }
+
+    if (napkin.selectedItemId !== null &&
+        (typeof napkin.selectedItemId !== 'string' || !napkinItemIds.has(napkin.selectedItemId))) {
+      issues.push(`Napkin ${napkin.id ?? '(unknown)'} selectedItemId is invalid`);
+    }
+  }
+
+  if (typeof value.activeNapkinId !== 'string' || !napkinIds.has(value.activeNapkinId)) {
+    issues.push('activeNapkinId must reference an existing napkin');
+  }
+
+  return { ok: issues.length === 0, issues };
+}
+
+export function assertValidState(state) {
+  const validation = validateState(state);
+  if (!validation.ok) {
+    throw new TypeError(`Invalid application state: ${validation.issues.join('; ')}`);
+  }
+  return state;
+}
+
+export function getActiveNapkin(state) {
+  assertValidState(state);
+  const napkin = state.napkins.find(({ id }) => id === state.activeNapkinId);
+  if (!napkin) throw new RangeError('Active napkin not found');
+  return napkin;
+}
+
+export function createNapkin(state, name, { idFactory = defaultIdFactory } = {}) {
+  assertValidState(state);
+  const normalizedName = requiredTrimmed(name, 'Napkin name is required');
+  const id = idFactory();
+  return {
+    ...state,
+    activeNapkinId: id,
+    napkins: [...state.napkins, {
+      id,
+      name: normalizedName,
+      selectedItemId: null,
+      items: []
+    }]
+  };
+}
+
+export function switchNapkin(state, napkinId) {
+  assertValidState(state);
+  if (!state.napkins.some(({ id }) => id === napkinId)) {
+    throw new RangeError('Napkin not found');
+  }
+  return { ...state, activeNapkinId: napkinId };
+}
+
+export function addItem(state, input, { idFactory = defaultIdFactory } = {}) {
+  assertValidState(state);
+  const item = normalizeItem(input, idFactory());
+  return {
+    ...state,
+    napkins: state.napkins.map((napkin) => napkin.id === state.activeNapkinId
+      ? {
+          ...napkin,
+          selectedItemId: item.id,
+          items: [...napkin.items, item]
+        }
+      : napkin)
+  };
+}
+
+export function updateItem(state, itemId, changes) {
+  assertValidState(state);
+  const activeNapkin = getActiveNapkin(state);
+  const existing = activeNapkin.items.find(({ id }) => id === itemId);
+  if (!existing) throw new RangeError('Item not found');
+
+  const updated = normalizeItem({
+    ...existing,
+    source: changes.source,
+    note: changes.note,
+    mathml: changes.mathml
+  }, existing.id);
+
+  return {
+    ...state,
+    napkins: state.napkins.map((napkin) => napkin.id === state.activeNapkinId
+      ? {
+          ...napkin,
+          selectedItemId: updated.id,
+          items: napkin.items.map((item) => item.id === updated.id ? updated : item)
+        }
+      : napkin)
+  };
+}
+
+export function selectItem(state, itemId) {
+  assertValidState(state);
+  const activeNapkin = getActiveNapkin(state);
+  if (!activeNapkin.items.some(({ id }) => id === itemId)) {
+    throw new RangeError('Item not found');
+  }
+  return {
+    ...state,
+    napkins: state.napkins.map((napkin) => napkin.id === state.activeNapkinId
+      ? { ...napkin, selectedItemId: itemId }
+      : napkin)
+  };
+}
