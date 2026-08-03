@@ -38,6 +38,20 @@ test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async 
   await composer.waitFor();
   assert.equal(await page.getByRole('button', { name: 'New napkin' }).count(), 1);
 
+  const newNapkinButton = page.getByRole('button', { name: 'New napkin' });
+  const textMode = page.locator('#mode-switch input[value="text"]');
+  const equationMode = page.locator('#mode-switch input[value="equation"]');
+  await newNapkinButton.focus();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.value), 'text');
+  assert.notEqual(await textMode.evaluate((input) => getComputedStyle(input.parentElement).outlineStyle), 'none');
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await equationMode.isChecked(), true);
+  assert.equal(await page.evaluate(() => document.activeElement?.value), 'equation');
+  await page.keyboard.press('ArrowLeft');
+  assert.equal(await textMode.isChecked(), true);
+
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Proof ideas');
   await page.getByRole('button', { name: 'Create napkin' }).click();

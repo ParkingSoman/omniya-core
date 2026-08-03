@@ -52,8 +52,9 @@
           <form id="composer-form" aria-label="Add to napkin">
             <div class="composer-bar">
               <h3 id="composer-heading">Add to napkin</h3>
-              <fieldset id="mode-switch" aria-label="Input type">
+              <fieldset id="mode-switch" aria-label="Input type" aria-describedby="mode-help">
                 <legend class="sr-only">Input type</legend>
+                <span id="mode-help" class="sr-only">Use Left and Right Arrow keys to switch between Text and Equation.</span>
                 <label><input type="radio" name="item-type" value="text" checked> <span>Text</span></label>
                 <label><input type="radio" name="item-type" value="equation"> <span>Equation</span></label>
               </fieldset>

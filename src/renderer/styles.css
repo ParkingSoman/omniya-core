@@ -92,10 +92,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .composer-bar { gap: 0.7rem; justify-content: space-between; margin-bottom: 0.5rem; }
 .composer-bar h3 { font-size: 0.8rem; margin: 0 auto 0 0; }
 #mode-switch { border: 0; display: flex; gap: 0.25rem; margin: 0; padding: 0; }
-#mode-switch label { border: 1px solid var(--line); border-radius: 999px; color: var(--muted); cursor: pointer; font-size: 0.72rem; padding: 0.22rem 0.55rem; }
+#mode-switch label { align-items: center; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); cursor: pointer; display: inline-flex; font-size: 0.72rem; gap: 0.3rem; padding: 0.22rem 0.55rem; }
 #mode-switch label span { pointer-events: none; }
 #mode-switch label:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); color: #8e3e21; }
-#mode-switch input { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+#mode-switch label:has(input:focus-visible) { outline: 0.18rem solid var(--accent); outline-offset: 0.12rem; }
+#mode-switch input { accent-color: var(--accent); height: 0.9rem; margin: 0; width: 0.9rem; }
 #note-toggle { background: transparent; border: 0; color: var(--muted); font-size: 0.75rem; padding: 0.25rem; }
 #note-toggle[aria-expanded="true"] { color: var(--accent); }
 #composer-source, #composer-note { background: white; border: 1px solid #bec8cd; border-radius: 0.35rem; color: var(--rail); padding: 0.65rem 0.75rem; resize: vertical; width: 100%; }
