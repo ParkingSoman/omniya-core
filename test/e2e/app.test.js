@@ -108,10 +108,14 @@ test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async 
   await composerSource.press('ArrowDown');
   assert.equal(await itemButton.getAttribute('aria-current'), 'step');
   assert.equal(await composerSource.inputValue(), 'unsaved draft');
+  assert.equal(await page.evaluate(() => document.activeElement?.className), 'item-select');
+  await page.keyboard.press('Enter');
+  assert.equal(await composer.getByRole('button', { name: 'Save item' }).count(), 1);
+  await composer.getByRole('button', { name: 'Cancel' }).click();
   await composerSource.focus();
   await composerSource.press('ArrowUp');
   assert.equal(await textButton.getAttribute('aria-current'), 'step');
-  assert.equal(await composerSource.inputValue(), 'unsaved draft');
+  assert.equal(await composerSource.inputValue(), '');
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Text notes');

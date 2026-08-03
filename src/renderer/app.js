@@ -194,7 +194,7 @@ function renderAll() {
 
 function focusSelectedItem() {
   const item = activeItem();
-  const button = item && elements['transcript'].querySelector(`[data-item-id="${CSS.escape(item.id)}"]`);
+  const button = item && elements['transcript'].querySelector(`button.item-select[data-item-id="${CSS.escape(item.id)}"]`);
   (button ?? elements['composer-source']).focus();
 }
 
