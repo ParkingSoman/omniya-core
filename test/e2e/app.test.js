@@ -43,6 +43,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.getByRole('heading', { name: 'Reading' }).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Add item' }).count(), 1);
   assert.equal(await page.locator('#composer-dock').isHidden(), true);
+  await assertNoAxeViolations(page);
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Proof ideas');
@@ -53,6 +54,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.getByRole('button', { name: 'Add item' }).click();
   assert.equal(await page.getByRole('heading', { name: 'Adding to Proof ideas' }).count(), 1);
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  await assertNoAxeViolations(page);
   await source.fill('Let a be positive.');
   await page.getByRole('button', { name: 'Add note' }).click();
   await page.getByLabel('Note', { exact: true }).fill('Define the domain.');
@@ -84,6 +86,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.keyboard.press('Enter');
   assert.equal(await page.getByRole('heading', { name: 'Editing item 2' }).count(), 1);
   assert.equal(await page.getByRole('button', { name: 'Save changes' }).count(), 1);
+  await assertNoAxeViolations(page);
   await source.fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
   await page.getByRole('button', { name: 'Save changes' }).click();
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
@@ -103,10 +106,17 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   assert.equal(await articles.count(), 2);
 
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
+  await source.fill('\\frac{');
+  await source.press('Enter');
+  assert.equal(await page.getByText('The LaTeX could not be converted. Check its syntax.').count(), 1);
+  await assertNoAxeViolations(page);
+  await page.getByRole('button', { name: 'Discard draft' }).click();
+
   await page.getByRole('button', { name: 'Keyboard help' }).click();
   assert.equal(await page.getByRole('dialog', { name: 'Keyboard help' }).count(), 1);
   await page.getByRole('button', { name: 'Close' }).click();
-  await assertNoAxeViolations(page);
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Text notes');

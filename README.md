@@ -11,7 +11,7 @@ Omniya Core is an early experiment for blind mathematicians to create, navigate,
 - Navigate items with the keyboard and edit earlier items.
 - Save committed changes to Electron's local `userData` directory.
 
-The UI is intentionally condensed: a left napkin rail, a center transcript of work, and a small composer dock at the bottom. The composer switches between Text and Equation and reveals the note field only when needed.
+The UI is read-first: a left napkin rail and a center transcript show only committed text, MathML, and notes. `Add item` opens a separate compact add mode; Enter on a focused article opens the same panel in edit mode. This keeps reading and writing from competing for the same keyboard commands.
 
 There are no accounts, cloud services, collaboration features, AI features, rich text, import/export, deletion, reordering, or release packaging.
 
@@ -29,10 +29,12 @@ All application code and MathJax resources are installed locally. The running ap
 ## Keyboard interaction
 
 - Use Tab and Shift+Tab to move through ordinary controls.
-- In the item list, use Up/Down Arrow or Home/End to change selection.
-- Press Enter in the item list to edit the selected item.
-- Press Escape while editing to discard the draft and return to the item list.
-- Press Enter in the composer to add an item; use Shift+Enter for a new line.
+- In Read mode, use Up/Down Arrow or Home/End to move between focused items.
+- Press Enter on a focused item to edit it.
+- Activate `Add item` to enter Add mode; focus moves to Content.
+- In Add mode, press Enter to add, Shift+Enter for a new line, and Escape to discard and return to reading.
+- In Edit mode, choose Save changes or press Escape/Cancel to return to reading.
+- Arrow keys inside textareas retain normal cursor movement.
 
 Only completed Add and Save actions are persisted; unfinished form drafts are not.
 
@@ -44,7 +46,7 @@ npm run test:e2e
 npm run test:all
 ```
 
-The unit tests cover the small state model, local JSON storage, and LaTeX-to-MathML conversion. The single Electron test exercises the complete offline workflow, keyboard focus, relaunch persistence, and an automated axe scan.
+The unit tests cover the small state model, local JSON storage, and LaTeX-to-MathML conversion. The Electron test exercises the read/add/edit modes, semantic article focus, notes, MathML, keyboard navigation, relaunch persistence, offline behavior, and axe scans across initial, add, edit, and error states.
 
 Automated tests cannot establish that the workflow is genuinely usable. Before expanding this prototype, manually complete the workflow with VoiceOver on macOS and NVDA on Windows, and then evaluate it with blind mathematicians. Pay particular attention to item-selection announcements, MathML navigation, editing context, error recovery, and focus after every action.
 
