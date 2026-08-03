@@ -43,6 +43,12 @@ function clearAppError() {
   elements['app-error-message'].textContent = '';
 }
 
+function disableInteractiveControls() {
+  document.querySelectorAll('button, input, textarea').forEach((control) => {
+    control.disabled = true;
+  });
+}
+
 function setFieldError(field, output, message = '') {
   field.setAttribute('aria-invalid', message ? 'true' : 'false');
   output.textContent = message;
@@ -348,12 +354,17 @@ elements['transcript'].addEventListener('keydown', (event) => {
 
 elements['retry-save'].addEventListener('click', () => void saveState().catch(() => {}));
 
-try {
-  const loaded = await window.omniya.loadState();
-  state = loaded.state;
-  renderAll();
-  if (loaded.warning) showError(loaded.warning);
-} catch {
-  showError('The napkins could not be loaded.');
+if (!globalThis.omniya?.loadState) {
+  disableInteractiveControls();
+  showError('Run this prototype with “npm start”; the Electron preload bridge is required.');
+} else {
+  try {
+    const loaded = await window.omniya.loadState();
+    state = loaded.state;
+    renderAll();
+    if (loaded.warning) showError(loaded.warning);
+  } catch {
+    showError('The napkins could not be loaded.');
+  }
 }
 elements['app-shell'].setAttribute('aria-busy', 'false');

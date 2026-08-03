@@ -43,41 +43,51 @@ test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async 
   await page.getByRole('button', { name: 'Create napkin' }).click();
   assert.equal(await napkinRail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
 
-  await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
-  await page.getByLabel('Content', { exact: true }).fill('x^2 + y^2');
+  await page.locator('#mode-switch label').filter({ hasText: 'Text' }).click();
+  await page.getByLabel('Content', { exact: true }).fill('Let a be positive.');
   await page.getByRole('button', { name: 'Add note' }).click();
-  await page.getByLabel('Note', { exact: true }).fill('Pythagorean expression');
+  await page.getByLabel('Note', { exact: true }).fill('Define the domain.');
   await page.getByLabel('Content', { exact: true }).press('Enter');
 
-  const item = transcript.getByRole('listitem').first();
-  await item.waitFor();
-  assert.ok(await item.locator('math msup').count());
-  assert.match(await item.textContent(), /Pythagorean expression/);
+  const textItem = transcript.getByRole('listitem').first();
+  await textItem.waitFor();
+  assert.match(await textItem.textContent(), /Let a be positive/);
+  assert.match(await textItem.textContent(), /Define the domain/);
 
-  const itemButton = item.getByRole('button', { name: /Equation/ });
+  await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
+  await page.getByLabel('Content', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
+  await page.getByRole('button', { name: 'Add note' }).click();
+  await page.getByLabel('Note', { exact: true }).fill('Fundamental theorem example.');
+  await page.getByLabel('Content', { exact: true }).press('Enter');
+
+  const equationItem = transcript.getByRole('listitem').nth(1);
+  await equationItem.waitFor();
+  assert.ok(await equationItem.locator('math mfrac').count());
+  assert.ok(await equationItem.locator('math msubsup').count());
+  assert.match(await equationItem.textContent(), /Fundamental theorem example/);
+
+  const itemButton = equationItem.getByRole('button', { name: /Equation/ });
   await itemButton.focus();
   await itemButton.press('Enter');
   assert.equal(await composer.getByRole('button', { name: 'Save item' }).count(), 1);
-  await page.getByLabel('Content', { exact: true }).fill('x^3 + y^3');
+  await page.getByLabel('Content', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
   await page.getByRole('button', { name: 'Save item' }).click();
-  assert.match(await item.locator('math').getAttribute('data-latex'), /x\^3/);
+  assert.match(await equationItem.locator('math').getAttribute('data-latex'), /3x\^2/);
 
-  await page.locator('#mode-switch label').filter({ hasText: 'Text' }).click();
-  await page.getByLabel('Content', { exact: true }).fill('A supporting sentence.');
-  await page.getByLabel('Content', { exact: true }).press('Enter');
   assert.equal(await transcript.getByRole('listitem').count(), 2);
-  const secondItem = transcript.getByRole('listitem').nth(1);
-  const secondButton = secondItem.getByRole('button');
-  await secondButton.focus();
-  await secondButton.press('ArrowUp');
-  assert.equal(await transcript.getByRole('listitem').first().getByRole('button').getAttribute('aria-current'), 'step');
-  await transcript.getByRole('listitem').first().getByRole('button').press('ArrowDown');
-  assert.equal(await secondItem.getByRole('button').getAttribute('aria-current'), 'step');
-  await secondItem.getByRole('button').press('Home');
-  assert.equal(await transcript.getByRole('listitem').first().getByRole('button').getAttribute('aria-current'), 'step');
-  await transcript.getByRole('listitem').first().getByRole('button').press('End');
-  assert.equal(await secondItem.getByRole('button').getAttribute('aria-current'), 'step');
-  await transcript.getByRole('listitem').first().getByRole('button').click();
+  const textButton = textItem.getByRole('button');
+  await itemButton.focus();
+  await itemButton.press('ArrowUp');
+  assert.equal(await textButton.getAttribute('aria-current'), 'step');
+  await textButton.press('ArrowDown');
+  assert.equal(await itemButton.getAttribute('aria-current'), 'step');
+  await itemButton.press('Home');
+  assert.equal(await textButton.getAttribute('aria-current'), 'step');
+  await textButton.press('End');
+  assert.equal(await itemButton.getAttribute('aria-current'), 'step');
+  assert.match(await textItem.textContent(), /Define the domain/);
+  assert.match(await equationItem.textContent(), /Fundamental theorem example/);
+  await textButton.click();
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Text notes');
@@ -89,7 +99,7 @@ test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async 
 
   await napkinRail.getByRole('button', { name: 'Proof ideas' }).click();
   assert.equal(await transcript.getByRole('listitem').count(), 2);
-  assert.match(await transcript.locator('math').getAttribute('data-latex'), /x\^3/);
+  assert.match(await transcript.locator('math').getAttribute('data-latex'), /3x\^2/);
 
   await page.evaluate(axe.source);
   const scan = await page.evaluate(() => globalThis.axe.run());
@@ -103,5 +113,5 @@ test('supports a condensed offline napkin workflow', { timeout: 60_000 }, async 
   session = await launch(dataDirectory);
   await session.page.getByRole('complementary', { name: 'Napkins' }).waitFor();
   await session.page.getByRole('button', { name: 'Proof ideas' }).click();
-  assert.match(await session.page.locator('math').getAttribute('data-latex'), /x\^3/);
+  assert.match(await session.page.locator('math').getAttribute('data-latex'), /3x\^2/);
 });
