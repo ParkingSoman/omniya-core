@@ -39,19 +39,32 @@
           </div>
         </header>
 
-        <section id="transcript-section" aria-labelledby="transcript-heading">
-          <div class="transcript-heading">
-            <h3 id="transcript-heading">Work</h3>
-            <p id="transcript-help">Arrow keys move between items. Enter edits the focused item.</p>
+        <section id="reading-section" aria-labelledby="reading-heading">
+          <div class="reading-heading">
+            <div>
+              <p class="eyebrow" id="mode-label">READING</p>
+              <h3 id="reading-heading">Reading</h3>
+            </div>
+            <p id="reading-help">Arrow keys move between items. Enter edits the focused item.</p>
           </div>
-          <p id="empty-message">Start with a thought below.</p>
-          <ol id="transcript" aria-label="Napkin items"></ol>
+          <p id="empty-message">No items yet. Add the first item below.</p>
+          <div id="transcript" aria-label="Napkin content"></div>
+          <div class="reading-actions">
+            <button id="open-add-button" type="button">Add item</button>
+            <button id="keyboard-help-button" type="button">Keyboard help</button>
+          </div>
         </section>
 
-        <section id="composer-dock" aria-labelledby="composer-heading">
-          <form id="composer-form" aria-label="Add to napkin">
+        <section id="composer-dock" aria-labelledby="composer-heading" hidden>
+          <form id="composer-form" aria-label="Napkin item form">
             <div class="composer-bar">
-              <h3 id="composer-heading">Add to napkin</h3>
+              <div>
+                <p class="eyebrow" id="composer-mode-label">ADDING</p>
+                <h3 id="composer-heading">Adding to napkin</h3>
+              </div>
+              <button id="composer-back" type="button">Back to reading</button>
+            </div>
+            <div class="composer-options">
               <fieldset id="mode-switch" aria-label="Input type" aria-describedby="mode-help">
                 <legend class="sr-only">Input type</legend>
                 <span id="mode-help" class="sr-only">Use Left and Right Arrow keys to switch between Text and Equation.</span>
@@ -72,10 +85,19 @@
             <div class="composer-footer">
               <span id="editing-indicator" class="muted"></span>
               <button id="composer-submit" type="submit">Add item</button>
+              <button id="composer-discard" type="button">Discard draft</button>
               <button id="composer-cancel" type="button" hidden>Cancel</button>
             </div>
           </form>
         </section>
+
+        <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
+          <h3 id="keyboard-help-heading">Keyboard help</h3>
+          <p><strong>Reading:</strong> Up/Down moves between items. Home/End jumps to the first or last. Enter edits.</p>
+          <p><strong>Adding:</strong> Tab moves through fields. Enter adds. Shift+Enter makes a new line. Escape cancels.</p>
+          <p><strong>Editing:</strong> Save changes commits the item. Escape or Cancel returns to reading.</p>
+          <button id="close-keyboard-help" type="button">Close</button>
+        </dialog>
 
         <div id="app-error" role="alert" hidden>
           <span id="app-error-message"></span>
