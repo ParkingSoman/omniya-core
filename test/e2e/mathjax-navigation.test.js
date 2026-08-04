@@ -1,0 +1,239 @@
+import assert from 'node:assert/strict';
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+import { _electron as electron } from 'playwright';
+
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+
+async function launch(dataDirectory) {
+  const electronApp = await electron.launch({
+    args: ['.'],
+    cwd: projectRoot,
+    env: { ...process.env, OMNIYA_TEST_USER_DATA_DIR: dataDirectory }
+  });
+  const page = await electronApp.firstWindow();
+  await electronApp.context().setOffline(true);
+  await page.waitForLoadState('domcontentloaded');
+  return { electronApp, page };
+}
+
+async function startSession(t, prefix = 'omniya-mathjax-e2e-') {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), prefix));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+  return session;
+}
+
+test('recovers from corrupt local napkin data without leaving the app unusable', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-corrupt-e2e-'));
+  await writeFile(path.join(dataDirectory, 'napkins.json'), '{not valid json', 'utf8');
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  assert.equal(await session.page.getByRole('heading', { name: 'Untitled Napkin' }).count(), 1);
+  assert.equal(await session.page.getByRole('alert').filter({ hasText: 'could not be read' }).count(), 1);
+  assert.equal(await session.page.getByRole('button', { name: 'Add item' }).count(), 1);
+});
+
+async function addEquation(page, source, note = '') {
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await page.getByRole('radio', { name: 'Equation' }).check();
+  const content = page.getByLabel('Content', { exact: true });
+  await content.fill(source);
+  if (note) {
+    await page.getByRole('button', { name: 'Add note' }).click();
+    await page.getByLabel('Note', { exact: true }).fill(note);
+  }
+  await content.press('Enter');
+  const article = page.locator('article.napkin-article').last();
+  await article.locator('mjx-container').waitFor();
+  await article.locator('mjx-speech').waitFor();
+  return article;
+}
+
+async function enterEquation(page, article) {
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+}
+
+async function speechLabel(article) {
+  return article.locator('mjx-speech').getAttribute('aria-label');
+}
+
+async function waitForSpeechChange(page, article, previous) {
+  await page.waitForFunction(
+    ({ selector, previousLabel }) => document.querySelector(selector)?.getAttribute('aria-label') !== previousLabel,
+    { selector: 'article.napkin-article mjx-speech', previousLabel: previous }
+  );
+}
+
+test('renders accessible MathML and supports complete tree navigation', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t);
+  const article = await addEquation(page, 'a+b');
+  const container = article.locator('mjx-container');
+  const math = container.locator('math');
+
+  assert.equal(await math.count(), 1);
+  assert.equal(await math.getAttribute('xmlns'), 'http://www.w3.org/1998/Math/MathML');
+  assert.equal(await math.getAttribute('aria-hidden'), null);
+  assert.equal(await math.locator('mi').count(), 2);
+  assert.equal(await math.locator('mo').count(), 1);
+  assert.equal(await container.locator('mjx-speech').count(), 1);
+  const semanticRelationships = await container.locator('[data-semantic-id][data-semantic-children]').evaluateAll(
+    (nodes) => nodes.map((node) => ({
+      children: node.getAttribute('data-semantic-children'),
+      owns: node.getAttribute('data-semantic-owns')
+    }))
+  );
+  assert.ok(semanticRelationships.length > 0);
+  assert.ok(semanticRelationships.every(({ owns }) => owns));
+
+  await enterEquation(page, article);
+  const root = await speechLabel(article);
+  await page.keyboard.press('ArrowDown');
+  await waitForSpeechChange(page, article, root);
+  const first = await speechLabel(article);
+  assert.equal(first, 'a');
+
+  await page.keyboard.press('ArrowRight');
+  await waitForSpeechChange(page, article, first);
+  const operator = await speechLabel(article);
+  assert.equal(operator, 'plus');
+
+  await page.keyboard.press('ArrowRight');
+  await waitForSpeechChange(page, article, operator);
+  const second = await speechLabel(article);
+  assert.equal(second, 'b');
+
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(150);
+  assert.equal(await speechLabel(article), second, 'Right should stop at the final sibling');
+
+  await page.keyboard.press('ArrowLeft');
+  await waitForSpeechChange(page, article, second);
+  assert.equal(await speechLabel(article), operator);
+  await page.keyboard.press('ArrowLeft');
+  await waitForSpeechChange(page, article, operator);
+  assert.equal(await speechLabel(article), first);
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForTimeout(150);
+  assert.equal(await speechLabel(article), first, 'Left should stop at the first sibling');
+
+  await page.keyboard.press('ArrowUp');
+  await waitForSpeechChange(page, article, first);
+  const topLevel = await speechLabel(article);
+  assert.equal(topLevel, 'a plus b');
+  await page.keyboard.press('Home');
+  await page.waitForTimeout(150);
+  assert.equal(await speechLabel(article), topLevel);
+
+  await page.keyboard.press('Escape');
+  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+  assert.equal(await page.evaluate(() => document.activeElement?.closest?.('mjx-container')?.localName), 'mjx-container');
+  await page.keyboard.press('Escape');
+});
+
+test('preserves nested MathML structure and regenerates equations on edit', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-edit-e2e-');
+  const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}', 'original expression');
+  const math = article.locator('mjx-container math');
+
+  assert.equal(await math.locator('mfrac').count(), 1);
+  assert.equal(await math.locator('msup').count(), 1);
+  assert.equal(await math.locator('msqrt').count(), 1);
+  assert.match(await article.textContent(), /original expression/);
+
+  await article.focus();
+  await page.keyboard.press('e');
+  const source = page.getByLabel('Content', { exact: true });
+  await source.fill('\\frac{');
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  assert.equal(await page.getByRole('heading', { name: 'Editing item 1' }).count(), 1);
+  assert.equal(await page.getByText('The LaTeX could not be converted. Check its syntax.').count(), 1);
+  assert.equal(await source.inputValue(), '\\frac{');
+  assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
+  assert.match(await article.textContent(), /original expression/);
+
+  await source.press('Escape');
+  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
+  await article.locator('mjx-container math mfrac').waitFor();
+  assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
+
+  await article.focus();
+  await page.keyboard.press('e');
+  await page.getByLabel('Content', { exact: true }).fill('x^3');
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await page.locator('article.napkin-article mjx-container').waitFor();
+  assert.equal(await page.locator('article.napkin-article math msup').count(), 1);
+  assert.equal(await page.locator('article.napkin-article math mfrac').count(), 0);
+  assert.match(await page.locator('article.napkin-article').textContent(), /original expression/);
+});
+
+test('uses MathJax table navigation for matrix cells', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-table-e2e-');
+  const article = await addEquation(page, '\\begin{matrix}a&b\\\\c&d\\end{matrix}');
+  assert.equal(await article.locator('mjx-container math mtable').count(), 1);
+  assert.equal(await article.locator('mjx-container math mtr').count(), 2);
+  assert.equal(await article.locator('mjx-container math mtd').count(), 4);
+
+  await enterEquation(page, article);
+  const initial = await speechLabel(article);
+  await page.keyboard.press('ArrowDown');
+  await waitForSpeechChange(page, article, initial);
+  const firstRow = await speechLabel(article);
+  await page.keyboard.press('ArrowDown');
+  await waitForSpeechChange(page, article, firstRow);
+  const firstCell = await speechLabel(article);
+
+  await page.keyboard.press('Shift+ArrowRight');
+  await waitForSpeechChange(page, article, firstCell);
+  const rightCell = await speechLabel(article);
+  assert.notEqual(rightCell, firstCell);
+
+  await page.keyboard.press('Shift+ArrowDown');
+  await waitForSpeechChange(page, article, rightCell);
+  assert.notEqual(await speechLabel(article), rightCell);
+});
+
+test('deletes a focused equation with Backspace and restores reading focus', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-delete-equation-e2e-');
+  const article = await addEquation(page, 'x^2');
+  await article.focus();
+  await page.keyboard.press('Backspace');
+
+  assert.equal(await page.locator('article.napkin-article').count(), 0);
+  assert.equal(await page.getByText('No items yet. Add the first item below.').count(), 1);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'open-add-button');
+});
+
+test('switches input type with radio arrow keys and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-keyboard-input-e2e-');
+  await page.getByRole('button', { name: 'Add item' }).click();
+
+  const text = page.getByRole('radio', { name: 'Text' });
+  const equation = page.getByRole('radio', { name: 'Equation' });
+  await text.focus();
+  await text.press('ArrowRight');
+  assert.equal(await equation.isChecked(), true);
+  await equation.press('ArrowLeft');
+  assert.equal(await text.isChecked(), true);
+
+  const content = page.getByLabel('Content', { exact: true });
+  await content.fill('Keyboard-created text');
+  await content.press(process.platform === 'darwin' ? 'Meta+Enter' : 'Control+Enter');
+  const article = page.locator('article.napkin-article').first();
+  await article.waitFor();
+  assert.match(await article.textContent(), /Keyboard-created text/);
+  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
+});

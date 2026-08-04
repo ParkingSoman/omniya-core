@@ -1,0 +1,274 @@
+# Read-first napkin modes Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Separate reading, adding, and editing into explicit keyboard-first modes without changing the persisted napkin schema.
+
+**Architecture:** Keep the existing Electron main process, domain model, persistence, and preload bridge unchanged. Replace the always-visible composer/listbox presentation with a renderer-only mode state (`read`, `add`, `edit`), a semantic article transcript with one roving focus stop, and a compact add/edit panel that opens only when needed.
+
+**Tech Stack:** Electron 43.2.0, vanilla HTML/CSS/JavaScript modules, native form controls, MathJax v4, Node test runner, Playwright Electron, axe-core.
+
+## Global Constraints
+
+- The persisted application schema does not change.
+- Read mode is the default state; mode and drafts are transient renderer state only.
+- The implementation remains vanilla HTML, CSS, and JavaScript modules in the existing Electron shell.
+- Text and MathML remain real semantic descendants of the reading articles.
+- Arrow keys must not override normal cursor movement while editing textareas.
+- Unfinished Add/Edit drafts are never persisted.
+- The app remains fully offline and keeps its current secure preload boundary.
+- No accounts, cloud sync, collaboration, AI, rich text, reordering, or release packaging is introduced.
+
+---
+
+### Task 1: Add failing mode and focus regression coverage
+
+**Files:**
+- Modify: `test/e2e/app.test.js`
+
+**Interfaces:**
+- Consumes: existing `launch()` helper and current napkin/item workflow.
+- Produces: Electron assertions for read/add/edit mode semantics and focus restoration used by later tasks.
+
+- [ ] **Step 1: Write the failing tests**
+
+Add assertions that the initial page has a visible `Reading` heading, a single current article tab stop, and an `Add item` button. Add a test flow with two committed items:
+
+```js
+assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
+assert.equal(await page.locator('article[tabindex="0"]').count(), 1);
+assert.equal(await page.getByRole('button', { name: 'Add item' }).count(), 1);
+
+const firstArticle = page.locator('article').nth(0);
+const secondArticle = page.locator('article').nth(1);
+await firstArticle.focus();
+await firstArticle.press('ArrowDown');
+assert.equal(await secondArticle.getAttribute('tabindex'), '0');
+assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
+await page.keyboard.press('Enter');
+assert.equal(await page.getByRole('heading', { name: /Editing item 2/ }).count(), 1);
+assert.equal(await page.getByRole('button', { name: 'Save changes' }).count(), 1);
+await page.getByRole('button', { name: 'Cancel' }).click();
+assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
+```
+
+Add mode assertions:
+
+```js
+await page.getByRole('button', { name: 'Add item' }).click();
+assert.equal(await page.getByRole('heading', { name: /Adding to/ }).count(), 1);
+assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+await page.getByRole('button', { name: 'Back to reading' }).click();
+assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
+```
+
+- [ ] **Step 2: Run the regression test to verify it fails**
+
+Run: `npm run test:e2e`
+
+Expected: FAIL because the current renderer always exposes `Add to napkin`, has no `Reading` mode heading, and renders `<li>` rows instead of focusable semantic articles.
+
+- [ ] **Step 3: Commit the failing coverage**
+
+```bash
+git add test/e2e/app.test.js
+git commit -m "test: define read and add mode workflow"
+```
+
+### Task 2: Replace the renderer structure with explicit mode surfaces
+
+**Files:**
+- Modify: `src/renderer/index.html`
+- Modify: `src/renderer/styles.css`
+
+**Interfaces:**
+- Consumes: current IDs used by `src/renderer/app.js` until Task 3 updates them.
+- Produces: a labeled reading section, an empty-state Add item button, and a hidden add/edit panel with stable IDs for renderer behavior.
+
+- [ ] **Step 1: Add the read-mode structure**
+
+Change the workspace header to expose a mode heading and status, and replace the listbox-oriented transcript markup with:
+
+```html
+<section id="reading-section" aria-labelledby="reading-heading">
+  <div class="reading-heading">
+    <div>
+      <p class="eyebrow">READING</p>
+      <h3 id="reading-heading">Reading</h3>
+    </div>
+    <p id="reading-help">Arrow keys move between items. Enter edits the focused item.</p>
+  </div>
+  <p id="empty-message">No items yet. Add the first item below.</p>
+  <div id="transcript" aria-label="Napkin content"></div>
+  <button id="open-add-button" type="button">Add item</button>
+</section>
+```
+
+Each article will be generated by JavaScript, but the container must not have a listbox role.
+
+- [ ] **Step 2: Add the add/edit panel structure**
+
+Keep one form but hide it in read mode:
+
+```html
+<section id="composer-dock" aria-labelledby="composer-heading" hidden>
+  <form id="composer-form" aria-label="Napkin item form">
+    <div class="composer-bar">
+      <div>
+        <p class="eyebrow" id="composer-mode-label">ADDING</p>
+        <h3 id="composer-heading">Adding to napkin</h3>
+      </div>
+      <button id="composer-back" type="button">Back to reading</button>
+    </div>
+    <fieldset id="mode-switch" aria-label="Input type">
+      <legend class="sr-only">Input type</legend>
+      <label><input type="radio" name="item-type" value="text" checked> Text</label>
+      <label><input type="radio" name="item-type" value="equation"> Equation</label>
+    </fieldset>
+    <label for="composer-source">Content</label>
+    <textarea id="composer-source" rows="1" required></textarea>
+    <div id="note-row" hidden>
+      <label for="composer-note">Note</label>
+      <textarea id="composer-note" rows="2"></textarea>
+    </div>
+    <p id="composer-help">Enter adds · Shift+Enter makes a new line · Escape cancels</p>
+    <p id="composer-error" class="error" hidden></p>
+    <button id="note-toggle" type="button" aria-expanded="false">Add note</button>
+    <button id="composer-submit" type="submit">Add item</button>
+    <button id="composer-discard" type="button">Discard draft</button>
+    <button id="composer-cancel" type="button" hidden>Cancel</button>
+  </form>
+</section>
+```
+
+The form actions must be named `Add item`, `Save changes`, `Discard draft`, and `Cancel` according to mode. Add a `Keyboard help` button and a hidden dialog/region with the mode-specific key instructions.
+
+- [ ] **Step 3: Style the state distinction**
+
+Use the existing palette and compact layout. Read mode gets a quiet paper surface and a clearly labeled Add item button. Add/Edit mode gets the existing tinted dock, an accent mode label, and a visible Back to reading action. Do not add animation, gradients, or new dependencies. Keep focus outlines visible and ensure the new labels pass the existing axe scan.
+
+- [ ] **Step 4: Run syntax and markup checks**
+
+Run: `node --check src/renderer/app.js` and `git diff --check`.
+
+Expected: HTML/CSS changes are structurally valid; E2E remains red only because behavior is not wired yet.
+
+- [ ] **Step 5: Commit the renderer structure**
+
+```bash
+git add src/renderer/index.html src/renderer/styles.css
+git commit -m "feat: add read and write mode surfaces"
+```
+
+### Task 3: Implement renderer mode state and semantic article navigation
+
+**Files:**
+- Modify: `src/renderer/app.js`
+
+**Interfaces:**
+- Consumes: `addItem`, `selectItem`, `updateItem`, `getActiveNapkin`, and `switchNapkin` from `src/domain/model.js`; stable IDs from Task 2.
+- Produces: `read`/`add`/`edit` transitions, article focus movement, add/edit submission, and focus restoration.
+
+- [ ] **Step 1: Add transient mode state and rendering helpers**
+
+Introduce:
+
+```js
+let mode = 'read';
+let draft = { source: '', note: '', type: 'text' };
+let editingItemId = null;
+```
+
+Implement `setMode(nextMode)`, `renderMode()`, `openAddMode()`, `openEditMode(itemId)`, `returnToRead({ discardDraft: true })`, and `focusSelectedArticle()`. `setMode('add')` focuses `#composer-source`; returning to read restores the selected article.
+
+- [ ] **Step 2: Render semantic articles with one roving tab stop**
+
+Replace `renderTranscript()` with article generation that keeps actual text and imported MathML descendants:
+
+```js
+const article = document.createElement('article');
+article.tabIndex = item.id === napkin.selectedItemId ? 0 : -1;
+article.dataset.itemId = item.id;
+article.setAttribute('aria-posinset', String(index + 1));
+article.setAttribute('aria-setsize', String(napkin.items.length));
+article.setAttribute('aria-label', itemSummary(item, index, napkin.items.length));
+```
+
+Add a heading and note description inside the article. On ArrowUp/ArrowDown/Home/End, update `selectedItemId`, rerender the roving tab stop, focus the new article, and coalesce the selection save. Boundary keys must not wrap.
+
+- [ ] **Step 3: Wire read-mode Enter and article click**
+
+Article Enter must call `openEditMode(article.dataset.itemId)` and prevent form submission. Clicking an article selects it and keeps read mode. The editor must load the selected source, note, and type without appending an item.
+
+- [ ] **Step 4: Wire add/edit form transitions**
+
+Opening Add mode clears the form and shows `Add item`; opening Edit mode loads the existing item and shows `Save changes`. Use the existing conversion path for equations. On success, call `addItem` or `updateItem`, return to read mode, select the committed item, focus its article, and save. On conversion or validation failure, stay in Add/Edit mode and preserve the draft.
+
+- [ ] **Step 5: Preserve native editing keys**
+
+Only intercept document-navigation keys while an article has focus. In Add/Edit textareas, leave Arrow keys, Home/End, selection, and Shift+Enter to the browser. Escape should call `returnToRead()` in Add mode and cancel edits in Edit mode. Do not add global single-letter shortcuts that would interfere with typing or screen-reader commands.
+
+- [ ] **Step 6: Run the focused Electron test**
+
+Run: `npm run test:e2e`
+
+Expected: the mode, article focus, add, edit, cancellation, MathML, notes, and persistence assertions pass.
+
+- [ ] **Step 7: Commit renderer behavior**
+
+```bash
+git add src/renderer/app.js test/e2e/app.test.js
+git commit -m "feat: separate napkin reading and editing modes"
+```
+
+### Task 4: Complete accessibility and documentation verification
+
+**Files:**
+- Modify: `test/e2e/app.test.js`
+- Modify: `README.md`
+
+**Interfaces:**
+- Consumes: final mode and article semantics from Tasks 2–3.
+- Produces: documented shortcuts and acceptance coverage for every mode.
+
+- [ ] **Step 1: Extend Electron assertions**
+
+Assert all of the following in the real Electron app while the browser context is offline:
+
+```js
+assert.equal(await page.locator('article').count(), 2);
+assert.ok(await page.locator('article math mfrac').count());
+assert.match(await page.getByRole('article').first().textContent(), /Note:/);
+await page.getByRole('button', { name: 'Add item' }).click();
+await page.getByLabel('Content').fill('new draft');
+await page.keyboard.press('Escape');
+assert.equal(await page.getByRole('heading', { name: /Reading/ }).count(), 1);
+assert.equal(await page.getByRole('article', { name: /Text item/ }).count(), 1);
+```
+
+Run axe in initial, populated, add, edit, and error states. Capture an ARIA snapshot for landmarks, mode headings, article positions, MathML, and status messaging.
+
+Also focus the last article and press Backspace, asserting that the adjacent article receives `tabindex="0"`; press Backspace on the final remaining article and assert the empty-state message and `selectedItemId: null` behavior.
+
+- [ ] **Step 2: Update keyboard documentation**
+
+Replace the current “composer is always present” wording with the explicit mode contract: Read mode Arrow/Home/End/Enter, Add mode Enter/Shift+Enter/Escape, Edit mode Save/Escape, and Tab between major regions.
+
+- [ ] **Step 3: Run all verification**
+
+Run:
+
+```bash
+npm run test:all
+node --check src/renderer/app.js
+git diff --check
+```
+
+Expected: all unit tests and Electron tests pass with zero axe violations.
+
+- [ ] **Step 4: Commit final verification changes**
+
+```bash
+git add test/e2e/app.test.js README.md
+git commit -m "test: verify read-first napkin modes"
+```

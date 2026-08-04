@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'">
+    <title>Omniya Math Napkins</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./mathjax-config.js"></script>
+    <script src="../../node_modules/@mathjax/src/bundle/tex-mml-chtml.js"></script>
+  </head>
+  <body>
+    <div id="app-shell" aria-busy="true">
+      <aside id="napkin-rail" aria-label="Napkins">
+        <div class="rail-brand"><span class="brand-mark" aria-hidden="true">∴</span><span>Omniya</span></div>
+        <div class="rail-heading">
+          <h1>Napkins</h1>
+          <button id="new-napkin-button" type="button" aria-label="New napkin">+</button>
+        </div>
+        <nav id="napkin-list" aria-label="Saved napkins"></nav>
+        <form id="new-napkin-form" hidden>
+          <label for="napkin-name">Napkin name</label>
+          <input id="napkin-name" required autocomplete="off">
+          <p id="napkin-name-error" class="error" hidden></p>
+          <div class="form-actions">
+            <button type="submit">Create napkin</button>
+            <button id="cancel-new-napkin" type="button">Cancel</button>
+          </div>
+        </form>
+      </aside>
+
+      <main id="workspace">
+        <header id="workspace-header">
+          <div>
+            <h2 id="current-napkin-name">Loading…</h2>
+          </div>
+          <div class="header-meta">
+            <span id="item-count">0 items</span>
+            <span id="save-status" role="status" aria-live="polite" aria-atomic="true"></span>
+          </div>
+        </header>
+
+        <section id="reading-section" aria-labelledby="reading-heading">
+          <div class="reading-heading">
+            <div>
+              <h3 id="reading-heading">Reading</h3>
+            </div>
+            <p id="reading-help">Up and Down arrows move between items. Enter explores an equation; E edits.</p>
+          </div>
+          <p id="empty-message">No items yet. Add the first item below.</p>
+          <section id="transcript" aria-label="Napkin content"></section>
+          <div id="reading-actions" class="reading-actions">
+            <button id="open-add-button" type="button">Add item</button>
+            <button id="keyboard-help-button" type="button">Keyboard help</button>
+          </div>
+        </section>
+
+        <section id="composer-dock" aria-labelledby="composer-heading" hidden>
+          <form id="composer-form" aria-label="Napkin item form">
+            <div class="composer-bar">
+              <div>
+                <h3 id="composer-heading">Adding to napkin</h3>
+              </div>
+              <button id="composer-back" type="button">Back to reading</button>
+            </div>
+            <div class="composer-options">
+              <fieldset id="mode-switch" aria-label="Input type" aria-describedby="mode-help">
+                <legend class="sr-only">Input type</legend>
+                <span id="mode-help" class="sr-only">Use Left and Right Arrow keys to switch between Text and Equation.</span>
+                <label><input type="radio" name="item-type" value="text" checked> <span>Text</span></label>
+                <label><input type="radio" name="item-type" value="equation"> <span>Equation</span></label>
+              </fieldset>
+              <button id="note-toggle" type="button" aria-expanded="false">Add note</button>
+            </div>
+
+            <label for="composer-source" class="sr-only">Content</label>
+            <textarea id="composer-source" rows="1" required aria-describedby="composer-help composer-error"></textarea>
+            <div id="note-row" hidden>
+              <label for="composer-note">Note</label>
+              <textarea id="composer-note" rows="2"></textarea>
+            </div>
+            <p id="composer-help">Enter adds · Shift+Enter makes a new line</p>
+            <p id="composer-error" class="error" hidden></p>
+            <div class="composer-footer">
+              <span id="editing-indicator" class="muted"></span>
+              <button id="composer-submit" type="submit">Add item</button>
+              <button id="composer-discard" type="button">Discard draft</button>
+              <button id="composer-cancel" type="button" hidden>Cancel</button>
+            </div>
+          </form>
+        </section>
+
+        <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
+          <h3 id="keyboard-help-heading">Keyboard help</h3>
+          <p><strong>Reading:</strong> Up and Down arrows move between items. Enter explores an equation; E edits.</p>
+          <p><strong>Adding:</strong> Tab moves through fields. Enter adds. Shift+Enter makes a new line. Escape cancels.</p>
+          <p><strong>Editing:</strong> Save changes commits the item. Escape or Cancel returns to reading.</p>
+          <button id="close-keyboard-help" type="button">Close</button>
+        </dialog>
+
+        <div id="app-error" role="alert" hidden>
+          <span id="app-error-message"></span>
+          <button id="retry-save" type="button" hidden>Retry save</button>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
