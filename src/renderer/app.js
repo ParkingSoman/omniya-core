@@ -163,7 +163,7 @@ function renderMode() {
   elements['reading-actions'].hidden = !reading;
   elements['composer-dock'].hidden = reading;
   elements['reading-help'].textContent = reading
-    ? 'Shift+Arrow keys move between items. Enter explores an equation; E edits.'
+    ? 'Arrow keys move between items. Enter explores an equation; E edits.'
     : 'Reading remains available above. Escape returns without saving.';
 }
 
@@ -464,7 +464,7 @@ elements['transcript'].addEventListener('keydown', (event) => {
     void deleteFocusedItem(article.dataset.itemId);
     return;
   }
-  if (!event.shiftKey || !['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+  if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
   event.preventDefault();
   navigateItems(event.key);
 });

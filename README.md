@@ -29,7 +29,7 @@ All application code and MathJax resources are installed locally. The running ap
 ## Keyboard interaction
 
 - Use Tab and Shift+Tab to move through ordinary controls.
-- In Read mode, use Shift+Up/Down Arrow or Shift+Home/End to move between focused items.
+- In Read mode, use Up/Down Arrow or Home/End to move between focused items.
 - Press Enter on a focused text item to edit it. Press Enter on a focused equation to enter its native MathML; use Escape to return to the item and `E` to edit it.
 - Press Backspace on a focused item to delete it; focus moves to the next item, or the previous item when deleting the last item.
 - Activate `Add item` to enter Add mode; focus moves to Content.
