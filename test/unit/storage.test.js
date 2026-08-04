@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
+import { addItem, createInitialState } from '../../src/domain/model.js';
 import { createStorage } from '../../src/main/storage.js';
 
 async function temporaryDirectory() {
@@ -71,4 +72,21 @@ test('preserves corrupt data and returns a usable default state', async () => {
   const recovery = files.find((name) => name.startsWith('napkins.corrupt-'));
   assert.ok(recovery);
   assert.equal(await readFile(path.join(directory, recovery), 'utf8'), '{not json');
+});
+
+test('serializes concurrent saves and leaves the newest state intact', async () => {
+  const directory = await temporaryDirectory();
+  const storage = createStorage(directory, { idFactory: () => 'napkin-1' });
+  const first = createInitialState({ idFactory: () => 'napkin-1' });
+  const second = addItem(first, {
+    type: 'text',
+    source: 'second save',
+    note: '',
+    mathml: null
+  }, { idFactory: () => 'item-1' });
+
+  await Promise.all([storage.save(first), storage.save(second)]);
+
+  assert.deepEqual((await storage.load()).state, second);
+  assert.equal((await readdir(directory)).some((name) => name.endsWith('.tmp')), false);
 });

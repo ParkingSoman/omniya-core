@@ -8,6 +8,7 @@ export function createStorage(directory, { idFactory, fileName = 'napkins.json' 
   const temporaryFile = `${dataFile}.tmp`;
   const extension = path.extname(dataFile) || '.json';
   const baseName = path.basename(dataFile, extension);
+  let writeQueue = Promise.resolve();
 
   async function load() {
     try {
@@ -34,10 +35,16 @@ export function createStorage(directory, { idFactory, fileName = 'napkins.json' 
 
   async function save(state) {
     assertValidState(state);
-    await mkdir(directory, { recursive: true });
-    await writeFile(temporaryFile, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
-    await rename(temporaryFile, dataFile);
-    return { savedAt: new Date().toISOString() };
+    const write = writeQueue
+      .catch(() => {})
+      .then(async () => {
+        await mkdir(directory, { recursive: true });
+        await writeFile(temporaryFile, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
+        await rename(temporaryFile, dataFile);
+        return { savedAt: new Date().toISOString() };
+      });
+    writeQueue = write.catch(() => {});
+    return write;
   }
 
   return { load, save };

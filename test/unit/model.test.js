@@ -5,6 +5,7 @@ import {
   addItem,
   createInitialState,
   createNapkin,
+  deleteNapkin,
   deleteItem,
   getActiveNapkin,
   selectItem,
@@ -43,6 +44,42 @@ test('creates and switches between independent napkins without mutating prior st
   const switched = switchNapkin(created, 'napkin-1');
   assert.equal(switched.activeNapkinId, 'napkin-1');
   assert.equal(switched.napkins[1].items.length, 0);
+});
+
+test('deletes a napkin immutably, including the final napkin', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const second = createNapkin(initial, 'Second napkin', { idFactory: ids('napkin-2') });
+  const third = createNapkin(second, 'Third napkin', { idFactory: ids('napkin-3') });
+
+  const withoutThird = deleteNapkin(third, 'napkin-3');
+  assert.equal(third.napkins.length, 3);
+  assert.deepEqual(withoutThird.napkins.map(({ id }) => id), ['napkin-1', 'napkin-2']);
+  assert.equal(withoutThird.activeNapkinId, 'napkin-2');
+
+  const withoutFirst = deleteNapkin(withoutThird, 'napkin-1');
+  assert.deepEqual(withoutFirst.napkins.map(({ id }) => id), ['napkin-2']);
+  assert.equal(withoutFirst.activeNapkinId, 'napkin-2');
+
+  const empty = deleteNapkin(withoutFirst, 'napkin-2');
+  assert.deepEqual(empty.napkins, []);
+  assert.equal(empty.activeNapkinId, null);
+  assert.deepEqual(validateState(empty), { ok: true, issues: [] });
+});
+
+test('restores each napkin’s independent selection when switching', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const first = addItem(initial, {
+    type: 'text', source: 'first napkin item', note: '', mathml: null
+  }, { idFactory: ids('item-1') });
+  const secondNapkin = createNapkin(first, 'Second napkin', { idFactory: ids('napkin-2') });
+  const second = addItem(secondNapkin, {
+    type: 'text', source: 'second napkin item', note: '', mathml: null
+  }, { idFactory: ids('item-2') });
+
+  const backToFirst = switchNapkin(second, 'napkin-1');
+  assert.equal(getActiveNapkin(backToFirst).selectedItemId, 'item-1');
+  const backToSecond = switchNapkin(backToFirst, 'napkin-2');
+  assert.equal(getActiveNapkin(backToSecond).selectedItemId, 'item-2');
 });
 
 test('rejects a blank napkin name', () => {

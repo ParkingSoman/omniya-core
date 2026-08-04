@@ -5,8 +5,10 @@ Omniya Core is an early experiment for blind mathematicians to create, navigate,
 ## Prototype capabilities
 
 - Create and switch between local napkins.
+- Delete a focused napkin from the sidebar with Backspace after confirming the action; the sidebar may be empty until you create another napkin.
 - Add plain text or LaTeX equations in a linear sequence.
-- Convert LaTeX to native MathML entirely offline.
+- Convert LaTeX to native MathML and render equations with MathJax entirely offline.
+- Render equations with the locally bundled MathJax 4 accessibility components (semantic enrichment, speech/Braille metadata, and the expression explorer). The app requires this local runtime; it does not fall back to a different renderer.
 - Attach a plain-text note to every item.
 - Navigate items with the keyboard and edit earlier items.
 - Save committed changes to Electron's local `userData` directory.
@@ -24,13 +26,14 @@ npm install
 npm start
 ```
 
-All application code and MathJax resources are installed locally. The running app does not make network requests.
+All application code and MathJax resources are installed locally. The running app does not make network requests. If the local MathJax assets are missing, reinstall dependencies with `npm install` rather than opening the renderer HTML directly.
 
 ## Keyboard interaction
 
 - Use Tab and Shift+Tab to move through ordinary controls.
+- In the napkin sidebar, focus a napkin and press Backspace to delete it after confirmation.
 - In Read mode, use the Up and Down Arrow keys to move between focused items.
-- Press Enter on a focused text item to edit it. Press Enter on a focused equation to enter its native MathML; use Escape to return to the item and `E` to edit it.
+- Press Enter on a focused text item to edit it. Press Enter on a focused equation to enter MathJax's expression explorer; use its arrow keys to move through the expression and Escape to return to the item. Press `E` to edit it.
 - Press Backspace on a focused item to delete it; focus moves to the next item, or the previous item when deleting the last item.
 - Activate `Add item` to enter Add mode; focus moves to Content.
 - In Add mode, press Enter to add, Shift+Enter for a new line, and Escape to discard and return to reading.
@@ -47,23 +50,25 @@ npm run test:e2e
 npm run test:all
 ```
 
-The unit tests cover the small state model, local JSON storage, and LaTeX-to-MathML conversion. The Electron test exercises the read/add/edit modes, semantic article focus, notes, MathML, keyboard navigation, relaunch persistence, offline behavior, and axe scans across initial, add, edit, and error states.
+The unit tests cover the small state model, local JSON storage, and LaTeX-to-MathML conversion. The Electron test exercises the read/add/edit modes, semantic article focus, notes, MathML, keyboard navigation, relaunch persistence, offline behavior, and axe scans across initial, add, edit, and error states. The browser runtime is intentionally kept local: no CDN fallback is permitted by the renderer CSP.
 
-## Opening a generated test napkin
+The automated Electron process uses an isolated test data directory and quits when the test window closes. On macOS, run GUI tests from a normal logged-in terminal rather than a restricted GUI sandbox; the sandbox can abort GUI applications before the app’s JavaScript starts.
 
-The E2E test normally finishes quickly. Use this command when you want it to create a real napkin file and open that file in the normal Electron application:
+## Opening editable example napkins
+
+Use this command to generate one ignored napkin file containing several separate, editable examples and open it in the normal Electron application:
 
 ```bash
 npm run test:inspect
 ```
 
-After the test passes, Electron opens the generated file in the ordinary app. You can read, add, edit, delete, switch napkins, use keyboard navigation, and save changes exactly as with any other napkin. Closing the app ends the command.
+Electron opens the generated file directly. Each example is a separate napkin, so you can switch between them and read, add, edit, delete, and save using the normal app flow. Closing the app ends the command.
 
 Each run replaces the same ignored file:
 
 `test/artifacts/latest/test.napkin.json`
 
-The file is the same persisted state format used by the app, containing all napkins created during the test. It is local and gitignored; each test run overwrites it rather than creating a collection of reports.
+The file is the same persisted state format used by the app. It is local and gitignored; each run overwrites it rather than creating a collection of reports.
 
 You can open any existing napkin file with the same application:
 

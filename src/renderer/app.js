@@ -1,8 +1,8 @@
 import {
   addItem,
   createNapkin,
+  deleteNapkin,
   deleteItem,
-  getActiveNapkin,
   selectItem,
   switchNapkin,
   updateItem
@@ -27,13 +27,17 @@ let noteVisible = false;
 let draft = { source: '', note: '', type: 'text' };
 let selectionSaveTimer;
 let saveChain = Promise.resolve();
+let transcriptRenderVersion = 0;
+let mathJaxReady;
+let exploringEquationItemId = null;
 
 function activeNapkin() {
-  return getActiveNapkin(state);
+  return state.napkins.find(({ id }) => id === state.activeNapkinId) ?? null;
 }
 
 function activeItem() {
   const napkin = activeNapkin();
+  if (!napkin) return null;
   return napkin.items.find(({ id }) => id === napkin.selectedItemId) ?? null;
 }
 
@@ -101,19 +105,46 @@ function itemSummary(item, index, count) {
   return `${kind} item ${index + 1} of ${count}`;
 }
 
-function appendMathML(container, mathml) {
-  const xml = new DOMParser().parseFromString(mathml, 'application/xml');
-  const root = xml.documentElement;
-  if (root.localName !== 'math' || root.namespaceURI !== 'http://www.w3.org/1998/Math/MathML' ||
-      xml.querySelector('parsererror')) {
-    throw new Error('Invalid MathML');
+async function waitForMathJax() {
+  if (mathJaxReady) return mathJaxReady;
+  mathJaxReady = (async () => {
+    const runtime = globalThis.MathJax;
+    if (!runtime?.startup?.promise) return false;
+    await runtime.startup.promise;
+    return typeof runtime.typesetPromise === 'function';
+  })().catch(() => false);
+  return mathJaxReady;
+}
+
+async function renderEquation(container, item, version) {
+  try {
+    if (!await waitForMathJax()) throw new Error('MathJax accessibility runtime unavailable');
+    const source = document.createElement('span');
+    source.textContent = `\\[${item.source}\\]`;
+    container.replaceChildren(source);
+    await globalThis.MathJax.typesetPromise([container]);
+    if (version !== transcriptRenderVersion || !container.isConnected) return;
+    container.removeAttribute('aria-busy');
+  } catch {
+    if (version !== transcriptRenderVersion || !container.isConnected) return;
+    container.removeAttribute('aria-busy');
+    container.setAttribute('role', 'alert');
+    container.textContent = 'Local MathJax could not render this equation.';
+    showError('The local MathJax runtime could not render an equation. Run npm install and restart the app.');
   }
-  container.replaceChildren(document.importNode(root, true));
 }
 
 function renderTranscript() {
+  const version = ++transcriptRenderVersion;
   const napkin = activeNapkin();
   elements['transcript'].replaceChildren();
+  if (!napkin) {
+    elements['empty-message'].textContent = 'No napkin selected. Create one with New napkin.';
+    elements['empty-message'].hidden = false;
+    elements['item-count'].textContent = '0 items';
+    return;
+  }
+  elements['empty-message'].textContent = 'No items yet. Add the first item below.';
   elements['empty-message'].hidden = napkin.items.length > 0;
   elements['item-count'].textContent = `${napkin.items.length} ${napkin.items.length === 1 ? 'item' : 'items'}`;
 
@@ -135,7 +166,9 @@ function renderTranscript() {
     const content = document.createElement('div');
     content.className = 'item-content';
     if (item.type === 'equation') {
-      appendMathML(content, item.mathml);
+      content.setAttribute('aria-busy', 'true');
+      content.textContent = 'Loading equation…';
+      void renderEquation(content, item, version);
     } else {
       const text = document.createElement('p');
       text.className = 'item-text';
@@ -155,13 +188,15 @@ function renderTranscript() {
 }
 
 function renderHeader() {
-  elements['current-napkin-name'].textContent = activeNapkin().name;
+  const napkin = activeNapkin();
+  elements['current-napkin-name'].textContent = napkin?.name ?? 'No napkin selected';
 }
 
 function renderMode() {
   const reading = mode === 'read';
   elements['reading-actions'].hidden = !reading;
   elements['composer-dock'].hidden = reading;
+  elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
     ? 'Up and Down arrows move between items. Enter explores an equation; E edits.'
     : 'Reading remains available above. Escape returns without saving.';
@@ -207,6 +242,10 @@ function renderAll() {
 
 function focusSelectedArticle() {
   const napkin = activeNapkin();
+  if (!napkin) {
+    elements['new-napkin-button'].focus();
+    return;
+  }
   const item = activeItem();
   const article = item && elements['transcript'].querySelector(
     `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
@@ -214,20 +253,55 @@ function focusSelectedArticle() {
   (article ?? elements['open-add-button']).focus();
 }
 
-function enterEquation(article) {
-  const math = article.querySelector('math');
-  if (!math) return false;
-  math.tabIndex = 0;
+function focusNapkinButton(napkinId) {
+  const button = elements['napkin-list'].querySelector(
+    `[data-napkin-id="${CSS.escape(napkinId)}"]`
+  );
+  if (button) button.focus();
+  else focusSelectedArticle();
+}
+
+async function enterEquation(article) {
+  let math = article.querySelector('mjx-container, math');
+  // Selection rerenders the transcript. Give the local MathJax promise a
+  // short, bounded window to replace its loading marker before reporting an
+  // error; never reinterpret an equation as an edit just because rendering
+  // is asynchronous.
+  for (let attempt = 0; !math && attempt < 100 && article.isConnected; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    math = article.querySelector('mjx-container, math');
+  }
+  if (!math) {
+    elements['save-status'].textContent = 'Equation is still loading.';
+    return false;
+  }
   math.focus();
-  elements['save-status'].textContent = 'Equation entered. Use VoiceOver or arrow keys to explore it. Escape returns to the item.';
+  exploringEquationItemId = article.dataset.itemId;
+  elements['save-status'].textContent = 'Equation entered. Use arrow keys to explore it. Escape returns to the item.';
   return true;
 }
 
 function leaveEquation(article) {
+  exploringEquationItemId = null;
   article.focus();
-  article.querySelector('math')?.removeAttribute('tabindex');
   elements['save-status'].textContent = 'Equation level';
 }
+
+// MathJax may move focus to its short-lived hidden focus element while an
+// expression is being explored. Keep Escape reliable even in that case.
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || !exploringEquationItemId) return;
+  const focused = document.activeElement;
+  if (!focused?.matches?.('mjx-container, math, mjx-focus') &&
+      !focused?.closest?.('mjx-container, math, mjx-focus')) return;
+  const article = elements['transcript'].querySelector(
+    `article.napkin-article[data-item-id="${CSS.escape(exploringEquationItemId)}"]`
+  );
+  if (!article) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  leaveEquation(article);
+}, true);
 
 function resetDraft() {
   draft = { source: '', note: '', type: 'text' };
@@ -243,6 +317,7 @@ function returnToRead({ discardDraft = true } = {}) {
 }
 
 function openAddMode() {
+  if (!activeNapkin()) return;
   mode = 'add';
   editingItemId = null;
   resetDraft();
@@ -250,7 +325,10 @@ function openAddMode() {
   elements['composer-source'].focus();
 }
 
-function openEditMode(itemId = activeNapkin().selectedItemId) {
+function openEditMode(itemId) {
+  const napkin = activeNapkin();
+  if (!napkin) return;
+  itemId ??= napkin.selectedItemId;
   if (!itemId) return;
   state = selectItem(state, itemId);
   mode = 'edit';
@@ -262,6 +340,7 @@ function openEditMode(itemId = activeNapkin().selectedItemId) {
 function navigateItems(key) {
   if (mode !== 'read') return false;
   const napkin = activeNapkin();
+  if (!napkin) return false;
   if (napkin.items.length === 0) return false;
   const current = napkin.items.findIndex(({ id }) => id === napkin.selectedItemId);
   let next = current;
@@ -294,6 +373,8 @@ function selectedType() {
 
 async function submitComposer() {
   if (mode !== 'add' && mode !== 'edit') return;
+  if (!activeNapkin()) returnToRead();
+  if (!activeNapkin()) return;
   const source = elements['composer-source'].value;
   const note = elements['composer-note'].value;
   const editing = mode === 'edit';
@@ -341,6 +422,22 @@ async function deleteFocusedItem(itemId) {
   await saveState().catch(() => {});
 }
 
+async function deleteFocusedNapkin(napkinId) {
+  if (mode !== 'read') return;
+  const napkin = state.napkins.find(({ id }) => id === napkinId);
+  if (!napkin) return;
+  if (!globalThis.confirm(`Delete napkin “${napkin.name}”? This cannot be undone.`)) return;
+
+  const index = state.napkins.findIndex(({ id }) => id === napkinId);
+  const remaining = state.napkins.filter(({ id }) => id !== napkinId);
+  const focusId = remaining[index]?.id ?? remaining[index - 1]?.id;
+  state = deleteNapkin(state, napkinId);
+  renderAll();
+  focusNapkinButton(focusId ?? state.activeNapkinId);
+  elements['save-status'].textContent = `Deleted ${napkin.name}`;
+  await saveState().catch(() => {});
+}
+
 elements['new-napkin-button'].addEventListener('click', () => {
   if (mode !== 'read') returnToRead();
   elements['new-napkin-form'].hidden = false;
@@ -379,6 +476,13 @@ elements['napkin-list'].addEventListener('click', async (event) => {
   elements['save-status'].textContent = `Opened ${activeNapkin().name}`;
   focusSelectedArticle();
   await saveState().catch(() => {});
+});
+
+elements['napkin-list'].addEventListener('keydown', (event) => {
+  const button = event.target.closest('[data-napkin-id]');
+  if (!button || event.key !== 'Backspace') return;
+  event.preventDefault();
+  void deleteFocusedNapkin(button.dataset.napkinId);
 });
 
 elements['open-add-button'].addEventListener('click', openAddMode);
@@ -436,7 +540,7 @@ elements['transcript'].addEventListener('keydown', (event) => {
   const article = event.target.closest('.napkin-article');
   if (!article) return;
 
-  const math = event.target.closest('math');
+  const math = event.target.closest('mjx-container, math, mjx-focus');
   if (math) {
     if (event.key === 'Escape') {
       event.preventDefault();
@@ -447,8 +551,9 @@ elements['transcript'].addEventListener('keydown', (event) => {
 
   if (event.key === 'Enter') {
     event.preventDefault();
-    if (article.querySelector('math')) {
-      enterEquation(article);
+    const item = activeNapkin().items.find(({ id }) => id === article.dataset.itemId);
+    if (item?.type === 'equation') {
+      void enterEquation(article);
     } else {
       openEditMode(article.dataset.itemId);
     }

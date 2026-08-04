@@ -65,8 +65,8 @@ export function validateState(value) {
   if (value.schemaVersion !== SCHEMA_VERSION) {
     issues.push(`schemaVersion must be ${SCHEMA_VERSION}`);
   }
-  if (!Array.isArray(value.napkins) || value.napkins.length === 0) {
-    issues.push('State must contain at least one napkin');
+  if (!Array.isArray(value.napkins)) {
+    issues.push('State napkins must be an array');
     return { ok: false, issues };
   }
 
@@ -130,6 +130,9 @@ export function validateState(value) {
     }
   }
 
+  if (value.napkins.length === 0 && value.activeNapkinId === null) {
+    return { ok: issues.length === 0, issues };
+  }
   if (typeof value.activeNapkinId !== 'string' || !napkinIds.has(value.activeNapkinId)) {
     issues.push('activeNapkinId must reference an existing napkin');
   }
@@ -174,6 +177,20 @@ export function switchNapkin(state, napkinId) {
     throw new RangeError('Napkin not found');
   }
   return { ...state, activeNapkinId: napkinId };
+}
+
+export function deleteNapkin(state, napkinId) {
+  assertValidState(state);
+  if (!state.napkins.some(({ id }) => id === napkinId)) {
+    throw new RangeError('Napkin not found');
+  }
+  const index = state.napkins.findIndex(({ id }) => id === napkinId);
+  const napkins = state.napkins.filter(({ id }) => id !== napkinId);
+  const activeNapkinId = state.activeNapkinId === napkinId
+    ? (napkins[index]?.id ?? napkins[index - 1]?.id ?? null)
+    : state.activeNapkinId;
+
+  return { ...state, activeNapkinId, napkins };
 }
 
 export function addItem(state, input, { idFactory = defaultIdFactory } = {}) {
