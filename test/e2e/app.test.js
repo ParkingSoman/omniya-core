@@ -96,6 +96,8 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await source.press('Enter');
 
   assert.equal(await articles.count(), 2);
+  assert.equal(await articles.nth(1).locator('h4').count(), 0);
+  assert.equal(await articles.nth(1).locator('.item-source').count(), 0);
   assert.ok(await articles.nth(1).locator('math mfrac').count());
   assert.ok(await articles.nth(1).locator('math msubsup').count());
   assert.match(await articles.nth(1).textContent(), /Fundamental theorem example/);

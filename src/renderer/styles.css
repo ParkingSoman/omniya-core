@@ -66,7 +66,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 
 #workspace { background: var(--paper); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; min-height: 0; }
 #workspace-header { align-items: end; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding: 1.2rem clamp(1rem, 4vw, 3rem) 0.9rem; }
-.eyebrow { color: var(--accent); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; margin: 0 0 0.2rem; }
 #current-napkin-name { font-size: clamp(1.15rem, 2vw, 1.5rem); margin: 0; }
 .header-meta { color: var(--muted); font-size: 0.76rem; gap: 0.8rem; }
 
@@ -80,16 +79,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .napkin-article { border-bottom: 1px solid var(--line); padding: 0.85rem 0 1rem; outline: none; scroll-margin-block: 1rem; }
 .napkin-article:focus, .napkin-article:hover { border-bottom-color: var(--accent); }
 .napkin-article:focus { box-shadow: inset 0.2rem 0 var(--accent); padding-left: 0.8rem; }
-.article-heading { align-items: baseline; color: var(--muted); display: flex; font-size: 0.75rem; gap: 0.55rem; }
-.napkin-article:focus .article-heading, .napkin-article:hover .article-heading { color: var(--accent); }
-.napkin-article:focus .item-number { background: var(--accent); color: white; }
-.item-number { align-items: center; background: #e5e9eb; border-radius: 999px; color: #5c6971; display: inline-flex; font-size: 0.65rem; height: 1.35rem; justify-content: center; width: 1.35rem; }
-.item-kind { font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-.item-source { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.item-content { padding: 0.55rem 0 0.15rem 1.9rem; }
+.item-content { padding: 0.35rem 0 0.15rem; }
 .item-content math { font-size: 1.15rem; }
 .item-text { margin: 0; white-space: pre-wrap; }
-.item-note { color: var(--muted); font-size: 0.78rem; margin: 0.35rem 0 0 1.9rem; }
+.item-note { color: var(--muted); font-size: 0.78rem; margin: 0.35rem 0 0; }
 .reading-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
 .reading-actions button, #keyboard-help button { border: 1px solid var(--accent); border-radius: 0.35rem; padding: 0.45rem 0.8rem; }
 #open-add-button { background: var(--accent); color: white; }
@@ -99,7 +92,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 #composer-form { margin: 0 auto; max-width: 52rem; }
 .composer-bar { gap: 0.7rem; justify-content: space-between; margin-bottom: 0.5rem; }
 .composer-bar h3 { font-size: 0.8rem; margin: 0; }
-.composer-bar .eyebrow { margin-bottom: 0.1rem; }
 #composer-back { background: transparent; border: 1px solid var(--line); border-radius: 0.35rem; color: var(--muted); padding: 0.4rem 0.65rem; }
 .composer-options { align-items: center; display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
 #mode-switch { border: 0; display: flex; gap: 0.25rem; margin: 0; padding: 0; }

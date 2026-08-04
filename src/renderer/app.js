@@ -11,10 +11,10 @@ import {
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name', 'item-count',
-  'save-status', 'reading-section', 'mode-label', 'reading-heading', 'reading-help',
+  'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions', 'open-add-button',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
-  'composer-form', 'composer-mode-label', 'composer-heading', 'composer-back',
+  'composer-form', 'composer-heading', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
   'composer-help', 'composer-error', 'editing-indicator', 'composer-submit',
   'composer-discard', 'composer-cancel', 'app-error', 'app-error-message', 'retry-save'
@@ -98,7 +98,7 @@ function renderNapkins() {
 
 function itemSummary(item, index, count) {
   const kind = item.type === 'equation' ? 'Equation' : 'Text';
-  return `${kind} item ${index + 1} of ${count}: ${item.source}`;
+  return `${kind} item ${index + 1} of ${count}`;
 }
 
 function appendMathML(container, mathml) {
@@ -125,28 +125,7 @@ function renderTranscript() {
     article.setAttribute('aria-posinset', String(index + 1));
     article.setAttribute('aria-setsize', String(napkin.items.length));
 
-    const heading = document.createElement('h4');
-    heading.className = 'article-heading';
-    heading.id = `item-heading-${item.id}`;
-    heading.setAttribute('aria-label', itemSummary(item, index, napkin.items.length));
-
-    const number = document.createElement('span');
-    number.className = 'item-number';
-    number.textContent = String(index + 1).padStart(2, '0');
-    const kind = document.createElement('span');
-    kind.className = 'item-kind';
-    kind.textContent = item.type === 'equation' ? 'Equation' : 'Text';
-    const source = document.createElement('span');
-    source.className = 'item-source';
-    source.textContent = item.source;
-    heading.append(number, kind, source);
-
-    const summary = document.createElement('p');
-    summary.className = 'sr-only';
-    summary.id = `item-summary-${item.id}`;
-    summary.textContent = `Source: ${item.source}${item.note ? `. Note: ${item.note}` : ''}`;
-    article.setAttribute('aria-labelledby', heading.id);
-    article.setAttribute('aria-describedby', summary.id);
+    article.setAttribute('aria-label', itemSummary(item, index, napkin.items.length));
 
     const content = document.createElement('div');
     content.className = 'item-content';
@@ -159,7 +138,7 @@ function renderTranscript() {
       content.append(text);
     }
 
-    article.append(heading, summary, content);
+    article.append(content);
     if (item.note) {
       const note = document.createElement('p');
       note.className = 'item-note';
@@ -190,7 +169,6 @@ function renderComposer() {
     ? { source: item?.source ?? '', note: item?.note ?? '', type: item?.type ?? 'text' }
     : draft;
 
-  elements['composer-mode-label'].textContent = editing ? 'EDITING' : 'ADDING';
   elements['composer-heading'].textContent = editing
     ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
     : `Adding to ${activeNapkin().name}`;
