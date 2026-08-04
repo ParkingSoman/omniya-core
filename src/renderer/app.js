@@ -163,7 +163,7 @@ function renderMode() {
   elements['reading-actions'].hidden = !reading;
   elements['composer-dock'].hidden = reading;
   elements['reading-help'].textContent = reading
-    ? 'Arrow keys move between items. Enter explores an equation; E edits.'
+    ? 'Up and Down arrows move between items. Enter explores an equation; E edits.'
     : 'Reading remains available above. Escape returns without saving.';
 }
 
