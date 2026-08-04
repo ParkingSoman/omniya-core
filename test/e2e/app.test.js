@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -9,32 +9,21 @@ import axe from 'axe-core';
 import { _electron as electron } from 'playwright';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const snapshotDirectory = path.join(projectRoot, 'test', 'artifacts', 'latest');
+const artifactDirectory = path.join(projectRoot, 'test', 'artifacts', 'latest');
 
-async function resetSnapshotDirectory() {
-  await rm(snapshotDirectory, { recursive: true, force: true });
-  await mkdir(snapshotDirectory, { recursive: true });
+async function resetArtifactDirectory() {
+  await rm(artifactDirectory, { recursive: true, force: true });
+  await mkdir(artifactDirectory, { recursive: true });
 }
 
-async function saveSnapshot(page) {
+async function saveNapkinFile(dataDirectory) {
   try {
-    await page.screenshot({ path: path.join(snapshotDirectory, 'electron.png'), fullPage: true });
-    const aria = await page.getByRole('main').ariaSnapshot();
-    const html = await page.locator('main').evaluate((main) => main.outerHTML);
-    const metadata = {
-      capturedAt: new Date().toISOString(),
-      url: page.url(),
-      mode: await page.locator('#mode-label').textContent(),
-      napkin: await page.locator('#current-napkin-name').textContent(),
-      itemCount: await page.locator('#item-count').textContent()
-    };
-    await Promise.all([
-      writeFile(path.join(snapshotDirectory, 'aria.txt'), aria, 'utf8'),
-      writeFile(path.join(snapshotDirectory, 'main.html'), html, 'utf8'),
-      writeFile(path.join(snapshotDirectory, 'metadata.json'), `${JSON.stringify(metadata, null, 2)}\n`, 'utf8')
-    ]);
+    await copyFile(
+      path.join(dataDirectory, 'napkins.json'),
+      path.join(artifactDirectory, 'test.napkin.json')
+    );
   } catch (error) {
-    console.error(`Could not save test snapshot: ${error.message}`);
+    console.error(`Could not save test napkin file: ${error.message}`);
   }
 }
 
@@ -57,11 +46,11 @@ async function assertNoAxeViolations(page) {
 }
 
 test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async (t) => {
-  await resetSnapshotDirectory();
+  await resetArtifactDirectory();
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-e2e-'));
   let session = await launch(dataDirectory);
   t.after(async () => {
-    await saveSnapshot(session.page);
+    await saveNapkinFile(dataDirectory);
     await session.electronApp.close().catch(() => {});
   });
 

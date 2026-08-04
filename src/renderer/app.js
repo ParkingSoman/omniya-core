@@ -62,11 +62,11 @@ function setFieldError(field, output, message = '') {
 }
 
 function saveState() {
-  const snapshot = structuredClone(state);
+  const stateToSave = structuredClone(state);
   elements['save-status'].textContent = 'Saving…';
   saveChain = saveChain
     .catch(() => {})
-    .then(() => window.omniya.saveState(snapshot))
+    .then(() => window.omniya.saveState(stateToSave))
     .then(() => {
       clearAppError();
       elements['save-status'].textContent = 'Saved';

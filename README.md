@@ -49,34 +49,40 @@ npm run test:all
 
 The unit tests cover the small state model, local JSON storage, and LaTeX-to-MathML conversion. The Electron test exercises the read/add/edit modes, semantic article focus, notes, MathML, keyboard navigation, relaunch persistence, offline behavior, and axe scans across initial, add, edit, and error states.
 
-## Inspecting the latest Electron test run
+## Opening a generated test napkin
 
-The E2E test normally finishes quickly, so use the inspect command when you want to open the saved result inside Electron:
+The E2E test normally finishes quickly. Use this command when you want it to create a real napkin file and open that file in the normal Electron application:
 
 ```bash
 npm run test:inspect
 ```
 
-After the test passes, Electron opens a separate, keyboard-accessible inspector window. It shows the final screenshot, accessibility tree, captured main HTML, and run metadata. Use **Reload snapshot** in that window if the files have been regenerated while it is open.
+After the test passes, Electron opens the generated file in the ordinary app. You can read, add, edit, delete, switch napkins, use keyboard navigation, and save changes exactly as with any other napkin. Closing the app ends the command.
 
-Each run replaces the same ignored directory, `test/artifacts/latest/`, with:
+Each run replaces the same ignored file:
 
-- `electron.png` — final Electron screenshot;
-- `aria.txt` — accessibility tree snapshot;
-- `main.html` — final main-region HTML;
-- `metadata.json` — capture time, napkin, mode, and item count.
+`test/artifacts/latest/test.napkin.json`
 
-The directory never accumulates timestamped snapshots. The files are local inspection artifacts and are gitignored. Electron normally stores personal napkins outside the repository in its platform-specific `userData` directory. If you override `OMNIYA_TEST_USER_DATA_DIR` for local testing, use an ignored path such as `.omniya-data/`.
+The file is the same persisted state format used by the app, containing all napkins created during the test. It is local and gitignored; each test run overwrites it rather than creating a collection of reports.
+
+You can open any existing napkin file with the same application:
+
+```bash
+npm run open:napkin -- /path/to/example.napkin.json
+```
+
+When a file is opened this way, committed changes are saved back to that file. Running `npm start` without a file continues to use Electron's normal platform-specific `userData` location. If you override `OMNIYA_TEST_USER_DATA_DIR` for local testing, use an ignored path such as `.omniya-data/`.
 
 Automated tests cannot establish that the workflow is genuinely usable. Before expanding this prototype, manually complete the workflow with VoiceOver on macOS and NVDA on Windows, and then evaluate it with blind mathematicians. Pay particular attention to item-selection announcements, MathML navigation, editing context, error recovery, and focus after every action.
 
 ## Minimal structure
 
-- `src/main.js` creates the secure Electron window and the app/test IPC handlers.
-- `src/preload.cjs` exposes the app methods and the local test-snapshot reader.
+- `src/main.js` creates the secure Electron window and the app IPC handlers.
+- `src/preload.cjs` exposes the three app methods.
 - `src/domain/model.js` contains the napkin data operations.
 - `src/main/mathml.js` and `src/main/storage.js` contain the two Node-side helpers.
 - `src/renderer/app.js` contains the complete renderer behavior.
+- `scripts/open-napkin.mjs` opens a persisted napkin file in the normal app.
 
 The data file is named `napkins.json` inside the platform-specific directory returned by Electron's `app.getPath('userData')`.
 

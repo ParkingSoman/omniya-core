@@ -34,6 +34,22 @@ test('saves and loads a validated state', async () => {
   assert.equal((await readdir(directory)).includes('napkins.json.tmp'), false);
 });
 
+test('opens and saves a named napkin file', async () => {
+  const directory = await temporaryDirectory();
+  const storage = createStorage(directory, {
+    fileName: 'review.napkin.json',
+    idFactory: () => 'napkin-1'
+  });
+  const { state } = await storage.load();
+
+  await storage.save(state);
+  const files = await readdir(directory);
+
+  assert.ok(files.includes('review.napkin.json'));
+  assert.ok(!files.includes('review.napkin.json.tmp'));
+  assert.deepEqual((await storage.load()).state, state);
+});
+
 test('rejects invalid state before writing', async () => {
   const directory = await temporaryDirectory();
   const storage = createStorage(directory);

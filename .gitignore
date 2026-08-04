@@ -3,7 +3,7 @@ playwright-report/
 test-results/
 .pi/
 
-# Local Electron data and one overwritten test-inspection snapshot
+# Local Electron data and one overwritten generated test napkin
 .omniya-data/
 .omniya-user-data/
 test/user-data/

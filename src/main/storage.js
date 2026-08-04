@@ -3,9 +3,11 @@ import path from 'node:path';
 
 import { assertValidState, createInitialState } from '../domain/model.js';
 
-export function createStorage(directory, { idFactory } = {}) {
-  const dataFile = path.join(directory, 'napkins.json');
+export function createStorage(directory, { idFactory, fileName = 'napkins.json' } = {}) {
+  const dataFile = path.join(directory, fileName);
   const temporaryFile = `${dataFile}.tmp`;
+  const extension = path.extname(dataFile) || '.json';
+  const baseName = path.basename(dataFile, extension);
 
   async function load() {
     try {
@@ -17,7 +19,7 @@ export function createStorage(directory, { idFactory } = {}) {
         return { state: createInitialState({ idFactory }), warning: null };
       }
 
-      const recoveryFile = path.join(directory, `napkins.corrupt-${Date.now()}.json`);
+      const recoveryFile = path.join(directory, `${baseName}.corrupt-${Date.now()}${extension}`);
       try {
         await rename(dataFile, recoveryFile);
       } catch {
