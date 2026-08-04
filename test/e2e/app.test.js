@@ -104,11 +104,17 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
 
   const firstArticle = articles.nth(0);
   const secondArticle = articles.nth(1);
-  await firstArticle.focus();
+  await firstArticle.click();
   await firstArticle.press('ArrowDown');
+  assert.equal(await firstArticle.getAttribute('tabindex'), '0');
+  await firstArticle.press('Shift+ArrowDown');
   assert.equal(await secondArticle.getAttribute('tabindex'), '0');
   assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
   await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => document.activeElement?.localName), 'math');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
+  await page.keyboard.press('e');
   assert.equal(await page.getByRole('heading', { name: 'Editing item 2' }).count(), 1);
   assert.equal(await page.getByRole('button', { name: 'Save changes' }).count(), 1);
   await assertNoAxeViolations(page);
@@ -118,11 +124,11 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   assert.match(await articles.nth(1).locator('math').getAttribute('data-latex'), /3x\^2/);
 
   await secondArticle.focus();
-  await secondArticle.press('ArrowUp');
+  await secondArticle.press('Shift+ArrowUp');
   assert.equal(await firstArticle.getAttribute('tabindex'), '0');
-  await firstArticle.press('Home');
+  await firstArticle.press('Shift+Home');
   assert.equal(await firstArticle.getAttribute('tabindex'), '0');
-  await firstArticle.press('End');
+  await firstArticle.press('Shift+End');
   assert.equal(await secondArticle.getAttribute('tabindex'), '0');
 
   await page.getByRole('button', { name: 'Add item' }).click();

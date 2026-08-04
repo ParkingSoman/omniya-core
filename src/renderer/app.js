@@ -125,7 +125,12 @@ function renderTranscript() {
     article.setAttribute('aria-posinset', String(index + 1));
     article.setAttribute('aria-setsize', String(napkin.items.length));
 
-    article.setAttribute('aria-label', itemSummary(item, index, napkin.items.length));
+    const descriptor = document.createElement('span');
+    descriptor.className = 'sr-only';
+    descriptor.id = `item-description-${item.id}`;
+    descriptor.textContent = itemSummary(item, index, napkin.items.length) +
+      (item.type === 'equation' ? '. Press Enter to explore the equation.' : '. Press Enter to edit.');
+    article.setAttribute('aria-describedby', descriptor.id);
 
     const content = document.createElement('div');
     content.className = 'item-content';
@@ -138,7 +143,7 @@ function renderTranscript() {
       content.append(text);
     }
 
-    article.append(content);
+    article.append(descriptor, content);
     if (item.note) {
       const note = document.createElement('p');
       note.className = 'item-note';
@@ -158,7 +163,7 @@ function renderMode() {
   elements['reading-actions'].hidden = !reading;
   elements['composer-dock'].hidden = reading;
   elements['reading-help'].textContent = reading
-    ? 'Arrow keys move between items. Enter edits the focused item.'
+    ? 'Shift+Arrow keys move between items. Enter explores an equation; E edits.'
     : 'Reading remains available above. Escape returns without saving.';
 }
 
@@ -207,6 +212,21 @@ function focusSelectedArticle() {
     `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
   );
   (article ?? elements['open-add-button']).focus();
+}
+
+function enterEquation(article) {
+  const math = article.querySelector('math');
+  if (!math) return false;
+  math.tabIndex = 0;
+  math.focus();
+  elements['save-status'].textContent = 'Equation entered. Use VoiceOver or arrow keys to explore it. Escape returns to the item.';
+  return true;
+}
+
+function leaveEquation(article) {
+  article.focus();
+  article.querySelector('math')?.removeAttribute('tabindex');
+  elements['save-status'].textContent = 'Equation level';
 }
 
 function resetDraft() {
@@ -415,7 +435,26 @@ elements['transcript'].addEventListener('click', (event) => {
 elements['transcript'].addEventListener('keydown', (event) => {
   const article = event.target.closest('.napkin-article');
   if (!article) return;
+
+  const math = event.target.closest('math');
+  if (math) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      leaveEquation(article);
+    }
+    return;
+  }
+
   if (event.key === 'Enter') {
+    event.preventDefault();
+    if (article.querySelector('math')) {
+      enterEquation(article);
+    } else {
+      openEditMode(article.dataset.itemId);
+    }
+    return;
+  }
+  if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
     event.preventDefault();
     openEditMode(article.dataset.itemId);
     return;
@@ -425,7 +464,7 @@ elements['transcript'].addEventListener('keydown', (event) => {
     void deleteFocusedItem(article.dataset.itemId);
     return;
   }
-  if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+  if (!event.shiftKey || !['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
   event.preventDefault();
   navigateItems(event.key);
 });

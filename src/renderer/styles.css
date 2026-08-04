@@ -81,6 +81,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .napkin-article:focus { box-shadow: inset 0.2rem 0 var(--accent); padding-left: 0.8rem; }
 .item-content { padding: 0.35rem 0 0.15rem; }
 .item-content math { font-size: 1.15rem; }
+.item-content math:focus { outline: 0.18rem solid var(--accent); outline-offset: 0.2rem; }
 .item-text { margin: 0; white-space: pre-wrap; }
 .item-note { color: var(--muted); font-size: 0.78rem; margin: 0.35rem 0 0; }
 .reading-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
