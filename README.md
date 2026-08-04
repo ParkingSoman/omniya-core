@@ -51,11 +51,13 @@ The unit tests cover the small state model, local JSON storage, and LaTeX-to-Mat
 
 ## Inspecting the latest Electron test run
 
-The E2E test normally finishes quickly, so use the inspect command when you want a saved result:
+The E2E test normally finishes quickly, so use the inspect command when you want to open the saved result inside Electron:
 
 ```bash
 npm run test:inspect
 ```
+
+After the test passes, Electron opens a separate, keyboard-accessible inspector window. It shows the final screenshot, accessibility tree, captured main HTML, and run metadata. Use **Reload snapshot** in that window if the files have been regenerated while it is open.
 
 Each run replaces the same ignored directory, `test/artifacts/latest/`, with:
 
@@ -70,8 +72,8 @@ Automated tests cannot establish that the workflow is genuinely usable. Before e
 
 ## Minimal structure
 
-- `src/main.js` creates the secure Electron window and three IPC handlers.
-- `src/preload.cjs` exposes load, save, and LaTeX conversion methods.
+- `src/main.js` creates the secure Electron window and the app/test IPC handlers.
+- `src/preload.cjs` exposes the app methods and the local test-snapshot reader.
 - `src/domain/model.js` contains the napkin data operations.
 - `src/main/mathml.js` and `src/main/storage.js` contain the two Node-side helpers.
 - `src/renderer/app.js` contains the complete renderer behavior.

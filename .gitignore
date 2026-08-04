@@ -8,3 +8,4 @@ test-results/
 .omniya-user-data/
 test/user-data/
 test/artifacts/
+.DS_Store

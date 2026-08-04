@@ -14,10 +14,16 @@ child.on('exit', (code, signal) => {
   if (signal) process.exitCode = 1;
   if (code === 0 && !signal) {
     const directory = path.join(projectRoot, 'test', 'artifacts', 'latest');
-    console.log(`\nLatest Electron test snapshot: ${directory}`);
-    console.log(`  Screenshot: ${path.join(directory, 'electron.png')}`);
-    console.log(`  ARIA tree:  ${path.join(directory, 'aria.txt')}`);
-    console.log(`  DOM:        ${path.join(directory, 'main.html')}`);
-    console.log(`  Metadata:   ${path.join(directory, 'metadata.json')}`);
+    console.log(`\nOpening the latest Electron test snapshot in a separate Electron inspector window.`);
+    console.log(`Snapshot directory: ${directory}`);
+    const inspector = spawn(npm, ['start'], {
+      cwd: projectRoot,
+      env: { ...process.env, OMNIYA_TEST_INSPECT: '1' },
+      stdio: 'inherit'
+    });
+    inspector.on('exit', (inspectorCode, inspectorSignal) => {
+      if (inspectorCode !== 0 && inspectorCode !== null) process.exitCode = inspectorCode;
+      if (inspectorSignal) process.exitCode = 1;
+    });
   }
 });
