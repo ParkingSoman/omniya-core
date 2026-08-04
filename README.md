@@ -49,6 +49,23 @@ npm run test:all
 
 The unit tests cover the small state model, local JSON storage, and LaTeX-to-MathML conversion. The Electron test exercises the read/add/edit modes, semantic article focus, notes, MathML, keyboard navigation, relaunch persistence, offline behavior, and axe scans across initial, add, edit, and error states.
 
+## Inspecting the latest Electron test run
+
+The E2E test normally finishes quickly, so use the inspect command when you want a saved result:
+
+```bash
+npm run test:inspect
+```
+
+Each run replaces the same ignored directory, `test/artifacts/latest/`, with:
+
+- `electron.png` — final Electron screenshot;
+- `aria.txt` — accessibility tree snapshot;
+- `main.html` — final main-region HTML;
+- `metadata.json` — capture time, napkin, mode, and item count.
+
+The directory never accumulates timestamped snapshots. The files are local inspection artifacts and are gitignored. Electron normally stores personal napkins outside the repository in its platform-specific `userData` directory. If you override `OMNIYA_TEST_USER_DATA_DIR` for local testing, use an ignored path such as `.omniya-data/`.
+
 Automated tests cannot establish that the workflow is genuinely usable. Before expanding this prototype, manually complete the workflow with VoiceOver on macOS and NVDA on Windows, and then evaluate it with blind mathematicians. Pay particular attention to item-selection announcements, MathML navigation, editing context, error recovery, and focus after every action.
 
 ## Minimal structure

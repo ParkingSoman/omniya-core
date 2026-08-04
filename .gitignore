@@ -2,3 +2,9 @@ node_modules/
 playwright-report/
 test-results/
 .pi/
+
+# Local Electron data and one overwritten test-inspection snapshot
+.omniya-data/
+.omniya-user-data/
+test/user-data/
+test/artifacts/
