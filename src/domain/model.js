@@ -1,4 +1,5 @@
 export const SCHEMA_VERSION = 1;
+export const MATH_SCHEMA_VERSION = 2;
 
 function defaultIdFactory() {
   return globalThis.crypto.randomUUID();

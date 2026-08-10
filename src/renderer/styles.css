@@ -84,6 +84,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .item-content math:focus { outline: 0.18rem solid var(--accent); outline-offset: 0.2rem; }
 .item-content mjx-container { font-size: 1.15rem; }
 .item-content mjx-container:focus, .item-content mjx-focus:focus { outline: 0.18rem solid var(--accent); outline-offset: 0.2rem; }
+.nemeth-inline-editor { background: #fffdf8; border: 2px solid var(--accent); border-radius: 0.35rem; display: block; font-family: 'Braille', sans-serif; font-size: 1.25rem; margin-top: 0.6rem; max-width: 30rem; padding: 0.5rem; width: 100%; }
 .item-text { margin: 0; white-space: pre-wrap; }
 .item-note { color: var(--muted); font-size: 0.78rem; margin: 0.35rem 0 0; }
 .reading-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }

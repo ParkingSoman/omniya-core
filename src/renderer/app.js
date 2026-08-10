@@ -7,6 +7,7 @@ import {
   switchNapkin,
   updateItem
 } from '../domain/model.js';
+import { captureExplorerFocus } from './math-explorer-bridge.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -30,6 +31,7 @@ let saveChain = Promise.resolve();
 let transcriptRenderVersion = 0;
 let mathJaxReady;
 let exploringEquationItemId = null;
+let inlineEditor = null;
 
 function activeNapkin() {
   return state.napkins.find(({ id }) => id === state.activeNapkinId) ?? null;
@@ -120,7 +122,9 @@ async function renderEquation(container, item, version) {
   try {
     if (!await waitForMathJax()) throw new Error('MathJax accessibility runtime unavailable');
     const source = document.createElement('span');
-    source.textContent = `\\[${item.source}\\]`;
+    const persistedMathML = item.math?.mathml || item.mathml;
+    if (persistedMathML) source.innerHTML = persistedMathML;
+    else source.textContent = `\\[${item.source}\\]`;
     container.replaceChildren(source);
     await globalThis.MathJax.typesetPromise([container]);
     if (version !== transcriptRenderVersion || !container.isConnected) return;
@@ -285,6 +289,48 @@ function leaveEquation(article) {
   exploringEquationItemId = null;
   article.focus();
   elements['save-status'].textContent = 'Equation level';
+}
+
+function closeInlineEditor(article) {
+  inlineEditor?.remove();
+  inlineEditor = null;
+  article?.querySelector('mjx-container, math')?.focus?.();
+}
+
+async function openInlineNemethEditor(article) {
+  if (inlineEditor) return;
+  const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
+  if (!item) return;
+  const math = article.querySelector('mjx-container, math');
+  if (!math) return;
+  let focus;
+  try { focus = captureExplorerFocus(article); } catch { elements['save-status'].textContent = 'This focus cannot be edited safely.'; return; }
+  const editor = document.createElement('textarea');
+  editor.className = 'nemeth-inline-editor';
+  editor.rows = 2;
+  editor.setAttribute('aria-label', `Nemeth editor for ${focus.speech || 'focused expression'}`);
+  editor.value = focus.nemeth || '';
+  article.append(editor);
+  inlineEditor = editor;
+  editor.focus();
+  editor.addEventListener('keydown', async (event) => {
+    if (event.key === 'Escape') { event.preventDefault(); closeInlineEditor(article); return; }
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    event.preventDefault();
+    try {
+      const parsed = await window.omniya.parseNemeth(editor.value, { mode: 'strict' });
+      if (!parsed.ok) throw new Error(`${parsed.error.message} (cell ${parsed.error.startCell + 1})`);
+      const result = await window.omniya.replaceMathTarget({ document: { mathml: item.mathml ?? item.math?.mathml, latex: item.source }, target: focus.target, replacementLatex: parsed.latex });
+      state = updateItem(state, item.id, { source: result.document.latex, note: item.note, mathml: result.document.mathml });
+      closeInlineEditor(article);
+      renderAll();
+      await saveState().catch(() => {});
+      elements['save-status'].textContent = 'Nemeth edit committed';
+    } catch (error) {
+      elements['save-status'].textContent = error.message;
+      editor.setAttribute('aria-invalid', 'true');
+    }
+  });
 }
 
 // MathJax may move focus to its short-lived hidden focus element while an
@@ -545,6 +591,10 @@ elements['transcript'].addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       event.preventDefault();
       leaveEquation(article);
+    }
+    if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      void openInlineNemethEditor(article);
     }
     return;
   }
