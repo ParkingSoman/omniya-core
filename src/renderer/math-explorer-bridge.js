@@ -1,6 +1,9 @@
 /** Boundary between MathJax/SRE's ephemeral explorer and the persisted tree. */
 export function captureExplorerFocus(article) {
-  const focused = article.querySelector('[data-semantic-focus="true"], [data-semantic-id][aria-current="true"]') || article.querySelector('[data-semantic-id]');
+  const semanticSelector = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.semanticFocus?.();
+  const focused = (semanticSelector
+    ? article.querySelector(`mjx-container ${semanticSelector}`) || article.querySelector(`mjx-assistive-mml ${semanticSelector}`)
+    : null) || article.querySelector('[data-semantic-focus="true"], [data-semantic-id][aria-current="true"]') || article.querySelector('[data-semantic-id]');
   if (!focused) throw new Error('MathJax explorer has no focused node');
   const semanticId = focused.getAttribute('data-semantic-id');
   const targetNode = focused.closest('[data-omniya-id]') || article.querySelector('[data-omniya-id]');

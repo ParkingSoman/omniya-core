@@ -89,7 +89,10 @@ export function replaceMathTarget(tree, target, replacementTree) {
     if (!old) throw new RangeError('Math node not found');
     replacement.attrs['data-omniya-id'] = target.nodeId;
     const walk = (parent) => { for (let i = 0; i < parent.children.length; i++) { const c = parent.children[i]; if (c === old) { parent.children[i] = replacement; return true; } if (c.text === undefined && walk(c)) return true; } return false; };
-    if (old === next) return replacement;
+    if (old === next) {
+      next.children = [replacement];
+      return next;
+    }
     walk(next);
   } else {
     const parent = findMathNode(next, target.parentNodeId);

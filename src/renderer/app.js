@@ -8,6 +8,7 @@ import {
   updateItem
 } from '../domain/model.js';
 import { captureExplorerFocus } from './math-explorer-bridge.js';
+import { createSixKeyInput } from './braille-input.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -127,6 +128,7 @@ async function renderEquation(container, item, version) {
     else source.textContent = `\\[${item.source}\\]`;
     container.replaceChildren(source);
     await globalThis.MathJax.typesetPromise([container]);
+    stampCanonicalIds(container);
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
   } catch {
@@ -135,6 +137,19 @@ async function renderEquation(container, item, version) {
     container.setAttribute('role', 'alert');
     container.textContent = 'Local MathJax could not render this equation.';
     showError('The local MathJax runtime could not render an equation. Run npm install and restart the app.');
+  }
+}
+
+function stampCanonicalIds(container) {
+  const sourceMath = container.querySelector('mjx-assistive-mml math');
+  const visualMath = container.querySelector('mjx-math');
+  if (!sourceMath || !visualMath) return;
+  const sourceNodes = [sourceMath, ...sourceMath.querySelectorAll('*')]
+    .filter((node) => node.hasAttribute('data-omniya-id'));
+  const visualNodes = [visualMath, ...visualMath.querySelectorAll('*')]
+    .filter((node) => node.localName?.startsWith('mjx-') && node.localName !== 'mjx-c');
+  for (let index = 0; index < Math.min(sourceNodes.length, visualNodes.length); index += 1) {
+    visualNodes[index].setAttribute('data-omniya-id', sourceNodes[index].getAttribute('data-omniya-id'));
   }
 }
 
@@ -266,15 +281,16 @@ function focusNapkinButton(napkinId) {
 }
 
 async function enterEquation(article) {
-  let math = article.querySelector('mjx-container, math');
+  let math = article.querySelector('mjx-container');
   // Selection rerenders the transcript. Give the local MathJax promise a
   // short, bounded window to replace its loading marker before reporting an
   // error; never reinterpret an equation as an edit just because rendering
   // is asynchronous.
   for (let attempt = 0; !math && attempt < 100 && article.isConnected; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, 20));
-    math = article.querySelector('mjx-container, math');
+    math = article.querySelector('mjx-container');
   }
+  math ||= article.querySelector('math');
   if (!math) {
     elements['save-status'].textContent = 'Equation is still loading.';
     return false;
@@ -294,7 +310,7 @@ function leaveEquation(article) {
 function closeInlineEditor(article) {
   inlineEditor?.remove();
   inlineEditor = null;
-  article?.querySelector('mjx-container, math')?.focus?.();
+  (article?.querySelector('mjx-container') || article?.querySelector('math'))?.focus?.();
 }
 
 async function openInlineNemethEditor(article) {
@@ -313,6 +329,16 @@ async function openInlineNemethEditor(article) {
   article.append(editor);
   inlineEditor = editor;
   editor.focus();
+  if (globalThis.__omniyaBrailleSimulation) {
+    const sixKey = createSixKeyInput({ emit: (cell) => {
+      const start = editor.selectionStart ?? editor.value.length;
+      const end = editor.selectionEnd ?? start;
+      editor.setRangeText(cell, start, end, 'end');
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    }});
+    editor.addEventListener('keydown', (event) => sixKey.keydown(event));
+    editor.addEventListener('keyup', (event) => sixKey.keyup(event));
+  }
   editor.addEventListener('keydown', async (event) => {
     if (event.key === 'Escape') { event.preventDefault(); closeInlineEditor(article); return; }
     if (event.key !== 'Enter' || event.shiftKey) return;
@@ -336,7 +362,7 @@ async function openInlineNemethEditor(article) {
 // MathJax may move focus to its short-lived hidden focus element while an
 // expression is being explored. Keep Escape reliable even in that case.
 document.addEventListener('keydown', (event) => {
-  if (event.key !== 'Escape' || !exploringEquationItemId) return;
+  if (!exploringEquationItemId) return;
   const focused = document.activeElement;
   if (!focused?.matches?.('mjx-container, math, mjx-focus') &&
       !focused?.closest?.('mjx-container, math, mjx-focus')) return;
@@ -344,6 +370,13 @@ document.addEventListener('keydown', (event) => {
     `article.napkin-article[data-item-id="${CSS.escape(exploringEquationItemId)}"]`
   );
   if (!article) return;
+  if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    void openInlineNemethEditor(article);
+    return;
+  }
+  if (event.key !== 'Escape') return;
   event.preventDefault();
   event.stopImmediatePropagation();
   leaveEquation(article);
@@ -437,7 +470,9 @@ async function submitComposer() {
   let mathml = null;
   if (type === 'equation') {
     try {
-      mathml = (await window.omniya.latexToMathML(source)).mathml;
+      mathml = (await (window.omniya.importMath
+        ? window.omniya.importMath(source)
+        : window.omniya.latexToMathML(source))).mathml;
     } catch {
       setFieldError(elements['composer-source'], elements['composer-error'],
         'The LaTeX could not be converted. Check its syntax.');

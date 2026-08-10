@@ -19,7 +19,9 @@ export async function replaceMathTargetInDocument({ document, target, replacemen
   const replacement = parseMathML(canonicalizeMathML(await convertLatexToMathML(replacementLatex)));
   const current = parseMathML(document.mathml);
   const old = serializeMathML(current);
-  const next = replaceMathTarget(current, target, replacement.children[0]);
+  const replacementNode = replacement.children.find((child) => child.text === undefined);
+  if (!replacementNode) throw new SyntaxError('Replacement LaTeX produced no MathML element');
+  const next = replaceMathTarget(current, target, replacementNode);
   const mathml = serializeMathML(next);
   const inversePatch = { document: { ...document }, target, replacementMathML: old };
   return { document: { ...document, mathml, latex: latexFromMathML(next), cursor: target }, cursor: target, inversePatch, structuralChanged: !structuralEquivalent(current, next) };
