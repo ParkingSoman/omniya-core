@@ -4,7 +4,8 @@ import {
   applyMathTransition,
   completionReport,
   createEmptyMathDocument,
-  deriveNemethContext
+  deriveNemethContext,
+  nextEmptyFocus
 } from '../../src/domain/guided-nemeth/index.js';
 import { parseMathML, serializeMathML } from '../../src/domain/math-tree.js';
 
@@ -123,4 +124,65 @@ test('numeric indicator keeps a bounded numeric mode for adjacent digits', () =>
   assert.equal(result.status, 'applied');
   assert.match(result.document.mathml, />1<\/mn>/);
   assert.match(result.document.mathml, />2<\/mn>/);
+});
+
+test('fraction terminator returns to the containing row instead of starting numeric mode', () => {
+  const empty = documentWithRow();
+  let result = applyMathTransition({
+    document: empty,
+    focus: empty.focus,
+    inputState: { pendingCells: [] },
+    input: { kind: 'command', operationId: 'fraction.insert.simple' }
+  });
+  assert.equal(result.status, 'applied');
+  const fraction = parseMathML(result.document.mathml).children[0].children[0];
+  const denominator = fraction.children[1];
+  result = applyMathTransition({
+    document: result.document,
+    focus: { kind: 'node', nodeId: denominator.attrs['data-omniya-id'] },
+    inputState: { pendingCells: [] },
+    input: { kind: 'nemeth-cell', cell: '⠼' }
+  });
+  assert.equal(result.status, 'applied');
+  assert.equal(result.inputState.pendingCells.length, 0);
+  assert.equal(deriveNemethContext(result.document, result.focus).nodeName, 'mrow');
+});
+
+test('radical termination moves out of the radical and preserves the radical structure', () => {
+  const empty = documentWithRow();
+  let result = applyMathTransition({
+    document: empty,
+    focus: empty.focus,
+    inputState: { pendingCells: [] },
+    input: { kind: 'command', operationId: 'radical.insert.square' }
+  });
+  assert.equal(result.status, 'applied');
+  const radical = parseMathML(result.document.mathml).children[0].children[0];
+  result = applyMathTransition({
+    document: result.document,
+    focus: { kind: 'node', nodeId: radical.children[0].attrs['data-omniya-id'] },
+    inputState: { pendingCells: [] },
+    input: { kind: 'nemeth-cell', cell: '⠻' }
+  });
+  assert.equal(result.status, 'applied');
+  assert.match(result.document.mathml, /<msqrt/);
+  assert.equal(deriveNemethContext(result.document, result.focus).nodeName, 'mrow');
+});
+
+test('empty-slot traversal visits required children in tree order and reverses with Shift+Tab semantics', () => {
+  const empty = createEmptyMathDocument();
+  const root = parseMathML(empty.mathml);
+  const fraction = applyMathTransition({
+    document: empty,
+    focus: { kind: 'node', nodeId: root.attrs['data-omniya-id'] },
+    inputState: { pendingCells: [] },
+    input: { kind: 'command', operationId: 'fraction.insert.simple' }
+  });
+  assert.equal(fraction.status, 'applied');
+  const tree = parseMathML(fraction.document.mathml);
+  const mfrac = tree.children[0];
+  const numerator = { kind: 'node', nodeId: mfrac.children[0].attrs['data-omniya-id'] };
+  const denominator = { kind: 'node', nodeId: mfrac.children[1].attrs['data-omniya-id'] };
+  assert.deepEqual(nextEmptyFocus(fraction.document, numerator, 1), denominator);
+  assert.deepEqual(nextEmptyFocus(fraction.document, denominator, -1), numerator);
 });

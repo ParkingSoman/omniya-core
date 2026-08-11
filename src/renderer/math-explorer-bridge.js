@@ -20,13 +20,24 @@ export function captureExplorerFocus(article) {
     target = { kind: 'range', parentNodeId: parent.getAttribute('data-omniya-id'), firstNodeId: first.getAttribute('data-omniya-id'), lastNodeId: last.getAttribute('data-omniya-id') };
   }
   if (!target) throw new Error('Explorer focus cannot resolve to a canonical node');
+  // MathJax keeps the focused Nemeth string on the transient explorer speech
+  // node, not on the source MathML element. Read that accessibility channel
+  // while retaining the canonical source node as the edit target.
+  const explorerSpeech = article.querySelector('mjx-speech[aria-braillelabel]');
   const semanticPath = [];
   let cursor = focused;
   while (cursor && cursor !== article) {
     semanticPath.unshift({ type: cursor.getAttribute('data-semantic-type') || cursor.tagName.toLowerCase(), role: cursor.getAttribute('data-semantic-role') || '', ordinal: [...(cursor.parentElement?.children ?? [])].indexOf(cursor) });
     cursor = cursor.parentElement;
   }
-  return { semanticId, semanticPath, target, subtreeMathML: (targetNode || descendants[0])?.outerHTML || '', speech: focused.getAttribute('data-speech') || focused.getAttribute('aria-label') || '', nemeth: focused.getAttribute('data-braille') || focused.getAttribute('aria-braillelabel') || '' };
+  return {
+    semanticId,
+    semanticPath,
+    target,
+    subtreeMathML: (targetNode || descendants[0])?.outerHTML || '',
+    speech: focused.getAttribute('data-speech') || focused.getAttribute('aria-label') || explorerSpeech?.getAttribute('aria-label') || '',
+    nemeth: focused.getAttribute('data-braille') || focused.getAttribute('aria-braillelabel') || explorerSpeech?.getAttribute('aria-braillelabel') || ''
+  };
 }
 
 export async function restoreExplorerFocus(article, address) {

@@ -218,6 +218,21 @@
       ]
     },
     {
+      "id": "fraction.close.simple",
+      "commandLabel": "End simple fraction",
+      "banaRefs": [
+        "13.2.1"
+      ],
+      "nemethSequences": [
+        "⠼"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
       "id": "script.superscript",
       "commandLabel": "Insert superscript",
       "banaRefs": [
@@ -289,6 +304,21 @@
       ],
       "nemethSequences": [
         "⠜"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "radical.close",
+      "commandLabel": "End radical",
+      "banaRefs": [
+        "16.1.1"
+      ],
+      "nemethSequences": [
+        "⠻"
       ],
       "validContexts": [
         "row",

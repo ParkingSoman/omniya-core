@@ -39,6 +39,11 @@ function parse(source) {
       stack.at(-1).children.push(node);
       if (!self) stack.push(node);
     } else {
+      // Pretty-printed MathML commonly places indentation between elements.
+      // Those formatting nodes are not mathematical children and must not
+      // change focus paths or structural arity. Preserve whitespace only in
+      // mtext, where it is user content rather than XML formatting.
+      if (!token.trim() && stack.at(-1).name !== 'mtext') continue;
       stack.at(-1).children.push({ text: token });
     }
   }

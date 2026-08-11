@@ -9,7 +9,7 @@ import {
 } from '../domain/model.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { createSixKeyInput } from './braille-input.js';
-import { createEmptyMathDocument } from '../domain/guided-nemeth/index.js';
+import { createEmptyMathDocument, nextEmptyFocus } from '../domain/guided-nemeth/index.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -395,6 +395,29 @@ async function openInlineNemethEditor(article) {
   editor.value = '';
   article.append(editor);
   inlineEditor = editor;
+  let workingDocument = { formatVersion: 2, mathml: item.math?.mathml ?? item.mathml, focus: focus.target };
+  let currentFocus = focus.target;
+  let inputState = { pendingCells: [] };
+  const previous = { document: structuredClone(workingDocument), focus: currentFocus };
+
+  const consumeBufferedInput = async () => {
+    for (const cell of [...editor.value]) {
+      const result = await window.omniya.applyMathTransition({ document: workingDocument, focus: currentFocus, inputState, input: { kind: 'nemeth-cell', cell } });
+      if (result.status === 'pending') { inputState = result.inputState; continue; }
+      if (result.status === 'choice') throw new Error('Choose a meaning with Command-K before committing this sequence.');
+      if (result.status !== 'applied') throw new Error(result.announcement);
+      workingDocument = result.document;
+      currentFocus = result.focus;
+      inputState = result.inputState;
+    }
+    if (inputState.pendingCells?.length) throw new Error('The Nemeth sequence is incomplete.');
+    editor.value = '';
+  };
+
+  const announceCurrentFocus = () => {
+    const context = currentFocus?.kind === 'node' ? currentFocus.nodeId : currentFocus?.firstNodeId;
+    editor.setAttribute('aria-label', `Nemeth editor at ${context || 'focused expression'}`);
+  };
   editor.focus();
   if (globalThis.__omniyaBrailleSimulation) {
     const sixKey = createSixKeyInput({ emit: (cell) => {
@@ -408,29 +431,33 @@ async function openInlineNemethEditor(article) {
   }
   editor.addEventListener('keydown', async (event) => {
     if (event.key === 'Escape') { event.preventDefault(); closeInlineEditor(article); return; }
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      try {
+        await consumeBufferedInput();
+        const next = nextEmptyFocus(workingDocument, currentFocus, event.shiftKey ? -1 : 1);
+        if (next) {
+          currentFocus = next;
+          workingDocument = { ...workingDocument, focus: currentFocus };
+          announceCurrentFocus();
+          elements['save-status'].textContent = event.shiftKey ? 'Previous empty mathematical slot' : 'Next empty mathematical slot';
+        }
+      } catch (error) {
+        elements['save-status'].textContent = error.message;
+        editor.setAttribute('aria-invalid', 'true');
+      }
+      return;
+    }
     if (event.key !== 'Enter' || event.shiftKey) return;
     event.preventDefault();
     try {
-      let document = { formatVersion: 2, mathml: item.math?.mathml ?? item.mathml, focus: focus.target };
-      let currentFocus = focus.target;
-      let inputState = { pendingCells: [] };
-      const previous = { document: structuredClone(document), focus: currentFocus };
-      for (const cell of [...editor.value]) {
-        const result = await window.omniya.applyMathTransition({ document, focus: currentFocus, inputState, input: { kind: 'nemeth-cell', cell } });
-        if (result.status === 'pending') { inputState = result.inputState; continue; }
-        if (result.status === 'choice') throw new Error('Choose a meaning with Command-K before committing this sequence.');
-        if (result.status !== 'applied') throw new Error(result.announcement);
-        document = result.document;
-        currentFocus = result.focus;
-        inputState = result.inputState;
-      }
-      if (inputState.pendingCells?.length) throw new Error('The Nemeth sequence is incomplete.');
+      await consumeBufferedInput();
       const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
       history.undo.push(previous);
       history.undo = history.undo.slice(-100);
       history.redo = [];
       mathHistory.set(item.id, history);
-      state = updateItem(state, item.id, { note: item.note, math: document });
+      state = updateItem(state, item.id, { note: item.note, math: workingDocument });
       closeInlineEditor(article);
       renderAll();
       const replacementArticle = elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`);

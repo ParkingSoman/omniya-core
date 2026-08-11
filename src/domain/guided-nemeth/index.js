@@ -155,9 +155,58 @@ function transitionContext(document, focus) {
   };
 }
 
+function ancestorMatching(tree, node, predicate) {
+  let current = node;
+  while (current) {
+    if (predicate(current)) return current;
+    current = isElement(current) ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
+  }
+  return null;
+}
+
+function containsNode(tree, ancestor, node) {
+  if (!ancestor || !node) return false;
+  const ancestorId = ancestor.attrs?.['data-omniya-id'];
+  let current = node;
+  while (current) {
+    if (current.attrs?.['data-omniya-id'] === ancestorId) return true;
+    current = isElement(current) ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
+  }
+  return false;
+}
+
+function focusAfterContainer(tree, container) {
+  const parent = findMathParent(tree, container.attrs?.['data-omniya-id']);
+  if (!parent || parent.name === 'math') return focusNode(container);
+  return focusNode(parent);
+}
+
+function closeContainer(context, containerName, childIndex, announcement) {
+  const container = ancestorMatching(context.tree, context.node, (candidate) => candidate.name === containerName);
+  const child = container?.children?.[childIndex];
+  if (!container || !child || !containsNode(context.tree, child, context.node)) {
+    throw new RangeError(`No open ${containerName} at the current focus.`);
+  }
+  return { tree: context.tree, focus: focusAfterContainer(context.tree, container), announcement };
+}
+
 export function deriveNemethContext(document, focus) {
   const context = transitionContext(document, focus);
   return { slot: context.slot, nodeName: context.node.name, parentName: context.parent?.name ?? null, isHole: context.isHole, inRow: context.inRow };
+}
+
+/** Return the next or previous persisted required slot for Tab traversal. */
+export function nextEmptyFocus(document, focus, direction = 1) {
+  if (direction !== 1 && direction !== -1) throw new RangeError('Empty-slot direction must be 1 or -1');
+  const tree = mathTree(document);
+  const holes = reportCompletion(tree).holes
+    .filter(({ nodeId }) => Boolean(findMathNode(tree, nodeId)))
+    .map(({ nodeId }) => ({ kind: 'node', nodeId }));
+  if (!holes.length) return null;
+  const currentId = focus?.nodeId ?? focus?.firstNodeId;
+  const currentIndex = holes.findIndex(({ nodeId }) => nodeId === currentId);
+  const nextIndex = currentIndex < 0 ? (direction > 0 ? 0 : holes.length - 1) : currentIndex + direction;
+  return holes[nextIndex] ?? null;
 }
 
 const OPERATIONS = [
@@ -174,12 +223,14 @@ const OPERATIONS = [
   { id: 'operator.sum', commandLabel: 'Insert summation operator', banaRefs: ['23.11'], nemethSequences: ['⠠⠎'], validContexts: ['row', 'replacement'], apply: (ctx) => { const { tree, inserted } = insertAtom(ctx, 'mo', '∑'); return { tree, focus: focusNode(inserted), announcement: 'Inserted summation operator.' }; } },
   { id: 'operator.product', commandLabel: 'Insert product operator', banaRefs: ['23.11'], nemethSequences: ['⠠⠏'], validContexts: ['row', 'replacement'], apply: (ctx) => { const { tree, inserted } = insertAtom(ctx, 'mo', '∏'); return { tree, focus: focusNode(inserted), announcement: 'Inserted product operator.' }; } },
   { id: 'fraction.insert.simple', commandLabel: 'Insert simple fraction', banaRefs: ['13.1', '13.2'], nemethSequences: ['⠹'], validContexts: ['row', 'hole', 'replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'mfrac', ['numerator', 'denominator'], { focusRole: 'numerator' }); return { tree: result.replacement, focus: result.focus, announcement: 'Inserted fraction. Editing numerator.' }; } },
+  { id: 'fraction.close.simple', commandLabel: 'End simple fraction', banaRefs: ['13.2.1'], nemethSequences: ['⠼'], validContexts: ['row', 'hole', 'replacement'], apply: (ctx) => closeContainer(ctx, 'mfrac', 1, 'Ended fraction. Returned to the surrounding expression.') },
   { id: 'script.superscript', commandLabel: 'Insert superscript', banaRefs: ['14.3', '14.4'], nemethSequences: ['⠘'], validContexts: ['replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'msup', ['base', 'superscript'], { focusRole: 'superscript' }); return { tree: result.replacement, focus: result.focus, announcement: 'Inserted superscript.' }; } },
   { id: 'script.subscript', commandLabel: 'Insert subscript', banaRefs: ['14.8'], nemethSequences: ['⠰'], validContexts: ['replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'msub', ['base', 'subscript'], { focusRole: 'subscript' }); return { tree: result.replacement, focus: result.focus, announcement: 'Inserted subscript.' }; } },
   { id: 'script.under', commandLabel: 'Insert underscript', banaRefs: ['14.8', '15.1'], nemethSequences: [], validContexts: ['replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'munder', ['base', 'underscript'], { focusRole: 'underscript' }); return { tree: result.replacement, focus: result.focus, announcement: 'Inserted underscript.' }; } },
   { id: 'script.over', commandLabel: 'Insert overscript', banaRefs: ['14.3', '15.1'], nemethSequences: [], validContexts: ['replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'mover', ['base', 'overscript'], { focusRole: 'overscript' }); return { tree: result.replacement, focus: result.focus, announcement: 'Inserted overscript.' }; } },
   { id: 'script.under-over', commandLabel: 'Insert underscript and overscript', banaRefs: ['14.3', '14.8'], nemethSequences: [], validContexts: ['replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'munderover', ['base', 'underscript', 'overscript'], { focusRole: 'underscript' }); return { tree: result.replacement, focus: result.focus, announcement: 'Inserted underscript and overscript.' }; } },
   { id: 'radical.insert.square', commandLabel: 'Insert square root', banaRefs: ['16.1', '16.2'], nemethSequences: ['⠜'], validContexts: ['row', 'hole', 'replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'msqrt', ['radicand'], { focusRole: 'radicand' }); return { tree: result.replacement, focus: result.focus, announcement: 'Inserted square root.' }; } },
+  { id: 'radical.close', commandLabel: 'End radical', banaRefs: ['16.1.1'], nemethSequences: ['⠻'], validContexts: ['row', 'hole', 'replacement'], apply: (ctx) => closeContainer(ctx, 'msqrt', 0, 'Ended radical. Returned to the surrounding expression.') },
   { id: 'radical.insert.indexed', commandLabel: 'Insert indexed radical', banaRefs: ['16.2', '16.3'], nemethSequences: [], validContexts: ['row', 'hole', 'replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'mroot', ['radicand', 'index'], { focusRole: 'radicand' }); return { tree: result.replacement, focus: result.focus, announcement: 'Inserted indexed radical.' }; } },
   { id: 'group.insert.round', commandLabel: 'Insert grouped expression', banaRefs: ['19.1', '19.5'], nemethSequences: ['⠷'], validContexts: ['row', 'hole', 'replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'mrow', ['content'], { focusRole: 'content' }); result.replacement.attrs['data-omniya-group'] = 'round'; return { tree: result.replacement, focus: result.focus, announcement: 'Inserted grouped expression.' }; } },
   { id: 'bar.absolute', commandLabel: 'Insert absolute-value bars', banaRefs: ['19.9', '23.7'], nemethSequences: ['⠸'], validContexts: ['row', 'hole', 'replacement'], apply: (ctx) => { const result = wrapFocused(ctx, 'menclose', ['content'], { focusRole: 'content' }); result.replacement.attrs.notation = 'longdiv'; return { tree: result.replacement, focus: result.focus, announcement: 'Inserted absolute-value expression.' }; } },
@@ -243,6 +294,17 @@ export function applyMathTransition({ document, focus, inputState = { pendingCel
   const pendingValue = Array.isArray(inputState.pendingCells) ? inputState.pendingCells.join('') : String(inputState.pendingCells ?? '');
   const pending = `${pendingValue}${cell}`;
   const contextKind = context.isHole ? 'hole' : context.inRow ? 'row' : 'replacement';
+  if (!pendingValue && cell === '⠼') {
+    const fraction = ancestorMatching(context.tree, context.node, (candidate) => candidate.name === 'mfrac');
+    const denominator = fraction?.children?.[1];
+    if (fraction && denominator && containsNode(context.tree, denominator, context.node)) {
+      return applyOperation(context, OP_BY_ID.get('fraction.close.simple'), null);
+    }
+  }
+  if (!pendingValue && cell === '⠻') {
+    const radical = ancestorMatching(context.tree, context.node, (candidate) => candidate.name === 'msqrt');
+    if (radical) return applyOperation(context, OP_BY_ID.get('radical.close'), null);
+  }
   if (!pendingValue && cell === '⠼') return { status: 'pending', inputState: { pendingCells: '⠼' }, announcement: 'Number follows.' };
   if (inputState.numeric && DIGITS.has(cell)) return applyOperation(context, OP_BY_ID.get('atom.number'), DIGITS.get(cell));
   if (pendingValue === '⠼' && DIGITS.has(cell)) return applyOperation(context, OP_BY_ID.get('atom.number'), DIGITS.get(cell));

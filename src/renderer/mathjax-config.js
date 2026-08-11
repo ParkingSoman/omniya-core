@@ -1,6 +1,9 @@
-// Keep MathJax completely local. The bundle contains the explorer and speech
-// components; this configuration only enables them and stops automatic page
-// typesetting so the app can render each saved equation deliberately.
+// Keep MathJax completely local. The combined v4 bundle supplies the mature
+// semantic-enrichment, speech, and Expression Explorer implementation. Omniya
+// deliberately delegates populated-tree arrow navigation to that explorer;
+// see https://docs.mathjax.org/en/v4.0/basic/explorer-commands.html.
+// Assistive MathML remains enabled for ATs that consume semantic descendants,
+// while the explorer remains the focus/edit authority.
 globalThis.MathJax = {
   loader: {
     load: ['a11y/assistive-mml'],

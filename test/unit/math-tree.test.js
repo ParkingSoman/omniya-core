@@ -38,3 +38,9 @@ test('canonical tree preserves multiscript vocabulary and derives required holes
   assert.equal(completionReport(tree).complete, false);
   assert.ok(completionReport(tree).holes.some((hole) => hole.role === 'content'));
 });
+
+test('canonical parser removes formatting whitespace text nodes', () => {
+  const tree = parseMathML('<math>\n  <mfrac>\n    <mrow><mi>a</mi></mrow>\n    <mrow><mi>b</mi></mrow>\n  </mfrac>\n</math>');
+  assert.deepEqual(tree.children.map((child) => child.name), ['mfrac']);
+  assert.deepEqual(tree.children[0].children.map((child) => child.name), ['mrow', 'mrow']);
+});
