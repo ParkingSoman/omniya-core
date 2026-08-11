@@ -71,18 +71,18 @@ function setFieldError(field, output, message = '') {
   output.hidden = !message;
 }
 
-function saveState() {
+function saveState({ announce = true } = {}) {
   const stateToSave = structuredClone(state);
-  elements['save-status'].textContent = 'Saving…';
+  if (announce) elements['save-status'].textContent = 'Saving…';
   saveChain = saveChain
     .catch(() => {})
     .then(() => window.omniya.saveState(stateToSave))
     .then(() => {
       clearAppError();
-      elements['save-status'].textContent = 'Saved';
+      if (announce) elements['save-status'].textContent = 'Saved';
     })
     .catch(() => {
-      elements['save-status'].textContent = 'Not saved';
+      if (announce) elements['save-status'].textContent = 'Not saved';
       showError('The napkins could not be saved locally.', { retry: true });
       throw new Error('Save failed');
     });
@@ -377,14 +377,23 @@ async function applyMathHistory(itemId, direction) {
   elements['save-status'].textContent = direction === 'undo' ? 'Undid mathematical edit' : 'Redid mathematical edit';
 }
 
-async function openInlineNemethEditor(article) {
+async function openInlineNemethEditor(article, startingFocus = null) {
   if (inlineEditor) return;
   const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
   if (!item) return;
-  const math = article.querySelector('mjx-container, math');
+  let math = article.querySelector('mjx-container, math');
+  for (let attempt = 0; !math && attempt < 100 && article.isConnected; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    math = article.querySelector('mjx-container, math');
+  }
   if (!math) return;
   let focus;
-  try { focus = captureExplorerFocus(article); } catch { elements['save-status'].textContent = 'This focus cannot be edited safely.'; return; }
+  try {
+    focus = startingFocus ? { target: startingFocus, speech: '', nemeth: '' } : captureExplorerFocus(article);
+  } catch {
+    elements['save-status'].textContent = 'This focus cannot be edited safely.';
+    return;
+  }
   const editor = document.createElement('textarea');
   editor.className = 'nemeth-inline-editor';
   editor.rows = 2;
@@ -398,7 +407,13 @@ async function openInlineNemethEditor(article) {
   let workingDocument = { formatVersion: 2, mathml: item.math?.mathml ?? item.mathml, focus: focus.target };
   let currentFocus = focus.target;
   let inputState = { pendingCells: [] };
-  const previous = { document: structuredClone(workingDocument), focus: currentFocus };
+  let didApply = false;
+  const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
+
+  const persistWorkingDocument = () => {
+    state = updateItem(state, item.id, { note: item.note, math: workingDocument });
+    return saveState({ announce: false }).catch(() => {});
+  };
 
   const consumeBufferedInput = async () => {
     for (const cell of [...editor.value]) {
@@ -406,9 +421,15 @@ async function openInlineNemethEditor(article) {
       if (result.status === 'pending') { inputState = result.inputState; continue; }
       if (result.status === 'choice') throw new Error('Choose a meaning with Command-K before committing this sequence.');
       if (result.status !== 'applied') throw new Error(result.announcement);
+      history.undo.push({ document: structuredClone(workingDocument), focus: currentFocus });
+      history.undo = history.undo.slice(-100);
+      history.redo = [];
+      mathHistory.set(item.id, history);
+      didApply = true;
       workingDocument = result.document;
       currentFocus = result.focus;
       inputState = result.inputState;
+      void persistWorkingDocument();
     }
     if (inputState.pendingCells?.length) throw new Error('The Nemeth sequence is incomplete.');
     editor.value = '';
@@ -430,9 +451,42 @@ async function openInlineNemethEditor(article) {
     editor.addEventListener('keyup', (event) => sixKey.keyup(event));
   }
   editor.addEventListener('keydown', async (event) => {
-    if (event.key === 'Escape') { event.preventDefault(); closeInlineEditor(article); return; }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      closeInlineEditor(article);
+      if (didApply) {
+        renderAll();
+        const restored = elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`);
+        if (restored) setTimeout(() => void restoreExplorerFocus(restored, currentFocus), 0);
+      }
+      return;
+    }
+    if (event.key === 'Backspace' && editor.value === '' && (editor.selectionStart ?? 0) === 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        const result = await window.omniya.applyMathTransition({ document: workingDocument, focus: currentFocus, inputState, input: { kind: 'command', operationId: 'delete.focused' } });
+        if (result.status !== 'applied') throw new Error(result.announcement);
+        history.undo.push({ document: structuredClone(workingDocument), focus: currentFocus });
+        history.undo = history.undo.slice(-100);
+        history.redo = [];
+        mathHistory.set(item.id, history);
+        workingDocument = result.document;
+        currentFocus = result.focus;
+        inputState = result.inputState;
+        didApply = true;
+        await persistWorkingDocument();
+        announceCurrentFocus();
+        elements['save-status'].textContent = 'Deleted focused mathematics';
+      } catch (error) {
+        elements['save-status'].textContent = error.message;
+      }
+      return;
+    }
     if (event.key === 'Tab') {
       event.preventDefault();
+      event.stopPropagation();
       try {
         await consumeBufferedInput();
         const next = nextEmptyFocus(workingDocument, currentFocus, event.shiftKey ? -1 : 1);
@@ -440,6 +494,7 @@ async function openInlineNemethEditor(article) {
           currentFocus = next;
           workingDocument = { ...workingDocument, focus: currentFocus };
           announceCurrentFocus();
+          void persistWorkingDocument();
           elements['save-status'].textContent = event.shiftKey ? 'Previous empty mathematical slot' : 'Next empty mathematical slot';
         }
       } catch (error) {
@@ -450,13 +505,9 @@ async function openInlineNemethEditor(article) {
     }
     if (event.key !== 'Enter' || event.shiftKey) return;
     event.preventDefault();
+    event.stopPropagation();
     try {
       await consumeBufferedInput();
-      const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
-      history.undo.push(previous);
-      history.undo = history.undo.slice(-100);
-      history.redo = [];
-      mathHistory.set(item.id, history);
       state = updateItem(state, item.id, { note: item.note, math: workingDocument });
       closeInlineEditor(article);
       renderAll();
@@ -585,6 +636,7 @@ async function submitComposer() {
   const note = elements['composer-note'].value;
   const editing = mode === 'edit';
   const type = editing ? activeItem().type : selectedType();
+  const guidedCreation = !editing && type === 'equation' && !source.trim();
   draft = { source, note, type };
   setFieldError(elements['composer-source'], elements['composer-error']);
 
@@ -622,6 +674,11 @@ async function submitComposer() {
   focusSelectedArticle();
   elements['save-status'].textContent = editing ? 'Saved item' : 'Added item';
   await saveState().catch(() => {});
+  if (guidedCreation) {
+    const item = activeItem();
+    const article = item && elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`);
+    if (article) void openInlineNemethEditor(article, item.math.focus);
+  }
 }
 
 async function deleteFocusedItem(itemId) {

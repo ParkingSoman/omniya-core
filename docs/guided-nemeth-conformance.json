@@ -106,10 +106,10 @@
       "id": "comparison.less",
       "commandLabel": "Insert less-than",
       "banaRefs": [
-        "21.7"
+        "21.5"
       ],
       "nemethSequences": [
-        "⠨"
+        "⠐⠅"
       ],
       "validContexts": [
         "row",
@@ -120,10 +120,10 @@
       "id": "comparison.greater",
       "commandLabel": "Insert greater-than",
       "banaRefs": [
-        "21.13"
+        "21.5"
       ],
       "nemethSequences": [
-        "⠰"
+        "⠨⠂"
       ],
       "validContexts": [
         "row",
@@ -137,7 +137,7 @@
         "20.8"
       ],
       "nemethSequences": [
-        "⠌"
+        "⠨⠌"
       ],
       "validContexts": [
         "row",
@@ -148,11 +148,10 @@
       "id": "operator.multiply",
       "commandLabel": "Insert multiplication",
       "banaRefs": [
-        "20.2",
-        "20.3"
+        "20.7"
       ],
       "nemethSequences": [
-        "⠐⠡"
+        "⠈⠡"
       ],
       "validContexts": [
         "row",
@@ -170,6 +169,7 @@
       ],
       "validContexts": [
         "row",
+        "hole",
         "replacement"
       ]
     },
@@ -184,6 +184,7 @@
       ],
       "validContexts": [
         "row",
+        "hole",
         "replacement"
       ]
     },
@@ -198,6 +199,7 @@
       ],
       "validContexts": [
         "row",
+        "hole",
         "replacement"
       ]
     },
@@ -243,6 +245,7 @@
         "⠘"
       ],
       "validContexts": [
+        "row",
         "replacement"
       ]
     },
@@ -256,6 +259,7 @@
         "⠰"
       ],
       "validContexts": [
+        "row",
         "replacement"
       ]
     },
@@ -268,6 +272,7 @@
       ],
       "nemethSequences": [],
       "validContexts": [
+        "row",
         "replacement"
       ]
     },
@@ -280,6 +285,7 @@
       ],
       "nemethSequences": [],
       "validContexts": [
+        "row",
         "replacement"
       ]
     },
@@ -292,6 +298,7 @@
       ],
       "nemethSequences": [],
       "validContexts": [
+        "row",
         "replacement"
       ]
     },
@@ -320,20 +327,6 @@
       "nemethSequences": [
         "⠻"
       ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "radical.insert.indexed",
-      "commandLabel": "Insert indexed radical",
-      "banaRefs": [
-        "16.2",
-        "16.3"
-      ],
-      "nemethSequences": [],
       "validContexts": [
         "row",
         "hole",
@@ -384,6 +377,784 @@
       ],
       "validContexts": [
         "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "fraction.insert.complex",
+      "commandLabel": "Insert complex fraction",
+      "banaRefs": [
+        "13.5",
+        "13.6"
+      ],
+      "nemethSequences": [
+        "⠂⠹"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "fraction.close.complex",
+      "commandLabel": "End complex fraction",
+      "banaRefs": [
+        "13.6"
+      ],
+      "nemethSequences": [
+        "⠂⠼"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "fraction.insert.hypercomplex",
+      "commandLabel": "Insert hypercomplex fraction",
+      "banaRefs": [
+        "13.7",
+        "13.8"
+      ],
+      "nemethSequences": [
+        "⠂⠂⠹"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "fraction.close.hypercomplex",
+      "commandLabel": "End hypercomplex fraction",
+      "banaRefs": [
+        "13.8"
+      ],
+      "nemethSequences": [
+        "⠂⠂⠼"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "script.baseline",
+      "commandLabel": "Return to baseline",
+      "banaRefs": [
+        "14.3",
+        "14.8"
+      ],
+      "nemethSequences": [
+        "⠐"
+      ],
+      "validContexts": [
+        "hole",
+        "replacement",
+        "row"
+      ]
+    },
+    {
+      "id": "script.multiscript",
+      "commandLabel": "Insert multiscript",
+      "banaRefs": [
+        "14.5",
+        "14.11"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "replacement"
+      ]
+    },
+    {
+      "id": "delete.focused",
+      "commandLabel": "Delete focused mathematics",
+      "banaRefs": [
+        "11.1",
+        "12.1"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "radical.insert.indexed",
+      "commandLabel": "Insert indexed radical",
+      "banaRefs": [
+        "16.2",
+        "16.3"
+      ],
+      "nemethSequences": [
+        "⠣"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.less-equal",
+      "commandLabel": "Insert less-than-or-equal",
+      "banaRefs": [
+        "21.5",
+        "21.8"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.greater-equal",
+      "commandLabel": "Insert greater-than-or-equal",
+      "banaRefs": [
+        "21.5",
+        "21.8"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.not-equal",
+      "commandLabel": "Insert not-equal",
+      "banaRefs": [
+        "21.1",
+        "21.8"
+      ],
+      "nemethSequences": [
+        "⠌⠨⠅"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.approximately",
+      "commandLabel": "Insert approximately-equal",
+      "banaRefs": [
+        "21.6"
+      ],
+      "nemethSequences": [
+        "⠈⠱⠈⠱"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.similar",
+      "commandLabel": "Insert similar",
+      "banaRefs": [
+        "21.6"
+      ],
+      "nemethSequences": [
+        "⠈⠱"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.member",
+      "commandLabel": "Insert membership",
+      "banaRefs": [
+        "21.4"
+      ],
+      "nemethSequences": [
+        "⠈⠑"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.not-member",
+      "commandLabel": "Insert non-membership",
+      "banaRefs": [
+        "21.4"
+      ],
+      "nemethSequences": [
+        "⠌⠈⠑"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.subset",
+      "commandLabel": "Insert subset",
+      "banaRefs": [
+        "21.5"
+      ],
+      "nemethSequences": [
+        "⠸⠐⠅"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.subset-equal",
+      "commandLabel": "Insert subset-or-equal",
+      "banaRefs": [
+        "21.5"
+      ],
+      "nemethSequences": [
+        "⠸⠐⠅⠱"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.union",
+      "commandLabel": "Insert union",
+      "banaRefs": [
+        "20.4"
+      ],
+      "nemethSequences": [
+        "⠨⠬"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.intersection",
+      "commandLabel": "Insert intersection",
+      "banaRefs": [
+        "20.4"
+      ],
+      "nemethSequences": [
+        "⠨⠩"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.logical-and",
+      "commandLabel": "Insert logical product",
+      "banaRefs": [
+        "20.5"
+      ],
+      "nemethSequences": [
+        "⠈⠩"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.logical-or",
+      "commandLabel": "Insert logical sum",
+      "banaRefs": [
+        "20.5"
+      ],
+      "nemethSequences": [
+        "⠈⠬"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.slash",
+      "commandLabel": "Insert slash",
+      "banaRefs": [
+        "20.8"
+      ],
+      "nemethSequences": [
+        "⠸⠌"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.dot",
+      "commandLabel": "Insert multiplication dot",
+      "banaRefs": [
+        "20.7"
+      ],
+      "nemethSequences": [
+        "⠡"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.asterisk",
+      "commandLabel": "Insert asterisk",
+      "banaRefs": [
+        "20.3"
+      ],
+      "nemethSequences": [
+        "⠈⠼"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.plus-minus",
+      "commandLabel": "Insert plus-or-minus",
+      "banaRefs": [
+        "20.6"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.infinity",
+      "commandLabel": "Insert infinity",
+      "banaRefs": [
+        "23.11"
+      ],
+      "nemethSequences": [
+        "⠠⠿"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.partial",
+      "commandLabel": "Insert partial derivative",
+      "banaRefs": [
+        "23.14"
+      ],
+      "nemethSequences": [
+        "⠈⠙"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.nabla",
+      "commandLabel": "Insert nabla",
+      "banaRefs": [
+        "23.5"
+      ],
+      "nemethSequences": [
+        "⠨⠫"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.degree",
+      "commandLabel": "Insert degree",
+      "banaRefs": [
+        "23.1"
+      ],
+      "nemethSequences": [
+        "⠘⠨⠡"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.prime",
+      "commandLabel": "Insert prime",
+      "banaRefs": [
+        "23.16"
+      ],
+      "nemethSequences": [
+        "⠄"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.factorial",
+      "commandLabel": "Insert factorial",
+      "banaRefs": [
+        "23.9"
+      ],
+      "nemethSequences": [
+        "⠯"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.percent",
+      "commandLabel": "Insert percent",
+      "banaRefs": [
+        "23.15"
+      ],
+      "nemethSequences": [
+        "⠈⠴"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.empty-set",
+      "commandLabel": "Insert empty set",
+      "banaRefs": [
+        "23.7"
+      ],
+      "nemethSequences": [
+        "⠸⠴"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.angle",
+      "commandLabel": "Insert angle",
+      "banaRefs": [
+        "23"
+      ],
+      "nemethSequences": [
+        "⠫⠪"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.therefore",
+      "commandLabel": "Insert therefore",
+      "banaRefs": [
+        "23.18"
+      ],
+      "nemethSequences": [
+        "⠠⠡"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "misc.since",
+      "commandLabel": "Insert since",
+      "banaRefs": [
+        "23.18"
+      ],
+      "nemethSequences": [
+        "⠈⠌"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "group.parenthesis-close",
+      "commandLabel": "Insert closing parenthesis",
+      "banaRefs": [
+        "19.1"
+      ],
+      "nemethSequences": [
+        "⠾"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "group.bracket-open",
+      "commandLabel": "Insert opening bracket",
+      "banaRefs": [
+        "19.1"
+      ],
+      "nemethSequences": [
+        "⠈⠷"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "group.bracket-close",
+      "commandLabel": "Insert closing bracket",
+      "banaRefs": [
+        "19.1"
+      ],
+      "nemethSequences": [
+        "⠈⠾"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "group.brace-open",
+      "commandLabel": "Insert opening brace",
+      "banaRefs": [
+        "19.1"
+      ],
+      "nemethSequences": [
+        "⠨⠷"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "group.brace-close",
+      "commandLabel": "Insert closing brace",
+      "banaRefs": [
+        "19.1"
+      ],
+      "nemethSequences": [
+        "⠨⠾"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "arrow.right",
+      "commandLabel": "Insert right arrow",
+      "banaRefs": [
+        "22.1",
+        "22.4"
+      ],
+      "nemethSequences": [
+        "⠫⠕"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "arrow.left",
+      "commandLabel": "Insert left arrow",
+      "banaRefs": [
+        "22.4"
+      ],
+      "nemethSequences": [
+        "⠫⠪⠒⠒"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "arrow.both",
+      "commandLabel": "Insert two-way arrow",
+      "banaRefs": [
+        "22.4"
+      ],
+      "nemethSequences": [
+        "⠫⠪⠒⠒⠕"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "arrow.implies",
+      "commandLabel": "Insert implies arrow",
+      "banaRefs": [
+        "21.2"
+      ],
+      "nemethSequences": [
+        "⠫⠶⠶⠕"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "greek.pi",
+      "commandLabel": "Insert pi",
+      "banaRefs": [
+        "6.2"
+      ],
+      "nemethSequences": [
+        "⠨⠏"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "greek.alpha",
+      "commandLabel": "Insert alpha",
+      "banaRefs": [
+        "6.2"
+      ],
+      "nemethSequences": [
+        "⠨⠁"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "greek.beta",
+      "commandLabel": "Insert beta",
+      "banaRefs": [
+        "6.2"
+      ],
+      "nemethSequences": [
+        "⠨⠃"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "greek.gamma",
+      "commandLabel": "Insert gamma",
+      "banaRefs": [
+        "6.2"
+      ],
+      "nemethSequences": [
+        "⠨⠛"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "greek.delta",
+      "commandLabel": "Insert delta",
+      "banaRefs": [
+        "6.2"
+      ],
+      "nemethSequences": [
+        "⠨⠙"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "greek.capital-sigma",
+      "commandLabel": "Insert capital sigma",
+      "banaRefs": [
+        "6.2"
+      ],
+      "nemethSequences": [
+        "⠨⠠⠎"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "greek.capital-delta",
+      "commandLabel": "Insert capital delta",
+      "banaRefs": [
+        "6.2"
+      ],
+      "nemethSequences": [
+        "⠨⠠⠙"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
         "replacement"
       ]
     },

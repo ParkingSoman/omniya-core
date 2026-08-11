@@ -110,8 +110,8 @@ test('inline editing preserves the surrounding fraction when focus is inside the
     await editor.fill('⠵');
     await editor.press('Enter');
     await page.waitForTimeout(800);
-    assert.equal(await article.locator('math mfrac').count(), 1);
-    assert.equal(await article.locator('math mfrac > mi').count(), 2);
+    assert.equal(await article.locator('math mfrac').count(), 1, await page.locator('#transcript').innerHTML());
+    assert.equal(await article.locator('math mfrac > mi').count(), 2, await article.locator('math mfrac').evaluate((node) => node.outerHTML));
     assert.match(await article.locator('mjx-container').textContent(), /z/);
     assert.match(await article.locator('mjx-container').textContent(), /c/);
   } finally {
@@ -211,10 +211,64 @@ test('writing a fraction uses the same guided editor, empty-slot traversal, and 
     await page.waitForTimeout(700);
 
     assert.equal(await article.locator('math mfrac').count(), 1);
-    assert.equal(await article.locator('math mfrac > mi').count(), 2);
+    assert.equal(await article.locator('math mfrac > mi').count(), 2, await article.locator('math mfrac').evaluate((node) => node.outerHTML));
     await article.press('Enter');
     await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
     assert.equal(await article.locator('mjx-speech').last().getAttribute('aria-braillelabel'), '⠹⠭⠌⠽⠼');
+  } finally {
+    await app.close();
+  }
+});
+
+test('creating an empty equation opens the same guided structural editor', { timeout: 60_000 }, async () => {
+  const { app, page } = await launch();
+  try {
+    await page.getByRole('button', { name: 'Add item' }).click();
+    await page.getByRole('radio', { name: 'Equation' }).click();
+    await page.getByLabel('Content', { exact: true }).press('Enter');
+    const editor = page.locator('.nemeth-inline-editor');
+    await editor.waitFor();
+    await editor.fill('⠹⠭');
+    await editor.press('Tab');
+    await editor.fill('⠭');
+    await editor.press('Enter');
+    await page.waitForTimeout(800);
+    const article = page.locator('article').first();
+    assert.equal(await article.locator('math mfrac').count(), 1);
+    assert.equal(await article.locator('math mfrac > mi').count(), 2, await article.locator('math mfrac').evaluate((node) => node.outerHTML));
+    await article.press('Enter');
+    await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+    assert.equal(await article.locator('mjx-speech').last().getAttribute('aria-braillelabel'), '⠹⠭⠌⠭⠼');
+  } finally {
+    await app.close();
+  }
+});
+
+test('Backspace in an empty inline editor creates a required structural hole', { timeout: 60_000 }, async () => {
+  const { app, page } = await launch();
+  try {
+    await page.getByRole('button', { name: 'Add item' }).click();
+    await page.getByRole('radio', { name: 'Equation' }).click();
+    await page.getByLabel('Content', { exact: true }).fill(String.raw`\frac{a+b}{c}`);
+    await page.getByLabel('Content', { exact: true }).press('Enter');
+    const article = page.locator('article').first();
+    await article.locator('mjx-container').waitFor();
+    await article.locator('mjx-speech').waitFor();
+    await article.press('Enter');
+    await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+    await page.locator('mjx-container.mjx-explorer-active').waitFor();
+    const initialSpeech = await article.locator('mjx-speech').getAttribute('aria-label');
+    await page.keyboard.press('ArrowDown');
+    await page.waitForFunction((previous) => document.querySelector('article mjx-speech')?.getAttribute('aria-label') !== previous, initialSpeech);
+    await page.keyboard.press('e');
+    const editor = page.locator('.nemeth-inline-editor');
+    await editor.waitFor();
+    await editor.press('Backspace');
+    await editor.press('Enter');
+    await page.waitForTimeout(700);
+    assert.equal(await article.locator('math mfrac').count(), 1, await page.locator('#transcript').innerHTML());
+    assert.equal(await article.locator('math mfrac > mrow[data-omniya-hole="true"]').count(), 1);
+    assert.equal(await article.locator('math mfrac > mi').count(), 1);
   } finally {
     await app.close();
   }

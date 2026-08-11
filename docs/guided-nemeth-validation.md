@@ -25,10 +25,12 @@ The tests deliberately use three separate evidence sources:
    asks SRE for Nemeth after Omniya's LaTeX-to-canonical-MathML conversion and
    checks both complete expressions and extracted focused subtrees.
 3. A ported subset of the open-source [MathCAT Nemeth suite](https://github.com/daisy/MathCAT/tree/main/tests/braille/Nemeth)
-   is kept in `test/fixtures/mathcat-braille-fixtures.js`. These cases cover a
-   quadratic, an indexed root, a function containing a fraction, and nested
-   radicals. MathCAT is a valuable outside regression corpus, but it is not
-   treated as a replacement for BANA when the projects differ.
+   is kept in `test/fixtures/mathcat-braille-fixtures.js`. The ported cases
+   cover absolute values and overlines, powers, multiscript inverses, bounded
+   unions, conjugates, quadratics, indexed roots, functions containing
+   fractions, nested and indexed radicals, factorials, and associative set
+   expressions. MathCAT is a valuable outside regression corpus, but it is
+   not treated as a replacement for BANA when the projects differ.
 
 The Electron suite checks the same contract at the accessibility boundary:
 MathJax's explorer speech node exposes the reviewed whole-expression cells,

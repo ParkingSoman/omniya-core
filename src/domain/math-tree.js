@@ -8,6 +8,19 @@ const SAFE_ATTRIBUTES = new Set(['xmlns', 'data-omniya-id', 'data-omniya-hole', 
 
 function id() { return `omniya-${globalThis.crypto.randomUUID()}`; }
 
+function decodeText(value) {
+  return value.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos);/gi, (entity, body) => {
+    const lower = body.toLowerCase();
+    if (lower === 'amp') return '&';
+    if (lower === 'lt') return '<';
+    if (lower === 'gt') return '>';
+    if (lower === 'quot') return '"';
+    if (lower === 'apos') return "'";
+    const code = lower.startsWith('#x') ? Number.parseInt(body.slice(2), 16) : Number.parseInt(body.slice(1), 10);
+    return Number.isFinite(code) ? String.fromCodePoint(code) : entity;
+  });
+}
+
 function parse(source) {
   if (typeof source !== 'string' || !source.trim()) throw new TypeError('MathML is required');
   const tokens = source.match(/<[^>]+>|[^<]+/g) ?? [];
@@ -44,7 +57,7 @@ function parse(source) {
       // change focus paths or structural arity. Preserve whitespace only in
       // mtext, where it is user content rather than XML formatting.
       if (!token.trim() && stack.at(-1).name !== 'mtext') continue;
-      stack.at(-1).children.push({ text: token });
+      stack.at(-1).children.push({ text: decodeText(token) });
     }
   }
   if (stack.length !== 1 || root.children.length !== 1 || root.children[0].name !== 'math') throw new SyntaxError('MathML root must be math');
@@ -52,7 +65,7 @@ function parse(source) {
 }
 
 function serializeNode(node) {
-  if (node.text !== undefined) return node.text;
+  if (node.text !== undefined) return String(node.text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   const attrs = Object.entries(node.attrs ?? {}).map(([k, v]) => ` ${k}="${String(v).replaceAll('&', '&amp;').replaceAll('"', '&quot;') }"`).join('');
   if (!node.children?.length) return `<${node.name}${attrs}/>`;
   return `<${node.name}${attrs}>${node.children.map(serializeNode).join('')}</${node.name}>`;
@@ -153,6 +166,9 @@ function replaceChildren(parent, first, last, replacement) {
 export function replaceMathTarget(tree, target, replacementTree) {
   const next = structuredClone(tree);
   const replacement = structuredClone(replacementTree);
+  if (!isElement(replacement) || replacement.name === 'math') {
+    throw new TypeError('Math replacement must be one non-root MathML element');
+  }
   if (target.kind === 'node') {
     const old = findMathNode(next, target.nodeId);
     if (!old) throw new RangeError('Math node not found');
@@ -166,6 +182,10 @@ export function replaceMathTarget(tree, target, replacementTree) {
   } else {
     const parent = findMathNode(next, target.parentNodeId);
     if (!parent) throw new RangeError('Math range parent not found');
+    // A range has no source element of its own. Reusing the first selected
+    // node's identity gives the replacement a stable focus anchor while all
+    // unaffected siblings retain their original identities.
+    replacement.attrs['data-omniya-id'] = target.firstNodeId;
     replaceChildren(parent, target.firstNodeId, target.lastNodeId, replacement);
   }
   return next;
@@ -196,7 +216,17 @@ export function removeMathNode(tree, nodeId, { replaceRequiredWithHole = true } 
 }
 
 export function structuralEquivalent(a, b) {
-  const clean = (node) => node.text !== undefined ? { text: node.text } : { name: node.name, attrs: Object.fromEntries(Object.entries(node.attrs ?? {}).filter(([k]) => k !== 'data-omniya-id')), children: node.children.map(clean) };
+  const clean = (node) => {
+    if (node.text !== undefined) return { text: node.text };
+    const attrs = Object.fromEntries(Object.entries(node.attrs ?? {}).filter(([k]) => k !== 'data-omniya-id'));
+    const children = node.children.map(clean);
+    // MathML converters differ on whether a single script argument is
+    // wrapped in an unannotated mrow. Treat that presentation-only wrapper as
+    // equivalent while preserving explicit grouping metadata and all other
+    // structure.
+    if (node.name === 'mrow' && Object.keys(attrs).length === 0 && children.length === 1 && children[0].name) return children[0];
+    return { name: node.name, attrs, children };
+  };
   return JSON.stringify(clean(a)) === JSON.stringify(clean(b));
 }
 

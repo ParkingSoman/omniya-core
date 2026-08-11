@@ -32,6 +32,22 @@ test('ranges replace exact contiguous siblings', () => {
   assert.ok(findMathNode(next, row.attrs['data-omniya-id']));
 });
 
+test('range replacement inherits the first selected identity as its focus anchor', () => {
+  const tree = parseMathML('<math><mrow><mi>a</mi><mo>+</mo><mi>b</mi></mrow></math>');
+  const row = tree.children[0];
+  const first = row.children[0].attrs['data-omniya-id'];
+  const last = row.children[2].attrs['data-omniya-id'];
+  const replacement = parseMathML('<math><mrow><mi>x</mi><mo>−</mo><mi>y</mi></mrow></math>').children[0];
+  const next = replaceMathTarget(tree, {
+    kind: 'range',
+    parentNodeId: row.attrs['data-omniya-id'],
+    firstNodeId: first,
+    lastNodeId: last
+  }, replacement);
+  assert.equal(next.children[0].children[0].attrs['data-omniya-id'], first);
+  assert.equal(next.children[0].children[0].children[0].children[0].text, 'x');
+});
+
 test('canonical tree preserves multiscript vocabulary and derives required holes', () => {
   const tree = parseMathML('<math><mmultiscripts><mi>x</mi><mrow data-omniya-hole="true"><mspace width="1em"/></mrow><none/><mprescripts/><mrow data-omniya-hole="true"><mspace width="1em"/></mrow><mi>i</mi></mmultiscripts></math>');
   assert.equal(tree.children[0].name, 'mmultiscripts');

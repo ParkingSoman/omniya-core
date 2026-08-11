@@ -114,6 +114,32 @@ test('wrapping a focused atom keeps IDs unique while preserving the wrapper iden
   assert.ok(ids.includes(targetId));
 });
 
+test('structural holes persist with the wrapper owner identity', () => {
+  const source = documentWithRow();
+  const targetId = source.focus.nodeId;
+  const result = applyMathTransition({ document: source, focus: source.focus, inputState: { pendingCells: [] }, input: { kind: 'command', operationId: 'fraction.insert.simple' } });
+  assert.equal(result.status, 'applied');
+  const tree = parseMathML(result.document.mathml);
+  const fraction = tree.children[0].children[0];
+  assert.equal(fraction.attrs['data-omniya-id'], targetId);
+  for (const child of fraction.children.filter((node) => node.attrs['data-omniya-hole'] === 'true')) assert.equal(child.attrs['data-omniya-owner'], targetId);
+});
+
+test('deleting focused required content creates a hole and keeps its owner', () => {
+  const source = documentWithRow();
+  const result = applyMathTransition({ document: source, focus: source.focus, inputState: { pendingCells: [] }, input: { kind: 'command', operationId: 'fraction.insert.simple' } });
+  const tree = parseMathML(result.document.mathml);
+  const numerator = result.focus;
+  const filled = applyMathTransition({ document: result.document, focus: numerator, inputState: result.inputState, input: { kind: 'nemeth-cell', cell: '⠵' } });
+  const deleted = applyMathTransition({ document: filled.document, focus: filled.focus, inputState: filled.inputState, input: { kind: 'command', operationId: 'delete.focused' } });
+  assert.equal(deleted.status, 'applied');
+  const next = parseMathML(deleted.document.mathml);
+  const fraction = next.children[0].children[0];
+  assert.equal(fraction.children[0].attrs['data-omniya-hole'], 'true');
+  assert.equal(fraction.children[0].attrs['data-omniya-owner'], fraction.attrs['data-omniya-id']);
+  assert.equal(deleted.focus.nodeId, fraction.children[0].attrs['data-omniya-id']);
+});
+
 test('numeric indicator keeps a bounded numeric mode for adjacent digits', () => {
   const document = createEmptyMathDocument();
   const root = parseMathML(document.mathml);
@@ -122,8 +148,63 @@ test('numeric indicator keeps a bounded numeric mode for adjacent digits', () =>
   result = applyMathTransition({ document, focus: { kind: 'node', nodeId: root.attrs['data-omniya-id'] }, inputState: result.inputState, input: { kind: 'nemeth-cell', cell: '⠁' } });
   result = applyMathTransition({ document: result.document, focus: result.focus, inputState: result.inputState, input: { kind: 'nemeth-cell', cell: '⠃' } });
   assert.equal(result.status, 'applied');
-  assert.match(result.document.mathml, />1<\/mn>/);
-  assert.match(result.document.mathml, />2<\/mn>/);
+  assert.match(result.document.mathml, />12<\/mn>/);
+});
+
+test('computer-Braille ASCII builds a complete numeric expression without splitting the number', () => {
+  let document = createEmptyMathDocument();
+  let focus = parseMathML(document.mathml).children[0];
+  let inputState = { pendingCells: [] };
+  for (const cell of ['#', 'a', 'b', '+', '#', 'c']) {
+    const result = applyMathTransition({ document, focus: { kind: 'node', nodeId: focus.attrs['data-omniya-id'] }, inputState, input: { kind: 'nemeth-cell', cell } });
+    if (result.status === 'pending') { inputState = result.inputState; continue; }
+    assert.equal(result.status, 'applied', result.announcement);
+    document = result.document;
+    focus = parseMathML(document.mathml).children.find((node) => node.attrs['data-omniya-id'] === result.focus.nodeId) ?? parseMathML(document.mathml).children[0];
+    inputState = result.inputState;
+  }
+  assert.match(document.mathml, /<mn[^>]*>12<\/mn><mo[^>]*>\+<\/mo><mn[^>]*>3<\/mn>/);
+});
+
+test('BANA multi-cell comparisons and Greek indicators resolve to their MathML symbols', () => {
+  const empty = createEmptyMathDocument();
+  const root = parseMathML(empty.mathml).children[0];
+  let result = applyMathTransition({ document: empty, focus: { kind: 'node', nodeId: root.attrs['data-omniya-id'] }, inputState: { pendingCells: [] }, input: { kind: 'nemeth-cell', cell: '⠨' } });
+  assert.equal(result.status, 'pending');
+  result = applyMathTransition({ document: empty, focus: { kind: 'node', nodeId: root.attrs['data-omniya-id'] }, inputState: result.inputState, input: { kind: 'nemeth-cell', cell: '⠏' } });
+  assert.equal(result.status, 'applied');
+  assert.match(result.document.mathml, />π<\/mi>/);
+
+  const greater = applyMathTransition({ document: result.document, focus: result.focus, inputState: result.inputState, input: { kind: 'nemeth-cell', cell: '⠨' } });
+  assert.equal(greater.status, 'pending');
+  const completed = applyMathTransition({ document: result.document, focus: result.focus, inputState: greater.inputState, input: { kind: 'nemeth-cell', cell: '⠂' } });
+  assert.equal(completed.status, 'applied');
+  assert.match(completed.document.mathml, />&gt;<\/mo>/);
+});
+
+test('capital indicator remains distinct from the capital-sigma operator sequence', () => {
+  const empty = createEmptyMathDocument();
+  const rootId = parseMathML(empty.mathml).children[0].attrs['data-omniya-id'];
+  let capital = applyMathTransition({ document: empty, focus: { kind: 'node', nodeId: rootId }, inputState: { pendingCells: [] }, input: { kind: 'nemeth-cell', cell: '⠠' } });
+  assert.equal(capital.status, 'pending');
+  capital = applyMathTransition({ document: empty, focus: { kind: 'node', nodeId: rootId }, inputState: capital.inputState, input: { kind: 'nemeth-cell', cell: '⠁' } });
+  assert.equal(capital.status, 'applied');
+  assert.match(capital.document.mathml, />A<\/mi>/);
+
+  let sigma = applyMathTransition({ document: empty, focus: { kind: 'node', nodeId: rootId }, inputState: { pendingCells: [] }, input: { kind: 'nemeth-cell', cell: '⠠' } });
+  sigma = applyMathTransition({ document: empty, focus: { kind: 'node', nodeId: rootId }, inputState: sigma.inputState, input: { kind: 'nemeth-cell', cell: '⠎' } });
+  assert.equal(sigma.status, 'applied');
+  assert.match(sigma.document.mathml, />∑<\/mo>/);
+});
+
+test('baseline indicator closes a script while less-than remains a separate multi-cell sequence', () => {
+  const source = documentWithRow();
+  let script = applyMathTransition({ document: source, focus: source.focus, inputState: { pendingCells: [] }, input: { kind: 'command', operationId: 'script.superscript' } });
+  assert.equal(script.status, 'applied');
+  const exponentId = script.focus.nodeId;
+  script = applyMathTransition({ document: script.document, focus: { kind: 'node', nodeId: exponentId }, inputState: script.inputState, input: { kind: 'nemeth-cell', cell: '⠐' } });
+  assert.equal(script.status, 'applied');
+  assert.equal(deriveNemethContext(script.document, script.focus).nodeName, 'mrow');
 });
 
 test('fraction terminator returns to the containing row instead of starting numeric mode', () => {

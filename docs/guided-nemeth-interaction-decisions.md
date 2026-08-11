@@ -56,7 +56,8 @@ from a conventional linear Nemeth writing session. BANA 2022 and the October
 - **Rejected alternatives:** Delete the owning structure, or leave a malformed
   MathML element with too few children.
 - **Contributor validation:** Pending contributor review.
-- **Status:** Tree primitive implemented; renderer command pending.
+- **Status:** Tree primitive and inline editor command implemented; full
+  contributor validation remains pending.
 
 ## Terminators move focus
 
