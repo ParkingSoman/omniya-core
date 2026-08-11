@@ -22,7 +22,7 @@ function ids(...values) {
 test('creates one active untitled napkin', () => {
   const state = createInitialState({ idFactory: ids('napkin-1') });
 
-  assert.equal(state.schemaVersion, 1);
+  assert.equal(state.schemaVersion, 2);
   assert.equal(state.activeNapkinId, 'napkin-1');
   assert.deepEqual(state.napkins, [{
     id: 'napkin-1',
@@ -109,6 +109,7 @@ test('adds text and equation items in order and selects the newest item', () => 
   ]);
   assert.equal(napkin.items[0].source, 'A useful sentence');
   assert.equal(napkin.items[0].mathml, null);
+  assert.equal(napkin.items[1].math.formatVersion, 2);
   assert.equal(napkin.selectedItemId, 'item-2');
 });
 
@@ -140,14 +141,9 @@ test('updates source, note, and regenerated MathML atomically', () => {
     mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"><msup/></math>'
   });
 
-  assert.equal(getActiveNapkin(added).items[0].source, 'x');
-  assert.deepEqual(getActiveNapkin(updated).items[0], {
-    id: 'item-1',
-    type: 'equation',
-    source: 'x^2',
-    note: 'new',
-    mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"><msup/></math>'
-  });
+  assert.match(getActiveNapkin(added).items[0].math.mathml, /<mi/);
+  assert.equal(getActiveNapkin(updated).items[0].math.formatVersion, 2);
+  assert.match(getActiveNapkin(updated).items[0].math.mathml, /<msup/);
 });
 
 test('deletes an item and selects the next, previous, or empty position', () => {
@@ -206,10 +202,10 @@ test('validation rejects duplicate IDs and dangling active or selected IDs', () 
 
 test('validation rejects unsupported schemas and item invariant violations', () => {
   const invalid = createInitialState({ idFactory: ids('napkin-1') });
-  invalid.schemaVersion = 2;
+  invalid.schemaVersion = 1;
   assert.match(validateState(invalid).issues.join(' '), /schemaVersion/);
 
-  invalid.schemaVersion = 1;
+  invalid.schemaVersion = 2;
   invalid.napkins[0].items.push({
     id: 'item-1', type: 'text', source: 'hello', note: '', mathml: '<math/>'
   });

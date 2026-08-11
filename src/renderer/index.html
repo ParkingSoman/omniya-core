@@ -45,15 +45,23 @@
             <div>
               <h3 id="reading-heading">Reading</h3>
             </div>
-            <p id="reading-help">Up and Down arrows move between items. Enter explores an equation; E edits.</p>
+            <p id="reading-help">Up and Down move between items. Enter explores an equation; E edits the focused subtree with Nemeth.</p>
           </div>
           <p id="empty-message">No items yet. Add the first item below.</p>
           <section id="transcript" aria-label="Napkin content"></section>
           <div id="reading-actions" class="reading-actions">
             <button id="open-add-button" type="button">Add item</button>
+            <button id="open-operations-button" type="button">Math operations</button>
             <button id="keyboard-help-button" type="button">Keyboard help</button>
           </div>
         </section>
+
+        <dialog id="operation-dialog" aria-labelledby="operation-heading">
+          <h3 id="operation-heading">Math operations</h3>
+          <p id="operation-help">Choose an operation for the current mathematical focus.</p>
+          <div id="operation-list"></div>
+          <button id="close-operation-dialog" type="button">Close</button>
+        </dialog>
 
         <section id="composer-dock" aria-labelledby="composer-heading" hidden>
           <form id="composer-form" aria-label="Napkin item form">
@@ -92,9 +100,9 @@
 
         <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
           <h3 id="keyboard-help-heading">Keyboard help</h3>
-          <p><strong>Reading:</strong> Up and Down arrows move between items. Enter explores an equation; E edits.</p>
-          <p><strong>Adding:</strong> Tab moves through fields. Enter adds. Shift+Enter makes a new line. Escape cancels.</p>
-          <p><strong>Editing:</strong> Save changes commits the item. Escape or Cancel returns to reading.</p>
+          <p><strong>Reading:</strong> Up and Down move between items. Enter explores an equation; E edits the exact focus.</p>
+          <p><strong>Nemeth:</strong> Type one cell at a time, or use S/D/F and J/K/L six-key chords. Enter commits; Escape cancels. Command/Ctrl+K opens operations.</p>
+          <p><strong>History:</strong> Command/Ctrl+Z undoes a structural operation. Command/Ctrl+Shift+Z redoes it.</p>
           <button id="close-keyboard-help" type="button">Close</button>
         </dialog>
 

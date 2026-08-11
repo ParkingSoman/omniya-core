@@ -1,0 +1,380 @@
+{
+  "standard": "BANA Nemeth Braille Code for Mathematics and Science Notation 2022",
+  "source": "https://www.brailleauthority.org/sites/default/files/2024-02/Nemeth_2022.pdf",
+  "errata": "https://www.brailleauthority.org/sites/default/files/2026-08/Errata%20Nemeth%20Code%202022%20Approved%2010-2025.pdf",
+  "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
+  "status": "development",
+  "operations": [
+    {
+      "id": "atom.letter",
+      "commandLabel": "Insert letter",
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "nemethSequences": [
+        "⠁",
+        "⠃",
+        "⠉",
+        "⠙",
+        "⠑",
+        "⠋",
+        "⠛",
+        "⠓",
+        "⠊",
+        "⠚",
+        "⠅",
+        "⠇",
+        "⠍",
+        "⠝",
+        "⠕",
+        "⠏",
+        "⠟",
+        "⠗",
+        "⠎",
+        "⠞",
+        "⠥",
+        "⠧",
+        "⠺",
+        "⠭",
+        "⠽",
+        "⠵"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "atom.number",
+      "commandLabel": "Insert number",
+      "banaRefs": [
+        "3.1",
+        "3.2"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.plus",
+      "commandLabel": "Insert plus",
+      "banaRefs": [
+        "20.1"
+      ],
+      "nemethSequences": [
+        "⠬"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.minus",
+      "commandLabel": "Insert minus",
+      "banaRefs": [
+        "20.6"
+      ],
+      "nemethSequences": [
+        "⠤"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.equals",
+      "commandLabel": "Insert equals",
+      "banaRefs": [
+        "21.1"
+      ],
+      "nemethSequences": [
+        "⠨⠅"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.less",
+      "commandLabel": "Insert less-than",
+      "banaRefs": [
+        "21.7"
+      ],
+      "nemethSequences": [
+        "⠨"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "comparison.greater",
+      "commandLabel": "Insert greater-than",
+      "banaRefs": [
+        "21.13"
+      ],
+      "nemethSequences": [
+        "⠰"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.divide",
+      "commandLabel": "Insert division",
+      "banaRefs": [
+        "20.8"
+      ],
+      "nemethSequences": [
+        "⠌"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.multiply",
+      "commandLabel": "Insert multiplication",
+      "banaRefs": [
+        "20.2",
+        "20.3"
+      ],
+      "nemethSequences": [
+        "⠐⠡"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.integral",
+      "commandLabel": "Insert integral operator",
+      "banaRefs": [
+        "23.11"
+      ],
+      "nemethSequences": [
+        "⠮"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.sum",
+      "commandLabel": "Insert summation operator",
+      "banaRefs": [
+        "23.11"
+      ],
+      "nemethSequences": [
+        "⠠⠎"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "operator.product",
+      "commandLabel": "Insert product operator",
+      "banaRefs": [
+        "23.11"
+      ],
+      "nemethSequences": [
+        "⠠⠏"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "fraction.insert.simple",
+      "commandLabel": "Insert simple fraction",
+      "banaRefs": [
+        "13.1",
+        "13.2"
+      ],
+      "nemethSequences": [
+        "⠹"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "script.superscript",
+      "commandLabel": "Insert superscript",
+      "banaRefs": [
+        "14.3",
+        "14.4"
+      ],
+      "nemethSequences": [
+        "⠘"
+      ],
+      "validContexts": [
+        "replacement"
+      ]
+    },
+    {
+      "id": "script.subscript",
+      "commandLabel": "Insert subscript",
+      "banaRefs": [
+        "14.8"
+      ],
+      "nemethSequences": [
+        "⠰"
+      ],
+      "validContexts": [
+        "replacement"
+      ]
+    },
+    {
+      "id": "script.under",
+      "commandLabel": "Insert underscript",
+      "banaRefs": [
+        "14.8",
+        "15.1"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "replacement"
+      ]
+    },
+    {
+      "id": "script.over",
+      "commandLabel": "Insert overscript",
+      "banaRefs": [
+        "14.3",
+        "15.1"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "replacement"
+      ]
+    },
+    {
+      "id": "script.under-over",
+      "commandLabel": "Insert underscript and overscript",
+      "banaRefs": [
+        "14.3",
+        "14.8"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "replacement"
+      ]
+    },
+    {
+      "id": "radical.insert.square",
+      "commandLabel": "Insert square root",
+      "banaRefs": [
+        "16.1",
+        "16.2"
+      ],
+      "nemethSequences": [
+        "⠜"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "radical.insert.indexed",
+      "commandLabel": "Insert indexed radical",
+      "banaRefs": [
+        "16.2",
+        "16.3"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "group.insert.round",
+      "commandLabel": "Insert grouped expression",
+      "banaRefs": [
+        "19.1",
+        "19.5"
+      ],
+      "nemethSequences": [
+        "⠷"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "bar.absolute",
+      "commandLabel": "Insert absolute-value bars",
+      "banaRefs": [
+        "19.9",
+        "23.7"
+      ],
+      "nemethSequences": [
+        "⠸"
+      ],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    },
+    {
+      "id": "bar.conditional",
+      "commandLabel": "Insert conditional bar",
+      "banaRefs": [
+        "23.7",
+        "21.1"
+      ],
+      "nemethSequences": [
+        "⠸"
+      ],
+      "validContexts": [
+        "row",
+        "replacement"
+      ]
+    },
+    {
+      "id": "function.sin",
+      "commandLabel": "Insert sine function",
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "nemethSequences": [],
+      "validContexts": [
+        "row",
+        "hole",
+        "replacement"
+      ]
+    }
+  ],
+  "releaseBlockers": [
+    "qualified Nemeth-transcriber review",
+    "blind-contributor task validation",
+    "complete Rules 1–24 ledger fixtures"
+  ]
+}

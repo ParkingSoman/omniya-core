@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('omniya', {
   saveState: (state) => ipcRenderer.invoke('state:save', state),
   latexToMathML: (source) => ipcRenderer.invoke('math:convert', source)
   ,importMath: (source) => ipcRenderer.invoke('math:import', source)
-  ,replaceMathTarget: (payload) => ipcRenderer.invoke('math:replace', payload)
+  ,applyMathTransition: (payload) => ipcRenderer.invoke('math:transition', payload)
+  ,listMathOperations: () => ipcRenderer.invoke('math:operations')
   ,exportMathLatex: (document) => ipcRenderer.invoke('math:export', document)
-  ,parseNemeth: (cells, options) => ipcRenderer.invoke('nemeth:parse', cells, options)
 });

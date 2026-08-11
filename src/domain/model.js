@@ -1,4 +1,6 @@
-export const SCHEMA_VERSION = 1;
+import { canonicalizeMathML } from './math-tree.js';
+
+export const SCHEMA_VERSION = 2;
 export const MATH_SCHEMA_VERSION = 2;
 
 function defaultIdFactory() {
@@ -24,23 +26,28 @@ function normalizeItem(item, id) {
     throw new TypeError('Item type must be text or equation');
   }
 
-  const source = requiredTrimmed(item.source, 'Item source is required');
   const note = normalizeNote(item.note);
 
-  if (item.type === 'text' && item.mathml !== null) {
-    throw new TypeError('Text items cannot contain MathML');
-  }
-  if (item.type === 'equation' &&
-      (typeof item.mathml !== 'string' || !item.mathml.trim().startsWith('<math'))) {
-    throw new TypeError('Equation items require MathML');
+  if (item.type === 'text') {
+    const source = requiredTrimmed(item.source, 'Item source is required');
+    if (item.mathml !== null && item.mathml !== undefined) throw new TypeError('Text items cannot contain MathML');
+    return { id, type: 'text', source, note, mathml: null };
   }
 
+  const legacyMathML = item.math?.mathml ?? item.mathml;
+  if (typeof legacyMathML !== 'string' || !legacyMathML.trim().startsWith('<math')) {
+    throw new TypeError('Equation items require MathML');
+  }
+  const mathml = canonicalizeMathML(legacyMathML);
   return {
     id,
-    type: item.type,
-    source,
+    type: 'equation',
     note,
-    mathml: item.type === 'text' ? null : item.mathml.trim()
+    math: {
+      formatVersion: MATH_SCHEMA_VERSION,
+      mathml,
+      focus: item.math?.focus ?? null
+    }
   };
 }
 
@@ -110,19 +117,14 @@ export function validateState(value) {
       if (item.type !== 'text' && item.type !== 'equation') {
         issues.push(`Item ${item.id ?? '(unknown)'} type must be text or equation`);
       }
-      if (typeof item.source !== 'string' || item.source.trim() === '') {
+      if (item.type === 'text' && (typeof item.source !== 'string' || item.source.trim() === '')) {
         issues.push(`Item ${item.id ?? '(unknown)'} source is required`);
       }
       if (typeof item.note !== 'string') {
         issues.push(`Item ${item.id ?? '(unknown)'} note must be a string`);
       }
-      if (item.type === 'text' && item.mathml !== null) {
-        issues.push('Text items cannot contain MathML');
-      }
-      if (item.type === 'equation' &&
-          (typeof item.mathml !== 'string' || !item.mathml.trim().startsWith('<math'))) {
-        issues.push('Equation items require MathML');
-      }
+      if (item.type === 'text' && item.mathml !== null && item.mathml !== undefined) issues.push('Text items cannot contain MathML');
+      if (item.type === 'equation' && (!item.math || item.math.formatVersion !== MATH_SCHEMA_VERSION || typeof item.math.mathml !== 'string' || !item.math.mathml.trim().startsWith('<math'))) issues.push('Equation items require math.formatVersion 2 MathML');
     }
 
     if (napkin.selectedItemId !== null &&
@@ -219,6 +221,7 @@ export function updateItem(state, itemId, changes) {
     ...existing,
     source: changes.source,
     note: changes.note,
+    math: changes.math ?? (changes.mathml ? undefined : existing.math),
     mathml: changes.mathml
   }, existing.id);
 

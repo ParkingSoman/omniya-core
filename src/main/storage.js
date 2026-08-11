@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { assertValidState, createInitialState } from '../domain/model.js';
+import { migrateState } from '../domain/migration.js';
 
 export function createStorage(directory, { idFactory, fileName = 'napkins.json' } = {}) {
   const dataFile = path.join(directory, fileName);
@@ -12,9 +13,12 @@ export function createStorage(directory, { idFactory, fileName = 'napkins.json' 
 
   async function load() {
     try {
-      const state = JSON.parse(await readFile(dataFile, 'utf8'));
-      assertValidState(state);
-      return { state, warning: null };
+      const raw = JSON.parse(await readFile(dataFile, 'utf8'));
+      const migrated = migrateState(raw);
+      assertValidState(migrated);
+      const warning = migrated.warnings?.length ? migrated.warnings.map(({ message }) => message).join(' ') : null;
+      const { warnings: _warnings, ...state } = migrated;
+      return { state, warning };
     } catch (error) {
       if (error?.code === 'ENOENT') {
         return { state: createInitialState({ idFactory }), warning: null };

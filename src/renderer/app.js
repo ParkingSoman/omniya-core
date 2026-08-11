@@ -7,14 +7,16 @@ import {
   switchNapkin,
   updateItem
 } from '../domain/model.js';
-import { captureExplorerFocus } from './math-explorer-bridge.js';
+import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { createSixKeyInput } from './braille-input.js';
+import { createEmptyMathDocument } from '../domain/guided-nemeth/index.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name', 'item-count',
   'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions', 'open-add-button',
+  'open-operations-button', 'operation-dialog', 'operation-list', 'close-operation-dialog',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
   'composer-form', 'composer-heading', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
@@ -33,6 +35,7 @@ let transcriptRenderVersion = 0;
 let mathJaxReady;
 let exploringEquationItemId = null;
 let inlineEditor = null;
+const mathHistory = new Map();
 
 function activeNapkin() {
   return state.napkins.find(({ id }) => id === state.activeNapkinId) ?? null;
@@ -126,11 +129,15 @@ async function renderEquation(container, item, version) {
     const persistedMathML = item.math?.mathml || item.mathml;
     if (persistedMathML) source.innerHTML = persistedMathML;
     else source.textContent = `\\[${item.source}\\]`;
+    const canonicalIds = [...source.querySelectorAll('[data-omniya-id]')].map((node) => node.getAttribute('data-omniya-id'));
     container.replaceChildren(source);
     await globalThis.MathJax.typesetPromise([container]);
-    stampCanonicalIds(container);
+    stampCanonicalIds(container, canonicalIds);
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
+    if (item.math?.focus && activeNapkin()?.selectedItemId === item.id) {
+      setTimeout(() => void restoreExplorerFocus(articleForContainer(container), item.math.focus), 0);
+    }
   } catch {
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
@@ -140,7 +147,9 @@ async function renderEquation(container, item, version) {
   }
 }
 
-function stampCanonicalIds(container) {
+function articleForContainer(container) { return container.closest('article.napkin-article') ?? container.parentElement; }
+
+function stampCanonicalIds(container, canonicalIds = []) {
   const sourceMath = container.querySelector('mjx-assistive-mml math');
   const visualMath = container.querySelector('mjx-math');
   if (!sourceMath || !visualMath) return;
@@ -148,8 +157,10 @@ function stampCanonicalIds(container) {
     .filter((node) => node.hasAttribute('data-omniya-id'));
   const visualNodes = [visualMath, ...visualMath.querySelectorAll('*')]
     .filter((node) => node.localName?.startsWith('mjx-') && node.localName !== 'mjx-c');
-  for (let index = 0; index < Math.min(sourceNodes.length, visualNodes.length); index += 1) {
-    visualNodes[index].setAttribute('data-omniya-id', sourceNodes[index].getAttribute('data-omniya-id'));
+  for (let index = 0; index < sourceNodes.length; index += 1) {
+    const id = canonicalIds[index] || sourceNodes[index].getAttribute('data-omniya-id');
+    if (id) sourceNodes[index].setAttribute('data-omniya-id', id);
+    if (visualNodes[index] && id) visualNodes[index].setAttribute('data-omniya-id', id);
   }
 }
 
@@ -216,9 +227,45 @@ function renderMode() {
   elements['reading-actions'].hidden = !reading;
   elements['composer-dock'].hidden = reading;
   elements['open-add-button'].disabled = reading && !activeNapkin();
+  elements['open-operations-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
-    ? 'Up and Down arrows move between items. Enter explores an equation; E edits.'
+    ? 'Up and Down arrows move between items. Enter explores an equation; E edits the exact focus with Nemeth.'
     : 'Reading remains available above. Escape returns without saving.';
+}
+
+async function openOperationPalette() {
+  const article = exploringEquationItemId
+    ? elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(exploringEquationItemId)}"]`)
+    : null;
+  if (!article) { elements['save-status'].textContent = 'Enter an equation before choosing a math operation.'; return; }
+  const focus = captureExplorerFocus(article);
+  const operations = await window.omniya.listMathOperations();
+  elements['operation-list'].replaceChildren();
+  for (const operation of operations.filter((candidate) => candidate.validContexts?.length)) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = operation.commandLabel;
+    button.title = `${operation.id} · BANA ${operation.banaRefs.join(', ')}`;
+    button.addEventListener('click', async () => {
+      const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
+      if (!item) return;
+      const result = await window.omniya.applyMathTransition({ document: item.math, focus: focus.target, inputState: { pendingCells: [] }, input: { kind: 'command', operationId: operation.id } });
+      if (result.status !== 'applied') { elements['save-status'].textContent = result.announcement; return; }
+      const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
+      history.undo.push({ document: structuredClone(item.math), focus: item.math.focus });
+      history.undo = history.undo.slice(-100);
+      history.redo = [];
+      mathHistory.set(item.id, history);
+      state = updateItem(state, item.id, { note: item.note, math: result.document });
+      elements['operation-dialog'].close?.();
+      renderAll();
+      await saveState().catch(() => {});
+    });
+    elements['operation-list'].append(button);
+  }
+  if (typeof elements['operation-dialog'].showModal === 'function') elements['operation-dialog'].showModal();
+  else elements['operation-dialog'].hidden = false;
+  elements['operation-list'].querySelector('button')?.focus();
 }
 
 function renderComposer() {
@@ -313,6 +360,23 @@ function closeInlineEditor(article) {
   (article?.querySelector('mjx-container') || article?.querySelector('math'))?.focus?.();
 }
 
+async function applyMathHistory(itemId, direction) {
+  const item = activeNapkin()?.items.find(({ id }) => id === itemId);
+  const history = mathHistory.get(itemId);
+  if (!item || !history) return;
+  const from = direction === 'undo' ? history.undo : history.redo;
+  const to = direction === 'undo' ? history.redo : history.undo;
+  const entry = from.pop();
+  if (!entry) return;
+  const current = { document: structuredClone(item.math), focus: item.math?.focus ?? null };
+  to.push(current);
+  const restored = entry.document;
+  state = updateItem(state, itemId, { note: item.note, math: { ...restored, focus: entry.focus } });
+  renderAll();
+  await saveState().catch(() => {});
+  elements['save-status'].textContent = direction === 'undo' ? 'Undid mathematical edit' : 'Redid mathematical edit';
+}
+
 async function openInlineNemethEditor(article) {
   if (inlineEditor) return;
   const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
@@ -325,7 +389,10 @@ async function openInlineNemethEditor(article) {
   editor.className = 'nemeth-inline-editor';
   editor.rows = 2;
   editor.setAttribute('aria-label', `Nemeth editor for ${focus.speech || 'focused expression'}`);
-  editor.value = focus.nemeth || '';
+  // The textarea is only a native Braille-input proxy. It never represents a
+  // whole expression and every committed cell is routed through the bounded
+  // transition engine below.
+  editor.value = '';
   article.append(editor);
   inlineEditor = editor;
   editor.focus();
@@ -344,12 +411,30 @@ async function openInlineNemethEditor(article) {
     if (event.key !== 'Enter' || event.shiftKey) return;
     event.preventDefault();
     try {
-      const parsed = await window.omniya.parseNemeth(editor.value, { mode: 'strict' });
-      if (!parsed.ok) throw new Error(`${parsed.error.message} (cell ${parsed.error.startCell + 1})`);
-      const result = await window.omniya.replaceMathTarget({ document: { mathml: item.mathml ?? item.math?.mathml, latex: item.source }, target: focus.target, replacementLatex: parsed.latex });
-      state = updateItem(state, item.id, { source: result.document.latex, note: item.note, mathml: result.document.mathml });
+      let document = { formatVersion: 2, mathml: item.math?.mathml ?? item.mathml, focus: focus.target };
+      let currentFocus = focus.target;
+      let inputState = { pendingCells: [] };
+      const previous = { document: structuredClone(document), focus: currentFocus };
+      for (const cell of [...editor.value]) {
+        const result = await window.omniya.applyMathTransition({ document, focus: currentFocus, inputState, input: { kind: 'nemeth-cell', cell } });
+        if (result.status === 'pending') { inputState = result.inputState; continue; }
+        if (result.status === 'choice') throw new Error('Choose a meaning with Command-K before committing this sequence.');
+        if (result.status !== 'applied') throw new Error(result.announcement);
+        document = result.document;
+        currentFocus = result.focus;
+        inputState = result.inputState;
+      }
+      if (inputState.pendingCells?.length) throw new Error('The Nemeth sequence is incomplete.');
+      const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
+      history.undo.push(previous);
+      history.undo = history.undo.slice(-100);
+      history.redo = [];
+      mathHistory.set(item.id, history);
+      state = updateItem(state, item.id, { note: item.note, math: document });
       closeInlineEditor(article);
       renderAll();
+      const replacementArticle = elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`);
+      if (replacementArticle) setTimeout(() => void restoreExplorerFocus(replacementArticle, currentFocus), 0);
       await saveState().catch(() => {});
       elements['save-status'].textContent = 'Nemeth edit committed';
     } catch (error) {
@@ -380,6 +465,21 @@ document.addEventListener('keydown', (event) => {
   event.preventDefault();
   event.stopImmediatePropagation();
   leaveEquation(article);
+}, true);
+
+document.addEventListener('keydown', (event) => {
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k') return;
+  if (!exploringEquationItemId) return;
+  event.preventDefault();
+  void openOperationPalette();
+}, true);
+
+document.addEventListener('keydown', (event) => {
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z' || inlineEditor) return;
+  const item = activeNapkin()?.items.find(({ id }) => id === exploringEquationItemId);
+  if (!item) return;
+  event.preventDefault();
+  void applyMathHistory(item.id, event.shiftKey ? 'redo' : 'undo');
 }, true);
 
 function resetDraft() {
@@ -461,18 +561,20 @@ async function submitComposer() {
   draft = { source, note, type };
   setFieldError(elements['composer-source'], elements['composer-error']);
 
-  if (!source.trim()) {
+  if (type === 'text' && !source.trim()) {
     setFieldError(elements['composer-source'], elements['composer-error'], 'Enter text or LaTeX first.');
     elements['composer-source'].focus();
     return;
   }
 
-  let mathml = null;
+  let math = null;
   if (type === 'equation') {
     try {
-      mathml = (await (window.omniya.importMath
-        ? window.omniya.importMath(source)
-        : window.omniya.latexToMathML(source))).mathml;
+      math = source.trim()
+        ? await (window.omniya.importMath
+          ? window.omniya.importMath(source)
+          : window.omniya.latexToMathML(source))
+        : createEmptyMathDocument();
     } catch {
       setFieldError(elements['composer-source'], elements['composer-error'],
         'The LaTeX could not be converted. Check its syntax.');
@@ -482,9 +584,9 @@ async function submitComposer() {
   }
 
   if (editing) {
-    state = updateItem(state, editingItemId, { source, note, mathml });
+    state = updateItem(state, editingItemId, { source, note, math: math ?? activeItem()?.math });
   } else {
-    state = addItem(state, { type, source, note, mathml });
+    state = addItem(state, type === 'equation' ? { type, note, math } : { type, source, note, mathml: null });
   }
   resetDraft();
   mode = 'read';
@@ -567,6 +669,11 @@ elements['napkin-list'].addEventListener('keydown', (event) => {
 });
 
 elements['open-add-button'].addEventListener('click', openAddMode);
+elements['open-operations-button'].addEventListener('click', () => void openOperationPalette());
+elements['close-operation-dialog'].addEventListener('click', () => {
+  if (typeof elements['operation-dialog'].close === 'function') elements['operation-dialog'].close();
+  else elements['operation-dialog'].hidden = true;
+});
 elements['composer-back'].addEventListener('click', () => returnToRead());
 elements['composer-discard'].addEventListener('click', () => returnToRead());
 elements['composer-cancel'].addEventListener('click', () => returnToRead());

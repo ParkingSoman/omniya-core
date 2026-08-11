@@ -3,8 +3,8 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { convertLatexToMathML } from './main/mathml.js';
-import { exportLatex, importLatex, replaceMathTargetInDocument } from './main/math-service.js';
-import { parseNemeth } from './domain/nemeth/index.js';
+import { applyMathTransitionInDocument, exportLatex, importLatex } from './main/math-service.js';
+import { operationRegistry } from './domain/guided-nemeth/index.js';
 import { createStorage } from './main/storage.js';
 
 const sourceDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -36,9 +36,9 @@ function registerIpc(storage) {
     return { mathml: await convertLatexToMathML(source) };
   });
   ipcMain.handle('math:import', async (event, source) => { assertTrustedSender(event); return importLatex(source); });
-  ipcMain.handle('math:replace', async (event, payload) => { assertTrustedSender(event); return replaceMathTargetInDocument(payload); });
+  ipcMain.handle('math:transition', async (event, payload) => { assertTrustedSender(event); return applyMathTransitionInDocument(payload); });
+  ipcMain.handle('math:operations', async (event) => { assertTrustedSender(event); return operationRegistry(); });
   ipcMain.handle('math:export', async (event, document) => { assertTrustedSender(event); return exportLatex(document); });
-  ipcMain.handle('nemeth:parse', async (event, cells, options) => { assertTrustedSender(event); return parseNemeth(cells, options); });
 }
 
 function createWindow() {
