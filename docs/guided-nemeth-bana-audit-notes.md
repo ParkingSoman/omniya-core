@@ -201,3 +201,15 @@ the later baseline indicator fills it, and a subsequent subscript or
 superscript operation fills the right-side pair. The operation is local and
 does not infer a passage operand. The official examples 14-25 and 14-26 are
 covered by structural tests and independent SRE Nemeth projection fixtures.
+
+## Rule 15.7 modified-script audit
+
+BANA 2022 Examples 15-20 and 15-21 use the contracted horizontal-bar form
+inside a right subscript: the local bar decorates `x` or `y`, while the plus
+and the next term remain ordinary siblings in that same subscript expression.
+The writer now treats the contracted bar as a complete local decoration and
+returns focus to its wrapper. It therefore composes `A` with `x`-bar and
+`y`-bar without leaving the editor in five-step modifier mode or wrapping the
+following plus. Whole-expression, focused-subscript, and focused-term output
+are compared with SRE in the Rule 15.7 accuracy fixture. This is a reusable
+contracted-modifier boundary, not a Rule 15.7-specific parser.

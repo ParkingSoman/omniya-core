@@ -586,6 +586,38 @@ test('shared local prefixes return a bounded choice instead of rejecting the nex
   assert.equal(result.document.mathml, document.mathml);
 });
 
+test('BANA Rule 15.7 contracted bars compose inside a subscript without widening scope', () => {
+  // BANA 2022 Examples 15-20 and 15-21: A carries a right subscript whose
+  // local x and y terms each use the contracted superscribed bar.  The
+  // repeated bar cells are local decorations; the plus and following y stay
+  // siblings in the existing subscript row.
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cellValue of ['⠭', '⠰', '⠭', '⠱', '⠬', '⠽', '⠱']) {
+    const result = applyNemethCell({ document, focus, inputState, cell: cellValue });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  if (inputState.prefix) {
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', committed.announcement);
+    ({ document, focus, inputState } = committed);
+  }
+  const tree = parseMathML(document.mathml);
+  const subscript = tree.children[0];
+  assert.equal(subscript.name, 'msub');
+  const subscriptRow = subscript.children[1];
+  assert.equal(subscriptRow.name, 'mrow');
+  assert.equal(subscriptRow.children[0].name, 'mover');
+  assert.equal(subscriptRow.children[0].children[0].children[0].text, 'x');
+  assert.equal(subscriptRow.children[0].children[1].children[0].text, '¯');
+  assert.equal(subscriptRow.children[1].children[0].text, '+');
+  assert.equal(subscriptRow.children[2].name, 'mover');
+  assert.equal(subscriptRow.children[2].children[0].children[0].text, 'y');
+  assert.equal(subscriptRow.children[2].children[1].children[0].text, '¯');
+});
+
 test('punctuation and Greek symbols remain declarative token mappings', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

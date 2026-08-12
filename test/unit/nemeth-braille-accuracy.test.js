@@ -664,6 +664,20 @@ test('BANA Rule 15.3 and 15.6 local structures match independent Nemeth output',
   assert.equal(await nemeth(parallel), '⠐⠭⠣⠱⠱⠻');
 });
 
+test('BANA Rule 15.7 modified subscript expressions preserve whole and focused Braille', async () => {
+  // Examples 15-20 and 15-21 in the normative 2022 code.  The bars are
+  // contracted local modifiers, while the plus and second term remain in the
+  // same subscript expression row.
+  const single = '<math><msub><mi>A</mi><mover><mi>x</mi><mo>¯</mo></mover></msub></math>';
+  const compound = '<math><msub><mi>A</mi><mrow><mover><mi>x</mi><mo>¯</mo></mover><mo>+</mo><mover><mi>y</mi><mo>¯</mo></mover></mrow></msub></math>';
+  assert.equal(await nemeth(single), '⠠⠁⠰⠭⠱');
+  assert.equal(await nemeth(compound), '⠠⠁⠰⠭⠱⠬⠽⠱');
+  const compoundTree = parseMathML(compound);
+  const focusedSubscript = compoundTree.children[0].children[1];
+  assert.equal(await nemeth(subtreeMathML(focusedSubscript)), '⠭⠱⠬⠽⠱');
+  assert.equal(await nemeth(subtreeMathML(focusedSubscript.children[0])), '⠭⠱');
+});
+
 test('BANA Rules 3.6 and 3.11 guided drafts match independent Nemeth output', async () => {
   const base = '<math><mn>13te7</mn></math>';
   assert.equal(await nemeth(base), '⠼⠂⠒⠞⠑⠶');

@@ -808,6 +808,26 @@ function wrapModifierScope(tree, scope, elementName, value, dataAttributes = {})
 }
 
 function insertModifier(tree, focus, value, modeValue = null, scope = null, dataAttributes = {}) {
+  // A contracted bar is complete for the current atom, but BANA 15.5 still
+  // permits an immediately adjacent parallel bar before the terminator. Keep
+  // that one local continuation available without leaving ordinary following
+  // tokens in modifier mode.
+  if (modeValue === 'modifier-parallel' && value === '¯') {
+    const current = currentNode(tree, focus);
+    if (['mover', 'munder'].includes(current.name)) {
+      const role = current.name === 'munder' ? 'underscript' : 'overscript';
+      const slot = current.children.find((child) => child.attrs?.['data-omniya-role'] === role);
+      if (slot?.name === 'mo' && slot.children?.[0]?.text === '¯') {
+        const row = element('mrow', [slot, atom('mo', '¯', { 'data-omniya-role': role, ...dataAttributes })]);
+        current.children[current.children.indexOf(slot)] = row;
+        return { tree, focus: focusNode(current), wrapper: current };
+      }
+      if (slot?.name === 'mrow') {
+        slot.children.push(atom('mo', '¯', { 'data-omniya-role': role, ...dataAttributes }));
+        return { tree, focus: focusNode(current), wrapper: current };
+      }
+    }
+  }
   // BANA 15.5: parallel horizontal bars are one modifier, not higher-order
   // modifiers.  Append only to the currently occupied local modifier slot.
   if (modeValue === 'modifier-complete' && value === '¯') {
@@ -911,7 +931,12 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null, data
       base.attrs['data-omniya-id'] = id();
       wrapper.children.push(base, atom('mo', value, { 'data-omniya-role': 'overscript', ...dataAttributes }));
       parent.children[index] = wrapper;
-      return { tree, focus: focusNode(wrapper.children[1]), wrapper };
+      // The contracted form is complete at the wrapper boundary.  Returning
+      // the wrapper, rather than its bar child, lets the next ordinary local
+      // token continue in the surrounding expression row (Rule 15.2.2/15.2.3
+      // Examples 15-10, 15-20, and 15-21) instead of accidentally appending
+      // siblings inside the overscript slot.
+      return { tree, focus: focusNode(wrapper), wrapper };
     }
   }
   const current = currentNode(tree, focus);
@@ -2289,17 +2314,27 @@ function applyMapping(document, focus, inputState, mapping) {
   }
   if (result.status === 'pending') return result;
   const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial'].includes(mapping.action);
-  const collectingModifierScope = inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-');
+  const collectingModifierScope = inputState.mode === 'multipurpose' ||
+    (inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel');
   const nextModifierScope = collectingModifierScope && insertedAction
     ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
     : inputState.modifierScope;
+  // A contracted modifier (for example x: or x% in Rule 15.2.2/15.2.3)
+  // completes the one local decoration immediately.  Only the five-step
+  // form, which entered through multipurpose/modifier mode, remains in the
+  // modifier-complete phase for a possible second side or terminator.  This
+  // distinction is structural and registry-wide: it keeps a following +,
+  // script, or sibling token in the surrounding MathML slot instead of
+  // accidentally treating it as another modifier operand.
   const nextMode = mapping.action === 'insert-modifier'
-    ? 'modifier-complete'
+    ? (inputState.mode === 'modifier-parallel'
+      ? 'modifier-parallel'
+      : (inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-') ? 'modifier-complete' : 'modifier-parallel'))
     : mapping.action === 'simultaneous-modifier'
       ? `modifier-${args.direction}`
     : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('numeric')
     ? inputState.mode
-    : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('modifier-')
+    : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel'
       ? inputState.mode
       : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode === 'multipurpose'
         ? 'multipurpose'
@@ -2650,7 +2685,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');
     return applyMapping(document, focus, state, mapping);
   }
-  if (state.mode === 'modifier-complete' && !state.prefix && normalized === '⠻') {
+  if ((state.mode === 'modifier-complete' || state.mode === 'modifier-parallel') && !state.prefix && normalized === '⠻') {
     // The same terminator closes either a one-sided mover/munder or a
     // completed munderover.  Resolve that choice from the current local
     // structure only; it is not a passage-level parse.
