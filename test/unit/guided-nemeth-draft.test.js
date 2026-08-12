@@ -119,6 +119,94 @@ test('omission and cancellation indicators become local MathML constructs', () =
   assert.equal(tree.children[0].children[0].children[0].text, 'x');
 });
 
+test('Rule 8.7 short dash waits for its complete local code', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = cell(document, focus, inputState, '⠤');
+  assert.equal(result.status, 'pending');
+  const before = result.document.mathml;
+  result = cell(result.document, result.focus, result.inputState, '⠤');
+  assert.equal(result.status, 'pending');
+  assert.equal(result.document.mathml, before);
+  const committed = commitNemethLocalCode({ document: result.document, focus: result.focus, inputState: result.inputState });
+  assert.equal(committed.status, 'applied');
+  assert.equal(parseMathML(committed.document.mathml).children[0].children[0].text, '–');
+});
+
+test('Rule 8.4 plural and possessive endings append to the focused local expression', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠭', '⠘', '⠁', '⠸', '⠄', '⠎']) {
+    let result = cell(document, focus, inputState, value);
+    if (result.status === 'choice') {
+      const selected = applyNemethChoice({ document: result.document, focus: result.focus, inputState: result.inputState, operationId: 'script.possessive' });
+      assert.equal(selected.status, 'applied', selected.announcement);
+      ({ document, focus, inputState } = selected);
+      continue;
+    }
+    if (result.status === 'pending' && result.inputState.prefix === '⠸⠄⠎') {
+      result = commitNemethLocalCode({ document: result.document, focus: result.focus, inputState: result.inputState });
+    }
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  let tree = parseMathML(document.mathml);
+  assert.equal(tree.children.at(-2).name, 'mo');
+  assert.equal(tree.children.at(-2).children[0].text, '′');
+  assert.equal(tree.children.at(-1).name, 'mi');
+  assert.equal(tree.children.at(-1).children[0].text, 's');
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  for (const value of ['⠭']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  let plural = cell(document, focus, inputState, '⠎');
+  if (plural.status === 'choice') {
+    plural = applyNemethChoice({ document: plural.document, focus: plural.focus, inputState: plural.inputState, operationId: 'plural.s' });
+  }
+  if (plural.status === 'pending' && plural.inputState.prefix === '⠎') {
+    plural = commitNemethLocalCode({ document: plural.document, focus: plural.focus, inputState: plural.inputState });
+  }
+  if (plural.status === 'choice') {
+    plural = applyNemethChoice({ document: plural.document, focus: plural.focus, inputState: plural.inputState, operationId: 'plural.s' });
+  }
+  assert.equal(plural.status, 'applied', plural.announcement);
+  tree = parseMathML(plural.document.mathml);
+  assert.equal(tree.children.at(-1).children[0].text, 's');
+});
+
+test('Rule 16.3 nested radical order builds and closes a local inner radical', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠜', '⠭', '⠬']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  let result = cell(document, focus, inputState, '⠨');
+  assert.equal(result.status, 'pending');
+  result = cell(result.document, result.focus, result.inputState, '⠜');
+  assert.equal(result.status, 'applied');
+  ({ document, focus, inputState } = result);
+  result = cell(document, focus, inputState, '⠽');
+  assert.equal(result.status, 'applied');
+  ({ document, focus, inputState } = result);
+  result = cell(document, focus, inputState, '⠨');
+  assert.equal(result.status, 'pending');
+  result = cell(result.document, result.focus, result.inputState, '⠻');
+  assert.equal(result.status, 'applied', result.announcement);
+  const root = parseMathML(result.document.mathml);
+  assert.equal(root.children[0].name, 'msqrt');
+  assert.equal(root.children[0].children[0].name, 'mrow');
+});
+
 test('indexed radicals preserve MathML child order while following Nemeth entry order', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

@@ -585,6 +585,21 @@ test('BANA Rules 9, 12, 13, 14, 15, 16, and 19 retain the printed local codes', 
   }
 });
 
+test('BANA Rules 8.4, 8.7, and 16.3 use bounded local transitions', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  assert.equal(registry.get('punctuation.short-dash')?.args?.sourceNotation, '--');
+  assert.equal(registry.get('punctuation.short-dash')?.commitPolicy, 'atomic-sequence');
+  assert.equal(registry.get('plural.s')?.args?.sourceNotation, 's');
+  assert.equal(registry.get('plural.s')?.action, 'append-plural');
+  assert.equal(registry.get('script.possessive')?.action, 'append-possessive');
+  for (const [id, notation, order] of [
+    ['radical.order.one', '.', 1], ['radical.order.two', '..', 2], ['radical.order.three', '...', 3]
+  ]) {
+    assert.equal(registry.get(id)?.args?.sourceNotation, notation, id);
+    assert.equal(registry.get(id)?.args?.mode, `radical-order:${order}`, id);
+  }
+});
+
 
 test('BANA Rule 13 preserves horizontal versus diagonal fraction lines', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
@@ -1339,7 +1354,7 @@ test('every accepted mapping has explicit BANA source evidence and action', () =
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
   }
 });
 

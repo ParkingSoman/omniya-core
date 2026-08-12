@@ -5,13 +5,13 @@
   "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
   "status": "development",
   "inputPolicies": {
-    "immediate": 236,
-    "atomicSequence": 290,
-    "structuralFollowup": 50
+    "immediate": 239,
+    "atomicSequence": 291,
+    "structuralFollowup": 54
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 217,
+    "shadowedAtomicCount": 241,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -406,6 +406,10 @@
         "immediateId": "misc.tally"
       },
       {
+        "atomicId": "punctuation.short-dash",
+        "immediateId": "operator.minus"
+      },
+      {
         "atomicId": "punctuation.left-single-quote",
         "immediateId": "punctuation.comma"
       },
@@ -432,6 +436,10 @@
       {
         "atomicId": "superposition.comparison",
         "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "superposition.comparison",
+        "immediateId": "radical.order.one"
       },
       {
         "atomicId": "superposition.comparison",
@@ -530,12 +538,44 @@
         "immediateId": "misc.angle"
       },
       {
+        "atomicId": "group.brace-open",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.brace-close",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.angle-open",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.angle-open",
+        "immediateId": "radical.order.two"
+      },
+      {
+        "atomicId": "group.angle-close",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.angle-close",
+        "immediateId": "radical.order.two"
+      },
+      {
         "atomicId": "group.bold-bracket-open",
         "immediateId": "misc.tally"
       },
       {
         "atomicId": "group.bold-bracket-close",
         "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "group.barred-brace-open",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.barred-brace-close",
+        "immediateId": "radical.order.one"
       },
       {
         "atomicId": "group.lower-half-open",
@@ -560,6 +600,30 @@
       {
         "atomicId": "group.round-enlarged-close",
         "immediateId": "indicator.capital"
+      },
+      {
+        "atomicId": "group.brace-enlarged-open",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.brace-enlarged-close",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.angle-enlarged-open",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.angle-enlarged-open",
+        "immediateId": "radical.order.two"
+      },
+      {
+        "atomicId": "group.angle-enlarged-close",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.angle-enlarged-close",
+        "immediateId": "radical.order.two"
       },
       {
         "atomicId": "group.vertical-double-open",
@@ -600,6 +664,14 @@
       {
         "atomicId": "group.bold-vertical-double-open",
         "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "group.barred-brace-enlarged-open",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "group.barred-brace-enlarged-close",
+        "immediateId": "radical.order.one"
       },
       {
         "atomicId": "group.lower-half-enlarged-open",
@@ -655,7 +727,15 @@
       },
       {
         "atomicId": "comparison.reverse-inclusion.equals-over",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.reverse-inclusion.equals-over",
         "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.union.equals-under",
+        "immediateId": "radical.order.one"
       },
       {
         "atomicId": "comparison.union.equals-under",
@@ -664,6 +744,10 @@
       {
         "atomicId": "comparison.greater-less",
         "immediateId": "comparison.greater"
+      },
+      {
+        "atomicId": "comparison.greater-less",
+        "immediateId": "radical.order.one"
       },
       {
         "atomicId": "comparison.less-greater",
@@ -680,6 +764,10 @@
       {
         "atomicId": "comparison.greater-equals-less",
         "immediateId": "comparison.greater"
+      },
+      {
+        "atomicId": "comparison.greater-equals-less",
+        "immediateId": "radical.order.one"
       },
       {
         "atomicId": "comparison.less-equals-greater",
@@ -720,6 +808,14 @@
       {
         "atomicId": "arrow.left-full-right-lower",
         "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "reference.checkmark",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "shape.inverted-triangle",
+        "immediateId": "radical.order.one"
       },
       {
         "atomicId": "shape.irregular-pentagon",
@@ -886,7 +982,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 576,
+    "notation": 584,
     "contextual": 2
   },
   "operations": [
@@ -4523,6 +4619,32 @@
       },
       "banaRefs": [
         "8.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.short-dash",
+      "commandLabel": "punctuation.short-dash",
+      "cells": [
+        "⠤",
+        "⠤"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "--",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "–",
+        "sourceNotation": "--"
+      },
+      "banaRefs": [
+        "8.7"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -8271,6 +8393,165 @@
       ]
     },
     {
+      "id": "radical.order.one",
+      "commandLabel": "radical.order.one",
+      "cells": [
+        "⠨"
+      ],
+      "action": "set-mode",
+      "commitPolicy": "immediate",
+      "sourceNotation": ".",
+      "sourceKind": null,
+      "args": {
+        "mode": "radical-order:1",
+        "preferLonger": true,
+        "sourceNotation": "."
+      },
+      "banaRefs": [
+        "16.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.order.two",
+      "commandLabel": "radical.order.two",
+      "cells": [
+        "⠨",
+        "⠨"
+      ],
+      "action": "set-mode",
+      "commitPolicy": "immediate",
+      "sourceNotation": "..",
+      "sourceKind": null,
+      "args": {
+        "mode": "radical-order:2",
+        "preferLonger": true,
+        "sourceNotation": ".."
+      },
+      "banaRefs": [
+        "16.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.order.three",
+      "commandLabel": "radical.order.three",
+      "cells": [
+        "⠨",
+        "⠨",
+        "⠨"
+      ],
+      "action": "set-mode",
+      "commitPolicy": "immediate",
+      "sourceNotation": "...",
+      "sourceKind": null,
+      "args": {
+        "mode": "radical-order:3",
+        "preferLonger": true,
+        "sourceNotation": "..."
+      },
+      "banaRefs": [
+        "16.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.end.order.one",
+      "commandLabel": "radical.end.order.one",
+      "cells": [
+        "⠨",
+        "⠻"
+      ],
+      "action": "close-structure",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": ".]",
+      "sourceKind": null,
+      "args": {
+        "element": "msqrt",
+        "radicalOrder": 1,
+        "sourceNotation": ".]"
+      },
+      "banaRefs": [
+        "16.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.end.order.two",
+      "commandLabel": "radical.end.order.two",
+      "cells": [
+        "⠨",
+        "⠨",
+        "⠻"
+      ],
+      "action": "close-structure",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": "..]",
+      "sourceKind": null,
+      "args": {
+        "element": "msqrt",
+        "radicalOrder": 2,
+        "sourceNotation": "..]"
+      },
+      "banaRefs": [
+        "16.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.end.order.three",
+      "commandLabel": "radical.end.order.three",
+      "cells": [
+        "⠨",
+        "⠨",
+        "⠨",
+        "⠻"
+      ],
+      "action": "close-structure",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": "...]",
+      "sourceKind": null,
+      "args": {
+        "element": "msqrt",
+        "radicalOrder": 3,
+        "sourceNotation": "...]"
+      },
+      "banaRefs": [
+        "16.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "group.round",
       "commandLabel": "group.round",
       "cells": [
@@ -11653,7 +11934,7 @@
         "⠄",
         "⠎"
       ],
-      "action": "append-script-possessive",
+      "action": "append-possessive",
       "commitPolicy": "atomic-sequence",
       "sourceNotation": "_'s",
       "sourceKind": null,
@@ -11663,6 +11944,29 @@
       "banaRefs": [
         "8.4",
         "14.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "plural.s",
+      "commandLabel": "plural.s",
+      "cells": [
+        "⠎"
+      ],
+      "action": "append-plural",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": "s",
+      "sourceKind": null,
+      "args": {
+        "sourceNotation": "s"
+      },
+      "banaRefs": [
+        "8.4"
       ],
       "errataRefs": [],
       "validContexts": [

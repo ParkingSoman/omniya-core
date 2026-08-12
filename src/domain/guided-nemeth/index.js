@@ -173,9 +173,19 @@ function insertAfter(tree, focus, replacement) {
   }
   if (isHole(current)) return replaceCurrent(tree, focus, replacement);
   const parent = findMathParent(tree, current.attrs['data-omniya-id']);
-  if (!parent || !['math', 'mrow'].includes(parent.name)) return replaceCurrent(tree, focus, replacement);
+  if (!parent) return replaceCurrent(tree, focus, replacement);
   const index = parent.children.indexOf(current);
-  parent.children.splice(index + 1, 0, replacement);
+  if (['math', 'mrow'].includes(parent.name)) {
+    parent.children.splice(index + 1, 0, replacement);
+    return replacement;
+  }
+  // A populated MathML slot such as an msqrt radicand or an mfrac numerator
+  // is a single child position.  When the guided writer appends the next
+  // local token there, promote that slot to an mrow instead of replacing the
+  // focused token.  This preserves the one-step editor model while keeping
+  // the canonical tree valid for arbitrary-length expressions inside slots.
+  const row = element('mrow', [current, replacement]);
+  parent.children[index] = row;
   return replacement;
 }
 
@@ -572,21 +582,33 @@ function insertRomanLetter(tree, focus, value) {
   });
 }
 
-// BANA 14.13/8.4: punctuation-indicator apostrophe-s returns to baseline
-// after a scripted expression. This operation appends only that bounded
-// suffix after the nearest script container; it never parses a word or the
-// surrounding equation.
-function appendScriptPossessive(tree, focus) {
+// BANA Rules 8.4 and 14.13: apostrophe-s may follow any numeral, letter, or
+// mathematical expression. The input is one bounded local code; the
+// operation appends two baseline siblings after the exact focused node and
+// does not inspect a surrounding word or passage.
+function appendPossessive(tree, focus) {
   const current = currentNode(tree, focus);
-  const script = ancestor(tree, current, ['msup', 'msub', 'msubsup', 'mmultiscripts']);
-  if (!script) throw new RangeError('Apostrophe-s requires a scripted expression.');
-  const parent = findMathParent(tree, script.attrs?.['data-omniya-id']);
-  if (!parent) throw new RangeError('The scripted possessive has no local parent.');
-  const index = parent.children.indexOf(script);
-  if (index < 0) throw new RangeError('The scripted possessive target is unavailable.');
+  if (current.name === 'math' || isHole(current)) throw new RangeError('Apostrophe-s requires a populated mathematical expression.');
+  const target = ancestor(tree, current, ['msup', 'msub', 'msubsup', 'mmultiscripts']) ?? current;
+  const parent = findMathParent(tree, target.attrs?.['data-omniya-id']);
+  if (!parent || !['math', 'mrow'].includes(parent.name)) throw new RangeError('Apostrophe-s requires a local expression row.');
+  const index = parent.children.indexOf(target);
+  if (index < 0) throw new RangeError('The possessive target is unavailable.');
   const apostrophe = atom('mo', '′', { 'data-omniya-nemeth-intent': 'possessive-apostrophe' });
   const suffix = atom('mi', 's', { 'data-omniya-nemeth-intent': 'possessive-s' });
   parent.children.splice(index + 1, 0, apostrophe, suffix);
+  return { tree, focus: focusNode(suffix) };
+}
+
+function appendPlural(tree, focus) {
+  const current = currentNode(tree, focus);
+  if (current.name === 'math' || isHole(current)) throw new RangeError('A plural ending requires a populated mathematical expression.');
+  const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+  if (!parent || !['math', 'mrow'].includes(parent.name)) throw new RangeError('A plural ending requires a local expression row.');
+  const suffix = atom('mi', 's', { 'data-omniya-nemeth-intent': 'plural-suffix' });
+  const index = parent.children.indexOf(current);
+  if (index < 0) throw new RangeError('The plural target is unavailable.');
+  parent.children.splice(index + 1, 0, suffix);
   return { tree, focus: focusNode(suffix) };
 }
 
@@ -938,6 +960,10 @@ const MAPPINGS = [
   token('punctuation.question', ['⠸', '⠦'], ['8.1', '8.2'], '?', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_8' }),
   token('punctuation.exclamation', ['⠸', '⠖'], ['8.1', '8.2'], '!', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_6' }),
   token('punctuation.long-dash', ['⠤', '⠤', '⠤', '⠤'], ['8.8'], '―', 'mo', { sourceNotation: '----' }),
+  // Rule 8.7: the short dash is two dots-36 cells. It is an atomic local
+  // code because the first cell is also the minus sign; the registry's
+  // longer-code lookahead keeps the punctuation construction reachable.
+  sourceToken('punctuation.short-dash', '--', ['8.7'], '–', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('punctuation.ellipsis', ['⠄', '⠄', '⠄'], ['8.8'], '…', 'mo', { sourceNotation: "'''" }),
   token('punctuation.left-single-quote', ['⠠', '⠦'], ['8.1'], '‘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',8' }),
   // Rule 8's closing single quotation mark is punctuation indicator + dot 0
@@ -1158,6 +1184,15 @@ const MAPPINGS = [
   sourceOpen('radical.indexed', ['⠣'], ['16.2', '16.3'], 'mroot', ['radicand', 'index'], {}, 'index', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '<'),
   sourceMove('radical.next.radicand', ['⠌'], ['16.2'], 'mroot', 'radicand', '/'),
   sourceClose('radical.indexed.end', ['⠻'], ['16.2', '16.3'], 'mroot', ']'),
+  // Rule 16.3 order indicators are contextual modes: they are valid only
+  // while editing a radical and affect the next local radical/terminator.
+  // They carry one bounded integer, not an unrestricted nesting stack.
+  mode('radical.order.one', ['⠨'], ['16.3'], 'radical-order:1', true, '.'),
+  mode('radical.order.two', ['⠨', '⠨'], ['16.3'], 'radical-order:2', true, '..'),
+  mode('radical.order.three', ['⠨', '⠨', '⠨'], ['16.3'], 'radical-order:3', true, '...'),
+  { id: 'radical.end.order.one', cells: ['⠨', '⠻'], banaRefs: ['16.3'], action: 'close-structure', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: 'msqrt', radicalOrder: 1, sourceNotation: '.]' } },
+  { id: 'radical.end.order.two', cells: ['⠨', '⠨', '⠻'], banaRefs: ['16.3'], action: 'close-structure', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: 'msqrt', radicalOrder: 2, sourceNotation: '..]' } },
+  { id: 'radical.end.order.three', cells: ['⠨', '⠨', '⠨', '⠻'], banaRefs: ['16.3'], action: 'close-structure', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: 'msqrt', radicalOrder: 3, sourceNotation: '...]' } },
   sourceOpen('group.round', ['⠷'], ['19.1', '19.5'], 'mrow', ['content'], { 'data-omniya-group': 'round' }, 'content', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '('),
   sourceClose('group.round.end', ['⠾'], ['19.1'], 'mrow', ')'),
   // Rule 15.6: a binomial is one bounded local structure.  Its opening
@@ -1350,8 +1385,13 @@ const MAPPINGS = [
     // BANA examples 8-39 through 8-45 transcribe apostrophe-s as `_'s`:
     // punctuation indicator (456), apostrophe (3), and the letter s.
     id: 'script.possessive', cells: ['⠸', '⠄', '⠎'], banaRefs: ['8.4', '14.13'],
-    action: 'append-script-possessive', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { sourceNotation: "_'s" }
+    action: 'append-possessive', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { sourceNotation: "_'s" }
   },
+  // A plain s is ambiguous in a guided editor: it can be the next identifier
+  // or BANA's plural ending. Expose both local meanings; the current focus
+  // determines whether the ending is available and the author chooses when
+  // both are valid. This is not passage-level lexical inference.
+  { id: 'plural.s', cells: ['⠎'], banaRefs: ['8.4'], action: 'append-plural', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { sourceNotation: 's' } },
   // BANA 14.7's contracted comma is distinct from the baseline mathematical
   // comma: it preserves the current script level and represents the optional
   // following space as part of this one local follow-up.
@@ -1726,6 +1766,10 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'radical.next.radicand') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
   if (mapping.id === 'radical.end') return Boolean(hasAncestor(context.tree, context.node, 'msqrt'));
   if (mapping.id === 'radical.indexed.end') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
+  if (mapping.args?.radicalOrder) {
+    const radical = hasAncestor(context.tree, context.node, 'msqrt');
+    return Boolean(radical && radical.attrs?.['data-omniya-radical-order'] === String(mapping.args.radicalOrder));
+  }
   if (mapping.id === 'script.sup-sub.move-sub') return Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
   if (mapping.id === 'script.sub-sup.move-sup') return Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
   if (mapping.id === 'script.superscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
@@ -1764,8 +1808,8 @@ function mappingApplies(mapping, context) {
     return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
       context.node.name !== 'math' && !isHole(context.node));
   }
-  if (mapping.action === 'append-script-possessive') {
-    return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']));
+  if (mapping.action === 'append-possessive' || mapping.action === 'append-plural') {
+    return context.node.name !== 'math' && !isHole(context.node) && Boolean(findMathParent(context.tree, context.node.attrs?.['data-omniya-id']));
   }
   // Dot 4 is the cancellation opener on the baseline, but inside a script
   // it is BANA 14.7's contracted comma.  Context selects the local meaning;
@@ -1827,7 +1871,11 @@ function applyMapping(document, focus, inputState, mapping) {
     const primeWrapped = ['msup', 'msub', 'msubsup'].includes(args.element)
       ? wrapScriptAfterPrime(tree, focus, args.element, args.slots, args.attrs, args.initialSlot)
       : null;
-    result = primeWrapped ?? wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
+    const radicalOrder = inputState.mode?.startsWith?.('radical-order:') ? inputState.mode.slice('radical-order:'.length) : null;
+    const attrs = radicalOrder && ['msqrt', 'mroot'].includes(args.element)
+      ? { ...(args.attrs ?? {}), 'data-omniya-radical-order': radicalOrder }
+      : args.attrs;
+    result = primeWrapped ?? wrapCurrent(tree, focus, args.element, args.slots, attrs, args.initialSlot);
   } else if (mapping.action === 'open-function-limit') {
     result = openFunctionLimit(tree, focus, args.direction);
   } else if (mapping.action === 'insert-contracted-script-comma') {
@@ -1836,9 +1884,15 @@ function applyMapping(document, focus, inputState, mapping) {
     } catch (error) {
       return { status: 'rejected', document, focus, inputState, announcement: error.message };
     }
-  } else if (mapping.action === 'append-script-possessive') {
+  } else if (mapping.action === 'append-possessive') {
     try {
-      result = appendScriptPossessive(tree, focus);
+      result = appendPossessive(tree, focus);
+    } catch (error) {
+      return { status: 'rejected', document, focus, inputState, announcement: error.message };
+    }
+  } else if (mapping.action === 'append-plural') {
+    try {
+      result = appendPlural(tree, focus);
     } catch (error) {
       return { status: 'rejected', document, focus, inputState, announcement: error.message };
     }
@@ -2033,6 +2087,27 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+
+  // BANA 16.3 repeats the order indicator before an inner radical and its
+  // matching terminator. The value is carried as a bounded mode for this one
+  // radical operation, never as a general nesting stack.
+  if (/^⠨{1,3}$/.test(state.prefix) && (normalized === '⠜' || normalized === '⠣')) {
+    const order = state.prefix.length;
+    const radical = MAPPINGS.find((candidate) => candidate.id === (normalized === '⠜' ? 'radical.square' : 'radical.indexed'));
+    if (radical && (context.node.name === 'math' || isHole(context.node) || hasAncestor(context.tree, context.node, 'msqrt'))) {
+      return applyMapping(document, focus, { ...state, prefix: '', mode: `radical-order:${order}` }, radical);
+    }
+  }
+  if (/^⠨{1,3}$/.test(state.prefix) && normalized === '⠻') {
+    const order = state.prefix.length;
+    const mapping = MAPPINGS.find((candidate) => candidate.id === `radical.end.order.${['one', 'two', 'three'][order - 1]}`);
+    if (mapping && mappingApplies(mapping, context)) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+  }
+  if (/^⠨{1,3}$/.test(state.prefix) && normalized === '⠻' && hasAncestor(context.tree, context.node, 'msqrt')) {
+    return applyMapping(document, focus, { ...state, prefix: '' }, {
+      id: 'radical.end.ordered-local', cells: [...state.prefix, normalized], banaRefs: ['16.3'], action: 'close-structure', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: 'msqrt', sourceNotation: `${'.'.repeat(state.prefix.length)}]` }
+    });
+  }
 
   // BANA Rule 9.2's general reference indicator is a one-symbol local
   // follow-up: @] is followed immediately by one letter or numeral. It does
@@ -2288,6 +2363,14 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     return { status: 'pending', document, focus,
       inputState: { ...state, prefix: '⠈', mode: 'tilde-horizontal' },
       announcement: 'Horizontal tilde code pending.' };
+  }
+  if (state.mode === null && state.prefix === '⠨' && normalized === '⠨' &&
+    hasAncestor(context.tree, context.node, 'msqrt')) {
+    return { status: 'pending', document, focus, inputState: { ...state, prefix: '⠨⠨' }, announcement: 'Nested radical order 2 pending.' };
+  }
+  if (state.mode === null && state.prefix === '⠨⠨' && normalized === '⠨' &&
+    hasAncestor(context.tree, context.node, 'msqrt')) {
+    return { status: 'pending', document, focus, inputState: { ...state, prefix: '⠨⠨⠨' }, announcement: 'Nested radical order 3 pending.' };
   }
   // Rule 14 permits a lower-cell numeral directly in a script slot.  Dot 6
   // is shared with the English-letter indicator, so it is held until the

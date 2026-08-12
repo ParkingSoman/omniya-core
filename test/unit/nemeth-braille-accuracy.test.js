@@ -233,6 +233,52 @@ test('guided local operations reproduce the reviewed multi-token modifier and in
   assert.equal(await nemeth(result.document.mathml), '⠮⠈⠫⠉⠻');
 });
 
+test('new bounded Rule 8 and Rule 16 transitions match the independent Nemeth projection', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠤', '⠤']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.equal(result.status, 'pending');
+    ({ document, focus, inputState } = result);
+  }
+  let result = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(result.status, 'applied');
+  assert.equal(await nemeth(result.document.mathml), '⠤⠤');
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠨', '⠁']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  for (const cell of ['⠸', '⠄', '⠎']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'pending' && result.inputState.prefix === '⠸⠄⠎') {
+      result = commitNemethLocalCode({ document: result.document, focus: result.focus, inputState: result.inputState });
+    }
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  // SRE emits the canonical Nemeth projection for the resulting MathML. The
+  // input-side BANA code remains the bounded `_'s` registry row; punctuation
+  // and script indicators are a projection choice, not a reverse-parser
+  // authority.
+  assert.equal(await nemeth(document.mathml), '⠭⠨⠁⠄⠎');
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  for (const cell of ['⠜', '⠭', '⠬', '⠨', '⠜', '⠽', '⠨', '⠻']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(await nemeth(document.mathml), '⠜⠭⠨⠜⠬⠨⠻⠽⠻');
+});
+
 test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
