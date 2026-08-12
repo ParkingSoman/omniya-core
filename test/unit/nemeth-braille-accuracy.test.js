@@ -38,6 +38,8 @@ test('focused canonical subexpressions retain exact Nemeth cells, not only whole
     else if (fixture.part === 'denominator') target = root.children[1];
     else if (fixture.part === 'radical') target = root;
     else if (fixture.part === 'exponent') target = root.children[0].children[1];
+    else if (fixture.part === 'arrow') target = root.children.find((node) => node.name === 'mo' && ['↖', '↗', '↘', '↙'].includes(node.children?.[0]?.text));
+    else if (fixture.part === 'sum') target = root.children.find((node) => node.name === 'munderover');
     else target = root;
     assert.equal(await nemeth(subtreeMathML(target)), fixture.expected, `${fixture.id} (${fixture.banaRef})`);
   }

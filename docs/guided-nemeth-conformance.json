@@ -1119,7 +1119,7 @@
         "preferLonger": true
       },
       "banaRefs": [
-        "23.11"
+        "23.12"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -1175,19 +1175,19 @@
       ]
     },
     {
-      "id": "operator.sum",
-      "commandLabel": "operator.sum",
+      "id": "integral.lower",
+      "commandLabel": "integral.lower",
       "cells": [
-        "⠠",
-        "⠎"
+        "⠩",
+        "⠮"
       ],
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "∑"
+        "value": "⨜"
       },
       "banaRefs": [
-        "23.11"
+        "23.12"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -1197,19 +1197,94 @@
       ]
     },
     {
-      "id": "operator.product",
-      "commandLabel": "operator.product",
+      "id": "integral.upper",
+      "commandLabel": "integral.upper",
       "cells": [
-        "⠠",
-        "⠏"
+        "⠣",
+        "⠮"
       ],
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "∏"
+        "value": "⨛"
       },
       "banaRefs": [
-        "23.11"
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.contour",
+      "commandLabel": "integral.contour",
+      "cells": [
+        "⠮",
+        "⠈",
+        "⠫",
+        "⠉",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∮"
+      },
+      "banaRefs": [
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.quaternion",
+      "commandLabel": "integral.quaternion",
+      "cells": [
+        "⠮",
+        "⠈",
+        "⠫",
+        "⠲",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⨖"
+      },
+      "banaRefs": [
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.sum",
+      "commandLabel": "operator.sum",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∑"
+      },
+      "banaRefs": [
+        "6.1.4",
+        "6.2",
+        "18.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -2781,6 +2856,53 @@
       ]
     },
     {
+      "id": "misc.at",
+      "commandLabel": "misc.at",
+      "cells": [
+        "⠈",
+        "⠁"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "@"
+      },
+      "banaRefs": [
+        "23.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.crossed-d",
+      "commandLabel": "misc.crossed-d",
+      "cells": [
+        "⠈",
+        "⠫"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "đ"
+      },
+      "banaRefs": [
+        "23.4"
+      ],
+      "errataRefs": [
+        "Rule 23 symbol list",
+        "Rule 23.4"
+      ],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "misc.planck",
       "commandLabel": "misc.planck",
       "cells": [
@@ -2791,6 +2913,52 @@
       "args": {
         "name": "mo",
         "value": "ℏ"
+      },
+      "banaRefs": [
+        "23.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.crossed-lambda",
+      "commandLabel": "misc.crossed-lambda",
+      "cells": [
+        "⠈",
+        "⠨",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "ƛ"
+      },
+      "banaRefs": [
+        "23.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.crossed-r",
+      "commandLabel": "misc.crossed-r",
+      "cells": [
+        "⠈",
+        "⠠",
+        "⠗"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "℞"
       },
       "banaRefs": [
         "23.4"
@@ -2848,6 +3016,72 @@
       ]
     },
     {
+      "id": "misc.dollar",
+      "commandLabel": "misc.dollar",
+      "cells": [
+        "⠈",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "$"
+      },
+      "banaRefs": [
+        "23.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.franc",
+      "commandLabel": "misc.franc",
+      "cells": [
+        "⠈",
+        "⠋"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "₣"
+      },
+      "banaRefs": [
+        "23.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.naira",
+      "commandLabel": "misc.naira",
+      "cells": [
+        "⠈",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "₦"
+      },
+      "banaRefs": [
+        "23.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "misc.pound",
       "commandLabel": "misc.pound",
       "cells": [
@@ -2880,6 +3114,28 @@
       "args": {
         "name": "mo",
         "value": "€"
+      },
+      "banaRefs": [
+        "23.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.won",
+      "commandLabel": "misc.won",
+      "cells": [
+        "⠈",
+        "⠺"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "₩"
       },
       "banaRefs": [
         "23.13"
@@ -3100,10 +3356,11 @@
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "∠"
+        "value": "∠",
+        "preferLonger": true
       },
       "banaRefs": [
-        "23"
+        "17.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -3170,28 +3427,6 @@
       },
       "banaRefs": [
         "23.16"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "misc.not",
-      "commandLabel": "misc.not",
-      "cells": [
-        "⠈",
-        "⠹"
-      ],
-      "action": "insert-token",
-      "args": {
-        "name": "mo",
-        "value": "¬"
-      },
-      "banaRefs": [
-        "23.17"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -3660,6 +3895,262 @@
       ]
     },
     {
+      "id": "arrow.vertical-both",
+      "commandLabel": "arrow.vertical-both",
+      "cells": [
+        "⠫",
+        "⠣",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "↕"
+      },
+      "banaRefs": [
+        "22.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.northwest",
+      "commandLabel": "arrow.northwest",
+      "cells": [
+        "⠫",
+        "⠘",
+        "⠪",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "↖"
+      },
+      "banaRefs": [
+        "22.4.3",
+        "22.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.northeast",
+      "commandLabel": "arrow.northeast",
+      "cells": [
+        "⠫",
+        "⠘",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "↗"
+      },
+      "banaRefs": [
+        "22.4.3",
+        "22.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.southeast",
+      "commandLabel": "arrow.southeast",
+      "cells": [
+        "⠫",
+        "⠰",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "↘"
+      },
+      "banaRefs": [
+        "22.4.3",
+        "22.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.southwest",
+      "commandLabel": "arrow.southwest",
+      "cells": [
+        "⠫",
+        "⠰",
+        "⠪",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "↙"
+      },
+      "banaRefs": [
+        "22.4.3",
+        "22.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.double-left",
+      "commandLabel": "arrow.double-left",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠶",
+        "⠶"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⇐",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "22.5.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.double-right",
+      "commandLabel": "arrow.double-right",
+      "cells": [
+        "⠫",
+        "⠶",
+        "⠶",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⇒"
+      },
+      "banaRefs": [
+        "22.5.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.double-both",
+      "commandLabel": "arrow.double-both",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠶",
+        "⠶",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⇔"
+      },
+      "banaRefs": [
+        "22.5.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.double-up",
+      "commandLabel": "arrow.double-up",
+      "cells": [
+        "⠫",
+        "⠣",
+        "⠶",
+        "⠶",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⇑"
+      },
+      "banaRefs": [
+        "22.4.2",
+        "22.5.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.double-down",
+      "commandLabel": "arrow.double-down",
+      "cells": [
+        "⠫",
+        "⠩",
+        "⠶",
+        "⠶",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⇓"
+      },
+      "banaRefs": [
+        "22.4.2",
+        "22.5.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "reference.asterisk",
       "commandLabel": "reference.asterisk",
       "cells": [
@@ -3964,7 +4455,8 @@
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "←"
+        "value": "←",
+        "preferLonger": true
       },
       "banaRefs": [
         "22.4"
@@ -4002,21 +4494,93 @@
       ]
     },
     {
-      "id": "arrow.implies",
-      "commandLabel": "arrow.implies",
+      "id": "arrow.right.short",
+      "commandLabel": "arrow.right.short",
       "cells": [
         "⠫",
-        "⠶",
-        "⠶",
+        "⠒",
         "⠕"
       ],
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "⇒"
+        "value": "⇢"
       },
       "banaRefs": [
-        "21.2"
+        "22.5.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.left.short",
+      "commandLabel": "arrow.left.short",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⇠"
+      },
+      "banaRefs": [
+        "22.5.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.right.long",
+      "commandLabel": "arrow.right.long",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⟶"
+      },
+      "banaRefs": [
+        "22.5.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.left.long",
+      "commandLabel": "arrow.left.long",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⟵"
+      },
+      "banaRefs": [
+        "22.5.3"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4038,7 +4602,8 @@
         "value": "α"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4060,7 +4625,8 @@
         "value": "β"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4082,7 +4648,8 @@
         "value": "γ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4104,7 +4671,8 @@
         "value": "δ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4114,8 +4682,8 @@
       ]
     },
     {
-      "id": "greek.ε",
-      "commandLabel": "greek.ε",
+      "id": "greek.ϵ",
+      "commandLabel": "greek.ϵ",
       "cells": [
         "⠨",
         "⠑"
@@ -4123,10 +4691,11 @@
       "action": "insert-token",
       "args": {
         "name": "mi",
-        "value": "ε"
+        "value": "ϵ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4148,7 +4717,8 @@
         "value": "ζ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4170,7 +4740,8 @@
         "value": "η"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4192,7 +4763,8 @@
         "value": "θ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4214,7 +4786,8 @@
         "value": "ι"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4236,7 +4809,8 @@
         "value": "κ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4258,7 +4832,8 @@
         "value": "λ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4280,7 +4855,8 @@
         "value": "μ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4302,7 +4878,8 @@
         "value": "ν"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4324,7 +4901,8 @@
         "value": "ξ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4346,7 +4924,8 @@
         "value": "ο"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4368,7 +4947,8 @@
         "value": "π"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4390,7 +4970,8 @@
         "value": "ρ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4412,7 +4993,8 @@
         "value": "σ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4434,7 +5016,8 @@
         "value": "τ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4456,7 +5039,8 @@
         "value": "υ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4466,8 +5050,8 @@
       ]
     },
     {
-      "id": "greek.φ",
-      "commandLabel": "greek.φ",
+      "id": "greek.ϕ",
+      "commandLabel": "greek.ϕ",
       "cells": [
         "⠨",
         "⠋"
@@ -4475,10 +5059,11 @@
       "action": "insert-token",
       "args": {
         "name": "mi",
-        "value": "φ"
+        "value": "ϕ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4500,7 +5085,8 @@
         "value": "χ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4522,7 +5108,8 @@
         "value": "ψ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4544,7 +5131,8 @@
         "value": "ω"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4567,7 +5155,9 @@
         "value": "Α"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4590,7 +5180,9 @@
         "value": "Β"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4613,7 +5205,9 @@
         "value": "Γ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4636,7 +5230,9 @@
         "value": "Δ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4659,7 +5255,9 @@
         "value": "Ε"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4682,7 +5280,9 @@
         "value": "Ζ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4705,7 +5305,9 @@
         "value": "Η"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4728,7 +5330,9 @@
         "value": "Θ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4751,7 +5355,9 @@
         "value": "Ι"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4774,7 +5380,9 @@
         "value": "Κ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4797,7 +5405,9 @@
         "value": "Λ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4820,7 +5430,9 @@
         "value": "Μ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4843,7 +5455,9 @@
         "value": "Ν"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4866,7 +5480,9 @@
         "value": "Ξ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4889,7 +5505,9 @@
         "value": "Ο"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4912,7 +5530,9 @@
         "value": "Π"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4935,7 +5555,9 @@
         "value": "Ρ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4958,7 +5580,9 @@
         "value": "Σ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -4981,7 +5605,9 @@
         "value": "Τ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5004,7 +5630,9 @@
         "value": "Υ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5027,7 +5655,9 @@
         "value": "Φ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5050,7 +5680,9 @@
         "value": "Χ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5073,7 +5705,9 @@
         "value": "Ψ"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5096,7 +5730,9 @@
         "value": "Ω"
       },
       "banaRefs": [
-        "6.2"
+        "5.1.1",
+        "6.1.4",
+        "6.2.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5106,20 +5742,21 @@
       ]
     },
     {
-      "id": "greek.variant-ϵ",
-      "commandLabel": "greek.variant-ϵ",
+      "id": "greek.variant-ϐ",
+      "commandLabel": "greek.variant-ϐ",
       "cells": [
         "⠨",
         "⠈",
-        "⠑"
+        "⠃"
       ],
       "action": "insert-token",
       "args": {
         "name": "mi",
-        "value": "ϵ"
+        "value": "ϐ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.5",
+        "6.2.2"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5142,7 +5779,8 @@
         "value": "ϑ"
       },
       "banaRefs": [
-        "6.2"
+        "6.1.5",
+        "6.2.2"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5152,8 +5790,32 @@
       ]
     },
     {
-      "id": "greek.variant-ϕ",
-      "commandLabel": "greek.variant-ϕ",
+      "id": "greek.variant-ς",
+      "commandLabel": "greek.variant-ς",
+      "cells": [
+        "⠨",
+        "⠈",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ς"
+      },
+      "banaRefs": [
+        "6.1.5",
+        "6.2.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.variant-φ",
+      "commandLabel": "greek.variant-φ",
       "cells": [
         "⠨",
         "⠈",
@@ -5162,56 +5824,11 @@
       "action": "insert-token",
       "args": {
         "name": "mi",
-        "value": "ϕ"
+        "value": "φ"
       },
       "banaRefs": [
-        "6.2"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "greek.variant-ϖ",
-      "commandLabel": "greek.variant-ϖ",
-      "cells": [
-        "⠨",
-        "⠈",
-        "⠏"
-      ],
-      "action": "insert-token",
-      "args": {
-        "name": "mi",
-        "value": "ϖ"
-      },
-      "banaRefs": [
-        "6.2"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "greek.variant-ϰ",
-      "commandLabel": "greek.variant-ϰ",
-      "cells": [
-        "⠨",
-        "⠈",
-        "⠅"
-      ],
-      "action": "insert-token",
-      "args": {
-        "name": "mi",
-        "value": "ϰ"
-      },
-      "banaRefs": [
-        "6.2"
+        "6.1.5",
+        "6.2.2"
       ],
       "errataRefs": [],
       "validContexts": [

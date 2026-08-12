@@ -114,13 +114,41 @@ test('BANA Rule 23 and compound-integral literals are source-linked', () => {
   }
 });
 
+test('official BANA and MathCAT cells guard corrected Greek, summation, and arrow literals', async () => {
+  const fixtures = [
+    ['greek.ϵ', '⠨⠑', 'ϵ'],
+    ['greek.ϕ', '⠨⠋', 'ϕ'],
+    ['greek.variant-ϐ', '⠨⠈⠃', 'ϐ'],
+    ['greek.variant-ϑ', '⠨⠈⠹', 'ϑ'],
+    ['greek.variant-ς', '⠨⠈⠎', 'ς'],
+    ['greek.variant-φ', '⠨⠈⠋', 'φ'],
+    ['operator.sum', '⠨⠠⠎', '∑'],
+    ['arrow.vertical-both', '⠫⠣⠪⠒⠒⠕', '↕'],
+    ['arrow.northwest', '⠫⠘⠪⠒⠒', '↖'],
+    ['arrow.northeast', '⠫⠘⠒⠒⠕', '↗'],
+    ['arrow.southeast', '⠫⠰⠒⠒⠕', '↘'],
+    ['arrow.southwest', '⠫⠰⠪⠒⠒', '↙'],
+    ['arrow.double-left', '⠫⠪⠶⠶', '⇐'],
+    ['arrow.double-right', '⠫⠶⠶⠕', '⇒'],
+    ['arrow.double-both', '⠫⠪⠶⠶⠕', '⇔'],
+    ['misc.crossed-d', '⠈⠫', 'đ'],
+    ['misc.crossed-lambda', '⠈⠨⠇', 'ƛ'],
+    ['misc.crossed-r', '⠈⠠⠗', '℞']
+  ];
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, expected] of fixtures) {
+    assert.equal(registry.get(id)?.cells.join(''), cells, `${id}: BANA/MathCAT sequence`);
+    const tree = applyFixture(id, cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
+  }
+});
+
 test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () => {
   for (const [cells, value] of [
-    ['⠨⠈⠑', 'ϵ'],
+    ['⠨⠈⠃', 'ϐ'],
     ['⠨⠈⠹', 'ϑ'],
-    ['⠨⠈⠋', 'ϕ'],
-    ['⠨⠈⠏', 'ϖ'],
-    ['⠨⠈⠅', 'ϰ']
+    ['⠨⠈⠎', 'ς'],
+    ['⠨⠈⠋', 'φ']
   ]) {
     const tree = applyFixture(`greek.variant-${value}`, cells);
     assert.equal(tree.children[0].children[0].text, value);

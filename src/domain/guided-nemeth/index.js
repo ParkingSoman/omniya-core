@@ -31,11 +31,11 @@ const DIGITS = new Map([
   ['⠛', '7'], ['⠓', '8'], ['⠊', '9'], ['⠚', '0']
 ]);
 const GREEK_SMALL = [
-  ['⠨⠁', 'α'], ['⠨⠃', 'β'], ['⠨⠛', 'γ'], ['⠨⠙', 'δ'], ['⠨⠑', 'ε'],
+  ['⠨⠁', 'α'], ['⠨⠃', 'β'], ['⠨⠛', 'γ'], ['⠨⠙', 'δ'], ['⠨⠑', 'ϵ'],
   ['⠨⠵', 'ζ'], ['⠨⠱', 'η'], ['⠨⠹', 'θ'], ['⠨⠊', 'ι'], ['⠨⠅', 'κ'],
   ['⠨⠇', 'λ'], ['⠨⠍', 'μ'], ['⠨⠝', 'ν'], ['⠨⠭', 'ξ'], ['⠨⠕', 'ο'],
   ['⠨⠏', 'π'], ['⠨⠗', 'ρ'], ['⠨⠎', 'σ'], ['⠨⠞', 'τ'], ['⠨⠥', 'υ'],
-  ['⠨⠋', 'φ'], ['⠨⠯', 'χ'], ['⠨⠽', 'ψ'], ['⠨⠺', 'ω']
+  ['⠨⠋', 'ϕ'], ['⠨⠯', 'χ'], ['⠨⠽', 'ψ'], ['⠨⠺', 'ω']
 ];
 const GREEK_CAPITAL = [
   ['⠨⠠⠁', 'Α'], ['⠨⠠⠃', 'Β'], ['⠨⠠⠛', 'Γ'], ['⠨⠠⠙', 'Δ'], ['⠨⠠⠑', 'Ε'],
@@ -48,11 +48,11 @@ const GREEK_CAPITAL = [
 // alternative-letter indicator. These entries are literal symbols, not a
 // Greek parser: each complete code inserts one MathML identifier.
 const GREEK_VARIANTS = [
-  ['⠨⠈⠑', 'ϵ'], // lunate/alternative epsilon
-  ['⠨⠈⠹', 'ϑ'], // theta symbol
-  ['⠨⠈⠋', 'ϕ'], // phi symbol
-  ['⠨⠈⠏', 'ϖ'], // pi symbol
-  ['⠨⠈⠅', 'ϰ']  // kappa symbol
+  // BANA 6.1.5 lists these as the alternative lowercase Greek forms.
+  ['⠨⠈⠃', 'ϐ'],
+  ['⠨⠈⠹', 'ϑ'], // alternative theta
+  ['⠨⠈⠎', 'ς'], // final/alternative sigma
+  ['⠨⠈⠋', 'φ']  // alternative phi; standard phi is ϕ
 ];
 
 function normalizeCell(cell) {
@@ -226,11 +226,17 @@ const MAPPINGS = [
   token('operator.plus-minus', ['⠬', '⠤'], ['20.6'], '±'),
   token('operator.minus-plus', ['⠤', '⠬'], ['20.6'], '∓'),
   token('operator.ring', ['⠨', '⠡'], ['20.3'], '∘'),
-  token('operator.integral', ['⠮'], ['23.11'], '∫', 'mo', { preferLonger: true }),
+  token('operator.integral', ['⠮'], ['23.12'], '∫', 'mo', { preferLonger: true }),
   token('operator.double-integral', ['⠮', '⠮'], ['23.12'], '∬', 'mo', { preferLonger: true }),
   token('operator.triple-integral', ['⠮', '⠮', '⠮'], ['23.12'], '∭'),
-  token('operator.sum', ['⠠', '⠎'], ['23.11'], '∑'),
-  token('operator.product', ['⠠', '⠏'], ['23.11'], '∏'),
+  token('integral.lower', ['⠩', '⠮'], ['23.12'], '⨜'),
+  token('integral.upper', ['⠣', '⠮'], ['23.12'], '⨛'),
+  token('integral.contour', ['⠮', '⠈', '⠫', '⠉', '⠻'], ['23.12'], '∮'),
+  token('integral.quaternion', ['⠮', '⠈', '⠫', '⠲', '⠻'], ['23.12'], '⨖'),
+  // The n-ary summation sign is a Greek capital sigma with the Greek
+  // alphabet indicator and capitalization indicator (BANA 6.1.4, 6.2,
+  // Appendix C). It is not the plain English-letter sequence ⠠⠎.
+  token('operator.sum', ['⠨', '⠠', '⠎'], ['6.1.4', '6.2', '18.1'], '∑'),
   open('fraction.start.simple', ['⠹'], ['13.1', '13.2'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'simple' }),
   move('fraction.next.denominator', ['⠌'], ['13.2'], 'mfrac', 'denominator'),
   close('fraction.end.simple', ['⠼'], ['13.2.1'], 'mfrac'),
@@ -305,11 +311,26 @@ const MAPPINGS = [
   token('operator.asterisk', ['⠈', '⠼'], ['20.3'], '∗'),
   token('misc.infinity', ['⠠', '⠿'], ['23.11'], '∞'),
   token('misc.angstrom', ['⠈', '⠠', '⠁'], ['23.1'], 'Å'),
+  token('misc.at', ['⠈', '⠁'], ['23.2'], '@'),
+  // Added by the October 2025 BANA errata, Rule 23 symbol list and §23.4.
+  // Errata 2025 restores crossed d as the ASCII sequence @$: at-sign
+  // (⠈, multipurpose indicator) followed by shape ($, ⠫), not the ordinary
+  // letter d cell.  The erratum's worked example uses the same sequence.
+  Object.assign(token('misc.crossed-d', ['⠈', '⠫'], ['23.4'], 'đ', 'mi'), {
+    errataRefs: ['Rule 23 symbol list', 'Rule 23.4']
+  }),
   token('misc.planck', ['⠈', '⠓'], ['23.4'], 'ℏ'),
+  // BANA prints crossed Lambda as `` `.l``: backtick, dot 4, l.
+  token('misc.crossed-lambda', ['⠈', '⠨', '⠇'], ['23.4'], 'ƛ'),
+  token('misc.crossed-r', ['⠈', '⠠', '⠗'], ['23.4'], '℞'),
   token('misc.caret', ['⠸', '⠣'], ['23.3'], '^', 'mo', { preferLonger: true }),
   token('misc.cent', ['⠈', '⠉'], ['23.13'], '¢'),
+  token('misc.dollar', ['⠈', '⠎'], ['23.13'], '$'),
+  token('misc.franc', ['⠈', '⠋'], ['23.13'], '₣'),
+  token('misc.naira', ['⠈', '⠝'], ['23.13'], '₦'),
   token('misc.pound', ['⠈', '⠇'], ['23.13'], '£'),
   token('misc.euro', ['⠈', '⠑'], ['23.13'], '€'),
+  token('misc.won', ['⠈', '⠺'], ['23.13'], '₩'),
   token('misc.yen', ['⠈', '⠽'], ['23.13'], '¥'),
   token('misc.per-mille', ['⠈', '⠴', '⠴'], ['23.15'], '‰'),
   token('misc.partial', ['⠈', '⠙'], ['23.14'], '∂'),
@@ -319,11 +340,13 @@ const MAPPINGS = [
   token('misc.factorial', ['⠯'], ['23.9'], '!'),
   token('misc.percent', ['⠈', '⠴'], ['23.15'], '%', 'mo', { preferLonger: true }),
   token('misc.empty-set', ['⠸', '⠴'], ['23.7'], '∅'),
-  token('misc.angle', ['⠫', '⠪'], ['23'], '∠'),
+  // The shape + left-head prefix is also the start of every left/vertical
+  // arrow. Keep the local meaning pending while a shaft or right head may
+  // follow; end-of-code commits the standalone angle.
+  token('misc.angle', ['⠫', '⠪'], ['17.1'], '∠', 'mo', { preferLonger: true }),
   token('misc.therefore', ['⠠', '⠡'], ['23.18'], '∴'),
   token('misc.since', ['⠈', '⠌'], ['23.18'], '∵'),
   token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″'),
-  token('misc.not', ['⠈', '⠹'], ['23.17'], '¬'),
   token('misc.divides', ['⠳'], ['23.11'], '∣'),
   token('misc.does-not-divide', ['⠌', '⠳'], ['23.11'], '∤'),
   token('misc.parallel', ['⠫', '⠇'], ['17.2', '21.2'], '∥'),
@@ -344,6 +367,16 @@ const MAPPINGS = [
   token('comparison.not-greater', ['⠌', '⠨', '⠂'], ['21.8'], '≯'),
   token('arrow.up', ['⠫', '⠣', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↑'),
   token('arrow.down', ['⠫', '⠩', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↓'),
+  token('arrow.vertical-both', ['⠫', '⠣', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↕'),
+  token('arrow.northwest', ['⠫', '⠘', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↖'),
+  token('arrow.northeast', ['⠫', '⠘', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↗'),
+  token('arrow.southeast', ['⠫', '⠰', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↘'),
+  token('arrow.southwest', ['⠫', '⠰', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↙'),
+  token('arrow.double-left', ['⠫', '⠪', '⠶', '⠶'], ['22.5.2'], '⇐', 'mo', { preferLonger: true }),
+  token('arrow.double-right', ['⠫', '⠶', '⠶', '⠕'], ['22.5.2'], '⇒'),
+  token('arrow.double-both', ['⠫', '⠪', '⠶', '⠶', '⠕'], ['22.5.2'], '⇔'),
+  token('arrow.double-up', ['⠫', '⠣', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇑'),
+  token('arrow.double-down', ['⠫', '⠩', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇓'),
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*'),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†'),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡'),
@@ -357,12 +390,15 @@ const MAPPINGS = [
   open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike' }),
   close('cancellation.end', ['⠻'], ['12.1.1'], 'menclose'),
   token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→'),
-  token('arrow.left', ['⠫', '⠪', '⠒', '⠒'], ['22.4'], '←'),
+  token('arrow.left', ['⠫', '⠪', '⠒', '⠒'], ['22.4'], '←', 'mo', { preferLonger: true }),
   token('arrow.both', ['⠫', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↔'),
-  token('arrow.implies', ['⠫', '⠶', '⠶', '⠕'], ['21.2'], '⇒'),
-  ...GREEK_SMALL.map(([cells, value]) => token(`greek.${value}`, [...cells], ['6.2'], value, 'mi')),
-  ...GREEK_CAPITAL.map(([cells, value]) => token(`greek.capital-${value}`, [...cells], ['6.2'], value, 'mi')),
-  ...GREEK_VARIANTS.map(([cells, value]) => token(`greek.variant-${value}`, [...cells], ['6.2'], value, 'mi')),
+  token('arrow.right.short', ['⠫', '⠒', '⠕'], ['22.5.3'], '⇢'),
+  token('arrow.left.short', ['⠫', '⠪', '⠒'], ['22.5.3'], '⇠'),
+  token('arrow.right.long', ['⠫', '⠒', '⠒', '⠒', '⠕'], ['22.5.3'], '⟶'),
+  token('arrow.left.long', ['⠫', '⠪', '⠒', '⠒', '⠒'], ['22.5.3'], '⟵'),
+  ...GREEK_SMALL.map(([cells, value]) => token(`greek.${value}`, [...cells], ['6.1.4', '6.2.1'], value, 'mi')),
+  ...GREEK_CAPITAL.map(([cells, value]) => token(`greek.capital-${value}`, [...cells], ['5.1.1', '6.1.4', '6.2.1'], value, 'mi')),
+  ...GREEK_VARIANTS.map(([cells, value]) => token(`greek.variant-${value}`, [...cells], ['6.1.5', '6.2.2'], value, 'mi')),
   mode('indicator.number', ['⠼'], ['3.1', '3.3'], 'numeric'),
   mode('indicator.capital', ['⠠'], ['5.1', '6.1'], 'capital', true)
 ];

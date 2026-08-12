@@ -56,6 +56,18 @@ export const WHOLE_EXPRESSION_FIXTURES = [
     latex: 'x\\in\\mathbb{R}\\land x\\ge 0',
     banaRef: 'Rules 20, 21, and 23; set/logic/comparison symbols',
     expected: '⠭⠀⠈⠑⠀⠈⠰⠠⠗⠈⠩⠭⠀⠨⠂⠱⠀⠼⠴'
+  },
+  {
+    id: 'directional-arrow-family',
+    latex: 'a\\leftrightarrow b + c\\nwarrow d + e\\Rightarrow f',
+    banaRef: 'Rules 20.1, 21.2, 22.3–22.5; arrow directions and double shaft',
+    expected: '⠁⠀⠫⠪⠒⠒⠕⠀⠃⠬⠉⠀⠫⠘⠪⠒⠒⠀⠙⠬⠑⠀⠫⠶⠶⠕⠀⠋'
+  },
+  {
+    id: 'greek-variants-and-summation',
+    latex: '\\epsilon+\\varphi+\\sum_{i=1}^n i',
+    banaRef: 'Rules 6.1.4–6.1.5, 6.2, 14.3, and 18.1',
+    expected: '⠨⠑⠬⠨⠈⠋⠬⠐⠨⠠⠎⠩⠊⠀⠨⠅⠀⠼⠂⠣⠝⠻⠊'
   }
 ];
 
@@ -64,7 +76,9 @@ export const SUBEXPRESSION_FIXTURES = [
   { id: 'fraction-denominator', whole: 'simple-fraction-with-compound-terms', part: 'denominator', expected: '⠉⠤⠙', banaRef: 'Rule 13.2, Example 13-3' },
   { id: 'radical-whole', whole: 'square-root-with-script', part: 'radical', expected: '⠜⠭⠘⠆⠐⠬⠂⠻', banaRef: 'Rule 16.1, Example 16-3' },
   { id: 'radical-script', whole: 'square-root-with-script', part: 'exponent', expected: '⠼⠆', banaRef: 'Rule 14.4, Example 14-3; isolated numeric subexpression includes its number sign' },
-  { id: 'scripted-symbol', whole: 'subscript-superscript', part: 'whole', expected: '⠠⠋⠰⠊⠘⠆', banaRef: 'Rule 14.4' }
+  { id: 'scripted-symbol', whole: 'subscript-superscript', part: 'whole', expected: '⠠⠋⠰⠊⠘⠆', banaRef: 'Rule 14.4' },
+  { id: 'directional-arrow-focused', whole: 'directional-arrow-family', part: 'arrow', expected: '⠫⠘⠪⠒⠒', banaRef: 'Rule 22.4.3, Example 22-12' },
+  { id: 'summation-focused', whole: 'greek-variants-and-summation', part: 'sum', expected: '⠐⠨⠠⠎⠩⠊⠀⠨⠅⠀⠼⠂⠣⠝⠻', banaRef: 'Rules 14.3 and 18.1' }
 ];
 
 export function fixtureById(id) {
