@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 240,
-    "atomicSequence": 310,
+    "atomicSequence": 357,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 276,
+    "shadowedAtomicCount": 369,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -822,11 +822,99 @@
         "immediateId": "indicator.multipurpose"
       },
       {
+        "atomicId": "comparison.equals.caret-under",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.caret-under",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
         "atomicId": "comparison.equals.dot-over",
         "immediateId": "script.baseline"
       },
       {
         "atomicId": "comparison.equals.dot-over",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.degree-over",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.degree-over",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.dot-both",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.dot-both",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.triangle-over",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.triangle-over",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.inverted-caret-over",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.inverted-caret-over",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.question-over",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.question-over",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.left-caret-over",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.left-caret-over",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.right-caret-over",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.right-caret-over",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.two-dots-both",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.two-dots-both",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.equals.vertical-bar-over",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.equals.vertical-bar-over",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.horizontal-bar.caret-over",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.horizontal-bar.caret-over",
         "immediateId": "indicator.multipurpose"
       },
       {
@@ -836,6 +924,94 @@
       {
         "atomicId": "comparison.horizontal-bar.dot-under",
         "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.horizontal-bar.caret-under",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.horizontal-bar.caret-under",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.horizontal-bar.tilde-dot-under",
+        "immediateId": "comparison.similar"
+      },
+      {
+        "atomicId": "comparison.horizontal-bar.tilde-dot-under",
+        "immediateId": "comparison.simple-tilde"
+      },
+      {
+        "atomicId": "comparison.greater.equals-over",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.greater.equals-over",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.greater.equals-over",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.greater.equals-under",
+        "immediateId": "comparison.greater"
+      },
+      {
+        "atomicId": "comparison.greater.equals-under",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.inclusion.bar-under",
+        "immediateId": "comparison.subset"
+      },
+      {
+        "atomicId": "comparison.inclusion.bar-under",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "comparison.inclusion.equals-over",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.inclusion.equals-over",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.inclusion.equals-over",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.inclusion.equals-under",
+        "immediateId": "comparison.subset"
+      },
+      {
+        "atomicId": "comparison.inclusion.equals-under",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "comparison.less.bar-under",
+        "immediateId": "comparison.less"
+      },
+      {
+        "atomicId": "comparison.less.bar-under",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.less.bar-under",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.less.equals-over",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.less.equals-over",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.less.equals-over",
+        "immediateId": "greek.κ"
       },
       {
         "atomicId": "comparison.less.equals-under",
@@ -850,8 +1026,108 @@
         "immediateId": "indicator.multipurpose"
       },
       {
+        "atomicId": "comparison.intersection.bar-under",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.intersection.bar-under",
+        "immediateId": "operator.intersection"
+      },
+      {
+        "atomicId": "comparison.intersection.equals-under",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.intersection.equals-under",
+        "immediateId": "operator.intersection"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-under",
+        "immediateId": "operator.logical-and"
+      },
+      {
+        "atomicId": "comparison.logical-product.bar-under",
+        "immediateId": "operator.logical-and"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-over",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-over",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-over",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-over-under",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-over-under",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-over-under",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-both",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-both",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.logical-product.equals-both",
+        "immediateId": "greek.κ"
+      },
+      {
         "atomicId": "comparison.logical-sum.equals-under",
         "immediateId": "operator.logical-or"
+      },
+      {
+        "atomicId": "comparison.logical-sum.bar-under",
+        "immediateId": "operator.logical-or"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-over",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-over",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-over",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-over-under",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-over-under",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-over-under",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-both",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-both",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.logical-sum.equals-both",
+        "immediateId": "greek.κ"
       },
       {
         "atomicId": "comparison.reverse-inclusion.equals-over",
@@ -866,11 +1142,107 @@
         "immediateId": "greek.κ"
       },
       {
+        "atomicId": "comparison.reverse-inclusion.bar-under",
+        "immediateId": "comparison.reverse-subset"
+      },
+      {
+        "atomicId": "comparison.reverse-inclusion.bar-under",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "comparison.reverse-inclusion.equals-under",
+        "immediateId": "comparison.reverse-subset"
+      },
+      {
+        "atomicId": "comparison.reverse-inclusion.equals-under",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "comparison.tilde.bar-under-double",
+        "immediateId": "comparison.approximately"
+      },
+      {
+        "atomicId": "comparison.tilde.bar-under-double",
+        "immediateId": "comparison.similar"
+      },
+      {
+        "atomicId": "comparison.tilde.bar-under-double",
+        "immediateId": "comparison.simple-tilde"
+      },
+      {
+        "atomicId": "comparison.tilde.bar-under-single",
+        "immediateId": "comparison.similar"
+      },
+      {
+        "atomicId": "comparison.tilde.bar-under-single",
+        "immediateId": "comparison.simple-tilde"
+      },
+      {
+        "atomicId": "comparison.tilde.double",
+        "immediateId": "comparison.similar"
+      },
+      {
+        "atomicId": "comparison.tilde.double",
+        "immediateId": "comparison.simple-tilde"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-over-double",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-over-double",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-over-double",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-over-single",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-over-single",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-over-single",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-under-double",
+        "immediateId": "comparison.approximately"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-under-double",
+        "immediateId": "comparison.similar"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-under-double",
+        "immediateId": "comparison.simple-tilde"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-under-single",
+        "immediateId": "comparison.similar"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-under-single",
+        "immediateId": "comparison.simple-tilde"
+      },
+      {
         "atomicId": "comparison.union.equals-under",
         "immediateId": "radical.order.one"
       },
       {
         "atomicId": "comparison.union.equals-under",
+        "immediateId": "operator.union"
+      },
+      {
+        "atomicId": "comparison.union.bar-under",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.union.bar-under",
         "immediateId": "operator.union"
       },
       {
@@ -1122,7 +1494,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 611,
+    "notation": 658,
     "contextual": 2
   },
   "operations": [
@@ -10749,7 +11121,8 @@
       "args": {
         "name": "mo",
         "value": "≈",
-        "sourceNotation": "@:@:"
+        "sourceNotation": "@:@:",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.6"
@@ -11017,7 +11390,8 @@
       "args": {
         "name": "mo",
         "value": "⊃",
-        "sourceNotation": "_.1"
+        "sourceNotation": "_.1",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.5"
@@ -11303,6 +11677,40 @@
       ]
     },
     {
+      "id": "comparison.equals.caret-under",
+      "commandLabel": "comparison.equals.caret-under",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠩",
+        "⠸",
+        "⠣",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k%_<]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "=",
+        "dataAttributes": {
+          "data-omniya-comparison-form": "caret-under"
+        },
+        "sourceNotation": "\".k%_<]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "comparison.equals.dot-over",
       "commandLabel": "comparison.equals.dot-over",
       "cells": [
@@ -11321,6 +11729,348 @@
         "name": "mo",
         "value": "≐",
         "sourceNotation": "\".k<*]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.degree-over",
+      "commandLabel": "comparison.equals.degree-over",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠣",
+        "⠨",
+        "⠡",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k<.*]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≗",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.degree-over"
+        },
+        "sourceNotation": "\".k<.*]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.dot-both",
+      "commandLabel": "comparison.equals.dot-both",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠩",
+        "⠡",
+        "⠣",
+        "⠡",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k%*<*]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≑",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.dot-both"
+        },
+        "sourceNotation": "\".k%*<*]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.triangle-over",
+      "commandLabel": "comparison.equals.triangle-over",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠣",
+        "⠫",
+        "⠞",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k<$t]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≜",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.triangle-over"
+        },
+        "sourceNotation": "\".k<$t]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.inverted-caret-over",
+      "commandLabel": "comparison.equals.inverted-caret-over",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠣",
+        "⠸",
+        "⠩",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k<_%]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≚",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.inverted-caret-over"
+        },
+        "sourceNotation": "\".k<_%]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.question-over",
+      "commandLabel": "comparison.equals.question-over",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠣",
+        "⠸",
+        "⠦",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k<_8]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≟",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.question-over"
+        },
+        "sourceNotation": "\".k<_8]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.left-caret-over",
+      "commandLabel": "comparison.equals.left-caret-over",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠣",
+        "⠰",
+        "⠣",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k<;<]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "=",
+        "dataAttributes": {
+          "data-omniya-comparison-form": "left-caret-over"
+        },
+        "sourceNotation": "\".k<;<]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.right-caret-over",
+      "commandLabel": "comparison.equals.right-caret-over",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠣",
+        "⠰",
+        "⠩",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k<;%]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "=",
+        "dataAttributes": {
+          "data-omniya-comparison-form": "right-caret-over"
+        },
+        "sourceNotation": "\".k<;%]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.two-dots-both",
+      "commandLabel": "comparison.equals.two-dots-both",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠩",
+        "⠡",
+        "⠡",
+        "⠣",
+        "⠡",
+        "⠡",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k%**<**]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⩷",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.two-dots-both"
+        },
+        "sourceNotation": "\".k%**<**]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equals.vertical-bar-over",
+      "commandLabel": "comparison.equals.vertical-bar-over",
+      "cells": [
+        "⠐",
+        "⠨",
+        "⠅",
+        "⠣",
+        "⠳",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\".k<|]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "=",
+        "dataAttributes": {
+          "data-omniya-comparison-form": "vertical-bar-over"
+        },
+        "sourceNotation": "\".k<|]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.horizontal-bar.caret-over",
+      "commandLabel": "comparison.horizontal-bar.caret-over",
+      "cells": [
+        "⠐",
+        "⠱",
+        "⠣",
+        "⠸",
+        "⠣",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\":<_<]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "^",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.horizontal-bar.caret-over"
+        },
+        "sourceNotation": "\":<_<]"
       },
       "banaRefs": [
         "21.9"
@@ -11362,6 +12112,71 @@
       ]
     },
     {
+      "id": "comparison.horizontal-bar.caret-under",
+      "commandLabel": "comparison.horizontal-bar.caret-under",
+      "cells": [
+        "⠐",
+        "⠱",
+        "⠩",
+        "⠸",
+        "⠣",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\":%_<]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "^",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.horizontal-bar.caret-under"
+        },
+        "sourceNotation": "\":%_<]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.horizontal-bar.tilde-dot-under",
+      "commandLabel": "comparison.horizontal-bar.tilde-dot-under",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠩",
+        "⠡",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`:%*]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⨪",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.horizontal-bar.tilde-dot-under"
+        },
+        "sourceNotation": "`:%*]"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "comparison.greater.bar-over",
       "commandLabel": "comparison.greater.bar-over",
       "cells": [
@@ -11377,6 +12192,285 @@
         "name": "mo",
         "value": "⋝",
         "sourceNotation": ":.1"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.greater.equals-over",
+      "commandLabel": "comparison.greater.equals-over",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠨",
+        "⠂"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k.1",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⪚",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.greater.equals-over"
+        },
+        "sourceNotation": ".k.1"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.greater.equals-under",
+      "commandLabel": "comparison.greater.equals-under",
+      "cells": [
+        "⠨",
+        "⠂",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".1.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≧",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.greater.equals-under"
+        },
+        "sourceNotation": ".1.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.inclusion.bar-over",
+      "commandLabel": "comparison.inclusion.bar-over",
+      "cells": [
+        "⠱",
+        "⠸",
+        "⠐",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":_\"k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊂",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.inclusion.bar-over"
+        },
+        "sourceNotation": ":_\"k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.inclusion.bar-under",
+      "commandLabel": "comparison.inclusion.bar-under",
+      "cells": [
+        "⠸",
+        "⠐",
+        "⠅",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "_\"k:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊆",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.inclusion.bar-under"
+        },
+        "sourceNotation": "_\"k:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.inclusion.equals-over",
+      "commandLabel": "comparison.inclusion.equals-over",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠸",
+        "⠐",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k_\"k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊂",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.inclusion.equals-over"
+        },
+        "sourceNotation": ".k_\"k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.inclusion.equals-under",
+      "commandLabel": "comparison.inclusion.equals-under",
+      "cells": [
+        "⠸",
+        "⠐",
+        "⠅",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "_\"k.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊆",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.inclusion.equals-under"
+        },
+        "sourceNotation": "_\"k.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.less.bar-over",
+      "commandLabel": "comparison.less.bar-over",
+      "cells": [
+        "⠱",
+        "⠐",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":\"k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⋜",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.less.bar-over"
+        },
+        "sourceNotation": ":\"k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.less.bar-under",
+      "commandLabel": "comparison.less.bar-under",
+      "cells": [
+        "⠐",
+        "⠅",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\"k:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≤",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.less.bar-under"
+        },
+        "sourceNotation": "\"k:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.less.equals-over",
+      "commandLabel": "comparison.less.equals-over",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠐",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k\"k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⪙",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.less.equals-over"
+        },
+        "sourceNotation": ".k\"k"
       },
       "banaRefs": [
         "21.9"
@@ -11417,6 +12511,67 @@
       ]
     },
     {
+      "id": "comparison.intersection.bar-under",
+      "commandLabel": "comparison.intersection.bar-under",
+      "cells": [
+        "⠨",
+        "⠩",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".%:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∩",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.intersection.bar-under"
+        },
+        "sourceNotation": ".%:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.intersection.equals-under",
+      "commandLabel": "comparison.intersection.equals-under",
+      "cells": [
+        "⠨",
+        "⠩",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".%.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∩",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.intersection.equals-under"
+        },
+        "sourceNotation": ".%.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "comparison.logical-product.bar-over",
       "commandLabel": "comparison.logical-product.bar-over",
       "cells": [
@@ -11432,6 +12587,194 @@
         "name": "mo",
         "value": "∧",
         "sourceNotation": ":`%"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-product.bar-over-under",
+      "commandLabel": "comparison.logical-product.bar-over-under",
+      "cells": [
+        "⠱",
+        "⠈",
+        "⠩",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":`%:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∧",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-product.bar-over-under"
+        },
+        "sourceNotation": ":`%:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-product.equals-under",
+      "commandLabel": "comparison.logical-product.equals-under",
+      "cells": [
+        "⠈",
+        "⠩",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`%.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∧",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-product.equals-under"
+        },
+        "sourceNotation": "`%.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-product.bar-under",
+      "commandLabel": "comparison.logical-product.bar-under",
+      "cells": [
+        "⠈",
+        "⠩",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`%:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∧",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-product.bar-under"
+        },
+        "sourceNotation": "`%:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-product.equals-over",
+      "commandLabel": "comparison.logical-product.equals-over",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠩"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`%",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∧",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-product.equals-over"
+        },
+        "sourceNotation": ".k`%"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-product.equals-over-under",
+      "commandLabel": "comparison.logical-product.equals-over-under",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠩",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`%:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∧",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-product.equals-over-under"
+        },
+        "sourceNotation": ".k`%:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-product.equals-both",
+      "commandLabel": "comparison.logical-product.equals-both",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠩",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`%.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∧",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-product.equals-both"
+        },
+        "sourceNotation": ".k`%.k"
       },
       "banaRefs": [
         "21.9"
@@ -11460,6 +12803,162 @@
         "name": "mo",
         "value": "∨",
         "sourceNotation": "`+.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-sum.bar-over",
+      "commandLabel": "comparison.logical-sum.bar-over",
+      "cells": [
+        "⠱",
+        "⠈",
+        "⠬"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":`+",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∨",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-sum.bar-over"
+        },
+        "sourceNotation": ":`+"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-sum.bar-under",
+      "commandLabel": "comparison.logical-sum.bar-under",
+      "cells": [
+        "⠈",
+        "⠬",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`+:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∨",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-sum.bar-under"
+        },
+        "sourceNotation": "`+:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-sum.equals-over",
+      "commandLabel": "comparison.logical-sum.equals-over",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠬"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`+",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∨",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-sum.equals-over"
+        },
+        "sourceNotation": ".k`+"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-sum.equals-over-under",
+      "commandLabel": "comparison.logical-sum.equals-over-under",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠬",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`+:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∨",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-sum.equals-over-under"
+        },
+        "sourceNotation": ".k`+:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.logical-sum.equals-both",
+      "commandLabel": "comparison.logical-sum.equals-both",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠬",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`+.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∨",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.logical-sum.equals-both"
+        },
+        "sourceNotation": ".k`+.k"
       },
       "banaRefs": [
         "21.9"
@@ -11501,6 +13000,100 @@
       ]
     },
     {
+      "id": "comparison.reverse-inclusion.bar-over",
+      "commandLabel": "comparison.reverse-inclusion.bar-over",
+      "cells": [
+        "⠱",
+        "⠸",
+        "⠨",
+        "⠂"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":_.1",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊃",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.reverse-inclusion.bar-over"
+        },
+        "sourceNotation": ":_.1"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.reverse-inclusion.bar-under",
+      "commandLabel": "comparison.reverse-inclusion.bar-under",
+      "cells": [
+        "⠸",
+        "⠨",
+        "⠂",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "_.1:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊃",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.reverse-inclusion.bar-under"
+        },
+        "sourceNotation": "_.1:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.reverse-inclusion.equals-under",
+      "commandLabel": "comparison.reverse-inclusion.equals-under",
+      "cells": [
+        "⠸",
+        "⠨",
+        "⠂",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "_.1.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊃",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.reverse-inclusion.equals-under"
+        },
+        "sourceNotation": "_.1.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "comparison.tilde.bar-over-double",
       "commandLabel": "comparison.tilde.bar-over-double",
       "cells": [
@@ -11530,6 +13123,257 @@
       ]
     },
     {
+      "id": "comparison.tilde.bar-over-single",
+      "commandLabel": "comparison.tilde.bar-over-single",
+      "cells": [
+        "⠱",
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":`:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≂",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.tilde.bar-over-single"
+        },
+        "sourceNotation": ":`:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.tilde.bar-under-double",
+      "commandLabel": "comparison.tilde.bar-under-double",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠈",
+        "⠱",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`:`::",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≊",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.tilde.bar-under-double"
+        },
+        "sourceNotation": "`:`::"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.tilde.bar-under-single",
+      "commandLabel": "comparison.tilde.bar-under-single",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`::",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≃",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.tilde.bar-under-single"
+        },
+        "sourceNotation": "`::"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.tilde.double",
+      "commandLabel": "comparison.tilde.double",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`:`:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≈",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.tilde.double"
+        },
+        "sourceNotation": "`:`:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.tilde.equals-over-double",
+      "commandLabel": "comparison.tilde.equals-over-double",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠱",
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`:`:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≈",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.tilde.equals-over-double"
+        },
+        "sourceNotation": ".k`:`:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.tilde.equals-over-single",
+      "commandLabel": "comparison.tilde.equals-over-single",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⩳",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.tilde.equals-over-single"
+        },
+        "sourceNotation": ".k`:"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.tilde.equals-under-double",
+      "commandLabel": "comparison.tilde.equals-under-double",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠈",
+        "⠱",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`:`:.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⩰",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.tilde.equals-under-double"
+        },
+        "sourceNotation": "`:`:.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.tilde.equals-under-single",
+      "commandLabel": "comparison.tilde.equals-under-single",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "`:.k",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∼",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.tilde.equals-under-single"
+        },
+        "sourceNotation": "`:.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "comparison.union.equals-under",
       "commandLabel": "comparison.union.equals-under",
       "cells": [
@@ -11546,6 +13390,36 @@
         "name": "mo",
         "value": "∪",
         "sourceNotation": ".+.k"
+      },
+      "banaRefs": [
+        "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.union.bar-under",
+      "commandLabel": "comparison.union.bar-under",
+      "cells": [
+        "⠨",
+        "⠬",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".+:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∪",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.union.bar-under"
+        },
+        "sourceNotation": ".+:"
       },
       "banaRefs": [
         "21.9"
@@ -11752,7 +13626,8 @@
       "args": {
         "name": "mo",
         "value": "∩",
-        "sourceNotation": ".%"
+        "sourceNotation": ".%",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.4"
@@ -11778,7 +13653,8 @@
       "args": {
         "name": "mo",
         "value": "∧",
-        "sourceNotation": "`%"
+        "sourceNotation": "`%",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.5"

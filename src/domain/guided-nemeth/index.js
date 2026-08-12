@@ -821,6 +821,23 @@ const token = (id, cells, banaRefs, value, name = 'mo', options = {}) => {
 const sourceToken = (id, sourceNotation, banaRefs, value, name = 'mo', options = {}) => token(
   id, sourceCells(sourceNotation), banaRefs, value, name, { ...options, sourceNotation }
 );
+// Rule 21's modified-comparison table is a finite catalogue, not a grammar.
+// Each row below is one published BANA construction.  The intent attribute
+// preserves the particular vertical/superposed form when several forms share
+// the same Unicode presentation glyph; no inference is performed from the
+// surrounding expression.
+const comparisonCompound = (id, sourceNotation, value, options = {}) => sourceToken(
+  id,
+  sourceNotation,
+  ['21.9'],
+  value,
+  'mo',
+  {
+    ...options,
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    dataAttributes: { 'data-omniya-nemeth-intent': id, ...(options.dataAttributes ?? {}) },
+  }
+);
 // A shape may be represented by a Unicode glyph, a MathML grouping, or a
 // transcriber-defined local construction.  Keep the BANA meaning on the
 // source node instead of inventing a notation grammar.  The attributes are
@@ -1317,15 +1334,64 @@ const MAPPINGS = [
   token('comparison.extended-tilde', ['⠈', '⠠', '⠱'], ['21.6'], '〰', 'mo', { sourceNotation: '`,:' }),
   // Rule 21.9 modified comparisons are each one bounded local construction.
   sourceToken('comparison.equals.caret-over', '".k<_<]', ['21.9'], '≙', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.equals.caret-under', '".k%_<]', '=', { dataAttributes: { 'data-omniya-comparison-form': 'caret-under' } }),
   sourceToken('comparison.equals.dot-over', '".k<*]', ['21.9'], '≐', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.equals.degree-over', '".k<.*]', '≗'),
+  comparisonCompound('comparison.equals.dot-both', '".k%*<*]', '≑'),
+  comparisonCompound('comparison.equals.triangle-over', '".k<$t]', '≜'),
+  comparisonCompound('comparison.equals.inverted-caret-over', '".k<_%]', '≚'),
+  comparisonCompound('comparison.equals.question-over', '".k<_8]', '≟'),
+  comparisonCompound('comparison.equals.left-caret-over', '".k<;<]', '=', { dataAttributes: { 'data-omniya-comparison-form': 'left-caret-over' } }),
+  comparisonCompound('comparison.equals.right-caret-over', '".k<;%]', '=', { dataAttributes: { 'data-omniya-comparison-form': 'right-caret-over' } }),
+  comparisonCompound('comparison.equals.two-dots-both', '".k%**<**]', '⩷'),
+  comparisonCompound('comparison.equals.vertical-bar-over', '".k<|]', '=', {
+    dataAttributes: { 'data-omniya-comparison-form': 'vertical-bar-over' }
+  }),
+  comparisonCompound('comparison.horizontal-bar.caret-over', '":<_<]', '^'),
   sourceToken('comparison.horizontal-bar.dot-under', '":%*]', ['21.9'], '⨪', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.horizontal-bar.caret-under', '":%_<]', '^'),
+  comparisonCompound('comparison.horizontal-bar.tilde-dot-under', '`:%*]', '⨪'),
   sourceToken('comparison.greater.bar-over', ':.1', ['21.9'], '⋝', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.greater.equals-over', '.k.1', '⪚'),
+  comparisonCompound('comparison.greater.equals-under', '.1.k', '≧'),
+  comparisonCompound('comparison.inclusion.bar-over', ':_"k', '⊂'),
+  comparisonCompound('comparison.inclusion.bar-under', '_"k:', '⊆'),
+  comparisonCompound('comparison.inclusion.equals-over', '.k_"k', '⊂'),
+  comparisonCompound('comparison.inclusion.equals-under', '_"k.k', '⊆'),
+  comparisonCompound('comparison.less.bar-over', ':"k', '⋜'),
+  comparisonCompound('comparison.less.bar-under', '"k:', '≤'),
+  comparisonCompound('comparison.less.equals-over', '.k"k', '⪙'),
   sourceToken('comparison.less.equals-under', '"k.k', ['21.9'], '≤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.intersection.bar-under', '.%:', '∩'),
+  comparisonCompound('comparison.intersection.equals-under', '.%.k', '∩'),
   sourceToken('comparison.logical-product.bar-over', ':`%', ['21.9'], '∧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.logical-product.bar-over-under', ':`%:', '∧'),
+  comparisonCompound('comparison.logical-product.equals-under', '`%.k', '∧'),
+  comparisonCompound('comparison.logical-product.bar-under', '`%:', '∧'),
+  comparisonCompound('comparison.logical-product.equals-over', '.k`%', '∧'),
+  comparisonCompound('comparison.logical-product.equals-over-under', '.k`%:', '∧'),
+  comparisonCompound('comparison.logical-product.equals-both', '.k`%.k', '∧'),
   sourceToken('comparison.logical-sum.equals-under', '`+.k', ['21.9'], '∨', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.logical-sum.bar-over', ':`+', '∨'),
+  comparisonCompound('comparison.logical-sum.bar-under', '`+:', '∨'),
+  comparisonCompound('comparison.logical-sum.equals-over', '.k`+', '∨'),
+  comparisonCompound('comparison.logical-sum.equals-over-under', '.k`+:', '∨'),
+  comparisonCompound('comparison.logical-sum.equals-both', '.k`+.k', '∨'),
   sourceToken('comparison.reverse-inclusion.equals-over', '.k_.1', ['21.9'], '⊃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.reverse-inclusion.bar-over', ':_.1', '⊃'),
+  comparisonCompound('comparison.reverse-inclusion.bar-under', '_.1:', '⊃'),
+  comparisonCompound('comparison.reverse-inclusion.equals-under', '_.1.k', '⊃'),
   sourceToken('comparison.tilde.bar-over-double', ':`:`:', ['21.9'], '≈', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.tilde.bar-over-single', ':`:', '≂'),
+  comparisonCompound('comparison.tilde.bar-under-double', '`:`::', '≊'),
+  comparisonCompound('comparison.tilde.bar-under-single', '`::', '≃'),
+  comparisonCompound('comparison.tilde.double', '`:`:', '≈'),
+  comparisonCompound('comparison.tilde.equals-over-double', '.k`:`:', '≈'),
+  comparisonCompound('comparison.tilde.equals-over-single', '.k`:', '⩳'),
+  comparisonCompound('comparison.tilde.equals-under-double', '`:`:.k', '⩰'),
+  comparisonCompound('comparison.tilde.equals-under-single', '`:.k', '∼'),
   sourceToken('comparison.union.equals-under', '.+.k', ['21.9'], '∪', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  comparisonCompound('comparison.union.bar-under', '.+:', '∪'),
   // Rule 21.9/21.11 examples: the complete local construction is held until
   // the compounded comparison is submitted. The multipurpose cells are part
   // of the BANA code, not an inferred precedence rule.
@@ -2089,7 +2155,18 @@ export function applyNemethChoice({ document, focus, inputState = { prefix: '', 
     };
   }
   const applied = applyMapping(document, focus, { ...inputState, prefix: '' }, mapping);
-  if (applied.status === 'rejected' || prefix === mappingPrefix) return applied;
+  if (applied.status === 'rejected') return applied;
+  // Rules 24.1.i and 24.1.k keep a one-symbol follow-up active after the
+  // author explicitly chooses the first meaning of a shared cell. Preserve
+  // that local mode so the next cell completes the adjacent-bar or horizontal
+  // tilde construction instead of starting an unrelated expression.
+  if (prefix === mappingPrefix && mapping.id === 'misc.vertical-bar' && prefix === '⠳') {
+    return { ...applied, inputState: { ...applied.inputState, mode: 'vertical-bar-horizontal' } };
+  }
+  if (prefix === mappingPrefix && mapping.id === 'comparison.similar' && prefix === '⠈⠱') {
+    return { ...applied, inputState: { ...applied.inputState, mode: 'tilde-horizontal' } };
+  }
+  if (prefix === mappingPrefix) return applied;
   // Reprocess only the unmatched suffix of this one local code. This is the
   // same bounded transition loop used after a short code is selected from a
   // shared prefix, never an arbitrary-expression parser.
@@ -2304,14 +2381,29 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // BANA 24.1.i: dot 5 between adjacent vertical grouping bars is a
   // one-symbol structural follow-up.  The current bar remains untouched
   // until the next bar code is complete.
-  if (state.mode === 'vertical-bar-horizontal' && !state.prefix && normalized === '⠳') {
+  if (state.mode === 'vertical-bar-horizontal' && !state.prefix && normalized === '⠐') {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠐' },
+      announcement: 'Adjacent-bar code pending.' };
+  }
+  if (state.mode === 'vertical-bar-horizontal' && state.prefix === '⠐' && normalized === '⠳') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'misc.vertical-bar');
     return applyMapping(document, focus, { ...state, mode: null }, mapping);
   }
   // BANA 24.1.k: dot 5 between two tildes marks horizontal succession.  The
   // second tilde is another local token, not a newly inferred compound
   // operator.
-  if (state.mode === 'tilde-horizontal' && state.prefix === '⠈' && normalized === '⠱') {
+  if (state.mode === 'tilde-horizontal' && !state.prefix && normalized === '⠐') {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠐' },
+      announcement: 'Horizontal tilde code pending.' };
+  }
+  if (state.mode === 'tilde-horizontal' && state.prefix === '⠐' && normalized === '⠈') {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠐⠈' },
+      announcement: 'Horizontal tilde code pending.' };
+  }
+  if (state.mode === 'tilde-horizontal' && state.prefix === '⠐⠈' && normalized === '⠱') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'comparison.similar');
     return applyMapping(document, focus, { ...state, prefix: '', mode: null }, mapping);
   }

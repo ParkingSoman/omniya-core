@@ -375,6 +375,35 @@ test('BANA Rules 17.6.2 and 17.6.3 keep complete multi-interior constructions at
   }
 });
 
+test('BANA Rule 21.9 modified-comparison rows preserve local input boundaries and independent Braille', async () => {
+  const cases = [
+    ['comparison.equals.caret-over', '⠐⠨⠅⠣⠸⠣⠻'],
+    ['comparison.equals.dot-over', '⠐⠨⠅⠣⠡⠻'],
+    ['comparison.equals.degree-over', '⠐⠨⠅⠣⠨⠡⠻'],
+    ['comparison.greater.bar-over', '⠱⠨⠂'],
+    // The distinct Rule 21.9 source form projects to the ordinary BANA
+    // less-than-or-equal cells when represented as canonical MathML.
+    ['comparison.less.equals-under', '⠐⠅⠱'],
+    ['comparison.tilde.bar-under-single', '⠈⠱⠱']
+  ];
+  for (const [id, expected] of cases) {
+    const entry = operationRegistry().find((candidate) => candidate.id === id);
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    const unchanged = document.mathml;
+    for (const cell of entry.cells) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    assert.equal(document.mathml, unchanged, `${id} changed before Enter`);
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', `${id}: ${committed.announcement}`);
+    assert.equal(await nemeth(committed.document.mathml), expected, id);
+  }
+});
+
 test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

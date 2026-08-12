@@ -99,6 +99,18 @@ Rule 13.8.2 likewise permits higher-order hypercomplex fractions by repeating
 the dot-6 prefix. The implementation registers the published order-three
 local family and preserves its order in `data-omniya-fraction-order`; the
 ordinary fraction slots and line/terminator follow-ups remain unchanged.
+
+## Rule 21.9 modified-comparison catalogue
+
+The published Rule 21.9 table is represented as finite source-linked atomic
+rows. Each row contains one exact BANA construction, such as `".k<.*]` for
+the degree-over equality or `:%*` for the bar-under intersection form. The
+editor buffers only that registered local sequence and creates one `mo` token
+on Enter; it does not infer a comparison from arbitrary operators. Where a
+Unicode glyph is shared by several constructions, the canonical node retains
+`data-omniya-nemeth-intent` so the authored BANA form remains inspectable.
+Independent SRE Braille fixtures cover representative equality, bar, logical,
+and tilde forms; BANA remains normative for the source cells and meaning.
 ## Rule 17.6.2 and 17.6.3 multiple-interior constructions
 
 The BANA 2022 examples for Rule 17.6.2 and Rule 17.6.3 are represented as

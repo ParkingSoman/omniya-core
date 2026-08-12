@@ -123,6 +123,66 @@ const RULE_20_21_23_LITERALS = [
   ['operator.star', '⠫⠎', '☆']
 ];
 
+const RULE_21_9_MODIFIED_FIXTURES = [
+  ['comparison.equals.caret-over', '".k<_<]', '≙'],
+  ['comparison.equals.caret-under', '".k%_<]', '='],
+  ['comparison.equals.dot-over', '".k<*]', '≐'],
+  ['comparison.equals.degree-over', '".k<.*]', '≗'],
+  ['comparison.equals.dot-both', '".k%*<*]', '≑'],
+  ['comparison.equals.triangle-over', '".k<$t]', '≜'],
+  ['comparison.equals.inverted-caret-over', '".k<_%]', '≚'],
+  ['comparison.equals.question-over', '".k<_8]', '≟'],
+  ['comparison.equals.left-caret-over', '".k<;<]', '='],
+  ['comparison.equals.right-caret-over', '".k<;%]', '='],
+  ['comparison.equals.two-dots-both', '".k%**<**]', '⩷'],
+  ['comparison.equals.vertical-bar-over', '".k<|]', '='],
+  ['comparison.horizontal-bar.caret-over', '":<_<]', '^'],
+  ['comparison.horizontal-bar.dot-under', '":%*]', '⨪'],
+  ['comparison.horizontal-bar.caret-under', '":%_<]', '^'],
+  ['comparison.horizontal-bar.tilde-dot-under', '`:%*]', '⨪'],
+  ['comparison.greater.bar-over', ':.1', '⋝'],
+  ['comparison.greater.equals-over', '.k.1', '⪚'],
+  ['comparison.greater.equals-under', '.1.k', '≧'],
+  ['comparison.inclusion.bar-over', ':_"k', '⊂'],
+  ['comparison.inclusion.bar-under', '_"k:', '⊆'],
+  ['comparison.inclusion.equals-over', '.k_"k', '⊂'],
+  ['comparison.inclusion.equals-under', '_"k.k', '⊆'],
+  ['comparison.less.bar-over', ':"k', '⋜'],
+  ['comparison.less.bar-under', '"k:', '≤'],
+  ['comparison.less.equals-over', '.k"k', '⪙'],
+  ['comparison.less.equals-under', '"k.k', '≤'],
+  ['comparison.intersection.bar-under', '.%:', '∩'],
+  ['comparison.intersection.equals-under', '.%.k', '∩'],
+  ['comparison.logical-product.bar-over', ':`%', '∧'],
+  ['comparison.logical-product.bar-over-under', ':`%:', '∧'],
+  ['comparison.logical-product.equals-under', '`%.k', '∧'],
+  ['comparison.logical-product.bar-under', '`%:', '∧'],
+  ['comparison.logical-product.equals-over', '.k`%', '∧'],
+  ['comparison.logical-product.equals-over-under', '.k`%:', '∧'],
+  ['comparison.logical-product.equals-both', '.k`%.k', '∧'],
+  ['comparison.logical-sum.bar-over', ':`+', '∨'],
+  ['comparison.logical-sum.bar-under', '`+:', '∨'],
+  ['comparison.logical-sum.equals-over', '.k`+', '∨'],
+  ['comparison.logical-sum.equals-over-under', '.k`+:', '∨'],
+  ['comparison.logical-sum.equals-both', '.k`+.k', '∨'],
+  ['comparison.logical-sum.equals-under', '`+.k', '∨'],
+  ['comparison.reverse-inclusion.bar-over', ':_.1', '⊃'],
+  ['comparison.reverse-inclusion.bar-under', '_.1:', '⊃'],
+  ['comparison.reverse-inclusion.equals-under', '_.1.k', '⊃'],
+  ['comparison.reverse-inclusion.equals-over', '.k_.1', '⊃'],
+  ['comparison.tilde.bar-over-double', ':`:`:', '≈'],
+  ['comparison.tilde.bar-over-single', ':`:', '≂'],
+  ['comparison.tilde.bar-under-double', '`:`::', '≊'],
+  ['comparison.tilde.bar-under-single', '`::', '≃'],
+  ['comparison.tilde.double', '`:`:', '≈'],
+  ['comparison.tilde.equals-over-double', '.k`:`:', '≈'],
+  ['comparison.tilde.equals-over-single', '.k`:', '⩳'],
+  ['comparison.tilde.equals-under-double', '`:`:.k', '⩰'],
+  ['comparison.tilde.equals-under-single', '`:.k', '∼'],
+  ['comparison.union.bar-under', '.+:', '∪'],
+  ['comparison.union.equals-under', '.+.k', '∪']
+];
+
 function applyFixture(id, cells) {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
@@ -205,6 +265,19 @@ test('Rules 20, 21, and 23 table literals remain independently source-linked', (
     assert.ok(entry, id);
     assert.equal(entry.cells.join(''), cells, id);
     const tree = applyFixture(id, cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
+  }
+});
+
+test('BANA Rule 21.9 modified-comparison table is represented by bounded source rows', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation, expected] of RULE_21_9_MODIFIED_FIXTURES) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.args.sourceNotation, sourceNotation, id);
+    assert.deepEqual(entry.banaRefs, ['21.9'], id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    const tree = applyFixture(id, entry.cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
   }
 });
