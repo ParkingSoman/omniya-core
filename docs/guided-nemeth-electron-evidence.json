@@ -119,6 +119,16 @@
       "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "structural-followup", "exact-subtree", "focus-restoration"]
     },
     {
+      "id": "integral-bounds",
+      "ledgerRules": ["14", "23.12"],
+      "status": "verified",
+      "creationTest": "Nemeth integral bounds are created locally and MathJax navigation edits only the selected bound",
+      "editingTest": "Nemeth integral bounds are created locally and MathJax navigation edits only the selected bound",
+      "nemethCells": ["⠮", "⠰", "⠁", "⠘", "⠃"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-msubsup", "whole-expression-braille", "focused-braille", "focused-bound-braille", "structural-followup", "exact-subtree", "focus-restoration"]
+    },
+    {
       "id": "shapes-grouping",
       "ledgerRules": ["17", "19"],
       "status": "verified",

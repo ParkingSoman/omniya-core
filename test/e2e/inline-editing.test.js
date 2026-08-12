@@ -143,6 +143,54 @@ test('Nemeth integral creation and MathJax sign navigation edit preserve the loc
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮');
 });
 
+test('Nemeth integral bounds are created locally and MathJax navigation edits only the selected bound', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-integral-bounds-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+
+  // BANA 23.12 writes the ordinary integral first, then composes its lower
+  // and upper bounds with the generic Rule 14 script transitions. Every fill
+  // is one local cell; there is no expression-sized Nemeth buffer.
+  for (const cell of ['⠮', '⠰', '⠁', '⠘', '⠃']) {
+    await input.fill(cell);
+    await page.waitForFunction((value) => {
+      const status = document.querySelector('#replacement-status')?.textContent ?? '';
+      return status.includes(value) || status.includes('Draft updated');
+    }, cell === '⠮' ? 'operator.integral' : cell === '⠰' ? 'script.subscript' : cell === '⠘' ? 'script.superscript' : 'letter');
+  }
+  await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type math > msubsup') !== null);
+  assert.equal(await article.locator('math > msubsup').count(), 1);
+  assert.deepEqual(await article.locator('math > msubsup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['∫', 'a', 'b']);
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  // SRE includes the Rule 14 baseline-return indicator because the bounded
+  // script is the complete rendered expression. This is an output projection
+  // detail; the authored local cells remain exactly ⠮⠰⠁⠘⠃.
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮⠰⠁⠘⠃⠐');
+
+  // Navigate through the real MathJax Explorer to the lower bound, freeze E,
+  // and replace only that focused MathML child.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.toLowerCase().includes('underscript'));
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠁');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  assert.match(await page.locator('#replacement-scope').textContent(), /lower|a/i);
+  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await input.fill('⠵');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.deepEqual(await article.locator('math > msubsup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['∫', 'z', 'b']);
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮⠰⠵⠘⠃⠐');
+});
+
 test('renderer creates a nested script and radical through compositional Nemeth cells', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-nemeth-nested-create-');
   t.after(() => app.close().catch(() => {}));

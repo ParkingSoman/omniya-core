@@ -473,6 +473,28 @@ function openScriptSlot(tree, focus, elementName, role) {
       return { tree, focus: focusNode(replacement) };
     }
   }
+  // Compose the opposite side of an existing one-sided script locally. This
+  // is the generic MathML transition used by integral bounds, limits, and
+  // scripted variables alike; it does not infer an operand or inspect a
+  // wider passage.
+  const oneSided = ancestor(tree, current, ['msub', 'msup']);
+  if (oneSided && oneSided.children?.[1] === current) {
+    const existingRole = oneSided.name === 'msub' ? 'subscript' : 'superscript';
+    if (existingRole !== role) {
+      const parent = findMathParent(tree, oneSided.attrs?.['data-omniya-id']);
+      if (!parent) throw new RangeError('One-sided script has no parent.');
+      const replacement = element('msubsup', [
+        oneSided.children[0],
+        existingRole === 'subscript' ? current : element('none'),
+        existingRole === 'superscript' ? current : element('none')
+      ], { ...oneSided.attrs });
+      const missingIndex = role === 'subscript' ? 1 : 2;
+      const missing = hole(replacement, role);
+      replacement.children[missingIndex] = missing;
+      parent.children[parent.children.indexOf(oneSided)] = replacement;
+      return { tree, focus: focusNode(missing) };
+    }
+  }
   return wrapCurrent(tree, focus, elementName, ['base', role], {}, role);
 }
 
@@ -1612,6 +1634,11 @@ const MAPPINGS = [
   token('operator.intersection', ['⠨', '⠩'], ['20.4'], '∩', 'mo', { sourceNotation: '.%' }),
   token('operator.logical-and', ['⠈', '⠩'], ['20.5'], '∧', 'mo', { sourceNotation: '`%' }),
   token('operator.logical-or', ['⠈', '⠬'], ['20.5'], '∨', 'mo', { sourceNotation: '`+' }),
+  // BANA 20.9 uses the simple tilde as an operation sign, predominantly
+  // meaning logical negation.  The same cells are a comparison sign under
+  // Rule 21.6; an empty root is the unambiguous operation context, while a
+  // populated expression can still expose the standards-defined choice.
+  token('operator.tilde', ['⠈', '⠱'], ['20.9'], '∼', 'mo', { sourceNotation: '`:' }),
   token('operator.slash', ['⠸', '⠌'], ['20.8'], '/', 'mo', { sourceNotation: '_/' }),
   // The same cell begins several Rule 22 arrow constructions. Hold the
   // standalone operation briefly when a longer registered local code can
@@ -2500,7 +2527,9 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode === null && scriptMove) {
     return applyMapping(document, focus, { ...state, prefix: '' }, scriptMove);
   }
-  const atomicContinuation = state.mode === null && !existingComparison && MAPPINGS.some((mapping) =>
+  const exactImmediate = (PREFIXES.get(sequence)?.mappings ?? [])
+    .some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mappingApplies(mapping, context));
+  const atomicContinuation = state.mode === null && !existingComparison && !exactImmediate && MAPPINGS.some((mapping) =>
     mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     mapping.cells.length > sequence.length &&
     mapping.cells.slice(0, sequence.length).join('') === sequence &&
@@ -2917,6 +2946,17 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // longer radical or modifier code.
   const simultaneousMapping = mappings.find((mapping) => mapping.action === 'simultaneous-modifier');
   if (simultaneousMapping) return applyMapping(document, focus, state, simultaneousMapping);
+  // Rule 20.9 and Rule 21.6 intentionally share the simple-tilde cells. Once
+  // that complete local code is present, keep the BANA meanings as an
+  // explicit choice rather than guessing from the rendered glyph.
+  if (sequence === '⠈⠱' && mappings.some((mapping) => mapping.id === 'operator.tilde')) {
+    return {
+      status: 'choice',
+      choices: mappings.map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+      document, focus, inputState: { ...state, prefix: sequence },
+      announcement: 'Choose the meaning for this Nemeth sequence.'
+    };
+  }
   if (mappings.length > 1 && !hasLonger) {
     return {
       status: 'choice',

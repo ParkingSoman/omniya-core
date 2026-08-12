@@ -5,13 +5,13 @@
   "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
   "status": "development",
   "inputPolicies": {
-    "immediate": 242,
+    "immediate": 243,
     "atomicSequence": 377,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 424,
+    "shadowedAtomicCount": 430,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -1034,6 +1034,10 @@
         "immediateId": "comparison.simple-tilde"
       },
       {
+        "atomicId": "comparison.horizontal-bar.tilde-dot-under",
+        "immediateId": "operator.tilde"
+      },
+      {
         "atomicId": "comparison.greater.equals-over",
         "immediateId": "operator.equals"
       },
@@ -1262,6 +1266,10 @@
         "immediateId": "comparison.simple-tilde"
       },
       {
+        "atomicId": "comparison.tilde.bar-under-double",
+        "immediateId": "operator.tilde"
+      },
+      {
         "atomicId": "comparison.tilde.bar-under-single",
         "immediateId": "comparison.similar"
       },
@@ -1270,12 +1278,20 @@
         "immediateId": "comparison.simple-tilde"
       },
       {
+        "atomicId": "comparison.tilde.bar-under-single",
+        "immediateId": "operator.tilde"
+      },
+      {
         "atomicId": "comparison.tilde.double",
         "immediateId": "comparison.similar"
       },
       {
         "atomicId": "comparison.tilde.double",
         "immediateId": "comparison.simple-tilde"
+      },
+      {
+        "atomicId": "comparison.tilde.double",
+        "immediateId": "operator.tilde"
       },
       {
         "atomicId": "comparison.tilde.equals-over-double",
@@ -1314,12 +1330,20 @@
         "immediateId": "comparison.simple-tilde"
       },
       {
+        "atomicId": "comparison.tilde.equals-under-double",
+        "immediateId": "operator.tilde"
+      },
+      {
         "atomicId": "comparison.tilde.equals-under-single",
         "immediateId": "comparison.similar"
       },
       {
         "atomicId": "comparison.tilde.equals-under-single",
         "immediateId": "comparison.simple-tilde"
+      },
+      {
+        "atomicId": "comparison.tilde.equals-under-single",
+        "immediateId": "operator.tilde"
       },
       {
         "atomicId": "comparison.union.equals-under",
@@ -1714,7 +1738,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 680,
+    "notation": 681,
     "contextual": 2
   },
   "operations": [
@@ -14524,6 +14548,33 @@
       },
       "banaRefs": [
         "20.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.tilde",
+      "commandLabel": "operator.tilde",
+      "cells": [
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "immediate",
+      "sourceNotation": "`:",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "∼",
+        "sourceNotation": "`:",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "20.9"
       ],
       "errataRefs": [],
       "validContexts": [

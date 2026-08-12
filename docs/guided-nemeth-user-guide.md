@@ -107,6 +107,15 @@ code. This same bounded rule applies to any BANA construction whose individual
 cells are not meaningful until the complete local symbol is known; it is not
 specific to arrows.
 
+For an integral with bounds, enter the integral cell first, then add each bound
+as a normal script follow-up. For example, `⠮⠰⠁⠘⠃` creates an integral with
+lower bound `a` and upper bound `b`. The editor first inserts `∫`, opens the
+lower slot for `⠰⠁`, promotes that local script to a two-sided `<msubsup>` when
+`⠘` arrives, and opens the upper slot for `b`. This is the same composition
+used for any object that gains a second script side. BANA Rule 23.12 supplies
+the integral notation and Rule 14 supplies the script transitions; no special
+integral passage parser is involved.
+
 ### Multi-level scripts
 
 Nemeth level indicators can describe a script on a script. Enter the complete

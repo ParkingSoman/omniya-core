@@ -285,6 +285,41 @@ test('Rules 20, 21, and 23 table literals remain independently source-linked', (
   }
 });
 
+test('BANA Rule 20.9 tilde operation is distinct from the comparison tilde by local focus context', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const operation = registry.get('operator.tilde');
+  assert.ok(operation, 'Rule 20.9 must have an operation-sign mapping');
+  assert.deepEqual(operation.banaRefs, ['20.9']);
+  assert.equal(operation.args.sourceNotation, '`:');
+  assert.equal(operation.commitPolicy, 'immediate');
+
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠈', '⠱']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'choice') {
+      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'operator.tilde' });
+    }
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  if (inputState.prefix) {
+    let result = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(result.status, 'choice', result.announcement);
+    result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'operator.tilde' });
+    assert.equal(result.status, 'applied', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mo');
+  assert.equal(tree.children[0].children[0].text, '∼');
+
+  const comparison = registry.get('comparison.simple-tilde');
+  assert.deepEqual(comparison.banaRefs, ['21.6']);
+  assert.equal(comparison.args.sourceNotation, '`:');
+});
+
 test('BANA Rule 21.9 modified-comparison table is represented by bounded source rows', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, sourceNotation, expected] of RULE_21_9_MODIFIED_FIXTURES) {
@@ -1148,6 +1183,25 @@ test('BANA Rule 23 repeated integrals use immediate and bounded forms', () => {
   assert.equal(parseMathML(result.document.mathml).children[0].children[0].text, '∭');
 });
 
+test('BANA Rule 23.12 composes integral bounds through generic script follow-ups', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠮', '⠰', '⠁', '⠘', '⠃']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'choice') {
+      assert.fail(`Unexpected ambiguity for ${cell}: ${result.announcement}`);
+    }
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  const integral = tree.children[0];
+  assert.equal(integral.name, 'msubsup');
+  assert.deepEqual(integral.children.map((child) => child.children?.[0]?.text), ['∫', 'a', 'b']);
+  assert.equal(inputState.prefix, '');
+});
+
 test('BANA Rule 23 superposed integrals are structural follow-ups to an immediate integral', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, cells, expected] of [
@@ -1851,7 +1905,7 @@ test('BANA Rule 24.1.i adjacent bars and 24.1.k tildes use bounded follow-ups', 
   let result = applyNemethCell({ document, focus, inputState, cell: '⠈' });
   ({ document, focus, inputState } = result);
   result = applyNemethCell({ document, focus, inputState, cell: '⠱' });
-  assert.equal(result.status, 'pending');
+  assert.equal(result.status, 'choice');
   result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'comparison.similar' });
   ({ document, focus, inputState } = result);
   for (const cell of ['⠐', '⠈', '⠱']) {
