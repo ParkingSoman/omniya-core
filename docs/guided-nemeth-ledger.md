@@ -19,7 +19,7 @@ Normative sources:
 | Reference signs and abbreviations | Rules 9, 10 | reference-sign tokens implemented; abbreviation context pending | compound-symbol fixtures |
 | Omissions and cancellation | Rules 11, 12 | general omission and diagonal cancellation transitions implemented; remaining omission/cancellation variants pending | deletion and cancellation fixtures |
 | Fractions | Rule 13 | simple, complex, hypercomplex, and mixed structural openings implemented | nested fraction depths 2, 8, 32 and terminators |
-| Scripts | Rule 14 | superscript/subscript and first compound msubsup transitions implemented; prescripts and deeper level combinations pending | scripts, prescripts, multiscripts and baseline return |
+| Scripts | Rule 14 | superscript/subscript, first compound msubsup transitions, and context-safe baseline promotion to MathML multiscripts/mprescripts implemented; deeper level combinations and full prescript fixture corpus pending | scripts, prescripts, multiscripts and baseline return |
 | Modifiers | Rule 15 | five-step directly-over/under transitions, bounded multi-token modifier scopes, modifier catalog, simultaneous under/over conversion, and integral superposition follow-ups implemented; remaining higher-order combinations remain pending | modifiers on atoms, grouped expressions, and nested scopes |
 | Radicals | Rule 16 | square, indexed, cube, and fourth-root transitions implemented | nested radicals and index slots |
 | Shapes and functions | Rules 17, 18 | source-listed abbreviated function names and upper/lower limit forms are bounded atomic rows; open-ended unlisted names remain ordinary compositional letters | named and abbreviated functions |

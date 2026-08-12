@@ -251,6 +251,32 @@ function closeStructure(tree, focus, elementName) {
   return { tree, focus: focusNode(parent ?? tree) };
 }
 
+// BANA 14.5 left-script entry is a local promotion of the structure already
+// under focus. It does not inspect or parse siblings: an unfinished one-sided
+// script is converted to MathML multiscripts, preserving its script and
+// opening only the base slot for the next local symbol.
+function promoteScriptToPrescript(tree, focus, direction) {
+  const current = currentNode(tree, focus);
+  const container = ancestor(tree, current, ['msup', 'msub']);
+  if (!container) return null;
+  const parent = findMathParent(tree, container.attrs?.['data-omniya-id']);
+  const base = container.children?.[0];
+  const script = container.children?.[1];
+  if (!parent || !base || !script || !isHole(base) || isHole(script)) return null;
+  const baseHole = structuredClone(base);
+  const marker = element('mprescripts');
+  const none = element('none');
+  const leftSubscript = direction === 'sub' ? script : none;
+  const leftSuperscript = direction === 'sup' ? script : none;
+  const replacement = element('mmultiscripts', [baseHole, marker, leftSubscript, leftSuperscript], {
+    'data-omniya-id': container.attrs['data-omniya-id']
+  });
+  const index = parent.children.indexOf(container);
+  if (index < 0) return null;
+  parent.children[index] = replacement;
+  return { tree, focus: focusNode(baseHole) };
+}
+
 function openModifier(tree, focus, elementName, initialSlot) {
   return wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
 }
@@ -1329,9 +1355,15 @@ function applyMapping(document, focus, inputState, mapping) {
     result = focusRole(tree, focus, args.element, args.role);
   } else if (mapping.action === 'set-mode') {
     if (args.mode === 'baseline') {
-      const containers = ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover'];
-      const container = ancestor(tree, node, containers);
-      result = { tree, focus: focusNode(container ? findMathParent(tree, container.attrs['data-omniya-id']) ?? tree : node) };
+      const scriptContainer = ancestor(tree, node, ['msup', 'msub']);
+      const promoted = promoteScriptToPrescript(tree, focus, scriptContainer?.name === 'msub' ? 'sub' : 'sup');
+      if (promoted) {
+        result = promoted;
+      } else {
+        const containers = ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover'];
+        const container = ancestor(tree, node, containers);
+        result = { tree, focus: focusNode(container ? findMathParent(tree, container.attrs['data-omniya-id']) ?? tree : node) };
+      }
     } else if (args.mode === 'letter-indicator') {
       if (!inputState.mode?.startsWith?.('typeform:')) {
         return { status: 'rejected', document, focus, inputState, announcement: 'The alphabetic indicator is not valid at this focus.' };
@@ -1390,7 +1422,9 @@ function applyMapping(document, focus, inputState, mapping) {
 export function applyNemethChoice({ document, focus, inputState = { prefix: '', mode: null }, operationId }) {
   const context = contextFor(document, focus);
   const mapping = MAPPINGS.find((candidate) => candidate.id === operationId);
-  if (!mapping || mapping.cells.join('') !== inputState.prefix || !mappingApplies(mapping, context)) {
+  const prefix = inputState.prefix ?? '';
+  const mappingPrefix = mapping?.cells.join('') ?? '';
+  if (!mapping || !(mappingPrefix === prefix || prefix.startsWith(mappingPrefix)) || !mappingApplies(mapping, context)) {
     return {
       status: 'rejected',
       document,
@@ -1399,7 +1433,22 @@ export function applyNemethChoice({ document, focus, inputState = { prefix: '', 
       announcement: 'That Nemeth choice is no longer valid at this draft focus.'
     };
   }
-  return applyMapping(document, focus, { ...inputState, prefix: '' }, mapping);
+  const applied = applyMapping(document, focus, { ...inputState, prefix: '' }, mapping);
+  if (applied.status === 'rejected' || prefix === mappingPrefix) return applied;
+  // Reprocess only the unmatched suffix of this one local code. This is the
+  // same bounded transition loop used after a short code is selected from a
+  // shared prefix, never an arbitrary-expression parser.
+  let next = applied;
+  for (const suffixCell of [...prefix.slice(mappingPrefix.length)]) {
+    next = applyNemethCell({
+      document: next.document,
+      focus: next.focus,
+      inputState: next.inputState,
+      cell: suffixCell
+    });
+    if (next.status === 'rejected' || next.status === 'choice') break;
+  }
+  return next;
 }
 
 function digitMapping(cell) {
@@ -1486,6 +1535,20 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   }
   if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized)) {
     return applyMapping(document, focus, { ...state, prefix: '', mode: null }, letterMapping(normalized, { ...state, mode: 'english-letter' }));
+  }
+  // A baseline return is a structural follow-up when the current focus is a
+  // script slot. It is deliberately resolved only here, after the complete
+  // one-cell prefix is known, so shared dot-5 meanings elsewhere remain
+  // untouched.
+  if (state.mode === null && state.prefix === '⠐' && LETTERS.has(normalized) &&
+    hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+    const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
+    if (activated.status !== 'rejected') {
+      const next = applyNemethCell({ document: activated.document, focus: activated.focus, inputState: activated.inputState, cell: normalized });
+      if (next.status !== 'rejected') return { ...next, announcement: `${activated.announcement}; ${next.announcement}` };
+      return activated;
+    }
   }
   // Dot 5 is shared by the baseline and multipurpose indicators. When the
   // next cell is the first ordinary expression symbol, the local Rule 15

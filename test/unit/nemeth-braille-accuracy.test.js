@@ -240,3 +240,12 @@ test('guided numeric cells use the BANA lower-cell digits and match SRE output',
   assert.equal(parseMathML(document.mathml).children[0].children[0].text, '3.14');
   assert.equal(await nemeth(document.mathml), '⠼⠒⠨⠂⠲');
 });
+
+test('MathCAT left-script fixtures remain accurate as canonical multiscripts', async () => {
+  const fixtures = [
+    ['<math><mmultiscripts><mi>n</mi><mprescripts/><none/><mi>x</mi></mmultiscripts></math>', '⠘⠭⠐⠝'],
+    ['<math><mmultiscripts><mi>n</mi><mi>y</mi><none/><mprescripts/><mi>x</mi><none/></mmultiscripts></math>', '⠰⠭⠐⠝⠰⠽'],
+    ['<math><mmultiscripts><mi>x</mi><mn>1</mn><none/><mprescripts/><mn>3</mn><none/></mmultiscripts></math>', '⠰⠒⠐⠭⠰⠂']
+  ];
+  for (const [mathml, expected] of fixtures) assert.equal(await nemeth(mathml), expected, mathml);
+});

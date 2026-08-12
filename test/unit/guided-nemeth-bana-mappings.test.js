@@ -610,3 +610,19 @@ test('composed guided structures match SRE Nemeth output for whole expressions',
     assert.equal(SRE.toSpeech(mathml), expected);
   }
 });
+
+test('Rule 14 left-script cells use a local baseline promotion, not passage parsing', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠘', '⠭', '⠐', '⠝']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const scripts = parseMathML(document.mathml).children[0];
+  assert.equal(scripts.name, 'mmultiscripts');
+  assert.equal(scripts.children[1].name, 'mprescripts');
+  assert.equal(scripts.children[2].name, 'none');
+  assert.equal(scripts.children[3].children[0].text, 'x');
+});
