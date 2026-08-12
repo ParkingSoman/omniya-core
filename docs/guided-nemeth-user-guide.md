@@ -46,13 +46,28 @@ atomic sequence. Each buffer is discarded after that one local code is
 accepted, so writing from an empty equation and replacing a selected
 subexpression use exactly the same small operations.
 
-Underneath those input policies, every accepted code uses one of six tree
-operations: insert, open, move, close, decorate, or mode. The operation is
+Underneath those input policies, every accepted code uses one of a small set of
+tree operations: insert, composite-insert, open, move, close, decorate, or mode. The operation is
 applied to the current MathJax-selected focus and its local MathML ancestors.
 An atomic sequence only delays recognition until its registered BANA code is
 complete; it does not create a second representation or a separate parser.
 That is why a fraction opener, an arrow, and an integral bound can all compose
 in the same draft while remaining faithful to their different Nemeth codes.
+
+The registry describes what one code means, while shared tree operations
+describe how to compose it. Most codes insert one MathML token. A structural
+code opens a standard MathML element with empty slots, moves to a slot, wraps
+the focused node or range, or closes the nearest matching structure. A bounded
+code can also insert a small composed object, such as a quantifier whose BANA
+sign contains two mathematical marks. In that case the registry lists the
+child marks and one generic composite operation creates an `mrow`; it does not
+parse the surrounding equation.
+
+Longer expressions are therefore built by repeating small visible actions:
+insert a token, open a structure, fill its current slot, move to the next slot,
+and close or modify the structure. The resulting MathML remains the one tree
+that MathJax reads and navigates. There is no second writing tree and no hidden
+expression parser.
 
 The same classification applies to alphabet indicators, typeforms, named
 functions, radicals, grouping signs, operators, comparisons, shapes, and

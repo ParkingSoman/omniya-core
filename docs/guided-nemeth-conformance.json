@@ -6380,12 +6380,17 @@
         "⠉",
         "⠻"
       ],
-      "action": "superpose-integral",
+      "action": "superpose-token",
       "commitPolicy": "structural-followup",
       "sourceNotation": "!`$c]",
       "sourceKind": null,
       "args": {
         "value": "∮",
+        "allowedValues": [
+          "∫",
+          "∬",
+          "∭"
+        ],
         "sourceNotation": "!`$c]"
       },
       "banaRefs": [
@@ -6408,12 +6413,17 @@
         "⠿",
         "⠻"
       ],
-      "action": "superpose-integral",
+      "action": "superpose-token",
       "commitPolicy": "structural-followup",
       "sourceNotation": "!`,=]",
       "sourceKind": null,
       "args": {
         "value": "∰",
+        "allowedValues": [
+          "∫",
+          "∬",
+          "∭"
+        ],
         "sourceNotation": "!`,=]"
       },
       "banaRefs": [
@@ -6437,12 +6447,17 @@
         "⠗",
         "⠻"
       ],
-      "action": "superpose-integral",
+      "action": "superpose-token",
       "commitPolicy": "structural-followup",
       "sourceNotation": "!`$r]",
       "sourceKind": null,
       "args": {
         "value": "∯",
+        "allowedValues": [
+          "∫",
+          "∬",
+          "∭"
+        ],
         "sourceNotation": "!`$r]"
       },
       "banaRefs": [
@@ -6465,12 +6480,17 @@
         "⠲",
         "⠻"
       ],
-      "action": "superpose-integral",
+      "action": "superpose-token",
       "commitPolicy": "structural-followup",
       "sourceNotation": "!`$4]",
       "sourceKind": null,
       "args": {
         "value": "⨖",
+        "allowedValues": [
+          "∫",
+          "∬",
+          "∭"
+        ],
         "sourceNotation": "!`$4]"
       },
       "banaRefs": [
@@ -15859,12 +15879,25 @@
         "⠿",
         "⠳"
       ],
-      "action": "insert-quantifier-unique",
+      "action": "insert-composite",
       "commitPolicy": "atomic-sequence",
       "sourceNotation": "`=|",
       "sourceKind": null,
       "args": {
-        "sourceNotation": "`=|"
+        "parts": [
+          {
+            "name": "mo",
+            "value": "∃"
+          },
+          {
+            "name": "mo",
+            "value": "|"
+          }
+        ],
+        "sourceNotation": "`=|",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "exists-unique"
+        }
       },
       "banaRefs": [
         "23.17"
@@ -19443,8 +19476,7 @@
         "name": "mo",
         "value": "→",
         "sourceNotation": "$o",
-        "allowImmediateBeforeContinuation": true,
-        "preferLonger": true
+        "allowImmediateBeforeContinuation": true
       },
       "banaRefs": [
         "22.1",

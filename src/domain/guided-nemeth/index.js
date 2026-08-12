@@ -200,17 +200,23 @@ function insertToken(tree, focus, name, value, { replace = false, mathvariant = 
   return { tree, focus: focusNode(inserted) };
 }
 
-// Rule 23.17's `=| is one bounded local construction, but its mathematical
-// value is structurally composed: an existential quantifier followed by the
-// ordinary vertical-bar sign.  Keeping the two <mo> children visible lets
-// MathJax/SRE navigate and voice the same structure it would produce from
-// ordinary MathML, while the registry still treats the three cells as one
-// atomic local code.
-function insertQuantifierUnique(tree, focus) {
-  const unique = element('mrow', [atom('mo', '∃'), atom('mo', '|')], {
-    'data-omniya-nemeth-intent': 'exists-unique'
+// A bounded Nemeth construction may have one local code but more than one
+// MathML child.  Keep that distinction declarative: the registry supplies the
+// child atoms and this one primitive composes them into an mrow.  It is not a
+// parser and it does not infer operands or precedence.  MathJax/SRE can then
+// navigate the resulting children exactly as it navigates any authored row.
+function insertComposite(tree, focus, parts, attrs = {}) {
+  if (!Array.isArray(parts) || parts.length === 0) {
+    throw new RangeError('A composite local construction needs at least one part.');
+  }
+  const children = parts.map((part) => {
+    if (!part || typeof part.name !== 'string' || typeof part.value !== 'string') {
+      throw new RangeError('A composite local construction contains an invalid part.');
+    }
+    return atom(part.name, part.value, part.attrs ?? {});
   });
-  const inserted = replaceCurrent(tree, focus, unique);
+  const composite = element('mrow', children, attrs);
+  const inserted = replaceCurrent(tree, focus, composite);
   return { tree, focus: focusNode(inserted) };
 }
 
@@ -275,22 +281,15 @@ function extendIntegral(tree, focus, values) {
   return { tree, focus: focusNode(current) };
 }
 
-function superposeIntegral(tree, focus, value) {
-  const current = currentNode(tree, focus);
-  if (current.name !== 'mo' || !['∫', '∬', '∭'].includes(current.children?.[0]?.text)) {
-    throw new RangeError('An integral superposition requires the focused integral sign.');
-  }
-  current.children = [text(value)];
-  return { tree, focus: focusNode(current) };
-}
-
 // Rule 15.9 applies the same bounded superposition transition to integrals,
 // bars, operation signs, shapes, and comparison signs.  The source code is
 // collected as one local registry entry; this primitive only changes the
 // already-focused sign and never searches for an operand or parses a passage.
-function superposeToken(tree, focus, value, intent) {
+function superposeToken(tree, focus, value, intent, allowedValues = null) {
   const current = currentNode(tree, focus);
-  if (current.name !== 'mo') throw new RangeError('Superposition requires the focused mathematical sign.');
+  if (current.name !== 'mo' || (allowedValues && !allowedValues.includes(current.children?.[0]?.text))) {
+    throw new RangeError('Superposition requires the focused mathematical sign.');
+  }
   current.children = [text(value)];
   if (intent) current.attrs['data-omniya-nemeth-intent'] = intent;
   return { tree, focus: focusNode(current) };
@@ -873,6 +872,19 @@ const token = (id, cells, banaRefs, value, name = 'mo', options = {}) => {
   const { commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE, ...args } = options;
   return { id, cells, banaRefs, action: 'insert-token', commitPolicy, args: { name, value, ...args } };
 };
+const composite = (id, cells, banaRefs, parts, options = {}) => ({
+  id,
+  cells,
+  banaRefs,
+  action: 'insert-composite',
+  commitPolicy: options.commitPolicy ?? LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+  args: {
+    parts,
+    ...(options.sourceNotation ? { sourceNotation: options.sourceNotation } : {}),
+    ...(options.dataAttributes ? { dataAttributes: options.dataAttributes } : {})
+  },
+  ...(options.errataRefs ? { errataRefs: options.errataRefs } : {})
+});
 const sourceToken = (id, sourceNotation, banaRefs, value, name = 'mo', options = {}) => token(
   id, sourceCells(sourceNotation), banaRefs, value, name, { ...options, sourceNotation }
 );
@@ -1128,27 +1140,27 @@ const MAPPINGS = [
   // immediate operation above; these rows are bounded structural follow-ups.
   {
     id: 'integral.superpose.circle', cells: ['⠈', '⠫', '⠉', '⠻'],
-    banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
+    banaRefs: ['15.9', '23.12'], action: 'superpose-token',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '∮', sourceNotation: '!`$c]' }
+    args: { value: '∮', allowedValues: ['∫', '∬', '∭'], sourceNotation: '!`$c]' }
   },
   {
     id: 'integral.superpose.infinity', cells: ['⠈', '⠠', '⠿', '⠻'],
-    banaRefs: ['15.9', '23.11', '23.12'], action: 'superpose-integral',
+    banaRefs: ['15.9', '23.11', '23.12'], action: 'superpose-token',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '∰', sourceNotation: '!`,=]' }
+    args: { value: '∰', allowedValues: ['∫', '∬', '∭'], sourceNotation: '!`,=]' }
   },
   {
     id: 'integral.superpose.rectangle', cells: ['⠈', '⠫', '⠗', '⠻'],
-    banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
+    banaRefs: ['15.9', '23.12'], action: 'superpose-token',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '∯', sourceNotation: '!`$r]' }
+    args: { value: '∯', allowedValues: ['∫', '∬', '∭'], sourceNotation: '!`$r]' }
   },
   {
     id: 'integral.superpose.square', cells: ['⠈', '⠫', '⠲', '⠻'],
-    banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
+    banaRefs: ['15.9', '23.12'], action: 'superpose-token',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '⨖', sourceNotation: '!`$4]' }
+    args: { value: '⨖', allowedValues: ['∫', '∬', '∭'], sourceNotation: '!`$4]' }
   },
   // Rule 15.9's hierarchy is not integral-specific. These representative
   // source constructions use the same generic bounded superposition action;
@@ -1617,7 +1629,10 @@ const MAPPINGS = [
   // sign, not the unrelated backslash/operation sequence.  Keep it bounded
   // to this one local code while emitting a structural mrow so the projected
   // Nemeth remains ⠈⠿⠳ under SRE.
-  { id: 'quantifier.exists-unique', cells: ['⠈', '⠿', '⠳'], banaRefs: ['23.17'], action: 'insert-quantifier-unique', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { sourceNotation: '`=|' } },
+  composite('quantifier.exists-unique', ['⠈', '⠿', '⠳'], ['23.17'], [
+    { name: 'mo', value: '∃' },
+    { name: 'mo', value: '|' }
+  ], { sourceNotation: '`=|', dataAttributes: { 'data-omniya-nemeth-intent': 'exists-unique' } }),
   token('quantifier.not-exists', ['⠌', '⠈', '⠿'], ['23.17'], '∄', 'mo', { sourceNotation: '/`=' }),
   sourceToken('comparison.contains', '`5', ['21.4'], '∋'),
   sourceToken('comparison.not-contains', '/`5', ['21.4'], '∌'),
@@ -1818,7 +1833,9 @@ for (const mapping of MAPPINGS) {
     candidate.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     candidate.cells.length > mapping.cells.length &&
     mapping.cells.every((cell, index) => cell === candidate.cells[index]));
-  if (hasSameCodeAtomic || hasAtomicContinuation) mapping.args = { ...(mapping.args ?? {}), preferLonger: true };
+  if ((hasSameCodeAtomic || hasAtomicContinuation) && !mapping.args?.allowImmediateBeforeContinuation) {
+    mapping.args = { ...(mapping.args ?? {}), preferLonger: true };
+  }
 }
 
 const PREFIXES = new Map();
@@ -1880,10 +1897,13 @@ export function registryDiagnostics() {
         prefix.cells.every((cell, index) => cell === entry.cells[index]))
       .map((prefix) => ({ atomicId: entry.id, immediateId: prefix.id })));
   const policyErrors = shadowedAtomic
-    .filter(({ immediateId }) => !entries.find((entry) => entry.id === immediateId)?.args?.preferLonger);
+    .filter(({ immediateId }) => {
+      const entry = entries.find((candidate) => candidate.id === immediateId);
+      return !entry?.args?.preferLonger && !entry?.args?.allowImmediateBeforeContinuation;
+    });
   const shadowedImmediate = immediate
     .filter(hasLonger)
-    .filter((entry) => !entry.args?.preferLonger)
+    .filter((entry) => !entry.args?.preferLonger && !entry.args?.allowImmediateBeforeContinuation)
     .map((entry) => ({ immediateId: entry.id, cells: entry.cells.join('') }));
   // Every BANA row is classified by the same three-policy contract. Keep the
   // checks data-driven so a new notation family cannot quietly introduce a
@@ -1895,7 +1915,7 @@ export function registryDiagnostics() {
       errors.push({ id: entry.id, error: 'atomic-sequence-must-be-bounded' });
     }
     if (entry.commitPolicy === LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP &&
-      !['move-slot', 'close-structure', 'extend-integral', 'superpose-integral', 'superpose-token',
+      !['move-slot', 'close-structure', 'extend-integral', 'superpose-token',
         'simultaneous-modifier', 'higher-order-modifier', 'insert-modifier', 'open-modifier',
         'move-binomial-lower', 'close-binomial', 'append-possessive', 'append-plural', 'append-ordinal',
         'insert-contracted-script-comma', 'set-mode', 'open-binomial', 'open-typeform-scope',
@@ -1983,7 +2003,7 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'integral.extend') {
     return context.node.name === 'mo' && ['∫', '∬'].includes(context.node.children?.[0]?.text);
   }
-  if (mapping.action === 'superpose-integral') {
+  if (mapping.action === 'superpose-token' && mapping.args?.allowedValues) {
     return context.node.name === 'mo' && ['∫', '∬', '∭'].includes(context.node.children?.[0]?.text);
   }
   if (mapping.action === 'superpose-token') return context.node.name === 'mo';
@@ -2109,7 +2129,7 @@ const TREE_OPERATIONS = Object.freeze({
       : insertAfter(tree, focus, inserted);
     return { tree, focus: focusNode(target) };
   },
-  'insert-quantifier-unique': ({ tree, focus }) => insertQuantifierUnique(tree, focus),
+  'insert-composite': ({ tree, focus, args }) => insertComposite(tree, focus, args.parts, args.dataAttributes),
   'insert-modifier': ({ tree, focus, inputState, args }) => insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope, args.dataAttributes ?? {}),
   'open-structure': ({ tree, focus, args, inputState }) => {
     const primeWrapped = ['msup', 'msub', 'msubsup'].includes(args.element)
@@ -2144,8 +2164,7 @@ const TREE_OPERATIONS = Object.freeze({
   'close-binomial': ({ tree, focus }) => closeBinomial(tree, focus),
   'close-structure': ({ tree, focus, args }) => closeStructure(tree, focus, args.element),
   'extend-integral': ({ tree, focus, args }) => extendIntegral(tree, focus, args.values),
-  'superpose-integral': ({ tree, focus, args }) => superposeIntegral(tree, focus, args.value),
-  'superpose-token': ({ tree, focus, args }) => superposeToken(tree, focus, args.value, args.intent),
+  'superpose-token': ({ tree, focus, args }) => superposeToken(tree, focus, args.value, args.intent, args.allowedValues),
   'move-slot': ({ tree, focus, node, args }) => {
     if (args.element === 'mfrac' && Object.hasOwn(args, 'bevelled')) {
       const fraction = fractionAtFocus(tree, node);

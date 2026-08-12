@@ -175,3 +175,16 @@ measurement abbreviation, or ordinary identifier remains a document/context
 policy and is not inferred from a cell stream. This preserves BANA's explicit
 "when in doubt" rule without adding a literary-word parser to the MathML
 writer.
+
+## Composition audit (current implementation)
+
+The transition layer separates registry data from reusable MathML operations.
+An ordinary token uses `insert-token`; a structure uses the shared open, move,
+wrap, and close operations; and a bounded BANA sign whose mathematical
+projection has several visible children uses the generic `insert-composite`
+operation. The Rule 23.17 there-exists-uniquely sign is the current composite
+fixture: its local BANA code is atomic, while its MathML remains an `mrow` of
+an existential quantifier and a vertical bar so MathJax can navigate those
+children. This is a composition of declared child atoms, not an expression
+grammar. New BANA rows must reuse one of these operations or add a genuinely
+general tree operation, rather than adding a family-specific parser branch.
