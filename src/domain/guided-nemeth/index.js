@@ -1493,6 +1493,38 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     if (DIGITS.has(normalized)) return applyMapping(document, focus, state, digitMapping(normalized));
     if (normalized === '⠨') return applyMapping(document, focus, state, numericPunctuationMapping(normalized, '.', '3.2.3'));
     if (normalized === '⠠') return applyMapping(document, focus, state, numericPunctuationMapping(normalized, ',', '3.2.2'));
+    // BANA 24.1.g: after a decimal point, dot 5 makes the next symbol
+    // nonnumeric (unless it is the comma or punctuation indicator).  This is
+    // a one-symbol local mode, not a numeric/passage parser: the following
+    // token is inserted through the ordinary registry and the mode clears.
+    if (normalized === '⠐') {
+      const current = context.node;
+      const decimal = current.name === 'mn' && current.children?.[0]?.text?.includes?.('.');
+      if (decimal) return {
+        status: 'pending', document, focus,
+        inputState: { ...state, mode: 'decimal-nonnumeric', prefix: '' },
+        announcement: 'Decimal nonnumeric indicator active for the next symbol.'
+      };
+    }
+  }
+  if (state.mode === 'decimal-nonnumeric' && !state.prefix) {
+    // The indicator applies to exactly the next local symbol.  Resolve a
+    // plain letter here instead of allowing a longer abbreviated-function
+    // prefix to hold it; the author can still enter that function explicitly
+    // as its own bounded atomic sequence after the decimal context ends.
+    if (LETTERS.has(normalized)) {
+      return applyMapping(document, focus, { ...state, mode: null }, letterMapping(normalized, { ...state, mode: null }));
+    }
+  }
+  // BANA 24.1.f: a multipurpose indicator between adjacent comparison
+  // symbols records that they are horizontal.  Once the focused symbol is a
+  // comparison, this is a bounded one-follow-up mode for the next comparison
+  // code, never a passage-level interpretation.
+  if (state.mode === 'comparison-horizontal' && !state.prefix &&
+    (normalized === '⠐' || normalized === '⠨')) {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, prefix: normalized },
+      announcement: 'Horizontal comparison code pending.' };
   }
   if ((state.mode === 'capital' || state.mode === 'english-letter') && !state.prefix && LETTERS.has(normalized)) return applyMapping(document, focus, { ...state, mode: null }, letterMapping(normalized, state));
   // After the Rule 24 multipurpose indicator, a letter begins the expression
@@ -1549,6 +1581,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   }
   if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized)) {
     return applyMapping(document, focus, { ...state, prefix: '', mode: null }, letterMapping(normalized, { ...state, mode: 'english-letter' }));
+  }
+  if (((state.mode === null && state.prefix === '⠐') || (state.mode === 'multipurpose' && !state.prefix)) && normalized === '⠨' &&
+    context.node.name === 'mo' && ['<', '>', '=', '≤', '≥', '≠', '≡', '⊂', '⊃'].includes(context.node.children?.[0]?.text)) {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠨', mode: 'comparison-horizontal' },
+      announcement: 'Horizontal comparison code pending.' };
   }
   // Rule 14 permits a lower-cell numeral directly in a script slot.  Dot 6
   // is shared with the English-letter indicator, so it is held until the
@@ -1633,6 +1671,9 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   };
   const mappings = match.mappings
     .filter((mapping) => mappingApplies(mapping, context))
+    .filter((mapping) => state.mode === 'comparison-horizontal'
+      ? ['operator.equals', 'comparison.less', 'comparison.greater', 'comparison.less-equal', 'comparison.greater-equal', 'comparison.not-equal'].includes(mapping.id)
+      : true)
     .filter((mapping) => state.mode?.startsWith?.('modifier-')
       ? ['insert-token', 'insert-numeric', 'insert-modifier', 'close-structure'].includes(mapping.action)
       : true)

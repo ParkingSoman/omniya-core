@@ -260,6 +260,38 @@ test('guided Rule 14 and Rule 24 local transitions preserve the reviewed project
   assert.equal(tree.children[1].name, 'mn');
 });
 
+test('guided Rule 24.1.g decimal return agrees with the independent projection', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠴', '⠨', '⠐', '⠁']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  // BANA 24.1.g: dot 5 after the decimal point makes the following letter
+  // nonnumeric. SRE is an independent projection; the BANA citation remains
+  // the normative source for the local transition.
+  assert.equal(await nemeth(document.mathml), '⠼⠴⠨⠁');
+});
+
+test('guided Rule 24.1.f comparison follow-up agrees with the independent projection', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠅', '⠐', '⠨', '⠅']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    if (result.status === 'choice') {
+      const choice = result.choices.find((candidate) => candidate.operationId === 'operator.equals');
+      assert.ok(choice, result.announcement);
+      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: choice.operationId });
+    }
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(await nemeth(document.mathml), '⠐⠅⠨⠅');
+});
+
 test('MathCAT left-script fixtures remain accurate as canonical multiscripts', async () => {
   const fixtures = [
     ['<math><mmultiscripts><mi>n</mi><mprescripts/><none/><mi>x</mi></mmultiscripts></math>', '⠘⠭⠐⠝'],

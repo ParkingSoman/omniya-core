@@ -645,3 +645,42 @@ test('Rule 14 numeric subscripts and Rule 24 baseline numerals stay local to the
   assert.equal(tree.children[1].name, 'mn');
   assert.equal(tree.children[1].children[0].text, '2');
 });
+
+test('BANA Rule 24.1.g decimal return is one bounded nonnumeric transition', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠴', '⠨', '⠐']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(inputState.mode, 'decimal-nonnumeric');
+  const before = document.mathml;
+  const result = applyNemethCell({ document, focus, inputState, cell: '⠁' });
+  assert.equal(result.status, 'applied');
+  assert.equal(result.inputState.mode, null);
+  assert.equal(result.document.mathml.includes('<mn'), true);
+  assert.equal(result.document.mathml.includes('<mi'), true);
+  assert.equal(result.document.mathml.includes('0.'), true);
+  assert.notEqual(result.document.mathml, before);
+});
+
+test('BANA Rule 24.1.f comparison horizontalization stays a one-symbol follow-up', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠅', '⠐', '⠨', '⠅']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    if (result.status === 'choice') {
+      const choice = result.choices.find((candidate) => candidate.operationId === 'operator.equals');
+      assert.ok(choice, result.announcement);
+      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: choice.operationId });
+    }
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.deepEqual(tree.children.filter((node) => node.name === 'mo').map((node) => node.children[0].text), ['<', '=']);
+  assert.equal(inputState.mode, null);
+});

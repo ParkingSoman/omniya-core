@@ -27,7 +27,7 @@ Normative sources:
 | Operators | Rule 20 | core and compound operator tokens implemented | official operator examples |
 | Comparisons and arrows | Rules 21, 22 | core relations, quantifier relations, directional/diagonal arrows, short/long shafts, and double-shaft arrows implemented; arbitrary arrowhead combinations pending | ambiguity and compound comparison fixtures |
 | Miscellaneous symbols | Rule 23 | reviewed literal symbols include single, repeated, lower, and upper integrals, integral superposition follow-ups, monetary units, at/crossed symbols, quantifiers, relation symbols, and Greek variants; additional symbol-index and shape constructions remain pending | symbol-index fixtures, focused integral fixtures, and errata rows |
-| Multipurpose indicator | Rule 24 | local baseline/multipurpose context selection implemented; modifier entry, baseline numerals, numeric script return, and numeral/typeform contexts covered; operation/comparison and decimal-return combinations pending; erratum 24.1.e applied (deleted) | Appendix B combinations |
+| Multipurpose indicator | Rule 24 | local baseline/multipurpose context selection implemented; modifier entry, baseline numerals, numeric script return, decimal-return (24.1.g), and comparison-horizontal (24.1.f) one-symbol follow-ups covered; operation-spacing, tally/punctuation, adjacent-bar, polygon/numeral, and tilde combinations remain pending; erratum 24.1.e applied (deleted) | Appendix B combinations |
 | Spatial arrangements | Rule 25 | deferred | separate design session |
 | Format | Rule 26 | document concern | excluded unless mathematical meaning changes |
 
