@@ -286,14 +286,17 @@ test('guided Rule 24.1.f comparison follow-up agrees with the independent projec
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const cell of ['⠐', '⠅', '⠐', '⠨', '⠅']) {
+  for (const cell of ['⠐', '⠅']) {
     let result = applyNemethCell({ document, focus, inputState, cell });
     assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
-    if (result.status === 'choice') {
-      const choice = result.choices.find((candidate) => candidate.operationId === 'operator.equals');
-      assert.ok(choice, result.announcement);
-      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: choice.operationId });
-    }
+    ({ document, focus, inputState } = result);
+  }
+  let result = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(result.status, 'applied', result.announcement);
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠐', '⠨', '⠅']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
     ({ document, focus, inputState } = result);
   }
   assert.equal(await nemeth(document.mathml), '⠐⠅⠨⠅');

@@ -426,6 +426,64 @@ test('BANA Rule 21 direct composites retain their source notation and cells', ()
   }
 });
 
+test('new BANA atoms commit through the same bounded transition engine', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const ids = [
+    'shape.angle.alternate-exterior',
+    'shape.angle.complementary',
+    'shape.triangle.acute',
+    'shape.square.interior-horizontal-bar',
+    'shape.rectangle.interior-bar',
+    'group.round-enlarged-open',
+    'group.bracket-enlarged-open',
+    'group.angle-enlarged-open',
+    'group.vertical-double-open',
+    'group.vertical-enlarged-open',
+    'group.bold-vertical-double-open',
+    'group.barred-bracket-enlarged-open',
+    'group.upper-half-enlarged-open',
+    'group.lower-half-enlarged-open',
+    'comparison.vertical-arrow-pair',
+    'comparison.greater-less',
+    'comparison.less-greater',
+    'comparison.greater-equals-less',
+    'comparison.less-equals-greater'
+  ];
+  for (const id of ids) {
+    const entry = registry.get(id);
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    let result;
+    for (const cell of entry.cells) {
+      result = applyNemethCell({ document, focus, inputState, cell });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    if (result.status === 'pending') {
+      result = commitNemethLocalCode({ document, focus, inputState });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    if (result.status === 'choice') {
+      const choice = result.choices.find((candidate) => candidate.operationId === id);
+      assert.ok(choice, `${id}: ${result.announcement}`);
+      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: id });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    assert.equal(result.status, 'applied', id);
+    const tree = parseMathML(document.mathml);
+    const values = [];
+    const collect = (node) => {
+      if (node.text !== undefined) values.push(node.text);
+      else for (const child of node.children ?? []) collect(child);
+    };
+    collect(tree);
+    assert.ok(values.includes(entry.args.value), `${id}: ${entry.args.value}`);
+  }
+});
+
 test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () => {
   for (const [cells, value] of [
     ['⠨⠈⠃', 'ϐ'],
@@ -985,14 +1043,20 @@ test('BANA Rule 24.1.f comparison horizontalization stays a one-symbol follow-up
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const cell of ['⠐', '⠅', '⠐', '⠨', '⠅']) {
+  for (const cell of ['⠐', '⠅']) {
     let result = applyNemethCell({ document, focus, inputState, cell });
     assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
-    if (result.status === 'choice') {
-      const choice = result.choices.find((candidate) => candidate.operationId === 'operator.equals');
-      assert.ok(choice, result.announcement);
-      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: choice.operationId });
-    }
+    ({ document, focus, inputState } = result);
+  }
+  // The complete less-than code is also a prefix of a BANA compound
+  // comparison. Enter commits that one local code before the follow-up
+  // separator is entered, exactly as the guided editor requires.
+  let result = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(result.status, 'applied', result.announcement);
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠐', '⠨', '⠅']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
     ({ document, focus, inputState } = result);
   }
   const tree = parseMathML(document.mathml);

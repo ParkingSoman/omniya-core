@@ -1857,6 +1857,27 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
 
+  // Give a registered atomic construction priority over a structural
+  // follow-up when the cells seen so far are still a prefix of that one
+  // construction. This matters for compound comparisons and similar BANA
+  // signs whose first cells also have an ordinary follow-up meaning. The
+  // lookahead is bounded by the registry row and never becomes an expression
+  // buffer.
+  const existingComparison = context.node.name === 'mo' &&
+    ['<', '>', '=', '≤', '≥', '≠', '≡', '⊂', '⊃'].includes(context.node.children?.[0]?.text);
+  const atomicContinuation = state.mode === null && !existingComparison && MAPPINGS.some((mapping) =>
+    mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
+    mapping.cells.length > sequence.length &&
+    mapping.cells.slice(0, sequence.length).join('') === sequence &&
+    mappingApplies(mapping, context));
+  if (atomicContinuation) {
+    return {
+      status: 'pending', document, focus,
+      inputState: { ...state, prefix: sequence },
+      announcement: 'Nemeth sequence may continue.'
+    };
+  }
+
   // BANA 24.1.f places a dot-5 multipurpose indicator between two adjacent
   // comparison signs. Some of those same prefixes begin Rule 21 compound
   // comparisons, so the generic longest-prefix matcher would otherwise hold
