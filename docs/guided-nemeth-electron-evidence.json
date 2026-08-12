@@ -17,8 +17,8 @@
       "id": "fractions",
       "ledgerRules": ["13"],
       "status": "verified",
-      "creationTest": "renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft",
-      "editingTest": "nested numerator replacement preserves the containing fraction",
+      "creationTest": "Nemeth fraction creation and MathJax numerator navigation edit preserve the denominator",
+      "editingTest": "Nemeth fraction creation and MathJax numerator navigation edit preserve the denominator",
       "nemethCells": ["⠹", "⠭", "⠌", "⠵"],
       "requiresExplorerNavigation": true,
       "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree"]
@@ -82,6 +82,16 @@
       "nemethCells": ["⠫⠙", "⠫⠲"],
       "requiresExplorerNavigation": true,
       "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "atomic-enter", "exact-subtree", "focus-restoration"]
+    },
+    {
+      "id": "omissions-cancellation",
+      "ledgerRules": ["11", "12"],
+      "status": "verified",
+      "creationTest": "Nemeth cancellation owns its content and MathJax edits only the canceled term",
+      "editingTest": "Nemeth cancellation owns its content and MathJax edits only the canceled term",
+      "nemethCells": ["⠪", "⠭", "⠻", "⠵"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree", "focus-restoration"]
     },
     {
       "id": "spatial",
