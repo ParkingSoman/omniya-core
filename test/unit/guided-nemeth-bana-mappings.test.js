@@ -7,7 +7,8 @@ import {
   applyNemethCell,
   applyNemethChoice,
   createEmptyDraftMathDocument,
-  operationRegistry
+  operationRegistry,
+  registryDiagnostics
 } from '../../src/domain/guided-nemeth/index.js';
 
 // These cells are independently checked against BANA Appendix D and the
@@ -44,9 +45,7 @@ const RULE_23_FIXTURES = [
   ['misc.yen', '⠈⠽', '¥'],
   ['misc.per-mille', '⠈⠴⠴', '‰'],
   ['misc.end-proof', '⠈⠫⠟⠑⠙', '∎'],
-  ['integral.superposed-square', '⠮⠈⠫⠲⠻', '⨖'],
-  ['operator.double-integral', '⠮⠮', '∬'],
-  ['operator.triple-integral', '⠮⠮⠮', '∭']
+  ['operator.integral', '⠮', '∫']
 ];
 
 const RULE_20_21_23_LITERALS = [
@@ -290,6 +289,14 @@ test('every accepted mapping has an explicit BANA source and action', () => {
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(['insert-token', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode'].includes(entry.action), entry.id);
   }
+});
+
+test('atomic local codes are reachable and never shadowed by immediate prefixes', () => {
+  // BANA has legitimate shared prefixes (for example, the shape angle and
+  // several arrow constructions). Those immediate meanings must explicitly
+  // opt into the longer-code lookahead policy; otherwise the first cell would
+  // commit too early and make the atomic construction unreachable.
+  assert.deepEqual(registryDiagnostics().policyErrors, []);
 });
 
 test('composed guided structures match SRE Nemeth output for whole expressions', async () => {

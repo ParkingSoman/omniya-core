@@ -52,3 +52,19 @@ rows must choose one policy before they are added to the interpreter.
 This ledger is not a conformance claim. Release requires every applicable
 Rules 1–24 row to move from “pending” to “reviewed” with independently authored
 fixtures and qualified Nemeth-transcriber review.
+
+## Registry policy review
+
+The registry applies the three local input policies to every construction
+family, rather than hard-coding special handling for arrows or integrals. A
+machine diagnostic reports any atomic row whose prefix is an immediate row;
+the immediate row must explicitly opt into longer-code lookahead. This keeps
+the local buffer reachable without making it an expression parser. The
+diagnostic is exercised by `test/unit/guided-nemeth-bana-mappings.test.js`.
+
+When a BANA construction begins with a code that is already a complete
+immediate symbol, it is not registered as an unreachable atomic sequence. For
+example, ordinary `⠮` inserts `∫` immediately. Bounds, repeated-integral
+meaning, and superposed marks are represented by subsequent structural
+follow-ups. This avoids claiming support for a compound code that the input
+policy could never receive.

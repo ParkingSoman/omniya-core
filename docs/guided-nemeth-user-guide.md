@@ -28,3 +28,20 @@ the equation. Escape cancels the replacement. You can choose LaTeX before
 typing if you prefer it for this replacement; LaTeX uses the same exact
 subtree replacement, focus restoration, undo, and save behavior. The choice is
 remembered only until the app closes, and a fresh launch starts in Nemeth.
+
+## The three local code styles
+
+The same rule is used throughout the supported BANA mappings:
+
+| Style | What you do | What it does |
+| --- | --- | --- |
+| Immediate | Enter one complete code | Inserts or applies that one object now. |
+| Atomic sequence | Enter the registered cells, then Enter | Commits one bounded construction, such as a particular arrow. |
+| Structural follow-up | Enter a separator, terminator, or modifier code | Moves to or changes a slot in an object already in the draft. |
+
+This is not a special arrow-versus-integral convention. It is the input
+registry's general rule. An ordinary integral is immediate, while its bounds
+are follow-ups. A compound object whose cells must be known together is an
+atomic sequence. Each buffer is discarded after that one local code is
+accepted, so writing from an empty equation and replacing a selected
+subexpression use exactly the same small operations.

@@ -188,13 +188,31 @@ test('numeric and capital indicators are local modes, not passage parsing', () =
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const value of ['⠼', '⠁', '⠃', '⠠', '⠉']) {
+  for (const value of ['⠼', '⠁', '⠃']) {
     const result = cell(document, focus, inputState, value);
     assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);
   }
+  // A new local token starts a separate indicator context. This is deliberate:
+  // the guided editor never tries to infer a complete passage-level numeric
+  // run from an unrestricted input buffer.
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  let result = cell(document, focus, inputState, '⠠');
+  assert.equal(result.status, 'pending');
+  const choice = commitNemethLocalCode({ document, focus, inputState: result.inputState });
+  assert.equal(choice.status, 'choice');
+  const capital = choice.choices.find((item) => item.operationId === 'indicator.capital');
+  assert.ok(capital, 'capital indicator must remain an explicit local choice when its cell is also punctuation');
+  result = applyNemethChoice({ document, focus, inputState: choice.inputState, operationId: capital.operationId });
+  assert.notEqual(result.status, 'rejected', result.announcement);
+  ({ document, focus, inputState } = result);
+  result = cell(document, focus, inputState, '⠉');
+  assert.notEqual(result.status, 'rejected', result.announcement);
+  ({ document, focus, inputState } = result);
   const tree = parseMathML(document.mathml);
-  assert.deepEqual(tree.children.filter((node) => node.name !== 'mspace').map((node) => node.children[0].text), ['1', '2', 'C']);
+  assert.deepEqual(tree.children.filter((node) => node.name !== 'mspace').map((node) => node.children[0].text), ['C']);
 });
 
 test('the shared baseline and multipurpose cell is selected by valid local context', () => {
@@ -263,7 +281,7 @@ test('punctuation and Greek symbols remain declarative token mappings', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const value of ['⠨', '⠏', '⠸', '⠲']) {
+  for (const value of ['⠨', '⠏', '⠲']) {
     const result = cell(document, focus, inputState, value);
     assert.notEqual(result.status, 'rejected', result.announcement);
     if (result.status === 'applied') ({ document, focus, inputState } = result);

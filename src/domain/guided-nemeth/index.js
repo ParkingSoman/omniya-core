@@ -279,17 +279,22 @@ const MAPPINGS = [
   ...[...LETTERS].map(([cells, value]) => token(`letter.${value}`, [cells], ['6.3', '6.4'], value, 'mi')),
   token('operator.plus', ['⠬'], ['20.1'], '+', 'mo', { preferLonger: true }),
   token('space', [' '], ['2.4'], '', 'mspace'),
-  token('punctuation.comma', ['⠂'], ['8.2'], ',', 'mo'),
-  token('punctuation.period', ['⠸', '⠲'], ['8.4'], '.', 'mo'),
-  token('punctuation.colon', ['⠸', '⠒'], ['8.5'], ':', 'mo'),
-  token('punctuation.semicolon', ['⠸', '⠆'], ['8.6'], ';', 'mo'),
-  token('punctuation.question', ['⠸', '⠦'], ['8.8'], '?', 'mo'),
-  token('punctuation.quote', ['⠠', '⠶'], ['8.9'], '"', 'mo'),
-  token('punctuation.exclamation', ['⠸', '⠖'], ['8.1'], '!', 'mo'),
+  // Rule 8's mathematical punctuation cells are literal local symbols. The
+  // punctuation indicator is a separate contextual operation used after a
+  // preceding indicator; it must not be baked into every punctuation token.
+  // Within the mathematical editor this is the mathematical comma (Braille
+  // ASCII comma, ⠠). Literary comma ⠂ is a passage-format concern and is not
+  // silently accepted as an equation comma.
+  token('punctuation.comma', ['⠠'], ['8.1', '8.2'], ',', 'mo'),
+  token('punctuation.period', ['⠲'], ['8.1', '8.2'], '.', 'mo'),
+  token('punctuation.colon', ['⠒'], ['8.1', '8.5'], ':', 'mo'),
+  token('punctuation.semicolon', ['⠆'], ['8.1', '8.6'], ';', 'mo'),
+  token('punctuation.question', ['⠦'], ['8.1', '8.8'], '?', 'mo'),
+  token('punctuation.exclamation', ['⠖'], ['8.1'], '!', 'mo'),
   token('punctuation.long-dash', ['⠤', '⠤', '⠤', '⠤'], ['8.8'], '―', 'mo'),
   token('punctuation.ellipsis', ['⠄', '⠄', '⠄'], ['8.8'], '…', 'mo'),
   token('punctuation.left-single-quote', ['⠠', '⠦'], ['8.1'], '‘', 'mo'),
-  token('punctuation.right-single-quote', ['⠴', '⠠'], ['8.1'], '’', 'mo'),
+  token('punctuation.right-single-quote', ['⠠', '⠴'], ['8.1'], '’', 'mo'),
   token('punctuation.left-double-quote', ['⠦'], ['8.1'], '“', 'mo'),
   token('punctuation.right-double-quote', ['⠴'], ['8.1'], '”', 'mo'),
   token('operator.minus', ['⠤'], ['20.6'], '−', 'mo', { preferLonger: true }),
@@ -316,24 +321,25 @@ const MAPPINGS = [
   token('operator.plus-minus-regular-bold', ['⠬', '⠐', '⠸', '⠤'], ['20.6'], '+−'),
   token('operator.proper-difference', ['⠨', '⠤'], ['20.6'], '∸'),
   token('operator.number-sign', ['⠨', '⠼'], ['20.3'], '#'),
-  token('operator.paragraph', ['⠈', '⠠', '⠏'], ['20.3'], '¶'),
-  token('operator.section', ['⠈', '⠠', '⠎'], ['20.3'], '§'),
+  token('operator.paragraph', ['⠈', '⠠', '⠏'], ['20.3'], '¶', 'mo', { preferLonger: true }),
+  token('operator.section', ['⠈', '⠠', '⠎'], ['20.3'], '§', 'mo', { preferLonger: true }),
+  // BANA Rule 20.3 names this the star symbol (☆); MathCAT's glyph choice
+  // is an independent rendering convention and does not override BANA.
   token('operator.star', ['⠫', '⠎'], ['20.3'], '☆'),
   token('operator.ring', ['⠨', '⠡'], ['20.3'], '∘'),
   // An ordinary integral is a complete local code and is inserted at once.
-  // Double/triple integrals remain separately registered constructions.
+  // Any bounds, multiplicity, or superposed decoration is added afterward by
+  // the same structural-followup operations used for every other operator.
   token('operator.integral', ['⠮'], ['23.12'], '∫'),
-  token('operator.double-integral', ['⠮', '⠮'], ['23.12'], '∬', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('operator.triple-integral', ['⠮', '⠮', '⠮'], ['23.12'], '∭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  // These are complete compound integral symbols. Their bounded code is
-  // collected as one local construction; an ordinary ⠮ remains immediate.
+  // These two BANA compound symbols have a distinct leading construction and
+  // are therefore valid bounded local codes; an ordinary ⠮ remains immediate.
   token('integral.lower', ['⠩', '⠮'], ['23.12'], '⨜', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('integral.upper', ['⠣', '⠮'], ['23.12'], '⨛', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('integral.contour', ['⠮', '⠈', '⠫', '⠉', '⠻'], ['23.12'], '∮', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('integral.superposed-infinity', ['⠮', '⠈', '⠠', '⠿', '⠻'], ['23.12'], '∰', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('integral.superposed-rectangle', ['⠮', '⠈', '⠫', '⠗', '⠻'], ['23.12'], '∯', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  // BANA Rule 23.12 calls this the superposed-square integral.
-  token('integral.superposed-square', ['⠮', '⠈', '⠫', '⠲', '⠻'], ['23.12'], '⨖', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // BANA's superposed/contour integrals are intentionally not registered as
+  // atomic Nemeth sequences here. Every one begins with the ordinary integral
+  // cell, which is an immediate operation. They must be added later as
+  // structural-followup operations (Rule 15 superposition), not as unreachable
+  // buffered codes that pretend to be supported.
   // The n-ary summation sign is a Greek capital sigma with the Greek
   // alphabet indicator and capitalization indicator (BANA 6.1.4, 6.2,
   // Appendix C). It is not the plain English-letter sequence ⠠⠎.
@@ -385,6 +391,8 @@ const MAPPINGS = [
   // MathML requires the radicand as child 1 and the index as child 2. Nemeth
   // presents the index first, so the transition opens a valid mroot in source
   // order while placing the draft focus in the index slot.
+  // ⠣ is also the standalone directly-over modifier. The longer indexed
+  // radical code gets the same explicit lookahead treatment.
   open('radical.indexed', ['⠣'], ['16.2', '16.3'], 'mroot', ['radicand', 'index'], {}, 'index', true),
   move('radical.next.radicand', ['⠌'], ['16.2'], 'mroot', 'radicand'),
   close('radical.indexed.end', ['⠻'], ['16.2', '16.3'], 'mroot'),
@@ -422,7 +430,10 @@ const MAPPINGS = [
   token('operator.logical-and', ['⠈', '⠩'], ['20.5'], '∧'),
   token('operator.logical-or', ['⠈', '⠬'], ['20.5'], '∨'),
   token('operator.slash', ['⠸', '⠌'], ['20.8'], '/'),
-  token('operator.divides', ['⠳'], ['20.1', '20.8'], '∣'),
+  // The same cell begins several Rule 22 arrow constructions. Hold the
+  // standalone operation briefly when a longer registered local code can
+  // continue; Enter still commits the standalone divides meaning.
+  token('operator.divides', ['⠳'], ['20.1', '20.8'], '∣', 'mo', { preferLonger: true }),
   token('operator.dot', ['⠡'], ['20.7'], '·'),
   token('operator.asterisk', ['⠈', '⠼'], ['20.3'], '∗'),
   token('misc.infinity', ['⠠', '⠿'], ['23.11'], '∞'),
@@ -452,8 +463,10 @@ const MAPPINGS = [
   token('misc.partial', ['⠈', '⠙'], ['23.14'], '∂'),
   token('misc.nabla', ['⠨', '⠫'], ['23.5'], '∇'),
   token('misc.ditto', ['⠠', '⠄'], ['23.6'], '〃'),
-  // Rule 23.8 prints the transcriber-defined construction `$qed: the
-  // multipurpose indicator (` = ⠈), shape ($ = ⠫), then q-e-d.
+  // BANA Rule 23.8: the end-of-proof icon is `@$qed`, preceded by an empty
+  // cell. The UEB transcriber-defined shape indicator is ⠈⠫, followed by
+  // q-e-d. The empty-cell/document spacing is represented by the surrounding
+  // passage policy, not folded into this local mathematical token.
   token('misc.end-proof', ['⠈', '⠫', '⠟', '⠑', '⠙'], ['23.8'], '∎', 'mo', { preferLonger: true }),
   token('misc.hollow-dot', ['⠨', '⠡'], ['15.17', '23.10'], '∘'),
   token('misc.degree', ['⠘', '⠨', '⠡'], ['23.1'], '°'),
@@ -468,7 +481,7 @@ const MAPPINGS = [
   token('misc.therefore', ['⠠', '⠡'], ['23.18'], '∴'),
   token('misc.since', ['⠈', '⠌'], ['23.18'], '∵'),
   token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″', 'mo', { preferLonger: true }),
-  token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴'),
+  token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴', 'mo', { preferLonger: true }),
   token('misc.tally', ['⠸'], ['23.19'], '|', 'mo', { preferLonger: true }),
   // Rule 23.20's vertical-bar symbol is the Braille ASCII | cell ⠡;
   // ⠳ remains reserved for the Rule 20 operation/divides meaning above.
@@ -556,6 +569,25 @@ export function operationRegistry() {
     validContexts: mapping.validContexts ?? ['empty-root', 'row', 'structure-slot'],
     errataRefs: mapping.errataRefs ?? []
   }));
+}
+
+/**
+ * Registry-level design checks. These protect the three local input policies
+ * from becoming contradictory as BANA rows are added. In particular, an
+ * atomic construction may not begin with an already-committed immediate code.
+ */
+export function registryDiagnostics() {
+  const entries = operationRegistry();
+  const immediate = entries.filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE);
+  const shadowedAtomic = entries
+    .filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE)
+    .flatMap((entry) => immediate
+      .filter((prefix) => entry.cells.length > prefix.cells.length &&
+        prefix.cells.every((cell, index) => cell === entry.cells[index]))
+      .map((prefix) => ({ atomicId: entry.id, immediateId: prefix.id })));
+  const policyErrors = shadowedAtomic
+    .filter(({ immediateId }) => !entries.find((entry) => entry.id === immediateId)?.args?.preferLonger);
+  return { shadowedAtomic, policyErrors };
 }
 
 function contextFor(document, focus) {

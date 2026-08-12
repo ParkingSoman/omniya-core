@@ -652,7 +652,7 @@
       "id": "punctuation.comma",
       "commandLabel": "punctuation.comma",
       "cells": [
-        "⠂"
+        "⠠"
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
@@ -661,6 +661,7 @@
         "value": ","
       },
       "banaRefs": [
+        "8.1",
         "8.2"
       ],
       "errataRefs": [],
@@ -674,7 +675,6 @@
       "id": "punctuation.period",
       "commandLabel": "punctuation.period",
       "cells": [
-        "⠸",
         "⠲"
       ],
       "action": "insert-token",
@@ -684,7 +684,8 @@
         "value": "."
       },
       "banaRefs": [
-        "8.4"
+        "8.1",
+        "8.2"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -697,7 +698,6 @@
       "id": "punctuation.colon",
       "commandLabel": "punctuation.colon",
       "cells": [
-        "⠸",
         "⠒"
       ],
       "action": "insert-token",
@@ -707,6 +707,7 @@
         "value": ":"
       },
       "banaRefs": [
+        "8.1",
         "8.5"
       ],
       "errataRefs": [],
@@ -720,7 +721,6 @@
       "id": "punctuation.semicolon",
       "commandLabel": "punctuation.semicolon",
       "cells": [
-        "⠸",
         "⠆"
       ],
       "action": "insert-token",
@@ -730,6 +730,7 @@
         "value": ";"
       },
       "banaRefs": [
+        "8.1",
         "8.6"
       ],
       "errataRefs": [],
@@ -743,7 +744,6 @@
       "id": "punctuation.question",
       "commandLabel": "punctuation.question",
       "cells": [
-        "⠸",
         "⠦"
       ],
       "action": "insert-token",
@@ -753,30 +753,8 @@
         "value": "?"
       },
       "banaRefs": [
+        "8.1",
         "8.8"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "punctuation.quote",
-      "commandLabel": "punctuation.quote",
-      "cells": [
-        "⠠",
-        "⠶"
-      ],
-      "action": "insert-token",
-      "commitPolicy": "immediate",
-      "args": {
-        "name": "mo",
-        "value": "\""
-      },
-      "banaRefs": [
-        "8.9"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -789,7 +767,6 @@
       "id": "punctuation.exclamation",
       "commandLabel": "punctuation.exclamation",
       "cells": [
-        "⠸",
         "⠖"
       ],
       "action": "insert-token",
@@ -884,8 +861,8 @@
       "id": "punctuation.right-single-quote",
       "commandLabel": "punctuation.right-single-quote",
       "cells": [
-        "⠴",
-        "⠠"
+        "⠠",
+        "⠴"
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
@@ -1542,7 +1519,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mo",
-        "value": "¶"
+        "value": "¶",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.3"
@@ -1566,7 +1544,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mo",
-        "value": "§"
+        "value": "§",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.3"
@@ -1647,53 +1626,6 @@
       ]
     },
     {
-      "id": "operator.double-integral",
-      "commandLabel": "operator.double-integral",
-      "cells": [
-        "⠮",
-        "⠮"
-      ],
-      "action": "insert-token",
-      "commitPolicy": "atomic-sequence",
-      "args": {
-        "name": "mo",
-        "value": "∬"
-      },
-      "banaRefs": [
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "operator.triple-integral",
-      "commandLabel": "operator.triple-integral",
-      "cells": [
-        "⠮",
-        "⠮",
-        "⠮"
-      ],
-      "action": "insert-token",
-      "commitPolicy": "atomic-sequence",
-      "args": {
-        "name": "mo",
-        "value": "∭"
-      },
-      "banaRefs": [
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
       "id": "integral.lower",
       "commandLabel": "integral.lower",
       "cells": [
@@ -1728,110 +1660,6 @@
       "args": {
         "name": "mo",
         "value": "⨛"
-      },
-      "banaRefs": [
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.contour",
-      "commandLabel": "integral.contour",
-      "cells": [
-        "⠮",
-        "⠈",
-        "⠫",
-        "⠉",
-        "⠻"
-      ],
-      "action": "insert-token",
-      "commitPolicy": "atomic-sequence",
-      "args": {
-        "name": "mo",
-        "value": "∮"
-      },
-      "banaRefs": [
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.superposed-infinity",
-      "commandLabel": "integral.superposed-infinity",
-      "cells": [
-        "⠮",
-        "⠈",
-        "⠠",
-        "⠿",
-        "⠻"
-      ],
-      "action": "insert-token",
-      "commitPolicy": "atomic-sequence",
-      "args": {
-        "name": "mo",
-        "value": "∰"
-      },
-      "banaRefs": [
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.superposed-rectangle",
-      "commandLabel": "integral.superposed-rectangle",
-      "cells": [
-        "⠮",
-        "⠈",
-        "⠫",
-        "⠗",
-        "⠻"
-      ],
-      "action": "insert-token",
-      "commitPolicy": "atomic-sequence",
-      "args": {
-        "name": "mo",
-        "value": "∯"
-      },
-      "banaRefs": [
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.superposed-square",
-      "commandLabel": "integral.superposed-square",
-      "cells": [
-        "⠮",
-        "⠈",
-        "⠫",
-        "⠲",
-        "⠻"
-      ],
-      "action": "insert-token",
-      "commitPolicy": "atomic-sequence",
-      "args": {
-        "name": "mo",
-        "value": "⨖"
       },
       "banaRefs": [
         "23.12"
@@ -3698,7 +3526,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mo",
-        "value": "∣"
+        "value": "∣",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.1",
@@ -4498,7 +4327,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mo",
-        "value": "‴"
+        "value": "‴",
+        "preferLonger": true
       },
       "banaRefs": [
         "23.16"
