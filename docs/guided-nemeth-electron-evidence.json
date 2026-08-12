@@ -2,6 +2,10 @@
   "standard": "BANA Nemeth Braille Code for Mathematics and Science Notation 2022",
   "errata": "October 2025",
   "scope": "Loaded Electron workflows only. A verified row has both creation and MathJax-navigated editing evidence; unit/SRE/MathCAT fixtures do not substitute for it.",
+  "evidenceContract": {
+    "creation": ["renderer-nemeth-input", "canonical-mathml", "whole-expression-braille"],
+    "editing": ["mathjax-arrow-navigation", "e-freezes-scope", "exact-subtree", "focused-braille", "transaction-submit"]
+  },
   "families": [
     {
       "id": "letters-numerals",
@@ -80,6 +84,7 @@
       "creationTest": "six-key input feeds the same Nemeth draft transition as Unicode cells",
       "editingTest": "six-key input feeds the same Nemeth draft transition as Unicode cells",
       "inputGesture": "keyboard\\.down\\('f'\\)[\\s\\S]+keyboard\\.down\\('s'\\)[\\s\\S]+keyboard\\.down\\('d'\\)",
+      "editingGesture": "same test repeats a six-key chord after MathJax ArrowDown and E",
       "requiresExplorerNavigation": true,
       "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "six-key-equivalence"]
     },

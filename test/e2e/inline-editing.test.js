@@ -661,4 +661,34 @@ test('six-key input feeds the same Nemeth draft transition as Unicode cells', { 
   assert.equal(await article.locator('math mi').count(), 1);
   assert.equal(await article.locator('math mi').textContent(), 'l');
   assert.equal(await input.count(), 1);
+
+  // The same six-key path must also work after MathJax has handed navigation
+  // to the focused populated expression. This is a real subtree replacement,
+  // not merely a creation smoke test.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+  await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(() => {
+    const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+    return current?.getAttribute('data-semantic-speech-none') === 'l'
+      || current?.getAttribute('data-speech') === 'l'
+      || current?.getAttribute('aria-label') === 'l';
+  });
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  await page.keyboard.down('f');
+  await page.keyboard.down('s');
+  await page.keyboard.down('k');
+  await page.keyboard.down('l');
+  await page.keyboard.up('f');
+  await page.keyboard.up('s');
+  await page.keyboard.up('k');
+  await page.keyboard.up('l');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  const editedIdentifiers = await article.locator('math mi').allTextContents();
+  const braille = await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+  assert.ok(editedIdentifiers.length >= 1 && editedIdentifiers.every((value) => value === 'z'), `six-key edit must leave no stale identifier: ${editedIdentifiers.join(',')}; braille=${braille}`);
+  assert.match(braille, /^⠵+$/, `six-key edit must expose only the replacement cell: ${braille}`);
 });
