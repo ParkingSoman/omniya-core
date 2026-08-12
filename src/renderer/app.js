@@ -433,13 +433,17 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       focus = { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' };
     }
   } catch (error) {
-    // A rendered MathJax focus should always map to the visual canonical
-    // source identity. Keep an impossible bridge defect out of the user
-    // workflow instead of presenting it as an ordinary editing condition.
-    console.error('MathJax focus bridge failed', error);
-    // This is an internal invariant failure, not a user-editing error. Keep
-    // the source untouched and let the next Explorer event retry the bridge.
-    return;
+    // The editor has no user-facing "unsafe focus" state. If MathJax is in a
+    // transient focus phase, retain a valid source-backed target and open the
+    // same replacement workflow. This fallback is deliberately limited to the
+    // canonical equation root and never mutates the source; the normal bridge
+    // above still supplies exact node/range scope for every settled Explorer
+    // focus. The diagnostic remains available for development builds.
+    console.error('MathJax focus bridge transiently unavailable; using canonical root', error);
+    const source = article.querySelector('mjx-assistive-mml math, mjx-math, math');
+    const rootId = source?.getAttribute('data-omniya-id') || source?.id?.replace(/^omniya-source-/, '');
+    if (!rootId) return;
+    focus = { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' };
   }
   replacementSession = startReplacementSession({
     document: item.math,

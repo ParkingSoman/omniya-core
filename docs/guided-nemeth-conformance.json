@@ -959,7 +959,8 @@
           "numerator",
           "denominator"
         ],
-        "attrs": {}
+        "attrs": {},
+        "initialSlot": "numerator"
       },
       "banaRefs": [
         "13.1",
@@ -1026,7 +1027,8 @@
           "base",
           "superscript"
         ],
-        "attrs": {}
+        "attrs": {},
+        "initialSlot": "base"
       },
       "banaRefs": [
         "14.3",
@@ -1052,7 +1054,8 @@
           "base",
           "subscript"
         ],
-        "attrs": {}
+        "attrs": {},
+        "initialSlot": "base"
       },
       "banaRefs": [
         "14.8"
@@ -1098,7 +1101,8 @@
         "slots": [
           "radicand"
         ],
-        "attrs": {}
+        "attrs": {},
+        "initialSlot": "radicand"
       },
       "banaRefs": [
         "16.1",
@@ -1141,10 +1145,53 @@
       "args": {
         "element": "mroot",
         "slots": [
-          "index",
-          "radicand"
+          "radicand",
+          "index"
         ],
-        "attrs": {}
+        "attrs": {},
+        "initialSlot": "index"
+      },
+      "banaRefs": [
+        "16.2",
+        "16.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.next.radicand",
+      "commandLabel": "radical.next.radicand",
+      "cells": [
+        "⠌"
+      ],
+      "action": "move-slot",
+      "args": {
+        "element": "mroot",
+        "role": "radicand"
+      },
+      "banaRefs": [
+        "16.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.indexed.end",
+      "commandLabel": "radical.indexed.end",
+      "cells": [
+        "⠻"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "mroot"
       },
       "banaRefs": [
         "16.2",
@@ -1171,7 +1218,8 @@
         ],
         "attrs": {
           "data-omniya-group": "round"
-        }
+        },
+        "initialSlot": "content"
       },
       "banaRefs": [
         "19.1",

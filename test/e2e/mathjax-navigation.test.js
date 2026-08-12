@@ -80,6 +80,21 @@ async function waitForSpeechChange(page, article, previous) {
   );
 }
 
+async function assertCurrentFocusCanBeReplaced(page) {
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  const status = await page.locator('#replacement-status').textContent();
+  assert.doesNotMatch(status, /cannot|unsafe|safe/i);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+}
+
+async function resetExplorer(page, article) {
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+}
+
 test('renders accessible MathML and supports complete tree navigation', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t);
   const article = await addEquation(page, 'a+b');
@@ -211,6 +226,39 @@ test('uses MathJax table navigation for matrix cells', { timeout: 60_000 }, asyn
   await page.keyboard.press('Shift+ArrowDown');
   await waitForSpeechChange(page, article, rightCell);
   assert.notEqual(await speechLabel(article), rightCell);
+});
+
+test('every navigable nested focus opens the exact replacement draft', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-edit-focus-e2e-');
+  const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}');
+
+  // Each prefix is replayed from the equation root. This exercises the real
+  // MathJax Explorer, rather than invoking the bridge with a fabricated ID.
+  const prefixes = [
+    [],
+    ['ArrowDown'],
+    ['ArrowDown', 'ArrowDown'],
+    ['ArrowDown', 'ArrowDown', 'ArrowRight'],
+    ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowRight'],
+    ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowRight']
+  ];
+  for (const prefix of prefixes) {
+    await resetExplorer(page, article);
+    for (const key of prefix) await page.keyboard.press(key);
+    await assertCurrentFocusCanBeReplaced(page);
+  }
+
+  const matrix = await addEquation(page, '\\begin{matrix}a&b\\\\c&d\\end{matrix}');
+  await resetExplorer(page, matrix);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await assertCurrentFocusCanBeReplaced(page);
+  await resetExplorer(page, matrix);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Shift+ArrowRight');
+  await page.keyboard.press('Shift+ArrowDown');
+  await assertCurrentFocusCanBeReplaced(page);
 });
 
 test('switches input type with radio arrow keys and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {

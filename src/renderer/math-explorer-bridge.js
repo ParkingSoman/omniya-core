@@ -45,6 +45,55 @@ function canonicalTargetForSourceNode(sourceNode) {
   };
 }
 
+function semanticReferences(node) {
+  return [
+    ...(node?.getAttribute('data-semantic-children') || '').split(/\s+/),
+    ...(node?.getAttribute('data-semantic-content') || '').split(/\s+/),
+    ...(node?.getAttribute('data-semantic-owns') || '').split(/\s+/)
+  ].filter(Boolean);
+}
+
+function semanticDescendants(node, bySemanticId, seen = new Set()) {
+  const id = node?.getAttribute?.('data-semantic-id');
+  if (id) seen.add(id);
+  for (const childId of semanticReferences(node)) {
+    if (seen.has(childId)) continue;
+    const child = bySemanticId.get(childId);
+    if (child) semanticDescendants(child, bySemanticId, seen);
+  }
+  return seen;
+}
+
+function targetForCanonicalIds(sourceRoot, ids) {
+  const wanted = new Set(ids);
+  const nodes = [sourceRoot, ...sourceRoot.querySelectorAll('[data-omniya-id], [id^="omniya-source-"]')]
+    .filter((node) => wanted.has(canonicalId(node)));
+  if (!nodes.length) return null;
+  // If the semantic focus includes a canonical ancestor and its descendants,
+  // the ancestor is the exact target and is preferable to a range below it.
+  const selected = nodes.filter((node) => !nodes.some((other) => other !== node && other.contains(node)));
+  if (selected.length === 1) return { kind: 'node', nodeId: canonicalId(selected[0]) };
+
+  let parent = selected[0].parentElement;
+  while (parent && !selected.every((node) => parent.contains(node))) parent = parent.parentElement;
+  if (!parent) return null;
+  const direct = selected.map((node) => {
+    let current = node;
+    while (current.parentElement && current.parentElement !== parent) current = current.parentElement;
+    return current;
+  });
+  const unique = [...new Set(direct)];
+  const canonicalChildren = [...parent.children].filter((child) => Boolean(canonicalId(child)));
+  const positions = unique.map((node) => canonicalChildren.indexOf(node)).sort((a, b) => a - b);
+  if (positions.some((position) => position < 0) || positions.at(-1) - positions[0] + 1 !== positions.length) return null;
+  return {
+    kind: 'range',
+    parentNodeId: canonicalId(parent),
+    firstNodeId: canonicalId(canonicalChildren[positions[0]]),
+    lastNodeId: canonicalId(canonicalChildren[positions.at(-1)])
+  };
+}
+
 export function captureExplorerFocus(article) {
   const semanticSelector = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.semanticFocus?.();
   const focused = (semanticSelector
@@ -54,13 +103,30 @@ export function captureExplorerFocus(article) {
   const semanticId = focused.getAttribute('data-semantic-id');
   if (!semanticId) throw new Error('MathJax explorer focus has no semantic identity');
   const sourceRoot = article.querySelector('mjx-assistive-mml math');
-  const sourceNode = sourceRoot && [sourceRoot, ...sourceRoot.querySelectorAll('[data-semantic-id]')]
-    .find((candidate) => candidate.getAttribute('data-semantic-id') === semanticId);
+  const sourceNodes = sourceRoot && [sourceRoot, ...sourceRoot.querySelectorAll('[data-semantic-id]')];
+  const sourceNode = sourceNodes?.find((candidate) => candidate.getAttribute('data-semantic-id') === semanticId) || null;
   // MathJax preserves source identities on the visual semantic nodes but
   // sanitizes unknown attributes in the assistive copy (for example,
   // `data-omniya-id` may become an empty `data-omniya-`). Prefer the source
   // node when it retained the identity, then use the matching visual node.
-  const target = canonicalTargetForSourceNode(sourceNode) || canonicalTargetForSourceNode(focused);
+  const target = canonicalTargetForSourceNode(sourceNode) || canonicalTargetForSourceNode(focused) || (() => {
+    // SRE can expose a virtual semantic node that has no presentation MathML
+    // element of its own. Its semantic children still identify an exact
+    // contiguous source range. Resolve those children through the source
+    // MathML rather than broadening the edit to an arbitrary ancestor.
+    const semanticNodes = [
+      ...(article.querySelectorAll('[data-semantic-id]'))
+    ];
+    const bySemanticId = new Map(semanticNodes.map((node) => [node.getAttribute('data-semantic-id'), node]));
+    const virtualNode = bySemanticId.get(semanticId) || focused;
+    if (!sourceRoot || !virtualNode) return null;
+    const semanticIds = semanticDescendants(virtualNode, bySemanticId);
+    const canonicalIds = [...semanticIds]
+      .map((id) => bySemanticId.get(id))
+      .map((node) => canonicalId(node))
+      .filter(Boolean);
+    return targetForCanonicalIds(sourceRoot, canonicalIds);
+  })();
   if (!target) throw new Error('Explorer focus cannot resolve to a canonical node or range');
   // MathJax keeps the focused Nemeth string on the transient explorer speech
   // node, not on the source MathML element. Read that accessibility channel

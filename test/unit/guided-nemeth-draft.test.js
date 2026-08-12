@@ -56,6 +56,22 @@ test('fraction cells create and traverse structural slots without parsing a pass
   assert.equal(tree.children[0].children[1].children[0].text, 'b');
 });
 
+test('indexed radicals preserve MathML child order while following Nemeth entry order', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠣', '⠼', '⠃', '⠌', '⠁', '⠻']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const root = parseMathML(document.mathml);
+  const radical = root.children[0];
+  assert.equal(radical.name, 'mroot');
+  assert.equal(radical.children[0].children[0].text, 'a');
+  assert.equal(radical.children[1].children[0].text, '2');
+});
+
 test('every registered Nemeth mapping is declarative and source-linked', () => {
   const entries = operationRegistry();
   assert.ok(entries.length > 20);

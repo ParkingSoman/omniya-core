@@ -116,7 +116,7 @@ function insertToken(tree, focus, name, value, { replace = false } = {}) {
   return { tree, focus: focusNode(inserted) };
 }
 
-function wrapCurrent(tree, focus, elementName, roles, attrs = {}) {
+function wrapCurrent(tree, focus, elementName, roles, attrs = {}, initialSlot = roles[0]) {
   const current = currentNode(tree, focus);
   const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
   const wrapper = element(elementName, [], { ...attrs, ...(inheritedId ? { 'data-omniya-id': inheritedId } : {}) });
@@ -129,7 +129,7 @@ function wrapCurrent(tree, focus, elementName, roles, attrs = {}) {
     for (const role of roles) wrapper.children.push(hole(wrapper, role));
   }
   replaceCurrent(tree, focus, wrapper);
-  const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === roles[0]);
+  const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === initialSlot);
   return { tree, focus: focusNode(first ?? wrapper) };
 }
 
@@ -158,7 +158,7 @@ function closeStructure(tree, focus, elementName) {
 }
 
 const token = (id, cells, banaRefs, value, name = 'mo') => ({ id, cells, banaRefs, action: 'insert-token', args: { name, value } });
-const open = (id, cells, banaRefs, elementName, slots, attrs = {}) => ({ id, cells, banaRefs, action: 'open-structure', args: { element: elementName, slots, attrs } });
+const open = (id, cells, banaRefs, elementName, slots, attrs = {}, initialSlot = slots[0]) => ({ id, cells, banaRefs, action: 'open-structure', args: { element: elementName, slots, attrs, initialSlot } });
 const move = (id, cells, banaRefs, elementName, role) => ({ id, cells, banaRefs, action: 'move-slot', args: { element: elementName, role } });
 const close = (id, cells, banaRefs, elementName) => ({ id, cells, banaRefs, action: 'close-structure', args: { element: elementName } });
 const mode = (id, cells, banaRefs, value, preferLonger = false) => ({ id, cells, banaRefs, action: 'set-mode', args: { mode: value, preferLonger } });
@@ -190,7 +190,12 @@ const MAPPINGS = [
   mode('script.baseline', ['⠐'], ['14.3', '14.8'], 'baseline'),
   open('radical.square', ['⠜'], ['16.1', '16.2'], 'msqrt', ['radicand']),
   close('radical.end', ['⠻'], ['16.1.1'], 'msqrt'),
-  open('radical.indexed', ['⠣'], ['16.2', '16.3'], 'mroot', ['index', 'radicand']),
+  // MathML requires the radicand as child 1 and the index as child 2. Nemeth
+  // presents the index first, so the transition opens a valid mroot in source
+  // order while placing the draft focus in the index slot.
+  open('radical.indexed', ['⠣'], ['16.2', '16.3'], 'mroot', ['radicand', 'index'], {}, 'index'),
+  move('radical.next.radicand', ['⠌'], ['16.2'], 'mroot', 'radicand'),
+  close('radical.indexed.end', ['⠻'], ['16.2', '16.3'], 'mroot'),
   open('group.round', ['⠷'], ['19.1', '19.5'], 'mrow', ['content'], { 'data-omniya-group': 'round' }),
   close('group.round.end', ['⠾'], ['19.1'], 'mrow'),
   token('group.parenthesis-open', ['⠷'], ['19.1'], '(', 'mo'),
@@ -285,6 +290,9 @@ function mappingApplies(mapping, context) {
   const fraction = hasAncestor(context.tree, context.node, 'mfrac');
   if (mapping.id === 'fraction.next.denominator') return Boolean(fraction && contains(context.tree, fraction.children[0], context.node));
   if (mapping.id === 'fraction.end.simple') return Boolean(fraction && contains(context.tree, fraction.children[1], context.node));
+  if (mapping.id === 'radical.next.radicand') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
+  if (mapping.id === 'radical.end') return Boolean(hasAncestor(context.tree, context.node, 'msqrt'));
+  if (mapping.id === 'radical.indexed.end') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
   if (mapping.id === 'indicator.number' && fraction) return !contains(context.tree, fraction.children[1], context.node);
   return true;
 }
@@ -297,7 +305,7 @@ function applyMapping(document, focus, inputState, mapping) {
     const replace = node.name === 'math' && tree.children.length === 0;
     result = insertToken(tree, focus, args.name, args.value, { replace });
   } else if (mapping.action === 'open-structure') {
-    result = wrapCurrent(tree, focus, args.element, args.slots, args.attrs);
+    result = wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
   } else if (mapping.action === 'move-slot') {
     result = focusRole(tree, focus, args.element, args.role);
   } else if (mapping.action === 'close-structure') {
