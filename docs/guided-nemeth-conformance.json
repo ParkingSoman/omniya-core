@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 236,
-    "atomicSequence": 263,
-    "structuralFollowup": 46
+    "atomicSequence": 273,
+    "structuralFollowup": 50
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 191,
+    "shadowedAtomicCount": 210,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -426,6 +426,82 @@
         "immediateId": "radical.indexed"
       },
       {
+        "atomicId": "script.sup-sup",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sup",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sup",
+        "immediateId": "script.sup-sub"
+      },
+      {
+        "atomicId": "script.sup-sup-sup",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sup-sub",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sub",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sub",
+        "immediateId": "script.sup-sub"
+      },
+      {
+        "atomicId": "script.sub-sub",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sup-sup",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sup",
+        "immediateId": "script.sub-sup"
+      },
+      {
+        "atomicId": "script.sub-sup-sup",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sup-sub",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sub",
+        "immediateId": "script.sub-sup"
+      },
+      {
+        "atomicId": "script.sub-sup-sub",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sub-sup",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sup",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sub-sub",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sub",
+        "immediateId": "indicator.english-letter"
+      },
+      {
         "atomicId": "group.bold-bracket-open",
         "immediateId": "misc.tally"
       },
@@ -782,7 +858,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 545,
+    "notation": 559,
     "contextual": 2
   },
   "operations": [
@@ -5617,7 +5693,37 @@
       "args": {
         "element": "mfrac",
         "role": "denominator",
-        "sourceNotation": "/"
+        "sourceNotation": "/",
+        "bevelled": false,
+        "fractionKind": "simple"
+      },
+      "banaRefs": [
+        "13.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.diagonal",
+      "commandLabel": "fraction.next.denominator.diagonal",
+      "cells": [
+        "⠸",
+        "⠌"
+      ],
+      "action": "move-slot",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": "_/",
+      "sourceKind": null,
+      "args": {
+        "element": "mfrac",
+        "role": "denominator",
+        "sourceNotation": "_/",
+        "bevelled": true,
+        "fractionKind": "simple"
       },
       "banaRefs": [
         "13.2"
@@ -5697,12 +5803,44 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
+      "sourceNotation": ",/",
+      "sourceKind": null,
+      "args": {
+        "element": "mfrac",
+        "role": "denominator",
+        "sourceNotation": ",/",
+        "bevelled": false,
+        "fractionKind": "complex"
+      },
+      "banaRefs": [
+        "13.5",
+        "13.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.complex.diagonal",
+      "commandLabel": "fraction.next.denominator.complex.diagonal",
+      "cells": [
+        "⠠",
+        "⠸",
+        "⠌"
+      ],
+      "action": "move-slot",
+      "commitPolicy": "structural-followup",
       "sourceNotation": ",_/",
       "sourceKind": null,
       "args": {
         "element": "mfrac",
         "role": "denominator",
-        "sourceNotation": ",_/"
+        "sourceNotation": ",_/",
+        "bevelled": true,
+        "fractionKind": "complex"
       },
       "banaRefs": [
         "13.5",
@@ -5786,12 +5924,45 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
+      "sourceNotation": ",,/",
+      "sourceKind": null,
+      "args": {
+        "element": "mfrac",
+        "role": "denominator",
+        "sourceNotation": ",,/",
+        "bevelled": false,
+        "fractionKind": "hypercomplex"
+      },
+      "banaRefs": [
+        "13.7",
+        "13.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.hypercomplex.diagonal",
+      "commandLabel": "fraction.next.denominator.hypercomplex.diagonal",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠸",
+        "⠌"
+      ],
+      "action": "move-slot",
+      "commitPolicy": "structural-followup",
       "sourceNotation": ",,_/",
       "sourceKind": null,
       "args": {
         "element": "mfrac",
         "role": "denominator",
-        "sourceNotation": ",,_/"
+        "sourceNotation": ",,_/",
+        "bevelled": true,
+        "fractionKind": "hypercomplex"
       },
       "banaRefs": [
         "13.7",
@@ -5868,6 +6039,33 @@
       "id": "fraction.next.denominator.mixed",
       "commandLabel": "fraction.next.denominator.mixed",
       "cells": [
+        "⠌"
+      ],
+      "action": "move-slot",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": "/",
+      "sourceKind": null,
+      "args": {
+        "element": "mfrac",
+        "role": "denominator",
+        "sourceNotation": "/",
+        "bevelled": false,
+        "fractionKind": "mixed"
+      },
+      "banaRefs": [
+        "13.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.mixed.diagonal",
+      "commandLabel": "fraction.next.denominator.mixed.diagonal",
+      "cells": [
         "⠸",
         "⠌"
       ],
@@ -5878,7 +6076,9 @@
       "args": {
         "element": "mfrac",
         "role": "denominator",
-        "sourceNotation": "_/"
+        "sourceNotation": "_/",
+        "bevelled": true,
+        "fractionKind": "mixed"
       },
       "banaRefs": [
         "13.4"
@@ -6036,6 +6236,312 @@
       },
       "banaRefs": [
         "14.4.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sup",
+      "commandLabel": "script.sup-sup",
+      "cells": [
+        "⠘",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sup"
+        ],
+        "sourceNotation": "~~"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sub-sup",
+      "commandLabel": "script.sup-sub-sup",
+      "cells": [
+        "⠘",
+        "⠰",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~;~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sub",
+          "sup"
+        ],
+        "sourceNotation": "~;~"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sup-sup",
+      "commandLabel": "script.sup-sup-sup",
+      "cells": [
+        "⠘",
+        "⠘",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~~~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sup",
+          "sup"
+        ],
+        "sourceNotation": "~~~"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sup-sub",
+      "commandLabel": "script.sup-sup-sub",
+      "cells": [
+        "⠘",
+        "⠘",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~~;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sup",
+          "sub"
+        ],
+        "sourceNotation": "~~;"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sub-sub",
+      "commandLabel": "script.sup-sub-sub",
+      "cells": [
+        "⠘",
+        "⠰",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~;;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sub",
+          "sub"
+        ],
+        "sourceNotation": "~;;"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sub",
+      "commandLabel": "script.sub-sub",
+      "cells": [
+        "⠰",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sub"
+        ],
+        "sourceNotation": ";;"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sup-sup",
+      "commandLabel": "script.sub-sup-sup",
+      "cells": [
+        "⠰",
+        "⠘",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";~~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sup",
+          "sup"
+        ],
+        "sourceNotation": ";~~"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sup-sub",
+      "commandLabel": "script.sub-sup-sub",
+      "cells": [
+        "⠰",
+        "⠘",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";~;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sup",
+          "sub"
+        ],
+        "sourceNotation": ";~;"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sub-sup",
+      "commandLabel": "script.sub-sub-sup",
+      "cells": [
+        "⠰",
+        "⠰",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";;~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sub",
+          "sup"
+        ],
+        "sourceNotation": ";;~"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sub-sub",
+      "commandLabel": "script.sub-sub-sub",
+      "cells": [
+        "⠰",
+        "⠰",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";;;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sub",
+          "sub"
+        ],
+        "sourceNotation": ";;;"
+      },
+      "banaRefs": [
+        "14.4.2",
+        "14.4.3"
       ],
       "errataRefs": [],
       "validContexts": [

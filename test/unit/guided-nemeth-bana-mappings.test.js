@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import SRE from 'speech-rule-engine';
 
-import { parseMathML } from '../../src/domain/math-tree.js';
+import { findMathNode, parseMathML } from '../../src/domain/math-tree.js';
 import {
   applyNemethCell,
   applyNemethChoice,
@@ -517,15 +517,19 @@ test('BANA Rules 9, 12, 13, 14, 15, 16, and 19 retain the printed local codes', 
     ['cancellation.end', ']'],
     ['fraction.start.simple', '?'],
     ['fraction.next.denominator', '/'],
+    ['fraction.next.denominator.diagonal', '_/'],
     ['fraction.end.simple', '#'],
     ['fraction.start.complex', ',?'],
-    ['fraction.next.denominator.complex', ',_/'],
+    ['fraction.next.denominator.complex', ',/'],
+    ['fraction.next.denominator.complex.diagonal', ',_/'],
     ['fraction.end.complex', ',#'],
     ['fraction.start.hypercomplex', ',,?'],
-    ['fraction.next.denominator.hypercomplex', ',,_/'],
+    ['fraction.next.denominator.hypercomplex', ',,/'],
+    ['fraction.next.denominator.hypercomplex.diagonal', ',,_/'],
     ['fraction.end.hypercomplex', ',,#'],
     ['fraction.start.mixed', '_?'],
-    ['fraction.next.denominator.mixed', '_/'],
+    ['fraction.next.denominator.mixed', '/'],
+    ['fraction.next.denominator.mixed.diagonal', '_/'],
     ['fraction.end.mixed', '_#'],
     ['script.superscript', '~'],
     ['script.subscript', ';'],
@@ -578,6 +582,25 @@ test('BANA Rules 9, 12, 13, 14, 15, 16, and 19 retain the printed local codes', 
     ['group.vertical-bar', '|']
   ]) {
     assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
+  }
+});
+
+test('BANA Rule 13 preserves horizontal versus diagonal fraction lines', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation, cells, bevelled] of [
+    ['fraction.next.denominator', '/', '⠌', false],
+    ['fraction.next.denominator.diagonal', '_/', '⠸⠌', true],
+    ['fraction.next.denominator.complex', ',/', '⠠⠌', false],
+    ['fraction.next.denominator.complex.diagonal', ',_/', '⠠⠸⠌', true],
+    ['fraction.next.denominator.hypercomplex', ',,/', '⠠⠠⠌', false],
+    ['fraction.next.denominator.hypercomplex.diagonal', ',,_/', '⠠⠠⠸⠌', true],
+    ['fraction.next.denominator.mixed', '/', '⠌', false],
+    ['fraction.next.denominator.mixed.diagonal', '_/', '⠸⠌', true]
+  ]) {
+    const entry = registry.get(id);
+    assert.equal(entry?.args?.sourceNotation, sourceNotation, id);
+    assert.equal(entry?.cells.join(''), cells, id);
+    assert.equal(entry?.args?.bevelled, bevelled, id);
   }
 });
 
@@ -1229,7 +1252,7 @@ test('every accepted mapping has explicit BANA source evidence and action', () =
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
   }
 });
 
@@ -1297,6 +1320,45 @@ test('Rule 14 left-script cells use a local baseline promotion, not passage pars
   assert.equal(scripts.children[1].name, 'mprescripts');
   assert.equal(scripts.children[2].name, 'none');
   assert.equal(scripts.children[3].children[0].text, 'x');
+});
+
+test('Rules 14.4.2-14.4.3 compose every two- and three-level direction chain locally', () => {
+  const cases = [
+    ['script.sup-sup', '⠘⠘', ['superscript', 'superscript']],
+    ['script.sub-sub', '⠰⠰', ['subscript', 'subscript']],
+    ['script.sup-sup-sup', '⠘⠘⠘', ['superscript', 'superscript', 'superscript']],
+    ['script.sup-sup-sub', '⠘⠘⠰', ['superscript', 'superscript', 'subscript']],
+    ['script.sup-sub-sup', '⠘⠰⠘', ['superscript', 'subscript', 'superscript']],
+    ['script.sup-sub-sub', '⠘⠰⠰', ['superscript', 'subscript', 'subscript']],
+    ['script.sub-sup-sup', '⠰⠘⠘', ['subscript', 'superscript', 'superscript']],
+    ['script.sub-sup-sub', '⠰⠘⠰', ['subscript', 'superscript', 'subscript']],
+    ['script.sub-sub-sup', '⠰⠰⠘', ['subscript', 'subscript', 'superscript']],
+    ['script.sub-sub-sub', '⠰⠰⠰', ['subscript', 'subscript', 'subscript']]
+  ];
+  for (const [id, cells, roles] of cases) {
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    for (const cell of ['⠭', ...[...cells]]) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      assert.notEqual(result.status, 'rejected', `${id}/${cell}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', id);
+    const root = parseMathML(committed.document.mathml).children[0];
+    const actual = [];
+    let node = root;
+    while (node?.name === 'msup' || node?.name === 'msub') {
+      actual.push(node.name === 'msup' ? 'superscript' : 'subscript');
+      node = node.children[0];
+    }
+    assert.deepEqual(actual, roles, id);
+    const focused = parseMathML(committed.document.mathml).children[0];
+    const focusedNode = findMathNode(focused, committed.focus.nodeId);
+    assert.ok(focusedNode?.attrs?.['data-omniya-hole'] === 'true', id);
+    assert.equal(focusedNode.attrs['data-omniya-role'], roles[0], id);
+  }
 });
 
 test('Rule 14 numeric subscripts and Rule 24 baseline numerals stay local to the draft row', () => {

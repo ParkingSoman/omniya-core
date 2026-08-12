@@ -144,6 +144,9 @@ test('compound Rule 14 level indicators build one msubsup with navigable slots',
     assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);
   }
+  const committed = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(committed.status, 'applied', committed.announcement);
+  ({ document, focus, inputState } = committed);
   const tree = parseMathML(document.mathml);
   assert.equal(tree.children[0].name, 'msubsup');
   assert.equal(tree.children[0].children.length, 3);

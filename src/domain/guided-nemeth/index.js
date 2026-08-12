@@ -387,6 +387,41 @@ function promoteScriptToPrescript(tree, focus, direction) {
   return { tree, focus: focusNode(baseHole) };
 }
 
+// BANA Rule 14 permits more than one script level in a bounded indicator
+// sequence.  MathML's multiscripts element is the native representation for
+// that composition: each encountered direction contributes one post-script
+// pair, with <none/> occupying the opposite side.  This is deliberately a
+// local operation.  It consumes only the registered indicator sequence and
+// never tries to infer an operand or parse the surrounding passage.
+function openScriptChain(tree, focus, directions) {
+  if (!Array.isArray(directions) || directions.length < 2) {
+    throw new RangeError('A script chain needs at least two registered levels.');
+  }
+  const current = currentNode(tree, focus);
+  const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
+  const base = current.name !== 'math' && !isHole(current)
+    ? structuredClone(current)
+    : null;
+  if (base !== current && base.attrs && !isHole(base)) base.attrs['data-omniya-id'] = id();
+  let nested = base ?? element('mrow', []);
+  const slots = [];
+  for (let index = directions.length - 1; index >= 0; index -= 1) {
+    const direction = directions[index];
+    if (direction !== 'sup' && direction !== 'sub') {
+      throw new RangeError(`Unknown script direction: ${direction}`);
+    }
+    const elementName = direction === 'sub' ? 'msub' : 'msup';
+    const role = direction === 'sub' ? 'subscript' : 'superscript';
+    const wrapper = element(elementName, [], {});
+    wrapper.children.push(nested, hole(wrapper, role));
+    nested = wrapper;
+    slots.unshift(wrapper.children[1]);
+  }
+  if (inheritedId) nested.attrs['data-omniya-id'] = inheritedId;
+  replaceCurrent(tree, focus, nested);
+  return { tree, focus: focusNode(slots[0] ?? nested) };
+}
+
 function openModifier(tree, focus, elementName, initialSlot) {
   return wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
 }
@@ -795,8 +830,8 @@ const contractedComma = (id, cells, banaRefs, sourceNotation = null) => ({
   commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: sourceNotation ? { sourceNotation } : {}
 });
 
-const sourceMove = (id, cells, banaRefs, elementName, role, sourceNotation) => move(
-  id, cells, banaRefs, elementName, role, { sourceNotation }
+const sourceMove = (id, cells, banaRefs, elementName, role, sourceNotation, options = {}) => move(
+  id, cells, banaRefs, elementName, role, { sourceNotation, ...options }
 );
 const sourceClose = (id, cells, banaRefs, elementName, sourceNotation) => close(
   id, cells, banaRefs, elementName, { sourceNotation }
@@ -804,6 +839,14 @@ const sourceClose = (id, cells, banaRefs, elementName, sourceNotation) => close(
 const sourceOpen = (id, cells, banaRefs, elementName, slots, attrs, initialSlot, preferLonger, commitPolicy, sourceNotation) => open(
   id, cells, banaRefs, elementName, slots, attrs, initialSlot, preferLonger, commitPolicy, { sourceNotation }
 );
+const scriptChain = (id, sourceNotation, directions) => ({
+  id,
+  cells: sourceCells(sourceNotation),
+  banaRefs: ['14.4.2', '14.4.3'],
+  action: 'open-script-chain',
+  commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+  args: { directions, sourceNotation }
+});
 
 const cellForLetter = (letter) => [...LETTERS.entries()].find(([, value]) => value === letter)?.[0] ?? letter;
 const NON_ENGLISH_MAPPINGS = [
@@ -964,21 +1007,38 @@ const MAPPINGS = [
   // Appendix C). It is not the plain English-letter sequence ⠠⠎.
   sourceToken('operator.sum', '.,s', ['6.1.4', '6.2', '18.1'], '∑'),
   sourceOpen('fraction.start.simple', ['⠹'], ['13.1', '13.2'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'simple' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '?'),
-  sourceMove('fraction.next.denominator', ['⠌'], ['13.2'], 'mfrac', 'denominator', '/'),
+  sourceMove('fraction.next.denominator', ['⠌'], ['13.2'], 'mfrac', 'denominator', '/', { bevelled: false, fractionKind: 'simple' }),
+  sourceMove('fraction.next.denominator.diagonal', ['⠸', '⠌'], ['13.2'], 'mfrac', 'denominator', '_/', { bevelled: true, fractionKind: 'simple' }),
   sourceClose('fraction.end.simple', ['⠼'], ['13.2.1'], 'mfrac', '#'),
   sourceOpen('fraction.start.complex', ['⠠', '⠹'], ['13.5', '13.6'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'complex' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, ',?'),
-  sourceMove('fraction.next.denominator.complex', ['⠠', '⠌'], ['13.5', '13.6'], 'mfrac', 'denominator', ',_/'),
+  sourceMove('fraction.next.denominator.complex', ['⠠', '⠌'], ['13.5', '13.6'], 'mfrac', 'denominator', ',/', { bevelled: false, fractionKind: 'complex' }),
+  sourceMove('fraction.next.denominator.complex.diagonal', ['⠠', '⠸', '⠌'], ['13.5', '13.6'], 'mfrac', 'denominator', ',_/', { bevelled: true, fractionKind: 'complex' }),
   sourceClose('fraction.end.complex', ['⠠', '⠼'], ['13.6'], 'mfrac', ',#'),
   sourceOpen('fraction.start.hypercomplex', ['⠠', '⠠', '⠹'], ['13.7', '13.8'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'hypercomplex' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, ',,?'),
-  sourceMove('fraction.next.denominator.hypercomplex', ['⠠', '⠠', '⠌'], ['13.7', '13.8'], 'mfrac', 'denominator', ',,_/'),
+  sourceMove('fraction.next.denominator.hypercomplex', ['⠠', '⠠', '⠌'], ['13.7', '13.8'], 'mfrac', 'denominator', ',,/', { bevelled: false, fractionKind: 'hypercomplex' }),
+  sourceMove('fraction.next.denominator.hypercomplex.diagonal', ['⠠', '⠠', '⠸', '⠌'], ['13.7', '13.8'], 'mfrac', 'denominator', ',,_/', { bevelled: true, fractionKind: 'hypercomplex' }),
   sourceClose('fraction.end.hypercomplex', ['⠠', '⠠', '⠼'], ['13.8'], 'mfrac', ',,#'),
   sourceOpen('fraction.start.mixed', ['⠸', '⠹'], ['13.4'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'mixed' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '_?'),
-  sourceMove('fraction.next.denominator.mixed', ['⠸', '⠌'], ['13.4'], 'mfrac', 'denominator', '_/'),
+  sourceMove('fraction.next.denominator.mixed', ['⠌'], ['13.4'], 'mfrac', 'denominator', '/', { bevelled: false, fractionKind: 'mixed' }),
+  sourceMove('fraction.next.denominator.mixed.diagonal', ['⠸', '⠌'], ['13.4'], 'mfrac', 'denominator', '_/', { bevelled: true, fractionKind: 'mixed' }),
   sourceClose('fraction.end.mixed', ['⠸', '⠼'], ['13.4'], 'mfrac', '_#'),
   sourceOpen('script.superscript', ['⠘'], ['14.3', '14.4'], 'msup', ['base', 'superscript'], {}, 'superscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '~'),
   sourceOpen('script.subscript', ['⠰'], ['14.8'], 'msub', ['base', 'subscript'], {}, 'subscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, ';'),
   sourceOpen('script.sup-sub', ['⠘', '⠰'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'superscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '~;'),
   sourceOpen('script.sub-sup', ['⠰', '⠘'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'subscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, ';~'),
+  // Rules 14.4.2–14.4.3 are represented as bounded local chains. Each row
+  // describes only the ordered level indicators; the operation composes the
+  // corresponding nested MathML scripts and opens the first required slot.
+  scriptChain('script.sup-sup', '~~', ['sup', 'sup']),
+  scriptChain('script.sup-sub-sup', '~;~', ['sup', 'sub', 'sup']),
+  scriptChain('script.sup-sup-sup', '~~~', ['sup', 'sup', 'sup']),
+  scriptChain('script.sup-sup-sub', '~~;', ['sup', 'sup', 'sub']),
+  scriptChain('script.sup-sub-sub', '~;;', ['sup', 'sub', 'sub']),
+  scriptChain('script.sub-sub', ';;', ['sub', 'sub']),
+  scriptChain('script.sub-sup-sup', ';~~', ['sub', 'sup', 'sup']),
+  scriptChain('script.sub-sup-sub', ';~;', ['sub', 'sup', 'sub']),
+  scriptChain('script.sub-sub-sup', ';;~', ['sub', 'sub', 'sup']),
+  scriptChain('script.sub-sub-sub', ';;;', ['sub', 'sub', 'sub']),
   sourceMove('script.sup-sub.move-sub', ['⠰'], ['14.4.2'], 'msubsup', 'subscript', ';'),
   sourceMove('script.sub-sup.move-sup', ['⠘'], ['14.4.2'], 'msubsup', 'superscript', '~'),
   mode('script.baseline', ['⠐'], ['14.3', '14.8'], 'baseline', true, '"'),
@@ -1594,7 +1654,7 @@ function mappingApplies(mapping, context) {
   const denominatorFocus = Boolean(fraction && (contains(context.tree, fraction.children[1], context.node) ||
     (context.node === fraction && !isHole(fraction.children[1]))));
   if (mapping.id.startsWith('fraction.next.denominator')) {
-    const kind = mapping.id === 'fraction.next.denominator' ? 'simple' : mapping.id.split('.').at(-1);
+    const kind = mapping.args?.fractionKind ?? (mapping.id === 'fraction.next.denominator' ? 'simple' : mapping.id.split('.').at(-1));
     return Boolean(fraction && fractionKind === kind && numeratorFocus);
   }
   if (mapping.id.startsWith('fraction.end.')) {
@@ -1779,6 +1839,10 @@ function applyMapping(document, focus, inputState, mapping) {
       return { status: 'rejected', document, focus, inputState, announcement: error.message };
     }
   } else if (mapping.action === 'move-slot') {
+    if (args.element === 'mfrac' && Object.hasOwn(args, 'bevelled')) {
+      const fraction = fractionAtFocus(tree, node);
+      if (fraction) fraction.attrs.bevelled = args.bevelled ? 'true' : 'false';
+    }
     result = focusRole(tree, focus, args.element, args.role);
   } else if (mapping.action === 'set-mode') {
     if (args.mode === 'baseline') {
@@ -1937,6 +2001,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // buffer.
   const existingComparison = context.node.name === 'mo' &&
     ['<', '>', '=', '≤', '≥', '≠', '≡', '⊂', '⊃'].includes(context.node.children?.[0]?.text);
+  // The two legacy one-cell msubsup moves are true structural follow-ups,
+  // not prefixes of a new construction once the compound script exists.
+  // Keep this narrow exception explicit so unrelated shared prefixes retain
+  // the registry's normal atomic lookahead behavior.
+  const scriptMove = PREFIXES.get(sequence)?.mappings
+    ?.find((mapping) => ['script.sup-sub.move-sub', 'script.sub-sup.move-sup'].includes(mapping.id) && mappingApplies(mapping, context));
+  if (state.mode === null && scriptMove) {
+    return applyMapping(document, focus, { ...state, prefix: '' }, scriptMove);
+  }
   const atomicContinuation = state.mode === null && !existingComparison && MAPPINGS.some((mapping) =>
     mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     mapping.cells.length > sequence.length &&
@@ -2275,6 +2348,14 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     .filter((mapping) => state.mode === 'multipurpose'
       ? mapping.action !== 'open-modifier'
       : mapping.action !== 'open-modifier');
+  // A structural follow-up that is valid at the current MathML node wins
+  // over unrelated longer prefixes.  This keeps the established one-cell
+  // move between msubsup slots immediate while atomic constructions that
+  // actually share the same complete code still use their bounded Enter
+  // policy.
+  if (mappings.length === 1 && mappings[0].commitPolicy === LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP) {
+    return applyMapping(document, focus, state, mappings[0]);
+  }
   const hasLonger = [...PREFIXES.keys()].some((candidate) => candidate.startsWith(sequence) && candidate.length > sequence.length && [...(PREFIXES.get(candidate)?.mappings ?? [])].some((mapping) => mappingApplies(mapping, context)));
   if (!mappings.length) {
     if (hasLonger) return { status: 'pending', document, focus, inputState: { ...state, prefix: sequence }, announcement: 'Nemeth sequence pending.' };

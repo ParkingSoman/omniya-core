@@ -55,6 +55,17 @@ on the page, it is structural-followup. These choices are properties of the
 registry rows, so adding a new BANA construction does not require a new
 editing mode or a second parser.
 
+### Multi-level scripts
+
+Nemeth level indicators can describe a script on a script. Enter the complete
+two- or three-level indicator sequence, then press **Enter** once. For example,
+`~~` means superscript followed by superscript, while `~;~` means superscript,
+subscript, superscript. Omniya creates the corresponding nested MathML and
+places you in the first required slot. Fill each slot with ordinary local
+operations. This is one bounded atomic sequence, not a buffer for the
+expression that will go inside the scripts. The same rule covers every
+two- and three-level direction combination in BANA Rules 14.4.2 and 14.4.3.
+
 For scripts, keep using the same local progression. Enter a base, choose the
 subscript or superscript operation, and then fill that slot. A comma inside a
 script uses the contracted comma code and keeps you in that script. A prime is
