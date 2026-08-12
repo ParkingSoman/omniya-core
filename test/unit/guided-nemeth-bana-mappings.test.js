@@ -8,6 +8,7 @@ import {
   applyNemethChoice,
   commitNemethLocalCode,
   createEmptyDraftMathDocument,
+  inputRegistry,
   operationRegistry,
   registryDiagnostics
 } from '../../src/domain/guided-nemeth/index.js';
@@ -312,7 +313,7 @@ test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () 
 
 test('BANA Rule 6 non-English alphabet indicators remain bounded local mappings', () => {
   const fixtures = [
-    ['german.v', '⠸⠧', '𝖛'],
+    ['german.v', '⠸⠧', '𝔳'],
     ['german.capital-v', '⠸⠠⠧', '𝔙'],
     ['hebrew.aleph', '⠠⠠⠁', 'א'],
     ['russian.ell', '⠈⠈⠇', 'л'],
@@ -666,6 +667,31 @@ test('BANA Rule 14.13 appends a bounded possessive after a script', () => {
   assert.equal(tree.children[2].children[0].text, 's');
 });
 
+test('BANA Rule 6.1.1 uses ordinary German Fraktur, not bold-Fraktur', async () => {
+  await SRE.engineReady();
+  await SRE.setupEngine({ locale: 'nemeth', modality: 'braille', domain: 'default' });
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, glyph] of [
+    ['german.a', '⠸⠁', '𝔞'],
+    ['german.capital-c', '⠸⠠⠉', 'ℭ'],
+    ['german.capital-z', '⠸⠠⠵', 'ℨ']
+  ]) {
+    assert.equal(registry.get(id)?.cells.join(''), cells, id);
+    const tree = applyFixture(id, cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, glyph, id);
+    assert.equal(SRE.toSpeech(`<math><mi>${glyph}</mi></math>`), cells, id);
+  }
+});
+
+test('BANA Rule 23.8 treats QED as a transcriber-defined local shape', async () => {
+  await SRE.engineReady();
+  await SRE.setupEngine({ locale: 'nemeth', modality: 'braille', domain: 'default' });
+  const tree = applyFixture('misc.end-proof', '⠈⠫⠟⠑⠙');
+  const proof = tree.children.at(-1);
+  assert.equal(proof.attrs['data-omniya-nemeth-intent'], 'qed');
+  assert.equal(SRE.toSpeech('<math><mo intent="qed">∎</mo></math>'), '⠸⠳');
+});
+
 test('every accepted mapping has an explicit BANA source and action', () => {
   for (const entry of operationRegistry()) {
     assert.match(entry.id, /^\S+$/);
@@ -682,6 +708,18 @@ test('atomic local codes are reachable and never shadowed by immediate prefixes'
   // commit too early and make the atomic construction unreachable.
   assert.deepEqual(registryDiagnostics().policyErrors, []);
   assert.deepEqual(registryDiagnostics().shadowedImmediate, []);
+});
+
+test('the three input policies are one registry-wide contract', () => {
+  const grouped = inputRegistry();
+  const all = [...grouped.immediate, ...grouped.atomicSequence, ...grouped.structuralFollowup];
+  assert.equal(all.length, operationRegistry().length);
+  assert.equal(new Set(all.map((entry) => entry.id)).size, all.length);
+  for (const entry of grouped.atomicSequence) assert.ok(entry.cells.length > 1 || entry.args?.preferLonger, entry.id);
+  assert.ok(grouped.immediate.some((entry) => entry.id === 'operator.integral'));
+  assert.ok(grouped.atomicSequence.some((entry) => entry.id.startsWith('arrow.')));
+  assert.ok(grouped.structuralFollowup.some((entry) => entry.id === 'integral.extend'));
+  assert.ok(grouped.structuralFollowup.some((entry) => entry.action === 'move-slot'));
 });
 
 test('composed guided structures match SRE Nemeth output for whole expressions', async () => {

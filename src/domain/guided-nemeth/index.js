@@ -64,13 +64,18 @@ const GREEK_VARIANTS = [
 // word parser; each row inserts one identifier and the next cell starts a new
 // local operation.
 const GERMAN_FRAKTUR = [
-  ['a', '𝖆', '𝔄'], ['b', '𝖇', '𝔅'], ['c', '𝖈', '𝕮'], ['d', '𝖉', '𝔇'],
-  ['e', '𝖊', '𝔈'], ['f', '𝖋', '𝔉'], ['g', '𝖌', '𝔊'], ['h', '𝖍', '𝕳'],
-  ['i', '𝖎', '𝕴'], ['j', '𝖏', '𝔍'], ['k', '𝖐', '𝔎'], ['l', '𝖑', '𝔏'],
-  ['m', '𝖒', '𝔐'], ['n', '𝖓', '𝔑'], ['o', '𝖔', '𝔒'], ['p', '𝖕', '𝔓'],
-  ['q', '𝖖', '𝔔'], ['r', '𝖗', '𝕽'], ['s', '𝖘', '𝔖'], ['t', '𝖙', '𝔗'],
-  ['u', '𝖚', '𝔘'], ['v', '𝖛', '𝔙'], ['w', '𝖜', '𝔚'], ['x', '𝖝', '𝔛'],
-  ['y', '𝖞', '𝔜'], ['z', '𝖟', '𝖅']
+  // These are mathematical Fraktur characters, not bold-Fraktur. The
+  // distinction matters: bold-Fraktur carries the additional BANA boldface
+  // indicator, while Rule 6.1.1 German Fraktur uses only the German-letter
+  // indicator. The exceptional Unicode code points are the standard Fraktur
+  // capitals for C, H, I, R, and Z.
+  ['a', '𝔞', '𝔄'], ['b', '𝔟', '𝔅'], ['c', '𝔠', 'ℭ'], ['d', '𝔡', '𝔇'],
+  ['e', '𝔢', '𝔈'], ['f', '𝔣', '𝔉'], ['g', '𝔤', '𝔊'], ['h', '𝔥', 'ℌ'],
+  ['i', '𝔦', 'ℑ'], ['j', '𝔧', '𝔍'], ['k', '𝔨', '𝔎'], ['l', '𝔩', '𝔏'],
+  ['m', '𝔪', '𝔐'], ['n', '𝔫', '𝔑'], ['o', '𝔬', '𝔒'], ['p', '𝔭', '𝔓'],
+  ['q', '𝔮', '𝔔'], ['r', '𝔯', 'ℜ'], ['s', '𝔰', '𝔖'], ['t', '𝔱', '𝔗'],
+  ['u', '𝔲', '𝔘'], ['v', '𝔳', '𝔙'], ['w', '𝔴', '𝔚'], ['x', '𝔵', '𝔛'],
+  ['y', '𝔶', '𝔜'], ['z', '𝔷', 'ℨ']
 ];
 // BANA Rule 18 lists these abbreviated function names as mathematical
 // expressions in their own right.  They are deliberately represented as
@@ -921,6 +926,10 @@ const MAPPINGS = [
   token('punctuation.long-dash', ['⠤', '⠤', '⠤', '⠤'], ['8.8'], '―', 'mo'),
   token('punctuation.ellipsis', ['⠄', '⠄', '⠄'], ['8.8'], '…', 'mo'),
   token('punctuation.left-single-quote', ['⠠', '⠦'], ['8.1'], '‘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // Rule 8's closing single quotation mark is punctuation indicator + dot 0
+  // (⠴), not punctuation indicator + dot 6 (the apostrophe). The distinction
+  // is explicit in the BANA punctuation table and matters after a MathML
+  // expression at baseline.
   token('punctuation.right-single-quote', ['⠠', '⠴'], ['8.1'], '’', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('punctuation.left-double-quote', ['⠦'], ['8.1'], '“', 'mo'),
   token('punctuation.right-double-quote', ['⠴'], ['8.1'], '”', 'mo'),
@@ -1211,7 +1220,13 @@ const MAPPINGS = [
   // cell. The UEB transcriber-defined shape indicator is ⠈⠫, followed by
   // q-e-d. The empty-cell/document spacing is represented by the surrounding
   // passage policy, not folded into this local mathematical token.
-  token('misc.end-proof', ['⠈', '⠫', '⠟', '⠑', '⠙'], ['23.8'], '∎', 'mo', { preferLonger: true }),
+  // Rule 23.8's `$qed` is a transcriber-defined shape name, not the five
+  // cells for the literal letters q-e-d. In the equation tree the resulting
+  // square is the local QED token; its canonical Nemeth projection is ⠸⠳.
+  token('misc.end-proof', ['⠈', '⠫', '⠟', '⠑', '⠙'], ['23.8'], '∎', 'mo', {
+    preferLonger: true,
+    dataAttributes: { 'data-omniya-nemeth-intent': 'qed' }
+  }),
   token('misc.hollow-dot', ['⠨', '⠡'], ['15.17', '23.10'], '∘', 'mo', { preferLonger: true }),
   token('misc.degree', ['⠘', '⠨', '⠡'], ['23.1'], '°'),
   token('misc.prime', ['⠄'], ['23.16'], '′', 'mo', { preferLonger: true }),
@@ -1395,6 +1410,21 @@ export function operationRegistry() {
     validContexts: mapping.validContexts ?? ['empty-root', 'row', 'structure-slot'],
     errataRefs: mapping.errataRefs ?? []
   }));
+}
+
+/**
+ * Return the same declarative registry grouped by the three local input
+ * policies. This is intentionally a view, not a second registry: every
+ * construction has one source row and therefore one BANA reference, action,
+ * and policy. The dispatcher only ever consumes the source rows above.
+ */
+export function inputRegistry() {
+  const entries = operationRegistry();
+  return Object.freeze({
+    immediate: entries.filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE),
+    atomicSequence: entries.filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE),
+    structuralFollowup: entries.filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP)
+  });
 }
 
 /**

@@ -16,7 +16,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖆"
+        "value": "𝔞"
       },
       "banaRefs": [
         "6.1.1",
@@ -65,7 +65,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖇"
+        "value": "𝔟"
       },
       "banaRefs": [
         "6.1.1",
@@ -114,7 +114,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖈"
+        "value": "𝔠"
       },
       "banaRefs": [
         "6.1.1",
@@ -139,7 +139,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝕮"
+        "value": "ℭ"
       },
       "banaRefs": [
         "6.1.1",
@@ -163,7 +163,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖉"
+        "value": "𝔡"
       },
       "banaRefs": [
         "6.1.1",
@@ -212,7 +212,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖊"
+        "value": "𝔢"
       },
       "banaRefs": [
         "6.1.1",
@@ -261,7 +261,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖋"
+        "value": "𝔣"
       },
       "banaRefs": [
         "6.1.1",
@@ -310,7 +310,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖌"
+        "value": "𝔤"
       },
       "banaRefs": [
         "6.1.1",
@@ -359,7 +359,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖍"
+        "value": "𝔥"
       },
       "banaRefs": [
         "6.1.1",
@@ -384,7 +384,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝕳"
+        "value": "ℌ"
       },
       "banaRefs": [
         "6.1.1",
@@ -408,7 +408,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖎"
+        "value": "𝔦"
       },
       "banaRefs": [
         "6.1.1",
@@ -433,7 +433,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝕴"
+        "value": "ℑ"
       },
       "banaRefs": [
         "6.1.1",
@@ -457,7 +457,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖏"
+        "value": "𝔧"
       },
       "banaRefs": [
         "6.1.1",
@@ -506,7 +506,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖐"
+        "value": "𝔨"
       },
       "banaRefs": [
         "6.1.1",
@@ -555,7 +555,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖑"
+        "value": "𝔩"
       },
       "banaRefs": [
         "6.1.1",
@@ -604,7 +604,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖒"
+        "value": "𝔪"
       },
       "banaRefs": [
         "6.1.1",
@@ -653,7 +653,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖓"
+        "value": "𝔫"
       },
       "banaRefs": [
         "6.1.1",
@@ -702,7 +702,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖔"
+        "value": "𝔬"
       },
       "banaRefs": [
         "6.1.1",
@@ -751,7 +751,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖕"
+        "value": "𝔭"
       },
       "banaRefs": [
         "6.1.1",
@@ -800,7 +800,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖖"
+        "value": "𝔮"
       },
       "banaRefs": [
         "6.1.1",
@@ -849,7 +849,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖗"
+        "value": "𝔯"
       },
       "banaRefs": [
         "6.1.1",
@@ -874,7 +874,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝕽"
+        "value": "ℜ"
       },
       "banaRefs": [
         "6.1.1",
@@ -898,7 +898,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖘"
+        "value": "𝔰"
       },
       "banaRefs": [
         "6.1.1",
@@ -947,7 +947,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖙"
+        "value": "𝔱"
       },
       "banaRefs": [
         "6.1.1",
@@ -996,7 +996,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖚"
+        "value": "𝔲"
       },
       "banaRefs": [
         "6.1.1",
@@ -1045,7 +1045,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖛"
+        "value": "𝔳"
       },
       "banaRefs": [
         "6.1.1",
@@ -1094,7 +1094,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖜"
+        "value": "𝔴"
       },
       "banaRefs": [
         "6.1.1",
@@ -1143,7 +1143,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖝"
+        "value": "𝔵"
       },
       "banaRefs": [
         "6.1.1",
@@ -1192,7 +1192,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖞"
+        "value": "𝔶"
       },
       "banaRefs": [
         "6.1.1",
@@ -1241,7 +1241,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖟"
+        "value": "𝔷"
       },
       "banaRefs": [
         "6.1.1",
@@ -1266,7 +1266,7 @@
       "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mi",
-        "value": "𝖅"
+        "value": "ℨ"
       },
       "banaRefs": [
         "6.1.1",
@@ -7564,7 +7564,10 @@
       "args": {
         "name": "mo",
         "value": "∎",
-        "preferLonger": true
+        "preferLonger": true,
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "qed"
+        }
       },
       "banaRefs": [
         "23.8"
