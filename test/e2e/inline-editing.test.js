@@ -55,6 +55,95 @@ test('new equations use the same empty Nemeth replacement draft and commit once'
   assert.match(await article.locator('mjx-container').textContent(), /a/);
 });
 
+test('renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-policies-');
+  t.after(() => app.close().catch(() => {}));
+
+  // Immediate: an ordinary integral is inserted as soon as its single BANA
+  // cell is received. This is a renderer event, not a direct domain call.
+  const integralArticle = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+  await input.fill('⠮');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Draft updated'));
+  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
+  assert.equal(await page.locator('#replacement-input').inputValue(), '');
+  assert.equal(await integralArticle.locator('math mo').textContent(), '∫');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await integralArticle.locator('mjx-container').waitFor();
+  assert.equal(await integralArticle.locator('mjx-speech[aria-braillelabel]').count() > 0, true);
+  assert.equal(await integralArticle.locator('math mo').textContent(), '∫');
+
+  // Structural follow-up: the fraction separator moves focus from the
+  // numerator to the denominator. The separator itself never becomes a
+  // MathML token in the draft.
+  const fractionArticle = await addBlankEquation(page);
+  const fractionInput = page.getByLabel('Replacement input', { exact: true });
+  await fractionInput.fill('⠹');
+  await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type mfrac') !== null);
+  await fractionInput.fill('⠭');
+  await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type mfrac mi')?.textContent === 'x');
+  await fractionInput.fill('⠌');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('fraction.next.denominator'));
+  assert.equal(await fractionArticle.locator('mfrac').count(), 1);
+  assert.equal(await fractionArticle.locator('mfrac > mo').count(), 0);
+
+  // Atomic sequence: the uncontracted right arrow is held in the bounded
+  // local buffer until Enter. The draft is unchanged while the four cells
+  // arrive; the first Enter commits only the arrow, and the second submits
+  // the replacement transaction.
+  const arrowInput = page.getByLabel('Replacement input', { exact: true });
+  await arrowInput.fill('⠫⠒⠒⠕');
+  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠒⠒⠕');
+  assert.equal(await fractionArticle.locator('mfrac mo').count(), 0);
+  await arrowInput.press('Enter');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Local code committed'));
+  assert.equal(await fractionArticle.locator('mfrac > *').nth(1).textContent(), '→');
+  await arrowInput.press('Enter');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.equal(await fractionArticle.locator('math mfrac').count(), 1);
+  assert.deepEqual(await fractionArticle.locator('math mfrac > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['x', '→']);
+});
+
+test('MathJax-focused Nemeth editing replaces only the selected subtree with an atomic code', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-subtree-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  await commitDraft(page, 'x+x', 'latex');
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+  await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'plus');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
+  await page.waitForFunction(() => {
+    const speech = document.querySelector('mjx-speech');
+    return Boolean(speech?.getAttribute('aria-braillelabel'));
+  });
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').count() > 0, true);
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  await chooseMethod(page, 'nemeth');
+  const input = page.getByLabel('Replacement input', { exact: true });
+  await input.fill('⠫⠒⠒⠕');
+  await input.press('Enter');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Local code committed'));
+  await input.press('Enter');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  // MathML may retain an application-owned mrow around the original sibling
+  // row, so assert the semantic leaves rather than presentation wrapper
+  // boundaries: one original x, the original plus, and the new arrow.
+  assert.deepEqual(await article.locator('math mi').allTextContents(), ['x']);
+  assert.deepEqual(await article.locator('math mo').allTextContents(), ['+', '→']);
+  const wholeBraille = await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+  assert.ok(wholeBraille, 'committed replacement must expose a whole-expression Nemeth projection');
+  assert.match(wholeBraille, /⠫/, 'the whole-expression projection must include the replacement arrow');
+});
+
 test('MathJax-selected duplicate subexpressions replace only the selected node', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-duplicate-replacement-');
   t.after(() => app.close().catch(() => {}));

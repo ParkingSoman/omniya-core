@@ -57,6 +57,23 @@ This ledger is not a conformance claim. Release requires every applicable
 Rules 1–24 row to move from “pending” to “reviewed” with independently authored
 fixtures and qualified Nemeth-transcriber review.
 
+## Electron evidence requirement
+
+The detailed renderer evidence is maintained in
+[guided-nemeth-validation.md](guided-nemeth-validation.md#electron-conformance-matrix).
+Every reviewed mapping row must identify both a loaded-Electron creation test
+and a loaded-Electron editing test. Those tests must use the real MathJax
+Explorer navigation path for editing, the row's declared local input policy,
+and assertions for the resulting MathML plus whole-expression and focused
+Braille. Unit tests, SRE output, and MathCAT fixtures are necessary accuracy
+evidence, but they do not satisfy this workflow requirement on their own.
+
+The matrix is deliberately allowed to show gaps. A family with domain and
+projection tests but no creation/editing Electron pair remains incomplete until
+that pair is added. When a BANA row changes, update the ledger row, its
+mapping/accuracy fixtures, and the named Electron tests together; this keeps
+the live application from falling behind the standards ledger.
+
 ## Registry policy review
 
 The registry applies the three local input policies to every construction

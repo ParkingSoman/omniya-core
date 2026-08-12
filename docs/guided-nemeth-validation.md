@@ -39,6 +39,47 @@ Replacement tests commit nested drafts and check the resulting whole-expression
 Braille. This catches errors that domain-only tests cannot, such as lost focus,
 stale rendering, or Braille attached to the wrong transient node.
 
+## Electron conformance matrix
+
+The BANA ledger and the live Electron suite are one review surface. A ledger
+row is not considered workflow-covered merely because its mapping and SRE
+projection pass unit tests. For each implemented construction family, the
+matrix below records the real renderer test that creates it, the renderer test
+that edits it at a MathJax-selected scope, and the observable evidence. When a
+family has no row here, that is an explicit Electron gap, not an implied
+pass.
+
+| Capability and input policy | Creation in the loaded app | Editing in the loaded app | Evidence required in the test |
+| --- | --- | --- | --- |
+| Ordinary tokens and immediate codes | `test/e2e/inline-editing.test.js` — `new equations use the same empty Nemeth replacement draft and commit once`; `renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft` (integral `⠮`) | `MathJax-focused Nemeth editing replaces only the selected subtree with an atomic code` (the replacement is entered as Nemeth after navigating to the second `x`) | Empty-root creation, actual Unicode cells through the renderer, immediate draft MathML, final saved MathML, and SRE Braille label presence |
+| Structural follow-ups | `renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft` (fraction opener `⠹`, numerator `⠭`, separator `⠌`) | `nested numerator replacement preserves the containing fraction` and `MathJax-selected duplicate subexpressions replace only the selected node` | The separator changes the focused slot without becoming an `<mo>`, the containing structure survives, and only the selected node changes |
+| Bounded atomic constructions (arrows and other multi-cell local rows) | `renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft` (right arrow `⠫⠒⠒⠕` remains in the local input until Enter) | `MathJax-focused Nemeth editing replaces only the selected subtree with an atomic code` | Incomplete local input leaves the draft unchanged, first Enter commits only the local code, second Enter submits one exact replacement, and the whole expression exposes the new Braille |
+| Scripts, radicals, modifiers, and nested composition | The creation path is exercised by the shared Nemeth draft transition and the domain/accuracy fixtures; a dedicated loaded-app creation row is required before claiming this family complete | `every navigable nested focus opens the exact replacement draft`, `nested numerator replacement preserves the containing fraction`, and the focused replacement workflow in `inline-editing.test.js` | MathJax ArrowDown/ArrowRight reaches the exact base, script, radical, or numerator; E opens that scope; submit preserves all surrounding MathML and restores focus |
+| Matrix navigation and cell scope | `test/e2e/mathjax-navigation.test.js` — `uses MathJax table navigation for matrix cells` verifies the loaded MathJax table | `every navigable nested focus opens the exact replacement draft` reaches a matrix cell and a row/range scope; a Nemeth construction/editing row is still required for matrix authoring | Table navigation, row/cell speech, exact `data-omniya-id` target, and no broad ancestor replacement |
+| Input equivalence | `six-key input feeds the same Nemeth draft transition as Unicode cells` creates `l` with a real six-key chord; Unicode-cell creation is covered by the rows above | The same test path is reused for replacement drafts; future BANA rows must run both Unicode and six-key input through the same fixture | Unicode Braille, Braille ASCII, display input, and six-key simulation reach identical transition results and saved MathML |
+| Whole-expression and deep navigation safety | `test/e2e/mathjax-navigation.test.js` — `renders accessible MathML and supports complete tree navigation` and `E opens the exact replacement even during the explorer focus handoff` | `every navigable nested focus opens the exact replacement draft` and `MathJax-selected duplicate subexpressions replace only the selected node` | Real Explorer arrows, focus handoff, duplicate subexpressions, nested scopes, cancellation, and absence of the former “cannot be edited safely” path |
+
+The fixture equations used to seed an already-populated tree may use LaTeX so
+that a test can isolate navigation and replacement. That is not Nemeth
+coverage. A test counts as Nemeth coverage only when the construction or
+replacement itself enters Unicode Braille, exact Braille ASCII, or a simulated
+six-key chord through the renderer. Each new BANA ledger row must add, or link
+to, both a creation test and an editing test with the navigation path, local
+input policy (`immediate`, `atomic-sequence`, or `structural-followup`),
+expected MathML, whole-expression and focused Braille assertions, and the
+persistence/undo behavior where applicable.
+
+### Keeping the matrix current
+
+When a mapping is added or its BANA interpretation changes, update the ledger,
+the mapping-integrity report, the domain/accuracy fixtures, and this matrix in
+the same change. The Electron test name is intentionally written in the table
+instead of referring only to a file, so a renamed or deleted workflow is easy
+to detect in review. The release check should fail if a registry row has no
+linked Electron evidence or if the linked test no longer exercises the stated
+policy. MathCAT and SRE remain independent projection checks; neither can
+substitute for the loaded-app creation and editing workflow.
+
 ## Scope of comparisons
 
 SRE and MathCAT are MathML-to-Nemeth readers, not reverse Nemeth parsers. They
