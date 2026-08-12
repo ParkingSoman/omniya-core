@@ -1530,6 +1530,7 @@ test('atomic local codes are reachable and never shadowed by immediate prefixes'
   // commit too early and make the atomic construction unreachable.
   assert.deepEqual(registryDiagnostics().policyErrors, []);
   assert.deepEqual(registryDiagnostics().shadowedImmediate, []);
+  assert.deepEqual(registryDiagnostics().classificationErrors, []);
 });
 
 test('all immediate rows that prefix an atomic row use bounded lookahead', () => {
@@ -1553,6 +1554,28 @@ test('the three input policies are one registry-wide contract', () => {
   assert.ok(grouped.atomicSequence.some((entry) => entry.id.startsWith('arrow.')));
   assert.ok(grouped.structuralFollowup.some((entry) => entry.id === 'integral.extend'));
   assert.ok(grouped.structuralFollowup.some((entry) => entry.action === 'move-slot'));
+});
+
+test('each registry policy has a complete local-code contract', () => {
+  const grouped = inputRegistry();
+  assert.ok(grouped.immediate.length > 0);
+  assert.ok(grouped.atomicSequence.length > 0);
+  assert.ok(grouped.structuralFollowup.length > 0);
+  for (const entry of grouped.immediate) {
+    assert.equal(entry.commitPolicy, 'immediate');
+    assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, entry.id);
+  }
+  for (const entry of grouped.atomicSequence) {
+    assert.equal(entry.commitPolicy, 'atomic-sequence');
+    assert.ok(entry.cells.length > 1 || entry.args?.preferLonger, entry.id);
+  }
+  for (const entry of grouped.structuralFollowup) {
+    assert.equal(entry.commitPolicy, 'structural-followup');
+    assert.ok(['move-slot', 'close-structure', 'extend-integral', 'superpose-integral',
+      'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'insert-modifier',
+      'open-modifier', 'move-binomial-lower', 'close-binomial', 'append-possessive',
+      'append-plural', 'insert-contracted-script-comma', 'set-mode', 'open-binomial'].includes(entry.action), entry.id);
+  }
 });
 
 test('composed guided structures match SRE Nemeth output for whole expressions', async () => {

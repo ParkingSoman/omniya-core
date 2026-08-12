@@ -1782,6 +1782,7 @@ export function inputRegistry() {
  */
 export function registryDiagnostics() {
   const entries = operationRegistry();
+  const policies = new Set(Object.values(LOCAL_COMMIT_POLICIES));
   const immediate = entries.filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE);
   const hasLonger = (entry) => entries.some((candidate) => candidate.cells.length > entry.cells.length &&
     entry.cells.every((cell, index) => cell === candidate.cells[index]));
@@ -1797,7 +1798,25 @@ export function registryDiagnostics() {
     .filter(hasLonger)
     .filter((entry) => !entry.args?.preferLonger)
     .map((entry) => ({ immediateId: entry.id, cells: entry.cells.join('') }));
-  return { shadowedAtomic, policyErrors, shadowedImmediate };
+  // Every BANA row is classified by the same three-policy contract. Keep the
+  // checks data-driven so a new notation family cannot quietly introduce a
+  // fourth buffering behavior or call a multi-cell construction immediate.
+  const classificationErrors = entries.flatMap((entry) => {
+    const errors = [];
+    if (!policies.has(entry.commitPolicy)) errors.push({ id: entry.id, error: 'unknown-commit-policy' });
+    if (entry.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE && entry.cells.length < 2 && !entry.args?.preferLonger) {
+      errors.push({ id: entry.id, error: 'atomic-sequence-must-be-bounded' });
+    }
+    if (entry.commitPolicy === LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP &&
+      !['move-slot', 'close-structure', 'extend-integral', 'superpose-integral', 'superpose-token',
+        'simultaneous-modifier', 'higher-order-modifier', 'insert-modifier', 'open-modifier',
+        'move-binomial-lower', 'close-binomial', 'append-possessive', 'append-plural',
+        'insert-contracted-script-comma', 'set-mode', 'open-binomial'].includes(entry.action)) {
+      errors.push({ id: entry.id, error: 'structural-followup-needs-structural-action' });
+    }
+    return errors;
+  });
+  return { shadowedAtomic, policyErrors, shadowedImmediate, classificationErrors };
 }
 
 function contextFor(document, focus) {

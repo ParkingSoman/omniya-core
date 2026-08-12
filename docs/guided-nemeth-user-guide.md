@@ -55,6 +55,14 @@ on the page, it is structural-followup. These choices are properties of the
 registry rows, so adding a new BANA construction does not require a new
 editing mode or a second parser.
 
+The number of cells does not decide the policy by itself. A two-cell opener can
+still be immediate when its first recognized code already denotes a valid local
+operation, while a longer code is collected only when BANA requires the later
+cells to determine the symbol. Conversely, a one-cell separator or terminator
+can be a structural follow-up because it acts on the object already under the
+cursor. This is the general rule used for every BANA family, not a special case
+for arrows or integrals.
+
 For an arrow used as a modifier, complete the arrow code before pressing
 **Enter**. For example, after opening a directly-over modifier, `$[33o` is one
 local Rule 15.12 code. Omniya does not place a partial barb or shaft in the
