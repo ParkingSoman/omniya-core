@@ -1,0 +1,75 @@
+{
+  "standard": "BANA Nemeth Braille Code for Mathematics and Science Notation 2022",
+  "errata": "October 2025",
+  "scope": "Loaded Electron workflows only. A verified row has both creation and MathJax-navigated editing evidence; unit/SRE/MathCAT fixtures do not substitute for it.",
+  "families": [
+    {
+      "id": "letters-numerals",
+      "ledgerRules": ["3", "5", "6"],
+      "status": "verified",
+      "creationTest": "new equations use the same empty Nemeth replacement draft and commit once",
+      "editingTest": "MathJax-focused Nemeth editing replaces only the selected subtree with an atomic code",
+      "nemethCells": ["⠭⠬⠁", "⠵"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree"]
+    },
+    {
+      "id": "fractions",
+      "ledgerRules": ["13"],
+      "status": "verified",
+      "creationTest": "renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft",
+      "editingTest": "nested numerator replacement preserves the containing fraction",
+      "nemethCells": ["⠹", "⠭", "⠌", "⠵"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree"]
+    },
+    {
+      "id": "scripts-radicals",
+      "ledgerRules": ["14", "16"],
+      "status": "verified",
+      "creationTest": "renderer creates a nested script and radical through compositional Nemeth cells",
+      "editingTest": "MathJax navigation edits a nested Nemeth subexpression without widening the target",
+      "nemethCells": ["⠭", "⠘", "⠜", "⠽", "⠵", "⠻"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree", "focus-restoration"]
+    },
+    {
+      "id": "comparisons-arrows",
+      "ledgerRules": ["21", "22"],
+      "status": "verified",
+      "creationTest": "renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft",
+      "editingTest": "MathJax-focused Nemeth editing replaces only the selected subtree with an atomic code",
+      "nemethCells": ["⠫⠒⠒⠕"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "atomic-enter", "exact-subtree"]
+    },
+    {
+      "id": "input-equivalence",
+      "ledgerRules": ["1", "2"],
+      "status": "verified",
+      "creationTest": "six-key input feeds the same Nemeth draft transition as Unicode cells",
+      "editingTest": "six-key input feeds the same Nemeth draft transition as Unicode cells",
+      "inputGesture": "keyboard\\.down\\('f'\\)[\\s\\S]+keyboard\\.down\\('s'\\)[\\s\\S]+keyboard\\.down\\('d'\\)",
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "six-key-equivalence"]
+    },
+    {
+      "id": "modifiers",
+      "ledgerRules": ["15"],
+      "status": "gap",
+      "gap": "Domain and projection fixtures exist, but a dedicated loaded Electron creation/editing pair with focused Braille is still required."
+    },
+    {
+      "id": "functions-operators",
+      "ledgerRules": ["18", "20", "23"],
+      "status": "gap",
+      "gap": "Several local mappings are tested in the domain, but loaded Electron creation and navigated editing evidence is not yet linked as a family."
+    },
+    {
+      "id": "spatial",
+      "ledgerRules": ["25"],
+      "status": "deferred",
+      "gap": "Rule 25 spatial arrangements and chemistry are outside this release scope."
+    }
+  ]
+}

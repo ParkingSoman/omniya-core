@@ -61,6 +61,13 @@ fixtures and qualified Nemeth-transcriber review.
 
 The detailed renderer evidence is maintained in
 [guided-nemeth-validation.md](guided-nemeth-validation.md#electron-conformance-matrix).
+The per-family machine-readable test ledger is
+[guided-nemeth-electron-evidence.json](guided-nemeth-electron-evidence.json),
+and `test/unit/nemeth-electron-evidence.test.js` verifies that each row marked
+`verified` still points at a real loaded-Electron creation test and a real
+MathJax-navigated editing test with concrete Nemeth input and whole/focused
+Braille evidence. A row marked `gap` or `deferred` is deliberately not a claim
+of application coverage.
 Every reviewed mapping row must identify both a loaded-Electron creation test
 and a loaded-Electron editing test. Those tests must use the real MathJax
 Explorer navigation path for editing, the row's declared local input policy,

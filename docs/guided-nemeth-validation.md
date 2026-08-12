@@ -41,6 +41,16 @@ stale rendering, or Braille attached to the wrong transient node.
 
 ## Electron conformance matrix
 
+The machine-readable companion to this matrix is
+[`guided-nemeth-electron-evidence.json`](guided-nemeth-electron-evidence.json).
+It is intentionally stricter than a list of test names: every `verified` row
+records the BANA rules, the exact loaded-Electron creation and editing test
+names, the concrete Nemeth cells (or six-key gesture), and the required whole
+and focused Braille assertions. `test/unit/nemeth-electron-evidence.test.js`
+loads that ledger and the live test source so a renamed, removed, or weakened
+workflow fails the unit gate. Rows marked `gap` or `deferred` are not release
+evidence and must not be described as covered.
+
 The BANA ledger and the live Electron suite are one review surface. A ledger
 row is not considered workflow-covered merely because its mapping and SRE
 projection pass unit tests. For each implemented construction family, the
@@ -85,6 +95,9 @@ Run `npm run test:nemeth-electron-links` with the conformance report. This
 small guard is intentionally structural rather than a substitute for Electron:
 it fails when one of the named creation/editing workflows is removed or renamed,
 so the written BANA evidence cannot silently outlive the test that proves it.
+The JSON evidence test additionally requires concrete Nemeth input, Explorer
+navigation, and whole/focused Braille assertion categories for every row that is
+marked `verified`.
 
 ## Scope of comparisons
 
