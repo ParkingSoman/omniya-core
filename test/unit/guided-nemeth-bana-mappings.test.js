@@ -92,7 +92,6 @@ const RULE_23_FIXTURES = [
   ['misc.per-mille', '⠈⠴⠴', '‰'],
   ['misc.end-proof', '⠈⠫⠟⠑⠙', '∎'],
   ['misc.not-therefore', '⠌⠠⠡', '∴'],
-  ['misc.degree', '⠘⠨⠡', '°'],
   ['misc.empty-set', '⠸⠴', '∅'],
   ['operator.integral', '⠮', '∫']
 ];
@@ -270,8 +269,33 @@ test('BANA Rule 23 and compound-integral literals are source-linked', () => {
     assert.ok(entry, id);
     assert.deepEqual(entry.cells.join(''), cells, id);
     const tree = applyFixture(id, cells);
-    assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
+    const inserted = tree.children.at(-1);
+    assert.equal(inserted.children?.[0]?.text, expected, id);
   }
+});
+
+test('BANA Rule 23.10 degree is a local superscript decoration, not a free token', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠔', '⠴']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  for (const cell of ['⠘', '⠨', '⠡']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  if (inputState.prefix) {
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', committed.announcement);
+    ({ document, focus, inputState } = committed);
+  }
+  const degree = parseMathML(document.mathml).children[0];
+  assert.equal(degree.name, 'msup');
+  assert.equal(degree.children[1].children[0].text, '°');
 });
 
 test('Rules 20, 21, and 23 table literals remain independently source-linked', () => {
@@ -1632,7 +1656,7 @@ test('every accepted mapping has explicit BANA source evidence and action', () =
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-composite', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'open-structure', 'open-left-script', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial', 'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-composite', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'wrap-script-token', 'open-structure', 'open-left-script', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial', 'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
   }
 });
 

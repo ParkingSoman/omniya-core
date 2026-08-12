@@ -116,6 +116,13 @@ used for any object that gains a second script side. BANA Rule 23.12 supplies
 the integral notation and Rule 14 supplies the script transitions; no special
 integral passage parser is involved.
 
+For a degree, enter the number first and then the complete bounded code `~.*`
+(`⠘⠨⠡`). Press **Enter** once the three degree cells are present. Omniya
+wraps the focused number with the degree as a superscripted hollow dot. The
+degree cells are held only for this one local construction, so an unfinished
+or invalid code leaves the number unchanged. This same rule applies to every
+BANA construction whose cells must be known together, not only arrows.
+
 ### Multi-level scripts
 
 Nemeth level indicators can describe a script on a script. Enter the complete

@@ -95,6 +95,25 @@ test('the external oracle is configured explicitly for Nemeth Braille', async ()
   assert.equal(SRE.engineSetup().modality, 'braille');
 });
 
+test('BANA Rule 23.10 builds degree as a superscripted hollow dot', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠔', '⠴', '⠘', '⠨', '⠡']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'pending' && result.inputState.prefix === '⠘⠨⠡') {
+      result = commitNemethLocalCode({ document: result.document, focus: result.focus, inputState: result.inputState });
+    }
+    assert.equal(result.status, result.status === 'pending' ? 'pending' : 'applied', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, '90');
+  assert.equal(tree.children[0].children[1].children[0].text, '°');
+  assert.equal(await nemeth(document.mathml), '⠼⠔⠴⠘⠨⠡');
+});
+
 test('BANA Rule 3.7 ordinal suffixes preserve exact whole and focused Braille', async () => {
   const fixtures = [
     ['1st', '<math><mn>1</mn><mi>st</mi></math>', '⠼⠂⠎⠞', '⠎⠞'],

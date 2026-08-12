@@ -5,13 +5,13 @@
   "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
   "status": "development",
   "inputPolicies": {
-    "immediate": 243,
-    "atomicSequence": 377,
+    "immediate": 242,
+    "atomicSequence": 378,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 430,
+    "shadowedAtomicCount": 431,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -1508,6 +1508,10 @@
       {
         "atomicId": "comparison.less-equals-greater",
         "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "misc.degree",
+        "immediateId": "script.superscript"
       },
       {
         "atomicId": "script.possessive",
@@ -15324,8 +15328,8 @@
         "⠨",
         "⠡"
       ],
-      "action": "insert-token",
-      "commitPolicy": "immediate",
+      "action": "wrap-script-token",
+      "commitPolicy": "atomic-sequence",
       "sourceNotation": "~.*",
       "sourceKind": null,
       "args": {

@@ -191,6 +191,54 @@ test('Nemeth integral bounds are created locally and MathJax navigation edits on
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮⠰⠵⠘⠃⠐');
 });
 
+test('Nemeth degree decoration is created as one local code and MathJax edits its base only', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-degree-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+
+  // BANA Rule 23.10 writes a degree as the bounded local code ~.* after its
+  // base. The degree does not become a free mo token while the cells arrive.
+  for (const cell of ['⠼', '⠔', '⠴', '⠘', '⠨', '⠡']) {
+    await input.fill(cell);
+    // Input events are serialized by the renderer; give that one-cell event
+    // a turn before sending the next cell without making the test depend on
+    // the wording of an intermediate announcement.
+    await page.waitForTimeout(75);
+  }
+  assert.equal(await article.locator('math > msup').count(), 0);
+  // The visible value is only the current bounded local code, never an
+  // expression-sized passage buffer.
+  assert.equal(await input.inputValue(), '⠘⠨⠡');
+  await input.press('Enter');
+  await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type math > msup') !== null);
+  assert.equal(await article.locator('math > msup').count(), 1);
+  assert.deepEqual(await article.locator('math > msup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['90', '°']);
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠼⠔⠴⠘⠨⠡');
+
+  // MathJax owns populated-tree navigation. ArrowDown enters the base of the
+  // superscripted degree, so E freezes only 90, not the degree decoration.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
+  await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(() => Boolean(document.querySelector('mjx-speech')?.getAttribute('aria-label')));
+  const focusedDegreeChild = await article.locator('mjx-speech').last().getAttribute('aria-label');
+  assert.match(focusedDegreeChild, /90|base|degree|superscript/i);
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  assert.match(await page.locator('#replacement-scope').textContent(), /base|90/i);
+  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await input.fill('⠙');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.deepEqual(await article.locator('math > msup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['d', '°']);
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠙⠘⠨⠡');
+});
+
 test('renderer creates a nested script and radical through compositional Nemeth cells', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-nemeth-nested-create-');
   t.after(() => app.close().catch(() => {}));

@@ -200,6 +200,22 @@ function insertToken(tree, focus, name, value, { replace = false, mathvariant = 
   return { tree, focus: focusNode(inserted) };
 }
 
+function wrapScriptToken(tree, focus, value) {
+  const current = currentNode(tree, focus);
+  const wrapper = element('msup', [], {});
+  const emptyBase = current.name === 'math' || isHole(current);
+  const base = emptyBase
+    ? hole(wrapper, 'base')
+    : structuredClone(current);
+  if (base !== current && base.attrs) base.attrs['data-omniya-id'] = id();
+  wrapper.children.push(base, atom('mo', value));
+  replaceCurrent(tree, focus, wrapper);
+  // In a fresh draft the local script code creates a required base hole and
+  // puts the writer there. When decorating an existing focused expression,
+  // the authored base is preserved and focus remains on the new decoration.
+  return { tree, focus: focusNode(emptyBase ? wrapper.children[0] : wrapper.children[1]) };
+}
+
 // A bounded Nemeth construction may have one local code but more than one
 // MathML child.  Keep that distinction declarative: the registry supplies the
 // child atoms and this one primitive composes them into an mrow.  It is not a
@@ -1062,6 +1078,20 @@ const modifierToken = (id, cells, banaRefs, value, options = {}) => ({
   id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
   args: { name: 'mo', value, ...options }
 });
+// A BANA modifier can be a complete local code whose result is a standard
+// MathML structure. Degree is the canonical example: `~.*` does not insert a
+// free-standing degree glyph; it places the hollow dot at superscript level
+// on the already-focused quantity. Keep this as one reusable tree action so
+// other bounded script decorations can use the same composition without a
+// notation-specific parser branch.
+const scriptToken = (id, sourceNotation, banaRefs, value, options = {}) => ({
+  id,
+  cells: sourceCells(sourceNotation),
+  banaRefs,
+  action: 'wrap-script-token',
+  commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+  args: { name: 'mo', value, sourceNotation, ...options }
+});
 const typeformScope = (id, sourceNotation, banaRefs, mathvariant, options = {}) => ({
   id,
   cells: sourceCells(sourceNotation),
@@ -1697,7 +1727,7 @@ const MAPPINGS = [
   // by the direct-over/superscript indicator `~.*` (Rule 23.10 and Example
   // 23-13). Keeping the indicator in sourceNotation prevents the two local
   // constructions from being conflated.
-  token('misc.degree', ['⠘', '⠨', '⠡'], ['23.10'], '°', 'mo', { sourceNotation: '~.*' }),
+  scriptToken('misc.degree', '~.*', ['23.10'], '°'),
   token('misc.prime', ['⠄'], ['23.16'], '′', 'mo', { preferLonger: true, sourceNotation: "'" }),
   token('misc.factorial', ['⠯'], ['23.9'], '!', 'mo', { sourceNotation: '&' }),
   token('misc.percent', ['⠈', '⠴'], ['23.15'], '%', 'mo', { preferLonger: true, sourceNotation: '`0' }),
@@ -2242,6 +2272,7 @@ const TREE_OPERATIONS = Object.freeze({
       dataAttributes: args.dataAttributes ?? {}
     });
   },
+  'wrap-script-token': ({ tree, focus, args }) => wrapScriptToken(tree, focus, args.value),
   'insert-numeric': ({ tree, focus, node, args, inputState }) => {
     const numericVariant = inputState.mode?.startsWith?.('numeric:')
       ? inputState.mode.slice('numeric:'.length)
@@ -2340,7 +2371,7 @@ function applyMapping(document, focus, inputState, mapping) {
     return { status: 'rejected', document, focus, inputState, announcement: error.message };
   }
   if (result.status === 'pending') return result;
-  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial'].includes(mapping.action);
+  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' ||
     (inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel');
   const nextModifierScope = collectingModifierScope && insertedAction
@@ -2359,11 +2390,11 @@ function applyMapping(document, focus, inputState, mapping) {
       : (inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-') ? 'modifier-complete' : 'modifier-parallel'))
     : mapping.action === 'simultaneous-modifier'
       ? `modifier-${args.direction}`
-    : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('numeric')
+    : ['insert-token', 'insert-numeric', 'wrap-script-token'].includes(mapping.action) && inputState.mode?.startsWith?.('numeric')
     ? inputState.mode
-    : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel'
+    : ['insert-token', 'insert-numeric', 'wrap-script-token'].includes(mapping.action) && inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel'
       ? inputState.mode
-      : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode === 'multipurpose'
+      : ['insert-token', 'insert-numeric', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'multipurpose'
         ? 'multipurpose'
     : null;
   return {
