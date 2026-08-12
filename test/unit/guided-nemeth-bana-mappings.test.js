@@ -684,3 +684,37 @@ test('BANA Rule 24.1.f comparison horizontalization stays a one-symbol follow-up
   assert.deepEqual(tree.children.filter((node) => node.name === 'mo').map((node) => node.children[0].text), ['<', '=']);
   assert.equal(inputState.mode, null);
 });
+
+test('BANA Rule 24.1.i adjacent bars and 24.1.k tildes use bounded follow-ups', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠡']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    assert.equal(result.status, 'choice');
+    result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'misc.vertical-bar' });
+    ({ document, focus, inputState } = result);
+  }
+  for (const cell of ['⠐', '⠡']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.deepEqual(parseMathML(document.mathml).children.map((node) => node.children[0].text), ['|', '|']);
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠈' });
+  ({ document, focus, inputState } = result);
+  result = applyNemethCell({ document, focus, inputState, cell: '⠱' });
+  assert.equal(result.status, 'pending');
+  result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'comparison.similar' });
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠐', '⠈', '⠱']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.deepEqual(parseMathML(document.mathml).children.map((node) => node.children[0].text), ['∼', '∼']);
+});

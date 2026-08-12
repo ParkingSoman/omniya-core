@@ -5,7 +5,7 @@ import { importLatex, replaceMathTargetInDocument } from '../../src/main/math-se
 import { findMathNode, parseMathML, serializeMathML } from '../../src/domain/math-tree.js';
 import { SUBEXPRESSION_FIXTURES, WHOLE_EXPRESSION_FIXTURES, fixtureById } from '../fixtures/nemeth-braille-fixtures.js';
 import { MATHCAT_FIXTURES } from '../fixtures/mathcat-braille-fixtures.js';
-import { applyNemethCell, commitNemethLocalCode, createEmptyDraftMathDocument } from '../../src/domain/guided-nemeth/index.js';
+import { applyNemethCell, applyNemethChoice, commitNemethLocalCode, createEmptyDraftMathDocument } from '../../src/domain/guided-nemeth/index.js';
 
 async function nemeth(mathml) {
   await SRE.engineReady();
@@ -290,6 +290,38 @@ test('guided Rule 24.1.f comparison follow-up agrees with the independent projec
     ({ document, focus, inputState } = result);
   }
   assert.equal(await nemeth(document.mathml), '⠐⠅⠨⠅');
+});
+
+test('guided Rule 24.1.i and 24.1.k local follow-ups retain reviewed Braille', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠡' });
+  result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'misc.vertical-bar' });
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠐', '⠡']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  // SRE normalizes the adjacent-bar output to its canonical two-bar form;
+  // the authored dot-5 remains a BANA local input transition.
+  assert.equal(await nemeth(document.mathml), '⠳⠳');
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  result = applyNemethCell({ document, focus, inputState, cell: '⠈' });
+  ({ document, focus, inputState } = result);
+  result = applyNemethCell({ document, focus, inputState, cell: '⠱' });
+  result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'comparison.similar' });
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠐', '⠈', '⠱']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(await nemeth(document.mathml), '⠈⠱⠈⠱');
 });
 
 test('MathCAT left-script fixtures remain accurate as canonical multiscripts', async () => {

@@ -1526,6 +1526,20 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       inputState: { ...state, prefix: normalized },
       announcement: 'Horizontal comparison code pending.' };
   }
+  // BANA 24.1.i: dot 5 between adjacent vertical grouping bars is a
+  // one-symbol structural follow-up.  The current bar remains untouched
+  // until the next bar code is complete.
+  if (state.mode === 'vertical-bar-horizontal' && !state.prefix && normalized === '⠡') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'misc.vertical-bar');
+    return applyMapping(document, focus, { ...state, mode: null }, mapping);
+  }
+  // BANA 24.1.k: dot 5 between two tildes marks horizontal succession.  The
+  // second tilde is another local token, not a newly inferred compound
+  // operator.
+  if (state.mode === 'tilde-horizontal' && state.prefix === '⠈' && normalized === '⠱') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'comparison.similar');
+    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, mapping);
+  }
   if ((state.mode === 'capital' || state.mode === 'english-letter') && !state.prefix && LETTERS.has(normalized)) return applyMapping(document, focus, { ...state, mode: null }, letterMapping(normalized, state));
   // After the Rule 24 multipurpose indicator, a letter begins the expression
   // being modified (Rule 15.2.1.b); it must not be held merely because the
@@ -1587,6 +1601,17 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     return { status: 'pending', document, focus,
       inputState: { ...state, prefix: '⠨', mode: 'comparison-horizontal' },
       announcement: 'Horizontal comparison code pending.' };
+  }
+  if (state.mode === null && state.prefix === '⠐' && normalized === '⠡' &&
+    context.node.name === 'mo' && context.node.children?.[0]?.text === '|') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'misc.vertical-bar');
+    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, mapping);
+  }
+  if (state.mode === null && state.prefix === '⠐' && normalized === '⠈' &&
+    context.node.name === 'mo' && context.node.children?.[0]?.text === '∼') {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠈', mode: 'tilde-horizontal' },
+      announcement: 'Horizontal tilde code pending.' };
   }
   // Rule 14 permits a lower-cell numeral directly in a script slot.  Dot 6
   // is shared with the English-letter indicator, so it is held until the
