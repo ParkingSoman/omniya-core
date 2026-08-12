@@ -1482,8 +1482,8 @@
           "superscript"
         ],
         "attrs": {},
-        "initialSlot": "base",
-        "preferLonger": false
+        "initialSlot": "superscript",
+        "preferLonger": true
       },
       "banaRefs": [
         "14.3",
@@ -1510,11 +1510,111 @@
           "subscript"
         ],
         "attrs": {},
-        "initialSlot": "base",
-        "preferLonger": false
+        "initialSlot": "subscript",
+        "preferLonger": true
       },
       "banaRefs": [
         "14.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sub",
+      "commandLabel": "script.sup-sub",
+      "cells": [
+        "⠘",
+        "⠰"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "msubsup",
+        "slots": [
+          "base",
+          "subscript",
+          "superscript"
+        ],
+        "attrs": {},
+        "initialSlot": "superscript",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "14.4.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sup",
+      "commandLabel": "script.sub-sup",
+      "cells": [
+        "⠰",
+        "⠘"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "msubsup",
+        "slots": [
+          "base",
+          "subscript",
+          "superscript"
+        ],
+        "attrs": {},
+        "initialSlot": "subscript",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "14.4.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sub.move-sub",
+      "commandLabel": "script.sup-sub.move-sub",
+      "cells": [
+        "⠰"
+      ],
+      "action": "move-slot",
+      "args": {
+        "element": "msubsup",
+        "role": "subscript"
+      },
+      "banaRefs": [
+        "14.4.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sup.move-sup",
+      "commandLabel": "script.sub-sup.move-sup",
+      "cells": [
+        "⠘"
+      ],
+      "action": "move-slot",
+      "args": {
+        "element": "msubsup",
+        "role": "superscript"
+      },
+      "banaRefs": [
+        "14.4.2"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -1558,6 +1658,371 @@
       },
       "banaRefs": [
         "24.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.bold",
+      "commandLabel": "typeform.bold",
+      "cells": [
+        "⠸",
+        "⠰"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "typeform:bold",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.italic",
+      "commandLabel": "typeform.italic",
+      "cells": [
+        "⠨",
+        "⠰"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "typeform:italic",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.sans-serif",
+      "commandLabel": "typeform.sans-serif",
+      "cells": [
+        "⠠",
+        "⠨",
+        "⠰"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "typeform:sans-serif",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.script",
+      "commandLabel": "typeform.script",
+      "cells": [
+        "⠈",
+        "⠰"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "typeform:script",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.barred",
+      "commandLabel": "typeform.barred",
+      "cells": [
+        "⠠",
+        "⠸",
+        "⠰"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "typeform:double-struck",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.bold.number",
+      "commandLabel": "typeform.bold.number",
+      "cells": [
+        "⠸",
+        "⠼"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "numeric:bold",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.italic.number",
+      "commandLabel": "typeform.italic.number",
+      "cells": [
+        "⠨",
+        "⠼"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "numeric:italic",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.sans-serif.number",
+      "commandLabel": "typeform.sans-serif.number",
+      "cells": [
+        "⠠",
+        "⠨",
+        "⠼"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "numeric:sans-serif",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.script.number",
+      "commandLabel": "typeform.script.number",
+      "cells": [
+        "⠈",
+        "⠼"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "numeric:script",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.barred.number",
+      "commandLabel": "typeform.barred.number",
+      "cells": [
+        "⠠",
+        "⠸",
+        "⠼"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "numeric:double-struck",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.terminate",
+      "commandLabel": "typeform.terminate",
+      "cells": [
+        "⠠",
+        "⠄"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "typeform-end",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "7.1",
+        "7.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.directly-over",
+      "commandLabel": "modifier.directly-over",
+      "cells": [
+        "⠣"
+      ],
+      "action": "open-modifier",
+      "args": {
+        "element": "mover",
+        "slot": "overscript",
+        "requiresMode": "multipurpose"
+      },
+      "banaRefs": [
+        "15.1",
+        "15.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.directly-under",
+      "commandLabel": "modifier.directly-under",
+      "cells": [
+        "⠩"
+      ],
+      "action": "open-modifier",
+      "args": {
+        "element": "munder",
+        "slot": "underscript",
+        "requiresMode": "multipurpose"
+      },
+      "banaRefs": [
+        "15.1",
+        "15.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.horizontal-bar",
+      "commandLabel": "modifier.horizontal-bar",
+      "cells": [
+        "⠱"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "¯"
+      },
+      "banaRefs": [
+        "15.1",
+        "15.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.terminate.over",
+      "commandLabel": "modifier.terminate.over",
+      "cells": [
+        "⠻"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "mover"
+      },
+      "banaRefs": [
+        "15.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.terminate.under",
+      "commandLabel": "modifier.terminate.under",
+      "cells": [
+        "⠻"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "munder"
+      },
+      "banaRefs": [
+        "15.2"
       ],
       "errataRefs": [],
       "validContexts": [

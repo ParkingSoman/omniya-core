@@ -115,11 +115,11 @@ function insertAfter(tree, focus, replacement) {
   return replacement;
 }
 
-function insertToken(tree, focus, name, value, { replace = false } = {}) {
+function insertToken(tree, focus, name, value, { replace = false, mathvariant = null } = {}) {
   const current = currentNode(tree, focus);
   const node = name === 'mspace'
     ? element('mspace', [], { width: '0.3em' })
-    : atom(name, value);
+    : atom(name, value, mathvariant ? { mathvariant } : {});
   const inserted = replace || current.name === 'math' || isHole(current)
     ? replaceCurrent(tree, focus, node)
     : insertAfter(tree, focus, node);
@@ -181,12 +181,19 @@ function closeStructure(tree, focus, elementName) {
   return { tree, focus: focusNode(parent ?? tree) };
 }
 
+function openModifier(tree, focus, elementName, initialSlot) {
+  return wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
+}
+
 const token = (id, cells, banaRefs, value, name = 'mo', options = {}) => ({ id, cells, banaRefs, action: 'insert-token', args: { name, value, ...options } });
 const open = (id, cells, banaRefs, elementName, slots, attrs = {}, initialSlot = slots[0], preferLonger = false) => ({ id, cells, banaRefs, action: 'open-structure', args: { element: elementName, slots, attrs, initialSlot, preferLonger } });
 const fixedRoot = (id, cells, banaRefs, index, indexText) => ({ id, cells, banaRefs, action: 'open-fixed-root', args: { index, indexText } });
 const move = (id, cells, banaRefs, elementName, role) => ({ id, cells, banaRefs, action: 'move-slot', args: { element: elementName, role } });
 const close = (id, cells, banaRefs, elementName) => ({ id, cells, banaRefs, action: 'close-structure', args: { element: elementName } });
 const mode = (id, cells, banaRefs, value, preferLonger = false) => ({ id, cells, banaRefs, action: 'set-mode', args: { mode: value, preferLonger } });
+const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multipurpose') => ({
+  id, cells, banaRefs, action: 'open-modifier', args: { element: elementName, slot, requiresMode }
+});
 
 // Normative mapping ledger: BANA 2022 is the authority for every cell sequence
 // and rule reference below. The October 2025 BANA errata is reviewed through
@@ -234,10 +241,34 @@ const MAPPINGS = [
   open('fraction.start.mixed', ['⠸', '⠹'], ['13.4'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'mixed' }),
   move('fraction.next.denominator.mixed', ['⠸', '⠌'], ['13.4'], 'mfrac', 'denominator'),
   close('fraction.end.mixed', ['⠸', '⠼'], ['13.4'], 'mfrac'),
-  open('script.superscript', ['⠘'], ['14.3', '14.4'], 'msup', ['base', 'superscript']),
-  open('script.subscript', ['⠰'], ['14.8'], 'msub', ['base', 'subscript']),
+  open('script.superscript', ['⠘'], ['14.3', '14.4'], 'msup', ['base', 'superscript'], {}, 'superscript', true),
+  open('script.subscript', ['⠰'], ['14.8'], 'msub', ['base', 'subscript'], {}, 'subscript', true),
+  open('script.sup-sub', ['⠘', '⠰'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'superscript', true),
+  open('script.sub-sup', ['⠰', '⠘'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'subscript', true),
+  move('script.sup-sub.move-sub', ['⠰'], ['14.4.2'], 'msubsup', 'subscript'),
+  move('script.sub-sup.move-sup', ['⠘'], ['14.4.2'], 'msubsup', 'superscript'),
   mode('script.baseline', ['⠐'], ['14.3', '14.8'], 'baseline'),
   mode('indicator.multipurpose', ['⠐'], ['24.1'], 'multipurpose', true),
+  // BANA Rule 7.2 typeform indicators. These are modes for the next local
+  // letter/number operation; they do not create a text buffer or parse a
+  // phrase. A shared cell may produce an explicit local choice where BANA
+  // assigns multiple meanings.
+  mode('typeform.bold', ['⠸', '⠰'], ['7.1', '7.2'], 'typeform:bold'),
+  mode('typeform.italic', ['⠨', '⠰'], ['7.1', '7.2'], 'typeform:italic'),
+  mode('typeform.sans-serif', ['⠠', '⠨', '⠰'], ['7.1', '7.2'], 'typeform:sans-serif'),
+  mode('typeform.script', ['⠈', '⠰'], ['7.1', '7.2'], 'typeform:script'),
+  mode('typeform.barred', ['⠠', '⠸', '⠰'], ['7.1', '7.2'], 'typeform:double-struck'),
+  mode('typeform.bold.number', ['⠸', '⠼'], ['7.1', '7.2'], 'numeric:bold'),
+  mode('typeform.italic.number', ['⠨', '⠼'], ['7.1', '7.2'], 'numeric:italic'),
+  mode('typeform.sans-serif.number', ['⠠', '⠨', '⠼'], ['7.1', '7.2'], 'numeric:sans-serif'),
+  mode('typeform.script.number', ['⠈', '⠼'], ['7.1', '7.2'], 'numeric:script'),
+  mode('typeform.barred.number', ['⠠', '⠸', '⠼'], ['7.1', '7.2'], 'numeric:double-struck'),
+  mode('typeform.terminate', ['⠠', '⠄'], ['7.1', '7.3'], 'typeform-end'),
+  modifier('modifier.directly-over', ['⠣'], ['15.1', '15.2'], 'mover', 'overscript'),
+  modifier('modifier.directly-under', ['⠩'], ['15.1', '15.2'], 'munder', 'underscript'),
+  token('modifier.horizontal-bar', ['⠱'], ['15.1', '15.2'], '¯', 'mo'),
+  close('modifier.terminate.over', ['⠻'], ['15.2'], 'mover'),
+  close('modifier.terminate.under', ['⠻'], ['15.2'], 'munder'),
   open('radical.square', ['⠜'], ['16.1', '16.2'], 'msqrt', ['radicand']),
   fixedRoot('radical.cube', ['⠣', '⠒', '⠜'], ['16.2'], '3', '3'),
   fixedRoot('radical.fourth', ['⠣', '⠲', '⠜'], ['16.2'], '4', '4'),
@@ -404,9 +435,13 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'radical.next.radicand') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
   if (mapping.id === 'radical.end') return Boolean(hasAncestor(context.tree, context.node, 'msqrt'));
   if (mapping.id === 'radical.indexed.end') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
+  if (mapping.id === 'script.sup-sub.move-sub') return Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
+  if (mapping.id === 'script.sub-sup.move-sup') return Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
+  if (mapping.id === 'script.superscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
+  if (mapping.id === 'script.subscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
   if (mapping.id === 'cancellation.end') return Boolean(hasAncestor(context.tree, context.node, 'menclose'));
   if (mapping.id === 'script.baseline') return Boolean(hasAncestor(context.tree, context.node, 'msup') || hasAncestor(context.tree, context.node, 'msub') || hasAncestor(context.tree, context.node, 'msubsup') || hasAncestor(context.tree, context.node, 'mover') || hasAncestor(context.tree, context.node, 'munder') || hasAncestor(context.tree, context.node, 'munderover'));
-  if (mapping.id === 'indicator.multipurpose') return !Boolean(hasAncestor(context.tree, context.node, 'msup') || hasAncestor(context.tree, context.node, 'msub') || hasAncestor(context.tree, context.node, 'msubsup') || hasAncestor(context.tree, context.node, 'mover') || hasAncestor(context.tree, context.node, 'munder') || hasAncestor(context.tree, context.node, 'munderover'));
+  if (mapping.id === 'indicator.multipurpose') return true;
   if (mapping.id === 'indicator.number' && fraction) return !contains(context.tree, fraction.children[1], context.node);
   return true;
 }
@@ -417,11 +452,24 @@ function applyMapping(document, focus, inputState, mapping) {
   const args = mapping.args ?? {};
   if (mapping.action === 'insert-token') {
     const replace = node.name === 'math' && tree.children.length === 0;
-    result = insertToken(tree, focus, args.name, args.value, { replace });
+    const typeform = inputState.mode?.startsWith?.('typeform:')
+      ? inputState.mode.slice('typeform:'.length).split(':')[0]
+      : inputState.mode?.startsWith?.('numeric:')
+        ? inputState.mode.slice('numeric:'.length)
+        : null;
+    result = insertToken(tree, focus, args.name, args.value, {
+      replace,
+      mathvariant: ['mi', 'mn'].includes(args.name) ? typeform : null
+    });
   } else if (mapping.action === 'open-structure') {
     result = wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
   } else if (mapping.action === 'open-fixed-root') {
     result = openFixedRoot(tree, focus, args.index, args.indexText);
+  } else if (mapping.action === 'open-modifier') {
+    if (inputState.mode !== args.requiresMode) {
+      return { status: 'rejected', document, focus, inputState, announcement: 'A multipurpose indicator is required before a modifier.' };
+    }
+    result = openModifier(tree, focus, args.element, args.slot);
   } else if (mapping.action === 'move-slot') {
     result = focusRole(tree, focus, args.element, args.role);
   } else if (mapping.action === 'close-structure') {
@@ -431,13 +479,28 @@ function applyMapping(document, focus, inputState, mapping) {
       const containers = ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover'];
       const container = ancestor(tree, node, containers);
       result = { tree, focus: focusNode(container ? findMathParent(tree, container.attrs['data-omniya-id']) ?? tree : node) };
+    } else if (args.mode === 'letter-indicator') {
+      if (!inputState.mode?.startsWith?.('typeform:')) {
+        return { status: 'rejected', document, focus, inputState, announcement: 'The alphabetic indicator is not valid at this focus.' };
+      }
+      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: `${inputState.mode}:alpha` }, announcement: 'Typeform alphabetic indicator active.' };
+    } else if (args.mode === 'numeric') {
+      const typeform = inputState.mode?.startsWith?.('typeform:')
+        ? inputState.mode.slice('typeform:'.length).split(':')[0]
+        : null;
+      const nextMode = typeform ? `numeric:${typeform}` : 'numeric';
+      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: nextMode }, announcement: 'Nemeth numeric indicator active.' };
+    } else if (args.mode === 'typeform-end') {
+      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: null }, announcement: 'Nemeth typeform terminated.' };
     } else {
       return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: args.mode }, announcement: `Nemeth ${args.mode} indicator active.` };
     }
   } else {
     return { status: 'rejected', document, focus, inputState, announcement: `Unknown Nemeth action: ${mapping.action}` };
   }
-  const nextMode = mapping.action === 'insert-token' && inputState.mode === 'numeric' && args.name === 'mn' ? 'numeric' : null;
+  const nextMode = mapping.action === 'insert-token' && inputState.mode?.startsWith?.('numeric') && args.name === 'mn'
+    ? inputState.mode
+    : null;
   return {
     status: 'applied',
     document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(result.tree), focus: result.focus },
@@ -478,12 +541,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
 
-  if (state.mode === 'numeric' && !state.prefix && DIGITS.has(normalized)) return applyMapping(document, focus, state, digitMapping(normalized));
+  if (state.mode?.startsWith?.('numeric') && !state.prefix && DIGITS.has(normalized)) return applyMapping(document, focus, state, digitMapping(normalized));
   if (state.mode === 'capital' && !state.prefix && LETTERS.has(normalized)) return applyMapping(document, focus, { ...state, mode: null }, letterMapping(normalized, state));
 
   if (!match && state.prefix) {
     const previous = PREFIXES.get(state.prefix);
-    const previousMappings = previous?.mappings?.filter((mapping) => mappingApplies(mapping, context)) ?? [];
+    const previousMappings = previous?.mappings
+      ?.filter((mapping) => mappingApplies(mapping, context))
+      .filter((mapping) => state.mode === 'multipurpose'
+        ? mapping.action === 'open-modifier'
+        : mapping.action !== 'open-modifier') ?? [];
     if (previousMappings.length === 1) {
       const first = applyMapping(document, focus, { ...state, prefix: '' }, previousMappings[0]);
     if (first.status !== 'rejected') {
@@ -497,7 +564,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   }
 
   if (!match) return { status: 'rejected', document, focus, inputState: { prefix: '', mode: state.mode }, announcement: 'That Nemeth cell is not valid at this draft focus.' };
-  const mappings = match.mappings.filter((mapping) => mappingApplies(mapping, context));
+  const mappings = match.mappings
+    .filter((mapping) => mappingApplies(mapping, context))
+    .filter((mapping) => mapping.id !== 'typeform.english-letter' || state.mode?.startsWith?.('typeform:'))
+    .filter((mapping) => state.mode === 'multipurpose'
+      ? mapping.action === 'open-modifier'
+      : mapping.action !== 'open-modifier');
   const hasLonger = [...PREFIXES.keys()].some((candidate) => candidate.startsWith(sequence) && candidate.length > sequence.length && [...(PREFIXES.get(candidate)?.mappings ?? [])].some((mapping) => mappingApplies(mapping, context)));
   if (!mappings.length) {
     if (hasLonger) return { status: 'pending', document, focus, inputState: { ...state, prefix: sequence }, announcement: 'Nemeth sequence pending.' };

@@ -95,12 +95,94 @@ test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () 
   }
 });
 
+test('BANA Rule 7 typeform indicators decorate only the next local atom', () => {
+  const cases = [
+    ['⠸⠰', 'bold'],
+    ['⠨⠰', 'italic'],
+    ['⠠⠨⠰', 'sans-serif'],
+    ['⠈⠰', 'script'],
+    ['⠠⠸⠰', 'double-struck']
+  ];
+  for (const [indicator, mathvariant] of cases) {
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    for (const cell of [...indicator, '⠁']) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      let chosen = result;
+      if (result.status === 'choice') {
+        const operation = result.choices.find(({ operationId }) => operationId.endsWith('.number'));
+        assert.ok(operation, `${indicator}: expected a numeral typeform mapping choice`);
+        chosen = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: operation.operationId });
+      }
+      assert.notEqual(chosen.status, 'rejected', `${indicator}: ${chosen.announcement}`);
+      ({ document, focus, inputState } = chosen);
+    }
+    const tree = parseMathML(document.mathml);
+    assert.equal(tree.children[0].attrs.mathvariant, mathvariant);
+    assert.equal(tree.children.at(-1).children[0].text, 'a');
+  }
+});
+
+test('BANA Rule 7 numeral typeform indicators retain the numeric mode', () => {
+  for (const [indicator, mathvariant] of [
+    ['⠸⠼', 'bold'],
+    ['⠨⠼', 'italic'],
+    ['⠠⠨⠼', 'sans-serif'],
+    ['⠈⠼', 'script'],
+    ['⠠⠸⠼', 'double-struck']
+  ]) {
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    for (const cell of [...indicator, '⠁']) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      let chosen = result;
+      if (result.status === 'choice') {
+        const operation = result.choices.find(({ operationId }) => operationId.endsWith('.number'));
+        assert.ok(operation, `${indicator}: expected a numeral typeform mapping choice`);
+        chosen = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: operation.operationId });
+      }
+      assert.notEqual(chosen.status, 'rejected', `${indicator}: ${chosen.announcement}`);
+      ({ document, focus, inputState } = chosen);
+    }
+    const tree = parseMathML(document.mathml);
+    assert.equal(tree.children[0].attrs.mathvariant, mathvariant);
+    assert.equal(tree.children[0].children[0].text, '1');
+  }
+});
+
+test('BANA Rule 15 five-step modifier transition creates a local mover', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠣', '⠁', '⠱', '⠻']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[1].children[0].text, '¯');
+});
+
+test('Rule 15 typeform and modifier mappings agree with the independent SRE Nemeth projection', async () => {
+  await SRE.engineReady();
+  await SRE.setupEngine({ locale: 'nemeth', modality: 'braille', domain: 'default' });
+  const cases = [
+    ['⠸⠰⠁', '<math><mi mathvariant="bold">a</mi></math>']
+  ];
+  for (const [cells, mathml] of cases) {
+    assert.equal(SRE.toSpeech(mathml), cells);
+  }
+});
+
 test('every accepted mapping has an explicit BANA source and action', () => {
   for (const entry of operationRegistry()) {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'open-structure', 'open-fixed-root', 'move-slot', 'close-structure', 'set-mode'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode'].includes(entry.action), entry.id);
   }
 });
 

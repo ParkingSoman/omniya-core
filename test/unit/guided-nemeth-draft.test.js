@@ -131,6 +131,23 @@ test('indexed radicals preserve MathML child order while following Nemeth entry 
   assert.equal(radical.children[1].children[0].text, '2');
 });
 
+test('compound Rule 14 level indicators build one msubsup with navigable slots', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠘', '⠰']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msubsup');
+  assert.equal(tree.children[0].children.length, 3);
+  const move = cell(document, focus, inputState, '⠰');
+  assert.equal(move.status, 'applied');
+  assert.equal(parseMathML(move.document.mathml).children[0].attrs['data-omniya-id'], tree.children[0].attrs['data-omniya-id']);
+});
+
 test('every registered Nemeth mapping is declarative and source-linked', () => {
   const entries = operationRegistry();
   assert.ok(entries.length > 20);
