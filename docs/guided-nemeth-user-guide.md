@@ -35,7 +35,7 @@ The same rule is used throughout the supported BANA mappings:
 
 | Style | What you do | What it does |
 | --- | --- | --- |
-| Immediate | Enter one complete code | Inserts or applies that one object now. |
+| Immediate | Type the complete code | Inserts or applies that one object as soon as it is recognized. |
 | Atomic sequence | Enter the registered cells, then Enter | Commits one bounded construction, such as a particular arrow. |
 | Structural follow-up | Enter a separator, terminator, or modifier code | Moves to or changes a slot in an object already in the draft. |
 

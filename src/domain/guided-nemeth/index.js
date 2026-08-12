@@ -276,6 +276,9 @@ const ADDITIONAL_ARROW_MAPPINGS = [
 // serializer and its public regression corpus are independent checks only;
 // they never supply a missing BANA mapping or override the cited rule.
 const MAPPINGS = [
+  // Rule 18 function names remain compositional letter mappings here. A
+  // future explicit command can select a named function without consuming
+  // ordinary variable prefixes such as `a` or `s`.
   ...[...LETTERS].map(([cells, value]) => token(`letter.${value}`, [cells], ['6.3', '6.4'], value, 'mi')),
   token('operator.plus', ['⠬'], ['20.1'], '+', 'mo', { preferLonger: true }),
   token('space', [' '], ['2.4'], '', 'mspace'),
@@ -285,7 +288,7 @@ const MAPPINGS = [
   // Within the mathematical editor this is the mathematical comma (Braille
   // ASCII comma, ⠠). Literary comma ⠂ is a passage-format concern and is not
   // silently accepted as an equation comma.
-  token('punctuation.comma', ['⠠'], ['8.1', '8.2'], ',', 'mo'),
+  token('punctuation.comma', ['⠠'], ['8.1', '8.2'], ',', 'mo', { preferLonger: true }),
   token('punctuation.period', ['⠲'], ['8.1', '8.2'], '.', 'mo'),
   token('punctuation.colon', ['⠒'], ['8.1', '8.5'], ':', 'mo'),
   token('punctuation.semicolon', ['⠆'], ['8.1', '8.6'], ';', 'mo'),
@@ -310,12 +313,12 @@ const MAPPINGS = [
   token('operator.circle-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['20.1'], '⊙'),
   token('operator.circle-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['20.1'], '⊕'),
   token('operator.circle-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['20.1'], '⊖'),
-  token('operator.minus-bold', ['⠸', '⠤'], ['20.6'], '−', 'mo', { mathvariant: 'bold' }),
+  token('operator.minus-bold', ['⠸', '⠤'], ['20.6'], '−', 'mo', { mathvariant: 'bold', preferLonger: true }),
   token('operator.minus-minus', ['⠤', '⠐', '⠤'], ['20.6'], '−−'),
   token('operator.minus-plus-bold', ['⠸', '⠤', '⠐', '⠸', '⠬'], ['20.6'], '−+'),
   token('operator.minus-plus-horizontal', ['⠤', '⠐', '⠬'], ['20.6'], '−+'),
   token('operator.minus-plus-regular-bold', ['⠤', '⠐', '⠸', '⠬'], ['20.6'], '−+'),
-  token('operator.plus-bold', ['⠸', '⠬'], ['20.6'], '+', 'mo', { mathvariant: 'bold' }),
+  token('operator.plus-bold', ['⠸', '⠬'], ['20.6'], '+', 'mo', { mathvariant: 'bold', preferLonger: true }),
   token('operator.plus-minus-bold', ['⠸', '⠬', '⠐', '⠸', '⠤'], ['20.6'], '+−'),
   token('operator.plus-minus-regular', ['⠬', '⠐', '⠤'], ['20.6'], '+−'),
   token('operator.plus-minus-regular-bold', ['⠬', '⠐', '⠸', '⠤'], ['20.6'], '+−'),
@@ -362,7 +365,7 @@ const MAPPINGS = [
   open('script.sub-sup', ['⠰', '⠘'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'subscript', true),
   move('script.sup-sub.move-sub', ['⠰'], ['14.4.2'], 'msubsup', 'subscript'),
   move('script.sub-sup.move-sup', ['⠘'], ['14.4.2'], 'msubsup', 'superscript'),
-  mode('script.baseline', ['⠐'], ['14.3', '14.8'], 'baseline'),
+  mode('script.baseline', ['⠐'], ['14.3', '14.8'], 'baseline', true),
   mode('indicator.multipurpose', ['⠐'], ['24.1'], 'multipurpose', true),
   // BANA Rule 7.2 typeform indicators. These are modes for the next local
   // letter/number operation; they do not create a text buffer or parse a
@@ -400,16 +403,32 @@ const MAPPINGS = [
   close('group.round.end', ['⠾'], ['19.1'], 'mrow'),
   token('group.parenthesis-open', ['⠷'], ['19.1'], '(', 'mo'),
   token('group.parenthesis-close', ['⠾'], ['19.1'], ')', 'mo'),
-  token('group.bracket-open', ['⠈', '⠷'], ['19.1'], '[', 'mo'),
-  token('group.bracket-close', ['⠈', '⠾'], ['19.1'], ']', 'mo'),
-  token('group.brace-open', ['⠨', '⠷'], ['19.1'], '{', 'mo'),
-  token('group.brace-close', ['⠨', '⠾'], ['19.1'], '}', 'mo'),
+  token('group.bracket-open', ['⠈', '⠷'], ['19.1'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.bracket-close', ['⠈', '⠾'], ['19.1'], ']', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.brace-open', ['⠨', '⠷'], ['19.1'], '{', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.brace-close', ['⠨', '⠾'], ['19.1'], '}', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  // Rule 19's additional grouping signs. Each multi-cell sign is a bounded
+  // local construction, not a delimiter grammar: Enter commits the one sign.
+  token('group.angle-open', ['⠨', '⠨', '⠷'], ['19.1'], '⟨', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.angle-close', ['⠨', '⠨', '⠾'], ['19.1'], '⟩', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.barred-bracket-open', ['⠈', '⠸', '⠷'], ['19.1'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.barred-bracket-close', ['⠈', '⠸', '⠾'], ['19.1'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.barred-brace-open', ['⠨', '⠸', '⠷'], ['19.1'], '⦃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.barred-brace-close', ['⠨', '⠸', '⠾'], ['19.1'], '⦄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.upper-half-open', ['⠈', '⠘', '⠠', '⠷'], ['19.1'], '⎡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.upper-half-close', ['⠈', '⠘', '⠠', '⠾'], ['19.1'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.lower-half-open', ['⠈', '⠰', '⠷'], ['19.1'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.lower-half-close', ['⠈', '⠰', '⠾'], ['19.1'], '⎦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  // Rule 19.5 reuses the vertical-bar cell used by operation and arrow
+  // constructions. Hold it for local lookahead so a longer arrow code stays
+  // reachable; Enter/choice selects the standalone grouping meaning.
+  token('group.vertical-bar', ['⠳'], ['19.5'], '|', 'mo', { preferLonger: true }),
   token('comparison.not-equal', ['⠌', '⠨', '⠅'], ['21.1', '21.8'], '≠'),
   token('comparison.approximately', ['⠈', '⠱', '⠈', '⠱'], ['21.6'], '≈'),
-  token('comparison.similar', ['⠈', '⠱'], ['21.6'], '∼'),
+  token('comparison.similar', ['⠈', '⠱'], ['21.6'], '∼', 'mo', { preferLonger: true }),
   token('comparison.member', ['⠈', '⠑'], ['21.4'], '∈'),
   token('comparison.not-member', ['⠌', '⠈', '⠑'], ['21.4'], '∉'),
-  token('comparison.subset', ['⠸', '⠐', '⠅'], ['21.5'], '⊂'),
+  token('comparison.subset', ['⠸', '⠐', '⠅'], ['21.5'], '⊂', 'mo', { preferLonger: true }),
   token('comparison.subset-equal', ['⠸', '⠐', '⠅', '⠱'], ['21.5'], '⊆'),
   token('comparison.perpendicular', ['⠫', '⠏'], ['21.2'], '⊥'),
   token('comparison.proportion', ['⠰', '⠆'], ['21.5'], '∷'),
@@ -520,6 +539,16 @@ const MAPPINGS = [
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†'),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡'),
   token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { preferLonger: true }),
+  token('shape.diamond', ['⠫', '⠙'], ['17.1'], '◊', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.ellipse', ['⠫', '⠑'], ['17.1'], '⬭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.hexagon', ['⠫', '⠖'], ['17.1'], '⬡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.parallel', ['⠫', '⠇'], ['17.1'], '∥', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.perpendicular', ['⠫', '⠏'], ['17.1'], '⟂', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.parallelogram', ['⠫', '⠛'], ['17.1'], '▱', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.pentagon', ['⠫', '⠢'], ['17.1'], '⬠', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.star', ['⠫', '⠎'], ['17.1'], '☆', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.trapezoid', ['⠫', '⠵'], ['17.1'], '⏢', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.inverted-triangle', ['⠨', '⠫'], ['17.1'], '▽', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.square', ['⠫', '⠲'], ['17.1'], '□'),
   token('shape.filled-circle', ['⠫', '⠸', '⠉'], ['17.3'], '●'),
   token('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■'),
@@ -579,6 +608,8 @@ export function operationRegistry() {
 export function registryDiagnostics() {
   const entries = operationRegistry();
   const immediate = entries.filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE);
+  const hasLonger = (entry) => entries.some((candidate) => candidate.cells.length > entry.cells.length &&
+    entry.cells.every((cell, index) => cell === candidate.cells[index]));
   const shadowedAtomic = entries
     .filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE)
     .flatMap((entry) => immediate
@@ -587,7 +618,11 @@ export function registryDiagnostics() {
       .map((prefix) => ({ atomicId: entry.id, immediateId: prefix.id })));
   const policyErrors = shadowedAtomic
     .filter(({ immediateId }) => !entries.find((entry) => entry.id === immediateId)?.args?.preferLonger);
-  return { shadowedAtomic, policyErrors };
+  const shadowedImmediate = immediate
+    .filter(hasLonger)
+    .filter((entry) => !entry.args?.preferLonger)
+    .map((entry) => ({ immediateId: entry.id, cells: entry.cells.join('') }));
+  return { shadowedAtomic, policyErrors, shadowedImmediate };
 }
 
 function contextFor(document, focus) {

@@ -658,7 +658,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mo",
-        "value": ","
+        "value": ",",
+        "preferLonger": true
       },
       "banaRefs": [
         "8.1",
@@ -1251,7 +1252,8 @@
       "args": {
         "name": "mo",
         "value": "−",
-        "mathvariant": "bold"
+        "mathvariant": "bold",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.6"
@@ -1374,7 +1376,8 @@
       "args": {
         "name": "mo",
         "value": "+",
-        "mathvariant": "bold"
+        "mathvariant": "bold",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.6"
@@ -2177,7 +2180,7 @@
       "commitPolicy": "immediate",
       "args": {
         "mode": "baseline",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "14.3",
@@ -2866,10 +2869,11 @@
         "⠷"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
-        "value": "["
+        "value": "[",
+        "preferLonger": true
       },
       "banaRefs": [
         "19.1"
@@ -2889,10 +2893,11 @@
         "⠾"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
-        "value": "]"
+        "value": "]",
+        "preferLonger": true
       },
       "banaRefs": [
         "19.1"
@@ -2912,10 +2917,11 @@
         "⠷"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
-        "value": "{"
+        "value": "{",
+        "preferLonger": true
       },
       "banaRefs": [
         "19.1"
@@ -2935,13 +2941,289 @@
         "⠾"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
-        "value": "}"
+        "value": "}",
+        "preferLonger": true
       },
       "banaRefs": [
         "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.angle-open",
+      "commandLabel": "group.angle-open",
+      "cells": [
+        "⠨",
+        "⠨",
+        "⠷"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟨",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.angle-close",
+      "commandLabel": "group.angle-close",
+      "cells": [
+        "⠨",
+        "⠨",
+        "⠾"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟩",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.barred-bracket-open",
+      "commandLabel": "group.barred-bracket-open",
+      "cells": [
+        "⠈",
+        "⠸",
+        "⠷"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟦",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.barred-bracket-close",
+      "commandLabel": "group.barred-bracket-close",
+      "cells": [
+        "⠈",
+        "⠸",
+        "⠾"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟧",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.barred-brace-open",
+      "commandLabel": "group.barred-brace-open",
+      "cells": [
+        "⠨",
+        "⠸",
+        "⠷"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⦃",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.barred-brace-close",
+      "commandLabel": "group.barred-brace-close",
+      "cells": [
+        "⠨",
+        "⠸",
+        "⠾"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⦄",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.upper-half-open",
+      "commandLabel": "group.upper-half-open",
+      "cells": [
+        "⠈",
+        "⠘",
+        "⠠",
+        "⠷"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⎡",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.upper-half-close",
+      "commandLabel": "group.upper-half-close",
+      "cells": [
+        "⠈",
+        "⠘",
+        "⠠",
+        "⠾"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⎤",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.lower-half-open",
+      "commandLabel": "group.lower-half-open",
+      "cells": [
+        "⠈",
+        "⠰",
+        "⠷"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⎣",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.lower-half-close",
+      "commandLabel": "group.lower-half-close",
+      "cells": [
+        "⠈",
+        "⠰",
+        "⠾"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⎦",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "group.vertical-bar",
+      "commandLabel": "group.vertical-bar",
+      "cells": [
+        "⠳"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "immediate",
+      "args": {
+        "name": "mo",
+        "value": "|",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "19.5"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -3011,7 +3293,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mo",
-        "value": "∼"
+        "value": "∼",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.6"
@@ -3082,7 +3365,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mo",
-        "value": "⊂"
+        "value": "⊂",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.5"
@@ -6804,6 +7088,246 @@
       "args": {
         "name": "mo",
         "value": "○",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.diamond",
+      "commandLabel": "shape.diamond",
+      "cells": [
+        "⠫",
+        "⠙"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "◊",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.ellipse",
+      "commandLabel": "shape.ellipse",
+      "cells": [
+        "⠫",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⬭",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.hexagon",
+      "commandLabel": "shape.hexagon",
+      "cells": [
+        "⠫",
+        "⠖"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⬡",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.parallel",
+      "commandLabel": "shape.parallel",
+      "cells": [
+        "⠫",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "∥",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.perpendicular",
+      "commandLabel": "shape.perpendicular",
+      "cells": [
+        "⠫",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟂",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.parallelogram",
+      "commandLabel": "shape.parallelogram",
+      "cells": [
+        "⠫",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "▱",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.pentagon",
+      "commandLabel": "shape.pentagon",
+      "cells": [
+        "⠫",
+        "⠢"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⬠",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.star",
+      "commandLabel": "shape.star",
+      "cells": [
+        "⠫",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "☆",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.trapezoid",
+      "commandLabel": "shape.trapezoid",
+      "cells": [
+        "⠫",
+        "⠵"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⏢",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.inverted-triangle",
+      "commandLabel": "shape.inverted-triangle",
+      "cells": [
+        "⠨",
+        "⠫"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "▽",
         "preferLonger": true
       },
       "banaRefs": [

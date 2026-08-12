@@ -35,6 +35,29 @@ const FIXTURES = [
   ['shape.rectangle', '⠫⠗', '▭']
 ];
 
+const RULE_17_19_FIXTURES = [
+  ['shape.diamond', '⠫⠙', '◊'],
+  ['shape.ellipse', '⠫⠑', '⬭'],
+  ['shape.hexagon', '⠫⠖', '⬡'],
+  ['shape.parallel', '⠫⠇', '∥'],
+  ['shape.perpendicular', '⠫⠏', '⟂'],
+  ['shape.parallelogram', '⠫⠛', '▱'],
+  ['shape.pentagon', '⠫⠢', '⬠'],
+  ['shape.star', '⠫⠎', '☆'],
+  ['shape.trapezoid', '⠫⠵', '⏢'],
+  ['shape.inverted-triangle', '⠨⠫', '▽'],
+  ['group.angle-open', '⠨⠨⠷', '⟨'],
+  ['group.angle-close', '⠨⠨⠾', '⟩'],
+  ['group.barred-bracket-open', '⠈⠸⠷', '⟦'],
+  ['group.barred-bracket-close', '⠈⠸⠾', '⟧'],
+  ['group.barred-brace-open', '⠨⠸⠷', '⦃'],
+  ['group.barred-brace-close', '⠨⠸⠾', '⦄'],
+  ['group.upper-half-open', '⠈⠘⠠⠷', '⎡'],
+  ['group.upper-half-close', '⠈⠘⠠⠾', '⎤'],
+  ['group.lower-half-open', '⠈⠰⠷', '⎣'],
+  ['group.lower-half-close', '⠈⠰⠾', '⎦']
+];
+
 const RULE_23_FIXTURES = [
   ['misc.angstrom', '⠈⠠⠁', 'Å'],
   ['misc.planck', '⠈⠓', 'ℏ'],
@@ -159,6 +182,16 @@ test('Rules 20, 21, and 23 table literals remain independently source-linked', (
   }
 });
 
+test('BANA Rules 17 and 19 shape and grouping literals are source-linked', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, expected] of RULE_17_19_FIXTURES) {
+    assert.equal(registry.get(id)?.cells.join(''), cells, id);
+    assert.ok(registry.get(id)?.banaRefs.includes('17.1') || registry.get(id)?.banaRefs.includes('19.1'), id);
+    const tree = applyFixture(id, cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
+  }
+});
+
 test('official BANA and MathCAT cells guard corrected Greek, summation, and arrow literals', async () => {
   const fixtures = [
     ['greek.ϵ', '⠨⠑', 'ϵ'],
@@ -262,7 +295,11 @@ test('BANA Rule 15 five-step modifier transition creates a local mover', () => {
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
   for (const cell of ['⠐', '⠣', '⠁', '⠱', '⠻']) {
-    const result = applyNemethCell({ document, focus, inputState, cell });
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'choice') {
+      const operationId = cell === '⠱' ? 'modifier.bar-over' : 'modifier.terminate.over';
+      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId });
+    }
     assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);
   }
@@ -297,6 +334,7 @@ test('atomic local codes are reachable and never shadowed by immediate prefixes'
   // opt into the longer-code lookahead policy; otherwise the first cell would
   // commit too early and make the atomic construction unreachable.
   assert.deepEqual(registryDiagnostics().policyErrors, []);
+  assert.deepEqual(registryDiagnostics().shadowedImmediate, []);
 });
 
 test('composed guided structures match SRE Nemeth output for whole expressions', async () => {
