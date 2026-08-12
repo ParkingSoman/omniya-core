@@ -161,6 +161,44 @@ function insertToken(tree, focus, name, value, { replace = false, mathvariant = 
   return { tree, focus: focusNode(inserted) };
 }
 
+// BANA 14.7 uses the contracted comma (⠪) for a comma plus its optional
+// following space inside a superscript or subscript.  MathML keeps those as
+// two ordinary local siblings; the transition merely inserts those siblings
+// after the focused script item.  It never scans or parses the rest of the
+// script.
+function insertContractedScriptComma(tree, focus) {
+  const current = currentNode(tree, focus);
+  const script = ancestor(tree, current, ['msup', 'msub', 'msubsup', 'mmultiscripts']);
+  if (!script || current.name === 'math' || isHole(current)) {
+    throw new RangeError('A contracted comma is only valid inside a script slot.');
+  }
+  const comma = atom('mo', ',', { 'data-omniya-script-comma': 'true' });
+  // MathML/SRE supplies the presentation spacing for a comma in a script;
+  // persisting an mspace here would double that spacing in the Braille
+  // projection.  The source-linked attribute preserves that this was the
+  // Nemeth contracted form without changing the mathematical tree.
+  const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+  if (!parent) throw new RangeError('The contracted comma target is unavailable.');
+  const index = parent.children.indexOf(current);
+  if (index < 0) throw new RangeError('The contracted comma target is unavailable.');
+  // A first script item is commonly represented directly as the child of
+  // msub/msup.  Promote just that slot to an mrow before appending the comma;
+  // this preserves MathML arity and keeps later cells in the same local slot.
+  if (['msup', 'msub', 'msubsup'].includes(parent.name)) {
+    const slot = parent.children.indexOf(current);
+    if (slot === 1 || slot === 2) {
+      const row = element('mrow', [current, comma]);
+      parent.children[slot] = row;
+      return { tree, focus: focusNode(comma) };
+    }
+  }
+  if (['mrow', 'math'].includes(parent.name)) {
+    parent.children.splice(index + 1, 0, comma);
+    return { tree, focus: focusNode(comma) };
+  }
+  throw new RangeError('A contracted comma requires a local script expression row.');
+}
+
 // Rule 3.1.2 keeps a Nemeth numeric run distinct from ordinary identifiers.
 // Appending to the focused <mn> is a local tree operation, not passage
 // parsing: one cell extends only the current numeric atom.
@@ -207,6 +245,34 @@ function wrapCurrent(tree, focus, elementName, roles, attrs = {}, initialSlot = 
   replaceCurrent(tree, focus, wrapper);
   const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === initialSlot);
   return { tree, focus: focusNode(first ?? wrapper) };
+}
+
+// BANA 14.12 places a prime before a later right subscript/superscript.  In
+// MathML the prime is part of the base expression, not the script itself.
+// This is a one-step local repair of the adjacent siblings under the current
+// row.  It deliberately does not inspect or infer any wider expression.
+function wrapScriptAfterPrime(tree, focus, elementName, roles, attrs = {}, initialSlot = roles[0]) {
+  const current = currentNode(tree, focus);
+  const parent = current.name === 'mo' && current.children?.[0]?.text === '′'
+    ? findMathParent(tree, current.attrs?.['data-omniya-id'])
+    : null;
+  if (!parent || !['math', 'mrow'].includes(parent.name)) return null;
+  const primeIndex = parent.children.indexOf(current);
+  if (primeIndex <= 0) return null;
+  const prior = parent.children[primeIndex - 1];
+  if (!prior || isHole(prior)) return null;
+  const base = element('mrow', [prior, current]);
+  const wrapper = element(elementName, [], {
+    ...attrs,
+    'data-omniya-id': prior.attrs?.['data-omniya-id'] ?? id()
+  });
+  base.attrs['data-omniya-id'] = id();
+  prior.attrs['data-omniya-id'] = id();
+  wrapper.children.push(base);
+  for (const role of roles.slice(1)) wrapper.children.push(hole(wrapper, role));
+  parent.children.splice(primeIndex - 1, 2, wrapper);
+  const slot = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === initialSlot);
+  return { tree, focus: focusNode(slot ?? wrapper) };
 }
 
 
@@ -543,6 +609,10 @@ const simultaneous = (id, cells, banaRefs, direction) => ({
   id, cells, banaRefs, action: 'simultaneous-modifier',
   commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
   args: { direction }
+});
+const contractedComma = (id, cells, banaRefs) => ({
+  id, cells, banaRefs, action: 'insert-contracted-script-comma',
+  commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {}
 });
 
 const cellForLetter = (letter) => [...LETTERS.entries()].find(([, value]) => value === letter)?.[0] ?? letter;
@@ -1012,6 +1082,10 @@ const MAPPINGS = [
   token('misc.since', ['⠈', '⠌'], ['23.18'], '∵'),
   token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″', 'mo', { preferLonger: true }),
   token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴', 'mo', { preferLonger: true }),
+  // BANA 14.7's contracted comma is distinct from the baseline mathematical
+  // comma: it preserves the current script level and represents the optional
+  // following space as part of this one local follow-up.
+  contractedComma('script.contracted-comma', ['⠪'], ['14.7']),
   token('misc.tally', ['⠸'], ['23.19'], '|', 'mo', { preferLonger: true }),
   // Rule 23.20's vertical-bar symbol uses the same cell as the operation bar;
   // its meaning is selected by the local context (such-that, grouping, or
@@ -1302,6 +1376,18 @@ function mappingApplies(mapping, context) {
   if (mapping.action === 'close-structure' && mapping.args?.element === 'munderover') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.id === 'indicator.multipurpose') return true;
   if (mapping.id === 'indicator.number' && fraction) return !contains(context.tree, fraction.children[1], context.node);
+  if (mapping.action === 'insert-contracted-script-comma') {
+    return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
+      context.node.name !== 'math' && !isHole(context.node));
+  }
+  // Dot 4 is the cancellation opener on the baseline, but inside a script
+  // it is BANA 14.7's contracted comma.  Context selects the local meaning;
+  // it never requires a passage-level interpretation.
+  if (mapping.id === 'cancellation.start' &&
+    hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) return false;
+  if (mapping.id === 'misc.prime') {
+    return context.node.name !== 'math' && !isHole(context.node);
+  }
   return true;
 }
 
@@ -1350,9 +1436,18 @@ function applyMapping(document, focus, inputState, mapping) {
       return { status: 'rejected', document, focus, inputState, announcement: error.message };
     }
   } else if (mapping.action === 'open-structure') {
-    result = wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
+    const primeWrapped = ['msup', 'msub', 'msubsup'].includes(args.element)
+      ? wrapScriptAfterPrime(tree, focus, args.element, args.slots, args.attrs, args.initialSlot)
+      : null;
+    result = primeWrapped ?? wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
   } else if (mapping.action === 'open-function-limit') {
     result = openFunctionLimit(tree, focus, args.direction);
+  } else if (mapping.action === 'insert-contracted-script-comma') {
+    try {
+      result = insertContractedScriptComma(tree, focus);
+    } catch (error) {
+      return { status: 'rejected', document, focus, inputState, announcement: error.message };
+    }
   } else if (mapping.action === 'open-fixed-root') {
     result = openFixedRoot(tree, focus, args.index, args.indexText);
   } else if (mapping.action === 'open-script-chain') {
@@ -1423,7 +1518,7 @@ function applyMapping(document, focus, inputState, mapping) {
   } else {
     return { status: 'rejected', document, focus, inputState, announcement: `Unknown Nemeth action: ${mapping.action}` };
   }
-  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit'].includes(mapping.action);
+  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-');
   const nextModifierScope = collectingModifierScope && insertedAction
     ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
@@ -1632,9 +1727,6 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.directly-under');
     return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
   }
-  if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized)) {
-    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, letterMapping(normalized, { ...state, mode: 'english-letter' }));
-  }
   if (((state.mode === null && state.prefix === '⠐') || (state.mode === 'multipurpose' && !state.prefix)) && normalized === '⠨' &&
     context.node.name === 'mo' && ['<', '>', '=', '≤', '≥', '≠', '≡', '⊂', '⊃'].includes(context.node.children?.[0]?.text)) {
     return { status: 'pending', document, focus,
@@ -1674,6 +1766,41 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     if (opened.status !== 'rejected') {
       return applyMapping(opened.document, opened.focus, { ...opened.inputState, mode: 'numeric' }, digitMapping(normalized));
     }
+  }
+  // The same dot-6 prefix followed by a letter is the ordinary Rule 14
+  // subscript transition whenever the current focus is a populated atom.
+  // Resolve that local structural meaning before the English-letter mode;
+  // the latter remains available at an empty/boundary focus.
+  if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized) &&
+    context.node.name !== 'math' && !isHole(context.node)) {
+    const script = MAPPINGS.find((candidate) => candidate.id === 'script.subscript');
+    const opened = applyMapping(document, focus, { ...state, prefix: '' }, script);
+    if (opened.status !== 'rejected') {
+      return applyNemethCell({ document: opened.document, focus: opened.focus, inputState: opened.inputState, cell: normalized });
+    }
+  }
+  // The held prime has already been committed as a local token.  If dot 6 is
+  // followed by a script item while that prime is focused, wrap the exact
+  // adjacent prime/base pair as the new script base (Rule 14.12).
+  if (state.mode === null && state.prefix === '⠰' &&
+    context.node.name === 'mo' && context.node.children?.[0]?.text === '′') {
+    const script = MAPPINGS.find((candidate) => candidate.id === 'script.subscript');
+    const opened = applyMapping(document, focus, { ...state, prefix: '' }, script);
+    if (opened.status !== 'rejected') {
+      return applyNemethCell({ document: opened.document, focus: opened.focus,
+        inputState: opened.inputState, cell: normalized });
+    }
+  }
+  // At an empty replacement root, dot 6 followed by a letter is the BANA
+  // English-letter indicator (Rule 6.3/10.3), not a script with a missing
+  // base.  Resolve that boundary meaning before the shared-prefix matcher.
+  if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized) &&
+    (context.node.name === 'math' || isHole(context.node))) {
+    const indicator = applyMapping(document, focus, { ...state, prefix: '' },
+      MAPPINGS.find((candidate) => candidate.id === 'indicator.english-letter'));
+    if (indicator.status === 'rejected') return indicator;
+    return applyNemethCell({ document: indicator.document, focus: indicator.focus,
+      inputState: indicator.inputState, cell: normalized });
   }
   // A baseline return is a structural follow-up when the current focus is a
   // script slot. It is deliberately resolved only here, after the complete

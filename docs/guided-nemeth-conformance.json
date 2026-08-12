@@ -7784,6 +7784,25 @@
       ]
     },
     {
+      "id": "script.contracted-comma",
+      "commandLabel": "script.contracted-comma",
+      "cells": [
+        "⠪"
+      ],
+      "action": "insert-contracted-script-comma",
+      "commitPolicy": "structural-followup",
+      "args": {},
+      "banaRefs": [
+        "14.7"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "misc.tally",
       "commandLabel": "misc.tally",
       "cells": [

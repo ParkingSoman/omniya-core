@@ -584,7 +584,7 @@ test('every accepted mapping has an explicit BANA source and action', () => {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'insert-contracted-script-comma', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier'].includes(entry.action), entry.id);
   }
 });
 
@@ -648,6 +648,34 @@ test('Rule 14 numeric subscripts and Rule 24 baseline numerals stay local to the
   assert.equal(tree.children[0].children[1].children[0].text, '1');
   assert.equal(tree.children[1].name, 'mn');
   assert.equal(tree.children[1].children[0].text, '2');
+});
+
+test('BANA Rule 14.7 contracted commas and Rule 14.12 primes stay local to scripts', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠰', '⠊', '⠪', '⠚']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  let tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[1].name, 'mrow');
+  assert.deepEqual(tree.children[0].children[1].children.map((node) => node.children?.[0]?.text), ['i', ',','j']);
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠄', '⠰', '⠊']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[0].name, 'mrow');
+  assert.deepEqual(tree.children[0].children[0].children.map((node) => node.children?.[0]?.text), ['x', '′']);
 });
 
 test('BANA Rule 24.1.g decimal return is one bounded nonnumeric transition', () => {

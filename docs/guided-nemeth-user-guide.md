@@ -55,6 +55,13 @@ on the page, it is structural-followup. These choices are properties of the
 registry rows, so adding a new BANA construction does not require a new
 editing mode or a second parser.
 
+For scripts, keep using the same local progression. Enter a base, choose the
+subscript or superscript operation, and then fill that slot. A comma inside a
+script uses the contracted comma code and keeps you in that script. A prime is
+entered before a later script, so the editor keeps the prime with the base.
+These are local tree operations, not punctuation that makes you restart or
+retype the expression.
+
 ### Bounded modifier scopes
 
 Some BANA modifiers cover more than one adjacent symbol. Enter the modifier
