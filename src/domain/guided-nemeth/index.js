@@ -2829,6 +2829,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       return first;
     }
     }
+    if (previousMappings.length > 1 && !hasAtomicContinuation(state.prefix, normalized, context)) {
+      return {
+        status: 'choice',
+        choices: previousMappings.map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+        document,
+        focus,
+        inputState: { ...state, prefix: sequence },
+        announcement: 'Choose the meaning for this local Nemeth prefix.'
+      };
+    }
   }
 
   if (!match) return {

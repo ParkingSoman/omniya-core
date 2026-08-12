@@ -576,6 +576,16 @@ test('incomplete or invalid atomic input never mutates the draft', () => {
   assert.equal(badNext.inputState.prefix, pending.inputState.prefix);
 });
 
+test('shared local prefixes return a bounded choice instead of rejecting the next cell', () => {
+  const document = createEmptyDraftMathDocument();
+  let result = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠠' });
+  assert.equal(result.status, 'pending');
+  result = applyNemethCell({ document, focus: document.focus, inputState: result.inputState, cell: '⠁' });
+  assert.equal(result.status, 'choice');
+  assert.deepEqual(result.choices.map((choice) => choice.operationId).sort(), ['indicator.capital', 'punctuation.comma']);
+  assert.equal(result.document.mathml, document.mathml);
+});
+
 test('punctuation and Greek symbols remain declarative token mappings', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
