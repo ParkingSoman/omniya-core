@@ -3082,10 +3082,11 @@
       "id": "punctuation.period",
       "commandLabel": "punctuation.period",
       "cells": [
+        "⠸",
         "⠲"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
         "value": "."
@@ -3105,16 +3106,18 @@
       "id": "punctuation.colon",
       "commandLabel": "punctuation.colon",
       "cells": [
+        "⠸",
         "⠒"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
         "value": ":"
       },
       "banaRefs": [
         "8.1",
+        "8.2",
         "8.5"
       ],
       "errataRefs": [],
@@ -3128,16 +3131,18 @@
       "id": "punctuation.semicolon",
       "commandLabel": "punctuation.semicolon",
       "cells": [
+        "⠸",
         "⠆"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
         "value": ";"
       },
       "banaRefs": [
         "8.1",
+        "8.2",
         "8.6"
       ],
       "errataRefs": [],
@@ -3151,17 +3156,18 @@
       "id": "punctuation.question",
       "commandLabel": "punctuation.question",
       "cells": [
+        "⠸",
         "⠦"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
         "value": "?"
       },
       "banaRefs": [
         "8.1",
-        "8.8"
+        "8.2"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -3174,16 +3180,18 @@
       "id": "punctuation.exclamation",
       "commandLabel": "punctuation.exclamation",
       "cells": [
+        "⠸",
         "⠖"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
         "value": "!"
       },
       "banaRefs": [
-        "8.1"
+        "8.1",
+        "8.2"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -3249,7 +3257,7 @@
         "⠦"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
         "value": "‘"
@@ -3272,7 +3280,7 @@
         "⠴"
       ],
       "action": "insert-token",
-      "commitPolicy": "immediate",
+      "commitPolicy": "atomic-sequence",
       "args": {
         "name": "mo",
         "value": "’"
@@ -4105,6 +4113,287 @@
       ]
     },
     {
+      "id": "integral.superpose.circle",
+      "commandLabel": "integral.superpose.circle",
+      "cells": [
+        "⠈",
+        "⠫",
+        "⠉",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "∮"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.infinity",
+      "commandLabel": "integral.superpose.infinity",
+      "cells": [
+        "⠈",
+        "⠠",
+        "⠿",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "∰"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.11",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.clockwise",
+      "commandLabel": "integral.superpose.clockwise",
+      "cells": [
+        "⠈",
+        "⠫",
+        "⠪",
+        "⠢",
+        "⠔",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "∲"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.anticlockwise",
+      "commandLabel": "integral.superpose.anticlockwise",
+      "cells": [
+        "⠈",
+        "⠫",
+        "⠢",
+        "⠔",
+        "⠕",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "∳"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.rectangle",
+      "commandLabel": "integral.superpose.rectangle",
+      "cells": [
+        "⠈",
+        "⠫",
+        "⠗",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "∯"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.square",
+      "commandLabel": "integral.superpose.square",
+      "cells": [
+        "⠈",
+        "⠫",
+        "⠲",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "⨖"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.finite-part",
+      "commandLabel": "integral.superpose.finite-part",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "⨍"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.double-stroke",
+      "commandLabel": "integral.superpose.double-stroke",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠱",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "⨎"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.times",
+      "commandLabel": "integral.superpose.times",
+      "cells": [
+        "⠈",
+        "⠈",
+        "⠡",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "⨘"
+      },
+      "banaRefs": [
+        "15.9",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.intersection",
+      "commandLabel": "integral.superpose.intersection",
+      "cells": [
+        "⠈",
+        "⠨",
+        "⠩",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "⨙"
+      },
+      "banaRefs": [
+        "15.9",
+        "20.4",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.superpose.union",
+      "commandLabel": "integral.superpose.union",
+      "cells": [
+        "⠈",
+        "⠨",
+        "⠬",
+        "⠻"
+      ],
+      "action": "superpose-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "value": "⨚"
+      },
+      "banaRefs": [
+        "15.9",
+        "20.4",
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "operator.sum",
       "commandLabel": "operator.sum",
       "cells": [
@@ -4924,7 +5213,8 @@
       "args": {
         "element": "mover",
         "slot": "overscript",
-        "requiresMode": "multipurpose"
+        "requiresMode": "multipurpose",
+        "preferLonger": true
       },
       "banaRefs": [
         "15.1",
@@ -4962,20 +5252,344 @@
       ]
     },
     {
-      "id": "modifier.horizontal-bar",
-      "commandLabel": "modifier.horizontal-bar",
+      "id": "modifier.directly-over.second",
+      "commandLabel": "modifier.directly-over.second",
+      "cells": [
+        "⠣",
+        "⠣"
+      ],
+      "action": "open-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "element": "mover",
+        "slot": "overscript",
+        "requiresMode": "multipurpose"
+      },
+      "banaRefs": [
+        "15.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.directly-under.second",
+      "commandLabel": "modifier.directly-under.second",
+      "cells": [
+        "⠩",
+        "⠩"
+      ],
+      "action": "open-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "element": "munder",
+        "slot": "underscript",
+        "requiresMode": "multipurpose"
+      },
+      "banaRefs": [
+        "15.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arc.down",
+      "commandLabel": "modifier.arc.down",
+      "cells": [
+        "⠫",
+        "⠁"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "⁀"
+      },
+      "banaRefs": [
+        "15.11"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arc.up",
+      "commandLabel": "modifier.arc.up",
+      "cells": [
+        "⠫",
+        "⠄"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "‿"
+      },
+      "banaRefs": [
+        "15.11"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.caret.over",
+      "commandLabel": "modifier.caret.over",
+      "cells": [
+        "⠸",
+        "⠣"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "^"
+      },
+      "banaRefs": [
+        "15.15"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.caret.inverted",
+      "commandLabel": "modifier.caret.inverted",
+      "cells": [
+        "⠸",
+        "⠩"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "∨"
+      },
+      "banaRefs": [
+        "15.15"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.caret.left",
+      "commandLabel": "modifier.caret.left",
+      "cells": [
+        "⠰",
+        "⠣"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "‹"
+      },
+      "banaRefs": [
+        "15.15"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.caret.right",
+      "commandLabel": "modifier.caret.right",
+      "cells": [
+        "⠰",
+        "⠩"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "›"
+      },
+      "banaRefs": [
+        "15.15"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.dot",
+      "commandLabel": "modifier.dot",
+      "cells": [
+        "⠡"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "•"
+      },
+      "banaRefs": [
+        "15.16"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.hollow-dot",
+      "commandLabel": "modifier.hollow-dot",
+      "cells": [
+        "⠨",
+        "⠡"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "∘"
+      },
+      "banaRefs": [
+        "15.17"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.question",
+      "commandLabel": "modifier.question",
+      "cells": [
+        "⠸",
+        "⠦"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "?"
+      },
+      "banaRefs": [
+        "15.18"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.tilde.extended",
+      "commandLabel": "modifier.tilde.extended",
+      "cells": [
+        "⠠",
+        "⠱"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "〰"
+      },
+      "banaRefs": [
+        "15.19"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.tilde.simple",
+      "commandLabel": "modifier.tilde.simple",
+      "cells": [
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "~"
+      },
+      "banaRefs": [
+        "15.19"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.triangle",
+      "commandLabel": "modifier.triangle",
+      "cells": [
+        "⠫",
+        "⠞"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "name": "mo",
+        "value": "△"
+      },
+      "banaRefs": [
+        "15.10"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.bar-over",
+      "commandLabel": "modifier.bar-over",
       "cells": [
         "⠱"
       ],
-      "action": "insert-token",
-      "commitPolicy": "immediate",
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
       "args": {
         "name": "mo",
         "value": "¯"
       },
       "banaRefs": [
         "15.1",
-        "15.2"
+        "15.2",
+        "15.13"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5964,6 +6578,32 @@
       },
       "banaRefs": [
         "21.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.equivalence",
+      "commandLabel": "comparison.equivalence",
+      "cells": [
+        "⠈",
+        "⠣",
+        "⠠",
+        "⠣"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "≎"
+      },
+      "banaRefs": [
+        "21.9",
+        "21.11"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -7211,6 +7851,35 @@
       },
       "banaRefs": [
         "21.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.measured-angle",
+      "commandLabel": "misc.measured-angle",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠸",
+        "⠫",
+        "⠫",
+        "⠁",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "∡"
+      },
+      "banaRefs": [
+        "17.6",
+        "23.5"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -11504,6 +12173,29 @@
       "banaRefs": [
         "5.1",
         "6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "indicator.english-letter",
+      "commandLabel": "indicator.english-letter",
+      "cells": [
+        "⠰"
+      ],
+      "action": "set-mode",
+      "commitPolicy": "immediate",
+      "args": {
+        "mode": "english-letter",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "6.2",
+        "10.3"
       ],
       "errataRefs": [],
       "validContexts": [

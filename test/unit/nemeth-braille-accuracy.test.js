@@ -102,6 +102,62 @@ test('ported MathCAT Nemeth cases remain stable through Omniya MathML import', a
   }
 });
 
+test('MathCAT Rule 86 modifier fixtures remain exact for whole and focused scopes', async () => {
+  // MathCAT's independent regression fixture `overbar_86_b_2` records the
+  // BANA five-step form for a modifier over a multi-token expression.  This
+  // is intentionally a direct MathML fixture: LaTeX's overline serializer is
+  // a different presentation choice and is not the authoring contract here.
+  const mathml = '<math><mover><mrow><mi>a</mi><mo>+</mo><mi>b</mi></mrow><mo>¯</mo></mover></math>';
+  assert.equal(await nemeth(mathml), '⠐⠁⠬⠃⠣⠱⠻');
+  const root = parseMathML(mathml).children[0];
+  assert.equal(await nemeth(subtreeMathML(root.children[0])), '⠁⠬⠃');
+  assert.equal(await nemeth(subtreeMathML(root.children[1])), '⠱');
+});
+
+test('Rule 23 superposed integral fixtures match BANA and SRE for complete symbols', async () => {
+  const fixtures = [
+    ['∮', '⠮⠈⠫⠉⠻', '23.12'],
+    ['∯', '⠮⠮⠈⠫⠉⠻', '23.12'],
+    ['∰', '⠮⠮⠮⠈⠫⠉⠻', '23.12'],
+    ['∲', '⠮⠈⠫⠪⠢⠔⠻', '23.12'],
+    ['∳', '⠮⠈⠫⠢⠔⠕⠻', '23.12']
+  ];
+  for (const [symbol, expected, banaRef] of fixtures) {
+    assert.equal(await nemeth(`<math><mo>${symbol}</mo></math>`), expected, `${symbol} (${banaRef})`);
+  }
+});
+
+test('guided local operations reproduce the reviewed multi-token modifier and integral outputs', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠁', '⠬', '⠃', '⠣', '⠱', '⠻']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(await nemeth(document.mathml), '⠐⠁⠬⠃⠣⠱⠻');
+
+  // The integral itself is immediate. The superposition is a separate
+  // bounded structural-follow-up code and therefore cannot mutate anything
+  // until its terminator completes that one local construction.
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠮' });
+  assert.equal(result.status, 'applied');
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠈', '⠫', '⠉']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(document.mathml.includes('>∫<'), true, 'pending superposition leaves the integral unchanged');
+  result = applyNemethCell({ document, focus, inputState, cell: '⠻' });
+  assert.equal(result.status, 'applied');
+  assert.equal(await nemeth(result.document.mathml), '⠮⠈⠫⠉⠻');
+});
+
 test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

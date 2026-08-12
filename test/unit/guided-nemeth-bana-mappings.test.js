@@ -78,6 +78,7 @@ const RULE_20_21_23_LITERALS = [
   ['operator.circle-dot', '⠫⠉⠸⠫⠡⠻', '⊙'],
   ['operator.circle-plus', '⠫⠉⠸⠫⠬⠻', '⊕'],
   ['operator.circle-minus', '⠫⠉⠸⠫⠤⠻', '⊖'],
+  ['comparison.equivalence', '⠈⠣⠠⠣', '≎'],
   ['operator.number-sign', '⠨⠼', '#'],
   ['operator.divides', '⠳', '∣'],
   ['operator.paragraph', '⠈⠠⠏', '¶'],
@@ -254,6 +255,21 @@ test('BANA Rule 6 non-English alphabet indicators remain bounded local mappings'
   }
 });
 
+test('BANA Rule 10.3 English-letter abbreviation indicator is a one-letter mode', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠰' });
+  if (result.status === 'choice') {
+    result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'indicator.english-letter' });
+  }
+  assert.equal(result.status, 'pending');
+  ({ document, focus, inputState } = result);
+  result = applyNemethCell({ document, focus, inputState, cell: '⠛' });
+  assert.equal(result.status, 'applied');
+  assert.equal(parseMathML(result.document.mathml).children[0].children[0].text, 'g');
+});
+
 test('BANA Rule 18 abbreviated functions and limit forms are bounded local atoms', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, cells, value] of [
@@ -299,6 +315,42 @@ test('BANA Rule 23 repeated integrals use immediate and bounded forms', () => {
   result = applyNemethCell({ document, focus, inputState, cell: '⠮' });
   assert.equal(result.status, 'applied');
   assert.equal(parseMathML(result.document.mathml).children[0].children[0].text, '∭');
+});
+
+test('BANA Rule 23 superposed integrals are structural follow-ups to an immediate integral', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, expected] of [
+    ['integral.superpose.circle', '⠈⠫⠉⠻', '∮'],
+    ['integral.superpose.clockwise', '⠈⠫⠪⠢⠔⠻', '∲'],
+    ['integral.superpose.anticlockwise', '⠈⠫⠢⠔⠕⠻', '∳'],
+    ['integral.superpose.finite-part', '⠈⠱⠻', '⨍'],
+    ['integral.superpose.double-stroke', '⠈⠱⠱⠻', '⨎'],
+    ['integral.superpose.times', '⠈⠈⠡⠻', '⨘'],
+    ['integral.superpose.intersection', '⠈⠨⠩⠻', '⨙'],
+    ['integral.superpose.union', '⠈⠨⠬⠻', '⨚'],
+    ['integral.superpose.square', '⠈⠫⠲⠻', '⨖']
+  ]) {
+    const entry = registry.get(id);
+    assert.equal(entry?.cells.join(''), cells, id);
+    assert.equal(entry?.commitPolicy, 'structural-followup', id);
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    let result = applyNemethCell({ document, focus, inputState, cell: '⠮' });
+    assert.equal(result.status, 'applied', `${id}: immediate integral`);
+    ({ document, focus, inputState } = result);
+    for (const cell of [...cells]) {
+      result = applyNemethCell({ document, focus, inputState, cell });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    if (inputState.prefix) {
+      result = commitNemethLocalCode({ document, focus, inputState });
+      assert.equal(result.status, 'applied', `${id}: commit`);
+      document = result.document;
+    }
+    assert.equal(parseMathML(document.mathml).children[0].children[0].text, expected, id);
+  }
 });
 
 test('BANA Rule 7 typeform indicators decorate only the next local atom', () => {
@@ -365,7 +417,7 @@ test('BANA Rule 15 five-step modifier transition creates a local mover', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const cell of ['⠐', '⠣', '⠁', '⠱', '⠻']) {
+  for (const cell of ['⠐', '⠁', '⠣', '⠱', '⠻']) {
     let result = applyNemethCell({ document, focus, inputState, cell });
     if (result.status === 'choice') {
       const operationId = cell === '⠱' ? 'modifier.bar-over' : 'modifier.terminate.over';
@@ -376,6 +428,45 @@ test('BANA Rule 15 five-step modifier transition creates a local mover', () => {
   }
   const tree = parseMathML(document.mathml);
   assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[1].children[0].text, '¯');
+  assert.equal(tree.children[0].children[0].children[0].text, 'a');
+});
+
+test('BANA Rule 15 five-step order works for under-modifiers as well', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠁', '⠩', '⠱', '⠻']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[0].children[0].children[0].text, 'a');
+  assert.equal(tree.children[0].children[1].children[0].text, '¯');
+});
+
+test('BANA Rule 15 modifier scope wraps a complete local multi-token expression', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠁', '⠬', '⠃', '⠣', '⠱', '⠻']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'choice') {
+      const operationId = result.choices.find(({ operationId }) => operationId === 'modifier.bar-over')?.operationId
+        ?? result.choices[0]?.operationId;
+      assert.ok(operationId, `${cell}: modifier choice`);
+      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId });
+    }
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.length, 1);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[0].name, 'mrow');
+  assert.deepEqual(tree.children[0].children[0].children.map((child) => child.children[0].text), ['a', '+', 'b']);
   assert.equal(tree.children[0].children[1].children[0].text, '¯');
 });
 
@@ -395,7 +486,7 @@ test('every accepted mapping has an explicit BANA source and action', () => {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral'].includes(entry.action), entry.id);
   }
 });
 

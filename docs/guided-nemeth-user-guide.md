@@ -54,3 +54,18 @@ atomic-sequence. If a code changes the slot or decoration of an object already
 on the page, it is structural-followup. These choices are properties of the
 registry rows, so adding a new BANA construction does not require a new
 editing mode or a second parser.
+
+### Bounded modifier scopes
+
+Some BANA modifiers cover more than one adjacent symbol. Enter the modifier
+indicator, enter that expression one local symbol at a time, then enter the
+modifier and its terminator. For example, an overbar on `a+b` is entered as
+the multipurpose indicator, directly-over indicator, `a`, plus, `b`, bar, and
+terminator. Omniya remembers only the first and last siblings of that one
+modifier construction, wraps exactly that range, and returns to the surrounding
+expression. It does not parse or buffer the rest of the equation.
+
+The same bounded-scope rule applies wherever BANA defines a decoration over
+several adjacent symbols. Standalone symbols still appear immediately, and
+later structural codes modify the focused MathML object or the exact local
+range selected by the current construction.

@@ -258,6 +258,20 @@ test('local input policies are declarative and apply across construction familie
   assert.equal(registry.get('script.superscript').commitPolicy, 'immediate');
   assert.equal(registry.get('fraction.next.denominator').commitPolicy, 'structural-followup');
   assert.ok(operationRegistry().every((entry) => ['immediate', 'atomic-sequence', 'structural-followup'].includes(entry.commitPolicy)));
+
+  // The policy is a registry property, not an arrow/integral special case.
+  // Check representative rows from notation families that use each local
+  // behavior, so adding a new BANA mapping cannot silently bypass the shared
+  // input contract.
+  for (const id of [
+    'letter.a', 'operator.plus', 'radical.square', 'script.superscript',
+    'arrow.right', 'shape.diamond', 'punctuation.period', 'function.sin',
+    'fraction.next.denominator', 'fraction.end.simple', 'integral.superpose.circle',
+    'modifier.directly-over'
+  ]) assert.ok(registry.get(id), `missing representative registry row: ${id}`);
+  assert.ok(operationRegistry().some((entry) => entry.commitPolicy === 'immediate' && entry.action === 'insert-token'));
+  assert.ok(operationRegistry().some((entry) => entry.commitPolicy === 'atomic-sequence' && entry.action === 'insert-token'));
+  assert.ok(operationRegistry().some((entry) => entry.commitPolicy === 'structural-followup' && ['move-slot', 'close-structure', 'superpose-integral'].includes(entry.action)));
 });
 
 test('an atomic local code waits for Enter and then applies exactly once', () => {
@@ -299,9 +313,12 @@ test('punctuation and Greek symbols remain declarative token mappings', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const value of ['⠨', '⠏', '⠲']) {
-    const result = cell(document, focus, inputState, value);
+  for (const [index, value] of ['⠨', '⠏', '⠸', '⠲'].entries()) {
+    let result = cell(document, focus, inputState, value);
     assert.notEqual(result.status, 'rejected', result.announcement);
+    if (index === 3 && result.status === 'pending' && result.inputState.prefix) {
+      result = commitNemethLocalCode({ document, focus, inputState: result.inputState });
+    }
     if (result.status === 'applied') ({ document, focus, inputState } = result);
     else inputState = result.inputState;
   }
