@@ -965,6 +965,13 @@ const MAPPINGS = [
   // code because the first cell is also the minus sign; the registry's
   // longer-code lookahead keeps the punctuation construction reachable.
   sourceToken('punctuation.short-dash', '--', ['8.7'], '–', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // Rule 11.1.2 uses the same four-cell long-dash construction when the dash
+  // stands for omitted material. Keep that meaning explicit rather than
+  // silently collapsing an omission into ordinary punctuation.
+  sourceToken('omission.long-dash', '----', ['11.1.2'], '―', 'mo', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    dataAttributes: { 'data-omniya-nemeth-intent': 'omission-long-dash' }
+  }),
   token('punctuation.ellipsis', ['⠄', '⠄', '⠄'], ['8.8'], '…', 'mo', { sourceNotation: "'''" }),
   token('punctuation.left-single-quote', ['⠠', '⠦'], ['8.1'], '‘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',8' }),
   // Rule 8's closing single quotation mark is punctuation indicator + dot 0

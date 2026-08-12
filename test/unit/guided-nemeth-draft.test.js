@@ -134,6 +134,27 @@ test('Rule 8.7 short dash waits for its complete local code', () => {
   assert.equal(parseMathML(committed.document.mathml).children[0].children[0].text, '–');
 });
 
+test('Rule 11.1.2 omission long dash is a bounded local construction', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const [index, value] of ['⠤', '⠤', '⠤', '⠤'].entries()) {
+    const result = cell(document, focus, inputState, value);
+    assert.equal(result.status, index === 3 ? 'choice' : 'pending');
+    ({ document, focus, inputState } = result);
+  }
+  const committed = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(committed.status, 'choice');
+  const omission = applyNemethChoice({
+    document: committed.document,
+    focus: committed.focus,
+    inputState: committed.inputState,
+    operationId: 'omission.long-dash'
+  });
+  assert.equal(omission.status, 'applied', omission.announcement);
+  assert.match(omission.document.mathml, /data-omniya-nemeth-intent="omission-long-dash"/);
+});
+
 test('Rule 8.4 plural and possessive endings append to the focused local expression', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

@@ -319,6 +319,23 @@ test('Rule 14.4.4 four-level drafts retain exact nested scope and independent Br
   }
 });
 
+test('Rule 11.1.2 omission dash preserves its source intent while projecting the same cells', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const [index, cell] of ['⠤', '⠤', '⠤', '⠤'].entries()) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.equal(result.status, index === 3 ? 'choice' : 'pending');
+    ({ document, focus, inputState } = result);
+  }
+  let result = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(result.status, 'choice');
+  result = applyNemethChoice({ document: result.document, focus: result.focus, inputState: result.inputState, operationId: 'omission.long-dash' });
+  assert.equal(result.status, 'applied', result.announcement);
+  assert.equal(await nemeth(result.document.mathml), '⠤⠤⠤⠤');
+  assert.match(result.document.mathml, /data-omniya-nemeth-intent="omission-long-dash"/);
+});
+
 test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

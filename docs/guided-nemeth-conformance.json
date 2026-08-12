@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 239,
-    "atomicSequence": 307,
+    "atomicSequence": 308,
     "structuralFollowup": 58
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 273,
+    "shadowedAtomicCount": 274,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -407,6 +407,10 @@
       },
       {
         "atomicId": "punctuation.short-dash",
+        "immediateId": "operator.minus"
+      },
+      {
+        "atomicId": "omission.long-dash",
         "immediateId": "operator.minus"
       },
       {
@@ -1110,7 +1114,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 604,
+    "notation": 605,
     "contextual": 2
   },
   "operations": [
@@ -4773,6 +4777,37 @@
       },
       "banaRefs": [
         "8.7"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "omission.long-dash",
+      "commandLabel": "omission.long-dash",
+      "cells": [
+        "⠤",
+        "⠤",
+        "⠤",
+        "⠤"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "----",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "―",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "omission-long-dash"
+        },
+        "sourceNotation": "----"
+      },
+      "banaRefs": [
+        "11.1.2"
       ],
       "errataRefs": [],
       "validContexts": [

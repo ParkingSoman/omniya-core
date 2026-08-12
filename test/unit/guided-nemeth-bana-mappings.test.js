@@ -626,6 +626,17 @@ test('Rule 14.4.4 four-component level indicators remain bounded registry rows',
   assert.ok(rows.every((entry) => entry.action === 'open-script-chain' && entry.commitPolicy === 'atomic-sequence'));
 });
 
+test('Rule 11.1.2 keeps the omission long dash distinct from Rule 8.8 punctuation', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const punctuation = registry.get('punctuation.long-dash');
+  const omission = registry.get('omission.long-dash');
+  assert.deepEqual(punctuation.cells, omission.cells);
+  assert.notDeepEqual(punctuation.banaRefs, omission.banaRefs);
+  assert.equal(omission.args.sourceNotation, '----');
+  assert.equal(omission.args.dataAttributes['data-omniya-nemeth-intent'], 'omission-long-dash');
+  assert.equal(omission.commitPolicy, 'atomic-sequence');
+});
+
 
 test('BANA Rule 13 preserves horizontal versus diagonal fraction lines', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
