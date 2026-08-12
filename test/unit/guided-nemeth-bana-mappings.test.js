@@ -626,3 +626,22 @@ test('Rule 14 left-script cells use a local baseline promotion, not passage pars
   assert.equal(scripts.children[2].name, 'none');
   assert.equal(scripts.children[3].children[0].text, 'x');
 });
+
+test('Rule 14 numeric subscripts and Rule 24 baseline numerals stay local to the draft row', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cellValue of ['⠭', '⠰', '⠂', '⠐', '⠼', '⠆']) {
+    const result = applyNemethCell({ document, focus, inputState, cell: cellValue });
+    assert.notEqual(result.status, 'rejected', `${cellValue}: ${result.announcement}`);
+    assert.notEqual(result.status, 'choice', `${cellValue}: unresolved local choice`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.length, 2, 'baseline number must be a sibling, not a replacement of the script');
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[1].name, 'mn');
+  assert.equal(tree.children[0].children[1].children[0].text, '1');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '2');
+});

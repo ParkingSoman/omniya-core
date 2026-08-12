@@ -155,7 +155,7 @@ function insertToken(tree, focus, name, value, { replace = false, mathvariant = 
   const node = name === 'mspace'
     ? element('mspace', [], { width: '0.3em' })
     : atom(name, value, { ...(mathvariant ? { mathvariant } : {}), ...dataAttributes });
-  const inserted = replace || current.name === 'math' || isHole(current)
+  const inserted = replace || (current.name === 'math' && current.children.length === 0) || isHole(current)
     ? replaceCurrent(tree, focus, node)
     : insertAfter(tree, focus, node);
   return { tree, focus: focusNode(inserted) };
@@ -922,8 +922,9 @@ const MAPPINGS = [
   token('comparison.reverse-membership', ['⠈', '⠢'], ['21.4'], '∋'),
   token('comparison.variation', ['⠸', '⠿'], ['21.5'], '∝'),
   token('comparison.equivalence', ['⠈', '⠣', '⠠', '⠣'], ['21.9', '21.11'], '≎', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  // Rule 21's comparison bar is Braille ASCII | (Unicode cell ⠡). The
-  // operation/divides bar (Rule 20) is a different local meaning, ⠳.
+  // Rule 21.7's such-that bar uses the same Nemeth bar cell as the operation
+  // bar. Context chooses the meaning; the local registry never invents a
+  // second bar glyph.
   token('comparison.vertical-bar', ['⠡'], ['21.7'], '|', 'mo', { preferLonger: true }),
   token('comparison.equals-bold', ['⠸', '⠨', '⠅'], ['21.5'], '='),
   token('comparison.greater-curved', ['⠨', '⠨', '⠂'], ['21.5'], '≻'),
@@ -988,8 +989,9 @@ const MAPPINGS = [
   token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″', 'mo', { preferLonger: true }),
   token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴', 'mo', { preferLonger: true }),
   token('misc.tally', ['⠸'], ['23.19'], '|', 'mo', { preferLonger: true }),
-  // Rule 23.20's vertical-bar symbol is the Braille ASCII | cell ⠡;
-  // ⠳ remains reserved for the Rule 20 operation/divides meaning above.
+  // Rule 23.20's vertical-bar symbol uses the same cell as the operation bar;
+  // its meaning is selected by the local context (such-that, grouping, or
+  // operation), never by inventing a second Unicode bar glyph.
   token('misc.vertical-bar', ['⠡'], ['23.20'], '|'),
   token('misc.does-not-divide', ['⠌', '⠳'], ['23.20'], '∤'),
   token('misc.parallel', ['⠫', '⠇'], ['17.2', '21.2'], '∥'),
@@ -1222,6 +1224,18 @@ function mappingApplies(mapping, context) {
       hasAncestor(context.tree, context.node, 'mover') ||
       hasAncestor(context.tree, context.node, 'munder') ||
       hasAncestor(context.tree, context.node, 'munderover'))) return false;
+  // Rule 6.3's English-letter indicator is a boundary indicator.  When the
+  // editor is already focused on a populated mathematical atom, dot-6 is the
+  // Rule 14 subscript transition (or the prefix of a locally atomic
+  // proportion code), not a request to start an English-letter mode.  Keeping
+  // that distinction in the context predicate lets the same cell participate
+  // in both BANA families without a passage parser or a global key override.
+  if (mapping.id === 'indicator.english-letter') {
+    const current = context.node;
+    const boundary = current.name === 'math' || isHole(current) ||
+      current.name === 'mspace' || current.name === 'mo';
+    if (!boundary) return false;
+  }
   if (mapping.id === 'operator.integral') {
     return !(context.node.name === 'mo' && ['∫', '∬', '∭'].includes(context.node.children?.[0]?.text));
   }
@@ -1300,7 +1314,7 @@ function applyMapping(document, focus, inputState, mapping) {
       result = insertNumeric(tree, focus, args.value, { mathvariant: numericVariant });
     } else {
       const inserted = atom('mn', args.value, numericVariant ? { mathvariant: numericVariant } : {});
-      const target = node.name === 'math' || isHole(node)
+      const target = (node.name === 'math' && node.children.length === 0) || isHole(node)
         ? replaceCurrent(tree, focus, inserted)
         : insertAfter(tree, focus, inserted);
       result = { tree, focus: focusNode(target) };
@@ -1536,6 +1550,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized)) {
     return applyMapping(document, focus, { ...state, prefix: '', mode: null }, letterMapping(normalized, { ...state, mode: 'english-letter' }));
   }
+  // Rule 14 permits a lower-cell numeral directly in a script slot.  Dot 6
+  // is shared with the English-letter indicator, so it is held until the
+  // following cell makes the local script context unambiguous.  This handles
+  // `x` + subscript indicator + digit without introducing a numeric passage
+  // parser or a persistent mode.
+  if (state.mode === null && state.prefix === '⠰' && DIGITS.has(normalized) &&
+    context.node.name !== 'math' && !isHole(context.node)) {
+    const script = MAPPINGS.find((candidate) => candidate.id === 'script.subscript');
+    const opened = applyMapping(document, focus, { ...state, prefix: '' }, script);
+    if (opened.status !== 'rejected') {
+      return applyMapping(opened.document, opened.focus, { ...opened.inputState, mode: 'numeric' }, digitMapping(normalized));
+    }
+  }
   // A baseline return is a structural follow-up when the current focus is a
   // script slot. It is deliberately resolved only here, after the complete
   // one-cell prefix is known, so shared dot-5 meanings elsewhere remain
@@ -1548,6 +1575,17 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       const next = applyNemethCell({ document: activated.document, focus: activated.focus, inputState: activated.inputState, cell: normalized });
       if (next.status !== 'rejected') return { ...next, announcement: `${activated.announcement}; ${next.announcement}` };
       return activated;
+    }
+  }
+  // In a script slot, dot 5 followed by the numeric indicator is the local
+  // baseline return before a new number.  Resolve it here, before the shared
+  // multipurpose indicator can claim the prefix.
+  if (state.mode?.startsWith?.('numeric') && state.prefix === '⠐' && normalized === '⠼' &&
+    hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+    const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+    const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
+    if (returned.status !== 'rejected') {
+      return applyNemethCell({ document: returned.document, focus: returned.focus, inputState: returned.inputState, cell: normalized });
     }
   }
   // Dot 5 is shared by the baseline and multipurpose indicators. When the

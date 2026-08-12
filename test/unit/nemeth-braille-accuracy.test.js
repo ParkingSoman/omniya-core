@@ -241,6 +241,25 @@ test('guided numeric cells use the BANA lower-cell digits and match SRE output',
   assert.equal(await nemeth(document.mathml), '⠼⠒⠨⠂⠲');
 });
 
+test('guided Rule 14 and Rule 24 local transitions preserve the reviewed projection', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠰', '⠂', '⠐', '⠼', '⠆']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    assert.notEqual(result.status, 'choice', `${cell}: unresolved local choice`);
+    ({ document, focus, inputState } = result);
+  }
+  // BANA 14.4/24.1.c constructs the subscript locally, then returns to the
+  // baseline before the following number. SRE is checked only as an
+  // independent projection of the resulting canonical MathML.
+  assert.equal(await nemeth(document.mathml), '⠭⠂⠆');
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[1].name, 'mn');
+});
+
 test('MathCAT left-script fixtures remain accurate as canonical multiscripts', async () => {
   const fixtures = [
     ['<math><mmultiscripts><mi>n</mi><mprescripts/><none/><mi>x</mi></mmultiscripts></math>', '⠘⠭⠐⠝'],
