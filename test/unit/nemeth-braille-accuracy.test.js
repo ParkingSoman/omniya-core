@@ -353,6 +353,30 @@ test('guided Rule 24.1.j polygon numeral agrees with the independent projection'
   assert.equal(await nemeth(document.mathml), '⠫⠲⠀⠼⠂⠲');
 });
 
+test('guided Rule 18.3 limit forms retain their structural MathML and Braille', async () => {
+  for (const [cells, element] of [
+    [['⠣', '⠇', '⠊', '⠍'], 'mover'],
+    [['⠩', '⠇', '⠊', '⠍'], 'munder']
+  ]) {
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    for (const cell of cells) {
+      let result = applyNemethCell({ document, focus, inputState, cell });
+      if (result.status === 'pending' && result.inputState.prefix === cells.join('')) {
+        result = commitNemethLocalCode({ document, focus, inputState: result.inputState });
+      }
+      assert.notEqual(result.status, 'rejected', result.announcement);
+      ({ document, focus, inputState } = result);
+    }
+    const tree = parseMathML(document.mathml);
+    assert.equal(tree.children[0].name, element);
+    // SRE serializes the empty limit slot as an ordinary lim projection; the
+    // BANA input indicator remains represented by the MathML structure.
+    assert.equal(await nemeth(document.mathml), '⠇⠊⠍');
+  }
+});
+
 test('MathCAT left-script fixtures remain accurate as canonical multiscripts', async () => {
   const fixtures = [
     ['<math><mmultiscripts><mi>n</mi><mprescripts/><none/><mi>x</mi></mmultiscripts></math>', '⠘⠭⠐⠝'],

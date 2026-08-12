@@ -281,6 +281,22 @@ function openModifier(tree, focus, elementName, initialSlot) {
   return wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
 }
 
+// BANA Rule 18.3 upper/lower-limit forms are bounded local constructions.
+// The function name is their base and the following limit is a real MathML
+// child, so later guided navigation can enter that slot without a hidden
+// function-specific parser or metadata stack.
+function openFunctionLimit(tree, focus, direction) {
+  const current = currentNode(tree, focus);
+  const elementName = direction === 'under' ? 'munder' : 'mover';
+  const role = direction === 'under' ? 'underscript' : 'overscript';
+  const wrapper = element(elementName, [], current.name === 'math' ? {} : { 'data-omniya-id': current.attrs?.['data-omniya-id'] });
+  const base = atom('mi', 'lim');
+  const limit = hole(wrapper, role);
+  wrapper.children.push(base, limit);
+  replaceCurrent(tree, focus, wrapper);
+  return { tree, focus: focusNode(limit) };
+}
+
 // Rule 15.4's simultaneous modifier is a local structural follow-up.  It
 // upgrades the already-created one-sided mover/munder without inspecting any
 // surrounding passage.  The existing base and modifier retain their IDs;
@@ -556,8 +572,16 @@ const BANA_LIMIT_MAPPINGS = [
   // BANA 18.3 gives upper/lower limit as dedicated local constructions. They
   // are not ordinary bar modifiers. The following expression is entered by
   // later structural operations in the same draft.
-  token('function.limit.upper', ['⠣', '⠇', '⠊', '⠍'], ['18.3'], 'lim', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('function.limit.lower', ['⠩', '⠇', '⠊', '⠍'], ['18.3'], 'lim', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE })
+  {
+    id: 'function.limit.upper', cells: ['⠣', '⠇', '⠊', '⠍'], banaRefs: ['18.3'],
+    action: 'open-function-limit', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    args: { direction: 'over' }
+  },
+  {
+    id: 'function.limit.lower', cells: ['⠩', '⠇', '⠊', '⠍'], banaRefs: ['18.3'],
+    action: 'open-function-limit', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    args: { direction: 'under' }
+  }
 ];
 const FUNCTION_INITIAL_CELLS = new Set(BANA_FUNCTION_MAPPINGS.map((mapping) => mapping.cells[0]));
 
@@ -1327,6 +1351,8 @@ function applyMapping(document, focus, inputState, mapping) {
     }
   } else if (mapping.action === 'open-structure') {
     result = wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
+  } else if (mapping.action === 'open-function-limit') {
+    result = openFunctionLimit(tree, focus, args.direction);
   } else if (mapping.action === 'open-fixed-root') {
     result = openFixedRoot(tree, focus, args.index, args.indexText);
   } else if (mapping.action === 'open-script-chain') {
@@ -1397,7 +1423,7 @@ function applyMapping(document, focus, inputState, mapping) {
   } else {
     return { status: 'rejected', document, focus, inputState, announcement: `Unknown Nemeth action: ${mapping.action}` };
   }
-  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root'].includes(mapping.action);
+  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-');
   const nextModifierScope = collectingModifierScope && insertedAction
     ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)

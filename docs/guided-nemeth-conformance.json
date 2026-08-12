@@ -2357,11 +2357,10 @@
         "⠊",
         "⠍"
       ],
-      "action": "insert-token",
+      "action": "open-function-limit",
       "commitPolicy": "atomic-sequence",
       "args": {
-        "name": "mo",
-        "value": "lim"
+        "direction": "over"
       },
       "banaRefs": [
         "18.3"
@@ -2382,11 +2381,10 @@
         "⠊",
         "⠍"
       ],
-      "action": "insert-token",
+      "action": "open-function-limit",
       "commitPolicy": "atomic-sequence",
       "args": {
-        "name": "mo",
-        "value": "lim"
+        "direction": "under"
       },
       "banaRefs": [
         "18.3"

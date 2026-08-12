@@ -368,7 +368,11 @@ test('BANA Rule 18 abbreviated functions and limit forms are bounded local atoms
     const committed = commitNemethLocalCode({ document, focus, inputState });
     assert.equal(committed.status, 'applied', id);
     const tree = parseMathML(committed.document.mathml);
-    assert.equal(tree.children[0].children[0].text, value, id);
+    if (id === 'function.limit.upper' || id === 'function.limit.lower') {
+      assert.equal(tree.children[0].name, id.endsWith('upper') ? 'mover' : 'munder', id);
+      assert.equal(tree.children[0].children[0].children[0].text, value, id);
+      assert.equal(tree.children[0].children[1].attrs['data-omniya-hole'], 'true', id);
+    } else assert.equal(tree.children[0].children[0].text, value, id);
   }
 });
 
@@ -580,7 +584,7 @@ test('every accepted mapping has an explicit BANA source and action', () => {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier'].includes(entry.action), entry.id);
   }
 });
 
