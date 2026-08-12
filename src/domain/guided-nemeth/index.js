@@ -316,8 +316,8 @@ const MAPPINGS = [
   token('operator.plus-minus-regular-bold', ['⠬', '⠐', '⠸', '⠤'], ['20.6'], '+−'),
   token('operator.proper-difference', ['⠨', '⠤'], ['20.6'], '∸'),
   token('operator.number-sign', ['⠨', '⠼'], ['20.3'], '#'),
-  token('operator.paragraph', ['⠠', '⠏'], ['20.3'], '¶'),
-  token('operator.section', ['⠠', '⠎'], ['20.3'], '§'),
+  token('operator.paragraph', ['⠈', '⠠', '⠏'], ['20.3'], '¶'),
+  token('operator.section', ['⠈', '⠠', '⠎'], ['20.3'], '§'),
   token('operator.star', ['⠫', '⠎'], ['20.3'], '☆'),
   token('operator.ring', ['⠨', '⠡'], ['20.3'], '∘'),
   // An ordinary integral is a complete local code and is inserted at once.
@@ -325,12 +325,15 @@ const MAPPINGS = [
   token('operator.integral', ['⠮'], ['23.12'], '∫'),
   token('operator.double-integral', ['⠮', '⠮'], ['23.12'], '∬', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('operator.triple-integral', ['⠮', '⠮', '⠮'], ['23.12'], '∭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('integral.lower', ['⠩', '⠮'], ['23.12'], '⨜'),
-  token('integral.upper', ['⠣', '⠮'], ['23.12'], '⨛'),
-  token('integral.contour', ['⠮', '⠈', '⠫', '⠉', '⠻'], ['23.12'], '∮'),
-  token('integral.superposed-infinity', ['⠮', '⠈', '⠠', '⠿', '⠻'], ['23.12'], '∰'),
-  token('integral.superposed-rectangle', ['⠮', '⠈', '⠫', '⠗', '⠻'], ['23.12'], '∯'),
-  token('integral.quaternion', ['⠮', '⠈', '⠫', '⠲', '⠻'], ['23.12'], '⨖'),
+  // These are complete compound integral symbols. Their bounded code is
+  // collected as one local construction; an ordinary ⠮ remains immediate.
+  token('integral.lower', ['⠩', '⠮'], ['23.12'], '⨜', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('integral.upper', ['⠣', '⠮'], ['23.12'], '⨛', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('integral.contour', ['⠮', '⠈', '⠫', '⠉', '⠻'], ['23.12'], '∮', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('integral.superposed-infinity', ['⠮', '⠈', '⠠', '⠿', '⠻'], ['23.12'], '∰', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('integral.superposed-rectangle', ['⠮', '⠈', '⠫', '⠗', '⠻'], ['23.12'], '∯', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // BANA Rule 23.12 calls this the superposed-square integral.
+  token('integral.superposed-square', ['⠮', '⠈', '⠫', '⠲', '⠻'], ['23.12'], '⨖', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   // The n-ary summation sign is a Greek capital sigma with the Greek
   // alphabet indicator and capitalization indicator (BANA 6.1.4, 6.2,
   // Appendix C). It is not the plain English-letter sequence ⠠⠎.
@@ -406,7 +409,9 @@ const MAPPINGS = [
   token('comparison.relation', ['⠠', '⠗'], ['21.5'], 'R'),
   token('comparison.reverse-subset', ['⠸', '⠨', '⠂'], ['21.5'], '⊃'),
   token('comparison.variation', ['⠸', '⠿'], ['21.5'], '∝'),
-  token('comparison.vertical-bar', ['⠳'], ['21.7'], '|', 'mo', { preferLonger: true }),
+  // Rule 21's comparison bar is Braille ASCII | (Unicode cell ⠡). The
+  // operation/divides bar (Rule 20) is a different local meaning, ⠳.
+  token('comparison.vertical-bar', ['⠡'], ['21.7'], '|', 'mo', { preferLonger: true }),
   token('comparison.equals-bold', ['⠸', '⠨', '⠅'], ['21.5'], '='),
   token('comparison.greater-curved', ['⠨', '⠨', '⠂'], ['21.5'], '≻'),
   token('comparison.less-curved', ['⠨', '⠐', '⠅'], ['21.5'], '≺'),
@@ -447,9 +452,8 @@ const MAPPINGS = [
   token('misc.partial', ['⠈', '⠙'], ['23.14'], '∂'),
   token('misc.nabla', ['⠨', '⠫'], ['23.5'], '∇'),
   token('misc.ditto', ['⠠', '⠄'], ['23.6'], '〃'),
-  // `$qed is a UEB transcriber-defined icon. It is deliberately a named
-  // local token, not an invented ordinary Nemeth code, and is only offered
-  // through this explicit command path in the guided editor.
+  // Rule 23.8 prints the transcriber-defined construction `$qed: the
+  // multipurpose indicator (` = ⠈), shape ($ = ⠫), then q-e-d.
   token('misc.end-proof', ['⠈', '⠫', '⠟', '⠑', '⠙'], ['23.8'], '∎', 'mo', { preferLonger: true }),
   token('misc.hollow-dot', ['⠨', '⠡'], ['15.17', '23.10'], '∘'),
   token('misc.degree', ['⠘', '⠨', '⠡'], ['23.1'], '°'),
@@ -466,9 +470,10 @@ const MAPPINGS = [
   token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″', 'mo', { preferLonger: true }),
   token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴'),
   token('misc.tally', ['⠸'], ['23.19'], '|', 'mo', { preferLonger: true }),
-  token('misc.vertical-bar', ['⠳'], ['23.20'], '|'),
-  token('misc.divides', ['⠳'], ['23.11'], '∣'),
-  token('misc.does-not-divide', ['⠌', '⠳'], ['23.11'], '∤'),
+  // Rule 23.20's vertical-bar symbol is the Braille ASCII | cell ⠡;
+  // ⠳ remains reserved for the Rule 20 operation/divides meaning above.
+  token('misc.vertical-bar', ['⠡'], ['23.20'], '|'),
+  token('misc.does-not-divide', ['⠌', '⠳'], ['23.20'], '∤'),
   token('misc.parallel', ['⠫', '⠇'], ['17.2', '21.2'], '∥'),
   token('misc.not-parallel', ['⠌', '⠫', '⠇'], ['21.2'], '∦'),
   token('misc.right-angle', ['⠫', '⠪', '⠨', '⠗', '⠻'], ['17.1'], '∟'),
@@ -507,6 +512,8 @@ const MAPPINGS = [
   token('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■'),
   token('shape.triangle', ['⠫', '⠞'], ['17.1'], '△'),
   token('shape.rectangle', ['⠫', '⠗'], ['17.2'], '▭'),
+  // Rule 11.1.1: the general omission sign is the equals-shaped cell ⠿.
+  // Its MathML placeholder is a question mark; it is not ordinary equals.
   token('omission.general', ['⠿'], ['11.1.1'], '?'),
   open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike' }),
   close('cancellation.end', ['⠻'], ['12.1.1'], 'menclose'),

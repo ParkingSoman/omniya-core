@@ -107,10 +107,38 @@ export function captureExplorerFocus(article) {
   const focused = (current && article.contains(current) ? current : null) || (semanticSelector
     ? article.querySelector(`mjx-container ${semanticSelector}`) || article.querySelector(`mjx-assistive-mml ${semanticSelector}`)
     : null) || article.querySelector('[data-semantic-focus="true"], [data-semantic-id][aria-current="true"]');
-  if (!focused) throw new Error('MathJax explorer has no focused node');
-  const semanticId = focused.getAttribute('data-semantic-id');
-  if (!semanticId) throw new Error('MathJax explorer focus has no semantic identity');
   const sourceRoot = article.querySelector('mjx-assistive-mml math');
+  // A freshly entered equation can have a brief interval where MathJax has
+  // rendered the source MathML but has not attached the explorer's current
+  // semantic node. That is an equation-level focus, not an unsafe target:
+  // the canonical root is a valid exact replacement scope. This fallback is
+  // deliberately limited to the root and is never used to broaden a settled
+  // descendant focus.
+  if (!focused) {
+    const rootId = canonicalId(sourceRoot);
+    if (!rootId) throw new Error('MathJax explorer has no focused node or canonical equation root');
+    return {
+      semanticId: sourceRoot.getAttribute('data-semantic-id') || `root:${rootId}`,
+      semanticPath: [],
+      target: { kind: 'node', nodeId: rootId },
+      subtreeMathML: sourceRoot.outerHTML,
+      speech: 'whole equation',
+      nemeth: ''
+    };
+  }
+  const semanticId = focused.getAttribute('data-semantic-id');
+  if (!semanticId) {
+    const focusedId = canonicalId(focused);
+    if (!focusedId) throw new Error('MathJax explorer focus has no semantic or canonical identity');
+    return {
+      semanticId: `canonical:${focusedId}`,
+      semanticPath: [],
+      target: { kind: 'node', nodeId: focusedId },
+      subtreeMathML: focused.outerHTML,
+      speech: focused.getAttribute('aria-label') || '',
+      nemeth: focused.getAttribute('aria-braillelabel') || ''
+    };
+  }
   const sourceNodes = sourceRoot && [sourceRoot, ...sourceRoot.querySelectorAll('[data-semantic-id]')];
   const sourceNode = sourceNodes?.find((candidate) => candidate.getAttribute('data-semantic-id') === semanticId) || null;
   // MathJax preserves source identities on the visual semantic nodes but

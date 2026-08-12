@@ -43,6 +43,8 @@ const RULE_23_FIXTURES = [
   ['misc.euro', '⠈⠑', '€'],
   ['misc.yen', '⠈⠽', '¥'],
   ['misc.per-mille', '⠈⠴⠴', '‰'],
+  ['misc.end-proof', '⠈⠫⠟⠑⠙', '∎'],
+  ['integral.superposed-square', '⠮⠈⠫⠲⠻', '⨖'],
   ['operator.double-integral', '⠮⠮', '∬'],
   ['operator.triple-integral', '⠮⠮⠮', '∭']
 ];
@@ -54,21 +56,21 @@ const RULE_20_21_23_LITERALS = [
   ['operator.circle-plus', '⠫⠉⠸⠫⠬⠻', '⊕'],
   ['operator.circle-minus', '⠫⠉⠸⠫⠤⠻', '⊖'],
   ['operator.number-sign', '⠨⠼', '#'],
-  ['operator.paragraph', '⠠⠏', '¶'],
-  ['operator.section', '⠠⠎', '§'],
+  ['operator.divides', '⠳', '∣'],
+  ['operator.paragraph', '⠈⠠⠏', '¶'],
+  ['operator.section', '⠈⠠⠎', '§'],
   ['comparison.perpendicular', '⠫⠏', '⊥'],
   ['comparison.proportion', '⠰⠆', '∷'],
   ['comparison.ratio', '⠐⠂', '∶'],
   ['comparison.relation', '⠠⠗', 'R'],
   ['comparison.reverse-subset', '⠸⠨⠂', '⊃'],
-  ['comparison.vertical-bar', '⠳', '|'],
+  ['comparison.vertical-bar', '⠡', '|'],
   ['comparison.simple-tilde', '⠈⠱', '∼'],
   ['comparison.extended-tilde', '⠈⠠⠱', '〰'],
   ['misc.ditto', '⠠⠄', '〃'],
   ['misc.hollow-dot', '⠨⠡', '∘'],
   ['misc.triple-prime', '⠄⠄⠄', '‴'],
-  ['misc.tally', '⠸', '|'],
-  ['misc.vertical-bar', '⠳', '|'],
+  ['misc.vertical-bar', '⠡', '|'],
   ['operator.star', '⠫⠎', '☆']
 ];
 

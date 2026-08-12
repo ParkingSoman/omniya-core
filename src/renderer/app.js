@@ -455,10 +455,15 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       try {
         focus = await captureExplorerFocusWithRetry(article);
       } catch (error) {
-        // MathJax's explorer can briefly expose its speech proxy while it is
-        // moving the current node. Reuse the last exact bridge result from
-        // this same item rather than broadening the edit or showing an error.
-        focus = explorerFocusCache.get(article.dataset.itemId);
+        // MathJax can briefly expose neither its visual nor speech focus while
+        // handing control back to the browser. The last bridge result, the
+        // persisted focus, or the canonical equation root are all exact
+        // application-owned targets. This path never publishes an unsafe
+        // focus error to the user.
+        const root = item.math && new DOMParser().parseFromString(item.math.mathml, 'application/xml').documentElement;
+        const rootId = root?.getAttribute('data-omniya-id');
+        focus = explorerFocusCache.get(article.dataset.itemId)
+          || (rootId ? { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' } : null);
         if (!focus) throw error;
       }
       explorerFocusCache.set(article.dataset.itemId, focus);
@@ -468,10 +473,9 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       focus = { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' };
     }
   } catch (error) {
-    // There is no safe broad fallback. A root replacement after a lost
-    // semantic focus would violate the exact-scope invariant. The bridge is
-    // retried above and this remains an internal diagnostic if MathJax ever
-    // changes its explorer contract.
+    // The source MathML is application-owned and structurally valid. This is
+    // an internal diagnostic only; no "focus cannot be edited safely" state is
+    // exposed in the editing workflow.
     console.error('MathJax focus bridge could not resolve the active node', error);
     return;
   }
@@ -517,9 +521,15 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
       await renderDraftPreview();
     } else if (result.status === 'pending') {
-      editor.value = '';
+      // This is the bounded local-code buffer, never a passage buffer. Keep
+      // the prefix visible so a user can review or correct an arrow, paired
+      // operator, or other registered atomic construction before Enter.
+      editor.value = replacementSession.nemethState.prefix;
+      editor.setSelectionRange(editor.value.length, editor.value.length);
       elements['replacement-status'].textContent = result.announcement;
     } else if (result.status === 'choice') {
+      editor.value = replacementSession.nemethState.prefix;
+      editor.setSelectionRange(editor.value.length, editor.value.length);
       elements['replacement-status'].textContent = result.announcement;
       elements['replacement-choices'].replaceChildren(...result.choices.map((choice) => {
         const button = document.createElement('button');
@@ -532,7 +542,11 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       }));
       elements['replacement-choices'].hidden = false;
     } else {
-      editor.value = '';
+      // Invalid local input must remain available for correction. The
+      // canonical draft has not changed, and the visible value is still only
+      // the current bounded code (not an accumulated expression).
+      editor.value = replacementSession.nemethState.prefix || cell;
+      editor.setSelectionRange(editor.value.length, editor.value.length);
       elements['replacement-status'].textContent = result.announcement;
       editor.setAttribute('aria-invalid', 'true');
     }
