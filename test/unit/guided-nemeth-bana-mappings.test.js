@@ -318,6 +318,37 @@ test('Rule 22 official source examples remain literal registry rows', () => {
   }
 });
 
+test('Rule 22 directional and shaft constructions retain their published source notation', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation] of [
+    ['arrow.right', '$o'],
+    ['arrow.right.uncontracted', '$33o'],
+    ['arrow.left', '$[33'],
+    ['arrow.both', '$[33o'],
+    ['arrow.up', '$<33o'],
+    ['arrow.down', '$%33o'],
+    ['arrow.vertical-both', '$<[33o'],
+    ['arrow.northwest', '$~[33'],
+    ['arrow.northeast', '$~33o'],
+    ['arrow.southeast', '$;33o'],
+    ['arrow.southwest', '$;[33'],
+    ['arrow.counterclockwise', '$59o'],
+    ['arrow.clockwise', '$[59'],
+    ['arrow.bold.right', '$_33o'],
+    ['arrow.bold.left', '$_[33'],
+    ['arrow.bold.both', '$_[33o'],
+    ['arrow.blunted.right', '$33='],
+    ['arrow.blunted.left', '$=33'],
+    ['arrow.blunted.both', '$=33='],
+    ['arrow.curved.right', '$33y'],
+    ['arrow.curved.left', '$&33'],
+    ['arrow.curved.both', '$&33y'],
+    ['arrow.straight.right', '$33|'],
+    ['arrow.straight.left', '$|33'],
+    ['arrow.straight.both', '$|33|']
+  ]) assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
+});
+
 test('BANA Rule 17 interior constructions and Rule 15 simultaneous modifiers are bounded', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, cells, value] of [
@@ -357,6 +388,42 @@ test('BANA 20.7 keeps cross, dot, and asterisk as distinct local operations', ()
   assert.equal(registry.get('operator.dot')?.args?.sourceNotation, '*');
   assert.equal(registry.get('operator.asterisk')?.cells.join(''), '⠈⠼');
   assert.notEqual(registry.get('operator.multiply')?.args?.value, registry.get('operator.dot')?.args?.value);
+});
+
+test('BANA source notation is retained for the basic Rule 20 and comparison atoms', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation] of [
+    ['operator.plus', '+'],
+    ['operator.minus', '-'],
+    ['operator.equals', '.k'],
+    ['comparison.less', '"k'],
+    ['comparison.greater', '.1'],
+    ['operator.ampersand', '_&'],
+    ['operator.number-sign', '.#'],
+    ['operator.paragraph', '`,p'],
+    ['operator.section', '`,s'],
+    ['operator.star', '$s'],
+    ['operator.circle-dot', '$c_$*]'],
+    ['operator.circle-plus', '$c_$+]'],
+    ['operator.circle-minus', '$c_$-]'],
+    ['operator.union', '.+'],
+    ['operator.intersection', '.%'],
+    ['operator.logical-and', '`%'],
+    ['operator.logical-or', '`+'],
+    ['operator.divides', '|'],
+    ['misc.infinity', ',='],
+    ['misc.tally', '_'],
+    ['misc.percent', '`0'],
+    ['misc.per-mille', '`00'],
+    ['misc.partial', '`d'],
+    ['misc.therefore', ',*'],
+    ['misc.since', '`/'],
+    ['misc.degree', '.*'],
+    ['shape.parallel', '$l'],
+    ['shape.perpendicular', '$p']
+  ]) {
+    assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
+  }
 });
 
 test('BANA Rule 17 structural and interior shape codes use the published cells', () => {
