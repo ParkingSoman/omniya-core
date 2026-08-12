@@ -5,7 +5,7 @@
   "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
   "status": "development",
   "inputPolicies": {
-    "immediate": 235,
+    "immediate": 236,
     "atomicSequence": 263,
     "structuralFollowup": 53
   },
@@ -4986,10 +4986,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "!",
       "args": {
         "name": "mo",
-        "value": "∫"
+        "value": "∫",
+        "sourceNotation": "!"
       },
       "banaRefs": [
         "23.12"
@@ -5035,10 +5036,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "%!",
       "args": {
         "name": "mo",
-        "value": "⨜"
+        "value": "⨜",
+        "sourceNotation": "%!"
       },
       "banaRefs": [
         "23.12"
@@ -5059,10 +5061,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "<!",
       "args": {
         "name": "mo",
-        "value": "⨛"
+        "value": "⨛",
+        "sourceNotation": "<!"
       },
       "banaRefs": [
         "23.12"
@@ -5085,9 +5088,10 @@
       ],
       "action": "superpose-integral",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "!`$c]",
       "args": {
-        "value": "∮"
+        "value": "∮",
+        "sourceNotation": "!`$c]"
       },
       "banaRefs": [
         "15.9",
@@ -5111,9 +5115,10 @@
       ],
       "action": "superpose-integral",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "!`,=]",
       "args": {
-        "value": "∰"
+        "value": "∰",
+        "sourceNotation": "!`,=]"
       },
       "banaRefs": [
         "15.9",
@@ -5194,9 +5199,10 @@
       ],
       "action": "superpose-integral",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "!`$r]",
       "args": {
-        "value": "∯"
+        "value": "∯",
+        "sourceNotation": "!`$r]"
       },
       "banaRefs": [
         "15.9",
@@ -5220,9 +5226,10 @@
       ],
       "action": "superpose-integral",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "!`$4]",
       "args": {
-        "value": "⨖"
+        "value": "⨖",
+        "sourceNotation": "!`$4]"
       },
       "banaRefs": [
         "15.9",
@@ -5401,7 +5408,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "?",
       "args": {
         "element": "mfrac",
         "slots": [
@@ -5412,7 +5419,8 @@
           "data-omniya-fraction-kind": "simple"
         },
         "initialSlot": "numerator",
-        "preferLonger": false
+        "preferLonger": false,
+        "sourceNotation": "?"
       },
       "banaRefs": [
         "13.1",
@@ -5433,10 +5441,11 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "/",
       "args": {
         "element": "mfrac",
-        "role": "denominator"
+        "role": "denominator",
+        "sourceNotation": "/"
       },
       "banaRefs": [
         "13.2"
@@ -5456,9 +5465,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "#",
       "args": {
-        "element": "mfrac"
+        "element": "mfrac",
+        "sourceNotation": "#"
       },
       "banaRefs": [
         "13.2.1"
@@ -5479,7 +5489,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ",?",
       "args": {
         "element": "mfrac",
         "slots": [
@@ -5490,7 +5500,8 @@
           "data-omniya-fraction-kind": "complex"
         },
         "initialSlot": "numerator",
-        "preferLonger": false
+        "preferLonger": false,
+        "sourceNotation": ",?"
       },
       "banaRefs": [
         "13.5",
@@ -5512,10 +5523,11 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ",_/",
       "args": {
         "element": "mfrac",
-        "role": "denominator"
+        "role": "denominator",
+        "sourceNotation": ",_/"
       },
       "banaRefs": [
         "13.5",
@@ -5537,9 +5549,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ",#",
       "args": {
-        "element": "mfrac"
+        "element": "mfrac",
+        "sourceNotation": ",#"
       },
       "banaRefs": [
         "13.6"
@@ -5561,7 +5574,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ",,?",
       "args": {
         "element": "mfrac",
         "slots": [
@@ -5572,7 +5585,8 @@
           "data-omniya-fraction-kind": "hypercomplex"
         },
         "initialSlot": "numerator",
-        "preferLonger": false
+        "preferLonger": false,
+        "sourceNotation": ",,?"
       },
       "banaRefs": [
         "13.7",
@@ -5595,10 +5609,11 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ",,_/",
       "args": {
         "element": "mfrac",
-        "role": "denominator"
+        "role": "denominator",
+        "sourceNotation": ",,_/"
       },
       "banaRefs": [
         "13.7",
@@ -5621,9 +5636,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ",,#",
       "args": {
-        "element": "mfrac"
+        "element": "mfrac",
+        "sourceNotation": ",,#"
       },
       "banaRefs": [
         "13.8"
@@ -5644,7 +5660,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "_?",
       "args": {
         "element": "mfrac",
         "slots": [
@@ -5655,7 +5671,8 @@
           "data-omniya-fraction-kind": "mixed"
         },
         "initialSlot": "numerator",
-        "preferLonger": false
+        "preferLonger": false,
+        "sourceNotation": "_?"
       },
       "banaRefs": [
         "13.4"
@@ -5676,10 +5693,11 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "_/",
       "args": {
         "element": "mfrac",
-        "role": "denominator"
+        "role": "denominator",
+        "sourceNotation": "_/"
       },
       "banaRefs": [
         "13.4"
@@ -5700,9 +5718,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "_#",
       "args": {
-        "element": "mfrac"
+        "element": "mfrac",
+        "sourceNotation": "_#"
       },
       "banaRefs": [
         "13.4"
@@ -5722,7 +5741,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "~",
       "args": {
         "element": "msup",
         "slots": [
@@ -5731,7 +5750,8 @@
         ],
         "attrs": {},
         "initialSlot": "superscript",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "~"
       },
       "banaRefs": [
         "14.3",
@@ -5752,7 +5772,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ";",
       "args": {
         "element": "msub",
         "slots": [
@@ -5761,7 +5781,8 @@
         ],
         "attrs": {},
         "initialSlot": "subscript",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ";"
       },
       "banaRefs": [
         "14.8"
@@ -5782,7 +5803,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "~;",
       "args": {
         "element": "msubsup",
         "slots": [
@@ -5792,7 +5813,8 @@
         ],
         "attrs": {},
         "initialSlot": "superscript",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "~;"
       },
       "banaRefs": [
         "14.4.2"
@@ -5813,7 +5835,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ";~",
       "args": {
         "element": "msubsup",
         "slots": [
@@ -5823,7 +5845,8 @@
         ],
         "attrs": {},
         "initialSlot": "subscript",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ";~"
       },
       "banaRefs": [
         "14.4.2"
@@ -5843,10 +5866,11 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ";",
       "args": {
         "element": "msubsup",
-        "role": "subscript"
+        "role": "subscript",
+        "sourceNotation": ";"
       },
       "banaRefs": [
         "14.4.2"
@@ -5866,10 +5890,11 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "~",
       "args": {
         "element": "msubsup",
-        "role": "superscript"
+        "role": "superscript",
+        "sourceNotation": "~"
       },
       "banaRefs": [
         "14.4.2"
@@ -5889,10 +5914,11 @@
       ],
       "action": "set-mode",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "\"",
       "args": {
         "mode": "baseline",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "\""
       },
       "banaRefs": [
         "14.3",
@@ -5913,10 +5939,11 @@
       ],
       "action": "set-mode",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "\"",
       "args": {
         "mode": "multipurpose",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "\""
       },
       "banaRefs": [
         "24.1"
@@ -6215,12 +6242,13 @@
       ],
       "action": "open-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "<",
       "args": {
         "element": "mover",
         "slot": "overscript",
         "requiresMode": "multipurpose",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "<"
       },
       "banaRefs": [
         "15.1",
@@ -6241,11 +6269,12 @@
       ],
       "action": "open-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "%",
       "args": {
         "element": "munder",
         "slot": "underscript",
-        "requiresMode": "multipurpose"
+        "requiresMode": "multipurpose",
+        "sourceNotation": "%"
       },
       "banaRefs": [
         "15.1",
@@ -6267,9 +6296,10 @@
       ],
       "action": "higher-order-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "<<",
       "args": {
-        "direction": "over"
+        "direction": "over",
+        "sourceNotation": "<<"
       },
       "banaRefs": [
         "15.3"
@@ -6290,9 +6320,10 @@
       ],
       "action": "higher-order-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "%%",
       "args": {
-        "direction": "under"
+        "direction": "under",
+        "sourceNotation": "%%"
       },
       "banaRefs": [
         "15.3"
@@ -6312,9 +6343,10 @@
       ],
       "action": "simultaneous-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "<",
       "args": {
-        "direction": "over"
+        "direction": "over",
+        "sourceNotation": "<"
       },
       "banaRefs": [
         "15.4"
@@ -6334,9 +6366,10 @@
       ],
       "action": "simultaneous-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "%",
       "args": {
-        "direction": "under"
+        "direction": "under",
+        "sourceNotation": "%"
       },
       "banaRefs": [
         "15.4"
@@ -6357,10 +6390,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "$a",
       "args": {
         "name": "mo",
-        "value": "⁀"
+        "value": "⁀",
+        "sourceNotation": "$a"
       },
       "banaRefs": [
         "15.11"
@@ -6381,10 +6415,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "$'",
       "args": {
         "name": "mo",
-        "value": "‿"
+        "value": "‿",
+        "sourceNotation": "$'"
       },
       "banaRefs": [
         "15.11"
@@ -6405,10 +6440,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "_<",
       "args": {
         "name": "mo",
-        "value": "^"
+        "value": "^",
+        "sourceNotation": "_<"
       },
       "banaRefs": [
         "15.15"
@@ -6429,10 +6465,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "_%",
       "args": {
         "name": "mo",
-        "value": "∨"
+        "value": "∨",
+        "sourceNotation": "_%"
       },
       "banaRefs": [
         "15.15"
@@ -6453,10 +6490,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ";<",
       "args": {
         "name": "mo",
-        "value": "‹"
+        "value": "‹",
+        "sourceNotation": ";<"
       },
       "banaRefs": [
         "15.15"
@@ -6477,10 +6515,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ";%",
       "args": {
         "name": "mo",
-        "value": "›"
+        "value": "›",
+        "sourceNotation": ";%"
       },
       "banaRefs": [
         "15.15"
@@ -6500,10 +6539,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "*",
       "args": {
         "name": "mo",
-        "value": "•"
+        "value": "•",
+        "sourceNotation": "*"
       },
       "banaRefs": [
         "15.16"
@@ -6524,11 +6564,12 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ".*",
       "args": {
         "name": "mo",
         "value": "∘",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ".*"
       },
       "banaRefs": [
         "15.17"
@@ -6549,10 +6590,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "_8",
       "args": {
         "name": "mo",
-        "value": "?"
+        "value": "?",
+        "sourceNotation": "_8"
       },
       "banaRefs": [
         "15.18"
@@ -6573,10 +6615,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "`,:",
       "args": {
         "name": "mo",
-        "value": "〰"
+        "value": "〰",
+        "sourceNotation": "`,:"
       },
       "banaRefs": [
         "15.19"
@@ -6597,10 +6640,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "`:",
       "args": {
         "name": "mo",
-        "value": "~"
+        "value": "~",
+        "sourceNotation": "`:"
       },
       "banaRefs": [
         "15.19"
@@ -6621,10 +6665,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "$t",
       "args": {
         "name": "mo",
-        "value": "△"
+        "value": "△",
+        "sourceNotation": "$t"
       },
       "banaRefs": [
         "15.10"
@@ -6644,10 +6689,11 @@
       ],
       "action": "insert-modifier",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ":",
       "args": {
         "name": "mo",
-        "value": "¯"
+        "value": "¯",
+        "sourceNotation": ":"
       },
       "banaRefs": [
         "15.1",
@@ -6669,9 +6715,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "]",
       "args": {
-        "element": "mover"
+        "element": "mover",
+        "sourceNotation": "]"
       },
       "banaRefs": [
         "15.2"
@@ -6691,9 +6738,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "]",
       "args": {
-        "element": "munder"
+        "element": "munder",
+        "sourceNotation": "]"
       },
       "banaRefs": [
         "15.2"
@@ -6713,9 +6761,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "]",
       "args": {
-        "element": "munderover"
+        "element": "munderover",
+        "sourceNotation": "]"
       },
       "banaRefs": [
         "15.4"
@@ -6735,7 +6784,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ">",
       "args": {
         "element": "msqrt",
         "slots": [
@@ -6743,7 +6792,8 @@
         ],
         "attrs": {},
         "initialSlot": "radicand",
-        "preferLonger": false
+        "preferLonger": false,
+        "sourceNotation": ">"
       },
       "banaRefs": [
         "16.1",
@@ -6766,10 +6816,11 @@
       ],
       "action": "open-fixed-root",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "<3>",
       "args": {
         "index": "3",
-        "indexText": "3"
+        "indexText": "3",
+        "sourceNotation": "<3>"
       },
       "banaRefs": [
         "16.2"
@@ -6791,10 +6842,11 @@
       ],
       "action": "open-fixed-root",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "<4>",
       "args": {
         "index": "4",
-        "indexText": "4"
+        "indexText": "4",
+        "sourceNotation": "<4>"
       },
       "banaRefs": [
         "16.2"
@@ -6814,9 +6866,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "]",
       "args": {
-        "element": "msqrt"
+        "element": "msqrt",
+        "sourceNotation": "]"
       },
       "banaRefs": [
         "16.1.1"
@@ -6836,7 +6889,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "<",
       "args": {
         "element": "mroot",
         "slots": [
@@ -6845,7 +6898,8 @@
         ],
         "attrs": {},
         "initialSlot": "index",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "<"
       },
       "banaRefs": [
         "16.2",
@@ -6866,10 +6920,11 @@
       ],
       "action": "move-slot",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "/",
       "args": {
         "element": "mroot",
-        "role": "radicand"
+        "role": "radicand",
+        "sourceNotation": "/"
       },
       "banaRefs": [
         "16.2"
@@ -6889,9 +6944,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "]",
       "args": {
-        "element": "mroot"
+        "element": "mroot",
+        "sourceNotation": "]"
       },
       "banaRefs": [
         "16.2",
@@ -7025,10 +7081,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "(",
       "args": {
         "name": "mo",
-        "value": "("
+        "value": "(",
+        "sourceNotation": "("
       },
       "banaRefs": [
         "19.1"
@@ -7048,10 +7105,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ")",
       "args": {
         "name": "mo",
-        "value": ")"
+        "value": ")",
+        "sourceNotation": ")"
       },
       "banaRefs": [
         "19.1"
@@ -7072,11 +7130,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "@(",
       "args": {
         "name": "mo",
         "value": "[",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "@("
       },
       "banaRefs": [
         "19.1"
@@ -7097,11 +7156,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "@)",
       "args": {
         "name": "mo",
         "value": "]",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "@)"
       },
       "banaRefs": [
         "19.1"
@@ -7122,11 +7182,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": ".(",
       "args": {
         "name": "mo",
         "value": "{",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ".("
       },
       "banaRefs": [
         "19.1"
@@ -7147,11 +7208,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": ".)",
       "args": {
         "name": "mo",
         "value": "}",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ".)"
       },
       "banaRefs": [
         "19.1"
@@ -7173,11 +7235,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "..(",
       "args": {
         "name": "mo",
         "value": "⟨",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "..("
       },
       "banaRefs": [
         "19.1"
@@ -7199,11 +7262,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "..)",
       "args": {
         "name": "mo",
         "value": "⟩",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "..)"
       },
       "banaRefs": [
         "19.1"
@@ -7225,11 +7289,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "_@(",
       "args": {
         "name": "mo",
         "value": "[",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "_@("
       },
       "banaRefs": [
         "19.3"
@@ -7251,11 +7316,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "_@)",
       "args": {
         "name": "mo",
         "value": "]",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "_@)"
       },
       "banaRefs": [
         "19.3"
@@ -7277,11 +7343,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "@_(",
       "args": {
         "name": "mo",
         "value": "⟦",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "@_("
       },
       "banaRefs": [
         "19.1"
@@ -7303,11 +7370,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "@_)",
       "args": {
         "name": "mo",
         "value": "⟧",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "@_)"
       },
       "banaRefs": [
         "19.1"
@@ -7381,11 +7449,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "@^(",
       "args": {
         "name": "mo",
         "value": "⎡",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "@^("
       },
       "banaRefs": [
         "19.4"
@@ -7407,11 +7476,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "@^)",
       "args": {
         "name": "mo",
         "value": "⎤",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "@^)"
       },
       "banaRefs": [
         "19.4"
@@ -7433,11 +7503,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "@;(",
       "args": {
         "name": "mo",
         "value": "⎣",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "@;("
       },
       "banaRefs": [
         "19.4"
@@ -7459,11 +7530,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "@;)",
       "args": {
         "name": "mo",
         "value": "⎦",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "@;)"
       },
       "banaRefs": [
         "19.4"
@@ -7483,11 +7555,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "|",
       "args": {
         "name": "mo",
         "value": "|",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "|"
       },
       "banaRefs": [
         "19.5"
@@ -10156,8 +10229,10 @@
       ],
       "action": "insert-contracted-script-comma",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
-      "args": {},
+      "sourceNotation": "[",
+      "args": {
+        "sourceNotation": "["
+      },
       "banaRefs": [
         "14.7"
       ],
@@ -11728,10 +11803,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "@#",
       "args": {
         "name": "mo",
-        "value": "*"
+        "value": "*",
+        "sourceNotation": "@#"
       },
       "banaRefs": [
         "9.1"
@@ -11752,10 +11828,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "_]",
       "args": {
         "name": "mo",
-        "value": "†"
+        "value": "†",
+        "sourceNotation": "_]"
       },
       "banaRefs": [
         "9.1"
@@ -11777,13 +11854,39 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "__]",
       "args": {
         "name": "mo",
-        "value": "‡"
+        "value": "‡",
+        "sourceNotation": "__]"
       },
       "banaRefs": [
         "9.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "reference.general",
+      "commandLabel": "reference.general",
+      "cells": [
+        "⠈",
+        "⠻"
+      ],
+      "action": "set-mode",
+      "commitPolicy": "immediate",
+      "sourceNotation": "@]",
+      "args": {
+        "mode": "reference",
+        "preferLonger": true,
+        "sourceNotation": "@]"
+      },
+      "banaRefs": [
+        "9.2"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -13627,7 +13730,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "[",
       "args": {
         "element": "menclose",
         "slots": [
@@ -13637,7 +13740,8 @@
           "notation": "updiagonalstrike"
         },
         "initialSlot": "content",
-        "preferLonger": false
+        "preferLonger": false,
+        "sourceNotation": "["
       },
       "banaRefs": [
         "12.1.1"
@@ -13657,9 +13761,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "]",
       "args": {
-        "element": "menclose"
+        "element": "menclose",
+        "sourceNotation": "]"
       },
       "banaRefs": [
         "12.1.1"
@@ -15256,10 +15361,11 @@
       ],
       "action": "set-mode",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "#",
       "args": {
         "mode": "numeric",
-        "preferLonger": false
+        "preferLonger": false,
+        "sourceNotation": "#"
       },
       "banaRefs": [
         "3.1",
@@ -15280,10 +15386,11 @@
       ],
       "action": "set-mode",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ",",
       "args": {
         "mode": "capital",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ","
       },
       "banaRefs": [
         "5.1",
@@ -15305,10 +15412,11 @@
       ],
       "action": "set-mode",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ",,",
       "args": {
         "mode": "roman",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ",,"
       },
       "banaRefs": [
         "3.11.1",
@@ -15329,10 +15437,11 @@
       ],
       "action": "set-mode",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ";",
       "args": {
         "mode": "english-letter",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ";"
       },
       "banaRefs": [
         "6.2",

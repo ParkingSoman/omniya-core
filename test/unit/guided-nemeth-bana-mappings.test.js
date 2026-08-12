@@ -484,6 +484,92 @@ test('BANA source notation is retained for the basic Rule 20 and comparison atom
   }
 });
 
+test('BANA Rules 9, 12, 13, 14, 15, 16, and 19 retain the printed local codes', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation] of [
+    ['reference.asterisk', '@#'],
+    ['reference.dagger', '_]'],
+    ['reference.double-dagger', '__]'],
+    ['reference.general', '@]'],
+    ['cancellation.start', '['],
+    ['cancellation.end', ']'],
+    ['fraction.start.simple', '?'],
+    ['fraction.next.denominator', '/'],
+    ['fraction.end.simple', '#'],
+    ['fraction.start.complex', ',?'],
+    ['fraction.next.denominator.complex', ',_/'],
+    ['fraction.end.complex', ',#'],
+    ['fraction.start.hypercomplex', ',,?'],
+    ['fraction.next.denominator.hypercomplex', ',,_/'],
+    ['fraction.end.hypercomplex', ',,#'],
+    ['fraction.start.mixed', '_?'],
+    ['fraction.next.denominator.mixed', '_/'],
+    ['fraction.end.mixed', '_#'],
+    ['script.superscript', '~'],
+    ['script.subscript', ';'],
+    ['script.sup-sub', '~;'],
+    ['script.sub-sup', ';~'],
+    ['script.baseline', '"'],
+    ['script.contracted-comma', '['],
+    ['modifier.directly-over', '<'],
+    ['modifier.directly-under', '%'],
+    ['modifier.directly-over.higher', '<<'],
+    ['modifier.directly-under.higher', '%%'],
+    ['modifier.bar-over', ':'],
+    ['modifier.caret.over', '_<'],
+    ['modifier.caret.inverted', '_%'],
+    ['modifier.caret.left', ';<'],
+    ['modifier.caret.right', ';%'],
+    ['modifier.dot', '*'],
+    ['modifier.hollow-dot', '.*'],
+    ['modifier.question', '_8'],
+    ['modifier.tilde.extended', '`,:'],
+    ['modifier.tilde.simple', '`:'],
+    ['modifier.triangle', '$t'],
+    ['radical.square', '>'],
+    ['radical.cube', '<3>'],
+    ['radical.fourth', '<4>'],
+    ['radical.end', ']'],
+    ['radical.indexed', '<'],
+    ['radical.next.radicand', '/'],
+    ['radical.indexed.end', ']'],
+    ['group.parenthesis-open', '('],
+    ['group.parenthesis-close', ')'],
+    ['group.bracket-open', '@('],
+    ['group.bracket-close', '@)'],
+    ['group.brace-open', '.('],
+    ['group.brace-close', '.)'],
+    ['group.angle-open', '..('],
+    ['group.angle-close', '..)'],
+    ['group.bold-bracket-open', '_@('],
+    ['group.bold-bracket-close', '_@)'],
+    ['group.barred-bracket-open', '@_('],
+    ['group.barred-bracket-close', '@_)'],
+    ['group.upper-half-open', '@^('],
+    ['group.upper-half-close', '@^)'],
+    ['group.lower-half-open', '@;('],
+    ['group.lower-half-close', '@;)'],
+    ['group.vertical-bar', '|']
+  ]) {
+    assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
+  }
+});
+
+test('BANA Rule 9.2 general reference indicator consumes exactly one local atom', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠈', '⠻', '⠙']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.at(-1)?.children?.[0]?.text, 'd');
+  assert.equal(tree.children.at(-1)?.attrs?.['data-omniya-nemeth-intent'], 'general-reference');
+  assert.equal(inputState.mode, null);
+});
+
 test('BANA Rule 17 structural and interior shape codes use the published cells', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   const fixtures = [

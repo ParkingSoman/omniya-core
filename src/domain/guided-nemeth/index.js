@@ -244,14 +244,15 @@ function insertContractedScriptComma(tree, focus) {
 // Rule 3.1.2 keeps a Nemeth numeric run distinct from ordinary identifiers.
 // Appending to the focused <mn> is a local tree operation, not passage
 // parsing: one cell extends only the current numeric atom.
-function insertNumeric(tree, focus, value, { replace = false, mathvariant = null } = {}) {
+function insertNumeric(tree, focus, value, { replace = false, mathvariant = null, dataAttributes = {} } = {}) {
   const current = currentNode(tree, focus);
   if (!replace && current.name === 'mn' && current.children?.length === 1) {
     current.children[0].text += value;
     if (mathvariant) current.attrs.mathvariant = mathvariant;
+    Object.assign(current.attrs, dataAttributes);
     return { tree, focus: focusNode(current) };
   }
-  return insertToken(tree, focus, 'mn', value, { replace });
+  return insertToken(tree, focus, 'mn', value, { replace, dataAttributes });
 }
 
 function extendIntegral(tree, focus, values) {
@@ -767,11 +768,11 @@ const shapeModificationToken = (id, cells, banaRefs, value, shapeKind, modificat
     ...(options.dataAttributes ?? {})
   }}
 );
-const open = (id, cells, banaRefs, elementName, slots, attrs = {}, initialSlot = slots[0], preferLonger = false, commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE) => ({ id, cells, banaRefs, action: 'open-structure', commitPolicy, args: { element: elementName, slots, attrs, initialSlot, preferLonger } });
-const fixedRoot = (id, cells, banaRefs, index, indexText) => ({ id, cells, banaRefs, action: 'open-fixed-root', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { index, indexText } });
-const move = (id, cells, banaRefs, elementName, role) => ({ id, cells, banaRefs, action: 'move-slot', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, role } });
-const close = (id, cells, banaRefs, elementName) => ({ id, cells, banaRefs, action: 'close-structure', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName } });
-const mode = (id, cells, banaRefs, value, preferLonger = false) => ({ id, cells, banaRefs, action: 'set-mode', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { mode: value, preferLonger } });
+const open = (id, cells, banaRefs, elementName, slots, attrs = {}, initialSlot = slots[0], preferLonger = false, commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE, options = {}) => ({ id, cells, banaRefs, action: 'open-structure', commitPolicy, args: { element: elementName, slots, attrs, initialSlot, preferLonger, ...options } });
+const fixedRoot = (id, cells, banaRefs, index, indexText, sourceNotation = null) => ({ id, cells, banaRefs, action: 'open-fixed-root', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { index, indexText, ...(sourceNotation ? { sourceNotation } : {}) } });
+const move = (id, cells, banaRefs, elementName, role, options = {}) => ({ id, cells, banaRefs, action: 'move-slot', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, role, ...options } });
+const close = (id, cells, banaRefs, elementName, options = {}) => ({ id, cells, banaRefs, action: 'close-structure', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, ...options } });
+const mode = (id, cells, banaRefs, value, preferLonger = false, sourceNotation = null) => ({ id, cells, banaRefs, action: 'set-mode', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { mode: value, preferLonger, ...(sourceNotation ? { sourceNotation } : {}) } });
 const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multipurpose', options = {}) => ({
   id, cells, banaRefs, action: 'open-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, slot, requiresMode, ...options }
 });
@@ -779,19 +780,29 @@ const modifierToken = (id, cells, banaRefs, value, options = {}) => ({
   id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
   args: { name: 'mo', value, ...options }
 });
-const simultaneous = (id, cells, banaRefs, direction) => ({
+const simultaneous = (id, cells, banaRefs, direction, sourceNotation = null) => ({
   id, cells, banaRefs, action: 'simultaneous-modifier',
   commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-  args: { direction }
+  args: { direction, ...(sourceNotation ? { sourceNotation } : {}) }
 });
-const higherModifier = (id, cells, banaRefs, direction) => ({
+const higherModifier = (id, cells, banaRefs, direction, sourceNotation = null) => ({
   id, cells, banaRefs, action: 'higher-order-modifier',
-  commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { direction }
+  commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { direction, ...(sourceNotation ? { sourceNotation } : {}) }
 });
-const contractedComma = (id, cells, banaRefs) => ({
+const contractedComma = (id, cells, banaRefs, sourceNotation = null) => ({
   id, cells, banaRefs, action: 'insert-contracted-script-comma',
-  commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {}
+  commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: sourceNotation ? { sourceNotation } : {}
 });
+
+const sourceMove = (id, cells, banaRefs, elementName, role, sourceNotation) => move(
+  id, cells, banaRefs, elementName, role, { sourceNotation }
+);
+const sourceClose = (id, cells, banaRefs, elementName, sourceNotation) => close(
+  id, cells, banaRefs, elementName, { sourceNotation }
+);
+const sourceOpen = (id, cells, banaRefs, elementName, slots, attrs, initialSlot, preferLonger, commitPolicy, sourceNotation) => open(
+  id, cells, banaRefs, elementName, slots, attrs, initialSlot, preferLonger, commitPolicy, { sourceNotation }
+);
 
 const cellForLetter = (letter) => [...LETTERS.entries()].find(([, value]) => value === letter)?.[0] ?? letter;
 const NON_ENGLISH_MAPPINGS = [
@@ -910,7 +921,7 @@ const MAPPINGS = [
   // An ordinary integral is a complete local code and is inserted at once.
   // Any bounds, multiplicity, or superposed decoration is added afterward by
   // the same structural-followup operations used for every other operator.
-  token('operator.integral', ['⠮'], ['23.12'], '∫'),
+  token('operator.integral', ['⠮'], ['23.12'], '∫', 'mo', { sourceNotation: '!' }),
   {
     id: 'integral.extend', cells: ['⠮'], banaRefs: ['23.12'], action: 'extend-integral',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
@@ -918,8 +929,8 @@ const MAPPINGS = [
   },
   // These two BANA compound symbols have a distinct leading construction and
   // are therefore valid bounded local codes; an ordinary ⠮ remains immediate.
-  token('integral.lower', ['⠩', '⠮'], ['23.12'], '⨜', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('integral.upper', ['⠣', '⠮'], ['23.12'], '⨛', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('integral.lower', ['⠩', '⠮'], ['23.12'], '⨜', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '%!' }),
+  token('integral.upper', ['⠣', '⠮'], ['23.12'], '⨛', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '<!' }),
   // BANA Rule 23.12 lists superposed integral signs as modifications of an
   // already-present integral. The leading integral cell is therefore the
   // immediate operation above; these rows are bounded structural follow-ups.
@@ -927,13 +938,13 @@ const MAPPINGS = [
     id: 'integral.superpose.circle', cells: ['⠈', '⠫', '⠉', '⠻'],
     banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '∮' }
+    args: { value: '∮', sourceNotation: '!`$c]' }
   },
   {
     id: 'integral.superpose.infinity', cells: ['⠈', '⠠', '⠿', '⠻'],
     banaRefs: ['15.9', '23.11', '23.12'], action: 'superpose-integral',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '∰' }
+    args: { value: '∰', sourceNotation: '!`,=]' }
   },
   {
     id: 'integral.superpose.clockwise', cells: ['⠈', '⠫', '⠪', '⠢', '⠔', '⠻'],
@@ -951,13 +962,13 @@ const MAPPINGS = [
     id: 'integral.superpose.rectangle', cells: ['⠈', '⠫', '⠗', '⠻'],
     banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '∯' }
+    args: { value: '∯', sourceNotation: '!`$r]' }
   },
   {
     id: 'integral.superpose.square', cells: ['⠈', '⠫', '⠲', '⠻'],
     banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '⨖' }
+    args: { value: '⨖', sourceNotation: '!`$4]' }
   },
   {
     id: 'integral.superpose.finite-part', cells: ['⠈', '⠱', '⠻'],
@@ -993,26 +1004,26 @@ const MAPPINGS = [
   // alphabet indicator and capitalization indicator (BANA 6.1.4, 6.2,
   // Appendix C). It is not the plain English-letter sequence ⠠⠎.
   token('operator.sum', ['⠨', '⠠', '⠎'], ['6.1.4', '6.2', '18.1'], '∑'),
-  open('fraction.start.simple', ['⠹'], ['13.1', '13.2'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'simple' }),
-  move('fraction.next.denominator', ['⠌'], ['13.2'], 'mfrac', 'denominator'),
-  close('fraction.end.simple', ['⠼'], ['13.2.1'], 'mfrac'),
-  open('fraction.start.complex', ['⠠', '⠹'], ['13.5', '13.6'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'complex' }),
-  move('fraction.next.denominator.complex', ['⠠', '⠌'], ['13.5', '13.6'], 'mfrac', 'denominator'),
-  close('fraction.end.complex', ['⠠', '⠼'], ['13.6'], 'mfrac'),
-  open('fraction.start.hypercomplex', ['⠠', '⠠', '⠹'], ['13.7', '13.8'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'hypercomplex' }),
-  move('fraction.next.denominator.hypercomplex', ['⠠', '⠠', '⠌'], ['13.7', '13.8'], 'mfrac', 'denominator'),
-  close('fraction.end.hypercomplex', ['⠠', '⠠', '⠼'], ['13.8'], 'mfrac'),
-  open('fraction.start.mixed', ['⠸', '⠹'], ['13.4'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'mixed' }),
-  move('fraction.next.denominator.mixed', ['⠸', '⠌'], ['13.4'], 'mfrac', 'denominator'),
-  close('fraction.end.mixed', ['⠸', '⠼'], ['13.4'], 'mfrac'),
-  open('script.superscript', ['⠘'], ['14.3', '14.4'], 'msup', ['base', 'superscript'], {}, 'superscript', true),
-  open('script.subscript', ['⠰'], ['14.8'], 'msub', ['base', 'subscript'], {}, 'subscript', true),
-  open('script.sup-sub', ['⠘', '⠰'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'superscript', true),
-  open('script.sub-sup', ['⠰', '⠘'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'subscript', true),
-  move('script.sup-sub.move-sub', ['⠰'], ['14.4.2'], 'msubsup', 'subscript'),
-  move('script.sub-sup.move-sup', ['⠘'], ['14.4.2'], 'msubsup', 'superscript'),
-  mode('script.baseline', ['⠐'], ['14.3', '14.8'], 'baseline', true),
-  mode('indicator.multipurpose', ['⠐'], ['24.1'], 'multipurpose', true),
+  sourceOpen('fraction.start.simple', ['⠹'], ['13.1', '13.2'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'simple' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '?'),
+  sourceMove('fraction.next.denominator', ['⠌'], ['13.2'], 'mfrac', 'denominator', '/'),
+  sourceClose('fraction.end.simple', ['⠼'], ['13.2.1'], 'mfrac', '#'),
+  sourceOpen('fraction.start.complex', ['⠠', '⠹'], ['13.5', '13.6'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'complex' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, ',?'),
+  sourceMove('fraction.next.denominator.complex', ['⠠', '⠌'], ['13.5', '13.6'], 'mfrac', 'denominator', ',_/'),
+  sourceClose('fraction.end.complex', ['⠠', '⠼'], ['13.6'], 'mfrac', ',#'),
+  sourceOpen('fraction.start.hypercomplex', ['⠠', '⠠', '⠹'], ['13.7', '13.8'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'hypercomplex' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, ',,?'),
+  sourceMove('fraction.next.denominator.hypercomplex', ['⠠', '⠠', '⠌'], ['13.7', '13.8'], 'mfrac', 'denominator', ',,_/'),
+  sourceClose('fraction.end.hypercomplex', ['⠠', '⠠', '⠼'], ['13.8'], 'mfrac', ',,#'),
+  sourceOpen('fraction.start.mixed', ['⠸', '⠹'], ['13.4'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'mixed' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '_?'),
+  sourceMove('fraction.next.denominator.mixed', ['⠸', '⠌'], ['13.4'], 'mfrac', 'denominator', '_/'),
+  sourceClose('fraction.end.mixed', ['⠸', '⠼'], ['13.4'], 'mfrac', '_#'),
+  sourceOpen('script.superscript', ['⠘'], ['14.3', '14.4'], 'msup', ['base', 'superscript'], {}, 'superscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '~'),
+  sourceOpen('script.subscript', ['⠰'], ['14.8'], 'msub', ['base', 'subscript'], {}, 'subscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, ';'),
+  sourceOpen('script.sup-sub', ['⠘', '⠰'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'superscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '~;'),
+  sourceOpen('script.sub-sup', ['⠰', '⠘'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'subscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, ';~'),
+  sourceMove('script.sup-sub.move-sub', ['⠰'], ['14.4.2'], 'msubsup', 'subscript', ';'),
+  sourceMove('script.sub-sup.move-sup', ['⠘'], ['14.4.2'], 'msubsup', 'superscript', '~'),
+  mode('script.baseline', ['⠐'], ['14.3', '14.8'], 'baseline', true, '"'),
+  mode('indicator.multipurpose', ['⠐'], ['24.1'], 'multipurpose', true, '"'),
   // BANA Rule 7.2 typeform indicators. These are modes for the next local
   // letter/number operation; they do not create a text buffer or parse a
   // phrase. A shared cell may produce an explicit local choice where BANA
@@ -1028,45 +1039,45 @@ const MAPPINGS = [
   mode('typeform.script.number', ['⠈', '⠼'], ['7.1', '7.2'], 'numeric:script', true),
   mode('typeform.barred.number', ['⠠', '⠸', '⠼'], ['7.1', '7.2'], 'numeric:double-struck', true),
   mode('typeform.terminate', ['⠠', '⠄'], ['7.1', '7.3'], 'typeform-end'),
-  modifier('modifier.directly-over', ['⠣'], ['15.1', '15.2'], 'mover', 'overscript', 'multipurpose', { preferLonger: true }),
-  modifier('modifier.directly-under', ['⠩'], ['15.1', '15.2'], 'munder', 'underscript'),
+  modifier('modifier.directly-over', ['⠣'], ['15.1', '15.2'], 'mover', 'overscript', 'multipurpose', { preferLonger: true, sourceNotation: '<' }),
+  modifier('modifier.directly-under', ['⠩'], ['15.1', '15.2'], 'munder', 'underscript', 'multipurpose', { sourceNotation: '%' }),
   // The doubled indicator is one bounded higher-order code. A single
   // same-side indicator is held until the second cell arrives, so it cannot
   // be mistaken for a simultaneous opposite-side follow-up.
-  higherModifier('modifier.directly-over.higher', ['⠣', '⠣'], ['15.3'], 'over'),
-  higherModifier('modifier.directly-under.higher', ['⠩', '⠩'], ['15.3'], 'under'),
+  higherModifier('modifier.directly-over.higher', ['⠣', '⠣'], ['15.3'], 'over', '<<'),
+  higherModifier('modifier.directly-under.higher', ['⠩', '⠩'], ['15.3'], 'under', '%%'),
   // Rule 15.4: once one side exists, a second-side indicator makes a
   // munderover and opens only the missing required slot.
-  simultaneous('modifier.simultaneous.over', ['⠣'], ['15.4'], 'over'),
-  simultaneous('modifier.simultaneous.under', ['⠩'], ['15.4'], 'under'),
-  modifierToken('modifier.arc.down', ['⠫', '⠁'], ['15.11'], '⁀'),
-  modifierToken('modifier.arc.up', ['⠫', '⠄'], ['15.11'], '‿'),
-  modifierToken('modifier.caret.over', ['⠸', '⠣'], ['15.15'], '^'),
-  modifierToken('modifier.caret.inverted', ['⠸', '⠩'], ['15.15'], '∨'),
-  modifierToken('modifier.caret.left', ['⠰', '⠣'], ['15.15'], '‹'),
-  modifierToken('modifier.caret.right', ['⠰', '⠩'], ['15.15'], '›'),
-  modifierToken('modifier.dot', ['⠡'], ['15.16'], '•'),
-  modifierToken('modifier.hollow-dot', ['⠨', '⠡'], ['15.17'], '∘', { preferLonger: true }),
-  modifierToken('modifier.question', ['⠸', '⠦'], ['15.18'], '?'),
-  modifierToken('modifier.tilde.extended', ['⠠', '⠱'], ['15.19'], '〰'),
-  modifierToken('modifier.tilde.simple', ['⠈', '⠱'], ['15.19'], '~'),
-  modifierToken('modifier.triangle', ['⠫', '⠞'], ['15.10'], '△'),
-  modifierToken('modifier.bar-over', ['⠱'], ['15.1', '15.2', '15.13'], '¯'),
-  close('modifier.terminate.over', ['⠻'], ['15.2'], 'mover'),
-  close('modifier.terminate.under', ['⠻'], ['15.2'], 'munder'),
-  close('modifier.terminate.simultaneous', ['⠻'], ['15.4'], 'munderover'),
-  open('radical.square', ['⠜'], ['16.1', '16.2'], 'msqrt', ['radicand']),
-  fixedRoot('radical.cube', ['⠣', '⠒', '⠜'], ['16.2'], '3', '3'),
-  fixedRoot('radical.fourth', ['⠣', '⠲', '⠜'], ['16.2'], '4', '4'),
-  close('radical.end', ['⠻'], ['16.1.1'], 'msqrt'),
+  simultaneous('modifier.simultaneous.over', ['⠣'], ['15.4'], 'over', '<'),
+  simultaneous('modifier.simultaneous.under', ['⠩'], ['15.4'], 'under', '%'),
+  modifierToken('modifier.arc.down', ['⠫', '⠁'], ['15.11'], '⁀', { sourceNotation: '$a' }),
+  modifierToken('modifier.arc.up', ['⠫', '⠄'], ['15.11'], '‿', { sourceNotation: "$'" }),
+  modifierToken('modifier.caret.over', ['⠸', '⠣'], ['15.15'], '^', { sourceNotation: '_<' }),
+  modifierToken('modifier.caret.inverted', ['⠸', '⠩'], ['15.15'], '∨', { sourceNotation: '_%' }),
+  modifierToken('modifier.caret.left', ['⠰', '⠣'], ['15.15'], '‹', { sourceNotation: ';<' }),
+  modifierToken('modifier.caret.right', ['⠰', '⠩'], ['15.15'], '›', { sourceNotation: ';%' }),
+  modifierToken('modifier.dot', ['⠡'], ['15.16'], '•', { sourceNotation: '*' }),
+  modifierToken('modifier.hollow-dot', ['⠨', '⠡'], ['15.17'], '∘', { preferLonger: true, sourceNotation: '.*' }),
+  modifierToken('modifier.question', ['⠸', '⠦'], ['15.18'], '?', { sourceNotation: '_8' }),
+  modifierToken('modifier.tilde.extended', ['⠠', '⠱'], ['15.19'], '〰', { sourceNotation: '`,:' }),
+  modifierToken('modifier.tilde.simple', ['⠈', '⠱'], ['15.19'], '~', { sourceNotation: '`:' }),
+  modifierToken('modifier.triangle', ['⠫', '⠞'], ['15.10'], '△', { sourceNotation: '$t' }),
+  modifierToken('modifier.bar-over', ['⠱'], ['15.1', '15.2', '15.13'], '¯', { sourceNotation: ':' }),
+  sourceClose('modifier.terminate.over', ['⠻'], ['15.2'], 'mover', ']'),
+  sourceClose('modifier.terminate.under', ['⠻'], ['15.2'], 'munder', ']'),
+  sourceClose('modifier.terminate.simultaneous', ['⠻'], ['15.4'], 'munderover', ']'),
+  sourceOpen('radical.square', ['⠜'], ['16.1', '16.2'], 'msqrt', ['radicand'], {}, 'radicand', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '>'),
+  fixedRoot('radical.cube', ['⠣', '⠒', '⠜'], ['16.2'], '3', '3', '<3>'),
+  fixedRoot('radical.fourth', ['⠣', '⠲', '⠜'], ['16.2'], '4', '4', '<4>'),
+  sourceClose('radical.end', ['⠻'], ['16.1.1'], 'msqrt', ']'),
   // MathML requires the radicand as child 1 and the index as child 2. Nemeth
   // presents the index first, so the transition opens a valid mroot in source
   // order while placing the draft focus in the index slot.
   // ⠣ is also the standalone directly-over modifier. The longer indexed
   // radical code gets the same explicit lookahead treatment.
-  open('radical.indexed', ['⠣'], ['16.2', '16.3'], 'mroot', ['radicand', 'index'], {}, 'index', true),
-  move('radical.next.radicand', ['⠌'], ['16.2'], 'mroot', 'radicand'),
-  close('radical.indexed.end', ['⠻'], ['16.2', '16.3'], 'mroot'),
+  sourceOpen('radical.indexed', ['⠣'], ['16.2', '16.3'], 'mroot', ['radicand', 'index'], {}, 'index', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '<'),
+  sourceMove('radical.next.radicand', ['⠌'], ['16.2'], 'mroot', 'radicand', '/'),
+  sourceClose('radical.indexed.end', ['⠻'], ['16.2', '16.3'], 'mroot', ']'),
   open('group.round', ['⠷'], ['19.1', '19.5'], 'mrow', ['content'], { 'data-omniya-group': 'round' }),
   close('group.round.end', ['⠾'], ['19.1'], 'mrow'),
   // Rule 15.6: a binomial is one bounded local structure.  Its opening
@@ -1076,33 +1087,33 @@ const MAPPINGS = [
   { id: 'binomial.open', cells: ['⠷'], banaRefs: ['15.6'], action: 'open-binomial', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
   { id: 'binomial.lower', cells: ['⠩'], banaRefs: ['15.6'], action: 'move-binomial-lower', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
   { id: 'binomial.close', cells: ['⠾'], banaRefs: ['15.6'], action: 'close-binomial', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
-  token('group.parenthesis-open', ['⠷'], ['19.1'], '(', 'mo'),
-  token('group.parenthesis-close', ['⠾'], ['19.1'], ')', 'mo'),
-  token('group.bracket-open', ['⠈', '⠷'], ['19.1'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.bracket-close', ['⠈', '⠾'], ['19.1'], ']', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.brace-open', ['⠨', '⠷'], ['19.1'], '{', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.brace-close', ['⠨', '⠾'], ['19.1'], '}', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.parenthesis-open', ['⠷'], ['19.1'], '(', 'mo', { sourceNotation: '(' }),
+  token('group.parenthesis-close', ['⠾'], ['19.1'], ')', 'mo', { sourceNotation: ')' }),
+  token('group.bracket-open', ['⠈', '⠷'], ['19.1'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@(' }),
+  token('group.bracket-close', ['⠈', '⠾'], ['19.1'], ']', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@)' }),
+  token('group.brace-open', ['⠨', '⠷'], ['19.1'], '{', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '.(' }),
+  token('group.brace-close', ['⠨', '⠾'], ['19.1'], '}', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '.)' }),
   // Rule 19's additional grouping signs. Each multi-cell sign is a bounded
   // local construction, not a delimiter grammar: Enter commits the one sign.
-  token('group.angle-open', ['⠨', '⠨', '⠷'], ['19.1'], '⟨', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.angle-close', ['⠨', '⠨', '⠾'], ['19.1'], '⟩', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.angle-open', ['⠨', '⠨', '⠷'], ['19.1'], '⟨', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '..(' }),
+  token('group.angle-close', ['⠨', '⠨', '⠾'], ['19.1'], '⟩', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '..)' }),
   // BANA Rule 19 distinguishes bold brackets (_@( ... _@)) from barred
   // brackets (@_( ... @_)).  The indicator order is normative: swapping the
   // two produces a different sign even though the Unicode glyphs look alike.
-  token('group.bold-bracket-open', ['⠸', '⠈', '⠷'], ['19.3'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.bold-bracket-close', ['⠸', '⠈', '⠾'], ['19.3'], ']', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.barred-bracket-open', ['⠈', '⠸', '⠷'], ['19.1'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.barred-bracket-close', ['⠈', '⠸', '⠾'], ['19.1'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.bold-bracket-open', ['⠸', '⠈', '⠷'], ['19.3'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '_@(' }),
+  token('group.bold-bracket-close', ['⠸', '⠈', '⠾'], ['19.3'], ']', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '_@)' }),
+  token('group.barred-bracket-open', ['⠈', '⠸', '⠷'], ['19.1'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@_(' }),
+  token('group.barred-bracket-close', ['⠈', '⠸', '⠾'], ['19.1'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@_)' }),
   token('group.barred-brace-open', ['⠨', '⠸', '⠷'], ['19.1'], '⦃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.barred-brace-close', ['⠨', '⠸', '⠾'], ['19.1'], '⦄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.upper-half-open', ['⠈', '⠘', '⠷'], ['19.4'], '⎡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.upper-half-close', ['⠈', '⠘', '⠾'], ['19.4'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.lower-half-open', ['⠈', '⠰', '⠷'], ['19.4'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.lower-half-close', ['⠈', '⠰', '⠾'], ['19.4'], '⎦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.upper-half-open', ['⠈', '⠘', '⠷'], ['19.4'], '⎡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@^(' }),
+  token('group.upper-half-close', ['⠈', '⠘', '⠾'], ['19.4'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@^)' }),
+  token('group.lower-half-open', ['⠈', '⠰', '⠷'], ['19.4'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@;(' }),
+  token('group.lower-half-close', ['⠈', '⠰', '⠾'], ['19.4'], '⎦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@;)' }),
   // Rule 19.5 reuses the vertical-bar cell used by operation and arrow
   // constructions. Hold it for local lookahead so a longer arrow code stays
   // reachable; Enter/choice selects the standalone grouping meaning.
-  token('group.vertical-bar', ['⠳'], ['19.5'], '|', 'mo', { preferLonger: true }),
+  token('group.vertical-bar', ['⠳'], ['19.5'], '|', 'mo', { preferLonger: true, sourceNotation: '|' }),
   // Rule 19.1/19.6 enlarged grouping signs. Dot 6 is part of each local
   // construction; it is never inferred from the height of surrounding
   // MathML. The source notation is retained for source-to-cell review.
@@ -1264,7 +1275,7 @@ const MAPPINGS = [
   // BANA 14.7's contracted comma is distinct from the baseline mathematical
   // comma: it preserves the current script level and represents the optional
   // following space as part of this one local follow-up.
-  contractedComma('script.contracted-comma', ['⠪'], ['14.7']),
+  contractedComma('script.contracted-comma', ['⠪'], ['14.7'], '['),
   token('misc.tally', ['⠸'], ['23.19'], '|', 'mo', { preferLonger: true, sourceNotation: '_' }),
   // Rule 23.20's vertical-bar symbol uses the same cell as the operation bar;
   // its meaning is selected by the local context (such-that, grouping, or
@@ -1343,9 +1354,10 @@ const MAPPINGS = [
   sourceToken('arrow.left-lower-right-full', '$,[33o', ['22.7.2'], '→', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-lower-right-full-barbs' } }),
   sourceToken('arrow.left-full-right-upper', '$[33`o', ['22.7.2'], '↔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-full-right-upper-barb' } }),
   sourceToken('arrow.left-full-right-lower', '$[33,o', ['22.7.2'], '↔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-full-right-lower-barb' } }),
-  token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*'),
-  token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†'),
-  token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡'),
+  token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*', 'mo', { sourceNotation: '@#' }),
+  token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†', 'mo', { sourceNotation: '_]' }),
+  token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡', 'mo', { sourceNotation: '__]' }),
+  mode('reference.general', ['⠈', '⠻'], ['9.2'], 'reference', true, '@]'),
   // October 2025 errata, Rule 9.1: no fixed checkmark symbol exists; the
   // documented transcriber-defined shape code is `.=$cm` (⠨⠿⠫⠉⠍ in the
   // source's expanded notation). It remains a bounded local reference atom,
@@ -1428,8 +1440,8 @@ const MAPPINGS = [
   // Rule 11.1.1: the general omission sign is the equals-shaped cell ⠿.
   // Its MathML placeholder is a question mark; it is not ordinary equals.
   token('omission.general', ['⠿'], ['11.1.1'], '?', 'mo', { sourceNotation: '=' }),
-  open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike' }),
-  close('cancellation.end', ['⠻'], ['12.1.1'], 'menclose'),
+  open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike' }, 'content', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, { sourceNotation: '[' }),
+  sourceClose('cancellation.end', ['⠻'], ['12.1.1'], 'menclose', ']'),
   token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→', 'mo', { sourceNotation: '$o' }),
   // BANA 22.1 calls the ordinary right arrow `$o` only when it is regular,
   // single-shaft, and unmodified. The uncontracted `$33o` is a separate
@@ -1445,15 +1457,15 @@ const MAPPINGS = [
   ...GREEK_SMALL.map(([cells, value]) => token(`greek.${value}`, [...cells], ['6.1.4', '6.2.1'], value, 'mi')),
   ...GREEK_CAPITAL.map(([cells, value]) => token(`greek.capital-${value}`, [...cells], ['5.1.1', '6.1.4', '6.2.1'], value, 'mi')),
   ...GREEK_VARIANTS.map(([cells, value]) => token(`greek.variant-${value}`, [...cells], ['6.1.5', '6.2.2'], value, 'mi')),
-  mode('indicator.number', ['⠼'], ['3.1', '3.3'], 'numeric'),
-  mode('indicator.capital', ['⠠'], ['5.1', '6.1'], 'capital', true),
+  mode('indicator.number', ['⠼'], ['3.1', '3.3'], 'numeric', false, '#'),
+  mode('indicator.capital', ['⠠'], ['5.1', '6.1'], 'capital', true, ','),
   // BANA 3.11.1: a double capital indicator introduces one uppercase Roman
   // numeral construction. Letters are collected only into that one local
   // identifier; ordinary expression input remains unaffected.
-  mode('indicator.roman', ['⠠', '⠠'], ['3.11.1', '6.5'], 'roman', true),
+  mode('indicator.roman', ['⠠', '⠠'], ['3.11.1', '6.5'], 'roman', true, ',,'),
   // BANA Rules 6.2 and 10.3: one English-letter abbreviation is introduced
   // by a bounded indicator mode, not by a literary-word parser.
-  mode('indicator.english-letter', ['⠰'], ['6.2', '10.3'], 'english-letter', true)
+  mode('indicator.english-letter', ['⠰'], ['6.2', '10.3'], 'english-letter', true, ';')
 ].map((mapping) => mapping.id.startsWith('arrow.')
   ? withPolicy(mapping, LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE)
   : mapping);
@@ -1712,9 +1724,9 @@ function applyMapping(document, focus, inputState, mapping) {
       ? inputState.mode.slice('numeric:'.length)
       : null;
     if (node.name === 'mn' && node.children?.length === 1) {
-      result = insertNumeric(tree, focus, args.value, { mathvariant: numericVariant });
+      result = insertNumeric(tree, focus, args.value, { mathvariant: numericVariant, dataAttributes: args.dataAttributes ?? {} });
     } else {
-      const inserted = atom('mn', args.value, numericVariant ? { mathvariant: numericVariant } : {});
+      const inserted = atom('mn', args.value, { ...(numericVariant ? { mathvariant: numericVariant } : {}), ...(args.dataAttributes ?? {}) });
       const target = (node.name === 'math' && node.children.length === 0) || isHole(node)
         ? replaceCurrent(tree, focus, inserted)
         : insertAfter(tree, focus, inserted);
@@ -1928,6 +1940,33 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+
+  // BANA Rule 9.2's general reference indicator is a one-symbol local
+  // follow-up: @] is followed immediately by one letter or numeral. It does
+  // not open a passage buffer or infer a footnote number; it inserts exactly
+  // that next local atom and annotates the source role.
+  if (state.mode === 'reference' && !state.prefix) {
+    if (LETTERS.has(normalized)) {
+      return applyMapping(document, focus, { ...state, mode: null }, {
+        id: `reference.letter.${LETTERS.get(normalized)}`,
+        cells: [normalized],
+        banaRefs: ['9.2', '6.3'],
+        action: 'insert-token',
+        commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference' } }
+      });
+    }
+    if (DIGITS.has(normalized)) {
+      return applyMapping(document, focus, { ...state, mode: null }, {
+        id: `reference.number.${DIGITS.get(normalized)}`,
+        cells: [normalized],
+        banaRefs: ['9.2', '3.1.2'],
+        action: 'insert-numeric',
+        commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+        args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference' } }
+      });
+    }
+  }
 
   // Give a registered atomic construction priority over a structural
   // follow-up when the cells seen so far are still a prefix of that one
