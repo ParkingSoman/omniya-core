@@ -124,6 +124,25 @@ and leaves the rest of the expression untouched.
 
 ### Bounded modifier scopes
 
+### Mathematical expression typeforms
+
+BANA uses an opening and closing indicator when bold or italic type is part of
+the meaning of a multi-symbol mathematical expression. In a fresh replacement
+draft, enter the opening code, fill the expression normally, then enter its
+matching closing code. The opening code creates a marked MathML scope and the
+closing code only works inside that scope. For an existing focused expression,
+the same opening code wraps that exact focus. It never collects words or scans
+the surrounding equation. The supported local pairs are:
+
+- Bold expression: `,'_` to open, `_,'` to close.
+- Italic expression: `',.` to open, `.,'` to close.
+
+These are bounded local constructions. SRE supplies the ordinary mathematical
+speech and structure; the scope metadata preserves the BANA typeform intent.
+
+If the closing code is entered outside an open typeform scope, or before the
+scope contains an expression, nothing changes and the code can be corrected.
+
 Some BANA modifiers cover more than one adjacent symbol. Enter the modifier
 indicator, enter that expression one local symbol at a time, then enter the
 modifier and its terminator. For example, an overbar on `a+b` is entered as

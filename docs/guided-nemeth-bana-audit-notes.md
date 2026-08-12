@@ -77,6 +77,20 @@ operation. The exact BANA reference is retained on every row; whole and
 focused Nemeth output is checked through the pinned SRE projection while the
 standard remains authoritative for the input meaning.
 
+## Rule 7.3.5 mathematical-expression typeforms (current audit)
+
+BANA Rule 7.3.5 uses an opening bold or italic expression indicator and a
+matching closing indicator when mathematical typeform is significant. The
+registry represents each pair as a bounded local sequence. The opening action
+creates an `mstyle` subtree with one ordinary MathML expression hole when the
+writer is at an empty root, or wraps the exact populated focus when editing.
+The closing action is valid only inside that marked subtree and returns focus
+to its surrounding row. It does not collect words, infer a phrase boundary, or
+maintain a hidden scope stack. BANA's October 2025 correction to Example 7-19
+is retained in `errataRefs` on the bold rows. SRE is used only to inspect the
+resulting projection; MathML styling and the BANA cells remain the normative
+contract.
+
 ## Source-notation evidence added in this pass
 
 The registry now carries `args.sourceNotation` for audited composite rows, in

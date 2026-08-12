@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 240,
-    "atomicSequence": 374,
+    "atomicSequence": 378,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 400,
+    "shadowedAtomicCount": 410,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -652,6 +652,46 @@
       {
         "atomicId": "script.sub-sub-sub-sub",
         "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "typeform.scope.bold.open",
+        "immediateId": "punctuation.comma"
+      },
+      {
+        "atomicId": "typeform.scope.bold.open",
+        "immediateId": "typeform.terminate"
+      },
+      {
+        "atomicId": "typeform.scope.bold.open",
+        "immediateId": "misc.ditto"
+      },
+      {
+        "atomicId": "typeform.scope.bold.open",
+        "immediateId": "indicator.capital"
+      },
+      {
+        "atomicId": "typeform.scope.bold.close",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "typeform.scope.italic.open",
+        "immediateId": "punctuation.comma"
+      },
+      {
+        "atomicId": "typeform.scope.italic.open",
+        "immediateId": "typeform.terminate"
+      },
+      {
+        "atomicId": "typeform.scope.italic.open",
+        "immediateId": "misc.ditto"
+      },
+      {
+        "atomicId": "typeform.scope.italic.open",
+        "immediateId": "indicator.capital"
+      },
+      {
+        "atomicId": "typeform.scope.italic.close",
+        "immediateId": "radical.order.one"
       },
       {
         "atomicId": "modifier.arrow.barbed-both",
@@ -1618,7 +1658,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 675,
+    "notation": 679,
     "contextual": 2
   },
   "operations": [
@@ -8483,12 +8523,124 @@
       "sourceKind": null,
       "args": {
         "mode": "typeform-end",
-        "preferLonger": false,
+        "preferLonger": true,
         "sourceNotation": ",'"
       },
       "banaRefs": [
         "7.1",
         "7.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.scope.bold.open",
+      "commandLabel": "typeform.scope.bold.open",
+      "cells": [
+        "⠠",
+        "⠄",
+        "⠸"
+      ],
+      "action": "open-typeform-scope",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ",'_",
+      "sourceKind": null,
+      "args": {
+        "mathvariant": "bold",
+        "sourceNotation": ",'_"
+      },
+      "banaRefs": [
+        "7.3.4",
+        "7.3.5"
+      ],
+      "errataRefs": [
+        "7.3.5 Example 7-19"
+      ],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.scope.bold.close",
+      "commandLabel": "typeform.scope.bold.close",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠄"
+      ],
+      "action": "close-typeform-scope",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "_,'",
+      "sourceKind": null,
+      "args": {
+        "mathvariant": "bold",
+        "sourceNotation": "_,'"
+      },
+      "banaRefs": [
+        "7.3.4",
+        "7.3.5"
+      ],
+      "errataRefs": [
+        "7.3.5 Example 7-19"
+      ],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.scope.italic.open",
+      "commandLabel": "typeform.scope.italic.open",
+      "cells": [
+        "⠠",
+        "⠄",
+        "⠨"
+      ],
+      "action": "open-typeform-scope",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ",'.",
+      "sourceKind": null,
+      "args": {
+        "mathvariant": "italic",
+        "sourceNotation": ",'."
+      },
+      "banaRefs": [
+        "7.3.4",
+        "7.3.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "typeform.scope.italic.close",
+      "commandLabel": "typeform.scope.italic.close",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠄"
+      ],
+      "action": "close-typeform-scope",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".,'",
+      "sourceKind": null,
+      "args": {
+        "mathvariant": "italic",
+        "sourceNotation": ".,'"
+      },
+      "banaRefs": [
+        "7.3.4",
+        "7.3.5"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -14927,7 +15079,8 @@
       "args": {
         "name": "mo",
         "value": "〃",
-        "sourceNotation": ",'"
+        "sourceNotation": ",'",
+        "preferLonger": true
       },
       "banaRefs": [
         "23.6"

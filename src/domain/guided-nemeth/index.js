@@ -448,6 +448,46 @@ function openModifier(tree, focus, elementName, initialSlot) {
   return wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
 }
 
+// BANA Rule 7.3.5 represents a mathematically meaningful multi-token
+// expression with an opening and closing typeform indicator.  The guided
+// editor models that boundary as an ordinary MathML mstyle subtree.  The
+// opening operation creates one expression hole when writing from an empty
+// focus, or wraps the exact focused subtree when editing populated math; the
+// closing operation returns to the surrounding row.  No phrase buffer or
+// lexical scope is kept outside the tree.
+function openTypeformScope(tree, focus, mathvariant) {
+  const current = currentNode(tree, focus);
+  const wrapper = element('mstyle', [], {
+    mathvariant,
+    'data-omniya-nemeth-intent': 'typeform-scope'
+  });
+  if (current.name === 'math' || isHole(current)) {
+    const slot = hole(wrapper, 'expression');
+    wrapper.children.push(slot);
+    replaceCurrent(tree, focus, wrapper);
+    return { tree, focus: focusNode(slot) };
+  }
+  const content = structuredClone(current);
+  content.attrs['data-omniya-id'] = id();
+  wrapper.children.push(content);
+  replaceCurrent(tree, focus, wrapper);
+  return { tree, focus: focusNode(content) };
+}
+
+function closeTypeformScope(tree, focus) {
+  const current = currentNode(tree, focus);
+  const wrapper = ancestor(tree, current, ['mstyle']);
+  if (!wrapper || wrapper.attrs?.['data-omniya-nemeth-intent'] !== 'typeform-scope') {
+    throw new RangeError('A typeform terminator requires an open mathematical typeform scope.');
+  }
+  const content = wrapper.children?.[0];
+  if (!content || isHole(content)) {
+    throw new RangeError('A typeform scope must contain an expression before it can close.');
+  }
+  const parent = findMathParent(tree, wrapper.attrs['data-omniya-id']);
+  return { tree, focus: focusNode(parent ?? wrapper) };
+}
+
 // BANA Rule 18.3 upper/lower-limit forms are bounded local constructions.
 // The function name is their base and the following limit is a real MathML
 // child, so later guided navigation can enter that slot without a hidden
@@ -895,6 +935,16 @@ const modifierToken = (id, cells, banaRefs, value, options = {}) => ({
   id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
   args: { name: 'mo', value, ...options }
 });
+const typeformScope = (id, sourceNotation, banaRefs, mathvariant, options = {}) => ({
+  id,
+  cells: sourceCells(sourceNotation),
+  banaRefs,
+  action: options.close ? 'close-typeform-scope' : 'open-typeform-scope',
+  commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+  args: { mathvariant, sourceNotation },
+  ...(options.errataRefs ? { errataRefs: options.errataRefs } : {}),
+  ...(options.sourceKind ? { sourceKind: options.sourceKind } : {})
+});
 // A modifier can itself be a complete BANA construction made from several
 // cells.  Keep that construction in the same bounded local-code registry as
 // ordinary arrows and shape interiors.  The modifier's MathML slot is not
@@ -1196,6 +1246,14 @@ const MAPPINGS = [
   mode('typeform.script.number', ['⠈', '⠼'], ['7.1', '7.2'], 'numeric:script', true, '`#'),
   mode('typeform.barred.number', ['⠠', '⠸', '⠼'], ['7.1', '7.2'], 'numeric:double-struck', true, ',_#'),
   mode('typeform.terminate', ['⠠', '⠄'], ['7.1', '7.3'], 'typeform-end', false, ",'"),
+  // BANA 7.3.4–7.3.5: multi-word or mathematical-expression typeforms use
+  // explicit opening/closing indicators. These are bounded scope operations,
+  // not phrase parsing. The October 2025 erratum corrects the bold Example
+  // 7-19 braille, so only the bold rows carry that errata reference.
+  typeformScope('typeform.scope.bold.open', ",'_", ['7.3.4', '7.3.5'], 'bold', { errataRefs: ['7.3.5 Example 7-19'] }),
+  typeformScope('typeform.scope.bold.close', "_,'", ['7.3.4', '7.3.5'], 'bold', { close: true, errataRefs: ['7.3.5 Example 7-19'] }),
+  typeformScope('typeform.scope.italic.open', ",'.", ['7.3.4', '7.3.5'], 'italic'),
+  typeformScope('typeform.scope.italic.close', ".,'", ['7.3.4', '7.3.5'], 'italic', { close: true }),
   modifier('modifier.directly-over', ['⠣'], ['15.1', '15.2'], 'mover', 'overscript', 'multipurpose', { preferLonger: true, sourceNotation: '<' }),
   modifier('modifier.directly-under', ['⠩'], ['15.1', '15.2'], 'munder', 'underscript', 'multipurpose', { sourceNotation: '%' }),
   // The doubled indicator is one bounded higher-order code. A single
@@ -1833,7 +1891,8 @@ export function registryDiagnostics() {
       !['move-slot', 'close-structure', 'extend-integral', 'superpose-integral', 'superpose-token',
         'simultaneous-modifier', 'higher-order-modifier', 'insert-modifier', 'open-modifier',
         'move-binomial-lower', 'close-binomial', 'append-possessive', 'append-plural', 'append-ordinal',
-        'insert-contracted-script-comma', 'set-mode', 'open-binomial'].includes(entry.action)) {
+        'insert-contracted-script-comma', 'set-mode', 'open-binomial', 'open-typeform-scope',
+        'close-typeform-scope'].includes(entry.action)) {
       errors.push({ id: entry.id, error: 'structural-followup-needs-structural-action' });
     }
     return errors;
@@ -1986,6 +2045,10 @@ function mappingApplies(mapping, context) {
     return context.node.name !== 'math' && !isHole(context.node) && Boolean(findMathParent(context.tree, context.node.attrs?.['data-omniya-id']));
   }
   if (mapping.action === 'append-ordinal') return context.node.name === 'mn' && !isHole(context.node);
+  if (mapping.action === 'close-typeform-scope') {
+    const scope = hasAncestor(context.tree, context.node, 'mstyle');
+    return Boolean(scope?.attrs?.['data-omniya-nemeth-intent'] === 'typeform-scope');
+  }
   if (mapping.id.startsWith('modifier.horizontal-')) {
     return Boolean(context.node.name !== 'math' &&
       hasAncestor(context.tree, context.node, ['mover', 'munder', 'munderover']));
@@ -2056,6 +2119,8 @@ const TREE_OPERATIONS = Object.freeze({
   'append-possessive': ({ tree, focus }) => appendPossessive(tree, focus),
   'append-plural': ({ tree, focus }) => appendPlural(tree, focus),
   'append-ordinal': ({ tree, focus, args }) => appendOrdinal(tree, focus, args.ending),
+  'open-typeform-scope': ({ tree, focus, args }) => openTypeformScope(tree, focus, args.mathvariant),
+  'close-typeform-scope': ({ tree, focus }) => closeTypeformScope(tree, focus),
   'open-fixed-root': ({ tree, focus, args }) => openFixedRoot(tree, focus, args.index, args.indexText),
   'open-script-chain': ({ tree, focus, args }) => openScriptChain(tree, focus, args.directions),
   'open-modifier': ({ document, focus, tree, inputState, args }) => {

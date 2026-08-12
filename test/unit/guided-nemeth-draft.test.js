@@ -379,6 +379,57 @@ test('computer-Braille and Unicode blanks create the same explicit MathML space'
   }
 });
 
+test('BANA 7.3.5 expression typeforms use bounded MathML scope operations', () => {
+  const cases = [
+    ['⠠⠄⠸', '⠸⠠⠄', 'bold'],
+    ['⠠⠄⠨', '⠨⠠⠄', 'italic']
+  ];
+  for (const [open, close, mathvariant] of cases) {
+    let document = createEmptyDraftMathDocument();
+    let focus = focusOf(document);
+    let inputState = { prefix: '', mode: null };
+    for (const currentCell of [...open]) {
+      const result = cell(document, focus, inputState, currentCell);
+      assert.notEqual(result.status, 'rejected', result.announcement);
+      ({ document, focus, inputState } = result);
+    }
+    let committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', committed.announcement);
+    ({ document, focus, inputState } = committed);
+    for (const currentCell of ['⠁', '⠬', '⠃']) {
+      const result = cell(document, focus, inputState, currentCell);
+      assert.notEqual(result.status, 'rejected', result.announcement);
+      ({ document, focus, inputState } = result);
+    }
+    const tree = parseMathML(document.mathml);
+    assert.equal(tree.children[0].name, 'mstyle');
+    assert.equal(tree.children[0].attrs.mathvariant, mathvariant);
+    assert.equal(tree.children[0].children[0].name, 'mrow');
+    for (const currentCell of [...close]) {
+      const result = cell(document, focus, inputState, currentCell);
+      assert.notEqual(result.status, 'rejected', result.announcement);
+      ({ document, focus, inputState } = result);
+    }
+    committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied');
+    const closed = parseMathML(committed.document.mathml);
+    assert.equal(closed.children[0].name, 'mstyle');
+    assert.equal(closed.children[0].children[0].children[0].children[0].text, 'a');
+    assert.equal(closed.children[0].children[0].children[2].children[0].text, 'b');
+  }
+});
+
+test('typeform scope terminators reject outside a marked scope without mutation', () => {
+  const document = createEmptyDraftMathDocument();
+  const result = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠸' });
+  assert.equal(result.status, 'pending');
+  const next = applyNemethCell({ document, focus: document.focus, inputState: result.inputState, cell: '⠠' });
+  assert.equal(next.status, 'pending');
+  const close = applyNemethCell({ document, focus: document.focus, inputState: next.inputState, cell: '⠄' });
+  assert.equal(close.status, 'rejected');
+  assert.equal(close.document.mathml, document.mathml);
+});
+
 test('numeric and capital indicators are local modes, not passage parsing', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

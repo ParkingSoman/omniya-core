@@ -1555,7 +1555,7 @@ test('every accepted mapping has explicit BANA source evidence and action', () =
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial', 'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
   }
 });
 
@@ -1611,7 +1611,8 @@ test('each registry policy has a complete local-code contract', () => {
     assert.ok(['move-slot', 'close-structure', 'extend-integral', 'superpose-integral',
       'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'insert-modifier',
       'open-modifier', 'move-binomial-lower', 'close-binomial', 'append-possessive',
-      'append-plural', 'insert-contracted-script-comma', 'set-mode', 'open-binomial'].includes(entry.action), entry.id);
+      'append-plural', 'append-ordinal', 'insert-contracted-script-comma', 'set-mode', 'open-binomial',
+      'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
   }
 });
 

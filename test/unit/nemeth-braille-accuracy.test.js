@@ -108,6 +108,29 @@ test('BANA Rule 3.7 ordinal suffixes preserve exact whole and focused Braille', 
   }
 });
 
+test('BANA Rule 7.3.5 scope rows retain reviewed source cells and exact MathML typeform intent', async () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [openId, closeId, openCells, closeCells, variant] of [
+    ['typeform.scope.bold.open', 'typeform.scope.bold.close', '⠠⠄⠸', '⠸⠠⠄', 'bold'],
+    ['typeform.scope.italic.open', 'typeform.scope.italic.close', '⠠⠄⠨', '⠨⠠⠄', 'italic']
+  ]) {
+    assert.equal(registry.get(openId).cells.join(''), openCells, openId);
+    assert.equal(registry.get(closeId).cells.join(''), closeCells, closeId);
+    assert.deepEqual(registry.get(openId).banaRefs, ['7.3.4', '7.3.5']);
+    assert.equal(registry.get(openId).args.mathvariant, variant);
+    assert.equal(registry.get(openId).commitPolicy, 'atomic-sequence');
+  }
+  // SRE's Nemeth serializer does not project mstyle typeform metadata into
+  // cells, so the independent check here is deliberately structural: the
+  // MathML expression remains exact and carries the BANA typeform authority.
+  const source = await importLatex('a+b');
+  const tree = parseMathML(source.mathml);
+  const expression = tree.children[0];
+  expression.attrs.mathvariant = 'bold';
+  assert.equal(await nemeth(subtreeMathML(expression)), '⠸⠰⠁');
+  assert.equal(expression.attrs.mathvariant, 'bold');
+});
+
 test('ported MathCAT Nemeth cases remain stable through Omniya MathML import', async () => {
   for (const fixture of MATHCAT_FIXTURES) {
     const document = await importLatex(fixture.latex);
