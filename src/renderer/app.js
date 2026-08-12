@@ -611,10 +611,16 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
           elements['replacement-status'].textContent = `Local code committed: ${local.announcement}`;
           editor.value = '';
           await renderDraftPreview();
-          editor.focus();
-          return;
-        }
-        if (local.status === 'choice') {
+          // A held short code is still an immediate operation.  Enter is its
+          // disambiguator, so after committing it the same Enter may submit a
+          // now-complete draft.  Atomic constructions intentionally stop here:
+          // their Enter commits only that bounded local construction and the
+          // next Enter submits the replacement.
+          if (local.localCommitPolicy !== 'immediate') {
+            editor.focus();
+            return;
+          }
+        } else if (local.status === 'choice') {
           elements['replacement-status'].textContent = local.announcement;
           elements['replacement-choices'].replaceChildren(...local.choices.map((choice) => {
             const button = document.createElement('button');
@@ -627,10 +633,11 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
           }));
           elements['replacement-choices'].hidden = false;
           return;
+        } else {
+          elements['replacement-status'].textContent = local.announcement;
+          editor.setAttribute('aria-invalid', 'true');
+          return;
         }
-        elements['replacement-status'].textContent = local.announcement;
-        editor.setAttribute('aria-invalid', 'true');
-        return;
       }
       const result = await submitReplacement(replacementSession, {
         convertLatexToMathML: async (source) => {

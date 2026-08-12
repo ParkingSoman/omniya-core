@@ -40,8 +40,11 @@ test('fraction cells create and traverse structural slots without parsing a pass
   let inputState = { prefix: '', mode: null };
   for (const value of ['⠹', '⠁']) {
     const result = cell(document, focus, inputState, value);
-    assert.equal(result.status, 'applied');
-    ({ document, focus, inputState } = result);
+    const committed = result.status === 'pending'
+      ? commitNemethLocalCode({ document, focus, inputState: result.inputState })
+      : result;
+    assert.equal(committed.status, 'applied');
+    ({ document, focus, inputState } = committed);
   }
   let result = cell(document, focus, inputState, '⠌');
   assert.equal(result.status, 'applied');

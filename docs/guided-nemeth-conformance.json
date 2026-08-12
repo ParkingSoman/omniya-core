@@ -6,6 +6,998 @@
   "status": "development",
   "operations": [
     {
+      "id": "function.amp",
+      "commandLabel": "function.amp",
+      "cells": [
+        "⠁",
+        "⠍",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "amp"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.antilog",
+      "commandLabel": "function.antilog",
+      "cells": [
+        "⠁",
+        "⠝",
+        "⠞",
+        "⠊",
+        "⠇",
+        "⠕",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "antilog"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.arc",
+      "commandLabel": "function.arc",
+      "cells": [
+        "⠁",
+        "⠗",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "arc"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.arg",
+      "commandLabel": "function.arg",
+      "cells": [
+        "⠁",
+        "⠗",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "arg"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.colog",
+      "commandLabel": "function.colog",
+      "cells": [
+        "⠉",
+        "⠕",
+        "⠇",
+        "⠕",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "colog"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.cos",
+      "commandLabel": "function.cos",
+      "cells": [
+        "⠉",
+        "⠕",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "cos"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.cosh",
+      "commandLabel": "function.cosh",
+      "cells": [
+        "⠉",
+        "⠕",
+        "⠎",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "cosh"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.cot",
+      "commandLabel": "function.cot",
+      "cells": [
+        "⠉",
+        "⠕",
+        "⠞"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "cot"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.coth",
+      "commandLabel": "function.coth",
+      "cells": [
+        "⠉",
+        "⠕",
+        "⠞",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "coth"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.covers",
+      "commandLabel": "function.covers",
+      "cells": [
+        "⠉",
+        "⠕",
+        "⠧",
+        "⠑",
+        "⠗",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "covers"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.csc",
+      "commandLabel": "function.csc",
+      "cells": [
+        "⠉",
+        "⠎",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "csc"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.csch",
+      "commandLabel": "function.csch",
+      "cells": [
+        "⠉",
+        "⠎",
+        "⠉",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "csch"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.ctn",
+      "commandLabel": "function.ctn",
+      "cells": [
+        "⠉",
+        "⠞",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "ctn"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.ctnh",
+      "commandLabel": "function.ctnh",
+      "cells": [
+        "⠉",
+        "⠞",
+        "⠝",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "ctnh"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.det",
+      "commandLabel": "function.det",
+      "cells": [
+        "⠙",
+        "⠑",
+        "⠞"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "det"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.erf",
+      "commandLabel": "function.erf",
+      "cells": [
+        "⠑",
+        "⠗",
+        "⠋"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "erf"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.exp",
+      "commandLabel": "function.exp",
+      "cells": [
+        "⠑",
+        "⠭",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "exp"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.exsec",
+      "commandLabel": "function.exsec",
+      "cells": [
+        "⠑",
+        "⠭",
+        "⠎",
+        "⠑",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "exsec"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.grad",
+      "commandLabel": "function.grad",
+      "cells": [
+        "⠛",
+        "⠗",
+        "⠁",
+        "⠙"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "grad"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.hav",
+      "commandLabel": "function.hav",
+      "cells": [
+        "⠓",
+        "⠁",
+        "⠧"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "hav"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.im",
+      "commandLabel": "function.im",
+      "cells": [
+        "⠊",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "im"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.inf",
+      "commandLabel": "function.inf",
+      "cells": [
+        "⠊",
+        "⠝",
+        "⠋"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "inf"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.lim",
+      "commandLabel": "function.lim",
+      "cells": [
+        "⠇",
+        "⠊",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "lim"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.ln",
+      "commandLabel": "function.ln",
+      "cells": [
+        "⠇",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "ln"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.log",
+      "commandLabel": "function.log",
+      "cells": [
+        "⠇",
+        "⠕",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "log"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.max",
+      "commandLabel": "function.max",
+      "cells": [
+        "⠍",
+        "⠁",
+        "⠭"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "max"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.min",
+      "commandLabel": "function.min",
+      "cells": [
+        "⠍",
+        "⠊",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "min"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.mod",
+      "commandLabel": "function.mod",
+      "cells": [
+        "⠍",
+        "⠕",
+        "⠙"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "mod"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.re",
+      "commandLabel": "function.re",
+      "cells": [
+        "⠗",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "re"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.sec",
+      "commandLabel": "function.sec",
+      "cells": [
+        "⠎",
+        "⠑",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "sec"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.sech",
+      "commandLabel": "function.sech",
+      "cells": [
+        "⠎",
+        "⠑",
+        "⠉",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "sech"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.sin",
+      "commandLabel": "function.sin",
+      "cells": [
+        "⠎",
+        "⠊",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "sin"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.sinh",
+      "commandLabel": "function.sinh",
+      "cells": [
+        "⠎",
+        "⠊",
+        "⠝",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "sinh"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.sup",
+      "commandLabel": "function.sup",
+      "cells": [
+        "⠎",
+        "⠥",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "sup"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.tan",
+      "commandLabel": "function.tan",
+      "cells": [
+        "⠞",
+        "⠁",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "tan"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.tanh",
+      "commandLabel": "function.tanh",
+      "cells": [
+        "⠞",
+        "⠁",
+        "⠝",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "tanh"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.vers",
+      "commandLabel": "function.vers",
+      "cells": [
+        "⠧",
+        "⠑",
+        "⠗",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "vers"
+      },
+      "banaRefs": [
+        "18.1",
+        "18.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.limit.upper",
+      "commandLabel": "function.limit.upper",
+      "cells": [
+        "⠣",
+        "⠇",
+        "⠊",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "lim"
+      },
+      "banaRefs": [
+        "18.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "function.limit.lower",
+      "commandLabel": "function.limit.lower",
+      "cells": [
+        "⠩",
+        "⠇",
+        "⠊",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "lim"
+      },
+      "banaRefs": [
+        "18.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "letter.a",
       "commandLabel": "letter.a",
       "cells": [
@@ -15,7 +1007,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "a"
+        "value": "a",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -61,7 +1054,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "c"
+        "value": "c",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -84,7 +1078,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "d"
+        "value": "d",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -107,7 +1102,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "e"
+        "value": "e",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -153,7 +1149,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "g"
+        "value": "g",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -176,7 +1173,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "h"
+        "value": "h",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -199,7 +1197,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "i"
+        "value": "i",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -268,7 +1267,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "l"
+        "value": "l",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -291,7 +1291,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "m"
+        "value": "m",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -406,7 +1407,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "r"
+        "value": "r",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -429,7 +1431,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "s"
+        "value": "s",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -452,7 +1455,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "t"
+        "value": "t",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -498,7 +1502,8 @@
       "commitPolicy": "immediate",
       "args": {
         "name": "mi",
-        "value": "v"
+        "value": "v",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -1617,6 +2622,30 @@
       "args": {
         "name": "mo",
         "value": "∫"
+      },
+      "banaRefs": [
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "integral.extend",
+      "commandLabel": "integral.extend",
+      "cells": [
+        "⠮"
+      ],
+      "action": "extend-integral",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "values": {
+          "∫": "∬",
+          "∬": "∭"
+        }
       },
       "banaRefs": [
         "23.12"
@@ -7065,6 +8094,32 @@
       "args": {
         "name": "mo",
         "value": "‡"
+      },
+      "banaRefs": [
+        "9.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "reference.checkmark",
+      "commandLabel": "reference.checkmark",
+      "cells": [
+        "⠨",
+        "⠿",
+        "⠫",
+        "⠉",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "✓"
       },
       "banaRefs": [
         "9.1"

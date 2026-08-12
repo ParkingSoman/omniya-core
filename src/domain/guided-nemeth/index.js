@@ -55,6 +55,20 @@ const GREEK_VARIANTS = [
   ['⠨⠈⠋', 'φ']  // alternative phi; standard phi is ϕ
 ];
 
+// BANA Rule 18 lists these abbreviated function names as mathematical
+// expressions in their own right.  They are deliberately represented as
+// bounded local atoms, not as a word parser: the cells are ordinary Nemeth
+// letter cells, the registry holds only one named construction, and the
+// following expression is entered by later local operations.  The source
+// table is BANA 2022 Rule 18.1; MathCAT's function-space fixtures are used as
+// an independent projection check.
+const BANA_FUNCTION_NAMES = [
+  'amp', 'antilog', 'arc', 'arg', 'colog', 'cos', 'cosh', 'cot', 'coth',
+  'covers', 'csc', 'csch', 'ctn', 'ctnh', 'det', 'erf', 'exp', 'exsec',
+  'grad', 'hav', 'im', 'inf', 'lim', 'ln', 'log', 'max', 'min', 'mod',
+  're', 'sec', 'sech', 'sin', 'sinh', 'sup', 'tan', 'tanh', 'vers'
+];
+
 // BANA 6.1.5/6.2.2 uses the alternative-letter indicator (⠈) after the
 // Greek alphabet indicator. The MathCAT CSV contains a legacy final-sigma
 // spelling (⠨⠒), but the normative BANA table is the explicit .`s form.
@@ -128,6 +142,15 @@ function insertToken(tree, focus, name, value, { replace = false, mathvariant = 
     ? replaceCurrent(tree, focus, node)
     : insertAfter(tree, focus, node);
   return { tree, focus: focusNode(inserted) };
+}
+
+function extendIntegral(tree, focus, values) {
+  const current = currentNode(tree, focus);
+  if (current.name !== 'mo' || !values[current.children?.[0]?.text]) {
+    throw new RangeError('Repeated-integral follow-up requires the focused integral sign.');
+  }
+  current.children = [text(values[current.children[0].text])];
+  return { tree, focus: focusNode(current) };
 }
 
 function wrapCurrent(tree, focus, elementName, roles, attrs = {}, initialSlot = roles[0]) {
@@ -209,6 +232,24 @@ const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multip
   id, cells, banaRefs, action: 'open-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, slot, requiresMode }
 });
 
+const cellForLetter = (letter) => [...LETTERS.entries()].find(([, value]) => value === letter)?.[0] ?? letter;
+const BANA_FUNCTION_MAPPINGS = BANA_FUNCTION_NAMES.map((name) => token(
+  `function.${name}`,
+  [...name].map(cellForLetter),
+  ['18.1', '18.4'],
+  name,
+  'mi',
+  { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }
+));
+const BANA_LIMIT_MAPPINGS = [
+  // BANA 18.3 gives upper/lower limit as dedicated local constructions. They
+  // are not ordinary bar modifiers. The following expression is entered by
+  // later structural operations in the same draft.
+  token('function.limit.upper', ['⠣', '⠇', '⠊', '⠍'], ['18.3'], 'lim', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('function.limit.lower', ['⠩', '⠇', '⠊', '⠍'], ['18.3'], 'lim', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE })
+];
+const FUNCTION_INITIAL_CELLS = new Set(BANA_FUNCTION_MAPPINGS.map((mapping) => mapping.cells[0]));
+
 // Rule 22's remaining named arrow examples are still atomic transitions. The
 // table is intentionally data-only: each complete BANA construction inserts
 // one MathML operator. It does not infer arrow parts or parse an expression.
@@ -276,10 +317,10 @@ const ADDITIONAL_ARROW_MAPPINGS = [
 // serializer and its public regression corpus are independent checks only;
 // they never supply a missing BANA mapping or override the cited rule.
 const MAPPINGS = [
-  // Rule 18 function names remain compositional letter mappings here. A
-  // future explicit command can select a named function without consuming
-  // ordinary variable prefixes such as `a` or `s`.
-  ...[...LETTERS].map(([cells, value]) => token(`letter.${value}`, [cells], ['6.3', '6.4'], value, 'mi')),
+  ...BANA_FUNCTION_MAPPINGS,
+  ...BANA_LIMIT_MAPPINGS,
+  ...[...LETTERS].map(([cells, value]) => token(`letter.${value}`, [cells], ['6.3', '6.4'], value, 'mi',
+    FUNCTION_INITIAL_CELLS.has(cells) ? { preferLonger: true } : {})),
   token('operator.plus', ['⠬'], ['20.1'], '+', 'mo', { preferLonger: true }),
   token('space', [' '], ['2.4'], '', 'mspace'),
   // Rule 8's mathematical punctuation cells are literal local symbols. The
@@ -334,6 +375,11 @@ const MAPPINGS = [
   // Any bounds, multiplicity, or superposed decoration is added afterward by
   // the same structural-followup operations used for every other operator.
   token('operator.integral', ['⠮'], ['23.12'], '∫'),
+  {
+    id: 'integral.extend', cells: ['⠮'], banaRefs: ['23.12'], action: 'extend-integral',
+    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+    args: { values: { '∫': '∬', '∬': '∭' } }
+  },
   // These two BANA compound symbols have a distinct leading construction and
   // are therefore valid bounded local codes; an ordinary ⠮ remains immediate.
   token('integral.lower', ['⠩', '⠮'], ['23.12'], '⨜', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
@@ -538,6 +584,11 @@ const MAPPINGS = [
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*'),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†'),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡'),
+  // October 2025 errata, Rule 9.1: no fixed checkmark symbol exists; the
+  // documented transcriber-defined shape code is `.=$cm` (⠨⠿⠫⠉⠍ in the
+  // source's expanded notation). It remains a bounded local reference atom,
+  // not an invented Unicode glyph.
+  token('reference.checkmark', ['⠨', '⠿', '⠫', '⠉', '⠍'], ['9.1'], '✓', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { preferLonger: true }),
   token('shape.diamond', ['⠫', '⠙'], ['17.1'], '◊', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.ellipse', ['⠫', '⠑'], ['17.1'], '⬭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
@@ -661,6 +712,12 @@ function fractionAtFocus(tree, node) {
 }
 
 function mappingApplies(mapping, context) {
+  if (mapping.id === 'operator.integral') {
+    return !(context.node.name === 'mo' && ['∫', '∬'].includes(context.node.children?.[0]?.text));
+  }
+  if (mapping.id === 'integral.extend') {
+    return context.node.name === 'mo' && ['∫', '∬'].includes(context.node.children?.[0]?.text);
+  }
   const fraction = fractionAtFocus(context.tree, context.node);
   const fractionKind = fraction?.attrs?.['data-omniya-fraction-kind'] ?? 'simple';
   const numeratorFocus = Boolean(fraction && (contains(context.tree, fraction.children[0], context.node) ||
@@ -684,9 +741,20 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'script.subscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
   if (mapping.id === 'cancellation.end') return Boolean(hasAncestor(context.tree, context.node, 'menclose'));
   if (mapping.id === 'script.baseline') return Boolean(hasAncestor(context.tree, context.node, 'msup') || hasAncestor(context.tree, context.node, 'msub') || hasAncestor(context.tree, context.node, 'msubsup') || hasAncestor(context.tree, context.node, 'mover') || hasAncestor(context.tree, context.node, 'munder') || hasAncestor(context.tree, context.node, 'munderover'));
+  if (mapping.id === 'modifier.terminate.over') return Boolean(hasAncestor(context.tree, context.node, 'mover'));
+  if (mapping.id === 'modifier.terminate.under') return Boolean(hasAncestor(context.tree, context.node, 'munder'));
   if (mapping.id === 'indicator.multipurpose') return true;
   if (mapping.id === 'indicator.number' && fraction) return !contains(context.tree, fraction.children[1], context.node);
   return true;
+}
+
+function hasAtomicContinuation(prefix, nextCell, context) {
+  const candidatePrefix = `${prefix}${nextCell}`;
+  return MAPPINGS.some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
+    !mapping.id.startsWith('function.') &&
+    mapping.cells.length > candidatePrefix.length &&
+    mapping.cells.slice(0, candidatePrefix.length).join('') === candidatePrefix &&
+    mappingApplies(mapping, context));
 }
 
 function applyMapping(document, focus, inputState, mapping) {
@@ -713,6 +781,8 @@ function applyMapping(document, focus, inputState, mapping) {
       return { status: 'rejected', document, focus, inputState, announcement: 'A multipurpose indicator is required before a modifier.' };
     }
     result = openModifier(tree, focus, args.element, args.slot);
+  } else if (mapping.action === 'extend-integral') {
+    result = extendIntegral(tree, focus, args.values);
   } else if (mapping.action === 'move-slot') {
     result = focusRole(tree, focus, args.element, args.role);
   } else if (mapping.action === 'close-structure') {
@@ -746,6 +816,11 @@ function applyMapping(document, focus, inputState, mapping) {
     : null;
   return {
     status: 'applied',
+    // The renderer uses this only to distinguish a short immediate code that
+    // was held as a prefix from an atomic local construction.  It never turns
+    // the input into a passage parser: one registry row is still the whole
+    // committed unit.
+    localCommitPolicy: mapping.commitPolicy ?? LOCAL_COMMIT_POLICIES.IMMEDIATE,
     document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(result.tree), focus: result.focus },
     focus: result.focus,
     inputState: { prefix: '', mode: nextMode },
@@ -794,7 +869,8 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       .filter((mapping) => state.mode === 'multipurpose'
         ? mapping.action === 'open-modifier'
         : mapping.action !== 'open-modifier') ?? [];
-    if (previousMappings.length === 1 && previousMappings[0].commitPolicy !== LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE) {
+    if (previousMappings.length === 1 && previousMappings[0].commitPolicy !== LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
+      !hasAtomicContinuation(state.prefix, normalized, context)) {
       const first = applyMapping(document, focus, { ...state, prefix: '' }, previousMappings[0]);
     if (first.status !== 'rejected') {
       const second = applyNemethCell({ document: first.document, focus: first.focus, inputState: first.inputState, cell: normalized });

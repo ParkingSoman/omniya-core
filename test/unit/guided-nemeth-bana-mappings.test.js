@@ -6,6 +6,7 @@ import { parseMathML } from '../../src/domain/math-tree.js';
 import {
   applyNemethCell,
   applyNemethChoice,
+  commitNemethLocalCode,
   createEmptyDraftMathDocument,
   operationRegistry,
   registryDiagnostics
@@ -233,6 +234,53 @@ test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () 
   }
 });
 
+test('BANA Rule 18 abbreviated functions and limit forms are bounded local atoms', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, value] of [
+    ['function.sin', '⠎⠊⠝', 'sin'],
+    ['function.log', '⠇⠕⠛', 'log'],
+    ['function.limit.upper', '⠣⠇⠊⠍', 'lim'],
+    ['function.limit.lower', '⠩⠇⠊⠍', 'lim']
+  ]) {
+    const entry = registry.get(id);
+    assert.equal(entry?.cells.join(''), cells, id);
+    assert.equal(entry?.commitPolicy, 'atomic-sequence', id);
+    assert.ok(entry?.banaRefs.includes('18.1') || entry?.banaRefs.includes('18.3'), id);
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    for (const cell of [...cells]) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      assert.equal(result.status, 'pending', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', id);
+    const tree = parseMathML(committed.document.mathml);
+    assert.equal(tree.children[0].children[0].text, value, id);
+  }
+});
+
+test('BANA Rule 23 repeated integrals use immediate and bounded forms', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const entry = registry.get('integral.extend');
+  assert.equal(entry?.cells.join(''), '⠮');
+  assert.equal(entry?.commitPolicy, 'structural-followup');
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠮' });
+  assert.equal(result.status, 'applied');
+  ({ document, focus, inputState } = result);
+  result = applyNemethCell({ document, focus, inputState, cell: '⠮' });
+  assert.equal(result.status, 'applied');
+  ({ document, focus, inputState } = result);
+  assert.equal(parseMathML(document.mathml).children[0].children[0].text, '∬');
+  result = applyNemethCell({ document, focus, inputState, cell: '⠮' });
+  assert.equal(result.status, 'applied');
+  assert.equal(parseMathML(result.document.mathml).children[0].children[0].text, '∭');
+});
+
 test('BANA Rule 7 typeform indicators decorate only the next local atom', () => {
   const cases = [
     ['⠸⠰', 'bold'],
@@ -252,6 +300,9 @@ test('BANA Rule 7 typeform indicators decorate only the next local atom', () => 
         const operation = result.choices.find(({ operationId }) => operationId.endsWith('.number'));
         assert.ok(operation, `${indicator}: expected a numeral typeform mapping choice`);
         chosen = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: operation.operationId });
+      }
+      if (chosen.status === 'pending' && chosen.inputState.prefix === '⠁') {
+        chosen = commitNemethLocalCode({ document, focus, inputState: chosen.inputState });
       }
       assert.notEqual(chosen.status, 'rejected', `${indicator}: ${chosen.announcement}`);
       ({ document, focus, inputState } = chosen);
@@ -324,7 +375,7 @@ test('every accepted mapping has an explicit BANA source and action', () => {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral'].includes(entry.action), entry.id);
   }
 });
 

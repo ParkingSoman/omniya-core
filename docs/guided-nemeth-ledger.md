@@ -22,11 +22,11 @@ Normative sources:
 | Scripts | Rule 14 | superscript/subscript and first compound msubsup transitions implemented; prescripts and deeper level combinations pending | scripts, prescripts, multiscripts and baseline return |
 | Modifiers | Rule 15 | five-step directly-over/under transitions implemented; modifier catalog and higher-order combinations pending | modifiers on atoms and grouped expressions |
 | Radicals | Rule 16 | square, indexed, cube, and fourth-root transitions implemented | nested radicals and index slots |
-| Shapes and functions | Rules 17, 18 | atomic shape tokens implemented; function names remain compositional tokens and abbreviated-function context pending | named and abbreviated functions |
+| Shapes and functions | Rules 17, 18 | source-listed abbreviated function names and upper/lower limit forms are bounded atomic rows; open-ended unlisted names remain ordinary compositional letters | named and abbreviated functions |
 | Grouping | Rule 19 | round grouping core operation implemented | paired boundaries and exact focus restoration |
 | Operators | Rule 20 | core and compound operator tokens implemented | official operator examples |
 | Comparisons and arrows | Rules 21, 22 | core relations, quantifier relations, directional/diagonal arrows, short/long shafts, and double-shaft arrows implemented; arbitrary arrowhead combinations pending | ambiguity and compound comparison fixtures |
-| Miscellaneous symbols | Rule 23 | reviewed literal symbols include integrals, monetary units, at/crossed symbols, quantifiers, relation symbols, and Greek variants; end-of-proof and spatial shape constructions remain pending | symbol-index fixtures and errata rows |
+| Miscellaneous symbols | Rule 23 | reviewed literal symbols include single, repeated, lower, and upper integrals, monetary units, at/crossed symbols, quantifiers, relation symbols, and Greek variants; end-of-proof and spatial shape constructions remain pending | symbol-index fixtures and errata rows |
 | Multipurpose indicator | Rule 24 | local baseline/multipurpose context selection implemented; modifier entry and numeral/typeform contexts covered; operation/comparison and decimal-return combinations pending; erratum 24.1.e applied (deleted) | Appendix B combinations |
 | Spatial arrangements | Rule 25 | deferred | separate design session |
 | Format | Rule 26 | document concern | excluded unless mathematical meaning changes |

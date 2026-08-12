@@ -67,7 +67,13 @@ export function applyNemethCell(session, cell) {
   });
   const next = cloneSession(session);
   next.nemethState = result.inputState;
-  if (result.status === 'applied') {
+  // A single input cell may finish one immediate code and become the prefix
+  // of the next bounded code (for example plus followed by a letter that is
+  // also the start of an abbreviated function).  The domain transition keeps
+  // that first mutation in `result.document` while reporting `pending` for the
+  // new local prefix.  Do not drop the mutation merely because the next code
+  // is not complete yet.
+  if (result.status === 'applied' || (result.status === 'pending' && result.document?.mathml !== session.draft.mathml)) {
     next.draft = result.document;
     next.draftFocus = result.focus;
   }

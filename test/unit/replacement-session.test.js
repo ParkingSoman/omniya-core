@@ -93,7 +93,7 @@ test('Nemeth and LaTeX sessions use the same replacement commit path', async () 
   for (const value of ['⠹', '⠁', '⠌', '⠃', '⠼']) {
     const result = applyNemethCell(session, value);
     assert.notEqual(result.status, 'rejected', result.announcement);
-    if (result.status === 'applied') session = result.session;
+    session = result.session;
   }
   const committed = await submitReplacement(session, { convertLatexToMathML });
   assert.equal(parseMathML(committed.document.mathml).children[2].name, 'mfrac');
@@ -120,4 +120,14 @@ test('Enter commits one atomic Nemeth code before replacement submission', () =>
   assert.equal(committed.status, 'applied');
   assert.match(committed.session.draft.mathml, />⇢</);
   assert.equal(committed.session.nemethState.prefix, '');
+});
+
+test('a pending next local code retains an immediately committed preceding token', () => {
+  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
+  session = applyNemethCell(session, '⠭').session;
+  session = applyNemethCell(session, '⠬').session;
+  const result = applyNemethCell(session, '⠁');
+  assert.equal(result.status, 'pending');
+  assert.equal(result.session.nemethState.prefix, '⠁');
+  assert.match(result.session.draft.mathml, /<mo[^>]*>\+<\/mo>/);
 });
