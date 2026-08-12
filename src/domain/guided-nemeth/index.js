@@ -1592,6 +1592,8 @@ const MAPPINGS = [
   shapeModificationToken('shape.square.interior-sw-ne-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠔', '⠻'], ['17.6.1'], '⧄', 'square', 'interior-sw-ne-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$9]' }),
   shapeModificationToken('shape.circle.superposed-bar', ['⠳', '⠈', '⠫', '⠉', '⠻'], ['17.7'], '⌽', 'circle', 'superposed-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '\\@$c]' }),
   shapeModificationToken('shape.circle.interior-bar', ['⠫', '⠉', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '⦶', 'circle', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$\\]' }),
+  shapeModificationToken('shape.circle.interior-arrows-horizontal', sourceCells('$c_$$%33o"$<33o]'), ['17.6.2'], '⊚', 'circle', 'interior-arrows-horizontal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$$%33o"$<33o]' }),
+  shapeModificationToken('shape.circle.interior-arrows-vertical', sourceCells('$c_$$33o$[33]'), ['17.6.3'], '⊚', 'circle', 'interior-arrows-vertical', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$$33o$[33]' }),
   shapeToken('shape.triangle.plural', ['⠫', '⠞', '⠎'], ['17.9'], '⧌', 'triangle-plural', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$ts' }),
   // Rule 11.1.1: the general omission sign is the equals-shaped cell ⠿.
   // Its MathML placeholder is a question mark; it is not ordinary equals.

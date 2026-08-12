@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 240,
-    "atomicSequence": 308,
+    "atomicSequence": 310,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 274,
+    "shadowedAtomicCount": 276,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -1090,6 +1090,14 @@
         "immediateId": "shape.circle"
       },
       {
+        "atomicId": "shape.circle.interior-arrows-horizontal",
+        "immediateId": "shape.circle"
+      },
+      {
+        "atomicId": "shape.circle.interior-arrows-vertical",
+        "immediateId": "shape.circle"
+      },
+      {
         "atomicId": "shape.triangle.plural",
         "immediateId": "shape.triangle"
       },
@@ -1114,7 +1122,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 609,
+    "notation": 611,
     "contextual": 2
   },
   "operations": [
@@ -16491,6 +16499,91 @@
       },
       "banaRefs": [
         "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.circle.interior-arrows-horizontal",
+      "commandLabel": "shape.circle.interior-arrows-horizontal",
+      "cells": [
+        "⠫",
+        "⠉",
+        "⠸",
+        "⠫",
+        "⠫",
+        "⠩",
+        "⠒",
+        "⠒",
+        "⠕",
+        "⠐",
+        "⠫",
+        "⠣",
+        "⠒",
+        "⠒",
+        "⠕",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$c_$$%33o\"$<33o]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊚",
+        "sourceNotation": "$c_$$%33o\"$<33o]",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "circle",
+          "data-omniya-shape-modification": "interior-arrows-horizontal"
+        }
+      },
+      "banaRefs": [
+        "17.6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.circle.interior-arrows-vertical",
+      "commandLabel": "shape.circle.interior-arrows-vertical",
+      "cells": [
+        "⠫",
+        "⠉",
+        "⠸",
+        "⠫",
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠕",
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$c_$$33o$[33]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊚",
+        "sourceNotation": "$c_$$33o$[33]",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "circle",
+          "data-omniya-shape-modification": "interior-arrows-vertical"
+        }
+      },
+      "banaRefs": [
+        "17.6.3"
       ],
       "errataRefs": [],
       "validContexts": [

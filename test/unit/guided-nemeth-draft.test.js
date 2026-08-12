@@ -96,6 +96,27 @@ test('Rule 13.8.2 higher-order hypercomplex opening keeps order in canonical Mat
   assert.equal(tree.children[0].attrs['data-omniya-fraction-order'], '3');
 });
 
+test('Rule 17.6 multi-interior shapes remain atomic until Enter', () => {
+  for (const id of ['shape.circle.interior-arrows-horizontal', 'shape.circle.interior-arrows-vertical']) {
+    const code = operationRegistry().find((entry) => entry.id === id).cells;
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    const initialMathML = document.mathml;
+    for (const cell of code) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      assert.ok(result);
+      assert.notEqual(result.status, 'rejected', result.announcement);
+      ({ document, focus, inputState } = result);
+    }
+    assert.equal(document.mathml, initialMathML, `${id} mutated before Enter`);
+    assert.equal(inputState.prefix.length > 0, true);
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', committed.announcement);
+    assert.match(committed.document.mathml, /data-omniya-shape-modification="interior-arrows-/);
+  }
+});
+
 test('fixed-index roots create canonical mroot structure one code at a time', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

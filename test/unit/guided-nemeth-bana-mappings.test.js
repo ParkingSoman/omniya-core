@@ -672,6 +672,17 @@ test('Rule 13.8.2 retains a source-linked higher-order hypercomplex family', () 
   }
 });
 
+test('Rules 17.6.2 and 17.6.3 retain complete multi-interior shape constructions', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, ref] of [['shape.circle.interior-arrows-horizontal', '17.6.2'], ['shape.circle.interior-arrows-vertical', '17.6.3']]) {
+    const entry = registry.get(id);
+    assert.ok(entry);
+    assert.deepEqual(entry.banaRefs, [ref]);
+    assert.equal(entry.commitPolicy, 'atomic-sequence');
+    assert.ok(entry.args.sourceNotation.startsWith('$c_$$'));
+  }
+});
+
 test('BANA Rules 17 and 18 retain exact published local source notation', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, sourceNotation] of [

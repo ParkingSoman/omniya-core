@@ -5,7 +5,7 @@ import { importLatex, replaceMathTargetInDocument } from '../../src/main/math-se
 import { findMathNode, parseMathML, serializeMathML } from '../../src/domain/math-tree.js';
 import { SUBEXPRESSION_FIXTURES, WHOLE_EXPRESSION_FIXTURES, fixtureById } from '../fixtures/nemeth-braille-fixtures.js';
 import { MATHCAT_FIXTURES } from '../fixtures/mathcat-braille-fixtures.js';
-import { applyNemethCell, applyNemethChoice, commitNemethLocalCode, createEmptyDraftMathDocument } from '../../src/domain/guided-nemeth/index.js';
+import { applyNemethCell, applyNemethChoice, commitNemethLocalCode, createEmptyDraftMathDocument, operationRegistry } from '../../src/domain/guided-nemeth/index.js';
 
 async function nemeth(mathml) {
   await SRE.engineReady();
@@ -349,6 +349,30 @@ test('Rule 13.8.2 higher-order hypercomplex opener retains exact local Braille',
   // retained in the canonical source attribute for the input-side contract.
   assert.equal(await nemeth(document.mathml), '⠹⠀⠌⠀⠼');
   assert.match(document.mathml, /data-omniya-fraction-order="3"/);
+});
+
+test('BANA Rules 17.6.2 and 17.6.3 keep complete multi-interior constructions atomic and project accurately', async () => {
+  // Input is checked against source-linked BANA registry rows. Output is an
+  // independent SRE projection, not a replacement for transcriber review.
+  const expected = '⠫⠉⠸⠫⠘⠨⠡⠻';
+  for (const id of ['shape.circle.interior-arrows-horizontal', 'shape.circle.interior-arrows-vertical']) {
+    const entry = operationRegistry().find((candidate) => candidate.id === id);
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    const unchanged = document.mathml;
+    for (const cell of entry.cells) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    assert.equal(document.mathml, unchanged, `${id} changed the draft before Enter`);
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', `${id}: ${committed.announcement}`);
+    assert.equal(await nemeth(committed.document.mathml), expected, `${id} (${entry.banaRefs.join(', ')})`);
+    const node = expressionNode(committed.document);
+    assert.equal(node.attrs['data-omniya-shape-modification'], id.endsWith('horizontal') ? 'interior-arrows-horizontal' : 'interior-arrows-vertical');
+  }
 });
 
 test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {

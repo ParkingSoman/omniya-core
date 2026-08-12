@@ -99,3 +99,15 @@ Rule 13.8.2 likewise permits higher-order hypercomplex fractions by repeating
 the dot-6 prefix. The implementation registers the published order-three
 local family and preserves its order in `data-omniya-fraction-order`; the
 ordinary fraction slots and line/terminator follow-ups remain unchanged.
+## Rule 17.6.2 and 17.6.3 multiple-interior constructions
+
+The BANA 2022 examples for Rule 17.6.2 and Rule 17.6.3 are represented as
+two bounded `atomic-sequence` registry entries. The horizontal example
+`$c_$$%33o"$<33o]` and vertical example `$c_$$33o$[33]` are collected only
+until their published terminator and are committed by Enter as one local
+circle construction. They do not create a passage buffer or infer an
+arbitrary interior expression. The canonical MathML token carries the source
+intent (`interior-arrows-horizontal` or `interior-arrows-vertical`) while SRE
+provides the independent projected Nemeth for the resulting mathematical
+symbol. See BANA 2022 Rule 17.6.2 and 17.6.3 and the corresponding accuracy
+fixture in `test/unit/nemeth-braille-accuracy.test.js`.
