@@ -838,6 +838,18 @@ const comparisonCompound = (id, sourceNotation, value, options = {}) => sourceTo
     dataAttributes: { 'data-omniya-nemeth-intent': id, ...(options.dataAttributes ?? {}) },
   }
 );
+const comparisonSuperposition = (id, sourceNotation, value, options = {}) => sourceToken(
+  id,
+  sourceNotation,
+  ['15.9', '21.12'],
+  value,
+  'mo',
+  {
+    ...options,
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    dataAttributes: { 'data-omniya-nemeth-intent': id, ...(options.dataAttributes ?? {}) }
+  }
+);
 // A shape may be represented by a Unicode glyph, a MathML grouping, or a
 // transcriber-defined local construction.  Keep the BANA meaning on the
 // source node instead of inventing a notation grammar.  The attributes are
@@ -1396,6 +1408,19 @@ const MAPPINGS = [
   // the compounded comparison is submitted. The multipurpose cells are part
   // of the BANA code, not an inferred precedence rule.
   token('comparison.vertical-arrow-pair', ['⠫', '⠒', '⠒', '⠕', '⠫', '⠪', '⠒', '⠒'], ['21.9'], '⇄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$33o$[33' }),
+  comparisonSuperposition('comparison.superposed.dot-equals', '*`.k]', '≐'),
+  comparisonSuperposition('comparison.superposed.dot-subset', '*`_"k]', '⪽'),
+  comparisonSuperposition('comparison.superposed.dot-superset', '*`_.1]', '⪾'),
+  comparisonSuperposition('comparison.superposed.equals-subset', '.k`_"k]', '⊆'),
+  comparisonSuperposition('comparison.superposed.equals-superset', '.k`_.1]', '⊇'),
+  comparisonSuperposition('comparison.superposed.greater-nest', '.1`.1]', '≫'),
+  comparisonSuperposition('comparison.superposed.greater-curved-nest', '..1`..1]', '⪼'),
+  comparisonSuperposition('comparison.superposed.less-nest', '"k`"k]', '≪'),
+  comparisonSuperposition('comparison.superposed.less-curved-nest', '."k`."k]', '⪻'),
+  comparisonSuperposition('comparison.superposed.bar-subset', ':`_"k]', '⊂'),
+  comparisonSuperposition('comparison.superposed.bar-superset', ':`_.1]', '⊃'),
+  comparisonSuperposition('comparison.superposed.arrow-right', '|`$33o]', '⇸'),
+  comparisonSuperposition('comparison.superposed.arrow-left', '|`$[33]', '⇷'),
   token('comparison.greater-less', ['⠨', '⠂', '⠐', '⠐', '⠅'], ['21.11'], '><', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '.1""k' }),
   token('comparison.less-greater', ['⠐', '⠅', '⠐', '⠨', '⠂'], ['21.11'], '<>', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '"k".1' }),
   token('comparison.greater-equals-less', ['⠨', '⠂', '⠐', '⠨', '⠅', '⠐', '⠐', '⠅'], ['21.11'], '>=<', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '.1".k""k' }),

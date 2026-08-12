@@ -183,6 +183,22 @@ const RULE_21_9_MODIFIED_FIXTURES = [
   ['comparison.union.equals-under', '.+.k', '∪']
 ];
 
+const RULE_21_12_SUPERPOSITION_FIXTURES = [
+  ['comparison.superposed.dot-equals', '*`.k]', '≐'],
+  ['comparison.superposed.dot-subset', '*`_"k]', '⪽'],
+  ['comparison.superposed.dot-superset', '*`_.1]', '⪾'],
+  ['comparison.superposed.equals-subset', '.k`_"k]', '⊆'],
+  ['comparison.superposed.equals-superset', '.k`_.1]', '⊇'],
+  ['comparison.superposed.greater-nest', '.1`.1]', '≫'],
+  ['comparison.superposed.greater-curved-nest', '..1`..1]', '⪼'],
+  ['comparison.superposed.less-nest', '"k`"k]', '≪'],
+  ['comparison.superposed.less-curved-nest', '."k`."k]', '⪻'],
+  ['comparison.superposed.bar-subset', ':`_"k]', '⊂'],
+  ['comparison.superposed.bar-superset', ':`_.1]', '⊃'],
+  ['comparison.superposed.arrow-right', '|`$33o]', '⇸'],
+  ['comparison.superposed.arrow-left', '|`$[33]', '⇷']
+];
+
 function applyFixture(id, cells) {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
@@ -276,6 +292,19 @@ test('BANA Rule 21.9 modified-comparison table is represented by bounded source 
     assert.ok(entry, id);
     assert.equal(entry.args.sourceNotation, sourceNotation, id);
     assert.deepEqual(entry.banaRefs, ['21.9'], id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    const tree = applyFixture(id, entry.cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
+  }
+});
+
+test('BANA Rule 21.12 superposition table is represented by bounded source rows', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation, expected] of RULE_21_12_SUPERPOSITION_FIXTURES) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.args.sourceNotation, sourceNotation, id);
+    assert.deepEqual(entry.banaRefs, ['15.9', '21.12'], id);
     assert.equal(entry.commitPolicy, 'atomic-sequence', id);
     const tree = applyFixture(id, entry.cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);

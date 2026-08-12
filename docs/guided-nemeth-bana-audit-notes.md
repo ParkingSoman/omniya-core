@@ -111,6 +111,18 @@ Unicode glyph is shared by several constructions, the canonical node retains
 `data-omniya-nemeth-intent` so the authored BANA form remains inspectable.
 Independent SRE Braille fixtures cover representative equality, bar, logical,
 and tilde forms; BANA remains normative for the source cells and meaning.
+
+## Rule 21.12 comparison superposition
+
+The finite Rule 21.12 table is also represented as bounded local mappings.
+Published constructions such as `*`._k] (dot through equals), `.1`.`.1]`
+(nested greater-than), and `|`.$33o] (through-shaft arrow) are collected as
+one registered code and committed as one MathML operator. The operator keeps
+the BANA source intent when a Unicode projection is shared or unavailable.
+This uses the generic superposition action and does not add a comparison
+grammar or infer operands. Representative rows are checked against the
+independent SRE projection; cells and meanings remain grounded in BANA Rules
+15.9 and 21.12.
 ## Rule 17.6.2 and 17.6.3 multiple-interior constructions
 
 The BANA 2022 examples for Rule 17.6.2 and Rule 17.6.3 are represented as

@@ -404,6 +404,36 @@ test('BANA Rule 21.9 modified-comparison rows preserve local input boundaries an
   }
 });
 
+test('BANA Rule 21.12 superposition constructions retain exact local cells and projected Braille', async () => {
+  const cases = [
+    ['comparison.superposed.dot-equals', '⠐⠨⠅⠣⠡⠻'],
+    ['comparison.superposed.equals-subset', '⠸⠐⠅⠱'],
+    ['comparison.superposed.equals-superset', '⠸⠨⠂⠱'],
+    ['comparison.superposed.greater-nest', '⠨⠂⠈⠨⠂⠻'],
+    ['comparison.superposed.greater-curved-nest', '⠨⠨⠂⠈⠨⠨⠂⠻'],
+    ['comparison.superposed.less-nest', '⠐⠅⠈⠐⠅⠻'],
+    ['comparison.superposed.less-curved-nest', '⠨⠐⠅⠈⠨⠐⠅⠻'],
+    ['comparison.superposed.arrow-right', '⠳⠈⠫⠒⠒⠕⠻'],
+    ['comparison.superposed.arrow-left', '⠳⠈⠫⠪⠒⠒⠻']
+  ];
+  for (const [id, expected] of cases) {
+    const entry = operationRegistry().find((candidate) => candidate.id === id);
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    const unchanged = document.mathml;
+    for (const cell of entry.cells) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    assert.equal(document.mathml, unchanged, `${id} changed before Enter`);
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', `${id}: ${committed.announcement}`);
+    assert.equal(await nemeth(committed.document.mathml), expected, id);
+  }
+});
+
 test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

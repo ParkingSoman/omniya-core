@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 240,
-    "atomicSequence": 357,
+    "atomicSequence": 370,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 369,
+    "shadowedAtomicCount": 396,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -1246,6 +1246,114 @@
         "immediateId": "operator.union"
       },
       {
+        "atomicId": "comparison.superposed.dot-equals",
+        "immediateId": "operator.dot"
+      },
+      {
+        "atomicId": "comparison.superposed.dot-subset",
+        "immediateId": "operator.dot"
+      },
+      {
+        "atomicId": "comparison.superposed.dot-superset",
+        "immediateId": "operator.dot"
+      },
+      {
+        "atomicId": "comparison.superposed.equals-subset",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.superposed.equals-subset",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.superposed.equals-subset",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.superposed.equals-superset",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "comparison.superposed.equals-superset",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.superposed.equals-superset",
+        "immediateId": "greek.κ"
+      },
+      {
+        "atomicId": "comparison.superposed.greater-nest",
+        "immediateId": "comparison.greater"
+      },
+      {
+        "atomicId": "comparison.superposed.greater-nest",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.superposed.greater-curved-nest",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.superposed.greater-curved-nest",
+        "immediateId": "radical.order.two"
+      },
+      {
+        "atomicId": "comparison.superposed.greater-curved-nest",
+        "immediateId": "comparison.greater-curved"
+      },
+      {
+        "atomicId": "comparison.superposed.less-nest",
+        "immediateId": "comparison.less"
+      },
+      {
+        "atomicId": "comparison.superposed.less-nest",
+        "immediateId": "script.baseline"
+      },
+      {
+        "atomicId": "comparison.superposed.less-nest",
+        "immediateId": "indicator.multipurpose"
+      },
+      {
+        "atomicId": "comparison.superposed.less-curved-nest",
+        "immediateId": "radical.order.one"
+      },
+      {
+        "atomicId": "comparison.superposed.less-curved-nest",
+        "immediateId": "comparison.less-curved"
+      },
+      {
+        "atomicId": "comparison.superposed.arrow-right",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "comparison.superposed.arrow-right",
+        "immediateId": "comparison.vertical-bar"
+      },
+      {
+        "atomicId": "comparison.superposed.arrow-right",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "comparison.superposed.arrow-right",
+        "immediateId": "misc.vertical-bar"
+      },
+      {
+        "atomicId": "comparison.superposed.arrow-left",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "comparison.superposed.arrow-left",
+        "immediateId": "comparison.vertical-bar"
+      },
+      {
+        "atomicId": "comparison.superposed.arrow-left",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "comparison.superposed.arrow-left",
+        "immediateId": "misc.vertical-bar"
+      },
+      {
         "atomicId": "comparison.greater-less",
         "immediateId": "comparison.greater"
       },
@@ -1494,7 +1602,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 658,
+    "notation": 671,
     "contextual": 2
   },
   "operations": [
@@ -11552,7 +11660,8 @@
       "args": {
         "name": "mo",
         "value": "≻",
-        "sourceNotation": "..1"
+        "sourceNotation": "..1",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.5"
@@ -11579,7 +11688,8 @@
       "args": {
         "name": "mo",
         "value": "≺",
-        "sourceNotation": ".\"k"
+        "sourceNotation": ".\"k",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.5"
@@ -11696,6 +11806,7 @@
         "name": "mo",
         "value": "=",
         "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.caret-under",
           "data-omniya-comparison-form": "caret-under"
         },
         "sourceNotation": "\".k%_<]"
@@ -11931,6 +12042,7 @@
         "name": "mo",
         "value": "=",
         "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.left-caret-over",
           "data-omniya-comparison-form": "left-caret-over"
         },
         "sourceNotation": "\".k<;<]"
@@ -11965,6 +12077,7 @@
         "name": "mo",
         "value": "=",
         "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.right-caret-over",
           "data-omniya-comparison-form": "right-caret-over"
         },
         "sourceNotation": "\".k<;%]"
@@ -12035,6 +12148,7 @@
         "name": "mo",
         "value": "=",
         "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.equals.vertical-bar-over",
           "data-omniya-comparison-form": "vertical-bar-over"
         },
         "sourceNotation": "\".k<|]"
@@ -13455,6 +13569,455 @@
       },
       "banaRefs": [
         "21.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.dot-equals",
+      "commandLabel": "comparison.superposed.dot-equals",
+      "cells": [
+        "⠡",
+        "⠈",
+        "⠨",
+        "⠅",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "*`.k]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≐",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.dot-equals"
+        },
+        "sourceNotation": "*`.k]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.dot-subset",
+      "commandLabel": "comparison.superposed.dot-subset",
+      "cells": [
+        "⠡",
+        "⠈",
+        "⠸",
+        "⠐",
+        "⠅",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "*`_\"k]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⪽",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.dot-subset"
+        },
+        "sourceNotation": "*`_\"k]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.dot-superset",
+      "commandLabel": "comparison.superposed.dot-superset",
+      "cells": [
+        "⠡",
+        "⠈",
+        "⠸",
+        "⠨",
+        "⠂",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "*`_.1]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⪾",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.dot-superset"
+        },
+        "sourceNotation": "*`_.1]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.equals-subset",
+      "commandLabel": "comparison.superposed.equals-subset",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠸",
+        "⠐",
+        "⠅",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`_\"k]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊆",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.equals-subset"
+        },
+        "sourceNotation": ".k`_\"k]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.equals-superset",
+      "commandLabel": "comparison.superposed.equals-superset",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠸",
+        "⠨",
+        "⠂",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".k`_.1]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊇",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.equals-superset"
+        },
+        "sourceNotation": ".k`_.1]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.greater-nest",
+      "commandLabel": "comparison.superposed.greater-nest",
+      "cells": [
+        "⠨",
+        "⠂",
+        "⠈",
+        "⠨",
+        "⠂",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".1`.1]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≫",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.greater-nest"
+        },
+        "sourceNotation": ".1`.1]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.greater-curved-nest",
+      "commandLabel": "comparison.superposed.greater-curved-nest",
+      "cells": [
+        "⠨",
+        "⠨",
+        "⠂",
+        "⠈",
+        "⠨",
+        "⠨",
+        "⠂",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "..1`..1]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⪼",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.greater-curved-nest"
+        },
+        "sourceNotation": "..1`..1]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.less-nest",
+      "commandLabel": "comparison.superposed.less-nest",
+      "cells": [
+        "⠐",
+        "⠅",
+        "⠈",
+        "⠐",
+        "⠅",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "\"k`\"k]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "≪",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.less-nest"
+        },
+        "sourceNotation": "\"k`\"k]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.less-curved-nest",
+      "commandLabel": "comparison.superposed.less-curved-nest",
+      "cells": [
+        "⠨",
+        "⠐",
+        "⠅",
+        "⠈",
+        "⠨",
+        "⠐",
+        "⠅",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".\"k`.\"k]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⪻",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.less-curved-nest"
+        },
+        "sourceNotation": ".\"k`.\"k]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.bar-subset",
+      "commandLabel": "comparison.superposed.bar-subset",
+      "cells": [
+        "⠱",
+        "⠈",
+        "⠸",
+        "⠐",
+        "⠅",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":`_\"k]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊂",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.bar-subset"
+        },
+        "sourceNotation": ":`_\"k]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.bar-superset",
+      "commandLabel": "comparison.superposed.bar-superset",
+      "cells": [
+        "⠱",
+        "⠈",
+        "⠸",
+        "⠨",
+        "⠂",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":`_.1]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⊃",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.bar-superset"
+        },
+        "sourceNotation": ":`_.1]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.arrow-right",
+      "commandLabel": "comparison.superposed.arrow-right",
+      "cells": [
+        "⠳",
+        "⠈",
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠕",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "|`$33o]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇸",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.arrow-right"
+        },
+        "sourceNotation": "|`$33o]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.superposed.arrow-left",
+      "commandLabel": "comparison.superposed.arrow-left",
+      "cells": [
+        "⠳",
+        "⠈",
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "|`$[33]",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇷",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "comparison.superposed.arrow-left"
+        },
+        "sourceNotation": "|`$[33]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
       ],
       "errataRefs": [],
       "validContexts": [
