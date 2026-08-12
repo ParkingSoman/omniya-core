@@ -177,6 +177,134 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠘⠜⠵⠘⠘⠵⠘⠻');
 });
 
+test('Nemeth modifier creation and MathJax base navigation edit preserve the overbar scope', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-modifier-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+
+  // Rule 15.2.2 contracted overbar is a local structural follow-up. The
+  // first cell inserts x immediately; the bar waits only for Enter and then
+  // wraps that focused atom. It is not a passage buffer.
+  await input.fill('⠭');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.x'));
+  await input.fill('⠱');
+  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠱');
+  assert.equal(await article.locator('math mover').count(), 0);
+  await input.press('Enter');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('modifier.bar-over'));
+  assert.equal(await article.locator('math > mover > mi').textContent(), 'x');
+  assert.equal(await article.locator('math > mover > mo').textContent(), '¯');
+
+  await input.press('Enter');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠱');
+
+  // MathJax owns navigation: root -> the bar's base. E must freeze that
+  // exact descendant, not the mover ancestor or its overscript.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.startsWith('x bar'));
+  await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Base x');
+  assert.equal(await page.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  assert.match(await page.locator('#replacement-scope').textContent(), /Base x/);
+
+  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await input.fill('⠵');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.deepEqual(await article.locator('math > mover > mi').allTextContents(), ['z']);
+  assert.equal(await article.locator('math > mover > mo').textContent(), '¯');
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠵⠱');
+});
+
+test('Nemeth function creation and MathJax argument navigation edit preserve application structure', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-function-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+
+  // BANA Rule 18.1's abbreviated function name is one bounded atomic code.
+  // Enter commits only `sin`; the following x is a separate local token and
+  // MathJax derives the application relationship from the resulting tree.
+  for (const cell of ['⠎', '⠊', '⠝']) {
+    await input.fill(cell);
+    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), cell === '⠝' ? 'Nemeth sequence may continue' : 'Nemeth sequence may continue');
+  }
+  await input.press('Enter');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('function.sin'));
+  await input.fill('⠭');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.x'));
+  await input.press('Enter');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠎⠊⠝⠀⠭');
+
+  // Explorer navigation reaches the application argument through the same
+  // root -> application -> argument path used for any MathML expression.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  assert.match(await page.locator('#replacement-scope').textContent(), /x/);
+  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await input.fill('⠵');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.deepEqual(await article.locator('math mi').allTextContents(), ['sin', 'z']);
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠎⠊⠝⠀⠵');
+});
+
+test('Nemeth geometry atom creation and MathJax whole-scope editing preserve the local code', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-geometry-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+
+  // BANA Rule 17.1's diamond is a bounded atomic construction. Its two cells
+  // are held locally until Enter, and no other expression text is parsed.
+  await input.fill('⠫⠙');
+  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠙');
+  assert.equal(await article.locator('math > mo').count(), 0);
+  await input.press('Enter');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('shape.diamond'));
+  assert.equal(await article.locator('math > mo').textContent(), '◊');
+  await input.press('Enter');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠫⠙');
+
+  // A whole-expression Explorer focus is still an exact replacement target.
+  // Editing it with another bounded BANA shape code must not leave a stale
+  // diamond or widen beyond the equation root.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.includes('lozenge'));
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠫⠙');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await input.fill('⠫⠲');
+  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠲');
+  await input.press('Enter');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('shape.square'));
+  await input.press('Enter');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.equal(await article.locator('math > mo').textContent(), '□');
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠫⠲');
+});
+
 test('MathJax-focused Nemeth editing replaces only the selected subtree with an atomic code', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-nemeth-subtree-');
   t.after(() => app.close().catch(() => {}));

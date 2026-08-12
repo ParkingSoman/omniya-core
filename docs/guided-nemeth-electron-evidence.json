@@ -56,14 +56,32 @@
     {
       "id": "modifiers",
       "ledgerRules": ["15"],
-      "status": "gap",
-      "gap": "Domain and projection fixtures exist, but a dedicated loaded Electron creation/editing pair with focused Braille is still required."
+      "status": "verified",
+      "creationTest": "Nemeth modifier creation and MathJax base navigation edit preserve the overbar scope",
+      "editingTest": "Nemeth modifier creation and MathJax base navigation edit preserve the overbar scope",
+      "nemethCells": ["⠭", "⠱", "⠵"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree", "focus-restoration"]
     },
     {
       "id": "functions-operators",
       "ledgerRules": ["18", "20", "23"],
-      "status": "gap",
-      "gap": "Several local mappings are tested in the domain, but loaded Electron creation and navigated editing evidence is not yet linked as a family."
+      "status": "verified",
+      "creationTest": "Nemeth function creation and MathJax argument navigation edit preserve application structure",
+      "editingTest": "Nemeth function creation and MathJax argument navigation edit preserve application structure",
+      "nemethCells": ["⠎", "⠊", "⠝", "⠭", "⠵"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "atomic-enter", "exact-subtree", "focus-restoration"]
+    },
+    {
+      "id": "shapes-grouping",
+      "ledgerRules": ["17", "19"],
+      "status": "verified",
+      "creationTest": "Nemeth geometry atom creation and MathJax whole-scope editing preserve the local code",
+      "editingTest": "Nemeth geometry atom creation and MathJax whole-scope editing preserve the local code",
+      "nemethCells": ["⠫⠙", "⠫⠲"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "atomic-enter", "exact-subtree", "focus-restoration"]
     },
     {
       "id": "spatial",
