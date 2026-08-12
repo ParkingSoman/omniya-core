@@ -105,6 +105,78 @@ test('renderer applies immediate, structural-followup, and atomic Nemeth codes i
   assert.deepEqual(await fractionArticle.locator('math mfrac > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['x', '→']);
 });
 
+test('renderer creates a nested script and radical through compositional Nemeth cells', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-nested-create-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+
+  // BANA Rules 14.4 and 16.1 are composed as local operations: x, a
+  // superscript indicator followed by the radical opener, y, another
+  // superscript indicator, z, and the radical terminator. No complete-passage
+  // buffer is involved; each cell either updates the current slot or closes
+  // the one structure it is already inside.
+  for (const cell of ['⠭', '⠘', '⠜', '⠽', '⠘', '⠵', '⠻']) {
+    await input.fill(cell);
+    const expected = cell === '⠻' ? 'radical.end' : cell === '⠘' ? 'Nemeth sequence may continue' : 'Draft updated';
+    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), expected);
+  }
+  assert.equal(await article.locator('math > msup').count(), 1);
+  assert.equal(await article.locator('math > msup > msqrt').count(), 1);
+  assert.deepEqual(await article.locator('math > msup > msqrt > msup > mi').allTextContents(), ['y', 'z']);
+
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠘⠜⠽⠘⠘⠵⠘⠻');
+});
+
+test('MathJax navigation edits a nested Nemeth subexpression without widening the target', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-nested-edit-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+  for (const cell of ['⠭', '⠘', '⠜', '⠽', '⠘', '⠵', '⠻']) {
+    await input.fill(cell);
+    const expected = cell === '⠻' ? 'radical.end' : cell === '⠘' ? 'Nemeth sequence may continue' : 'Draft updated';
+    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), expected);
+  }
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-container').waitFor();
+
+  // Root -> exponent -> radicand is the real MathJax Explorer path. At this
+  // point the semantic focus is the inner y^z node, not its containing radical
+  // or the outer x^... expression.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.includes('Radicand y to the z-th power'));
+  // SRE's focused-radicand projection includes the level-return indicators
+  // needed to describe the nested y^z scope in isolation.
+  assert.equal(await page.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠽⠘⠘⠵⠘');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  const scope = await page.locator('#replacement-scope').textContent();
+  assert.match(scope, /Radicand y to the z-th power/);
+
+  // Replace only y^z with z^z. The outer x^sqrt(...) tree must remain intact.
+  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  for (const cell of ['⠵', '⠘', '⠵']) {
+    await input.fill(cell);
+    const expected = cell === '⠘' ? 'Nemeth sequence may continue' : 'Draft updated';
+    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), expected);
+  }
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.deepEqual(await article.locator('math > msup > msqrt > msup > mi').allTextContents(), ['z', 'z']);
+  assert.equal(await article.locator('math > msup > mi').first().textContent(), 'x');
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠘⠜⠵⠘⠘⠵⠘⠻');
+});
+
 test('MathJax-focused Nemeth editing replaces only the selected subtree with an atomic code', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-nemeth-subtree-');
   t.after(() => app.close().catch(() => {}));

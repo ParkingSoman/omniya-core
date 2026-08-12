@@ -344,6 +344,24 @@ test('Rule 14.4.4 four-level script chains compose through the same bounded oper
   assert.equal(committed.focus.kind, 'node');
 });
 
+test('Rule 14.4.4 repeated local script operations remain bounded at depth 32', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠭', ...Array.from({ length: 31 }, () => ['⠘', '⠭']).flat()]) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  // Each local script operation wraps the previously focused expression;
+  // count the resulting MathML nodes rather than relying on which child
+  // MathML chooses to carry the nested base.
+  assert.equal((document.mathml.match(/<msup\b/g) ?? []).length, 31);
+  assert.equal(inputState.prefix, '');
+  assert.equal(focus.kind, 'node');
+});
+
 test('every registered Nemeth mapping is declarative and source-linked', () => {
   const entries = operationRegistry();
   assert.ok(entries.length > 20);

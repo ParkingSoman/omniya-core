@@ -192,6 +192,21 @@ test('long nested expressions match the independent SRE projection at whole and 
   assert.equal(await nemeth(subtreeMathML(allFractions[0].children[1])), '⠮⠰⠴⠘⠂⠐⠎⠊⠝⠀⠷⠞⠾⠙⠞');
 });
 
+test('guided nested script and radical composition matches whole and focused Braille', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠘', '⠜', '⠽', '⠘', '⠵', '⠻']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(await nemeth(document.mathml), '⠭⠘⠜⠽⠘⠘⠵⠘⠻');
+  const tree = parseMathML(document.mathml);
+  const radicand = tree.children[0].children[1].children[0];
+  assert.equal(await nemeth(subtreeMathML(radicand)), '⠽⠘⠵');
+});
+
 test('atomic-sequence and structural-followup policies stay local across the registry', async () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

@@ -122,6 +122,17 @@ declarative atomic rows. They call the same local script-chain operation as
 the two- and three-component rows; five-or-more-component combinations remain
 an explicit ledger item rather than being inferred by a general level parser.
 
+The loaded Electron workflow now exercises the same principle beyond the
+four-component catalogue. `renderer creates a nested script and radical through
+compositional Nemeth cells` creates `x` with a radical containing `y` with a
+superscript `z`, and `MathJax navigation edits a nested Nemeth subexpression
+without widening the target` navigates to and replaces only `y^z`. A separate
+domain stress fixture builds repeated superscript levels through the same
+registered operation to depth 32. These are repeated local transitions, not a
+new arbitrary level-sequence parser. The BANA 14.4.4 source text supports the
+“more than three” construction; the exact direction sequence remains a series
+of authored local operations.
+
 Rule 13.8.2 likewise permits higher-order hypercomplex fractions by repeating
 the dot-6 prefix. The implementation registers the published order-three
 local family and preserves its order in `data-omniya-fraction-order`; the
