@@ -1676,7 +1676,7 @@
       "action": "set-mode",
       "args": {
         "mode": "typeform:bold",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1699,7 +1699,7 @@
       "action": "set-mode",
       "args": {
         "mode": "typeform:italic",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1723,7 +1723,7 @@
       "action": "set-mode",
       "args": {
         "mode": "typeform:sans-serif",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1746,7 +1746,7 @@
       "action": "set-mode",
       "args": {
         "mode": "typeform:script",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1770,7 +1770,7 @@
       "action": "set-mode",
       "args": {
         "mode": "typeform:double-struck",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1793,7 +1793,7 @@
       "action": "set-mode",
       "args": {
         "mode": "numeric:bold",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1816,7 +1816,7 @@
       "action": "set-mode",
       "args": {
         "mode": "numeric:italic",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1840,7 +1840,7 @@
       "action": "set-mode",
       "args": {
         "mode": "numeric:sans-serif",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1863,7 +1863,7 @@
       "action": "set-mode",
       "args": {
         "mode": "numeric:script",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -1887,7 +1887,7 @@
       "action": "set-mode",
       "args": {
         "mode": "numeric:double-struck",
-        "preferLonger": false
+        "preferLonger": true
       },
       "banaRefs": [
         "7.1",
@@ -2921,28 +2921,6 @@
       },
       "banaRefs": [
         "23.18"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "misc.end-proof",
-      "commandLabel": "misc.end-proof",
-      "cells": [
-        "⠸",
-        "⠳"
-      ],
-      "action": "insert-token",
-      "args": {
-        "name": "mo",
-        "value": "∎"
-      },
-      "banaRefs": [
-        "23.8"
       ],
       "errataRefs": [],
       "validContexts": [

@@ -15,7 +15,6 @@ import {
 // references on each registry row remain normative.
 const FIXTURES = [
   ['omission.general', '⠿', '?'],
-  ['misc.end-proof', '⠸⠳', '∎'],
   ['quantifier.forall', '⠈⠯', '∀'],
   ['quantifier.exists', '⠈⠿', '∃'],
   ['quantifier.not-exists', '⠌⠈⠿', '∄'],
