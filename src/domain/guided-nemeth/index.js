@@ -613,6 +613,21 @@ function appendPlural(tree, focus) {
   return { tree, focus: focusNode(suffix) };
 }
 
+// BANA Rule 3.7: an ordinal ending in a mathematical expression is a local
+// suffix on the focused numeric atom. It is deliberately not a word/ordinal
+// parser: only one registered ending is appended to one existing <mn>.
+function appendOrdinal(tree, focus, ending) {
+  const current = currentNode(tree, focus);
+  if (current.name !== 'mn' || isHole(current)) throw new RangeError('An ordinal ending requires a focused mathematical numeral.');
+  const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+  if (!parent || !['math', 'mrow'].includes(parent.name)) throw new RangeError('The ordinal target is unavailable.');
+  const suffix = atom('mi', ending, { 'data-omniya-nemeth-intent': 'ordinal-ending' });
+  const index = parent.children.indexOf(current);
+  if (index < 0) throw new RangeError('The ordinal target is unavailable.');
+  parent.children.splice(index + 1, 0, suffix);
+  return { tree, focus: focusNode(suffix) };
+}
+
 
 function modifierElementForMode(modeValue) {
   return modeValue === 'modifier-under' ? 'munder' : 'mover';
@@ -1517,6 +1532,13 @@ const MAPPINGS = [
   // determines whether the ending is available and the author chooses when
   // both are valid. This is not passage-level lexical inference.
   { id: 'plural.s', cells: ['⠎'], banaRefs: ['8.4'], action: 'append-plural', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { sourceNotation: 's' } },
+  // BANA Rule 3.7: ordinal endings are mathematical only when attached to a
+  // numeral. The ending itself is one bounded local suffix; the surrounding
+  // numeral and expression remain ordinary guided operations.
+  { id: 'ordinal.st', cells: ['⠎', '⠞'], banaRefs: ['3.7'], action: 'append-ordinal', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { ending: 'st', sourceNotation: 'st' } },
+  { id: 'ordinal.nd', cells: ['⠝', '⠙'], banaRefs: ['3.7'], action: 'append-ordinal', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { ending: 'nd', sourceNotation: 'nd' } },
+  { id: 'ordinal.rd', cells: ['⠗', '⠙'], banaRefs: ['3.7'], action: 'append-ordinal', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { ending: 'rd', sourceNotation: 'rd' } },
+  { id: 'ordinal.th', cells: ['⠞', '⠓'], banaRefs: ['3.7'], action: 'append-ordinal', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { ending: 'th', sourceNotation: 'th' } },
   // BANA 14.7's contracted comma is distinct from the baseline mathematical
   // comma: it preserves the current script level and represents the optional
   // following space as part of this one local follow-up.
@@ -1810,7 +1832,7 @@ export function registryDiagnostics() {
     if (entry.commitPolicy === LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP &&
       !['move-slot', 'close-structure', 'extend-integral', 'superpose-integral', 'superpose-token',
         'simultaneous-modifier', 'higher-order-modifier', 'insert-modifier', 'open-modifier',
-        'move-binomial-lower', 'close-binomial', 'append-possessive', 'append-plural',
+        'move-binomial-lower', 'close-binomial', 'append-possessive', 'append-plural', 'append-ordinal',
         'insert-contracted-script-comma', 'set-mode', 'open-binomial'].includes(entry.action)) {
       errors.push({ id: entry.id, error: 'structural-followup-needs-structural-action' });
     }
@@ -1963,6 +1985,7 @@ function mappingApplies(mapping, context) {
   if (mapping.action === 'append-possessive' || mapping.action === 'append-plural') {
     return context.node.name !== 'math' && !isHole(context.node) && Boolean(findMathParent(context.tree, context.node.attrs?.['data-omniya-id']));
   }
+  if (mapping.action === 'append-ordinal') return context.node.name === 'mn' && !isHole(context.node);
   if (mapping.id.startsWith('modifier.horizontal-')) {
     return Boolean(context.node.name !== 'math' &&
       hasAncestor(context.tree, context.node, ['mover', 'munder', 'munderover']));
@@ -2032,6 +2055,7 @@ const TREE_OPERATIONS = Object.freeze({
   'insert-contracted-script-comma': ({ tree, focus }) => insertContractedScriptComma(tree, focus),
   'append-possessive': ({ tree, focus }) => appendPossessive(tree, focus),
   'append-plural': ({ tree, focus }) => appendPlural(tree, focus),
+  'append-ordinal': ({ tree, focus, args }) => appendOrdinal(tree, focus, args.ending),
   'open-fixed-root': ({ tree, focus, args }) => openFixedRoot(tree, focus, args.index, args.indexText),
   'open-script-chain': ({ tree, focus, args }) => openScriptChain(tree, focus, args.directions),
   'open-modifier': ({ document, focus, tree, inputState, args }) => {

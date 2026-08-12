@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 240,
-    "atomicSequence": 370,
+    "atomicSequence": 374,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 396,
+    "shadowedAtomicCount": 400,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -1398,6 +1398,22 @@
         "immediateId": "misc.tally"
       },
       {
+        "atomicId": "ordinal.st",
+        "immediateId": "letter.s"
+      },
+      {
+        "atomicId": "ordinal.nd",
+        "immediateId": "letter.n"
+      },
+      {
+        "atomicId": "ordinal.rd",
+        "immediateId": "letter.r"
+      },
+      {
+        "atomicId": "ordinal.th",
+        "immediateId": "letter.t"
+      },
+      {
         "atomicId": "quantifier.exists-unique",
         "immediateId": "quantifier.exists"
       },
@@ -1602,7 +1618,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 671,
+    "notation": 675,
     "contextual": 2
   },
   "operations": [
@@ -4673,7 +4689,8 @@
       "args": {
         "name": "mi",
         "value": "n",
-        "sourceNotation": "n"
+        "sourceNotation": "n",
+        "preferLonger": true
       },
       "banaRefs": [
         "6.3",
@@ -15322,6 +15339,106 @@
       },
       "banaRefs": [
         "8.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "ordinal.st",
+      "commandLabel": "ordinal.st",
+      "cells": [
+        "⠎",
+        "⠞"
+      ],
+      "action": "append-ordinal",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "st",
+      "sourceKind": null,
+      "args": {
+        "ending": "st",
+        "sourceNotation": "st"
+      },
+      "banaRefs": [
+        "3.7"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "ordinal.nd",
+      "commandLabel": "ordinal.nd",
+      "cells": [
+        "⠝",
+        "⠙"
+      ],
+      "action": "append-ordinal",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "nd",
+      "sourceKind": null,
+      "args": {
+        "ending": "nd",
+        "sourceNotation": "nd"
+      },
+      "banaRefs": [
+        "3.7"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "ordinal.rd",
+      "commandLabel": "ordinal.rd",
+      "cells": [
+        "⠗",
+        "⠙"
+      ],
+      "action": "append-ordinal",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "rd",
+      "sourceKind": null,
+      "args": {
+        "ending": "rd",
+        "sourceNotation": "rd"
+      },
+      "banaRefs": [
+        "3.7"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "ordinal.th",
+      "commandLabel": "ordinal.th",
+      "cells": [
+        "⠞",
+        "⠓"
+      ],
+      "action": "append-ordinal",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "th",
+      "sourceKind": null,
+      "args": {
+        "ending": "th",
+        "sourceNotation": "th"
+      },
+      "banaRefs": [
+        "3.7"
       ],
       "errataRefs": [],
       "validContexts": [

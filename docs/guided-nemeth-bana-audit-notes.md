@@ -64,6 +64,19 @@ Appendix D ledger review by a qualified Nemeth transcriber. Rule 25 spatial
 arrangements, chemistry, and Rule 26 document formatting remain outside the
 equation-tree claim.
 
+## Rule 3.7 ordinal endings (current audit)
+
+BANA Rule 3.7 says that an unmodified digit with an ordinal ending is written
+in UEB except when it occurs in a mathematical expression, where the ending is
+Nemeth. The editor represents `st`, `nd`, `rd`, and `th` as four declarative
+two-cell `atomic-sequence` rows. They append one `<mi>` suffix to the focused
+numeric `<mn>` and are rejected everywhere else. This is an editor-local
+construction, not an ordinal-word parser: the number itself is already a
+completed local numeric atom, and the suffix is the only subsequent bounded
+operation. The exact BANA reference is retained on every row; whole and
+focused Nemeth output is checked through the pinned SRE projection while the
+standard remains authoritative for the input meaning.
+
 ## Source-notation evidence added in this pass
 
 The registry now carries `args.sourceNotation` for audited composite rows, in

@@ -702,6 +702,42 @@ test('BANA Rules 8.4, 8.7, and 16.3 use bounded local transitions', () => {
   }
 });
 
+test('BANA Rule 3.7 ordinal endings are bounded numeric suffixes', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, ending] of [
+    ['ordinal.st', '⠎⠞', 'st'], ['ordinal.nd', '⠝⠙', 'nd'],
+    ['ordinal.rd', '⠗⠙', 'rd'], ['ordinal.th', '⠞⠓', 'th']
+  ]) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.deepEqual(entry.cells.join(''), cells, id);
+    assert.deepEqual(entry.banaRefs, ['3.7'], id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    assert.equal(entry.args.ending, ending, id);
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let state = { prefix: '', mode: 'numeric' };
+    let result = applyNemethCell({ document, focus, inputState: state, cell: '⠼' });
+    assert.equal(result.status, 'pending');
+    ({ document, focus, inputState: state } = result);
+    result = applyNemethCell({ document, focus, inputState: state, cell: '⠂' });
+    assert.equal(result.status, 'applied');
+    ({ document, focus, inputState: state } = result);
+    // The numeric indicator's passage mode is complete for this one local
+    // atom. End it explicitly before entering the bounded ordinal suffix.
+    state = { ...state, mode: null };
+    for (const cell of [...entry.cells]) {
+      result = applyNemethCell({ document, focus, inputState: state, cell });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+    ({ document, focus, inputState: state } = result);
+    }
+    const committed = commitNemethLocalCode({ document, focus, inputState: state });
+    assert.equal(committed.status, 'applied', id);
+    const tree = parseMathML(committed.document.mathml);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, ending, id);
+  }
+});
+
 test('Rule 19.2 horizontal grouping signs reuse the structural modifier registry', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, source, value] of [
@@ -1519,7 +1555,7 @@ test('every accepted mapping has explicit BANA source evidence and action', () =
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
   }
 });
 

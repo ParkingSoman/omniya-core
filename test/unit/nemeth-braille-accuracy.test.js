@@ -95,6 +95,19 @@ test('the external oracle is configured explicitly for Nemeth Braille', async ()
   assert.equal(SRE.engineSetup().modality, 'braille');
 });
 
+test('BANA Rule 3.7 ordinal suffixes preserve exact whole and focused Braille', async () => {
+  const fixtures = [
+    ['1st', '<math><mn>1</mn><mi>st</mi></math>', '⠼⠂⠎⠞', '⠎⠞'],
+    ['21st', '<math><mn>21</mn><mi>st</mi></math>', '⠼⠆⠂⠎⠞', '⠎⠞'],
+    ['3rd', '<math><mn>3</mn><mi>rd</mi></math>', '⠼⠒⠗⠙', '⠗⠙']
+  ];
+  for (const [label, mathml, expected, suffix] of fixtures) {
+    assert.equal(await nemeth(mathml), expected, label);
+    const tree = parseMathML(mathml);
+    assert.equal(await nemeth(subtreeMathML(tree.children.at(-1))), suffix, `${label} focused suffix`);
+  }
+});
+
 test('ported MathCAT Nemeth cases remain stable through Omniya MathML import', async () => {
   for (const fixture of MATHCAT_FIXTURES) {
     const document = await importLatex(fixture.latex);
