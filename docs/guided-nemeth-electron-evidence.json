@@ -34,6 +34,36 @@
       "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree", "focus-restoration"]
     },
     {
+      "id": "prescripts",
+      "ledgerRules": ["14.5"],
+      "status": "verified",
+      "creationTest": "Nemeth left-subscript choice creates multiscripts and MathJax edits the owned base",
+      "editingTest": "Nemeth left-subscript choice creates multiscripts and MathJax edits the owned base",
+      "nemethCells": ["⠰", "⠭", "⠐", "⠝", "⠵"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "choice", "exact-subtree", "focus-restoration"]
+    },
+    {
+      "id": "typeforms",
+      "ledgerRules": ["7.3.4", "7.3.5"],
+      "status": "verified",
+      "creationTest": "Nemeth typeform scope creation and MathJax inner editing preserve the bold MathML scope",
+      "editingTest": "Nemeth typeform scope creation and MathJax inner editing preserve the bold MathML scope",
+      "nemethCells": ["⠠", "⠄", "⠸", "⠁", "⠬", "⠃", "⠵"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree", "focus-restoration"]
+    },
+    {
+      "id": "comparisons-operators",
+      "ledgerRules": ["20", "21"],
+      "status": "verified",
+      "creationTest": "Nemeth comparison creation and MathJax relation navigation edit preserve both operands",
+      "editingTest": "Nemeth comparison creation and MathJax relation navigation edit preserve both operands",
+      "nemethCells": ["⠭", "⠐", "⠅", "⠽", "⠵"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "exact-subtree", "focus-restoration"]
+    },
+    {
       "id": "comparisons-arrows",
       "ledgerRules": ["21", "22"],
       "status": "verified",
@@ -72,6 +102,16 @@
       "nemethCells": ["⠎", "⠊", "⠝", "⠭", "⠵"],
       "requiresExplorerNavigation": true,
       "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "atomic-enter", "exact-subtree", "focus-restoration"]
+    },
+    {
+      "id": "integrals",
+      "ledgerRules": ["23.12"],
+      "status": "verified",
+      "creationTest": "Nemeth integral creation and MathJax sign navigation edit preserve the local follow-up structure",
+      "editingTest": "Nemeth integral creation and MathJax sign navigation edit preserve the local follow-up structure",
+      "nemethCells": ["⠮", "⠮"],
+      "requiresExplorerNavigation": true,
+      "assertions": ["canonical-mathml", "whole-expression-braille", "focused-braille", "structural-followup", "exact-subtree", "focus-restoration"]
     },
     {
       "id": "shapes-grouping",
