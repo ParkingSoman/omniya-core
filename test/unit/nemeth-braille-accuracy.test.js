@@ -5,6 +5,7 @@ import { importLatex, replaceMathTargetInDocument } from '../../src/main/math-se
 import { findMathNode, parseMathML, serializeMathML } from '../../src/domain/math-tree.js';
 import { SUBEXPRESSION_FIXTURES, WHOLE_EXPRESSION_FIXTURES, fixtureById } from '../fixtures/nemeth-braille-fixtures.js';
 import { MATHCAT_FIXTURES } from '../fixtures/mathcat-braille-fixtures.js';
+import { applyNemethCell, createEmptyDraftMathDocument } from '../../src/domain/guided-nemeth/index.js';
 
 async function nemeth(mathml) {
   await SRE.engineReady();
@@ -99,4 +100,17 @@ test('ported MathCAT Nemeth cases remain stable through Omniya MathML import', a
     const document = await importLatex(fixture.latex);
     assert.equal(await nemeth(document.mathml), fixture.expected, fixture.sourceFile);
   }
+});
+
+test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠒', '⠨', '⠂', '⠲']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(parseMathML(document.mathml).children[0].children[0].text, '3.14');
+  assert.equal(await nemeth(document.mathml), '⠼⠒⠨⠂⠲');
 });

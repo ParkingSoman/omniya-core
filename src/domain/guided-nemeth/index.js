@@ -27,8 +27,11 @@ const LETTERS = new Map([
   ['⠽', 'y'], ['⠵', 'z']
 ]);
 const DIGITS = new Map([
-  ['⠁', '1'], ['⠃', '2'], ['⠉', '3'], ['⠙', '4'], ['⠑', '5'], ['⠋', '6'],
-  ['⠛', '7'], ['⠓', '8'], ['⠊', '9'], ['⠚', '0']
+  // BANA 2022 Rule 3.1.2: Nemeth digits use the lower portion of the
+  // corresponding a-j cells. These are deliberately distinct from UEB
+  // digits. Braille ASCII's `1`..`0` normalize to this same table.
+  ['⠂', '1'], ['⠆', '2'], ['⠒', '3'], ['⠲', '4'], ['⠢', '5'], ['⠖', '6'],
+  ['⠶', '7'], ['⠦', '8'], ['⠔', '9'], ['⠴', '0']
 ]);
 const GREEK_SMALL = [
   ['⠨⠁', 'α'], ['⠨⠃', 'β'], ['⠨⠛', 'γ'], ['⠨⠙', 'δ'], ['⠨⠑', 'ϵ'],
@@ -55,6 +58,20 @@ const GREEK_VARIANTS = [
   ['⠨⠈⠋', 'φ']  // alternative phi; standard phi is ϕ
 ];
 
+// BANA Rule 6.1.1–6.1.3 and Appendix C. These are complete local alphabet
+// constructions: the alphabet indicator and (when present) capitalization
+// indicator are part of the bounded code. They do not turn the editor into a
+// word parser; each row inserts one identifier and the next cell starts a new
+// local operation.
+const GERMAN_FRAKTUR = [
+  ['a', '𝖆', '𝔄'], ['b', '𝖇', '𝔅'], ['c', '𝖈', '𝕮'], ['d', '𝖉', '𝔇'],
+  ['e', '𝖊', '𝔈'], ['f', '𝖋', '𝔉'], ['g', '𝖌', '𝔊'], ['h', '𝖍', '𝕳'],
+  ['i', '𝖎', '𝕴'], ['j', '𝖏', '𝔍'], ['k', '𝖐', '𝔎'], ['l', '𝖑', '𝔏'],
+  ['m', '𝖒', '𝔐'], ['n', '𝖓', '𝔑'], ['o', '𝖔', '𝔒'], ['p', '𝖕', '𝔓'],
+  ['q', '𝖖', '𝔔'], ['r', '𝖗', '𝕽'], ['s', '𝖘', '𝔖'], ['t', '𝖙', '𝔗'],
+  ['u', '𝖚', '𝔘'], ['v', '𝖛', '𝔙'], ['w', '𝖜', '𝔚'], ['x', '𝖝', '𝔛'],
+  ['y', '𝖞', '𝔜'], ['z', '𝖟', '𝖅']
+];
 // BANA Rule 18 lists these abbreviated function names as mathematical
 // expressions in their own right.  They are deliberately represented as
 // bounded local atoms, not as a word parser: the cells are ordinary Nemeth
@@ -142,6 +159,19 @@ function insertToken(tree, focus, name, value, { replace = false, mathvariant = 
     ? replaceCurrent(tree, focus, node)
     : insertAfter(tree, focus, node);
   return { tree, focus: focusNode(inserted) };
+}
+
+// Rule 3.1.2 keeps a Nemeth numeric run distinct from ordinary identifiers.
+// Appending to the focused <mn> is a local tree operation, not passage
+// parsing: one cell extends only the current numeric atom.
+function insertNumeric(tree, focus, value, { replace = false, mathvariant = null } = {}) {
+  const current = currentNode(tree, focus);
+  if (!replace && current.name === 'mn' && current.children?.length === 1) {
+    current.children[0].text += value;
+    if (mathvariant) current.attrs.mathvariant = mathvariant;
+    return { tree, focus: focusNode(current) };
+  }
+  return insertToken(tree, focus, 'mn', value, { replace });
 }
 
 function extendIntegral(tree, focus, values) {
@@ -233,6 +263,20 @@ const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multip
 });
 
 const cellForLetter = (letter) => [...LETTERS.entries()].find(([, value]) => value === letter)?.[0] ?? letter;
+const NON_ENGLISH_MAPPINGS = [
+  ...GERMAN_FRAKTUR.flatMap(([letter, lower, upper]) => {
+    const base = cellForLetter(letter);
+    return [
+      token(`german.${letter}`, ['⠸', base], ['6.1.1', '6.2.1'], lower, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+      token(`german.capital-${letter}`, ['⠸', '⠠', base], ['6.1.1', '6.2.1'], upper, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE })
+    ];
+  }),
+  token('hebrew.aleph', ['⠠', '⠠', '⠁'], ['6.1.2', '6.2.1'], 'א', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('russian.ell', ['⠈', '⠈', '⠇'], ['6.1.3', '6.2.1'], 'л', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('russian.capital-ell', ['⠈', '⠈', '⠠', '⠇'], ['6.1.3', '6.2.1'], 'Л', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('russian.sha', ['⠈', '⠈', '⠱'], ['6.1.3', '6.2.1'], 'ш', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('russian.capital-sha', ['⠈', '⠈', '⠠', '⠱'], ['6.1.3', '6.2.1'], 'Ш', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE })
+];
 const BANA_FUNCTION_MAPPINGS = BANA_FUNCTION_NAMES.map((name) => token(
   `function.${name}`,
   [...name].map(cellForLetter),
@@ -317,6 +361,7 @@ const ADDITIONAL_ARROW_MAPPINGS = [
 // serializer and its public regression corpus are independent checks only;
 // they never supply a missing BANA mapping or override the cited rule.
 const MAPPINGS = [
+  ...NON_ENGLISH_MAPPINGS,
   ...BANA_FUNCTION_MAPPINGS,
   ...BANA_LIMIT_MAPPINGS,
   ...[...LETTERS].map(([cells, value]) => token(`letter.${value}`, [cells], ['6.3', '6.4'], value, 'mi',
@@ -772,6 +817,19 @@ function applyMapping(document, focus, inputState, mapping) {
       replace,
       mathvariant: ['mi', 'mn'].includes(args.name) ? typeform : args.mathvariant ?? null
     });
+  } else if (mapping.action === 'insert-numeric') {
+    const numericVariant = inputState.mode?.startsWith?.('numeric:')
+      ? inputState.mode.slice('numeric:'.length)
+      : null;
+    if (node.name === 'mn' && node.children?.length === 1) {
+      result = insertNumeric(tree, focus, args.value, { mathvariant: numericVariant });
+    } else {
+      const inserted = atom('mn', args.value, numericVariant ? { mathvariant: numericVariant } : {});
+      const target = node.name === 'math' || isHole(node)
+        ? replaceCurrent(tree, focus, inserted)
+        : insertAfter(tree, focus, inserted);
+      result = { tree, focus: focusNode(target) };
+    }
   } else if (mapping.action === 'open-structure') {
     result = wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
   } else if (mapping.action === 'open-fixed-root') {
@@ -811,7 +869,7 @@ function applyMapping(document, focus, inputState, mapping) {
   } else {
     return { status: 'rejected', document, focus, inputState, announcement: `Unknown Nemeth action: ${mapping.action}` };
   }
-  const nextMode = mapping.action === 'insert-token' && inputState.mode?.startsWith?.('numeric') && args.name === 'mn'
+  const nextMode = ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('numeric')
     ? inputState.mode
     : null;
   return {
@@ -844,7 +902,11 @@ export function applyNemethChoice({ document, focus, inputState = { prefix: '', 
 }
 
 function digitMapping(cell) {
-  return { id: `number.${DIGITS.get(cell)}`, cells: [cell], banaRefs: ['3.1', '3.2'], action: 'insert-token', args: { name: 'mn', value: DIGITS.get(cell) } };
+  return { id: `number.${DIGITS.get(cell)}`, cells: [cell], banaRefs: ['3.1.2', '3.3'], action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value: DIGITS.get(cell) } };
+}
+
+function numericPunctuationMapping(cell, value, banaRef) {
+  return { id: `number.${banaRef === '3.2.3' ? 'decimal-point' : 'comma'}`, cells: [cell], banaRefs: [banaRef], action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value } };
 }
 
 function letterMapping(cell, inputState) {
@@ -859,7 +921,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
 
-  if (state.mode?.startsWith?.('numeric') && !state.prefix && DIGITS.has(normalized)) return applyMapping(document, focus, state, digitMapping(normalized));
+  if (state.mode?.startsWith?.('numeric') && !state.prefix) {
+    if (DIGITS.has(normalized)) return applyMapping(document, focus, state, digitMapping(normalized));
+    if (normalized === '⠨') return applyMapping(document, focus, state, numericPunctuationMapping(normalized, '.', '3.2.3'));
+    if (normalized === '⠠') return applyMapping(document, focus, state, numericPunctuationMapping(normalized, ',', '3.2.2'));
+  }
   if (state.mode === 'capital' && !state.prefix && LETTERS.has(normalized)) return applyMapping(document, focus, { ...state, mode: null }, letterMapping(normalized, state));
 
   if (!match && state.prefix) {
@@ -891,7 +957,6 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   };
   const mappings = match.mappings
     .filter((mapping) => mappingApplies(mapping, context))
-    .filter((mapping) => mapping.id !== 'typeform.english-letter' || state.mode?.startsWith?.('typeform:'))
     .filter((mapping) => state.mode === 'multipurpose'
       ? mapping.action === 'open-modifier'
       : mapping.action !== 'open-modifier');
@@ -935,7 +1000,6 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
   const context = contextFor(document, focus);
   const mappings = (PREFIXES.get(prefix)?.mappings ?? [])
     .filter((mapping) => mappingApplies(mapping, context))
-    .filter((mapping) => mapping.id !== 'typeform.english-letter' || inputState.mode?.startsWith?.('typeform:'))
     .filter((mapping) => inputState.mode === 'multipurpose'
       ? mapping.action === 'open-modifier'
       : mapping.action !== 'open-modifier');

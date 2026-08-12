@@ -14,8 +14,8 @@ Normative sources:
 | Family | BANA coverage | Registry status | Required evidence |
 | --- | --- | --- | --- |
 | Cell normalization and passage boundaries | Rules 1, 2, 4 | implemented as input policy | Unicode, Braille ASCII, expanded ASCII, eight-dot reduction tests |
-| Letters and numerals | Rules 3, 5, 6 | basic transitions implemented | number indicator, capitalization, alphabet and invalid-context fixtures |
-| Typeforms and punctuation | Rules 7, 8 | local letter/number typeform modes and reviewed punctuation tokens implemented; phrase-level typeform boundaries and alphabetic-indicator combinations pending | exact official examples and source-linked diagnostics |
+| Letters and numerals | Rules 3, 5, 6 | English, Greek, German Fraktur, Hebrew aleph, Russian ell/sha, lower-cell Nemeth numerals, capitalization, and bounded alphabet indicators implemented; broader alphabet/table contexts pending | number indicator, capitalization, non-English alphabet, and invalid-context fixtures |
+| Typeforms and punctuation | Rules 7, 8 | local letter/number typeform modes and reviewed punctuation tokens implemented; phrase-level typeform boundaries and word/expression scope remain pending | exact official examples and source-linked diagnostics |
 | Reference signs and abbreviations | Rules 9, 10 | reference-sign tokens implemented; abbreviation context pending | compound-symbol fixtures |
 | Omissions and cancellation | Rules 11, 12 | general omission and diagonal cancellation transitions implemented; remaining omission/cancellation variants pending | deletion and cancellation fixtures |
 | Fractions | Rule 13 | simple, complex, hypercomplex, and mixed structural openings implemented | nested fraction depths 2, 8, 32 and terminators |

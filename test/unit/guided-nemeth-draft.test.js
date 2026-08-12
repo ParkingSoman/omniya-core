@@ -123,7 +123,7 @@ test('indexed radicals preserve MathML child order while following Nemeth entry 
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const value of ['⠣', '⠼', '⠃', '⠌', '⠁', '⠻']) {
+  for (const value of ['⠣', '⠼', '⠆', '⠌', '⠁', '⠻']) {
     const result = cell(document, focus, inputState, value);
     assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);
@@ -191,7 +191,7 @@ test('numeric and capital indicators are local modes, not passage parsing', () =
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const value of ['⠼', '⠁', '⠃']) {
+  for (const value of ['⠼', '⠂', '⠆']) {
     const result = cell(document, focus, inputState, value);
     assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);
@@ -216,6 +216,21 @@ test('numeric and capital indicators are local modes, not passage parsing', () =
   ({ document, focus, inputState } = result);
   const tree = parseMathML(document.mathml);
   assert.deepEqual(tree.children.filter((node) => node.name !== 'mspace').map((node) => node.children[0].text), ['C']);
+});
+
+test('Rule 3 uses lower-cell Nemeth digits and keeps a numeric run local', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠼', '⠂', '⠒', '⠨', '⠲']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '13.4');
+  assert.equal(inputState.mode, 'numeric');
 });
 
 test('the shared baseline and multipurpose cell is selected by valid local context', () => {

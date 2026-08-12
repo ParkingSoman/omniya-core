@@ -234,6 +234,26 @@ test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () 
   }
 });
 
+test('BANA Rule 6 non-English alphabet indicators remain bounded local mappings', () => {
+  const fixtures = [
+    ['german.v', '⠸⠧', '𝖛'],
+    ['german.capital-v', '⠸⠠⠧', '𝔙'],
+    ['hebrew.aleph', '⠠⠠⠁', 'א'],
+    ['russian.ell', '⠈⠈⠇', 'л'],
+    ['russian.capital-ell', '⠈⠈⠠⠇', 'Л'],
+    ['russian.sha', '⠈⠈⠱', 'ш'],
+    ['russian.capital-sha', '⠈⠈⠠⠱', 'Ш']
+  ];
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, expected] of fixtures) {
+    assert.equal(registry.get(id)?.cells.join(''), cells, id);
+    assert.ok(registry.get(id)?.banaRefs.some((ref) => ref.startsWith('6.1')), id);
+    assert.equal(registry.get(id)?.commitPolicy, 'atomic-sequence', id);
+    const tree = applyFixture(id, cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
+  }
+});
+
 test('BANA Rule 18 abbreviated functions and limit forms are bounded local atoms', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, cells, value] of [
@@ -324,7 +344,7 @@ test('BANA Rule 7 numeral typeform indicators retain the numeric mode', () => {
     let document = createEmptyDraftMathDocument();
     let focus = document.focus;
     let inputState = { prefix: '', mode: null };
-    for (const cell of [...indicator, '⠁']) {
+    for (const cell of [...indicator, '⠂']) {
       const result = applyNemethCell({ document, focus, inputState, cell });
       let chosen = result;
       if (result.status === 'choice') {
@@ -375,7 +395,7 @@ test('every accepted mapping has an explicit BANA source and action', () => {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral'].includes(entry.action), entry.id);
   }
 });
 

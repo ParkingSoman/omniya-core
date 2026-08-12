@@ -6,6 +6,1407 @@
   "status": "development",
   "operations": [
     {
+      "id": "german.a",
+      "commandLabel": "german.a",
+      "cells": [
+        "⠸",
+        "⠁"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖆"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-a",
+      "commandLabel": "german.capital-a",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠁"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔄"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.b",
+      "commandLabel": "german.b",
+      "cells": [
+        "⠸",
+        "⠃"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖇"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-b",
+      "commandLabel": "german.capital-b",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠃"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔅"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.c",
+      "commandLabel": "german.c",
+      "cells": [
+        "⠸",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖈"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-c",
+      "commandLabel": "german.capital-c",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝕮"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.d",
+      "commandLabel": "german.d",
+      "cells": [
+        "⠸",
+        "⠙"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖉"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-d",
+      "commandLabel": "german.capital-d",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠙"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔇"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.e",
+      "commandLabel": "german.e",
+      "cells": [
+        "⠸",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖊"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-e",
+      "commandLabel": "german.capital-e",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔈"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.f",
+      "commandLabel": "german.f",
+      "cells": [
+        "⠸",
+        "⠋"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖋"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-f",
+      "commandLabel": "german.capital-f",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠋"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔉"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.g",
+      "commandLabel": "german.g",
+      "cells": [
+        "⠸",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖌"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-g",
+      "commandLabel": "german.capital-g",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔊"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.h",
+      "commandLabel": "german.h",
+      "cells": [
+        "⠸",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖍"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-h",
+      "commandLabel": "german.capital-h",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝕳"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.i",
+      "commandLabel": "german.i",
+      "cells": [
+        "⠸",
+        "⠊"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖎"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-i",
+      "commandLabel": "german.capital-i",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠊"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝕴"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.j",
+      "commandLabel": "german.j",
+      "cells": [
+        "⠸",
+        "⠚"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖏"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-j",
+      "commandLabel": "german.capital-j",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠚"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔍"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.k",
+      "commandLabel": "german.k",
+      "cells": [
+        "⠸",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖐"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-k",
+      "commandLabel": "german.capital-k",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔎"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.l",
+      "commandLabel": "german.l",
+      "cells": [
+        "⠸",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖑"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-l",
+      "commandLabel": "german.capital-l",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔏"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.m",
+      "commandLabel": "german.m",
+      "cells": [
+        "⠸",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖒"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-m",
+      "commandLabel": "german.capital-m",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔐"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.n",
+      "commandLabel": "german.n",
+      "cells": [
+        "⠸",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖓"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-n",
+      "commandLabel": "german.capital-n",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔑"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.o",
+      "commandLabel": "german.o",
+      "cells": [
+        "⠸",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖔"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-o",
+      "commandLabel": "german.capital-o",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔒"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.p",
+      "commandLabel": "german.p",
+      "cells": [
+        "⠸",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖕"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-p",
+      "commandLabel": "german.capital-p",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔓"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.q",
+      "commandLabel": "german.q",
+      "cells": [
+        "⠸",
+        "⠟"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖖"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-q",
+      "commandLabel": "german.capital-q",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠟"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔔"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.r",
+      "commandLabel": "german.r",
+      "cells": [
+        "⠸",
+        "⠗"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖗"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-r",
+      "commandLabel": "german.capital-r",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠗"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝕽"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.s",
+      "commandLabel": "german.s",
+      "cells": [
+        "⠸",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖘"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-s",
+      "commandLabel": "german.capital-s",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔖"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.t",
+      "commandLabel": "german.t",
+      "cells": [
+        "⠸",
+        "⠞"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖙"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-t",
+      "commandLabel": "german.capital-t",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠞"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔗"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.u",
+      "commandLabel": "german.u",
+      "cells": [
+        "⠸",
+        "⠥"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖚"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-u",
+      "commandLabel": "german.capital-u",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠥"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔘"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.v",
+      "commandLabel": "german.v",
+      "cells": [
+        "⠸",
+        "⠧"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖛"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-v",
+      "commandLabel": "german.capital-v",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠧"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔙"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.w",
+      "commandLabel": "german.w",
+      "cells": [
+        "⠸",
+        "⠺"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖜"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-w",
+      "commandLabel": "german.capital-w",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠺"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔚"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.x",
+      "commandLabel": "german.x",
+      "cells": [
+        "⠸",
+        "⠭"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖝"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-x",
+      "commandLabel": "german.capital-x",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠭"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔛"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.y",
+      "commandLabel": "german.y",
+      "cells": [
+        "⠸",
+        "⠽"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖞"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-y",
+      "commandLabel": "german.capital-y",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠽"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝔜"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.z",
+      "commandLabel": "german.z",
+      "cells": [
+        "⠸",
+        "⠵"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖟"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "german.capital-z",
+      "commandLabel": "german.capital-z",
+      "cells": [
+        "⠸",
+        "⠠",
+        "⠵"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "𝖅"
+      },
+      "banaRefs": [
+        "6.1.1",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "hebrew.aleph",
+      "commandLabel": "hebrew.aleph",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠁"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "א"
+      },
+      "banaRefs": [
+        "6.1.2",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "russian.ell",
+      "commandLabel": "russian.ell",
+      "cells": [
+        "⠈",
+        "⠈",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "л"
+      },
+      "banaRefs": [
+        "6.1.3",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "russian.capital-ell",
+      "commandLabel": "russian.capital-ell",
+      "cells": [
+        "⠈",
+        "⠈",
+        "⠠",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "Л"
+      },
+      "banaRefs": [
+        "6.1.3",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "russian.sha",
+      "commandLabel": "russian.sha",
+      "cells": [
+        "⠈",
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "ш"
+      },
+      "banaRefs": [
+        "6.1.3",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "russian.capital-sha",
+      "commandLabel": "russian.capital-sha",
+      "cells": [
+        "⠈",
+        "⠈",
+        "⠠",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mi",
+        "value": "Ш"
+      },
+      "banaRefs": [
+        "6.1.3",
+        "6.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "function.amp",
       "commandLabel": "function.amp",
       "cells": [

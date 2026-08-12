@@ -45,3 +45,12 @@ are follow-ups. A compound object whose cells must be known together is an
 atomic sequence. Each buffer is discarded after that one local code is
 accepted, so writing from an empty equation and replacing a selected
 subexpression use exactly the same small operations.
+
+The same classification applies to alphabet indicators, typeforms, named
+functions, radicals, grouping signs, operators, comparisons, shapes, and
+arrows. If BANA defines a standalone symbol, it is immediate. If BANA defines
+one multi-cell symbol whose meaning depends on the complete local code, it is
+atomic-sequence. If a code changes the slot or decoration of an object already
+on the page, it is structural-followup. These choices are properties of the
+registry rows, so adding a new BANA construction does not require a new
+editing mode or a second parser.
