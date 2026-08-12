@@ -22,6 +22,7 @@ when its `banaRefs` points to the rule/table/example that defines the code.
 | Rules 21.7 and 23.20 vertical bar | The “such that” and ordinary vertical-bar signs use the bar cell `|` (`⠳`); context selects the meaning. | The registry no longer uses `⠡` for a vertical bar. `⠡` remains the dot/asterisk family where BANA defines it. |
 | Rule 23.17 unique existence | BANA writes “there exists uniquely” as `` `=| ``. | The bounded code is `⠈⠿⠳`; it creates an `<mrow>` containing `∃` and `|`, allowing the normal MathJax tree to expose both pieces. |
 | Rule 22 expansion | The standard specifies component order and examples, but not every Unicode arrow-name guess. | Unsupported guessed arrow rows were deleted. Retained rows are exact source examples; further combinations require a separately reviewed bounded component registry. |
+| Rule 22.3 and 22.7.2 constructions | The six-step arrow examples and the upper/lower-half barb examples are complete local codes, not a passage grammar. | The registry now carries the published source notation for the bold vertical arrow, northwest blunted spear, and all Examples 22-40 through 22-52. Their MathML glyph is only a projection; `data-omniya-nemeth-intent` retains the exact BANA head/shaft distinction. |
 
 ## Three local input policies
 
@@ -66,3 +67,9 @@ standard.
 Rows whose source notation has not yet been transcribed from the BANA table
 are not silently promoted by this field. They remain part of the development
 ledger and keep the release blocker visible.
+
+The source-notation helper has two explicit BANA arrow aliases: `~` means the
+superscript direction indicator (raise the nearer head) and `;` means the
+subscript direction indicator (lower the nearer head). They are converted to
+the corresponding six-dot cells only while constructing one registry row;
+they are not accepted as a user passage encoding and do not add parser state.

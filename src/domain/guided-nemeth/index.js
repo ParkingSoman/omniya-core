@@ -113,6 +113,28 @@ function normalizeCell(cell) {
 
 export function normalizeCellInput(cell) { return normalizeCell(cell); }
 
+// Convert BANA's printed source mnemonic to the Unicode cells used by the
+// transition engine. This is intentionally one-code translation only. It
+// never scans a passage, infers operands, or maintains expression state.
+function sourceCells(notation) {
+  return [...notation].map((character) => {
+    if (character === '`') return '⠈';
+    // BANA's printed source notation uses a few typographic aliases that do
+    // not have a direct Braille-ASCII code point.  Keep these as explicit
+    // source-notation aliases, rather than teaching the transition engine a
+    // second encoding or inferring them from surrounding cells.
+    if (character === '~') return '⠘'; // arrow direction: elevate nearer head
+    if (character === ';') return '⠰'; // arrow direction: depress nearer head
+    if (character === '|') return '⠳'; // BANA vertical bar cell
+    if (character === 'K') character = 'k'; // BANA's printed capital K is the same dot-3 k cell
+    const letterCell = [...LETTERS.entries()].find(([, value]) => value === character)?.[0];
+    if (letterCell) return letterCell;
+    const cell = ASCII_TO_UNICODE.get(character);
+    if (cell) return cell;
+    throw new TypeError(`Unsupported BANA source notation character: ${character}`);
+  });
+}
+
 function id() { return `omniya-${globalThis.crypto.randomUUID()}`; }
 function element(name, children = [], attrs = {}) { return { name, attrs: { ...attrs, 'data-omniya-id': attrs['data-omniya-id'] ?? id() }, children }; }
 function text(value) { return { text: value }; }
@@ -724,6 +746,9 @@ const token = (id, cells, banaRefs, value, name = 'mo', options = {}) => {
   const { commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE, ...args } = options;
   return { id, cells, banaRefs, action: 'insert-token', commitPolicy, args: { name, value, ...args } };
 };
+const sourceToken = (id, sourceNotation, banaRefs, value, name = 'mo', options = {}) => token(
+  id, sourceCells(sourceNotation), banaRefs, value, name, { ...options, sourceNotation }
+);
 // A shape may be represented by a Unicode glyph, a MathML grouping, or a
 // transcriber-defined local construction.  Keep the BANA meaning on the
 // source node instead of inventing a notation grammar.  The attributes are
@@ -1130,6 +1155,17 @@ const MAPPINGS = [
   token('comparison.less-curved', ['⠨', '⠐', '⠅'], ['21.5'], '≺', 'mo', { sourceNotation: '."k' }),
   token('comparison.simple-tilde', ['⠈', '⠱'], ['21.6'], '∼', 'mo', { preferLonger: true, sourceNotation: '`:' }),
   token('comparison.extended-tilde', ['⠈', '⠠', '⠱'], ['21.6'], '〰', 'mo', { sourceNotation: '`,:' }),
+  // Rule 21.9 modified comparisons are each one bounded local construction.
+  sourceToken('comparison.equals.caret-over', '".k<_<]', ['21.9'], '≙', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.equals.dot-over', '".k<*]', ['21.9'], '≐', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.horizontal-bar.dot-under', '":%*]', ['21.9'], '⨪', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.greater.bar-over', ':.1', ['21.9'], '⋝', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.less.equals-under', '"k.k', ['21.9'], '≤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.logical-product.bar-over', ':`%', ['21.9'], '∧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.logical-sum.equals-under', '`+.k', ['21.9'], '∨', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.reverse-inclusion.equals-over', '.k_.1', ['21.9'], '⊃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.tilde.bar-over-double', ':`:`:', ['21.9'], '≈', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.union.equals-under', '.+.k', ['21.9'], '∪', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   // Rule 21.9/21.11 examples: the complete local construction is held until
   // the compounded comparison is submitted. The multipurpose cells are part
   // of the BANA code, not an inferred precedence rule.
@@ -1245,6 +1281,18 @@ const MAPPINGS = [
   token('arrow.up', ['⠫', '⠣', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↑', 'mo', { preferLonger: true, sourceNotation: '$<33o' }),
   token('arrow.down', ['⠫', '⠩', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↓', 'mo', { preferLonger: true, sourceNotation: '$%33o' }),
   token('arrow.vertical-both', ['⠫', '⠣', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↕', 'mo', { preferLonger: true, sourceNotation: '$<[33o' }),
+  // Rule 22.3 Example 22-1 and 22-3.  These are complete local arrow
+  // constructions: the six ordered components are held until Enter, then
+  // emitted as one MathML operator.  The intent attribute preserves BANA's
+  // head/shaft distinctions when Unicode has no exact glyph.
+  sourceToken('arrow.bold.vertical-both', '$<_[33o', ['22.3'], '↕', 'mo', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-two-way-vertical-bold-barbed' }
+  }),
+  sourceToken('arrow.spear.northwest-blunted', '$~=77', ['22.3'], '↖', 'mo', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-northwest-blunted-double-shaft' }
+  }),
   token('arrow.northwest', ['⠫', '⠘', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↖', 'mo', { sourceNotation: '$~[33' }),
   token('arrow.northeast', ['⠫', '⠘', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↗', 'mo', { preferLonger: true, sourceNotation: '$~33o' }),
   token('arrow.southeast', ['⠫', '⠰', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↘', 'mo', { preferLonger: true, sourceNotation: '$;33o' }),
@@ -1271,10 +1319,18 @@ const MAPPINGS = [
   token('arrow.straight.right', ['⠫', '⠒', '⠒', '⠳'], ['22.7.1'], '⇥', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$33|' }),
   token('arrow.straight.left', ['⠫', '⠳', '⠒', '⠒'], ['22.7.1'], '⇤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$|33' }),
   token('arrow.straight.both', ['⠫', '⠳', '⠒', '⠒', '⠳'], ['22.7.1'], '⇹', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$|33|' }),
-  token('arrow.upper-left', ['⠫', '⠈', '⠪', '⠒', '⠒'], ['22.7.2'], '↖', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('arrow.lower-left', ['⠫', '⠠', '⠪', '⠒', '⠒'], ['22.7.2'], '↙', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('arrow.upper-right', ['⠫', '⠒', '⠒', '⠈', '⠕'], ['22.7.2'], '↗', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('arrow.lower-right', ['⠫', '⠒', '⠒', '⠠', '⠕'], ['22.7.2'], '↘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('arrow.upper-left', '$`[33', ['22.7.2'], '↖', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-upper-barb' } }),
+  sourceToken('arrow.lower-left', '$,[33', ['22.7.2'], '↙', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-lower-barb' } }),
+  sourceToken('arrow.upper-right', '$33`o', ['22.7.2'], '↗', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-right-upper-barb' } }),
+  sourceToken('arrow.lower-right', '$33,o', ['22.7.2'], '↘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-right-lower-barb' } }),
+  sourceToken('arrow.both-upper-barbs', '$`[33`o', ['22.7.2'], '↔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-both-upper-barbs' } }),
+  sourceToken('arrow.both-lower-barbs', '$,[33,o', ['22.7.2'], '↔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-both-lower-barbs' } }),
+  sourceToken('arrow.left-upper-right-lower', '$`[33,o', ['22.7.2'], '↔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-upper-right-lower-barbs' } }),
+  sourceToken('arrow.left-lower-right-upper', '$,[33`o', ['22.7.2'], '↔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-lower-right-upper-barbs' } }),
+  sourceToken('arrow.left-upper-right-full', '$`[33o', ['22.7.2'], '→', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-upper-right-full-barbs' } }),
+  sourceToken('arrow.left-lower-right-full', '$,[33o', ['22.7.2'], '→', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-lower-right-full-barbs' } }),
+  sourceToken('arrow.left-full-right-upper', '$[33`o', ['22.7.2'], '↔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-full-right-upper-barb' } }),
+  sourceToken('arrow.left-full-right-lower', '$[33,o', ['22.7.2'], '↔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-left-full-right-lower-barb' } }),
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*'),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†'),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡'),
@@ -2056,7 +2112,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (((state.mode === null && state.prefix === '⠐') || (state.mode === 'multipurpose' && !state.prefix)) && normalized === '⠨' &&
     context.node.name === 'mo' && ['<', '>', '=', '≤', '≥', '≠', '≡', '⊂', '⊃'].includes(context.node.children?.[0]?.text)) {
     return { status: 'pending', document, focus,
-      inputState: { ...state, prefix: '⠨', mode: 'comparison-horizontal' },
+      inputState: { ...state, prefix: state.mode === null ? '⠐⠨' : '⠨', mode: 'comparison-horizontal' },
       announcement: 'Horizontal comparison code pending.' };
   }
   if (state.mode === null && state.prefix === '⠐' && normalized === '⠸' &&

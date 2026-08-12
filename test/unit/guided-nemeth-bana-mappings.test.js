@@ -349,6 +349,49 @@ test('Rule 22 directional and shaft constructions retain their published source 
   ]) assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
 });
 
+test('BANA Rule 22.3 and 22.7.2 arrow constructions are complete bounded atoms', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation] of [
+    ['arrow.bold.vertical-both', '$<_[33o'],
+    ['arrow.spear.northwest-blunted', '$~=77'],
+    ['arrow.upper-left', '$`[33'],
+    ['arrow.lower-left', '$,[33'],
+    ['arrow.upper-right', '$33`o'],
+    ['arrow.lower-right', '$33,o'],
+    ['arrow.both-upper-barbs', '$`[33`o'],
+    ['arrow.both-lower-barbs', '$,[33,o'],
+    ['arrow.left-upper-right-lower', '$`[33,o'],
+    ['arrow.left-lower-right-upper', '$,[33`o'],
+    ['arrow.left-upper-right-full', '$`[33o'],
+    ['arrow.left-lower-right-full', '$,[33o'],
+    ['arrow.left-full-right-upper', '$[33`o'],
+    ['arrow.left-full-right-lower', '$[33,o']
+  ]) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    assert.equal(entry.args?.sourceNotation, sourceNotation, id);
+    assert.ok(entry.banaRefs.some((ref) => ref.startsWith('22.')), id);
+    assert.ok(entry.args?.dataAttributes?.['data-omniya-nemeth-intent'], id);
+  }
+});
+
+test('incomplete bounded arrow input never mutates the draft', () => {
+  const entry = operationRegistry().find((candidate) => candidate.id === 'arrow.spear.northwest-blunted');
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of entry.cells.slice(0, -1)) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected');
+    ({ document, focus, inputState } = result);
+  }
+  const before = document.mathml;
+  const rejected = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(rejected.status, 'rejected');
+  assert.equal(rejected.document.mathml, before);
+});
+
 test('BANA Rule 17 interior constructions and Rule 15 simultaneous modifiers are bounded', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, cells, value] of [
@@ -493,6 +536,29 @@ test('BANA Rule 21 direct composites retain their source notation and cells', ()
   }
 });
 
+test('BANA Rule 21 modified and compounded comparison codes are bounded local atoms', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation, cells] of [
+    ['comparison.equals.caret-over', '".k<_<]', '⠐⠨⠅⠣⠸⠣⠻'],
+    ['comparison.equals.dot-over', '".k<*]', '⠐⠨⠅⠣⠡⠻'],
+    ['comparison.horizontal-bar.dot-under', '":%*]', '⠐⠱⠩⠡⠻'],
+    ['comparison.greater.bar-over', ':.1', '⠱⠨⠂'],
+    ['comparison.less.equals-under', '"k.k', '⠐⠅⠨⠅'],
+    ['comparison.logical-product.bar-over', ':`%', '⠱⠈⠩'],
+    ['comparison.logical-sum.equals-under', '`+.k', '⠈⠬⠨⠅'],
+    ['comparison.reverse-inclusion.equals-over', '.k_.1', '⠨⠅⠸⠨⠂'],
+    ['comparison.tilde.bar-over-double', ':`:`:', '⠱⠈⠱⠈⠱'],
+    ['comparison.union.equals-under', '.+.k', '⠨⠬⠨⠅']
+  ]) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    assert.equal(entry.args?.sourceNotation, sourceNotation, id);
+    assert.equal(entry.cells.join(''), cells, id);
+    assert.ok(entry.banaRefs.some((ref) => ref.startsWith('21.')), id);
+  }
+});
+
 test('new BANA atoms commit through the same bounded transition engine', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   const ids = [
@@ -514,7 +580,21 @@ test('new BANA atoms commit through the same bounded transition engine', () => {
     'comparison.greater-less',
     'comparison.less-greater',
     'comparison.greater-equals-less',
-    'comparison.less-equals-greater'
+    'comparison.less-equals-greater',
+    'arrow.bold.vertical-both',
+    'arrow.spear.northwest-blunted',
+    'arrow.upper-left',
+    'arrow.lower-left',
+    'arrow.upper-right',
+    'arrow.lower-right',
+    'arrow.both-upper-barbs',
+    'arrow.both-lower-barbs',
+    'arrow.left-upper-right-lower',
+    'arrow.left-lower-right-upper',
+    'arrow.left-upper-right-full',
+    'arrow.left-lower-right-full',
+    'arrow.left-full-right-upper',
+    'arrow.left-full-right-lower'
   ];
   for (const id of ids) {
     const entry = registry.get(id);
