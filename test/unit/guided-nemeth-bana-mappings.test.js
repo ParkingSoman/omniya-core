@@ -359,6 +359,73 @@ test('BANA 20.7 keeps cross, dot, and asterisk as distinct local operations', ()
   assert.notEqual(registry.get('operator.multiply')?.args?.value, registry.get('operator.dot')?.args?.value);
 });
 
+test('BANA Rule 17 structural and interior shape codes use the published cells', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const fixtures = [
+    ['shape.angle.alternate-exterior', '$[.ae]', '⠫⠪⠨⠁⠑⠻'],
+    ['shape.angle.alternate-interior', '$[.ai]', '⠫⠪⠨⠁⠊⠻'],
+    ['shape.angle.complementary', '$[.cp]', '⠫⠪⠨⠉⠏⠻'],
+    ['shape.angle.corresponding', '$[.c]', '⠫⠪⠨⠉⠻'],
+    ['shape.angle.exterior', '$[.e]', '⠫⠪⠨⠑⠻'],
+    ['shape.angle.interior', '$[.i]', '⠫⠪⠨⠊⠻'],
+    ['shape.angle.obtuse', '$[.o]', '⠫⠪⠨⠕⠻'],
+    ['shape.angle.straight', '$[.s]', '⠫⠪⠨⠎⠻'],
+    ['shape.angle.supplementary', '$[.sp]', '⠫⠪⠨⠎⠏⠻'],
+    ['shape.angle.vertical', '$[.v]', '⠫⠪⠨⠧⠻'],
+    ['shape.triangle.acute', '$t.a]', '⠫⠞⠨⠁⠻'],
+    ['shape.square.interior-horizontal-bar', '$4_$:]', '⠫⠲⠸⠫⠱⠻'],
+    ['shape.rectangle.interior-bar', '$r_$:]', '⠫⠗⠸⠫⠱⠻']
+  ];
+  for (const [id, sourceNotation, cells] of fixtures) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.args?.sourceNotation, sourceNotation, id);
+    assert.equal(entry.cells.join(''), cells, id);
+    assert.ok(entry.banaRefs.includes('17.5') || entry.banaRefs.includes('17.6.1'), id);
+  }
+});
+
+test('BANA Rule 19 enlarged and double grouping codes remain local atoms', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const fixtures = [
+    ['group.round-enlarged-open', ',(', '⠠⠷'],
+    ['group.bracket-enlarged-open', '@,(', '⠈⠠⠷'],
+    ['group.brace-enlarged-open', '.,(', '⠨⠠⠷'],
+    ['group.angle-enlarged-open', '..,(', '⠨⠨⠠⠷'],
+    ['group.vertical-double-open', '\\\\', '⠳⠳'],
+    ['group.vertical-enlarged-open', ',\\', '⠠⠳'],
+    ['group.bold-vertical-double-open', '_\\_\\', '⠸⠳⠸⠳'],
+    ['group.barred-bracket-enlarged-open', '@_,(', '⠈⠸⠠⠷'],
+    ['group.upper-half-enlarged-open', '@^,(', '⠈⠘⠠⠷'],
+    ['group.lower-half-enlarged-open', '@;,(', '⠈⠰⠠⠷']
+  ];
+  for (const [id, sourceNotation, cells] of fixtures) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.args?.sourceNotation, sourceNotation.trim(), id);
+    assert.equal(entry.cells.join(''), cells, id);
+    assert.ok(entry.banaRefs.includes('19.1') || entry.banaRefs.includes('19.4') || entry.banaRefs.includes('19.5'), id);
+  }
+});
+
+test('BANA Rule 21 direct composites retain their source notation and cells', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation, cells] of [
+    ['comparison.vertical-arrow-pair', '$33o$[33', '⠫⠒⠒⠕⠫⠪⠒⠒'],
+    ['comparison.greater-less', '.1""k', '⠨⠂⠐⠐⠅'],
+    ['comparison.less-greater', '"k".1', '⠐⠅⠐⠨⠂'],
+    ['comparison.greater-equals-less', '.1".k""k', '⠨⠂⠐⠨⠅⠐⠐⠅'],
+    ['comparison.less-equals-greater', '"k".k".1', '⠐⠅⠐⠨⠅⠐⠨⠂']
+  ]) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.args?.sourceNotation, sourceNotation, id);
+    assert.equal(entry.cells.join(''), cells, id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    assert.ok(entry.banaRefs.includes('21.9') || entry.banaRefs.includes('21.11'), id);
+  }
+});
+
 test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () => {
   for (const [cells, value] of [
     ['⠨⠈⠃', 'ϐ'],

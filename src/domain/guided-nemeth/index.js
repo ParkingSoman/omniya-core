@@ -1073,6 +1073,34 @@ const MAPPINGS = [
   // constructions. Hold it for local lookahead so a longer arrow code stays
   // reachable; Enter/choice selects the standalone grouping meaning.
   token('group.vertical-bar', ['⠳'], ['19.5'], '|', 'mo', { preferLonger: true }),
+  // Rule 19.1/19.6 enlarged grouping signs. Dot 6 is part of each local
+  // construction; it is never inferred from the height of surrounding
+  // MathML. The source notation is retained for source-to-cell review.
+  token('group.round-enlarged-open', ['⠠', '⠷'], ['19.1', '19.6'], '(', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',(' }),
+  token('group.round-enlarged-close', ['⠠', '⠾'], ['19.1', '19.6'], ')', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',)' }),
+  token('group.bracket-enlarged-open', ['⠈', '⠠', '⠷'], ['19.1', '19.6'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@,(' }),
+  token('group.bracket-enlarged-close', ['⠈', '⠠', '⠾'], ['19.1', '19.6'], ']', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@,)' }),
+  token('group.brace-enlarged-open', ['⠨', '⠠', '⠷'], ['19.1', '19.6'], '{', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '.,(' }),
+  token('group.brace-enlarged-close', ['⠨', '⠠', '⠾'], ['19.1', '19.6'], '}', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '.,)' }),
+  token('group.angle-enlarged-open', ['⠨', '⠨', '⠠', '⠷'], ['19.1', '19.6'], '⟨', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '..,(' }),
+  token('group.angle-enlarged-close', ['⠨', '⠨', '⠠', '⠾'], ['19.1', '19.6'], '⟩', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '..,)' }),
+  // A vertical sign has no distinct opening and closing cell in Rule 19.5.
+  // Keep one local row and let the surrounding MathML context decide whether
+  // it is the left or right member of a delimiter pair. Duplicate rows for
+  // “open” and “close” would manufacture an ambiguity with identical output.
+  token('group.vertical-double-open', ['⠳', '⠳'], ['19.5'], '||', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '\\\\' }),
+  token('group.vertical-enlarged-open', ['⠠', '⠳'], ['19.5', '19.6'], '|', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',\\' }),
+  token('group.vertical-double-enlarged-open', ['⠠', '⠳', '⠠', '⠳'], ['19.5', '19.6'], '||', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',\\,\\' }),
+  token('group.bold-vertical-open', ['⠸', '⠳'], ['19.5'], '|', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_\\' }),
+  token('group.bold-vertical-double-open', ['⠸', '⠳', '⠸', '⠳'], ['19.5'], '||', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_\\_\\' }),
+  token('group.barred-bracket-enlarged-open', ['⠈', '⠸', '⠠', '⠷'], ['19.1', '19.6'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@_,(' }),
+  token('group.barred-bracket-enlarged-close', ['⠈', '⠸', '⠠', '⠾'], ['19.1', '19.6'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@_,)' }),
+  token('group.barred-brace-enlarged-open', ['⠨', '⠸', '⠠', '⠷'], ['19.1', '19.6'], '⦃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '._,(' }),
+  token('group.barred-brace-enlarged-close', ['⠨', '⠸', '⠠', '⠾'], ['19.1', '19.6'], '⦄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '._,)' }),
+  token('group.upper-half-enlarged-open', ['⠈', '⠘', '⠠', '⠷'], ['19.4', '19.6'], '⎡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@^,(' }),
+  token('group.upper-half-enlarged-close', ['⠈', '⠘', '⠠', '⠾'], ['19.4', '19.6'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@^,)' }),
+  token('group.lower-half-enlarged-open', ['⠈', '⠰', '⠠', '⠷'], ['19.4', '19.6'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@;,(' }),
+  token('group.lower-half-enlarged-close', ['⠈', '⠰', '⠠', '⠾'], ['19.4', '19.6'], '⎦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@;,)' }),
   token('comparison.not-equal', ['⠌', '⠨', '⠅'], ['21.1', '21.8'], '≠'),
   token('comparison.approximately', ['⠈', '⠱', '⠈', '⠱'], ['21.6'], '≈'),
   token('comparison.similar', ['⠈', '⠱'], ['21.6'], '∼', 'mo', { preferLonger: true }),
@@ -1097,6 +1125,14 @@ const MAPPINGS = [
   token('comparison.less-curved', ['⠨', '⠐', '⠅'], ['21.5'], '≺'),
   token('comparison.simple-tilde', ['⠈', '⠱'], ['21.6'], '∼', 'mo', { preferLonger: true }),
   token('comparison.extended-tilde', ['⠈', '⠠', '⠱'], ['21.6'], '〰'),
+  // Rule 21.9/21.11 examples: the complete local construction is held until
+  // the compounded comparison is submitted. The multipurpose cells are part
+  // of the BANA code, not an inferred precedence rule.
+  token('comparison.vertical-arrow-pair', ['⠫', '⠒', '⠒', '⠕', '⠫', '⠪', '⠒', '⠒'], ['21.9'], '⇄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$33o$[33' }),
+  token('comparison.greater-less', ['⠨', '⠂', '⠐', '⠐', '⠅'], ['21.11'], '><', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '.1""k' }),
+  token('comparison.less-greater', ['⠐', '⠅', '⠐', '⠨', '⠂'], ['21.11'], '<>', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '"k".1' }),
+  token('comparison.greater-equals-less', ['⠨', '⠂', '⠐', '⠨', '⠅', '⠐', '⠐', '⠅'], ['21.11'], '>=<', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '.1".k""k' }),
+  token('comparison.less-equals-greater', ['⠐', '⠅', '⠐', '⠨', '⠅', '⠐', '⠨', '⠂'], ['21.11'], '<=>', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '"k".k".1' }),
   token('operator.union', ['⠨', '⠬'], ['20.4'], '∪'),
   token('operator.intersection', ['⠨', '⠩'], ['20.4'], '∩'),
   token('operator.logical-and', ['⠈', '⠩'], ['20.5'], '∧'),
@@ -1280,13 +1316,23 @@ const MAPPINGS = [
   // Rule 17.5 structural shape modification: the base shape and the
   // modification letters are one bounded construction.  The metadata keeps
   // the exact BANA modifier while MathML remains a valid atomic operator.
-  shapeModificationToken('shape.triangle.isosceles', ['⠫', '⠞', '⠨', '⠊', '⠻'], ['17.5'], '△', 'triangle', 'isosceles', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeModificationToken('shape.triangle.acute', ['⠫', '⠞', '⠨', '⠁', '⠻'], ['17.5'], '△', 'triangle', 'acute', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeModificationToken('shape.triangle.obtuse', ['⠫', '⠞', '⠨', '⠕', '⠻'], ['17.5'], '△', 'triangle', 'obtuse', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeModificationToken('shape.triangle.right', ['⠫', '⠞', '⠨', '⠗', '⠻'], ['17.5'], '⊿', 'triangle', 'right', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeModificationToken('shape.triangle.scalene', ['⠫', '⠞', '⠨', '⠎', '⠻'], ['17.5'], '△', 'triangle', 'scalene', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeModificationToken('shape.angle.right', ['⠫', '⠪', '⠨', '⠗', '⠻'], ['17.5'], '∟', 'angle', 'right', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeModificationToken('shape.angle.adjacent', ['⠫', '⠪', '⠨', '⠚', '⠻'], ['17.5'], '∠', 'angle', 'adjacent', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.triangle.isosceles', ['⠫', '⠞', '⠨', '⠊', '⠻'], ['17.5'], '△', 'triangle', 'isosceles', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$t.i]' }),
+  shapeModificationToken('shape.triangle.acute', ['⠫', '⠞', '⠨', '⠁', '⠻'], ['17.5'], '△', 'triangle', 'acute', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$t.a]' }),
+  shapeModificationToken('shape.triangle.obtuse', ['⠫', '⠞', '⠨', '⠕', '⠻'], ['17.5'], '△', 'triangle', 'obtuse', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$t.o]' }),
+  shapeModificationToken('shape.triangle.right', ['⠫', '⠞', '⠨', '⠗', '⠻'], ['17.5'], '⊿', 'triangle', 'right', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$t.r]' }),
+  shapeModificationToken('shape.triangle.scalene', ['⠫', '⠞', '⠨', '⠎', '⠻'], ['17.5'], '△', 'triangle', 'scalene', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$t.s]' }),
+  shapeModificationToken('shape.angle.right', ['⠫', '⠪', '⠨', '⠗', '⠻'], ['17.5'], '∟', 'angle', 'right', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$[.r]' }),
+  shapeModificationToken('shape.angle.adjacent', ['⠫', '⠪', '⠨', '⠚', '⠻'], ['17.5'], '∠', 'angle', 'adjacent', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$[.j]' }),
+  shapeModificationToken('shape.angle.alternate-exterior', ['⠫', '⠪', '⠨', '⠁', '⠑', '⠻'], ['17.5'], '∠', 'angle', 'alternate-exterior', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.ae]' }),
+  shapeModificationToken('shape.angle.alternate-interior', ['⠫', '⠪', '⠨', '⠁', '⠊', '⠻'], ['17.5'], '∠', 'angle', 'alternate-interior', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.ai]' }),
+  shapeModificationToken('shape.angle.complementary', ['⠫', '⠪', '⠨', '⠉', '⠏', '⠻'], ['17.5'], '∠', 'angle', 'complementary', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.cp]' }),
+  shapeModificationToken('shape.angle.corresponding', ['⠫', '⠪', '⠨', '⠉', '⠻'], ['17.5'], '∠', 'angle', 'corresponding', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.c]' }),
+  shapeModificationToken('shape.angle.exterior', ['⠫', '⠪', '⠨', '⠑', '⠻'], ['17.5'], '∠', 'angle', 'exterior', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.e]' }),
+  shapeModificationToken('shape.angle.interior', ['⠫', '⠪', '⠨', '⠊', '⠻'], ['17.5'], '∠', 'angle', 'interior', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.i]' }),
+  shapeModificationToken('shape.angle.obtuse', ['⠫', '⠪', '⠨', '⠕', '⠻'], ['17.5'], '∠', 'angle', 'obtuse', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.o]' }),
+  shapeModificationToken('shape.angle.straight', ['⠫', '⠪', '⠨', '⠎', '⠻'], ['17.5'], '∠', 'angle', 'straight', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.s]' }),
+  shapeModificationToken('shape.angle.supplementary', ['⠫', '⠪', '⠨', '⠎', '⠏', '⠻'], ['17.5'], '∠', 'angle', 'supplementary', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.sp]' }),
+  shapeModificationToken('shape.angle.vertical', ['⠫', '⠪', '⠨', '⠧', '⠻'], ['17.5'], '∠', 'angle', 'vertical', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[.v]' }),
   // Rule 17.6 uses the interior-shape indicator (⠸⠫) and terminator. These
   // examples are intentionally bounded; a letter, operation, or arrow inside
   // a shape is represented by a separate named operation in a later editor
@@ -1297,10 +1343,10 @@ const MAPPINGS = [
   shapeModificationToken('shape.circle.interior-cross', ['⠫', '⠉', '⠸', '⠫', '⠈', '⠡', '⠻'], ['17.6.1'], '⊗', 'circle', 'interior-cross', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.circle.interior-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['17.6.1'], '⊖', 'circle', 'interior-minus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.circle.interior-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⦿', 'circle', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.rectangle.interior-bar', ['⠫', '⠗', '⠸', '⠫', '⠒', '⠻'], ['17.6.1'], '▭', 'rectangle', 'interior-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.rectangle.interior-bar', ['⠫', '⠗', '⠸', '⠫', '⠱', '⠻'], ['17.6.1'], '▭', 'rectangle', 'interior-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$r_$:]' }),
   shapeModificationToken('shape.square.interior-diagonals', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠈', '⠔', '⠻'], ['17.6.1'], '⊠', 'square', 'interior-diagonals', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.square.interior-dot', ['⠫', '⠲', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⊡', 'square', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.square.interior-horizontal-bar', ['⠫', '⠲', '⠸', '⠫', '⠒', '⠻'], ['17.6.1'], '⊟', 'square', 'interior-horizontal-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.square.interior-horizontal-bar', ['⠫', '⠲', '⠸', '⠫', '⠱', '⠻'], ['17.6.1'], '⊟', 'square', 'interior-horizontal-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$:]' }),
   shapeModificationToken('shape.square.interior-vertical-bar', ['⠫', '⠲', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '◫', 'square', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.square.interior-nw-se-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠻'], ['17.6.1'], '⧅', 'square', 'interior-nw-se-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.square.interior-sw-ne-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠔', '⠻'], ['17.6.1'], '⧄', 'square', 'interior-sw-ne-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
@@ -1810,6 +1856,43 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+
+  // BANA 24.1.f places a dot-5 multipurpose indicator between two adjacent
+  // comparison signs. Some of those same prefixes begin Rule 21 compound
+  // comparisons, so the generic longest-prefix matcher would otherwise hold
+  // the input as an unrelated atomic sequence. Once the first comparison is
+  // recognized, commit it and retain only the separator plus the next local
+  // comparison prefix. This is the complete bounded follow-up, not a passage
+  // buffer or precedence parser.
+  if (state.mode === null && state.prefix === '⠐⠅' && normalized === '⠐') {
+    const first = MAPPINGS.find((mapping) => mapping.id === 'comparison.less');
+    const applied = applyMapping(document, focus, { ...state, prefix: '' }, first);
+    if (applied.status !== 'rejected') return {
+      status: 'pending', document: applied.document, focus: applied.focus,
+      inputState: { ...applied.inputState, prefix: '⠐', mode: 'comparison-horizontal' },
+      announcement: 'Horizontal comparison code pending.'
+    };
+  }
+  if (state.mode === null && state.prefix === '⠨⠂' && normalized === '⠐') {
+    const first = MAPPINGS.find((mapping) => mapping.id === 'comparison.greater');
+    const applied = applyMapping(document, focus, { ...state, prefix: '' }, first);
+    if (applied.status !== 'rejected') return {
+      status: 'pending', document: applied.document, focus: applied.focus,
+      inputState: { ...applied.inputState, prefix: '⠐', mode: 'comparison-horizontal' },
+      announcement: 'Horizontal comparison code pending.'
+    };
+  }
+  if (state.mode === 'comparison-horizontal' && state.prefix === '⠐' && normalized === '⠨') {
+    return {
+      status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠐⠨' },
+      announcement: 'Horizontal comparison code pending.'
+    };
+  }
+  if (state.mode === 'comparison-horizontal' && state.prefix === '⠐⠨' && normalized === '⠅') {
+    const equals = MAPPINGS.find((mapping) => mapping.id === 'operator.equals');
+    return applyMapping(document, focus, { ...state, prefix: '' }, equals);
+  }
 
   if (state.mode?.startsWith?.('numeric') && !state.prefix) {
     if (DIGITS.has(normalized)) return applyMapping(document, focus, state, digitMapping(normalized));
