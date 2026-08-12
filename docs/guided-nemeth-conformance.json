@@ -4,6 +4,762 @@
   "errata": "https://www.brailleauthority.org/sites/default/files/2026-08/Errata%20Nemeth%20Code%202022%20Approved%2010-2025.pdf",
   "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
   "status": "development",
+  "inputPolicies": {
+    "immediate": 237,
+    "atomicSequence": 294,
+    "structuralFollowup": 53
+  },
+  "registryDiagnostics": {
+    "policyErrors": [],
+    "shadowedAtomicCount": 186,
+    "shadowedAtomic": [
+      {
+        "atomicId": "german.a",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-a",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.b",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-b",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.c",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-c",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.d",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-d",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.e",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-e",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.f",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-f",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.g",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-g",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.h",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-h",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.i",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-i",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.j",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-j",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.k",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-k",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.l",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-l",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.m",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-m",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.n",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-n",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.o",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-o",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.p",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-p",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.q",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-q",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.r",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-r",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.s",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-s",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.t",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-t",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.u",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-u",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.v",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-v",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.w",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-w",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.x",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-x",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.y",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-y",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.z",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "german.capital-z",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "hebrew.aleph",
+        "immediateId": "punctuation.comma"
+      },
+      {
+        "atomicId": "hebrew.aleph",
+        "immediateId": "indicator.capital"
+      },
+      {
+        "atomicId": "hebrew.aleph",
+        "immediateId": "indicator.roman"
+      },
+      {
+        "atomicId": "function.amp",
+        "immediateId": "letter.a"
+      },
+      {
+        "atomicId": "function.antilog",
+        "immediateId": "letter.a"
+      },
+      {
+        "atomicId": "function.arc",
+        "immediateId": "letter.a"
+      },
+      {
+        "atomicId": "function.arg",
+        "immediateId": "letter.a"
+      },
+      {
+        "atomicId": "function.colog",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.cos",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.cosh",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.cot",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.coth",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.covers",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.csc",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.csch",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.ctn",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.ctnh",
+        "immediateId": "letter.c"
+      },
+      {
+        "atomicId": "function.det",
+        "immediateId": "letter.d"
+      },
+      {
+        "atomicId": "function.erf",
+        "immediateId": "letter.e"
+      },
+      {
+        "atomicId": "function.exp",
+        "immediateId": "letter.e"
+      },
+      {
+        "atomicId": "function.exsec",
+        "immediateId": "letter.e"
+      },
+      {
+        "atomicId": "function.grad",
+        "immediateId": "letter.g"
+      },
+      {
+        "atomicId": "function.hav",
+        "immediateId": "letter.h"
+      },
+      {
+        "atomicId": "function.im",
+        "immediateId": "letter.i"
+      },
+      {
+        "atomicId": "function.inf",
+        "immediateId": "letter.i"
+      },
+      {
+        "atomicId": "function.lim",
+        "immediateId": "letter.l"
+      },
+      {
+        "atomicId": "function.ln",
+        "immediateId": "letter.l"
+      },
+      {
+        "atomicId": "function.log",
+        "immediateId": "letter.l"
+      },
+      {
+        "atomicId": "function.max",
+        "immediateId": "letter.m"
+      },
+      {
+        "atomicId": "function.min",
+        "immediateId": "letter.m"
+      },
+      {
+        "atomicId": "function.mod",
+        "immediateId": "letter.m"
+      },
+      {
+        "atomicId": "function.re",
+        "immediateId": "letter.r"
+      },
+      {
+        "atomicId": "function.sec",
+        "immediateId": "letter.s"
+      },
+      {
+        "atomicId": "function.sech",
+        "immediateId": "letter.s"
+      },
+      {
+        "atomicId": "function.sin",
+        "immediateId": "letter.s"
+      },
+      {
+        "atomicId": "function.sinh",
+        "immediateId": "letter.s"
+      },
+      {
+        "atomicId": "function.sup",
+        "immediateId": "letter.s"
+      },
+      {
+        "atomicId": "function.tan",
+        "immediateId": "letter.t"
+      },
+      {
+        "atomicId": "function.tanh",
+        "immediateId": "letter.t"
+      },
+      {
+        "atomicId": "function.vers",
+        "immediateId": "letter.v"
+      },
+      {
+        "atomicId": "function.limit.upper",
+        "immediateId": "radical.indexed"
+      },
+      {
+        "atomicId": "punctuation.period",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "punctuation.colon",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "punctuation.semicolon",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "punctuation.question",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "punctuation.exclamation",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "punctuation.left-single-quote",
+        "immediateId": "punctuation.comma"
+      },
+      {
+        "atomicId": "punctuation.left-single-quote",
+        "immediateId": "indicator.capital"
+      },
+      {
+        "atomicId": "punctuation.right-single-quote",
+        "immediateId": "punctuation.comma"
+      },
+      {
+        "atomicId": "punctuation.right-single-quote",
+        "immediateId": "indicator.capital"
+      },
+      {
+        "atomicId": "integral.upper",
+        "immediateId": "radical.indexed"
+      },
+      {
+        "atomicId": "group.barred-bracket-open",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "group.barred-bracket-close",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "group.lower-half-open",
+        "immediateId": "typeform.script"
+      },
+      {
+        "atomicId": "group.lower-half-close",
+        "immediateId": "typeform.script"
+      },
+      {
+        "atomicId": "script.possessive",
+        "immediateId": "misc.tally"
+      },
+      {
+        "atomicId": "misc.measured-angle",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "quantifier.exists-unique",
+        "immediateId": "quantifier.exists"
+      },
+      {
+        "atomicId": "arrow.double-left",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.double-both",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.clockwise",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.spear.left",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.spear.both",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-stroked",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.left-stroked",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.right-stroked",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.right-stroked",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.left-wave",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-two-headed",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-tail",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-bar",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-hook",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.both-wave",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.both-stroked",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.both-stroked",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.down-corner",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.open-circle-right",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-over-right",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-paired",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-double-stroked",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.left-double-stroked",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.both-double-stroked",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.both-double-stroked",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.right-double-stroked",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.right-double-stroked",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.left-triple",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left-squiggle",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.up-double-stroked",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.up-double-stroked",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.down-double-stroked",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.down-double-stroked",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.left-to-bar",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.left-to-bar",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.right-small-circle",
+        "immediateId": "operator.ring"
+      },
+      {
+        "atomicId": "arrow.right-small-circle",
+        "immediateId": "misc.hollow-dot"
+      },
+      {
+        "atomicId": "arrow.left-double-vertical",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.left-double-vertical",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.right-double-vertical",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.right-double-vertical",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.both-double-vertical",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "arrow.both-double-vertical",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "arrow.long-both",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.long-double-left",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.long-double-both",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.long-left-bar",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.long-double-left-bar",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "shape.irregular-pentagon",
+        "immediateId": "comparison.perpendicular"
+      },
+      {
+        "atomicId": "shape.triangle.isosceles",
+        "immediateId": "shape.triangle"
+      },
+      {
+        "atomicId": "shape.triangle.acute",
+        "immediateId": "shape.triangle"
+      },
+      {
+        "atomicId": "shape.triangle.obtuse",
+        "immediateId": "shape.triangle"
+      },
+      {
+        "atomicId": "shape.triangle.right",
+        "immediateId": "shape.triangle"
+      },
+      {
+        "atomicId": "shape.triangle.scalene",
+        "immediateId": "shape.triangle"
+      },
+      {
+        "atomicId": "shape.angle.right",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "shape.angle.adjacent",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "shape.circle.interior-plus",
+        "immediateId": "shape.circle"
+      },
+      {
+        "atomicId": "shape.angle.interior-arc",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "shape.circle.interior-cross",
+        "immediateId": "shape.circle"
+      },
+      {
+        "atomicId": "shape.circle.interior-minus",
+        "immediateId": "shape.circle"
+      },
+      {
+        "atomicId": "shape.circle.interior-dot",
+        "immediateId": "shape.circle"
+      },
+      {
+        "atomicId": "shape.rectangle.interior-bar",
+        "immediateId": "shape.rectangle"
+      },
+      {
+        "atomicId": "shape.square.interior-diagonals",
+        "immediateId": "shape.square"
+      },
+      {
+        "atomicId": "shape.square.interior-dot",
+        "immediateId": "shape.square"
+      },
+      {
+        "atomicId": "shape.square.interior-horizontal-bar",
+        "immediateId": "shape.square"
+      },
+      {
+        "atomicId": "shape.square.interior-vertical-bar",
+        "immediateId": "shape.square"
+      },
+      {
+        "atomicId": "shape.square.interior-nw-se-diagonal",
+        "immediateId": "shape.square"
+      },
+      {
+        "atomicId": "shape.square.interior-sw-ne-diagonal",
+        "immediateId": "shape.square"
+      },
+      {
+        "atomicId": "shape.circle.superposed-bar",
+        "immediateId": "group.vertical-bar"
+      },
+      {
+        "atomicId": "shape.circle.superposed-bar",
+        "immediateId": "operator.divides"
+      },
+      {
+        "atomicId": "shape.circle.interior-bar",
+        "immediateId": "shape.circle"
+      },
+      {
+        "atomicId": "shape.triangle.plural",
+        "immediateId": "shape.triangle"
+      },
+      {
+        "atomicId": "arrow.left",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.both",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left.short",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "arrow.left.long",
+        "immediateId": "misc.angle"
+      }
+    ],
+    "shadowedImmediate": []
+  },
   "operations": [
     {
       "id": "german.a",
@@ -8731,6 +9487,543 @@
       ]
     },
     {
+      "id": "arrow.counterclockwise",
+      "commandLabel": "arrow.counterclockwise",
+      "cells": [
+        "⠫",
+        "⠢",
+        "⠔",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "↝"
+      },
+      "banaRefs": [
+        "22.5.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.clockwise",
+      "commandLabel": "arrow.clockwise",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠢",
+        "⠔"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "↜"
+      },
+      "banaRefs": [
+        "22.5.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.spear.right",
+      "commandLabel": "arrow.spear.right",
+      "cells": [
+        "⠫",
+        "⠶",
+        "⠶",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟹"
+      },
+      "banaRefs": [
+        "22.5.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.spear.left",
+      "commandLabel": "arrow.spear.left",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠶",
+        "⠶"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟸"
+      },
+      "banaRefs": [
+        "22.5.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.spear.both",
+      "commandLabel": "arrow.spear.both",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠶",
+        "⠶",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟺"
+      },
+      "banaRefs": [
+        "22.5.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.bold.right",
+      "commandLabel": "arrow.bold.right",
+      "cells": [
+        "⠫",
+        "⠸",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇸"
+      },
+      "banaRefs": [
+        "22.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.bold.left",
+      "commandLabel": "arrow.bold.left",
+      "cells": [
+        "⠫",
+        "⠸",
+        "⠪",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟻"
+      },
+      "banaRefs": [
+        "22.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.bold.both",
+      "commandLabel": "arrow.bold.both",
+      "cells": [
+        "⠫",
+        "⠸",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⟷"
+      },
+      "banaRefs": [
+        "22.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.blunted.right",
+      "commandLabel": "arrow.blunted.right",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠿"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇢"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.blunted.left",
+      "commandLabel": "arrow.blunted.left",
+      "cells": [
+        "⠫",
+        "⠿",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇠"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.blunted.both",
+      "commandLabel": "arrow.blunted.both",
+      "cells": [
+        "⠫",
+        "⠿",
+        "⠒",
+        "⠒",
+        "⠿"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇔"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.curved.right",
+      "commandLabel": "arrow.curved.right",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠽"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇝"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.curved.left",
+      "commandLabel": "arrow.curved.left",
+      "cells": [
+        "⠫",
+        "⠯",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇜"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.curved.both",
+      "commandLabel": "arrow.curved.both",
+      "cells": [
+        "⠫",
+        "⠯",
+        "⠒",
+        "⠒",
+        "⠽"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇝"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.straight.right",
+      "commandLabel": "arrow.straight.right",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠳"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇥"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.straight.left",
+      "commandLabel": "arrow.straight.left",
+      "cells": [
+        "⠫",
+        "⠳",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇤"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.straight.both",
+      "commandLabel": "arrow.straight.both",
+      "cells": [
+        "⠫",
+        "⠳",
+        "⠒",
+        "⠒",
+        "⠳"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⇹"
+      },
+      "banaRefs": [
+        "22.7.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.upper-left",
+      "commandLabel": "arrow.upper-left",
+      "cells": [
+        "⠫",
+        "⠈",
+        "⠪",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "↖"
+      },
+      "banaRefs": [
+        "22.7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.lower-left",
+      "commandLabel": "arrow.lower-left",
+      "cells": [
+        "⠫",
+        "⠠",
+        "⠪",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "↙"
+      },
+      "banaRefs": [
+        "22.7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.upper-right",
+      "commandLabel": "arrow.upper-right",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠈",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "↗"
+      },
+      "banaRefs": [
+        "22.7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.lower-right",
+      "commandLabel": "arrow.lower-right",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠠",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "↘"
+      },
+      "banaRefs": [
+        "22.7.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "arrow.left-stroked",
       "commandLabel": "arrow.left-stroked",
       "cells": [
@@ -12786,6 +14079,33 @@
       },
       "banaRefs": [
         "22.1",
+        "22.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.right.uncontracted",
+      "commandLabel": "arrow.right.uncontracted",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "→"
+      },
+      "banaRefs": [
+        "22.1",
+        "22.3",
         "22.4"
       ],
       "errataRefs": [],

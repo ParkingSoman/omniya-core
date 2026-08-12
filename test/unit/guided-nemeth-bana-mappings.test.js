@@ -242,9 +242,32 @@ test('official BANA and MathCAT cells guard corrected Greek, summation, and arro
     ['arrow.northeast', '⠫⠘⠒⠒⠕', '↗'],
     ['arrow.southeast', '⠫⠰⠒⠒⠕', '↘'],
     ['arrow.southwest', '⠫⠰⠪⠒⠒', '↙'],
+    ['arrow.counterclockwise', '⠫⠢⠔⠕', '↝'],
+    ['arrow.clockwise', '⠫⠪⠢⠔', '↜'],
+    ['arrow.spear.right', '⠫⠶⠶⠕', '⟹'],
+    ['arrow.spear.left', '⠫⠪⠶⠶', '⟸'],
+    ['arrow.spear.both', '⠫⠪⠶⠶⠕', '⟺'],
+    ['arrow.blunted.right', '⠫⠒⠒⠿', '⇢'],
+    ['arrow.blunted.left', '⠫⠿⠒⠒', '⇠'],
+    ['arrow.blunted.both', '⠫⠿⠒⠒⠿', '⇔'],
+    ['arrow.curved.right', '⠫⠒⠒⠽', '⇝'],
+    ['arrow.curved.left', '⠫⠯⠒⠒', '⇜'],
+    ['arrow.straight.right', '⠫⠒⠒⠳', '⇥'],
+    ['arrow.straight.left', '⠫⠳⠒⠒', '⇤'],
     ['arrow.double-left', '⠫⠪⠶⠶', '⇐'],
     ['arrow.double-right', '⠫⠶⠶⠕', '⇒'],
     ['arrow.double-both', '⠫⠪⠶⠶⠕', '⇔'],
+    // BANA Rule 22 examples 22-4 through 22-16. These are kept as literal
+    // source fixtures, not inferred by an arrow grammar.
+    ['arrow.right', '⠫⠕', '→'],
+    ['arrow.right.uncontracted', '⠫⠒⠒⠕', '→'],
+    ['arrow.left', '⠫⠪⠒⠒', '←'],
+    ['arrow.both', '⠫⠪⠒⠒⠕', '↔'],
+    ['arrow.vertical-both', '⠫⠣⠪⠒⠒⠕', '↕'],
+    ['arrow.northwest', '⠫⠘⠪⠒⠒', '↖'],
+    ['arrow.northeast', '⠫⠘⠒⠒⠕', '↗'],
+    ['arrow.southeast', '⠫⠰⠒⠒⠕', '↘'],
+    ['arrow.southwest', '⠫⠰⠪⠒⠒', '↙'],
     ['misc.crossed-d', '⠈⠫', 'đ'],
     ['misc.crossed-lambda', '⠈⠨⠇', 'ƛ'],
     ['misc.crossed-r', '⠈⠠⠗', '℞']
@@ -277,6 +300,42 @@ test('BANA Rule 22 component constructions remain bounded and source-linked', ()
     assert.equal(entry.commitPolicy, 'atomic-sequence', id);
     const tree = applyFixture(id, cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, value, id);
+  }
+});
+
+test('Rule 22 official source examples remain literal registry rows', () => {
+  // Source notation is copied from BANA 22.4–22.7. The Unicode cells are the
+  // independently transcribed six-dot sequences used by the dispatcher.
+  const official = [
+    ['arrow.right', '$o', '⠫⠕'],
+    ['arrow.right.uncontracted', '$33o', '⠫⠒⠒⠕'],
+    ['arrow.left', '$[33', '⠫⠪⠒⠒'],
+    ['arrow.both', '$[33o', '⠫⠪⠒⠒⠕'],
+    ['arrow.up', '$<33o', '⠫⠣⠒⠒⠕'],
+    ['arrow.down', '$%33o', '⠫⠩⠒⠒⠕'],
+    ['arrow.northwest', '$~[33', '⠫⠘⠪⠒⠒'],
+    ['arrow.northeast', '$~33o', '⠫⠘⠒⠒⠕'],
+    ['arrow.southeast', '$;33o', '⠫⠰⠒⠒⠕'],
+    ['arrow.southwest', '$;[33', '⠫⠰⠪⠒⠒'],
+    ['arrow.counterclockwise', '$59o', '⠫⠢⠔⠕'],
+    ['arrow.clockwise', '$[59', '⠫⠪⠢⠔'],
+    ['arrow.spear.right', '$77o', '⠫⠶⠶⠕'],
+    ['arrow.spear.left', '$[77', '⠫⠪⠶⠶'],
+    ['arrow.spear.both', '$[77o', '⠫⠪⠶⠶⠕'],
+    ['arrow.blunted.right', '$33=', '⠫⠒⠒⠿'],
+    ['arrow.blunted.left', '$=33', '⠫⠿⠒⠒'],
+    ['arrow.blunted.both', '$=33=', '⠫⠿⠒⠒⠿'],
+    ['arrow.curved.right', '$33y', '⠫⠒⠒⠽'],
+    ['arrow.curved.left', '$&33', '⠫⠯⠒⠒'],
+    ['arrow.curved.both', '$&33y', '⠫⠯⠒⠒⠽'],
+    ['arrow.straight.right', '$33|', '⠫⠒⠒⠳'],
+    ['arrow.straight.left', '$|33', '⠫⠳⠒⠒'],
+    ['arrow.straight.both', '$|33|', '⠫⠳⠒⠒⠳']
+  ];
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, source, cells] of official) {
+    assert.equal(registry.get(id)?.cells.join(''), cells, `${id}: ${source}`);
+    assert.ok(registry.get(id)?.banaRefs.some((ref) => ref.startsWith('22.')), `${id}: ${source}`);
   }
 });
 
@@ -726,6 +785,17 @@ test('atomic local codes are reachable and never shadowed by immediate prefixes'
   // commit too early and make the atomic construction unreachable.
   assert.deepEqual(registryDiagnostics().policyErrors, []);
   assert.deepEqual(registryDiagnostics().shadowedImmediate, []);
+});
+
+test('all immediate rows that prefix an atomic row use bounded lookahead', () => {
+  const registry = operationRegistry();
+  for (const immediate of registry.filter((entry) => entry.commitPolicy === 'immediate')) {
+    const hasAtomicContinuation = registry.some((candidate) =>
+      candidate.commitPolicy === 'atomic-sequence' &&
+      candidate.cells.length > immediate.cells.length &&
+      immediate.cells.every((cell, index) => cell === candidate.cells[index]));
+    if (hasAtomicContinuation) assert.equal(immediate.args?.preferLonger, true, immediate.id);
+  }
 });
 
 test('the three input policies are one registry-wide contract', () => {

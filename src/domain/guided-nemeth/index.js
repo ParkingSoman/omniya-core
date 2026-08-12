@@ -1293,6 +1293,32 @@ const MAPPINGS = [
   token('arrow.double-both', ['⠫', '⠪', '⠶', '⠶', '⠕'], ['22.5.2'], '⇔'),
   token('arrow.double-up', ['⠫', '⠣', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇑'),
   token('arrow.double-down', ['⠫', '⠩', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇓'),
+  // BANA Rule 22.5 examples 22-17 through 22-27 and Rule 22.6 examples
+  // 22-28 through 22-30. These are exact bounded constructions from the
+  // standard; a shaft is never inferred from an arbitrary cell stream.
+  token('arrow.counterclockwise', ['⠫', '⠢', '⠔', '⠕'], ['22.5.1'], '↝', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.clockwise', ['⠫', '⠪', '⠢', '⠔'], ['22.5.1'], '↜', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.spear.right', ['⠫', '⠶', '⠶', '⠕'], ['22.5.2'], '⟹', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.spear.left', ['⠫', '⠪', '⠶', '⠶'], ['22.5.2'], '⟸', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.spear.both', ['⠫', '⠪', '⠶', '⠶', '⠕'], ['22.5.2'], '⟺', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.bold.right', ['⠫', '⠸', '⠒', '⠒', '⠕'], ['22.6'], '⇸', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.bold.left', ['⠫', '⠸', '⠪', '⠒', '⠒'], ['22.6'], '⟻', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.bold.both', ['⠫', '⠸', '⠪', '⠒', '⠒', '⠕'], ['22.6'], '⟷', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // Rule 22.7 examples 22-31 through 22-39 replace the two arrowheads
+  // independently while retaining the ordinary shaft.
+  token('arrow.blunted.right', ['⠫', '⠒', '⠒', '⠿'], ['22.7.1'], '⇢', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.blunted.left', ['⠫', '⠿', '⠒', '⠒'], ['22.7.1'], '⇠', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.blunted.both', ['⠫', '⠿', '⠒', '⠒', '⠿'], ['22.7.1'], '⇔', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.curved.right', ['⠫', '⠒', '⠒', '⠽'], ['22.7.1'], '⇝', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.curved.left', ['⠫', '⠯', '⠒', '⠒'], ['22.7.1'], '⇜', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.curved.both', ['⠫', '⠯', '⠒', '⠒', '⠽'], ['22.7.1'], '⇝', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.straight.right', ['⠫', '⠒', '⠒', '⠳'], ['22.7.1'], '⇥', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.straight.left', ['⠫', '⠳', '⠒', '⠒'], ['22.7.1'], '⇤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.straight.both', ['⠫', '⠳', '⠒', '⠒', '⠳'], ['22.7.1'], '⇹', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.upper-left', ['⠫', '⠈', '⠪', '⠒', '⠒'], ['22.7.2'], '↖', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.lower-left', ['⠫', '⠠', '⠪', '⠒', '⠒'], ['22.7.2'], '↙', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.upper-right', ['⠫', '⠒', '⠒', '⠈', '⠕'], ['22.7.2'], '↗', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.lower-right', ['⠫', '⠒', '⠒', '⠠', '⠕'], ['22.7.2'], '↘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   ...ADDITIONAL_ARROW_MAPPINGS,
   ...BANA_ARROW_COMPONENT_FIXTURES,
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*'),
@@ -1372,6 +1398,11 @@ const MAPPINGS = [
   open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike' }),
   close('cancellation.end', ['⠻'], ['12.1.1'], 'menclose'),
   token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→'),
+  // BANA 22.1 calls the ordinary right arrow `$o` only when it is regular,
+  // single-shaft, and unmodified. The uncontracted `$33o` is a separate
+  // bounded local construction (Examples 22-5 and 22-28), even though it
+  // projects to the same mathematical relation.
+  token('arrow.right.uncontracted', ['⠫', '⠒', '⠒', '⠕'], ['22.1', '22.3', '22.4'], '→', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('arrow.left', ['⠫', '⠪', '⠒', '⠒'], ['22.4'], '←', 'mo', { preferLonger: true }),
   token('arrow.both', ['⠫', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↔', 'mo', { preferLonger: true }),
   token('arrow.right.short', ['⠫', '⠒', '⠕'], ['22.5.3'], '⇢', 'mo', { preferLonger: true }),
@@ -1393,6 +1424,21 @@ const MAPPINGS = [
 ].map((mapping) => mapping.id.startsWith('arrow.')
   ? withPolicy(mapping, LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE)
   : mapping);
+
+// A complete BANA sign may also prefix another bounded local construction.
+// This is common for indicators shared by shapes, functions, and arrows. The
+// short sign remains an immediate registry row, but it opts into local
+// lookahead so the longer BANA row can be completed before any tree mutation.
+// Enter can still commit the short sign. This is bounded registry dispatch,
+// never an expression parser or an unrestricted input buffer.
+for (const mapping of MAPPINGS) {
+  if (mapping.commitPolicy !== LOCAL_COMMIT_POLICIES.IMMEDIATE) continue;
+  const hasAtomicContinuation = MAPPINGS.some((candidate) =>
+    candidate.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
+    candidate.cells.length > mapping.cells.length &&
+    mapping.cells.every((cell, index) => cell === candidate.cells[index]));
+  if (hasAtomicContinuation) mapping.args = { ...(mapping.args ?? {}), preferLonger: true };
+}
 
 const PREFIXES = new Map();
 for (const mapping of MAPPINGS) {
@@ -1436,8 +1482,9 @@ export function inputRegistry() {
 
 /**
  * Registry-level design checks. These protect the three local input policies
- * from becoming contradictory as BANA rows are added. In particular, an
- * atomic construction may not begin with an already-committed immediate code.
+ * from becoming contradictory as BANA rows are added. An atomic construction
+ * may share a prefix with an immediate code only when that immediate row is
+ * explicitly marked for bounded longer-code lookahead.
  */
 export function registryDiagnostics() {
   const entries = operationRegistry();
@@ -1606,7 +1653,6 @@ function mappingApplies(mapping, context) {
 function hasAtomicContinuation(prefix, nextCell, context) {
   const candidatePrefix = `${prefix}${nextCell}`;
   return MAPPINGS.some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
-    !mapping.id.startsWith('function.') &&
     mapping.cells.length > candidatePrefix.length &&
     mapping.cells.slice(0, candidatePrefix.length).join('') === candidatePrefix &&
     mappingApplies(mapping, context));
