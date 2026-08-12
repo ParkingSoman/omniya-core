@@ -825,7 +825,7 @@ const BANA_FUNCTION_MAPPINGS = BANA_FUNCTION_NAMES.map((name) => token(
   ['18.1', '18.4'],
   name,
   'mi',
-  { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }
+  { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: name }
 ));
 const BANA_LIMIT_MAPPINGS = [
   // BANA 18.3 gives upper/lower limit as dedicated local constructions. They
@@ -834,12 +834,12 @@ const BANA_LIMIT_MAPPINGS = [
   {
     id: 'function.limit.upper', cells: ['⠣', '⠇', '⠊', '⠍'], banaRefs: ['18.3'],
     action: 'open-function-limit', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
-    args: { direction: 'over' }
+    args: { direction: 'over', sourceNotation: '<lim' }
   },
   {
     id: 'function.limit.lower', cells: ['⠩', '⠇', '⠊', '⠍'], banaRefs: ['18.3'],
     action: 'open-function-limit', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
-    args: { direction: 'under' }
+    args: { direction: 'under', sourceNotation: '%lim' }
   }
 ];
 const FUNCTION_INITIAL_CELLS = new Set(BANA_FUNCTION_MAPPINGS.map((mapping) => mapping.cells[0]));
@@ -891,8 +891,8 @@ const MAPPINGS = [
   // (source `./`). It is distinct from the diagonal fraction-line slash.
   token('operator.divide', ['⠨', '⠌'], ['20.8'], '÷', 'mo', { sourceNotation: './' }),
   token('operator.multiply', ['⠈', '⠡'], ['20.7'], '×', 'mo', { sourceNotation: '`*' }),
-  token('operator.plus-minus', ['⠬', '⠤'], ['20.6'], '±'),
-  token('operator.minus-plus', ['⠤', '⠬'], ['20.6'], '∓'),
+  sourceToken('operator.plus-minus', '+-', ['20.6'], '±'),
+  sourceToken('operator.minus-plus', '-+', ['20.6'], '∓'),
   token('operator.ampersand', ['⠸', '⠯'], ['20.2'], '&', 'mo', { sourceNotation: '_&' }),
   // BANA 20.1 lists backslash/divides as `_*` (punctuation indicator plus
   // cross cell), not as the bold/typeform prefix. Keep it a single local
@@ -901,16 +901,16 @@ const MAPPINGS = [
   token('operator.circle-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['20.1'], '⊙', 'mo', { sourceNotation: '$c_$*]' }),
   token('operator.circle-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['20.1'], '⊕', 'mo', { sourceNotation: '$c_$+]' }),
   token('operator.circle-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['20.1', '20.6'], '⊖', 'mo', { sourceNotation: '$c_$-]' }),
-  token('operator.minus-bold', ['⠸', '⠤'], ['20.6'], '−', 'mo', { mathvariant: 'bold', preferLonger: true }),
-  token('operator.minus-minus', ['⠤', '⠐', '⠤'], ['20.6'], '−−'),
-  token('operator.minus-plus-bold', ['⠸', '⠤', '⠐', '⠸', '⠬'], ['20.6'], '−+'),
-  token('operator.minus-plus-horizontal', ['⠤', '⠐', '⠬'], ['20.6'], '−+'),
-  token('operator.minus-plus-regular-bold', ['⠤', '⠐', '⠸', '⠬'], ['20.6'], '−+'),
-  token('operator.plus-bold', ['⠸', '⠬'], ['20.6'], '+', 'mo', { mathvariant: 'bold', preferLonger: true }),
-  token('operator.plus-minus-bold', ['⠸', '⠬', '⠐', '⠸', '⠤'], ['20.6'], '+−'),
-  token('operator.plus-minus-regular', ['⠬', '⠐', '⠤'], ['20.6'], '+−'),
-  token('operator.plus-minus-regular-bold', ['⠬', '⠐', '⠸', '⠤'], ['20.6'], '+−'),
-  token('operator.proper-difference', ['⠨', '⠤'], ['20.6'], '∸'),
+  sourceToken('operator.minus-bold', '_-', ['20.6'], '−', 'mo', { mathvariant: 'bold', preferLonger: true }),
+  sourceToken('operator.minus-minus', '-"-', ['20.6'], '−−'),
+  sourceToken('operator.minus-plus-bold', '_-"_+', ['20.6'], '−+'),
+  sourceToken('operator.minus-plus-horizontal', '-"+', ['20.6'], '−+'),
+  sourceToken('operator.minus-plus-regular-bold', '-"_+', ['20.6'], '−+'),
+  sourceToken('operator.plus-bold', '_+', ['20.6'], '+', 'mo', { mathvariant: 'bold', preferLonger: true }),
+  sourceToken('operator.plus-minus-bold', '_+"_-', ['20.6'], '+−'),
+  sourceToken('operator.plus-minus-regular', '+"-', ['20.6'], '+−'),
+  sourceToken('operator.plus-minus-regular-bold', '+"_-', ['20.6'], '+−'),
+  sourceToken('operator.proper-difference', '.-', ['20.6'], '∸'),
   token('operator.number-sign', ['⠨', '⠼'], ['20.3'], '#', 'mo', { sourceNotation: '.#' }),
   token('operator.paragraph', ['⠈', '⠠', '⠏'], ['20.3'], '¶', 'mo', { preferLonger: true, sourceNotation: '`,p' }),
   token('operator.section', ['⠈', '⠠', '⠎'], ['20.3'], '§', 'mo', { preferLonger: true, sourceNotation: '`,s' }),
@@ -925,7 +925,7 @@ const MAPPINGS = [
   {
     id: 'integral.extend', cells: ['⠮'], banaRefs: ['23.12'], action: 'extend-integral',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { values: { '∫': '∬', '∬': '∭' } }
+    args: { values: { '∫': '∬', '∬': '∭' }, sourceNotation: '!!' }
   },
   // These two BANA compound symbols have a distinct leading construction and
   // are therefore valid bounded local codes; an ordinary ⠮ remains immediate.
@@ -947,18 +947,6 @@ const MAPPINGS = [
     args: { value: '∰', sourceNotation: '!`,=]' }
   },
   {
-    id: 'integral.superpose.clockwise', cells: ['⠈', '⠫', '⠪', '⠢', '⠔', '⠻'],
-    banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
-    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '∲' }
-  },
-  {
-    id: 'integral.superpose.anticlockwise', cells: ['⠈', '⠫', '⠢', '⠔', '⠕', '⠻'],
-    banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
-    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '∳' }
-  },
-  {
     id: 'integral.superpose.rectangle', cells: ['⠈', '⠫', '⠗', '⠻'],
     banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
@@ -970,40 +958,10 @@ const MAPPINGS = [
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
     args: { value: '⨖', sourceNotation: '!`$4]' }
   },
-  {
-    id: 'integral.superpose.finite-part', cells: ['⠈', '⠱', '⠻'],
-    banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
-    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '⨍' }
-  },
-  {
-    id: 'integral.superpose.double-stroke', cells: ['⠈', '⠱', '⠱', '⠻'],
-    banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
-    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '⨎' }
-  },
-  {
-    id: 'integral.superpose.times', cells: ['⠈', '⠈', '⠡', '⠻'],
-    banaRefs: ['15.9', '23.12'], action: 'superpose-integral',
-    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '⨘' }
-  },
-  {
-    id: 'integral.superpose.intersection', cells: ['⠈', '⠨', '⠩', '⠻'],
-    banaRefs: ['15.9', '20.4', '23.12'], action: 'superpose-integral',
-    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '⨙' }
-  },
-  {
-    id: 'integral.superpose.union', cells: ['⠈', '⠨', '⠬', '⠻'],
-    banaRefs: ['15.9', '20.4', '23.12'], action: 'superpose-integral',
-    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-    args: { value: '⨚' }
-  },
   // The n-ary summation sign is a Greek capital sigma with the Greek
   // alphabet indicator and capitalization indicator (BANA 6.1.4, 6.2,
   // Appendix C). It is not the plain English-letter sequence ⠠⠎.
-  token('operator.sum', ['⠨', '⠠', '⠎'], ['6.1.4', '6.2', '18.1'], '∑'),
+  sourceToken('operator.sum', '.,s', ['6.1.4', '6.2', '18.1'], '∑'),
   sourceOpen('fraction.start.simple', ['⠹'], ['13.1', '13.2'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'simple' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '?'),
   sourceMove('fraction.next.denominator', ['⠌'], ['13.2'], 'mfrac', 'denominator', '/'),
   sourceClose('fraction.end.simple', ['⠼'], ['13.2.1'], 'mfrac', '#'),
@@ -1078,8 +1036,8 @@ const MAPPINGS = [
   sourceOpen('radical.indexed', ['⠣'], ['16.2', '16.3'], 'mroot', ['radicand', 'index'], {}, 'index', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '<'),
   sourceMove('radical.next.radicand', ['⠌'], ['16.2'], 'mroot', 'radicand', '/'),
   sourceClose('radical.indexed.end', ['⠻'], ['16.2', '16.3'], 'mroot', ']'),
-  open('group.round', ['⠷'], ['19.1', '19.5'], 'mrow', ['content'], { 'data-omniya-group': 'round' }),
-  close('group.round.end', ['⠾'], ['19.1'], 'mrow'),
+  sourceOpen('group.round', ['⠷'], ['19.1', '19.5'], 'mrow', ['content'], { 'data-omniya-group': 'round' }, 'content', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '('),
+  sourceClose('group.round.end', ['⠾'], ['19.1'], 'mrow', ')'),
   // Rule 15.6: a binomial is one bounded local structure.  Its opening
   // creates two editable table cells; ⠩ moves to the lower cell and ⠾ closes
   // the local structure.  It is not a delimiter parser for the surrounding
@@ -1104,8 +1062,8 @@ const MAPPINGS = [
   token('group.bold-bracket-close', ['⠸', '⠈', '⠾'], ['19.3'], ']', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '_@)' }),
   token('group.barred-bracket-open', ['⠈', '⠸', '⠷'], ['19.1'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@_(' }),
   token('group.barred-bracket-close', ['⠈', '⠸', '⠾'], ['19.1'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@_)' }),
-  token('group.barred-brace-open', ['⠨', '⠸', '⠷'], ['19.1'], '⦃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.barred-brace-close', ['⠨', '⠸', '⠾'], ['19.1'], '⦄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.barred-brace-open', ['⠨', '⠸', '⠷'], ['19.1'], '⦃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '._(' }),
+  token('group.barred-brace-close', ['⠨', '⠸', '⠾'], ['19.1'], '⦄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '._)' }),
   token('group.upper-half-open', ['⠈', '⠘', '⠷'], ['19.4'], '⎡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@^(' }),
   token('group.upper-half-close', ['⠈', '⠘', '⠾'], ['19.4'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@^)' }),
   token('group.lower-half-open', ['⠈', '⠰', '⠷'], ['19.4'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@;(' }),
@@ -1142,7 +1100,7 @@ const MAPPINGS = [
   token('group.upper-half-enlarged-close', ['⠈', '⠘', '⠠', '⠾'], ['19.4', '19.6'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@^,)' }),
   token('group.lower-half-enlarged-open', ['⠈', '⠰', '⠠', '⠷'], ['19.4', '19.6'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@;,(' }),
   token('group.lower-half-enlarged-close', ['⠈', '⠰', '⠠', '⠾'], ['19.4', '19.6'], '⎦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@;,)' }),
-  token('comparison.not-equal', ['⠌', '⠨', '⠅'], ['21.1', '21.8'], '≠'),
+  sourceToken('comparison.not-equal', '/.k', ['21.1', '21.8'], '≠'),
   token('comparison.approximately', ['⠈', '⠱', '⠈', '⠱'], ['21.6'], '≈', 'mo', { sourceNotation: '@:@:' }),
   token('comparison.similar', ['⠈', '⠱'], ['21.6'], '∼', 'mo', { preferLonger: true, sourceNotation: '`:' }),
   token('comparison.member', ['⠈', '⠑'], ['21.4'], '∈', 'mo', { sourceNotation: '`e' }),
@@ -1156,7 +1114,7 @@ const MAPPINGS = [
   token('comparison.reverse-subset', ['⠸', '⠨', '⠂'], ['21.5'], '⊃', 'mo', { sourceNotation: '_.1' }),
   token('comparison.reverse-membership', ['⠈', '⠢'], ['21.4'], '∋', 'mo', { sourceNotation: '`5' }),
   token('comparison.variation', ['⠸', '⠿'], ['21.5'], '∝', 'mo', { sourceNotation: '_=' }),
-  token('comparison.equivalence', ['⠈', '⠣', '⠠', '⠣'], ['21.9', '21.11'], '≎', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  sourceToken('comparison.equivalence', '`<,<', ['21.9', '21.11'], '≎', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   // Rule 21.7's such-that bar uses the same Nemeth bar cell as the operation
   // bar. Context chooses the meaning; the local registry never invents a
   // second bar glyph.
@@ -1255,7 +1213,7 @@ const MAPPINGS = [
   // The shape + left-head prefix is also the start of every left/vertical
   // arrow. Keep the local meaning pending while a shaft or right head may
   // follow; end-of-code commits the standalone angle.
-  token('misc.angle', ['⠫', '⠪'], ['17.1'], '∠', 'mo', { preferLonger: true }),
+  token('misc.angle', ['⠫', '⠪'], ['17.1'], '∠', 'mo', { preferLonger: true, sourceNotation: '$[' }),
   token('misc.therefore', ['⠠', '⠡'], ['23.18'], '∴', 'mo', { sourceNotation: ',*' }),
   // BANA 23.18 lists the negated therefore sign as /,*; the slash is an
   // oblique negation cell placed before the ordinary therefore construction.
@@ -1280,11 +1238,11 @@ const MAPPINGS = [
   // Rule 23.20's vertical-bar symbol uses the same cell as the operation bar;
   // its meaning is selected by the local context (such-that, grouping, or
   // operation), never by inventing a second Unicode bar glyph.
-  token('misc.vertical-bar', ['⠳'], ['23.20'], '|'),
+  token('misc.vertical-bar', ['⠳'], ['23.20'], '|', 'mo', { sourceNotation: '|' }),
   token('misc.does-not-divide', ['⠌', '⠳'], ['23.20'], '∤', 'mo', { sourceNotation: '/|' }),
   token('misc.parallel', ['⠫', '⠇'], ['17.2', '21.2'], '∥', 'mo', { sourceNotation: '$l', dataAttributes: { 'data-omniya-nemeth-intent': 'parallel-relation' } }),
   token('misc.not-parallel', ['⠌', '⠫', '⠇'], ['21.2'], '∦', 'mo', { sourceNotation: '/$l' }),
-  token('misc.not-identical', ['⠌', '⠸', '⠇'], ['21.3'], '≢'),
+  sourceToken('misc.not-identical', '/_l', ['21.3'], '≢'),
   token('quantifier.forall', ['⠈', '⠯'], ['23.17'], '∀', 'mo', { sourceNotation: '`&' }),
   token('quantifier.exists', ['⠈', '⠿'], ['23.17'], '∃', 'mo', { preferLonger: true, sourceNotation: '`=' }),
   // BANA Rule 23.17 writes “there exists uniquely” as `=|.  It is a
@@ -1294,13 +1252,13 @@ const MAPPINGS = [
   // Nemeth remains ⠈⠿⠳ under SRE.
   { id: 'quantifier.exists-unique', cells: ['⠈', '⠿', '⠳'], banaRefs: ['23.17'], action: 'insert-quantifier-unique', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { sourceNotation: '`=|' } },
   token('quantifier.not-exists', ['⠌', '⠈', '⠿'], ['23.17'], '∄', 'mo', { sourceNotation: '/`=' }),
-  token('comparison.contains', ['⠈', '⠢'], ['21.4'], '∋'),
-  token('comparison.not-contains', ['⠌', '⠈', '⠢'], ['21.4'], '∌'),
-  token('comparison.less-equal', ['⠐', '⠅', '⠱'], ['21.5'], '≤'),
-  token('comparison.greater-equal', ['⠨', '⠂', '⠱'], ['21.5'], '≥'),
-  token('comparison.identical', ['⠸', '⠇'], ['21.3'], '≡'),
-  token('comparison.not-less', ['⠌', '⠐', '⠅'], ['21.8'], '≮'),
-  token('comparison.not-greater', ['⠌', '⠨', '⠂'], ['21.8'], '≯'),
+  sourceToken('comparison.contains', '`5', ['21.4'], '∋'),
+  sourceToken('comparison.not-contains', '/`5', ['21.4'], '∌'),
+  sourceToken('comparison.less-equal', '"k:', ['21.5'], '≤'),
+  sourceToken('comparison.greater-equal', '.1:', ['21.5'], '≥'),
+  sourceToken('comparison.identical', '_l', ['21.3'], '≡'),
+  sourceToken('comparison.not-less', '/"k', ['21.8'], '≮'),
+  sourceToken('comparison.not-greater', '/.1', ['21.8'], '≯'),
   token('arrow.up', ['⠫', '⠣', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↑', 'mo', { preferLonger: true, sourceNotation: '$<33o' }),
   token('arrow.down', ['⠫', '⠩', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↓', 'mo', { preferLonger: true, sourceNotation: '$%33o' }),
   token('arrow.vertical-both', ['⠫', '⠣', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↕', 'mo', { preferLonger: true, sourceNotation: '$<[33o' }),
@@ -1363,40 +1321,40 @@ const MAPPINGS = [
   // source's expanded notation). It remains a bounded local reference atom,
   // not an invented Unicode glyph.
   token('reference.checkmark', ['⠨', '⠿', '⠫', '⠉', '⠍'], ['9.1'], '✓', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { preferLonger: true }),
-  token('shape.diamond', ['⠫', '⠙'], ['17.1'], '◊', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('shape.ellipse', ['⠫', '⠑'], ['17.1'], '⬭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { preferLonger: true, sourceNotation: '$c' }),
+  token('shape.diamond', ['⠫', '⠙'], ['17.1'], '◊', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$d' }),
+  token('shape.ellipse', ['⠫', '⠑'], ['17.1'], '⬭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$e' }),
   token('shape.regular-hexagon', ['⠫', '⠖'], ['17.1'], '⬡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$6' }),
   token('shape.parallel', ['⠫', '⠇'], ['17.1'], '∥', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$l', dataAttributes: { 'data-omniya-nemeth-intent': 'parallel-shape' } }),
   token('shape.perpendicular', ['⠫', '⠏'], ['17.1'], '⟂', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$p', dataAttributes: { 'data-omniya-nemeth-intent': 'perpendicular-shape' } }),
-  token('shape.parallelogram', ['⠫', '⠛'], ['17.1'], '▱', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.parallelogram', ['⠫', '⠛'], ['17.1'], '▱', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$g' }),
   token('shape.regular-pentagon', ['⠫', '⠢'], ['17.1'], '⬠', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$5' }),
-  token('shape.star', ['⠫', '⠎'], ['17.1'], '☆', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('shape.trapezoid', ['⠫', '⠵'], ['17.1'], '⏢', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('shape.inverted-triangle', ['⠨', '⠫'], ['17.1'], '▽', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('shape.square', ['⠫', '⠲'], ['17.1'], '□', 'mo', { preferLonger: true }),
-  token('shape.filled-circle', ['⠫', '⠸', '⠉'], ['17.3'], '●', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('shape.shaded-circle', ['⠫', '⠨', '⠉'], ['17.3'], '◍', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('shape.shaded-ellipse', ['⠫', '⠨', '⠑'], ['17.3'], '◌', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('shape.triangle', ['⠫', '⠞'], ['17.1'], '△', 'mo', { preferLonger: true }),
-  token('shape.rectangle', ['⠫', '⠗'], ['17.2'], '▭', 'mo', { preferLonger: true }),
-  shapeToken('shape.arc.down', ['⠫', '⠁'], ['17.1'], '⁀', 'arc-down', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeToken('shape.arc.up', ['⠫', '⠄'], ['17.1'], '⌢', 'arc-up', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('shape.star', ['⠫', '⠎'], ['17.1'], '☆', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$s' }),
+  token('shape.trapezoid', ['⠫', '⠵'], ['17.1'], '⏢', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$z' }),
+  token('shape.inverted-triangle', ['⠨', '⠫'], ['17.1'], '▽', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '.$' }),
+  token('shape.square', ['⠫', '⠲'], ['17.1'], '□', 'mo', { preferLonger: true, sourceNotation: '$4' }),
+  token('shape.filled-circle', ['⠫', '⠸', '⠉'], ['17.3'], '●', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_c' }),
+  token('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_4' }),
+  token('shape.shaded-circle', ['⠫', '⠨', '⠉'], ['17.3'], '◍', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$.c' }),
+  token('shape.shaded-ellipse', ['⠫', '⠨', '⠑'], ['17.3'], '◌', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$.e' }),
+  token('shape.triangle', ['⠫', '⠞'], ['17.1'], '△', 'mo', { preferLonger: true, sourceNotation: '$t' }),
+  token('shape.rectangle', ['⠫', '⠗'], ['17.2'], '▭', 'mo', { preferLonger: true, sourceNotation: '$r' }),
+  shapeToken('shape.arc.down', ['⠫', '⠁'], ['17.1'], '⁀', 'arc-down', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$a' }),
+  shapeToken('shape.arc.up', ['⠫', '⠄'], ['17.1'], '⌢', 'arc-up', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: "$'" }),
   // BANA 17.2 basic-shape index entries without a dedicated Unicode glyph
   // remain valid local MathML tokens.  The source-linked shape metadata is
   // what preserves the distinction for export and later shape operations.
-  shapeToken('shape.rhombus', ['⠫', '⠓'], ['17.2'], '◇', 'rhombus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeToken('shape.intersecting-lines', ['⠫', '⠊'], ['17.2'], '╳', 'intersecting-lines', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeToken('shape.quadrilateral', ['⠫', '⠟'], ['17.2'], '▱', 'quadrilateral', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeToken('shape.irregular-hexagon', ['⠫', '⠓', '⠭'], ['17.2'], '⬡', 'irregular-hexagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeToken('shape.irregular-pentagon', ['⠫', '⠏', '⠛'], ['17.2'], '⭔', 'irregular-pentagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeToken('shape.irregular-octagon', ['⠫', '⠕', '⠉'], ['17.4'], '⯃', 'irregular-octagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeToken('shape.rhombus', ['⠫', '⠓'], ['17.2'], '◇', 'rhombus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$h' }),
+  shapeToken('shape.intersecting-lines', ['⠫', '⠊'], ['17.2'], '╳', 'intersecting-lines', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$i' }),
+  shapeToken('shape.quadrilateral', ['⠫', '⠟'], ['17.2'], '▱', 'quadrilateral', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$q' }),
+  shapeToken('shape.irregular-hexagon', ['⠫', '⠓', '⠭'], ['17.2'], '⬡', 'irregular-hexagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$hx' }),
+  shapeToken('shape.irregular-pentagon', ['⠫', '⠏', '⠛'], ['17.2'], '⭔', 'irregular-pentagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$pg' }),
+  shapeToken('shape.irregular-octagon', ['⠫', '⠕', '⠉'], ['17.4'], '⯃', 'irregular-octagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$oc' }),
   // Rule 17.4 regular polygons are local shape constructions. Their numeral
   // is collected with the shape indicator and then committed as one token;
   // no numeric passage is parsed.
-  shapeToken('shape.regular-octagon', ['⠫', '⠦'], ['17.4'], '⯃', 'regular-octagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeToken('shape.regular-dodecagon', ['⠫', '⠂', '⠆'], ['17.4'], '⯃', 'regular-12-gon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeToken('shape.regular-octagon', ['⠫', '⠦'], ['17.4'], '⯃', 'regular-octagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$8' }),
+  shapeToken('shape.regular-dodecagon', ['⠫', '⠂', '⠆'], ['17.4'], '⯃', 'regular-12-gon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$12' }),
   // Rule 17.5 structural shape modification: the base shape and the
   // modification letters are one bounded construction.  The metadata keeps
   // the exact BANA modifier while MathML remains a valid atomic operator.
@@ -1421,22 +1379,22 @@ const MAPPINGS = [
   // examples are intentionally bounded; a letter, operation, or arrow inside
   // a shape is represented by a separate named operation in a later editor
   // step rather than by buffering an arbitrary passage.
-  shapeModificationToken('shape.circle.interior-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['17.6.1'], '⨁', 'circle', 'interior-plus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.circle.interior-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['17.6.1'], '⨁', 'circle', 'interior-plus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$+]' }),
   // The printed `}` is the BANA interior-shape terminator, whose cell is ⠻.
   shapeModificationToken('shape.angle.interior-arc', ['⠫', '⠪', '⠸', '⠫', '⠫', '⠁', '⠻'], ['17.6.1'], '∡', 'angle', 'interior-arc', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[_$$a}' }),
-  shapeModificationToken('shape.circle.interior-cross', ['⠫', '⠉', '⠸', '⠫', '⠈', '⠡', '⠻'], ['17.6.1'], '⊗', 'circle', 'interior-cross', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.circle.interior-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['17.6.1'], '⊖', 'circle', 'interior-minus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.circle.interior-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⦿', 'circle', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.circle.interior-cross', ['⠫', '⠉', '⠸', '⠫', '⠈', '⠡', '⠻'], ['17.6.1'], '⊗', 'circle', 'interior-cross', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$@*]' }),
+  shapeModificationToken('shape.circle.interior-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['17.6.1'], '⊖', 'circle', 'interior-minus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$-]' }),
+  shapeModificationToken('shape.circle.interior-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⦿', 'circle', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$*]' }),
   shapeModificationToken('shape.rectangle.interior-bar', ['⠫', '⠗', '⠸', '⠫', '⠱', '⠻'], ['17.6.1'], '▭', 'rectangle', 'interior-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$r_$:]' }),
-  shapeModificationToken('shape.square.interior-diagonals', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠈', '⠔', '⠻'], ['17.6.1'], '⊠', 'square', 'interior-diagonals', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.square.interior-dot', ['⠫', '⠲', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⊡', 'square', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.square.interior-diagonals', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠈', '⠔', '⠻'], ['17.6.1'], '⊠', 'square', 'interior-diagonals', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$5@9]' }),
+  shapeModificationToken('shape.square.interior-dot', ['⠫', '⠲', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⊡', 'square', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$*]' }),
   shapeModificationToken('shape.square.interior-horizontal-bar', ['⠫', '⠲', '⠸', '⠫', '⠱', '⠻'], ['17.6.1'], '⊟', 'square', 'interior-horizontal-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$:]' }),
-  shapeModificationToken('shape.square.interior-vertical-bar', ['⠫', '⠲', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '◫', 'square', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.square.interior-nw-se-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠻'], ['17.6.1'], '⧅', 'square', 'interior-nw-se-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.square.interior-sw-ne-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠔', '⠻'], ['17.6.1'], '⧄', 'square', 'interior-sw-ne-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.circle.superposed-bar', ['⠳', '⠈', '⠫', '⠉', '⠻'], ['17.7'], '⌽', 'circle', 'superposed-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.circle.interior-bar', ['⠫', '⠉', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '⦶', 'circle', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeToken('shape.triangle.plural', ['⠫', '⠞', '⠎'], ['17.9'], '⧌', 'triangle-plural', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.square.interior-vertical-bar', ['⠫', '⠲', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '◫', 'square', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$\\]' }),
+  shapeModificationToken('shape.square.interior-nw-se-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠻'], ['17.6.1'], '⧅', 'square', 'interior-nw-se-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$5]' }),
+  shapeModificationToken('shape.square.interior-sw-ne-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠔', '⠻'], ['17.6.1'], '⧄', 'square', 'interior-sw-ne-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$9]' }),
+  shapeModificationToken('shape.circle.superposed-bar', ['⠳', '⠈', '⠫', '⠉', '⠻'], ['17.7'], '⌽', 'circle', 'superposed-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '\\@$c]' }),
+  shapeModificationToken('shape.circle.interior-bar', ['⠫', '⠉', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '⦶', 'circle', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$\\]' }),
+  shapeToken('shape.triangle.plural', ['⠫', '⠞', '⠎'], ['17.9'], '⧌', 'triangle-plural', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$ts' }),
   // Rule 11.1.1: the general omission sign is the equals-shaped cell ⠿.
   // Its MathML placeholder is a question mark; it is not ordinary equals.
   token('omission.general', ['⠿'], ['11.1.1'], '?', 'mo', { sourceNotation: '=' }),

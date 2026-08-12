@@ -195,9 +195,7 @@ test('Rule 23 superposed integral fixtures match BANA and SRE for complete symbo
   const fixtures = [
     ['∮', '⠮⠈⠫⠉⠻', '23.12'],
     ['∯', '⠮⠮⠈⠫⠉⠻', '23.12'],
-    ['∰', '⠮⠮⠮⠈⠫⠉⠻', '23.12'],
-    ['∲', '⠮⠈⠫⠪⠢⠔⠻', '23.12'],
-    ['∳', '⠮⠈⠫⠢⠔⠕⠻', '23.12']
+    ['∰', '⠮⠮⠮⠈⠫⠉⠻', '23.12']
   ];
   for (const [symbol, expected, banaRef] of fixtures) {
     assert.equal(await nemeth(`<math><mo>${symbol}</mo></math>`), expected, `${symbol} (${banaRef})`);

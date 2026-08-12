@@ -7,7 +7,7 @@
   "inputPolicies": {
     "immediate": 236,
     "atomicSequence": 263,
-    "structuralFollowup": 53
+    "structuralFollowup": 46
   },
   "registryDiagnostics": {
     "policyErrors": [],
@@ -2249,10 +2249,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "amp",
       "args": {
         "name": "mi",
-        "value": "amp"
+        "value": "amp",
+        "sourceNotation": "amp"
       },
       "banaRefs": [
         "18.1",
@@ -2279,10 +2280,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "antilog",
       "args": {
         "name": "mi",
-        "value": "antilog"
+        "value": "antilog",
+        "sourceNotation": "antilog"
       },
       "banaRefs": [
         "18.1",
@@ -2305,10 +2307,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "arc",
       "args": {
         "name": "mi",
-        "value": "arc"
+        "value": "arc",
+        "sourceNotation": "arc"
       },
       "banaRefs": [
         "18.1",
@@ -2331,10 +2334,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "arg",
       "args": {
         "name": "mi",
-        "value": "arg"
+        "value": "arg",
+        "sourceNotation": "arg"
       },
       "banaRefs": [
         "18.1",
@@ -2359,10 +2363,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "colog",
       "args": {
         "name": "mi",
-        "value": "colog"
+        "value": "colog",
+        "sourceNotation": "colog"
       },
       "banaRefs": [
         "18.1",
@@ -2385,10 +2390,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "cos",
       "args": {
         "name": "mi",
-        "value": "cos"
+        "value": "cos",
+        "sourceNotation": "cos"
       },
       "banaRefs": [
         "18.1",
@@ -2412,10 +2418,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "cosh",
       "args": {
         "name": "mi",
-        "value": "cosh"
+        "value": "cosh",
+        "sourceNotation": "cosh"
       },
       "banaRefs": [
         "18.1",
@@ -2438,10 +2445,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "cot",
       "args": {
         "name": "mi",
-        "value": "cot"
+        "value": "cot",
+        "sourceNotation": "cot"
       },
       "banaRefs": [
         "18.1",
@@ -2465,10 +2473,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "coth",
       "args": {
         "name": "mi",
-        "value": "coth"
+        "value": "coth",
+        "sourceNotation": "coth"
       },
       "banaRefs": [
         "18.1",
@@ -2494,10 +2503,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "covers",
       "args": {
         "name": "mi",
-        "value": "covers"
+        "value": "covers",
+        "sourceNotation": "covers"
       },
       "banaRefs": [
         "18.1",
@@ -2520,10 +2530,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "csc",
       "args": {
         "name": "mi",
-        "value": "csc"
+        "value": "csc",
+        "sourceNotation": "csc"
       },
       "banaRefs": [
         "18.1",
@@ -2547,10 +2558,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "csch",
       "args": {
         "name": "mi",
-        "value": "csch"
+        "value": "csch",
+        "sourceNotation": "csch"
       },
       "banaRefs": [
         "18.1",
@@ -2573,10 +2585,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "ctn",
       "args": {
         "name": "mi",
-        "value": "ctn"
+        "value": "ctn",
+        "sourceNotation": "ctn"
       },
       "banaRefs": [
         "18.1",
@@ -2600,10 +2613,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "ctnh",
       "args": {
         "name": "mi",
-        "value": "ctnh"
+        "value": "ctnh",
+        "sourceNotation": "ctnh"
       },
       "banaRefs": [
         "18.1",
@@ -2626,10 +2640,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "det",
       "args": {
         "name": "mi",
-        "value": "det"
+        "value": "det",
+        "sourceNotation": "det"
       },
       "banaRefs": [
         "18.1",
@@ -2652,10 +2667,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "erf",
       "args": {
         "name": "mi",
-        "value": "erf"
+        "value": "erf",
+        "sourceNotation": "erf"
       },
       "banaRefs": [
         "18.1",
@@ -2678,10 +2694,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "exp",
       "args": {
         "name": "mi",
-        "value": "exp"
+        "value": "exp",
+        "sourceNotation": "exp"
       },
       "banaRefs": [
         "18.1",
@@ -2706,10 +2723,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "exsec",
       "args": {
         "name": "mi",
-        "value": "exsec"
+        "value": "exsec",
+        "sourceNotation": "exsec"
       },
       "banaRefs": [
         "18.1",
@@ -2733,10 +2751,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "grad",
       "args": {
         "name": "mi",
-        "value": "grad"
+        "value": "grad",
+        "sourceNotation": "grad"
       },
       "banaRefs": [
         "18.1",
@@ -2759,10 +2778,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "hav",
       "args": {
         "name": "mi",
-        "value": "hav"
+        "value": "hav",
+        "sourceNotation": "hav"
       },
       "banaRefs": [
         "18.1",
@@ -2784,10 +2804,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "im",
       "args": {
         "name": "mi",
-        "value": "im"
+        "value": "im",
+        "sourceNotation": "im"
       },
       "banaRefs": [
         "18.1",
@@ -2810,10 +2831,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "inf",
       "args": {
         "name": "mi",
-        "value": "inf"
+        "value": "inf",
+        "sourceNotation": "inf"
       },
       "banaRefs": [
         "18.1",
@@ -2836,10 +2858,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "lim",
       "args": {
         "name": "mi",
-        "value": "lim"
+        "value": "lim",
+        "sourceNotation": "lim"
       },
       "banaRefs": [
         "18.1",
@@ -2861,10 +2884,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "ln",
       "args": {
         "name": "mi",
-        "value": "ln"
+        "value": "ln",
+        "sourceNotation": "ln"
       },
       "banaRefs": [
         "18.1",
@@ -2887,10 +2911,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "log",
       "args": {
         "name": "mi",
-        "value": "log"
+        "value": "log",
+        "sourceNotation": "log"
       },
       "banaRefs": [
         "18.1",
@@ -2913,10 +2938,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "max",
       "args": {
         "name": "mi",
-        "value": "max"
+        "value": "max",
+        "sourceNotation": "max"
       },
       "banaRefs": [
         "18.1",
@@ -2939,10 +2965,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "min",
       "args": {
         "name": "mi",
-        "value": "min"
+        "value": "min",
+        "sourceNotation": "min"
       },
       "banaRefs": [
         "18.1",
@@ -2965,10 +2992,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "mod",
       "args": {
         "name": "mi",
-        "value": "mod"
+        "value": "mod",
+        "sourceNotation": "mod"
       },
       "banaRefs": [
         "18.1",
@@ -2990,10 +3018,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "re",
       "args": {
         "name": "mi",
-        "value": "re"
+        "value": "re",
+        "sourceNotation": "re"
       },
       "banaRefs": [
         "18.1",
@@ -3016,10 +3045,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "sec",
       "args": {
         "name": "mi",
-        "value": "sec"
+        "value": "sec",
+        "sourceNotation": "sec"
       },
       "banaRefs": [
         "18.1",
@@ -3043,10 +3073,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "sech",
       "args": {
         "name": "mi",
-        "value": "sech"
+        "value": "sech",
+        "sourceNotation": "sech"
       },
       "banaRefs": [
         "18.1",
@@ -3069,10 +3100,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "sin",
       "args": {
         "name": "mi",
-        "value": "sin"
+        "value": "sin",
+        "sourceNotation": "sin"
       },
       "banaRefs": [
         "18.1",
@@ -3096,10 +3128,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "sinh",
       "args": {
         "name": "mi",
-        "value": "sinh"
+        "value": "sinh",
+        "sourceNotation": "sinh"
       },
       "banaRefs": [
         "18.1",
@@ -3122,10 +3155,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "sup",
       "args": {
         "name": "mi",
-        "value": "sup"
+        "value": "sup",
+        "sourceNotation": "sup"
       },
       "banaRefs": [
         "18.1",
@@ -3148,10 +3182,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "tan",
       "args": {
         "name": "mi",
-        "value": "tan"
+        "value": "tan",
+        "sourceNotation": "tan"
       },
       "banaRefs": [
         "18.1",
@@ -3175,10 +3210,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "tanh",
       "args": {
         "name": "mi",
-        "value": "tanh"
+        "value": "tanh",
+        "sourceNotation": "tanh"
       },
       "banaRefs": [
         "18.1",
@@ -3202,10 +3238,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "vers",
       "args": {
         "name": "mi",
-        "value": "vers"
+        "value": "vers",
+        "sourceNotation": "vers"
       },
       "banaRefs": [
         "18.1",
@@ -3229,9 +3266,10 @@
       ],
       "action": "open-function-limit",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "<lim",
       "args": {
-        "direction": "over"
+        "direction": "over",
+        "sourceNotation": "<lim"
       },
       "banaRefs": [
         "18.3"
@@ -3254,9 +3292,10 @@
       ],
       "action": "open-function-limit",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "%lim",
       "args": {
-        "direction": "under"
+        "direction": "under",
+        "sourceNotation": "%lim"
       },
       "banaRefs": [
         "18.3"
@@ -4412,10 +4451,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "+-",
       "args": {
         "name": "mo",
-        "value": "±"
+        "value": "±",
+        "sourceNotation": "+-"
       },
       "banaRefs": [
         "20.6"
@@ -4436,10 +4476,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "-+",
       "args": {
         "name": "mo",
-        "value": "∓"
+        "value": "∓",
+        "sourceNotation": "-+"
       },
       "banaRefs": [
         "20.6"
@@ -4600,12 +4641,13 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "_-",
       "args": {
         "name": "mo",
         "value": "−",
         "mathvariant": "bold",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "_-"
       },
       "banaRefs": [
         "20.6"
@@ -4627,10 +4669,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "-\"-",
       "args": {
         "name": "mo",
-        "value": "−−"
+        "value": "−−",
+        "sourceNotation": "-\"-"
       },
       "banaRefs": [
         "20.6"
@@ -4654,10 +4697,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "_-\"_+",
       "args": {
         "name": "mo",
-        "value": "−+"
+        "value": "−+",
+        "sourceNotation": "_-\"_+"
       },
       "banaRefs": [
         "20.6"
@@ -4679,10 +4723,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "-\"+",
       "args": {
         "name": "mo",
-        "value": "−+"
+        "value": "−+",
+        "sourceNotation": "-\"+"
       },
       "banaRefs": [
         "20.6"
@@ -4705,10 +4750,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "-\"_+",
       "args": {
         "name": "mo",
-        "value": "−+"
+        "value": "−+",
+        "sourceNotation": "-\"_+"
       },
       "banaRefs": [
         "20.6"
@@ -4729,12 +4775,13 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "_+",
       "args": {
         "name": "mo",
         "value": "+",
         "mathvariant": "bold",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "_+"
       },
       "banaRefs": [
         "20.6"
@@ -4758,10 +4805,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "_+\"_-",
       "args": {
         "name": "mo",
-        "value": "+−"
+        "value": "+−",
+        "sourceNotation": "_+\"_-"
       },
       "banaRefs": [
         "20.6"
@@ -4783,10 +4831,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "+\"-",
       "args": {
         "name": "mo",
-        "value": "+−"
+        "value": "+−",
+        "sourceNotation": "+\"-"
       },
       "banaRefs": [
         "20.6"
@@ -4809,10 +4858,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "+\"_-",
       "args": {
         "name": "mo",
-        "value": "+−"
+        "value": "+−",
+        "sourceNotation": "+\"_-"
       },
       "banaRefs": [
         "20.6"
@@ -4833,10 +4883,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ".-",
       "args": {
         "name": "mo",
-        "value": "∸"
+        "value": "∸",
+        "sourceNotation": ".-"
       },
       "banaRefs": [
         "20.6"
@@ -5010,12 +5061,13 @@
       ],
       "action": "extend-integral",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": "!!",
       "args": {
         "values": {
           "∫": "∬",
           "∬": "∭"
-        }
+        },
+        "sourceNotation": "!!"
       },
       "banaRefs": [
         "23.12"
@@ -5133,62 +5185,6 @@
       ]
     },
     {
-      "id": "integral.superpose.clockwise",
-      "commandLabel": "integral.superpose.clockwise",
-      "cells": [
-        "⠈",
-        "⠫",
-        "⠪",
-        "⠢",
-        "⠔",
-        "⠻"
-      ],
-      "action": "superpose-integral",
-      "commitPolicy": "structural-followup",
-      "sourceNotation": null,
-      "args": {
-        "value": "∲"
-      },
-      "banaRefs": [
-        "15.9",
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.superpose.anticlockwise",
-      "commandLabel": "integral.superpose.anticlockwise",
-      "cells": [
-        "⠈",
-        "⠫",
-        "⠢",
-        "⠔",
-        "⠕",
-        "⠻"
-      ],
-      "action": "superpose-integral",
-      "commitPolicy": "structural-followup",
-      "sourceNotation": null,
-      "args": {
-        "value": "∳"
-      },
-      "banaRefs": [
-        "15.9",
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
       "id": "integral.superpose.rectangle",
       "commandLabel": "integral.superpose.rectangle",
       "cells": [
@@ -5243,137 +5239,6 @@
       ]
     },
     {
-      "id": "integral.superpose.finite-part",
-      "commandLabel": "integral.superpose.finite-part",
-      "cells": [
-        "⠈",
-        "⠱",
-        "⠻"
-      ],
-      "action": "superpose-integral",
-      "commitPolicy": "structural-followup",
-      "sourceNotation": null,
-      "args": {
-        "value": "⨍"
-      },
-      "banaRefs": [
-        "15.9",
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.superpose.double-stroke",
-      "commandLabel": "integral.superpose.double-stroke",
-      "cells": [
-        "⠈",
-        "⠱",
-        "⠱",
-        "⠻"
-      ],
-      "action": "superpose-integral",
-      "commitPolicy": "structural-followup",
-      "sourceNotation": null,
-      "args": {
-        "value": "⨎"
-      },
-      "banaRefs": [
-        "15.9",
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.superpose.times",
-      "commandLabel": "integral.superpose.times",
-      "cells": [
-        "⠈",
-        "⠈",
-        "⠡",
-        "⠻"
-      ],
-      "action": "superpose-integral",
-      "commitPolicy": "structural-followup",
-      "sourceNotation": null,
-      "args": {
-        "value": "⨘"
-      },
-      "banaRefs": [
-        "15.9",
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.superpose.intersection",
-      "commandLabel": "integral.superpose.intersection",
-      "cells": [
-        "⠈",
-        "⠨",
-        "⠩",
-        "⠻"
-      ],
-      "action": "superpose-integral",
-      "commitPolicy": "structural-followup",
-      "sourceNotation": null,
-      "args": {
-        "value": "⨙"
-      },
-      "banaRefs": [
-        "15.9",
-        "20.4",
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
-      "id": "integral.superpose.union",
-      "commandLabel": "integral.superpose.union",
-      "cells": [
-        "⠈",
-        "⠨",
-        "⠬",
-        "⠻"
-      ],
-      "action": "superpose-integral",
-      "commitPolicy": "structural-followup",
-      "sourceNotation": null,
-      "args": {
-        "value": "⨚"
-      },
-      "banaRefs": [
-        "15.9",
-        "20.4",
-        "23.12"
-      ],
-      "errataRefs": [],
-      "validContexts": [
-        "empty-root",
-        "row",
-        "structure-slot"
-      ]
-    },
-    {
       "id": "operator.sum",
       "commandLabel": "operator.sum",
       "cells": [
@@ -5383,10 +5248,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ".,s",
       "args": {
         "name": "mo",
-        "value": "∑"
+        "value": "∑",
+        "sourceNotation": ".,s"
       },
       "banaRefs": [
         "6.1.4",
@@ -6968,7 +6834,7 @@
       ],
       "action": "open-structure",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "(",
       "args": {
         "element": "mrow",
         "slots": [
@@ -6978,7 +6844,8 @@
           "data-omniya-group": "round"
         },
         "initialSlot": "content",
-        "preferLonger": false
+        "preferLonger": false,
+        "sourceNotation": "("
       },
       "banaRefs": [
         "19.1",
@@ -6999,9 +6866,10 @@
       ],
       "action": "close-structure",
       "commitPolicy": "structural-followup",
-      "sourceNotation": null,
+      "sourceNotation": ")",
       "args": {
-        "element": "mrow"
+        "element": "mrow",
+        "sourceNotation": ")"
       },
       "banaRefs": [
         "19.1"
@@ -7397,11 +7265,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "._(",
       "args": {
         "name": "mo",
         "value": "⦃",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "._("
       },
       "banaRefs": [
         "19.1"
@@ -7423,11 +7292,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "._)",
       "args": {
         "name": "mo",
         "value": "⦄",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "._)"
       },
       "banaRefs": [
         "19.1"
@@ -8153,10 +8023,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "/.k",
       "args": {
         "name": "mo",
-        "value": "≠"
+        "value": "≠",
+        "sourceNotation": "/.k"
       },
       "banaRefs": [
         "21.1",
@@ -8515,10 +8386,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "`<,<",
       "args": {
         "name": "mo",
-        "value": "≎"
+        "value": "≎",
+        "sourceNotation": "`<,<"
       },
       "banaRefs": [
         "21.9",
@@ -10050,11 +9922,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "$[",
       "args": {
         "name": "mo",
         "value": "∠",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$["
       },
       "banaRefs": [
         "17.1"
@@ -10276,10 +10149,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "|",
       "args": {
         "name": "mo",
         "value": "|",
+        "sourceNotation": "|",
         "preferLonger": true
       },
       "banaRefs": [
@@ -10382,10 +10256,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "/_l",
       "args": {
         "name": "mo",
-        "value": "≢"
+        "value": "≢",
+        "sourceNotation": "/_l"
       },
       "banaRefs": [
         "21.3"
@@ -10507,10 +10382,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "`5",
       "args": {
         "name": "mo",
-        "value": "∋"
+        "value": "∋",
+        "sourceNotation": "`5"
       },
       "banaRefs": [
         "21.4"
@@ -10532,10 +10408,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "/`5",
       "args": {
         "name": "mo",
-        "value": "∌"
+        "value": "∌",
+        "sourceNotation": "/`5"
       },
       "banaRefs": [
         "21.4"
@@ -10557,10 +10434,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "\"k:",
       "args": {
         "name": "mo",
-        "value": "≤"
+        "value": "≤",
+        "sourceNotation": "\"k:"
       },
       "banaRefs": [
         "21.5"
@@ -10582,10 +10460,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": ".1:",
       "args": {
         "name": "mo",
-        "value": "≥"
+        "value": "≥",
+        "sourceNotation": ".1:"
       },
       "banaRefs": [
         "21.5"
@@ -10606,10 +10485,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "_l",
       "args": {
         "name": "mo",
-        "value": "≡"
+        "value": "≡",
+        "sourceNotation": "_l"
       },
       "banaRefs": [
         "21.3"
@@ -10631,10 +10511,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "/\"k",
       "args": {
         "name": "mo",
-        "value": "≮"
+        "value": "≮",
+        "sourceNotation": "/\"k"
       },
       "banaRefs": [
         "21.8"
@@ -10656,10 +10537,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "/.1",
       "args": {
         "name": "mo",
-        "value": "≯"
+        "value": "≯",
+        "sourceNotation": "/.1"
       },
       "banaRefs": [
         "21.8"
@@ -11931,11 +11813,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "$c",
       "args": {
         "name": "mo",
         "value": "○",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$c"
       },
       "banaRefs": [
         "17.1"
@@ -11956,11 +11839,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$d",
       "args": {
         "name": "mo",
         "value": "◊",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$d"
       },
       "banaRefs": [
         "17.1"
@@ -11981,11 +11865,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$e",
       "args": {
         "name": "mo",
         "value": "⬭",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$e"
       },
       "banaRefs": [
         "17.1"
@@ -12090,11 +11975,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$g",
       "args": {
         "name": "mo",
         "value": "▱",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$g"
       },
       "banaRefs": [
         "17.1"
@@ -12141,11 +12027,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$s",
       "args": {
         "name": "mo",
         "value": "☆",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$s"
       },
       "banaRefs": [
         "17.1"
@@ -12166,11 +12053,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$z",
       "args": {
         "name": "mo",
         "value": "⏢",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$z"
       },
       "banaRefs": [
         "17.1"
@@ -12191,11 +12079,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": ".$",
       "args": {
         "name": "mo",
         "value": "▽",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": ".$"
       },
       "banaRefs": [
         "17.1"
@@ -12216,11 +12105,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "$4",
       "args": {
         "name": "mo",
         "value": "□",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$4"
       },
       "banaRefs": [
         "17.1"
@@ -12242,10 +12132,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$_c",
       "args": {
         "name": "mo",
-        "value": "●"
+        "value": "●",
+        "sourceNotation": "$_c"
       },
       "banaRefs": [
         "17.3"
@@ -12267,10 +12158,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$_4",
       "args": {
         "name": "mo",
-        "value": "■"
+        "value": "■",
+        "sourceNotation": "$_4"
       },
       "banaRefs": [
         "17.3"
@@ -12292,10 +12184,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$.c",
       "args": {
         "name": "mo",
-        "value": "◍"
+        "value": "◍",
+        "sourceNotation": "$.c"
       },
       "banaRefs": [
         "17.3"
@@ -12317,10 +12210,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$.e",
       "args": {
         "name": "mo",
-        "value": "◌"
+        "value": "◌",
+        "sourceNotation": "$.e"
       },
       "banaRefs": [
         "17.3"
@@ -12341,11 +12235,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "$t",
       "args": {
         "name": "mo",
         "value": "△",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$t"
       },
       "banaRefs": [
         "17.1"
@@ -12366,11 +12261,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "immediate",
-      "sourceNotation": null,
+      "sourceNotation": "$r",
       "args": {
         "name": "mo",
         "value": "▭",
-        "preferLonger": true
+        "preferLonger": true,
+        "sourceNotation": "$r"
       },
       "banaRefs": [
         "17.2"
@@ -12391,10 +12287,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$a",
       "args": {
         "name": "mo",
         "value": "⁀",
+        "sourceNotation": "$a",
         "dataAttributes": {
           "data-omniya-shape-kind": "arc-down"
         }
@@ -12418,10 +12315,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$'",
       "args": {
         "name": "mo",
         "value": "⌢",
+        "sourceNotation": "$'",
         "dataAttributes": {
           "data-omniya-shape-kind": "arc-up"
         }
@@ -12445,11 +12343,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$h",
       "args": {
         "name": "mo",
         "value": "◇",
         "preferLonger": true,
+        "sourceNotation": "$h",
         "dataAttributes": {
           "data-omniya-shape-kind": "rhombus"
         }
@@ -12473,11 +12372,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$i",
       "args": {
         "name": "mo",
         "value": "╳",
         "preferLonger": true,
+        "sourceNotation": "$i",
         "dataAttributes": {
           "data-omniya-shape-kind": "intersecting-lines"
         }
@@ -12501,11 +12401,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$q",
       "args": {
         "name": "mo",
         "value": "▱",
         "preferLonger": true,
+        "sourceNotation": "$q",
         "dataAttributes": {
           "data-omniya-shape-kind": "quadrilateral"
         }
@@ -12530,10 +12431,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$hx",
       "args": {
         "name": "mo",
         "value": "⬡",
+        "sourceNotation": "$hx",
         "dataAttributes": {
           "data-omniya-shape-kind": "irregular-hexagon"
         }
@@ -12558,10 +12460,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$pg",
       "args": {
         "name": "mo",
         "value": "⭔",
+        "sourceNotation": "$pg",
         "dataAttributes": {
           "data-omniya-shape-kind": "irregular-pentagon"
         }
@@ -12586,10 +12489,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$oc",
       "args": {
         "name": "mo",
         "value": "⯃",
+        "sourceNotation": "$oc",
         "dataAttributes": {
           "data-omniya-shape-kind": "irregular-octagon"
         }
@@ -12613,10 +12517,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$8",
       "args": {
         "name": "mo",
         "value": "⯃",
+        "sourceNotation": "$8",
         "dataAttributes": {
           "data-omniya-shape-kind": "regular-octagon"
         }
@@ -12641,10 +12546,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$12",
       "args": {
         "name": "mo",
         "value": "⯃",
+        "sourceNotation": "$12",
         "dataAttributes": {
           "data-omniya-shape-kind": "regular-12-gon"
         }
@@ -13227,10 +13133,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$c_$+]",
       "args": {
         "name": "mo",
         "value": "⨁",
+        "sourceNotation": "$c_$+]",
         "dataAttributes": {
           "data-omniya-shape-kind": "circle",
           "data-omniya-shape-modification": "interior-plus"
@@ -13294,10 +13201,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$c_$@*]",
       "args": {
         "name": "mo",
         "value": "⊗",
+        "sourceNotation": "$c_$@*]",
         "dataAttributes": {
           "data-omniya-shape-kind": "circle",
           "data-omniya-shape-modification": "interior-cross"
@@ -13326,10 +13234,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$c_$-]",
       "args": {
         "name": "mo",
         "value": "⊖",
+        "sourceNotation": "$c_$-]",
         "dataAttributes": {
           "data-omniya-shape-kind": "circle",
           "data-omniya-shape-modification": "interior-minus"
@@ -13358,10 +13267,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$c_$*]",
       "args": {
         "name": "mo",
         "value": "⦿",
+        "sourceNotation": "$c_$*]",
         "dataAttributes": {
           "data-omniya-shape-kind": "circle",
           "data-omniya-shape-modification": "interior-dot"
@@ -13426,10 +13336,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$4_$5@9]",
       "args": {
         "name": "mo",
         "value": "⊠",
+        "sourceNotation": "$4_$5@9]",
         "dataAttributes": {
           "data-omniya-shape-kind": "square",
           "data-omniya-shape-modification": "interior-diagonals"
@@ -13458,10 +13369,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$4_$*]",
       "args": {
         "name": "mo",
         "value": "⊡",
+        "sourceNotation": "$4_$*]",
         "dataAttributes": {
           "data-omniya-shape-kind": "square",
           "data-omniya-shape-modification": "interior-dot"
@@ -13523,10 +13435,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$4_$\\]",
       "args": {
         "name": "mo",
         "value": "◫",
+        "sourceNotation": "$4_$\\]",
         "dataAttributes": {
           "data-omniya-shape-kind": "square",
           "data-omniya-shape-modification": "interior-vertical-bar"
@@ -13555,10 +13468,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$4_$5]",
       "args": {
         "name": "mo",
         "value": "⧅",
+        "sourceNotation": "$4_$5]",
         "dataAttributes": {
           "data-omniya-shape-kind": "square",
           "data-omniya-shape-modification": "interior-nw-se-diagonal"
@@ -13587,10 +13501,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$4_$9]",
       "args": {
         "name": "mo",
         "value": "⧄",
+        "sourceNotation": "$4_$9]",
         "dataAttributes": {
           "data-omniya-shape-kind": "square",
           "data-omniya-shape-modification": "interior-sw-ne-diagonal"
@@ -13618,10 +13533,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "\\@$c]",
       "args": {
         "name": "mo",
         "value": "⌽",
+        "sourceNotation": "\\@$c]",
         "dataAttributes": {
           "data-omniya-shape-kind": "circle",
           "data-omniya-shape-modification": "superposed-vertical-bar"
@@ -13650,10 +13566,11 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$c_$\\]",
       "args": {
         "name": "mo",
         "value": "⦶",
+        "sourceNotation": "$c_$\\]",
         "dataAttributes": {
           "data-omniya-shape-kind": "circle",
           "data-omniya-shape-modification": "interior-vertical-bar"
@@ -13679,11 +13596,12 @@
       ],
       "action": "insert-token",
       "commitPolicy": "atomic-sequence",
-      "sourceNotation": null,
+      "sourceNotation": "$ts",
       "args": {
         "name": "mo",
         "value": "⧌",
         "preferLonger": true,
+        "sourceNotation": "$ts",
         "dataAttributes": {
           "data-omniya-shape-kind": "triangle-plural"
         }

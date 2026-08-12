@@ -452,11 +452,33 @@ test('BANA source notation is retained for the basic Rule 20 and comparison atom
     ['operator.circle-dot', '$c_$*]'],
     ['operator.circle-plus', '$c_$+]'],
     ['operator.circle-minus', '$c_$-]'],
+    ['operator.plus-minus', '+-'],
+    ['operator.minus-plus', '-+'],
+    ['operator.minus-bold', '_-'],
+    ['operator.minus-minus', '-"-'],
+    ['operator.minus-plus-bold', '_-"_+'],
+    ['operator.minus-plus-horizontal', '-"+'],
+    ['operator.minus-plus-regular-bold', '-"_+'],
+    ['operator.plus-bold', '_+'],
+    ['operator.plus-minus-bold', '_+"_-'],
+    ['operator.plus-minus-regular', '+"-'],
+    ['operator.plus-minus-regular-bold', '+"_-'],
+    ['operator.proper-difference', '.-'],
     ['operator.union', '.+'],
     ['operator.intersection', '.%'],
     ['operator.logical-and', '`%'],
     ['operator.logical-or', '`+'],
     ['operator.divides', '|'],
+    ['comparison.not-equal', '/.k'],
+    ['comparison.equivalence', '`<,<'],
+    ['comparison.contains', '`5'],
+    ['comparison.not-contains', '/`5'],
+    ['comparison.less-equal', '"k:'],
+    ['comparison.greater-equal', '.1:'],
+    ['comparison.identical', '_l'],
+    ['comparison.not-less', '/"k'],
+    ['comparison.not-greater', '/.1'],
+    ['misc.not-identical', '/_l'],
     ['misc.infinity', ',='],
     ['misc.tally', '_'],
     ['misc.percent', '`0'],
@@ -535,6 +557,8 @@ test('BANA Rules 9, 12, 13, 14, 15, 16, and 19 retain the printed local codes', 
     ['radical.indexed.end', ']'],
     ['group.parenthesis-open', '('],
     ['group.parenthesis-close', ')'],
+    ['group.round', '('],
+    ['group.round.end', ')'],
     ['group.bracket-open', '@('],
     ['group.bracket-close', '@)'],
     ['group.brace-open', '.('],
@@ -545,6 +569,8 @@ test('BANA Rules 9, 12, 13, 14, 15, 16, and 19 retain the printed local codes', 
     ['group.bold-bracket-close', '_@)'],
     ['group.barred-bracket-open', '@_('],
     ['group.barred-bracket-close', '@_)'],
+    ['group.barred-brace-open', '._('],
+    ['group.barred-brace-close', '._)'],
     ['group.upper-half-open', '@^('],
     ['group.upper-half-close', '@^)'],
     ['group.lower-half-open', '@;('],
@@ -553,6 +579,54 @@ test('BANA Rules 9, 12, 13, 14, 15, 16, and 19 retain the printed local codes', 
   ]) {
     assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
   }
+});
+
+test('BANA Rules 17 and 18 retain exact published local source notation', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation] of [
+    ['shape.circle', '$c'],
+    ['shape.diamond', '$d'],
+    ['shape.ellipse', '$e'],
+    ['shape.regular-hexagon', '$6'],
+    ['shape.parallelogram', '$g'],
+    ['shape.regular-pentagon', '$5'],
+    ['shape.star', '$s'],
+    ['shape.trapezoid', '$z'],
+    ['shape.inverted-triangle', '.$'],
+    ['shape.square', '$4'],
+    ['shape.triangle', '$t'],
+    ['shape.rectangle', '$r'],
+    ['shape.arc.down', '$a'],
+    ['shape.arc.up', "$'"],
+    ['shape.rhombus', '$h'],
+    ['shape.intersecting-lines', '$i'],
+    ['shape.quadrilateral', '$q'],
+    ['shape.irregular-hexagon', '$hx'],
+    ['shape.irregular-pentagon', '$pg'],
+    ['shape.irregular-octagon', '$oc'],
+    ['shape.regular-octagon', '$8'],
+    ['shape.regular-dodecagon', '$12'],
+    ['shape.filled-circle', '$_c'],
+    ['shape.filled-square', '$_4'],
+    ['shape.shaded-circle', '$.c'],
+    ['shape.shaded-ellipse', '$.e'],
+    ['function.sin', 'sin'],
+    ['function.limit.upper', '<lim'],
+    ['function.limit.lower', '%lim']
+  ]) assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
+});
+
+test('the registry does not advertise integral superpositions absent from the Rule 23 symbol table', () => {
+  const ids = new Set(operationRegistry().map((entry) => entry.id));
+  for (const id of [
+    'integral.superpose.clockwise',
+    'integral.superpose.anticlockwise',
+    'integral.superpose.finite-part',
+    'integral.superpose.double-stroke',
+    'integral.superpose.times',
+    'integral.superpose.intersection',
+    'integral.superpose.union'
+  ]) assert.equal(ids.has(id), false, id);
 });
 
 test('BANA Rule 9.2 general reference indicator consumes exactly one local atom', () => {
@@ -814,6 +888,7 @@ test('BANA Rule 23 repeated integrals use immediate and bounded forms', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   const entry = registry.get('integral.extend');
   assert.equal(entry?.cells.join(''), '⠮');
+  assert.equal(entry?.args?.sourceNotation, '!!');
   assert.equal(entry?.commitPolicy, 'structural-followup');
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
@@ -834,13 +909,8 @@ test('BANA Rule 23 superposed integrals are structural follow-ups to an immediat
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, cells, expected] of [
     ['integral.superpose.circle', '⠈⠫⠉⠻', '∮'],
-    ['integral.superpose.clockwise', '⠈⠫⠪⠢⠔⠻', '∲'],
-    ['integral.superpose.anticlockwise', '⠈⠫⠢⠔⠕⠻', '∳'],
-    ['integral.superpose.finite-part', '⠈⠱⠻', '⨍'],
-    ['integral.superpose.double-stroke', '⠈⠱⠱⠻', '⨎'],
-    ['integral.superpose.times', '⠈⠈⠡⠻', '⨘'],
-    ['integral.superpose.intersection', '⠈⠨⠩⠻', '⨙'],
-    ['integral.superpose.union', '⠈⠨⠬⠻', '⨚'],
+    ['integral.superpose.infinity', '⠈⠠⠿⠻', '∰'],
+    ['integral.superpose.rectangle', '⠈⠫⠗⠻', '∯'],
     ['integral.superpose.square', '⠈⠫⠲⠻', '⨖']
   ]) {
     const entry = registry.get(id);
