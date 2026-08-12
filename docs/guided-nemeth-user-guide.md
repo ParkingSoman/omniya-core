@@ -55,6 +55,15 @@ on the page, it is structural-followup. These choices are properties of the
 registry rows, so adding a new BANA construction does not require a new
 editing mode or a second parser.
 
+For an arrow used as a modifier, complete the arrow code before pressing
+**Enter**. For example, after opening a directly-over modifier, `$[33o` is one
+local Rule 15.12 code. Omniya does not place a partial barb or shaft in the
+modifier slot. If you stop early or enter a cell that is not part of that
+registered arrow, the slot remains unchanged and you can correct the local
+code. This same bounded rule applies to any BANA construction whose individual
+cells are not meaningful until the complete local symbol is known; it is not
+specific to arrows.
+
 ### Multi-level scripts
 
 Nemeth level indicators can describe a script on a script. Enter the complete

@@ -628,7 +628,7 @@ function scopeForCurrent(tree, focus) {
   };
 }
 
-function wrapModifierScope(tree, scope, elementName, value) {
+function wrapModifierScope(tree, scope, elementName, value, dataAttributes = {}) {
   const parent = findMathNode(tree, scope?.parentNodeId);
   if (!parent || !Array.isArray(parent.children)) {
     throw new RangeError('The modifier expression scope is no longer available.');
@@ -644,13 +644,13 @@ function wrapModifierScope(tree, scope, elementName, value) {
     : element('mrow', selected);
   if (selected.length === 1) base.attrs['data-omniya-id'] = id();
   wrapper.children.push(base);
-  const modifier = atom('mo', value, { 'data-omniya-role': elementName === 'munder' ? 'underscript' : 'overscript' });
+  const modifier = atom('mo', value, { 'data-omniya-role': elementName === 'munder' ? 'underscript' : 'overscript', ...dataAttributes });
   wrapper.children.push(modifier);
   parent.children.splice(first, selected.length, wrapper);
   return { tree, focus: focusNode(modifier), wrapper };
 }
 
-function insertModifier(tree, focus, value, modeValue = null, scope = null) {
+function insertModifier(tree, focus, value, modeValue = null, scope = null, dataAttributes = {}) {
   // BANA 15.5: parallel horizontal bars are one modifier, not higher-order
   // modifiers.  Append only to the currently occupied local modifier slot.
   if (modeValue === 'modifier-complete' && value === '¯') {
@@ -659,14 +659,14 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null) {
     const role = current.attrs?.['data-omniya-role'];
     if (parent && ['mover', 'munder'].includes(parent.name) &&
       ['overscript', 'underscript'].includes(role) && current.name === 'mo' && current.children?.[0]?.text === '¯') {
-      const row = element('mrow', [current, atom('mo', '¯', { 'data-omniya-role': role })]);
+      const row = element('mrow', [current, atom('mo', '¯', { 'data-omniya-role': role, ...dataAttributes })]);
       const index = parent.children.indexOf(current);
       parent.children[index] = row;
       return { tree, focus: focusNode(row.children[1]), wrapper: parent };
     }
     if (parent && ['mover', 'munder'].includes(parent.name) &&
       ['overscript', 'underscript'].includes(role) && current.name === 'mrow') {
-      current.children.push(atom('mo', '¯', { 'data-omniya-role': role }));
+      current.children.push(atom('mo', '¯', { 'data-omniya-role': role, ...dataAttributes }));
       return { tree, focus: focusNode(current.children.at(-1)), wrapper: parent };
     }
   }
@@ -684,7 +684,7 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null) {
       : null;
     if (slotParent?.name === 'munderover') {
       const role = current.attrs?.['data-omniya-role'];
-      const replacement = atom('mo', value, { 'data-omniya-role': role });
+      const replacement = atom('mo', value, { 'data-omniya-role': role, ...dataAttributes });
       const index = slotParent.children.indexOf(current);
       slotParent.children[index] = replacement;
       return { tree, focus: focusNode(replacement), wrapper: slotParent };
@@ -699,7 +699,7 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null) {
           parentNodeId: tree.attrs['data-omniya-id'],
           firstNodeId: tree.children[0].attrs['data-omniya-id'],
           lastNodeId: fallback.attrs['data-omniya-id']
-        }, modifierElementForMode(modeValue), value);
+        }, modifierElementForMode(modeValue), value, dataAttributes);
       }
       throw new RangeError('A modifier needs an expression before its modifier cell.');
     }
@@ -707,14 +707,14 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null) {
       scope = scopeForCurrent(tree, focus);
     }
     if (scope) {
-      const wrapped = wrapModifierScope(tree, scope, modifierElementForMode(modeValue), value);
+      const wrapped = wrapModifierScope(tree, scope, modifierElementForMode(modeValue), value, dataAttributes);
       return { tree, focus: wrapped.focus, wrapper: wrapped.wrapper };
     }
     const elementName = modifierElementForMode(modeValue);
     const initialSlot = elementName === 'munder' ? 'underscript' : 'overscript';
     const wrapped = wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
     const slot = currentNode(tree, wrapped.focus);
-    const replacement = atom('mo', value);
+    const replacement = atom('mo', value, dataAttributes);
     replacement.attrs['data-omniya-role'] = initialSlot;
     const parent = findMathParent(tree, slot.attrs?.['data-omniya-id']);
     const index = parent?.children.indexOf(slot) ?? -1;
@@ -731,12 +731,12 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null) {
           parentNodeId: tree.attrs['data-omniya-id'],
           firstNodeId: tree.children[0].attrs['data-omniya-id'],
           lastNodeId: fallback.attrs['data-omniya-id']
-        }, 'mover', value);
+        }, 'mover', value, dataAttributes);
       }
       throw new RangeError('A modifier needs an expression before its modifier cell.');
     }
     const scopeTarget = scope ?? scopeForCurrent(tree, focus);
-    if (scopeTarget) return wrapModifierScope(tree, scopeTarget, 'mover', value);
+    if (scopeTarget) return wrapModifierScope(tree, scopeTarget, 'mover', value, dataAttributes);
   }
   // BANA 15.2.2/15.2.3 contracted form: a single focused letter or digit
   // followed by the horizontal bar is itself a complete local modification.
@@ -752,7 +752,7 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null) {
       const wrapper = element('mover', [], { 'data-omniya-id': current.attrs['data-omniya-id'] });
       const base = structuredClone(current);
       base.attrs['data-omniya-id'] = id();
-      wrapper.children.push(base, atom('mo', value, { 'data-omniya-role': 'overscript' }));
+      wrapper.children.push(base, atom('mo', value, { 'data-omniya-role': 'overscript', ...dataAttributes }));
       parent.children[index] = wrapper;
       return { tree, focus: focusNode(wrapper.children[1]), wrapper };
     }
@@ -765,7 +765,7 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null) {
   const role = parent.name === 'munder' ? 'underscript' : 'overscript';
   const slot = parent.children.find((child) => child.attrs?.['data-omniya-role'] === role);
   if (!slot || !isHole(slot)) throw new RangeError('The modifier slot is already occupied.');
-  const replacement = atom('mo', value);
+  const replacement = atom('mo', value, dataAttributes);
   replacement.attrs['data-omniya-role'] = role;
   const index = parent.children.indexOf(slot);
   parent.children[index] = replacement;
@@ -814,6 +814,14 @@ const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multip
 });
 const modifierToken = (id, cells, banaRefs, value, options = {}) => ({
   id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+  args: { name: 'mo', value, ...options }
+});
+// A modifier can itself be a complete BANA construction made from several
+// cells.  Keep that construction in the same bounded local-code registry as
+// ordinary arrows and shape interiors.  The modifier's MathML slot is not
+// changed until Enter commits the exact registered sequence.
+const atomicModifierToken = (id, cells, banaRefs, value, options = {}) => ({
+  id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
   args: { name: 'mo', value, ...options }
 });
 const simultaneous = (id, cells, banaRefs, direction, sourceNotation = null) => ({
@@ -1071,6 +1079,25 @@ const MAPPINGS = [
   simultaneous('modifier.simultaneous.under', ['⠩'], ['15.4'], 'under', '%'),
   modifierToken('modifier.arc.down', ['⠫', '⠁'], ['15.11'], '⁀', { sourceNotation: '$a' }),
   modifierToken('modifier.arc.up', ['⠫', '⠄'], ['15.11'], '‿', { sourceNotation: "$'" }),
+  // Rule 15.12 lists arrow modifiers separately from the general Rule 22
+  // arrow constructions.  Each complete code is one bounded local sequence
+  // after the over/under slot has been opened.  The Unicode glyph is only a
+  // display projection; the source notation and intent attribute preserve
+  // the BANA distinction where Unicode has no exact barbed/dotted glyph.
+  atomicModifierToken('modifier.arrow.barbed-both', ['⠫', '⠪', '⠒', '⠒', '⠕'], ['15.12'], '↔', { sourceNotation: '$[33o', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-barbed-both' } }),
+  atomicModifierToken('modifier.arrow.barbed-left', ['⠫', '⠪', '⠒', '⠒'], ['15.12'], '←', { sourceNotation: '$[33', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-barbed-left' } }),
+  atomicModifierToken('modifier.arrow.barbed-left-dotted-right', ['⠫', '⠪', '⠒', '⠒', '⠡'], ['15.12'], '⇇', { sourceNotation: '$[33*', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-left-barbed-right-dotted' } }),
+  atomicModifierToken('modifier.arrow.barbed-right', ['⠫', '⠕'], ['15.12'], '→', { sourceNotation: '$o', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-barbed-right' } }),
+  atomicModifierToken('modifier.arrow.barbed-right-uncontracted', ['⠫', '⠒', '⠒', '⠕'], ['15.12'], '→', { sourceNotation: '$33o', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-barbed-right-uncontracted' } }),
+  atomicModifierToken('modifier.arrow.dotted-both', ['⠫', '⠡', '⠒', '⠒', '⠡'], ['15.12'], '⇤⇥', { sourceNotation: '$*33*', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-dotted-both' } }),
+  atomicModifierToken('modifier.arrow.dotted-left', ['⠫', '⠡', '⠒', '⠒'], ['15.12'], '⇤', { sourceNotation: '$*33', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-dotted-left' } }),
+  atomicModifierToken('modifier.arrow.dotted-left-barbed-right', ['⠫', '⠡', '⠒', '⠒', '⠕'], ['15.12'], '⇥', { sourceNotation: '$*33o', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-left-dotted-right-barbed' } }),
+  atomicModifierToken('modifier.arrow.dotted-right', ['⠫', '⠒', '⠒', '⠡'], ['15.12'], '⇥', { sourceNotation: '$33*', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-dotted-right' } }),
+  atomicModifierToken('modifier.arrow.hollow-both', ['⠫', '⠨', '⠡', '⠒', '⠒', '⠨', '⠡'], ['15.12'], '⇔', { sourceNotation: '$.*33.*', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-hollow-both' } }),
+  atomicModifierToken('modifier.arrow.hollow-left', ['⠫', '⠨', '⠡', '⠒', '⠒'], ['15.12'], '⇐', { sourceNotation: '$.*33', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-hollow-left' } }),
+  atomicModifierToken('modifier.arrow.hollow-left-barbed-right', ['⠫', '⠨', '⠡', '⠒', '⠒', '⠕'], ['15.12'], '⇨', { sourceNotation: '$.*33o', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-left-hollow-right-barbed' } }),
+  atomicModifierToken('modifier.arrow.hollow-right-barbed-left', ['⠫', '⠪', '⠒', '⠒', '⠨', '⠡'], ['15.12'], '⇦', { sourceNotation: '$[33.*', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-left-barbed-right-hollow' } }),
+  atomicModifierToken('modifier.arrow.hollow-right', ['⠫', '⠒', '⠒', '⠨', '⠡'], ['15.12'], '⇥', { sourceNotation: '$33.*', dataAttributes: { 'data-omniya-nemeth-intent': 'modifier-arrow-hollow-right' } }),
   modifierToken('modifier.caret.over', ['⠸', '⠣'], ['15.15'], '^', { sourceNotation: '_<' }),
   modifierToken('modifier.caret.inverted', ['⠸', '⠩'], ['15.15'], '∨', { sourceNotation: '_%' }),
   modifierToken('modifier.caret.left', ['⠰', '⠣'], ['15.15'], '‹', { sourceNotation: ';<' }),
@@ -1757,7 +1784,7 @@ function applyMapping(document, focus, inputState, mapping) {
     result = insertQuantifierUnique(tree, focus);
   } else if (mapping.action === 'insert-modifier') {
     try {
-      result = insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope);
+      result = insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope, args.dataAttributes ?? {});
     } catch (error) {
       return { status: 'rejected', document, focus, inputState, announcement: error.message };
     }
@@ -2343,7 +2370,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       ? ['operator.equals', 'comparison.less', 'comparison.greater', 'comparison.less-equal', 'comparison.greater-equal', 'comparison.not-equal'].includes(mapping.id)
       : true)
     .filter((mapping) => state.mode?.startsWith?.('modifier-')
-      ? ['insert-token', 'insert-numeric', 'insert-modifier', 'close-structure'].includes(mapping.action)
+      ? ['insert-modifier', 'close-structure'].includes(mapping.action)
       : true)
     .filter((mapping) => state.mode === 'multipurpose'
       ? mapping.action !== 'open-modifier'
@@ -2414,7 +2441,7 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
   const mappings = (PREFIXES.get(prefix)?.mappings ?? [])
     .filter((mapping) => mappingApplies(mapping, context))
     .filter((mapping) => inputState.mode?.startsWith?.('modifier-')
-      ? ['insert-token', 'insert-numeric', 'insert-modifier', 'close-structure'].includes(mapping.action)
+      ? ['insert-modifier', 'close-structure'].includes(mapping.action)
       : true)
     .filter((mapping) => inputState.mode === 'multipurpose'
       ? mapping.action === 'open-modifier'

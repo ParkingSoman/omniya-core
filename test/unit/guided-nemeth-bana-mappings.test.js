@@ -1038,6 +1038,75 @@ test('BANA Rule 15 five-step modifier transition creates a local mover', () => {
   assert.equal(tree.children[0].children[0].children[0].text, 'a');
 });
 
+test('BANA Rule 15.12 arrow modifiers are bounded local sequences, not per-cell modifiers', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const fixtures = [
+    ['modifier.arrow.barbed-both', '$[33o', '↔'],
+    ['modifier.arrow.barbed-left', '$[33', '←'],
+    ['modifier.arrow.barbed-left-dotted-right', '$[33*', '⇇'],
+    ['modifier.arrow.barbed-right', '$o', '→'],
+    ['modifier.arrow.barbed-right-uncontracted', '$33o', '→'],
+    ['modifier.arrow.dotted-both', '$*33*', '⇤⇥'],
+    ['modifier.arrow.dotted-left', '$*33', '⇤'],
+    ['modifier.arrow.dotted-left-barbed-right', '$*33o', '⇥'],
+    ['modifier.arrow.dotted-right', '$33*', '⇥'],
+    ['modifier.arrow.hollow-both', '$.*33.*', '⇔'],
+    ['modifier.arrow.hollow-left', '$.*33', '⇐'],
+    ['modifier.arrow.hollow-left-barbed-right', '$.*33o', '⇨'],
+    ['modifier.arrow.hollow-right-barbed-left', '$[33.*', '⇦'],
+    ['modifier.arrow.hollow-right', '$33.*', '⇥']
+  ];
+  for (const [id, sourceNotation, expected] of fixtures) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    assert.equal(entry.args?.sourceNotation, sourceNotation, id);
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    // Establish the BANA five-step local modifier scope: expression, then
+    // directly-over. The arrow code itself is held until its final cell and
+    // committed with Enter as one registered Rule 15.12 construction.
+    for (const cell of ['⠐', '⠁', '⠣']) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    for (const cell of entry.cells) {
+      const result = applyNemethCell({ document, focus, inputState, cell });
+      assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    assert.equal(parseMathML(document.mathml).children.length, 1, `${id}: no mutation before Enter`);
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', `${id}: ${committed.announcement}`);
+    const tree = parseMathML(committed.document.mathml);
+    const modifier = tree.children[0];
+    assert.equal(modifier.name, 'mover', id);
+    assert.equal(modifier.children[1].children[0].text, expected, id);
+    assert.equal(modifier.children[1].attrs['data-omniya-nemeth-intent'], entry.args.dataAttributes['data-omniya-nemeth-intent'], id);
+  }
+});
+
+test('an incomplete Rule 15.12 arrow modifier leaves its existing hole untouched', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠁', '⠣', '⠫', '⠪', '⠒']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const beforeCommit = document.mathml;
+  const rejected = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(rejected.status, 'rejected');
+  assert.equal(rejected.document.mathml, beforeCommit);
+  assert.match(rejected.announcement, /incomplete|invalid/i);
+  const tree = parseMathML(rejected.document.mathml);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].children[0].text, 'a');
+});
+
 test('BANA Rule 15 five-step order works for under-modifiers as well', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

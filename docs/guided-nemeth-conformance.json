@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 236,
-    "atomicSequence": 273,
+    "atomicSequence": 287,
     "structuralFollowup": 50
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 210,
+    "shadowedAtomicCount": 214,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -502,6 +502,22 @@
         "immediateId": "indicator.english-letter"
       },
       {
+        "atomicId": "modifier.arrow.barbed-both",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "modifier.arrow.barbed-left",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "modifier.arrow.barbed-left-dotted-right",
+        "immediateId": "misc.angle"
+      },
+      {
+        "atomicId": "modifier.arrow.hollow-right-barbed-left",
+        "immediateId": "misc.angle"
+      },
+      {
         "atomicId": "group.bold-bracket-open",
         "immediateId": "misc.tally"
       },
@@ -858,7 +874,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 559,
+    "notation": 573,
     "contextual": 2
   },
   "operations": [
@@ -7149,6 +7165,451 @@
       },
       "banaRefs": [
         "15.11"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.barbed-both",
+      "commandLabel": "modifier.arrow.barbed-both",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$[33o",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "↔",
+        "sourceNotation": "$[33o",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-barbed-both"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.barbed-left",
+      "commandLabel": "modifier.arrow.barbed-left",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$[33",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "←",
+        "sourceNotation": "$[33",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-barbed-left"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.barbed-left-dotted-right",
+      "commandLabel": "modifier.arrow.barbed-left-dotted-right",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠡"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$[33*",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇇",
+        "sourceNotation": "$[33*",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-left-barbed-right-dotted"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.barbed-right",
+      "commandLabel": "modifier.arrow.barbed-right",
+      "cells": [
+        "⠫",
+        "⠕"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$o",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "→",
+        "sourceNotation": "$o",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-barbed-right"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.barbed-right-uncontracted",
+      "commandLabel": "modifier.arrow.barbed-right-uncontracted",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$33o",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "→",
+        "sourceNotation": "$33o",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-barbed-right-uncontracted"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.dotted-both",
+      "commandLabel": "modifier.arrow.dotted-both",
+      "cells": [
+        "⠫",
+        "⠡",
+        "⠒",
+        "⠒",
+        "⠡"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$*33*",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇤⇥",
+        "sourceNotation": "$*33*",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-dotted-both"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.dotted-left",
+      "commandLabel": "modifier.arrow.dotted-left",
+      "cells": [
+        "⠫",
+        "⠡",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$*33",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇤",
+        "sourceNotation": "$*33",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-dotted-left"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.dotted-left-barbed-right",
+      "commandLabel": "modifier.arrow.dotted-left-barbed-right",
+      "cells": [
+        "⠫",
+        "⠡",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$*33o",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇥",
+        "sourceNotation": "$*33o",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-left-dotted-right-barbed"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.dotted-right",
+      "commandLabel": "modifier.arrow.dotted-right",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠡"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$33*",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇥",
+        "sourceNotation": "$33*",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-dotted-right"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.hollow-both",
+      "commandLabel": "modifier.arrow.hollow-both",
+      "cells": [
+        "⠫",
+        "⠨",
+        "⠡",
+        "⠒",
+        "⠒",
+        "⠨",
+        "⠡"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$.*33.*",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇔",
+        "sourceNotation": "$.*33.*",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-hollow-both"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.hollow-left",
+      "commandLabel": "modifier.arrow.hollow-left",
+      "cells": [
+        "⠫",
+        "⠨",
+        "⠡",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$.*33",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇐",
+        "sourceNotation": "$.*33",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-hollow-left"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.hollow-left-barbed-right",
+      "commandLabel": "modifier.arrow.hollow-left-barbed-right",
+      "cells": [
+        "⠫",
+        "⠨",
+        "⠡",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$.*33o",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇨",
+        "sourceNotation": "$.*33o",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-left-hollow-right-barbed"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.hollow-right-barbed-left",
+      "commandLabel": "modifier.arrow.hollow-right-barbed-left",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠨",
+        "⠡"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$[33.*",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇦",
+        "sourceNotation": "$[33.*",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-left-barbed-right-hollow"
+        }
+      },
+      "banaRefs": [
+        "15.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.arrow.hollow-right",
+      "commandLabel": "modifier.arrow.hollow-right",
+      "cells": [
+        "⠫",
+        "⠒",
+        "⠒",
+        "⠨",
+        "⠡"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "$33.*",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⇥",
+        "sourceNotation": "$33.*",
+        "dataAttributes": {
+          "data-omniya-nemeth-intent": "modifier-arrow-hollow-right"
+        }
+      },
+      "banaRefs": [
+        "15.12"
       ],
       "errataRefs": [],
       "validContexts": [
