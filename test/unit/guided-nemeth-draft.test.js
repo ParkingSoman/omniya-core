@@ -24,7 +24,7 @@ test('sequential Nemeth cells build a plain MathML row one token at a time', () 
   let inputState = { prefix: '', mode: null };
   for (const value of ['⠁', '⠬', '⠃']) {
     const result = cell(document, focus, inputState, value);
-    assert.equal(result.status, 'applied');
+    assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);
   }
   const tree = parseMathML(document.mathml);
@@ -54,6 +54,65 @@ test('fraction cells create and traverse structural slots without parsing a pass
   assert.equal(tree.children[0].name, 'mfrac');
   assert.equal(tree.children[0].children[0].children[0].text, 'a');
   assert.equal(tree.children[0].children[1].children[0].text, 'b');
+});
+
+test('complex and hypercomplex fraction indicators keep their BANA distinction locally', () => {
+  for (const [kind, opening, separator, closing] of [
+    ['complex', ['⠠', '⠹'], ['⠠', '⠌'], ['⠠', '⠼']],
+    ['hypercomplex', ['⠠', '⠠', '⠹'], ['⠠', '⠠', '⠌'], ['⠠', '⠠', '⠼']]
+  ]) {
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    for (const value of [...opening, '⠁', ...separator, '⠃', ...closing]) {
+      const result = cell(document, focus, inputState, value);
+      assert.notEqual(result.status, 'rejected', `${kind}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+    const root = parseMathML(document.mathml);
+    assert.equal(root.children[0].name, 'mfrac');
+    assert.equal(root.children[0].attrs['data-omniya-fraction-kind'], kind);
+    assert.equal(root.children[0].children[0].children[0].text, 'a');
+    assert.equal(root.children[0].children[1].children[0].text, 'b');
+  }
+});
+
+test('fixed-index roots create canonical mroot structure one code at a time', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠣', '⠒', '⠜', '⠁', '⠻']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const root = parseMathML(document.mathml);
+  assert.equal(root.children[0].name, 'mroot');
+  assert.equal(root.children[0].children[0].children[0].text, 'a');
+  assert.equal(root.children[0].children[1].children[0].text, '3');
+});
+
+test('omission and cancellation indicators become local MathML constructs', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  const omission = cell(document, focus, inputState, '⠿');
+  assert.equal(omission.status, 'applied');
+  const omissionTree = parseMathML(omission.document.mathml);
+  assert.equal(omissionTree.children[0].children[0].text, '?');
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  for (const value of ['⠪', '⠭', '⠻']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'menclose');
+  assert.equal(tree.children[0].attrs.notation, 'updiagonalstrike');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
 });
 
 test('indexed radicals preserve MathML child order while following Nemeth entry order', () => {
@@ -118,6 +177,24 @@ test('numeric and capital indicators are local modes, not passage parsing', () =
   }
   const tree = parseMathML(document.mathml);
   assert.deepEqual(tree.children.filter((node) => node.name !== 'mspace').map((node) => node.children[0].text), ['1', '2', 'C']);
+});
+
+test('the shared baseline and multipurpose cell is selected by valid local context', () => {
+  const document = createEmptyDraftMathDocument();
+  const rootResult = cell(document, document.focus, { prefix: '', mode: null }, '⠐');
+  assert.equal(rootResult.status, 'pending');
+  assert.equal(rootResult.inputState.prefix, '⠐');
+
+  let nested = document;
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠘', '⠁', '⠐']) {
+    const result = cell(nested, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document: nested, focus, inputState } = result);
+  }
+  assert.equal(inputState.mode, null);
+  assert.match(nested.mathml, /<msup/);
 });
 
 test('punctuation and Greek symbols remain declarative token mappings', () => {

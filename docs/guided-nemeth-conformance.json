@@ -586,7 +586,8 @@
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "+"
+        "value": "+",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.1"
@@ -751,6 +752,161 @@
       ]
     },
     {
+      "id": "punctuation.exclamation",
+      "commandLabel": "punctuation.exclamation",
+      "cells": [
+        "⠸",
+        "⠖"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "!"
+      },
+      "banaRefs": [
+        "8.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.long-dash",
+      "commandLabel": "punctuation.long-dash",
+      "cells": [
+        "⠤",
+        "⠤",
+        "⠤",
+        "⠤"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "―"
+      },
+      "banaRefs": [
+        "8.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.ellipsis",
+      "commandLabel": "punctuation.ellipsis",
+      "cells": [
+        "⠄",
+        "⠄",
+        "⠄"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "…"
+      },
+      "banaRefs": [
+        "8.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.left-single-quote",
+      "commandLabel": "punctuation.left-single-quote",
+      "cells": [
+        "⠠",
+        "⠦"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "‘"
+      },
+      "banaRefs": [
+        "8.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.right-single-quote",
+      "commandLabel": "punctuation.right-single-quote",
+      "cells": [
+        "⠴",
+        "⠠"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "’"
+      },
+      "banaRefs": [
+        "8.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.left-double-quote",
+      "commandLabel": "punctuation.left-double-quote",
+      "cells": [
+        "⠦"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "“"
+      },
+      "banaRefs": [
+        "8.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.right-double-quote",
+      "commandLabel": "punctuation.right-double-quote",
+      "cells": [
+        "⠴"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "”"
+      },
+      "banaRefs": [
+        "8.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "operator.minus",
       "commandLabel": "operator.minus",
       "cells": [
@@ -759,7 +915,8 @@
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "−"
+        "value": "−",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.6"
@@ -803,7 +960,8 @@
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "<"
+        "value": "<",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.5"
@@ -825,7 +983,8 @@
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": ">"
+        "value": ">",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.5"
@@ -873,6 +1032,72 @@
       },
       "banaRefs": [
         "20.7"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.plus-minus",
+      "commandLabel": "operator.plus-minus",
+      "cells": [
+        "⠬",
+        "⠤"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "±"
+      },
+      "banaRefs": [
+        "20.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.minus-plus",
+      "commandLabel": "operator.minus-plus",
+      "cells": [
+        "⠤",
+        "⠬"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∓"
+      },
+      "banaRefs": [
+        "20.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.ring",
+      "commandLabel": "operator.ring",
+      "cells": [
+        "⠨",
+        "⠡"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∘"
+      },
+      "banaRefs": [
+        "20.3"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -959,8 +1184,11 @@
           "numerator",
           "denominator"
         ],
-        "attrs": {},
-        "initialSlot": "numerator"
+        "attrs": {
+          "data-omniya-fraction-kind": "simple"
+        },
+        "initialSlot": "numerator",
+        "preferLonger": false
       },
       "banaRefs": [
         "13.1",
@@ -1015,6 +1243,232 @@
       ]
     },
     {
+      "id": "fraction.start.complex",
+      "commandLabel": "fraction.start.complex",
+      "cells": [
+        "⠠",
+        "⠹"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "mfrac",
+        "slots": [
+          "numerator",
+          "denominator"
+        ],
+        "attrs": {
+          "data-omniya-fraction-kind": "complex"
+        },
+        "initialSlot": "numerator",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "13.5",
+        "13.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.complex",
+      "commandLabel": "fraction.next.denominator.complex",
+      "cells": [
+        "⠠",
+        "⠌"
+      ],
+      "action": "move-slot",
+      "args": {
+        "element": "mfrac",
+        "role": "denominator"
+      },
+      "banaRefs": [
+        "13.5",
+        "13.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.end.complex",
+      "commandLabel": "fraction.end.complex",
+      "cells": [
+        "⠠",
+        "⠼"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "mfrac"
+      },
+      "banaRefs": [
+        "13.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.start.hypercomplex",
+      "commandLabel": "fraction.start.hypercomplex",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠹"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "mfrac",
+        "slots": [
+          "numerator",
+          "denominator"
+        ],
+        "attrs": {
+          "data-omniya-fraction-kind": "hypercomplex"
+        },
+        "initialSlot": "numerator",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "13.7",
+        "13.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.hypercomplex",
+      "commandLabel": "fraction.next.denominator.hypercomplex",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠌"
+      ],
+      "action": "move-slot",
+      "args": {
+        "element": "mfrac",
+        "role": "denominator"
+      },
+      "banaRefs": [
+        "13.7",
+        "13.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.end.hypercomplex",
+      "commandLabel": "fraction.end.hypercomplex",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠼"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "mfrac"
+      },
+      "banaRefs": [
+        "13.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.start.mixed",
+      "commandLabel": "fraction.start.mixed",
+      "cells": [
+        "⠸",
+        "⠹"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "mfrac",
+        "slots": [
+          "numerator",
+          "denominator"
+        ],
+        "attrs": {
+          "data-omniya-fraction-kind": "mixed"
+        },
+        "initialSlot": "numerator",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "13.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.mixed",
+      "commandLabel": "fraction.next.denominator.mixed",
+      "cells": [
+        "⠸",
+        "⠌"
+      ],
+      "action": "move-slot",
+      "args": {
+        "element": "mfrac",
+        "role": "denominator"
+      },
+      "banaRefs": [
+        "13.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.end.mixed",
+      "commandLabel": "fraction.end.mixed",
+      "cells": [
+        "⠸",
+        "⠼"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "mfrac"
+      },
+      "banaRefs": [
+        "13.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "script.superscript",
       "commandLabel": "script.superscript",
       "cells": [
@@ -1028,7 +1482,8 @@
           "superscript"
         ],
         "attrs": {},
-        "initialSlot": "base"
+        "initialSlot": "base",
+        "preferLonger": false
       },
       "banaRefs": [
         "14.3",
@@ -1055,7 +1510,8 @@
           "subscript"
         ],
         "attrs": {},
-        "initialSlot": "base"
+        "initialSlot": "base",
+        "preferLonger": false
       },
       "banaRefs": [
         "14.8"
@@ -1090,6 +1546,27 @@
       ]
     },
     {
+      "id": "indicator.multipurpose",
+      "commandLabel": "indicator.multipurpose",
+      "cells": [
+        "⠐"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "multipurpose",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "24.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "radical.square",
       "commandLabel": "radical.square",
       "cells": [
@@ -1102,10 +1579,57 @@
           "radicand"
         ],
         "attrs": {},
-        "initialSlot": "radicand"
+        "initialSlot": "radicand",
+        "preferLonger": false
       },
       "banaRefs": [
         "16.1",
+        "16.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.cube",
+      "commandLabel": "radical.cube",
+      "cells": [
+        "⠣",
+        "⠒",
+        "⠜"
+      ],
+      "action": "open-fixed-root",
+      "args": {
+        "index": "3",
+        "indexText": "3"
+      },
+      "banaRefs": [
+        "16.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.fourth",
+      "commandLabel": "radical.fourth",
+      "cells": [
+        "⠣",
+        "⠲",
+        "⠜"
+      ],
+      "action": "open-fixed-root",
+      "args": {
+        "index": "4",
+        "indexText": "4"
+      },
+      "banaRefs": [
         "16.2"
       ],
       "errataRefs": [],
@@ -1149,7 +1673,8 @@
           "index"
         ],
         "attrs": {},
-        "initialSlot": "index"
+        "initialSlot": "index",
+        "preferLonger": true
       },
       "banaRefs": [
         "16.2",
@@ -1219,7 +1744,8 @@
         "attrs": {
           "data-omniya-group": "round"
         },
-        "initialSlot": "content"
+        "initialSlot": "content",
+        "preferLonger": false
       },
       "banaRefs": [
         "19.1",
@@ -1930,6 +2456,801 @@
       },
       "banaRefs": [
         "23.18"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.end-proof",
+      "commandLabel": "misc.end-proof",
+      "cells": [
+        "⠸",
+        "⠳"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∎"
+      },
+      "banaRefs": [
+        "23.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.double-prime",
+      "commandLabel": "misc.double-prime",
+      "cells": [
+        "⠄",
+        "⠄"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "″"
+      },
+      "banaRefs": [
+        "23.16"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.not",
+      "commandLabel": "misc.not",
+      "cells": [
+        "⠈",
+        "⠹"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "¬"
+      },
+      "banaRefs": [
+        "23.17"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.divides",
+      "commandLabel": "misc.divides",
+      "cells": [
+        "⠳"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∣"
+      },
+      "banaRefs": [
+        "23.11"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.does-not-divide",
+      "commandLabel": "misc.does-not-divide",
+      "cells": [
+        "⠌",
+        "⠳"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∤"
+      },
+      "banaRefs": [
+        "23.11"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.parallel",
+      "commandLabel": "misc.parallel",
+      "cells": [
+        "⠫",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∥"
+      },
+      "banaRefs": [
+        "17.2",
+        "21.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.not-parallel",
+      "commandLabel": "misc.not-parallel",
+      "cells": [
+        "⠌",
+        "⠫",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∦"
+      },
+      "banaRefs": [
+        "21.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.right-angle",
+      "commandLabel": "misc.right-angle",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠨",
+        "⠗",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∟"
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.proportional",
+      "commandLabel": "misc.proportional",
+      "cells": [
+        "⠸",
+        "⠿"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∝"
+      },
+      "banaRefs": [
+        "21.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.identical",
+      "commandLabel": "misc.identical",
+      "cells": [
+        "⠸",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≡"
+      },
+      "banaRefs": [
+        "21.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.not-identical",
+      "commandLabel": "misc.not-identical",
+      "cells": [
+        "⠌",
+        "⠸",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≢"
+      },
+      "banaRefs": [
+        "21.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "quantifier.forall",
+      "commandLabel": "quantifier.forall",
+      "cells": [
+        "⠈",
+        "⠯"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∀"
+      },
+      "banaRefs": [
+        "23.17"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "quantifier.exists",
+      "commandLabel": "quantifier.exists",
+      "cells": [
+        "⠈",
+        "⠿"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∃"
+      },
+      "banaRefs": [
+        "23.17"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "quantifier.not-exists",
+      "commandLabel": "quantifier.not-exists",
+      "cells": [
+        "⠌",
+        "⠈",
+        "⠿"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∄"
+      },
+      "banaRefs": [
+        "23.17"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.contains",
+      "commandLabel": "comparison.contains",
+      "cells": [
+        "⠈",
+        "⠢"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∋"
+      },
+      "banaRefs": [
+        "21.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.not-contains",
+      "commandLabel": "comparison.not-contains",
+      "cells": [
+        "⠌",
+        "⠈",
+        "⠢"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∌"
+      },
+      "banaRefs": [
+        "21.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.less-equal",
+      "commandLabel": "comparison.less-equal",
+      "cells": [
+        "⠐",
+        "⠅",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≤"
+      },
+      "banaRefs": [
+        "21.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.greater-equal",
+      "commandLabel": "comparison.greater-equal",
+      "cells": [
+        "⠨",
+        "⠂",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≥"
+      },
+      "banaRefs": [
+        "21.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.identical",
+      "commandLabel": "comparison.identical",
+      "cells": [
+        "⠸",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≡"
+      },
+      "banaRefs": [
+        "21.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.not-less",
+      "commandLabel": "comparison.not-less",
+      "cells": [
+        "⠌",
+        "⠐",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≮"
+      },
+      "banaRefs": [
+        "21.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.not-greater",
+      "commandLabel": "comparison.not-greater",
+      "cells": [
+        "⠌",
+        "⠨",
+        "⠂"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≯"
+      },
+      "banaRefs": [
+        "21.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.up",
+      "commandLabel": "arrow.up",
+      "cells": [
+        "⠫",
+        "⠣",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "↑"
+      },
+      "banaRefs": [
+        "22.4",
+        "22.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "arrow.down",
+      "commandLabel": "arrow.down",
+      "cells": [
+        "⠫",
+        "⠩",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "↓"
+      },
+      "banaRefs": [
+        "22.4",
+        "22.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "reference.asterisk",
+      "commandLabel": "reference.asterisk",
+      "cells": [
+        "⠈",
+        "⠼"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "*"
+      },
+      "banaRefs": [
+        "9.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "reference.dagger",
+      "commandLabel": "reference.dagger",
+      "cells": [
+        "⠸",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "†"
+      },
+      "banaRefs": [
+        "9.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "reference.double-dagger",
+      "commandLabel": "reference.double-dagger",
+      "cells": [
+        "⠸",
+        "⠸",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "‡"
+      },
+      "banaRefs": [
+        "9.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.circle",
+      "commandLabel": "shape.circle",
+      "cells": [
+        "⠫",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "○"
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.square",
+      "commandLabel": "shape.square",
+      "cells": [
+        "⠫",
+        "⠲"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "□"
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.filled-circle",
+      "commandLabel": "shape.filled-circle",
+      "cells": [
+        "⠫",
+        "⠸",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "●"
+      },
+      "banaRefs": [
+        "17.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.filled-square",
+      "commandLabel": "shape.filled-square",
+      "cells": [
+        "⠫",
+        "⠸",
+        "⠲"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "■"
+      },
+      "banaRefs": [
+        "17.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.triangle",
+      "commandLabel": "shape.triangle",
+      "cells": [
+        "⠫",
+        "⠞"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "△"
+      },
+      "banaRefs": [
+        "17.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.rectangle",
+      "commandLabel": "shape.rectangle",
+      "cells": [
+        "⠫",
+        "⠗"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "▭"
+      },
+      "banaRefs": [
+        "17.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "omission.general",
+      "commandLabel": "omission.general",
+      "cells": [
+        "⠿"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "?"
+      },
+      "banaRefs": [
+        "11.1.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "cancellation.start",
+      "commandLabel": "cancellation.start",
+      "cells": [
+        "⠪"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "menclose",
+        "slots": [
+          "content"
+        ],
+        "attrs": {
+          "notation": "updiagonalstrike"
+        },
+        "initialSlot": "content",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "12.1.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "cancellation.end",
+      "commandLabel": "cancellation.end",
+      "cells": [
+        "⠻"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "menclose"
+      },
+      "banaRefs": [
+        "12.1.1"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -3103,6 +4424,121 @@
       "args": {
         "name": "mi",
         "value": "Ω"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.variant-ϵ",
+      "commandLabel": "greek.variant-ϵ",
+      "cells": [
+        "⠨",
+        "⠈",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ϵ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.variant-ϑ",
+      "commandLabel": "greek.variant-ϑ",
+      "cells": [
+        "⠨",
+        "⠈",
+        "⠹"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ϑ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.variant-ϕ",
+      "commandLabel": "greek.variant-ϕ",
+      "cells": [
+        "⠨",
+        "⠈",
+        "⠋"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ϕ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.variant-ϖ",
+      "commandLabel": "greek.variant-ϖ",
+      "cells": [
+        "⠨",
+        "⠈",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ϖ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.variant-ϰ",
+      "commandLabel": "greek.variant-ϰ",
+      "cells": [
+        "⠨",
+        "⠈",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ϰ"
       },
       "banaRefs": [
         "6.2"

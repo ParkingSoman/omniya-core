@@ -15,19 +15,19 @@ Normative sources:
 | --- | --- | --- | --- |
 | Cell normalization and passage boundaries | Rules 1, 2, 4 | implemented as input policy | Unicode, Braille ASCII, expanded ASCII, eight-dot reduction tests |
 | Letters and numerals | Rules 3, 5, 6 | basic transitions implemented | number indicator, capitalization, alphabet and invalid-context fixtures |
-| Typeforms and punctuation | Rules 7, 8 | ledgered, transition families pending | exact official examples and source-linked diagnostics |
-| Reference signs and abbreviations | Rules 9, 10 | ledgered, transition families pending | compound-symbol fixtures |
-| Omissions and cancellation | Rules 11, 12 | ledgered, transition families pending | deletion and cancellation fixtures |
-| Fractions | Rule 13 | simple structural operation implemented | nested fraction depths 2, 8, 32 and terminators |
+| Typeforms and punctuation | Rules 7, 8 | punctuation token families implemented; typeform modes pending | exact official examples and source-linked diagnostics |
+| Reference signs and abbreviations | Rules 9, 10 | reference-sign tokens implemented; abbreviation context pending | compound-symbol fixtures |
+| Omissions and cancellation | Rules 11, 12 | general omission and diagonal cancellation transitions implemented; remaining omission/cancellation variants pending | deletion and cancellation fixtures |
+| Fractions | Rule 13 | simple, complex, hypercomplex, and mixed structural openings implemented | nested fraction depths 2, 8, 32 and terminators |
 | Scripts | Rule 14 | superscript/subscript core operations implemented | scripts, prescripts, multiscripts and baseline return |
 | Modifiers | Rule 15 | ledgered, transition families pending | modifiers on atoms and grouped expressions |
-| Radicals | Rule 16 | square-root core operation implemented | nested radicals and index slots |
-| Shapes and functions | Rules 17, 18 | ledgered, transition families pending | named and abbreviated functions |
+| Radicals | Rule 16 | square, indexed, cube, and fourth-root transitions implemented | nested radicals and index slots |
+| Shapes and functions | Rules 17, 18 | atomic shape tokens implemented; function context pending | named and abbreviated functions |
 | Grouping | Rule 19 | round grouping core operation implemented | paired boundaries and exact focus restoration |
-| Operators | Rule 20 | plus, minus, equals, multiplication core operations | official operator examples |
-| Comparisons and arrows | Rules 21, 22 | basic equals and comparison families pending | ambiguity and compound comparison fixtures |
-| Miscellaneous symbols | Rule 23 | bar ambiguity core operation implemented | symbol-index fixtures |
-| Multipurpose indicator | Rule 24 | registry reserved, family coverage pending | Appendix B combinations |
+| Operators | Rule 20 | core and compound operator tokens implemented | official operator examples |
+| Comparisons and arrows | Rules 21, 22 | core relations, quantifier relations, and cardinal arrows implemented; compound arrows pending | ambiguity and compound comparison fixtures |
+| Miscellaneous symbols | Rule 23 | quantifier, proof, relation, punctuation-adjacent, and Greek-variant literal symbols implemented | symbol-index fixtures |
+| Multipurpose indicator | Rule 24 | local baseline/multipurpose context selection implemented; modifier composition pending | Appendix B combinations |
 | Spatial arrangements | Rule 25 | deferred | separate design session |
 | Format | Rule 26 | document concern | excluded unless mathematical meaning changes |
 

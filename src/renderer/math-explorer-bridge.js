@@ -95,8 +95,16 @@ function targetForCanonicalIds(sourceRoot, ids) {
 }
 
 export function captureExplorerFocus(article) {
-  const semanticSelector = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.semanticFocus?.();
-  const focused = (semanticSelector
+  const speechExplorer = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech;
+  // MathJax's public semanticFocus() method returns a selector, but it is
+  // intentionally computed from the explorer's current node. During the
+  // short focus hand-off used by VoiceOver, the selector can briefly point at
+  // a node before its visual copy has been attached. Prefer that current node
+  // when it belongs to this article, then use the selector as the stable DOM
+  // fallback. This keeps the bridge exact without inventing an ancestor.
+  const current = speechExplorer?.current || speechExplorer?.refocus;
+  const semanticSelector = speechExplorer?.semanticFocus?.();
+  const focused = (current && article.contains(current) ? current : null) || (semanticSelector
     ? article.querySelector(`mjx-container ${semanticSelector}`) || article.querySelector(`mjx-assistive-mml ${semanticSelector}`)
     : null) || article.querySelector('[data-semantic-focus="true"], [data-semantic-id][aria-current="true"]');
   if (!focused) throw new Error('MathJax explorer has no focused node');

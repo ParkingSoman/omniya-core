@@ -169,7 +169,11 @@ function articleForContainer(container) { return container.closest('article.napk
 
 async function captureExplorerFocusWithRetry(article) {
   let lastError;
-  for (let attempt = 0; attempt < 6; attempt += 1) {
+  // Explorer focus is asynchronous when MathJax hands control back from a
+  // screen reader. Give the bridge enough time to observe the same current
+  // node that MathJax itself will use; never broaden a settled focus to the
+  // equation root as a recovery strategy.
+  for (let attempt = 0; attempt < 20; attempt += 1) {
     try {
       return captureExplorerFocus(article);
     } catch (error) {
@@ -433,17 +437,12 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       focus = { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' };
     }
   } catch (error) {
-    // The editor has no user-facing "unsafe focus" state. If MathJax is in a
-    // transient focus phase, retain a valid source-backed target and open the
-    // same replacement workflow. This fallback is deliberately limited to the
-    // canonical equation root and never mutates the source; the normal bridge
-    // above still supplies exact node/range scope for every settled Explorer
-    // focus. The diagnostic remains available for development builds.
-    console.error('MathJax focus bridge transiently unavailable; using canonical root', error);
-    const source = article.querySelector('mjx-assistive-mml math, mjx-math, math');
-    const rootId = source?.getAttribute('data-omniya-id') || source?.id?.replace(/^omniya-source-/, '');
-    if (!rootId) return;
-    focus = { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' };
+    // There is no safe broad fallback. A root replacement after a lost
+    // semantic focus would violate the exact-scope invariant. The bridge is
+    // retried above and this remains an internal diagnostic if MathJax ever
+    // changes its explorer contract.
+    console.error('MathJax focus bridge could not resolve the active node', error);
+    return;
   }
   replacementSession = startReplacementSession({
     document: item.math,
@@ -458,6 +457,9 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
   editor.value = '';
   elements['replacement-dock'].hidden = false;
   elements['replacement-scope'].textContent = focus.speech ? `Selected: ${focus.speech}` : 'Selected mathematical scope';
+  elements['replacement-scope'].dataset.targetId = focus.target.kind === 'node'
+    ? focus.target.nodeId
+    : focus.target.firstNodeId;
   elements['replacement-status'].textContent = preferredAuthoringMethod === 'nemeth'
     ? 'Enter Nemeth cells. The draft updates as each code completes.'
     : 'Enter LaTeX for the replacement expression.';

@@ -70,13 +70,22 @@ async function enterEquation(page, article) {
 }
 
 async function speechLabel(article) {
-  return article.locator('mjx-speech').getAttribute('aria-label');
+  return article.evaluate(() => {
+    const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+    return current?.getAttribute('data-semantic-speech-none')
+      || current?.getAttribute('data-speech')
+      || current?.getAttribute('aria-label')
+      || document.querySelector('article.napkin-article mjx-speech:last-of-type')?.getAttribute('aria-label');
+  });
 }
 
 async function waitForSpeechChange(page, article, previous) {
   await page.waitForFunction(
-    ({ selector, previousLabel }) => document.querySelector(selector)?.getAttribute('aria-label') !== previousLabel,
-    { selector: 'article.napkin-article mjx-speech', previousLabel: previous }
+    ({ previousLabel }) => {
+      const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+      return current?.getAttribute('data-semantic-speech-none') !== previousLabel;
+    },
+    { previousLabel: previous }
   );
 }
 
@@ -247,6 +256,24 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
     for (const key of prefix) await page.keyboard.press(key);
     await assertCurrentFocusCanBeReplaced(page);
   }
+
+  // One settled move is asserted against the active MathJax semantic node,
+  // not against a stale speech region retained for an ancestor. This is the
+  // regression guard for exact scope capture, while the loop above exercises
+  // every reachable nested focus for the no-error invariant.
+  await resetExplorer(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(100);
+  const focusedTargetId = await page.evaluate(() => {
+    const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+    return current?.getAttribute('data-omniya-id');
+  });
+  assert.ok(focusedTargetId, 'MathJax focus must map to a canonical Omniya node');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id'), focusedTargetId);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
 
   const matrix = await addEquation(page, '\\begin{matrix}a&b\\\\c&d\\end{matrix}');
   await resetExplorer(page, matrix);
