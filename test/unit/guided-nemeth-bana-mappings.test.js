@@ -59,11 +59,11 @@ const RULE_17_EXTENDED_FIXTURES = [
 const RULE_17_19_FIXTURES = [
   ['shape.diamond', '⠫⠙', '◊'],
   ['shape.ellipse', '⠫⠑', '⬭'],
-  ['shape.hexagon', '⠫⠖', '⬡'],
+  ['shape.regular-hexagon', '⠫⠖', '⬡'],
   ['shape.parallel', '⠫⠇', '∥'],
   ['shape.perpendicular', '⠫⠏', '⟂'],
   ['shape.parallelogram', '⠫⠛', '▱'],
-  ['shape.pentagon', '⠫⠢', '⬠'],
+  ['shape.regular-pentagon', '⠫⠢', '⬠'],
   ['shape.star', '⠫⠎', '☆'],
   ['shape.trapezoid', '⠫⠵', '⏢'],
   ['shape.inverted-triangle', '⠨⠫', '▽'],
@@ -256,9 +256,9 @@ test('official BANA and MathCAT cells guard corrected Greek, summation, and arro
     ['arrow.curved.left', '⠫⠯⠒⠒', '⇜'],
     ['arrow.straight.right', '⠫⠒⠒⠳', '⇥'],
     ['arrow.straight.left', '⠫⠳⠒⠒', '⇤'],
-    ['arrow.double-left', '⠫⠪⠶⠶', '⇐'],
-    ['arrow.double-right', '⠫⠶⠶⠕', '⇒'],
-    ['arrow.double-both', '⠫⠪⠶⠶⠕', '⇔'],
+    ['arrow.spear.left', '⠫⠪⠶⠶', '⟸'],
+    ['arrow.spear.right', '⠫⠶⠶⠕', '⟹'],
+    ['arrow.spear.both', '⠫⠪⠶⠶⠕', '⟺'],
     // BANA Rule 22 examples 22-4 through 22-16. These are kept as literal
     // source fixtures, not inferred by an arrow grammar.
     ['arrow.right', '⠫⠕', '→'],
@@ -335,6 +335,28 @@ test('BANA Rule 17 interior constructions and Rule 15 simultaneous modifiers are
   }
   assert.equal(registry.get('modifier.simultaneous.over')?.commitPolicy, 'structural-followup');
   assert.equal(registry.get('modifier.simultaneous.under')?.commitPolicy, 'structural-followup');
+});
+
+test('audited composite rows retain the BANA source notation alongside cells', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, sourceNotation] of [
+    ['operator.multiply', '`*'],
+    ['misc.infinity', ',='],
+    ['arrow.spear.right', '$77o'],
+    ['shape.angle.interior-arc', '$[_$$a}'],
+    ['shape.regular-hexagon', '$6'],
+    ['shape.regular-pentagon', '$5']
+  ]) {
+    assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
+  }
+});
+
+test('BANA 20.7 keeps cross, dot, and asterisk as distinct local operations', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  assert.equal(registry.get('operator.multiply')?.args?.sourceNotation, '`*');
+  assert.equal(registry.get('operator.dot')?.args?.sourceNotation, '*');
+  assert.equal(registry.get('operator.asterisk')?.cells.join(''), '⠈⠼');
+  assert.notEqual(registry.get('operator.multiply')?.args?.value, registry.get('operator.dot')?.args?.value);
 });
 
 test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () => {

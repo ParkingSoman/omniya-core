@@ -30,7 +30,7 @@ const report = {
     shadowedImmediate: diagnostics.shadowedImmediate
   },
   operations: operations.map(({ id, commandLabel, cells, action, commitPolicy, args, banaRefs, errataRefs, validContexts }) => ({
-    id, commandLabel, cells, action, commitPolicy, args, banaRefs, errataRefs, validContexts
+    id, commandLabel, cells, action, commitPolicy, sourceNotation: args?.sourceNotation ?? null, args, banaRefs, errataRefs, validContexts
   })),
   releaseBlockers: ['qualified Nemeth-transcriber review', 'blind-contributor task validation', 'complete Rules 1–24 ledger fixtures']
 };

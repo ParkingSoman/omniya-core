@@ -852,7 +852,7 @@ const MAPPINGS = [
   token('comparison.less', ['⠐', '⠅'], ['21.5'], '<', 'mo', { preferLonger: true }),
   token('comparison.greater', ['⠨', '⠂'], ['21.5'], '>', 'mo', { preferLonger: true }),
   token('operator.divide', ['⠨', '⠌'], ['20.8'], '÷'),
-  token('operator.multiply', ['⠈', '⠡'], ['20.7'], '×'),
+  token('operator.multiply', ['⠈', '⠡'], ['20.7'], '×', 'mo', { sourceNotation: '`*' }),
   token('operator.plus-minus', ['⠬', '⠤'], ['20.6'], '±'),
   token('operator.minus-plus', ['⠤', '⠬'], ['20.6'], '∓'),
   token('operator.ampersand', ['⠸', '⠯'], ['20.2'], '&'),
@@ -1106,9 +1106,14 @@ const MAPPINGS = [
   // standalone operation briefly when a longer registered local code can
   // continue; Enter still commits the standalone divides meaning.
   token('operator.divides', ['⠳'], ['20.1', '20.8'], '∣', 'mo', { preferLonger: true }),
-  token('operator.dot', ['⠡'], ['20.7'], '·'),
+  // BANA 20.7 distinguishes the multiplication dot from the cross and the
+  // midline asterisk. The source example calls this printed sign a dot; the
+  // U+00B7 middle-dot is the MathML projection used by the editor.
+  token('operator.dot', ['⠡'], ['20.7'], '·', 'mo', { sourceNotation: '*' }),
   token('operator.asterisk', ['⠈', '⠼'], ['20.3'], '∗'),
-  token('misc.infinity', ['⠠', '⠿'], ['23.11'], '∞'),
+  // BANA Appendix D writes infinity as `,=`. In the Nemeth source notation
+  // the comma is the dot-6 cell (⠠), not the multipurpose indicator (⠈).
+  token('misc.infinity', ['⠠', '⠿'], ['23.11'], '∞', 'mo', { sourceNotation: ',=' }),
   token('misc.angstrom', ['⠈', '⠠', '⠁'], ['23.1'], 'Å'),
   token('misc.at', ['⠈', '⠁'], ['23.2'], '@'),
   // Added by the October 2025 BANA errata, Rule 23 symbol list and §23.4.
@@ -1180,9 +1185,6 @@ const MAPPINGS = [
   token('misc.parallel', ['⠫', '⠇'], ['17.2', '21.2'], '∥'),
   token('misc.not-parallel', ['⠌', '⠫', '⠇'], ['21.2'], '∦'),
   token('misc.right-angle', ['⠫', '⠪', '⠨', '⠗', '⠻'], ['17.1'], '∟'),
-  token('misc.proportional', ['⠸', '⠿'], ['21.2'], '∝'),
-  token('misc.measured-angle', ['⠫', '⠪', '⠸', '⠫', '⠫', '⠁', '⠻'], ['17.6', '23.5'], '∡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('misc.identical', ['⠸', '⠇'], ['21.3'], '≡'),
   token('misc.not-identical', ['⠌', '⠸', '⠇'], ['21.3'], '≢'),
   token('quantifier.forall', ['⠈', '⠯'], ['23.17'], '∀'),
   token('quantifier.exists', ['⠈', '⠿'], ['23.17'], '∃', 'mo', { preferLonger: true }),
@@ -1207,19 +1209,14 @@ const MAPPINGS = [
   token('arrow.northeast', ['⠫', '⠘', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↗', 'mo', { preferLonger: true }),
   token('arrow.southeast', ['⠫', '⠰', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↘', 'mo', { preferLonger: true }),
   token('arrow.southwest', ['⠫', '⠰', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↙'),
-  token('arrow.double-left', ['⠫', '⠪', '⠶', '⠶'], ['22.5.2'], '⇐', 'mo', { preferLonger: true }),
-  token('arrow.double-right', ['⠫', '⠶', '⠶', '⠕'], ['22.5.2'], '⇒'),
-  token('arrow.double-both', ['⠫', '⠪', '⠶', '⠶', '⠕'], ['22.5.2'], '⇔'),
-  token('arrow.double-up', ['⠫', '⠣', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇑'),
-  token('arrow.double-down', ['⠫', '⠩', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇓'),
   // BANA Rule 22.5 examples 22-17 through 22-27 and Rule 22.6 examples
   // 22-28 through 22-30. These are exact bounded constructions from the
   // standard; a shaft is never inferred from an arbitrary cell stream.
   token('arrow.counterclockwise', ['⠫', '⠢', '⠔', '⠕'], ['22.5.1'], '↝', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('arrow.clockwise', ['⠫', '⠪', '⠢', '⠔'], ['22.5.1'], '↜', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('arrow.spear.right', ['⠫', '⠶', '⠶', '⠕'], ['22.5.2'], '⟹', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('arrow.spear.left', ['⠫', '⠪', '⠶', '⠶'], ['22.5.2'], '⟸', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('arrow.spear.both', ['⠫', '⠪', '⠶', '⠶', '⠕'], ['22.5.2'], '⟺', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('arrow.spear.right', ['⠫', '⠶', '⠶', '⠕'], ['22.5.2'], '⟹', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$77o' }),
+  token('arrow.spear.left', ['⠫', '⠪', '⠶', '⠶'], ['22.5.2'], '⟸', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[77' }),
+  token('arrow.spear.both', ['⠫', '⠪', '⠶', '⠶', '⠕'], ['22.5.2'], '⟺', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[77o' }),
   token('arrow.bold.right', ['⠫', '⠸', '⠒', '⠒', '⠕'], ['22.6'], '⇸', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('arrow.bold.left', ['⠫', '⠸', '⠪', '⠒', '⠒'], ['22.6'], '⟻', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('arrow.bold.both', ['⠫', '⠸', '⠪', '⠒', '⠒', '⠕'], ['22.6'], '⟷', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
@@ -1249,11 +1246,11 @@ const MAPPINGS = [
   token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { preferLonger: true }),
   token('shape.diamond', ['⠫', '⠙'], ['17.1'], '◊', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.ellipse', ['⠫', '⠑'], ['17.1'], '⬭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('shape.hexagon', ['⠫', '⠖'], ['17.1'], '⬡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.regular-hexagon', ['⠫', '⠖'], ['17.1'], '⬡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$6' }),
   token('shape.parallel', ['⠫', '⠇'], ['17.1'], '∥', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.perpendicular', ['⠫', '⠏'], ['17.1'], '⟂', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.parallelogram', ['⠫', '⠛'], ['17.1'], '▱', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('shape.pentagon', ['⠫', '⠢'], ['17.1'], '⬠', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('shape.regular-pentagon', ['⠫', '⠢'], ['17.1'], '⬠', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$5' }),
   token('shape.star', ['⠫', '⠎'], ['17.1'], '☆', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.trapezoid', ['⠫', '⠵'], ['17.1'], '⏢', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.inverted-triangle', ['⠨', '⠫'], ['17.1'], '▽', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
@@ -1295,7 +1292,8 @@ const MAPPINGS = [
   // a shape is represented by a separate named operation in a later editor
   // step rather than by buffering an arbitrary passage.
   shapeModificationToken('shape.circle.interior-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['17.6.1'], '⨁', 'circle', 'interior-plus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  shapeModificationToken('shape.angle.interior-arc', ['⠫', '⠪', '⠸', '⠫', '⠫', '⠁', '⠻'], ['17.6.1'], '∡', 'angle', 'interior-arc', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // The printed `}` is the BANA interior-shape terminator, whose cell is ⠻.
+  shapeModificationToken('shape.angle.interior-arc', ['⠫', '⠪', '⠸', '⠫', '⠫', '⠁', '⠻'], ['17.6.1'], '∡', 'angle', 'interior-arc', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[_$$a}' }),
   shapeModificationToken('shape.circle.interior-cross', ['⠫', '⠉', '⠸', '⠫', '⠈', '⠡', '⠻'], ['17.6.1'], '⊗', 'circle', 'interior-cross', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.circle.interior-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['17.6.1'], '⊖', 'circle', 'interior-minus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.circle.interior-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⦿', 'circle', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
