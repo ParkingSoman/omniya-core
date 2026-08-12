@@ -1215,11 +1215,20 @@ test('BANA Rule 23.8 treats QED as a transcriber-defined local shape', async () 
   assert.equal(SRE.toSpeech('<math><mo intent="qed">∎</mo></math>'), '⠸⠳');
 });
 
-test('every accepted mapping has an explicit BANA source and action', () => {
+test('BANA Rule 9 erratum uses the complete checkmark construction', () => {
+  const entry = operationRegistry().find((mapping) => mapping.id === 'reference.checkmark');
+  assert.ok(entry);
+  assert.equal(entry.args?.sourceNotation, '.=`$cm');
+  assert.deepEqual(entry.cells, ['⠨', '⠿', '⠈', '⠫', '⠉', '⠍']);
+  assert.ok(entry.errataRefs.some((ref) => ref.includes('Rule 9.1')));
+});
+
+test('every accepted mapping has explicit BANA source evidence and action', () => {
   for (const entry of operationRegistry()) {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
+    assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
     assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
   }
 });

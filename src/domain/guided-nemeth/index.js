@@ -34,28 +34,28 @@ const DIGITS = new Map([
   ['⠶', '7'], ['⠦', '8'], ['⠔', '9'], ['⠴', '0']
 ]);
 const GREEK_SMALL = [
-  ['⠨⠁', 'α'], ['⠨⠃', 'β'], ['⠨⠛', 'γ'], ['⠨⠙', 'δ'], ['⠨⠑', 'ϵ'],
-  ['⠨⠵', 'ζ'], ['⠨⠱', 'η'], ['⠨⠹', 'θ'], ['⠨⠊', 'ι'], ['⠨⠅', 'κ'],
-  ['⠨⠇', 'λ'], ['⠨⠍', 'μ'], ['⠨⠝', 'ν'], ['⠨⠭', 'ξ'], ['⠨⠕', 'ο'],
-  ['⠨⠏', 'π'], ['⠨⠗', 'ρ'], ['⠨⠎', 'σ'], ['⠨⠞', 'τ'], ['⠨⠥', 'υ'],
-  ['⠨⠋', 'ϕ'], ['⠨⠯', 'χ'], ['⠨⠽', 'ψ'], ['⠨⠺', 'ω']
+  ['⠨⠁', 'α', '.a'], ['⠨⠃', 'β', '.b'], ['⠨⠛', 'γ', '.g'], ['⠨⠙', 'δ', '.d'], ['⠨⠑', 'ϵ', '.e'],
+  ['⠨⠵', 'ζ', '.z'], ['⠨⠱', 'η', '.:'], ['⠨⠹', 'θ', '.?'], ['⠨⠊', 'ι', '.i'], ['⠨⠅', 'κ', '.k'],
+  ['⠨⠇', 'λ', '.l'], ['⠨⠍', 'μ', '.m'], ['⠨⠝', 'ν', '.n'], ['⠨⠭', 'ξ', '.x'], ['⠨⠕', 'ο', '.o'],
+  ['⠨⠏', 'π', '.p'], ['⠨⠗', 'ρ', '.r'], ['⠨⠎', 'σ', '.s'], ['⠨⠞', 'τ', '.t'], ['⠨⠥', 'υ', '.u'],
+  ['⠨⠋', 'ϕ', '.f'], ['⠨⠯', 'χ', '.&'], ['⠨⠽', 'ψ', '.y'], ['⠨⠺', 'ω', '.w']
 ];
 const GREEK_CAPITAL = [
-  ['⠨⠠⠁', 'Α'], ['⠨⠠⠃', 'Β'], ['⠨⠠⠛', 'Γ'], ['⠨⠠⠙', 'Δ'], ['⠨⠠⠑', 'Ε'],
-  ['⠨⠠⠵', 'Ζ'], ['⠨⠠⠱', 'Η'], ['⠨⠠⠹', 'Θ'], ['⠨⠠⠊', 'Ι'], ['⠨⠠⠅', 'Κ'],
-  ['⠨⠠⠇', 'Λ'], ['⠨⠠⠍', 'Μ'], ['⠨⠠⠝', 'Ν'], ['⠨⠠⠭', 'Ξ'], ['⠨⠠⠕', 'Ο'],
-  ['⠨⠠⠏', 'Π'], ['⠨⠠⠗', 'Ρ'], ['⠨⠠⠎', 'Σ'], ['⠨⠠⠞', 'Τ'], ['⠨⠠⠥', 'Υ'],
-  ['⠨⠠⠋', 'Φ'], ['⠨⠠⠯', 'Χ'], ['⠨⠠⠽', 'Ψ'], ['⠨⠠⠺', 'Ω']
+  ['⠨⠠⠁', 'Α', '.,a'], ['⠨⠠⠃', 'Β', '.,b'], ['⠨⠠⠛', 'Γ', '.,g'], ['⠨⠠⠙', 'Δ', '.,d'], ['⠨⠠⠑', 'Ε', '.,e'],
+  ['⠨⠠⠵', 'Ζ', '.,z'], ['⠨⠠⠱', 'Η', '.,:'], ['⠨⠠⠹', 'Θ', '.,?'], ['⠨⠠⠊', 'Ι', '.,i'], ['⠨⠠⠅', 'Κ', '.,k'],
+  ['⠨⠠⠇', 'Λ', '.,l'], ['⠨⠠⠍', 'Μ', '.,m'], ['⠨⠠⠝', 'Ν', '.,n'], ['⠨⠠⠭', 'Ξ', '.,x'], ['⠨⠠⠕', 'Ο', '.,o'],
+  ['⠨⠠⠏', 'Π', '.,p'], ['⠨⠠⠗', 'Ρ', '.,r'], ['⠨⠠⠎', 'Σ', '.,s'], ['⠨⠠⠞', 'Τ', '.,t'], ['⠨⠠⠥', 'Υ', '.,u'],
+  ['⠨⠠⠋', 'Φ', '.,f'], ['⠨⠠⠯', 'Χ', '.,&'], ['⠨⠠⠽', 'Ψ', '.,y'], ['⠨⠠⠺', 'Ω', '.,w']
 ];
 // BANA 2022 Rule 6.2 distinguishes the variant Greek glyphs by the
 // alternative-letter indicator. These entries are literal symbols, not a
 // Greek parser: each complete code inserts one MathML identifier.
 const GREEK_VARIANTS = [
   // BANA 6.1.5 lists these as the alternative lowercase Greek forms.
-  ['⠨⠈⠃', 'ϐ'],
-  ['⠨⠈⠹', 'ϑ'], // alternative theta
-  ['⠨⠈⠎', 'ς'], // final/alternative sigma
-  ['⠨⠈⠋', 'φ']  // alternative phi; standard phi is ϕ
+  ['⠨⠈⠃', 'ϐ', '.`b'],
+  ['⠨⠈⠹', 'ϑ', '.`?'], // alternative theta
+  ['⠨⠈⠎', 'ς', '.`s'], // final/alternative sigma
+  ['⠨⠈⠋', 'φ', '.`f']  // alternative phi; standard phi is ϕ
 ];
 
 // BANA Rule 6.1.1–6.1.3 and Appendix C. These are complete local alphabet
@@ -126,6 +126,7 @@ function sourceCells(notation) {
     if (character === '~') return '⠘'; // arrow direction: elevate nearer head
     if (character === ';') return '⠰'; // arrow direction: depress nearer head
     if (character === '|') return '⠳'; // BANA vertical bar cell
+    if (character === '}') return '⠻'; // local shape/modifier terminator
     if (character === 'K') character = 'k'; // BANA's printed capital K is the same dot-3 k cell
     const letterCell = [...LETTERS.entries()].find(([, value]) => value === character)?.[0];
     if (letterCell) return letterCell;
@@ -809,15 +810,15 @@ const NON_ENGLISH_MAPPINGS = [
   ...GERMAN_FRAKTUR.flatMap(([letter, lower, upper]) => {
     const base = cellForLetter(letter);
     return [
-      token(`german.${letter}`, ['⠸', base], ['6.1.1', '6.2.1'], lower, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-      token(`german.capital-${letter}`, ['⠸', '⠠', base], ['6.1.1', '6.2.1'], upper, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE })
+      token(`german.${letter}`, ['⠸', base], ['6.1.1', '6.2.1'], lower, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: `_${letter}` }),
+      token(`german.capital-${letter}`, ['⠸', '⠠', base], ['5.1.1', '6.1.1', '6.2.1'], upper, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: `_,${letter}` })
     ];
   }),
-  token('hebrew.aleph', ['⠠', '⠠', '⠁'], ['6.1.2', '6.2.1'], 'א', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('russian.ell', ['⠈', '⠈', '⠇'], ['6.1.3', '6.2.1'], 'л', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('russian.capital-ell', ['⠈', '⠈', '⠠', '⠇'], ['6.1.3', '6.2.1'], 'Л', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('russian.sha', ['⠈', '⠈', '⠱'], ['6.1.3', '6.2.1'], 'ш', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('russian.capital-sha', ['⠈', '⠈', '⠠', '⠱'], ['6.1.3', '6.2.1'], 'Ш', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE })
+  token('hebrew.aleph', ['⠠', '⠠', '⠁'], ['6.1.2', '6.2.1'], 'א', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',,a' }),
+  token('russian.ell', ['⠈', '⠈', '⠇'], ['6.1.3', '6.2.1'], 'л', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@@l' }),
+  token('russian.capital-ell', ['⠈', '⠈', '⠠', '⠇'], ['5.1.1', '6.1.3', '6.2.1'], 'Л', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@`,l' }),
+  token('russian.sha', ['⠈', '⠈', '⠱'], ['6.1.3', '6.2.1'], 'ш', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@@:' }),
+  token('russian.capital-sha', ['⠈', '⠈', '⠠', '⠱'], ['5.1.1', '6.1.3', '6.2.1'], 'Ш', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '@`,:' })
 ];
 const BANA_FUNCTION_MAPPINGS = BANA_FUNCTION_NAMES.map((name) => token(
   `function.${name}`,
@@ -854,35 +855,35 @@ const MAPPINGS = [
   ...BANA_FUNCTION_MAPPINGS,
   ...BANA_LIMIT_MAPPINGS,
   ...[...LETTERS].map(([cells, value]) => token(`letter.${value}`, [cells], ['6.3', '6.4'], value, 'mi',
-    FUNCTION_INITIAL_CELLS.has(cells) ? { preferLonger: true } : {})),
+    { ...(FUNCTION_INITIAL_CELLS.has(cells) ? { preferLonger: true } : {}), sourceNotation: value })),
   token('operator.plus', ['⠬'], ['20.1'], '+', 'mo', { preferLonger: true, sourceNotation: '+' }),
-  token('space', [' '], ['2.4'], '', 'mspace'),
+  token('space', [' '], ['2.4'], '', 'mspace', { sourceNotation: ' ', sourceKind: 'context-policy' }),
   // Rule 8's mathematical punctuation cells are literal local symbols. The
   // punctuation indicator is a separate contextual operation used after a
   // preceding indicator; it must not be baked into every punctuation token.
   // Within the mathematical editor this is the mathematical comma (Braille
   // ASCII comma, ⠠). Literary comma ⠂ is a passage-format concern and is not
   // silently accepted as an equation comma.
-  token('punctuation.comma', ['⠠'], ['8.1', '8.2'], ',', 'mo', { preferLonger: true }),
+  token('punctuation.comma', ['⠠'], ['8.1', '8.2'], ',', 'mo', { preferLonger: true, sourceNotation: ',', sourceKind: 'context-policy' }),
   // Rule 8.2 requires the punctuation indicator before mathematical
   // punctuation that would otherwise be read as a Nemeth numeral.  The
   // indicator and mark are one bounded local code; accepting the mark alone
   // would silently turn 4/3/2/8/6 into punctuation.
-  token('punctuation.period', ['⠸', '⠲'], ['8.1', '8.2'], '.', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('punctuation.colon', ['⠸', '⠒'], ['8.1', '8.2', '8.5'], ':', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('punctuation.semicolon', ['⠸', '⠆'], ['8.1', '8.2', '8.6'], ';', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('punctuation.question', ['⠸', '⠦'], ['8.1', '8.2'], '?', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('punctuation.exclamation', ['⠸', '⠖'], ['8.1', '8.2'], '!', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('punctuation.long-dash', ['⠤', '⠤', '⠤', '⠤'], ['8.8'], '―', 'mo'),
-  token('punctuation.ellipsis', ['⠄', '⠄', '⠄'], ['8.8'], '…', 'mo'),
-  token('punctuation.left-single-quote', ['⠠', '⠦'], ['8.1'], '‘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('punctuation.period', ['⠸', '⠲'], ['8.1', '8.2'], '.', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_4' }),
+  token('punctuation.colon', ['⠸', '⠒'], ['8.1', '8.2', '8.5'], ':', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_3' }),
+  token('punctuation.semicolon', ['⠸', '⠆'], ['8.1', '8.2', '8.6'], ';', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_2' }),
+  token('punctuation.question', ['⠸', '⠦'], ['8.1', '8.2'], '?', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_8' }),
+  token('punctuation.exclamation', ['⠸', '⠖'], ['8.1', '8.2'], '!', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '_6' }),
+  token('punctuation.long-dash', ['⠤', '⠤', '⠤', '⠤'], ['8.8'], '―', 'mo', { sourceNotation: '----' }),
+  token('punctuation.ellipsis', ['⠄', '⠄', '⠄'], ['8.8'], '…', 'mo', { sourceNotation: "'''" }),
+  token('punctuation.left-single-quote', ['⠠', '⠦'], ['8.1'], '‘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',8' }),
   // Rule 8's closing single quotation mark is punctuation indicator + dot 0
   // (⠴), not punctuation indicator + dot 6 (the apostrophe). The distinction
   // is explicit in the BANA punctuation table and matters after a MathML
   // expression at baseline.
-  token('punctuation.right-single-quote', ['⠠', '⠴'], ['8.1'], '’', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  token('punctuation.left-double-quote', ['⠦'], ['8.1'], '“', 'mo'),
-  token('punctuation.right-double-quote', ['⠴'], ['8.1'], '”', 'mo'),
+  token('punctuation.right-single-quote', ['⠠', '⠴'], ['8.1'], '’', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',0' }),
+  token('punctuation.left-double-quote', ['⠦'], ['8.1'], '“', 'mo', { sourceNotation: '8' }),
+  token('punctuation.right-double-quote', ['⠴'], ['8.1'], '”', 'mo', { sourceNotation: '0' }),
   token('operator.minus', ['⠤'], ['20.6'], '−', 'mo', { preferLonger: true, sourceNotation: '-' }),
   token('operator.equals', ['⠨', '⠅'], ['21.1'], '=', 'mo', { sourceNotation: '.k' }),
   token('comparison.less', ['⠐', '⠅'], ['21.5'], '<', 'mo', { preferLonger: true, sourceNotation: '"k' }),
@@ -986,17 +987,17 @@ const MAPPINGS = [
   // letter/number operation; they do not create a text buffer or parse a
   // phrase. A shared cell may produce an explicit local choice where BANA
   // assigns multiple meanings.
-  mode('typeform.bold', ['⠸', '⠰'], ['7.1', '7.2'], 'typeform:bold', true),
-  mode('typeform.italic', ['⠨', '⠰'], ['7.1', '7.2'], 'typeform:italic', true),
-  mode('typeform.sans-serif', ['⠠', '⠨', '⠰'], ['7.1', '7.2'], 'typeform:sans-serif', true),
-  mode('typeform.script', ['⠈', '⠰'], ['7.1', '7.2'], 'typeform:script', true),
-  mode('typeform.barred', ['⠠', '⠸', '⠰'], ['7.1', '7.2'], 'typeform:double-struck', true),
-  mode('typeform.bold.number', ['⠸', '⠼'], ['7.1', '7.2'], 'numeric:bold', true),
-  mode('typeform.italic.number', ['⠨', '⠼'], ['7.1', '7.2'], 'numeric:italic', true),
-  mode('typeform.sans-serif.number', ['⠠', '⠨', '⠼'], ['7.1', '7.2'], 'numeric:sans-serif', true),
-  mode('typeform.script.number', ['⠈', '⠼'], ['7.1', '7.2'], 'numeric:script', true),
-  mode('typeform.barred.number', ['⠠', '⠸', '⠼'], ['7.1', '7.2'], 'numeric:double-struck', true),
-  mode('typeform.terminate', ['⠠', '⠄'], ['7.1', '7.3'], 'typeform-end'),
+  mode('typeform.bold', ['⠸', '⠰'], ['7.1', '7.2'], 'typeform:bold', true, '_;'),
+  mode('typeform.italic', ['⠨', '⠰'], ['7.1', '7.2'], 'typeform:italic', true, '.;'),
+  mode('typeform.sans-serif', ['⠠', '⠨', '⠰'], ['7.1', '7.2'], 'typeform:sans-serif', true, ',.;'),
+  mode('typeform.script', ['⠈', '⠰'], ['7.1', '7.2'], 'typeform:script', true, '`;'),
+  mode('typeform.barred', ['⠠', '⠸', '⠰'], ['7.1', '7.2'], 'typeform:double-struck', true, ',_;'),
+  mode('typeform.bold.number', ['⠸', '⠼'], ['7.1', '7.2'], 'numeric:bold', true, '_#'),
+  mode('typeform.italic.number', ['⠨', '⠼'], ['7.1', '7.2'], 'numeric:italic', true, '.#'),
+  mode('typeform.sans-serif.number', ['⠠', '⠨', '⠼'], ['7.1', '7.2'], 'numeric:sans-serif', true, ',.#'),
+  mode('typeform.script.number', ['⠈', '⠼'], ['7.1', '7.2'], 'numeric:script', true, '`#'),
+  mode('typeform.barred.number', ['⠠', '⠸', '⠼'], ['7.1', '7.2'], 'numeric:double-struck', true, ',_#'),
+  mode('typeform.terminate', ['⠠', '⠄'], ['7.1', '7.3'], 'typeform-end', false, ",'"),
   modifier('modifier.directly-over', ['⠣'], ['15.1', '15.2'], 'mover', 'overscript', 'multipurpose', { preferLonger: true, sourceNotation: '<' }),
   modifier('modifier.directly-under', ['⠩'], ['15.1', '15.2'], 'munder', 'underscript', 'multipurpose', { sourceNotation: '%' }),
   // The doubled indicator is one bounded higher-order code. A single
@@ -1042,9 +1043,9 @@ const MAPPINGS = [
   // creates two editable table cells; ⠩ moves to the lower cell and ⠾ closes
   // the local structure.  It is not a delimiter parser for the surrounding
   // expression.
-  { id: 'binomial.open', cells: ['⠷'], banaRefs: ['15.6'], action: 'open-binomial', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
-  { id: 'binomial.lower', cells: ['⠩'], banaRefs: ['15.6'], action: 'move-binomial-lower', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
-  { id: 'binomial.close', cells: ['⠾'], banaRefs: ['15.6'], action: 'close-binomial', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
+  { id: 'binomial.open', cells: ['⠷'], banaRefs: ['15.6'], action: 'open-binomial', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { sourceNotation: '(' } },
+  { id: 'binomial.lower', cells: ['⠩'], banaRefs: ['15.6'], action: 'move-binomial-lower', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { sourceNotation: '%' } },
+  { id: 'binomial.close', cells: ['⠾'], banaRefs: ['15.6'], action: 'close-binomial', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { sourceNotation: ')' } },
   token('group.parenthesis-open', ['⠷'], ['19.1'], '(', 'mo', { sourceNotation: '(' }),
   token('group.parenthesis-close', ['⠾'], ['19.1'], ')', 'mo', { sourceNotation: ')' }),
   token('group.bracket-open', ['⠈', '⠷'], ['19.1'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '@(' }),
@@ -1228,7 +1229,7 @@ const MAPPINGS = [
     // BANA examples 8-39 through 8-45 transcribe apostrophe-s as `_'s`:
     // punctuation indicator (456), apostrophe (3), and the letter s.
     id: 'script.possessive', cells: ['⠸', '⠄', '⠎'], banaRefs: ['8.4', '14.13'],
-    action: 'append-script-possessive', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: {}
+    action: 'append-script-possessive', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { sourceNotation: "_'s" }
   },
   // BANA 14.7's contracted comma is distinct from the baseline mathematical
   // comma: it preserves the current script level and represents the optional
@@ -1320,7 +1321,9 @@ const MAPPINGS = [
   // documented transcriber-defined shape code is `.=$cm` (⠨⠿⠫⠉⠍ in the
   // source's expanded notation). It remains a bounded local reference atom,
   // not an invented Unicode glyph.
-  token('reference.checkmark', ['⠨', '⠿', '⠫', '⠉', '⠍'], ['9.1'], '✓', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  Object.assign(token('reference.checkmark', ['⠨', '⠿', '⠈', '⠫', '⠉', '⠍'], ['9.1'], '✓', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '.=`$cm' }), {
+    errataRefs: ['Rule 9.1 (approved August 2024; included in October 2025 errata)']
+  }),
   token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { preferLonger: true, sourceNotation: '$c' }),
   token('shape.diamond', ['⠫', '⠙'], ['17.1'], '◊', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$d' }),
   token('shape.ellipse', ['⠫', '⠑'], ['17.1'], '⬭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$e' }),
@@ -1412,9 +1415,9 @@ const MAPPINGS = [
   token('arrow.left.short', ['⠫', '⠪', '⠒'], ['22.5.3'], '⇠', 'mo', { preferLonger: true, sourceNotation: '$[3' }),
   token('arrow.right.long', ['⠫', '⠒', '⠒', '⠒', '⠕'], ['22.5.3'], '⟶', 'mo', { preferLonger: true, sourceNotation: '$333o' }),
   token('arrow.left.long', ['⠫', '⠪', '⠒', '⠒', '⠒'], ['22.5.3'], '⟵', 'mo', { preferLonger: true, sourceNotation: '$[333' }),
-  ...GREEK_SMALL.map(([cells, value]) => token(`greek.${value}`, [...cells], ['6.1.4', '6.2.1'], value, 'mi')),
-  ...GREEK_CAPITAL.map(([cells, value]) => token(`greek.capital-${value}`, [...cells], ['5.1.1', '6.1.4', '6.2.1'], value, 'mi')),
-  ...GREEK_VARIANTS.map(([cells, value]) => token(`greek.variant-${value}`, [...cells], ['6.1.5', '6.2.2'], value, 'mi')),
+  ...GREEK_SMALL.map(([cells, value, sourceNotation]) => token(`greek.${value}`, [...cells], ['6.1.4', '6.2.1'], value, 'mi', { sourceNotation })),
+  ...GREEK_CAPITAL.map(([cells, value, sourceNotation]) => token(`greek.capital-${value}`, [...cells], ['5.1.1', '6.1.4', '6.2.1'], value, 'mi', { sourceNotation })),
+  ...GREEK_VARIANTS.map(([cells, value, sourceNotation]) => token(`greek.variant-${value}`, [...cells], ['6.1.5', '6.2.2'], value, 'mi', { sourceNotation })),
   mode('indicator.number', ['⠼'], ['3.1', '3.3'], 'numeric', false, '#'),
   mode('indicator.capital', ['⠠'], ['5.1', '6.1'], 'capital', true, ','),
   // BANA 3.11.1: a double capital indicator introduces one uppercase Roman

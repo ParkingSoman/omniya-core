@@ -31,6 +31,7 @@ when its `banaRefs` points to the rule/table/example that defines the code.
 | Rule 20.6 combined plus/minus signs | BANA lists each regular/bold combination explicitly (`+-`, `-+`, `-"-`, and the `_`/`"` variants). | The registry uses those printed local codes rather than undocumented cell literals. |
 | Rules 21.1, 21.3–21.5, and 21.8 | Negated, identical, membership, and less/greater-or-equal signs have exact Appendix D forms such as `/.k`, `/_l`, `` `5``, `"k:`, and `.1:`. | The corresponding rows now carry those source forms and tests assert them. |
 | Rule 23.12 integral symbol table | The current equation scope exposes the table's single, double, triple, lower, upper, and circle/infinity/rectangle/square forms. Clockwise, finite-part, double-stroke, times, intersection, and union integral glyphs are not listed in the 2022 Rule 23 table. | Unsupported superposition rows were deleted rather than retained as serializer-derived aliases. MathJax/SRE fixtures for those glyphs remain projection evidence only. |
+| Rule 9.1 checkmark erratum | The erratum does not create a fixed checkmark symbol. It recommends the transcriber-defined shape construction `.=`$cm`, including the backtick before the shape indicator. | `reference.checkmark` now consumes `⠨⠿⠈⠫⠉⠍`, records the erratum reference, and inserts one local checkmark shape. |
 
 ## Three local input policies
 
@@ -72,9 +73,11 @@ reviewer can compare source notation, six-dot cells, resulting MathML, and
 the independent SRE/MathCAT projection without treating the projection as the
 standard.
 
-Rows whose source notation has not yet been transcribed from the BANA table
-are not silently promoted by this field. They remain part of the development
-ledger and keep the release blocker visible.
+Generated alphabet rows, punctuation modes, and structural transitions now also
+carry their exact printed BANA construction where one exists. A row that is
+contextual rather than a standalone printed symbol carries `sourceKind` instead
+of pretending that a projection glyph is a normative input code. The report and
+tests reject rows with neither form of source evidence.
 
 The source-notation helper has two explicit BANA arrow aliases: `~` means the
 superscript direction indicator (raise the nearer head) and `;` means the

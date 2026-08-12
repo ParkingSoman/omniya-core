@@ -29,8 +29,13 @@ const report = {
     shadowedAtomic: diagnostics.shadowedAtomic,
     shadowedImmediate: diagnostics.shadowedImmediate
   },
+  sourceEvidence: {
+    missing: operations.filter(({ args }) => !args?.sourceNotation && !args?.sourceKind).map(({ id }) => id),
+    notation: operations.filter(({ args }) => Boolean(args?.sourceNotation)).length,
+    contextual: operations.filter(({ args }) => Boolean(args?.sourceKind)).length
+  },
   operations: operations.map(({ id, commandLabel, cells, action, commitPolicy, args, banaRefs, errataRefs, validContexts }) => ({
-    id, commandLabel, cells, action, commitPolicy, sourceNotation: args?.sourceNotation ?? null, args, banaRefs, errataRefs, validContexts
+    id, commandLabel, cells, action, commitPolicy, sourceNotation: args?.sourceNotation ?? null, sourceKind: args?.sourceKind ?? null, args, banaRefs, errataRefs, validContexts
   })),
   releaseBlockers: ['qualified Nemeth-transcriber review', 'blind-contributor task validation', 'complete Rules 1–24 ledger fixtures']
 };
