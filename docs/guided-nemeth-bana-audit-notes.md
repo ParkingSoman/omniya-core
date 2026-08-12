@@ -94,3 +94,8 @@ The registry now contains all 16 four-component direction combinations as
 declarative atomic rows. They call the same local script-chain operation as
 the two- and three-component rows; five-or-more-component combinations remain
 an explicit ledger item rather than being inferred by a general level parser.
+
+Rule 13.8.2 likewise permits higher-order hypercomplex fractions by repeating
+the dot-6 prefix. The implementation registers the published order-three
+local family and preserves its order in `data-omniya-fraction-order`; the
+ordinary fraction slots and line/terminator follow-ups remain unchanged.

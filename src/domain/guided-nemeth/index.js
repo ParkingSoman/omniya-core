@@ -1094,6 +1094,13 @@ const MAPPINGS = [
   sourceMove('fraction.next.denominator.hypercomplex', ['⠠', '⠠', '⠌'], ['13.7', '13.8'], 'mfrac', 'denominator', ',,/', { bevelled: false, fractionKind: 'hypercomplex' }),
   sourceMove('fraction.next.denominator.hypercomplex.diagonal', ['⠠', '⠠', '⠸', '⠌'], ['13.7', '13.8'], 'mfrac', 'denominator', ',,_/', { bevelled: true, fractionKind: 'hypercomplex' }),
   sourceClose('fraction.end.hypercomplex', ['⠠', '⠠', '⠼'], ['13.8'], 'mfrac', ',,#'),
+  // Rule 13.8.2: one additional dot-6 selects the next hypercomplex order.
+  // This is a finite local extension of the published hypercomplex family,
+  // not an arbitrary fraction parser.
+  sourceOpen('fraction.start.hypercomplex.order3', ['⠠', '⠠', '⠠', '⠹'], ['13.8.2'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'hypercomplex', 'data-omniya-fraction-order': '3' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, ',,,?'),
+  sourceMove('fraction.next.denominator.hypercomplex.order3', ['⠠', '⠠', '⠠', '⠌'], ['13.8.2'], 'mfrac', 'denominator', ',,,/', { bevelled: false, fractionKind: 'hypercomplex' }),
+  sourceMove('fraction.next.denominator.hypercomplex.order3.diagonal', ['⠠', '⠠', '⠠', '⠸', '⠌'], ['13.8.2'], 'mfrac', 'denominator', ',,,_/', { bevelled: true, fractionKind: 'hypercomplex' }),
+  sourceClose('fraction.end.hypercomplex.order3', ['⠠', '⠠', '⠠', '⠼'], ['13.8.2'], 'mfrac', ',,,#'),
   sourceOpen('fraction.start.mixed', ['⠸', '⠹'], ['13.4'], 'mfrac', ['numerator', 'denominator'], { 'data-omniya-fraction-kind': 'mixed' }, 'numerator', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, '_?'),
   sourceMove('fraction.next.denominator.mixed', ['⠌'], ['13.4'], 'mfrac', 'denominator', '/', { bevelled: false, fractionKind: 'mixed' }),
   sourceMove('fraction.next.denominator.mixed.diagonal', ['⠸', '⠌'], ['13.4'], 'mfrac', 'denominator', '_/', { bevelled: true, fractionKind: 'mixed' }),
@@ -1784,11 +1791,13 @@ function mappingApplies(mapping, context) {
     (context.node === fraction && !isHole(fraction.children[1]))));
   if (mapping.id.startsWith('fraction.next.denominator')) {
     const kind = mapping.args?.fractionKind ?? (mapping.id === 'fraction.next.denominator' ? 'simple' : mapping.id.split('.').at(-1));
-    return Boolean(fraction && fractionKind === kind && numeratorFocus);
+    return Boolean(fraction && fractionKind === kind && numeratorFocus &&
+      (!mapping.id.includes('order3') || fraction.attrs?.['data-omniya-fraction-order'] === '3'));
   }
   if (mapping.id.startsWith('fraction.end.')) {
     const kind = mapping.id.split('.').at(-1);
-    return Boolean(fraction && fractionKind === kind && denominatorFocus);
+    return Boolean(fraction && fractionKind === kind && denominatorFocus &&
+      (!mapping.id.includes('order3') || fraction.attrs?.['data-omniya-fraction-order'] === '3'));
   }
   if (mapping.id === 'radical.next.radicand') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
   if (mapping.id === 'radical.end') return Boolean(hasAncestor(context.tree, context.node, 'msqrt'));
@@ -2118,6 +2127,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+
+  // Rule 13.8.2 has a finite three-dot prefix that overlaps the ordinary
+  // punctuation/capital indicators. Resolve only the published fraction
+  // opener here, before generic prefix choices, and leave all other meanings
+  // to the normal local matcher.
+  if (state.mode === null && state.prefix === '⠠⠠⠠' && normalized === '⠹') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'fraction.start.hypercomplex.order3');
+    if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+  }
 
   // BANA 16.3 repeats the order indicator before an inner radical and its
   // matching terminator. The value is carried as a bounded mode for this one

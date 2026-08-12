@@ -5,9 +5,9 @@
   "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
   "status": "development",
   "inputPolicies": {
-    "immediate": 239,
+    "immediate": 240,
     "atomicSequence": 308,
-    "structuralFollowup": 58
+    "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
@@ -1114,7 +1114,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 605,
+    "notation": 609,
     "contextual": 2
   },
   "operations": [
@@ -6396,6 +6396,131 @@
       },
       "banaRefs": [
         "13.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.start.hypercomplex.order3",
+      "commandLabel": "fraction.start.hypercomplex.order3",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠠",
+        "⠹"
+      ],
+      "action": "open-structure",
+      "commitPolicy": "immediate",
+      "sourceNotation": ",,,?",
+      "sourceKind": null,
+      "args": {
+        "element": "mfrac",
+        "slots": [
+          "numerator",
+          "denominator"
+        ],
+        "attrs": {
+          "data-omniya-fraction-kind": "hypercomplex",
+          "data-omniya-fraction-order": "3"
+        },
+        "initialSlot": "numerator",
+        "preferLonger": false,
+        "sourceNotation": ",,,?"
+      },
+      "banaRefs": [
+        "13.8.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.hypercomplex.order3",
+      "commandLabel": "fraction.next.denominator.hypercomplex.order3",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠠",
+        "⠌"
+      ],
+      "action": "move-slot",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": ",,,/",
+      "sourceKind": null,
+      "args": {
+        "element": "mfrac",
+        "role": "denominator",
+        "sourceNotation": ",,,/",
+        "bevelled": false,
+        "fractionKind": "hypercomplex"
+      },
+      "banaRefs": [
+        "13.8.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.next.denominator.hypercomplex.order3.diagonal",
+      "commandLabel": "fraction.next.denominator.hypercomplex.order3.diagonal",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠠",
+        "⠸",
+        "⠌"
+      ],
+      "action": "move-slot",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": ",,,_/",
+      "sourceKind": null,
+      "args": {
+        "element": "mfrac",
+        "role": "denominator",
+        "sourceNotation": ",,,_/",
+        "bevelled": true,
+        "fractionKind": "hypercomplex"
+      },
+      "banaRefs": [
+        "13.8.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.end.hypercomplex.order3",
+      "commandLabel": "fraction.end.hypercomplex.order3",
+      "cells": [
+        "⠠",
+        "⠠",
+        "⠠",
+        "⠼"
+      ],
+      "action": "close-structure",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": ",,,#",
+      "sourceKind": null,
+      "args": {
+        "element": "mfrac",
+        "sourceNotation": ",,,#"
+      },
+      "banaRefs": [
+        "13.8.2"
       ],
       "errataRefs": [],
       "validContexts": [

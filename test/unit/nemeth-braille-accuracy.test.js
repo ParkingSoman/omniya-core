@@ -336,6 +336,21 @@ test('Rule 11.1.2 omission dash preserves its source intent while projecting the
   assert.match(result.document.mathml, /data-omniya-nemeth-intent="omission-long-dash"/);
 });
 
+test('Rule 13.8.2 higher-order hypercomplex opener retains exact local Braille', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠠', '⠠', '⠠', '⠹']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  // SRE emits the structural fraction projection; the three-dot order is
+  // retained in the canonical source attribute for the input-side contract.
+  assert.equal(await nemeth(document.mathml), '⠹⠀⠌⠀⠼');
+  assert.match(document.mathml, /data-omniya-fraction-order="3"/);
+});
+
 test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

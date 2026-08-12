@@ -81,6 +81,21 @@ test('complex and hypercomplex fraction indicators keep their BANA distinction l
   }
 });
 
+test('Rule 13.8.2 higher-order hypercomplex opening keeps order in canonical MathML', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠠', '⠠', '⠠', '⠹']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mfrac');
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'hypercomplex');
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-order'], '3');
+});
+
 test('fixed-index roots create canonical mroot structure one code at a time', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

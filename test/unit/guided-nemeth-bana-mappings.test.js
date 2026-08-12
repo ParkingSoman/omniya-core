@@ -657,6 +657,21 @@ test('BANA Rule 13 preserves horizontal versus diagonal fraction lines', () => {
   }
 });
 
+test('Rule 13.8.2 retains a source-linked higher-order hypercomplex family', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const id of [
+    'fraction.start.hypercomplex.order3',
+    'fraction.next.denominator.hypercomplex.order3',
+    'fraction.next.denominator.hypercomplex.order3.diagonal',
+    'fraction.end.hypercomplex.order3'
+  ]) {
+    const entry = registry.get(id);
+    assert.ok(entry);
+    assert.deepEqual(entry.banaRefs, ['13.8.2']);
+    assert.ok(entry.args.sourceNotation.startsWith(',,,'));
+  }
+});
+
 test('BANA Rules 17 and 18 retain exact published local source notation', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, sourceNotation] of [
