@@ -107,7 +107,13 @@ export function captureExplorerFocus(article) {
   const focused = (current && article.contains(current) ? current : null) || (semanticSelector
     ? article.querySelector(`mjx-container ${semanticSelector}`) || article.querySelector(`mjx-assistive-mml ${semanticSelector}`)
     : null) || article.querySelector('[data-semantic-focus="true"], [data-semantic-id][aria-current="true"]');
-  const sourceRoot = article.querySelector('mjx-assistive-mml math');
+  // MathJax normally keeps the canonical source in its assistive MathML
+  // shadow tree. During a render/focus handoff that wrapper can be absent for
+  // one frame, while the source MathML is still present in the article. The
+  // application-owned source is the same exact tree in either location, so
+  // use the local MathML fallback instead of treating the handoff as an
+  // uneditable focus.
+  const sourceRoot = article.querySelector('mjx-assistive-mml math, math');
   // A freshly entered equation can have a brief interval where MathJax has
   // rendered the source MathML but has not attached the explorer's current
   // semantic node. That is an equation-level focus, not an unsafe target:

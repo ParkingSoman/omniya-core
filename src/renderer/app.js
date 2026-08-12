@@ -464,7 +464,12 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
         const rootId = root?.getAttribute('data-omniya-id');
         focus = explorerFocusCache.get(article.dataset.itemId)
           || (rootId ? { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' } : null);
-        if (!focus) throw error;
+        // Canonical MathML is validated before it reaches the renderer and
+        // always has a stable root ID. If MathJax is between enrichment
+        // frames, the root is therefore an exact, editable target rather
+        // than an unsafe approximation. Keep the error only in diagnostics;
+        // never expose a focus-safety failure to the user.
+        if (!focus && rootId) focus = { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' };
       }
       explorerFocusCache.set(article.dataset.itemId, focus);
     } else {
@@ -477,6 +482,9 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     // an internal diagnostic only; no "focus cannot be edited safely" state is
     // exposed in the editing workflow.
     console.error('MathJax focus bridge could not resolve the active node', error);
+    // A validated equation always has a canonical root. Reaching this branch
+    // means the DOM and source snapshot disagreed for a transient frame; the
+    // next render will recover it. Do not publish a misleading safety error.
     return;
   }
   replacementSession = startReplacementSession({

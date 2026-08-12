@@ -585,6 +585,7 @@ test('BANA Rules 9, 12, 13, 14, 15, 16, and 19 retain the printed local codes', 
   }
 });
 
+
 test('BANA Rule 13 preserves horizontal versus diagonal fraction lines', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, sourceNotation, cells, bevelled] of [
@@ -959,6 +960,23 @@ test('BANA Rule 23 superposed integrals are structural follow-ups to an immediat
   }
 });
 
+test('BANA Rule 15.9 superposition uses one generic bounded local action', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, notation] of [
+    ['superposition.bar-shape', ':`$4]'],
+    ['superposition.operation-equals', '*`.k]'],
+    ['superposition.comparison', '.K`_"K]']
+  ]) {
+    const entry = registry.get(id);
+    assert.equal(entry?.args?.sourceNotation, notation, id);
+    assert.equal(entry?.action, 'superpose-token', id);
+    assert.equal(entry?.commitPolicy, 'atomic-sequence', id);
+    assert.ok(entry.banaRefs.includes('15.9'), id);
+  }
+  assert.ok(operationRegistry().filter((entry) => entry.action === 'superpose-token').length >= 3);
+});
+
+
 test('BANA Rule 7 typeform indicators decorate only the next local atom', () => {
   const cases = [
     ['⠸⠰', 'bold'],
@@ -1321,7 +1339,7 @@ test('every accepted mapping has explicit BANA source evidence and action', () =
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
   }
 });
 

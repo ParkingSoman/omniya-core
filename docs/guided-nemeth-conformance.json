@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 236,
-    "atomicSequence": 287,
+    "atomicSequence": 290,
     "structuralFollowup": 50
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 214,
+    "shadowedAtomicCount": 217,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -424,6 +424,18 @@
       {
         "atomicId": "integral.upper",
         "immediateId": "radical.indexed"
+      },
+      {
+        "atomicId": "superposition.operation-equals",
+        "immediateId": "operator.dot"
+      },
+      {
+        "atomicId": "superposition.comparison",
+        "immediateId": "operator.equals"
+      },
+      {
+        "atomicId": "superposition.comparison",
+        "immediateId": "greek.κ"
       },
       {
         "atomicId": "script.sup-sup",
@@ -874,7 +886,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 573,
+    "notation": 576,
     "contextual": 2
   },
   "operations": [
@@ -5625,6 +5637,96 @@
       "banaRefs": [
         "15.9",
         "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "superposition.bar-shape",
+      "commandLabel": "superposition.bar-shape",
+      "cells": [
+        "⠱",
+        "⠈",
+        "⠫",
+        "⠲",
+        "⠻"
+      ],
+      "action": "superpose-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ":`$4]",
+      "sourceKind": null,
+      "args": {
+        "value": "⊟",
+        "intent": "bar-superposed-square",
+        "sourceNotation": ":`$4]"
+      },
+      "banaRefs": [
+        "15.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "superposition.operation-equals",
+      "commandLabel": "superposition.operation-equals",
+      "cells": [
+        "⠡",
+        "⠈",
+        "⠨",
+        "⠅",
+        "⠻"
+      ],
+      "action": "superpose-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "*`.k]",
+      "sourceKind": null,
+      "args": {
+        "value": "⊕=",
+        "intent": "operation-superposed-equals",
+        "sourceNotation": "*`.k]"
+      },
+      "banaRefs": [
+        "15.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "superposition.comparison",
+      "commandLabel": "superposition.comparison",
+      "cells": [
+        "⠨",
+        "⠅",
+        "⠈",
+        "⠸",
+        "⠐",
+        "⠅",
+        "⠻"
+      ],
+      "action": "superpose-token",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ".K`_\"K]",
+      "sourceKind": null,
+      "args": {
+        "value": "≟",
+        "intent": "comparison-superposition",
+        "sourceNotation": ".K`_\"K]"
+      },
+      "banaRefs": [
+        "15.9",
+        "21.12"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -10584,7 +10686,8 @@
       "args": {
         "name": "mo",
         "value": "·",
-        "sourceNotation": "*"
+        "sourceNotation": "*",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.7"

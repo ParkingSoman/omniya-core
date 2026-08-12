@@ -274,6 +274,18 @@ function superposeIntegral(tree, focus, value) {
   return { tree, focus: focusNode(current) };
 }
 
+// Rule 15.9 applies the same bounded superposition transition to integrals,
+// bars, operation signs, shapes, and comparison signs.  The source code is
+// collected as one local registry entry; this primitive only changes the
+// already-focused sign and never searches for an operand or parses a passage.
+function superposeToken(tree, focus, value, intent) {
+  const current = currentNode(tree, focus);
+  if (current.name !== 'mo') throw new RangeError('Superposition requires the focused mathematical sign.');
+  current.children = [text(value)];
+  if (intent) current.attrs['data-omniya-nemeth-intent'] = intent;
+  return { tree, focus: focusNode(current) };
+}
+
 function wrapCurrent(tree, focus, elementName, roles, attrs = {}, initialSlot = roles[0]) {
   const current = currentNode(tree, focus);
   const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
@@ -1010,6 +1022,28 @@ const MAPPINGS = [
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
     args: { value: '⨖', sourceNotation: '!`$4]' }
   },
+  // Rule 15.9's hierarchy is not integral-specific. These representative
+  // source constructions use the same generic bounded superposition action;
+  // the source intent is retained because Unicode glyphs are only a display
+  // projection for some compounded signs.
+  {
+    id: 'superposition.bar-shape', cells: sourceCells(':`$4]'),
+    banaRefs: ['15.9'], action: 'superpose-token',
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    args: { value: '⊟', intent: 'bar-superposed-square', sourceNotation: ':`$4]' }
+  },
+  {
+    id: 'superposition.operation-equals', cells: sourceCells('*`.k]'),
+    banaRefs: ['15.9'], action: 'superpose-token',
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    args: { value: '⊕=', intent: 'operation-superposed-equals', sourceNotation: '*`.k]' }
+  },
+  {
+    id: 'superposition.comparison', cells: sourceCells('.K`_"K]'),
+    banaRefs: ['15.9', '21.12'], action: 'superpose-token',
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    args: { value: '≟', intent: 'comparison-superposition', sourceNotation: '.K`_"K]' }
+  },
   // The n-ary summation sign is a Greek capital sigma with the Greek
   // alphabet indicator and capitalization indicator (BANA 6.1.4, 6.2,
   // Appendix C). It is not the plain English-letter sequence ⠠⠎.
@@ -1674,6 +1708,7 @@ function mappingApplies(mapping, context) {
   if (mapping.action === 'superpose-integral') {
     return context.node.name === 'mo' && ['∫', '∬', '∭'].includes(context.node.children?.[0]?.text);
   }
+  if (mapping.action === 'superpose-token') return context.node.name === 'mo';
   const fraction = fractionAtFocus(context.tree, context.node);
   const fractionKind = fraction?.attrs?.['data-omniya-fraction-kind'] ?? 'simple';
   const numeratorFocus = Boolean(fraction && (contains(context.tree, fraction.children[0], context.node) ||
@@ -1862,6 +1897,12 @@ function applyMapping(document, focus, inputState, mapping) {
   } else if (mapping.action === 'superpose-integral') {
     try {
       result = superposeIntegral(tree, focus, args.value);
+    } catch (error) {
+      return { status: 'rejected', document, focus, inputState, announcement: error.message };
+    }
+  } else if (mapping.action === 'superpose-token') {
+    try {
+      result = superposeToken(tree, focus, args.value, args.intent);
     } catch (error) {
       return { status: 'rejected', document, focus, inputState, announcement: error.message };
     }
