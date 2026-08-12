@@ -34,6 +34,19 @@ const FIXTURES = [
   ['shape.rectangle', '⠫⠗', '▭']
 ];
 
+const RULE_23_FIXTURES = [
+  ['misc.angstrom', '⠈⠠⠁', 'Å'],
+  ['misc.planck', '⠈⠓', 'ℏ'],
+  ['misc.caret', '⠸⠣', '^'],
+  ['misc.cent', '⠈⠉', '¢'],
+  ['misc.pound', '⠈⠇', '£'],
+  ['misc.euro', '⠈⠑', '€'],
+  ['misc.yen', '⠈⠽', '¥'],
+  ['misc.per-mille', '⠈⠴⠴', '‰'],
+  ['operator.double-integral', '⠮⠮', '∬'],
+  ['operator.triple-integral', '⠮⠮⠮', '∭']
+];
+
 function applyFixture(id, cells) {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
@@ -52,6 +65,15 @@ function applyFixture(id, cells) {
     }
     assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
     ({ document, focus, inputState } = result);
+  }
+  // A complete code that is also a prefix of a longer code remains pending
+  // until the next cell in a streaming editor. A fixture can explicitly
+  // commit that registered meaning at end-of-input without introducing a
+  // whole-expression parser.
+  if (inputState.prefix) {
+    const choice = applyNemethChoice({ document, focus, inputState, operationId: id });
+    assert.notEqual(choice.status, 'rejected', `${id}: ${choice.announcement}`);
+    ({ document, focus, inputState } = choice);
   }
   return parseMathML(document.mathml);
 }
@@ -78,6 +100,17 @@ test('BANA-linked atomic mapping fixtures produce the expected MathML symbol', (
     const tree = applyFixture(id, cells);
     const inserted = tree.children.at(-1);
     assert.equal(inserted.children?.[0]?.text, expected, `${id}: resulting MathML`);
+  }
+});
+
+test('BANA Rule 23 and compound-integral literals are source-linked', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, expected] of RULE_23_FIXTURES) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.deepEqual(entry.cells.join(''), cells, id);
+    const tree = applyFixture(id, cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
   }
 });
 

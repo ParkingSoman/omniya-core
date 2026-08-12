@@ -1115,10 +1115,57 @@
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "∫"
+        "value": "∫",
+        "preferLonger": true
       },
       "banaRefs": [
         "23.11"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.double-integral",
+      "commandLabel": "operator.double-integral",
+      "cells": [
+        "⠮",
+        "⠮"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∬",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "23.12"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.triple-integral",
+      "commandLabel": "operator.triple-integral",
+      "cells": [
+        "⠮",
+        "⠮",
+        "⠮"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∭"
+      },
+      "banaRefs": [
+        "23.12"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -2711,6 +2758,185 @@
       ]
     },
     {
+      "id": "misc.angstrom",
+      "commandLabel": "misc.angstrom",
+      "cells": [
+        "⠈",
+        "⠠",
+        "⠁"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "Å"
+      },
+      "banaRefs": [
+        "23.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.planck",
+      "commandLabel": "misc.planck",
+      "cells": [
+        "⠈",
+        "⠓"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "ℏ"
+      },
+      "banaRefs": [
+        "23.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.caret",
+      "commandLabel": "misc.caret",
+      "cells": [
+        "⠸",
+        "⠣"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "^",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "23.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.cent",
+      "commandLabel": "misc.cent",
+      "cells": [
+        "⠈",
+        "⠉"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "¢"
+      },
+      "banaRefs": [
+        "23.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.pound",
+      "commandLabel": "misc.pound",
+      "cells": [
+        "⠈",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "£"
+      },
+      "banaRefs": [
+        "23.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.euro",
+      "commandLabel": "misc.euro",
+      "cells": [
+        "⠈",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "€"
+      },
+      "banaRefs": [
+        "23.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.yen",
+      "commandLabel": "misc.yen",
+      "cells": [
+        "⠈",
+        "⠽"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "¥"
+      },
+      "banaRefs": [
+        "23.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.per-mille",
+      "commandLabel": "misc.per-mille",
+      "cells": [
+        "⠈",
+        "⠴",
+        "⠴"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "‰"
+      },
+      "banaRefs": [
+        "23.15"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "misc.partial",
       "commandLabel": "misc.partial",
       "cells": [
@@ -2829,7 +3055,8 @@
       "action": "insert-token",
       "args": {
         "name": "mo",
-        "value": "%"
+        "value": "%",
+        "preferLonger": true
       },
       "banaRefs": [
         "23.15"
