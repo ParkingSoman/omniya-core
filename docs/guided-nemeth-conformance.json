@@ -7,7 +7,7 @@
   "inputPolicies": {
     "immediate": 239,
     "atomicSequence": 291,
-    "structuralFollowup": 54
+    "structuralFollowup": 58
   },
   "registryDiagnostics": {
     "policyErrors": [],
@@ -982,7 +982,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 584,
+    "notation": 588,
     "contextual": 2
   },
   "operations": [
@@ -8121,6 +8121,114 @@
         "15.1",
         "15.2",
         "15.13"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.horizontal-brace-over",
+      "commandLabel": "modifier.horizontal-brace-over",
+      "cells": [
+        "⠨",
+        "⠷"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": ".(",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⏞",
+        "sourceNotation": ".("
+      },
+      "banaRefs": [
+        "19.2",
+        "15.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.horizontal-brace-under",
+      "commandLabel": "modifier.horizontal-brace-under",
+      "cells": [
+        "⠨",
+        "⠾"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": ".)",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⏟",
+        "sourceNotation": ".)"
+      },
+      "banaRefs": [
+        "19.2",
+        "15.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.horizontal-bracket-over",
+      "commandLabel": "modifier.horizontal-bracket-over",
+      "cells": [
+        "⠈",
+        "⠷"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": "@(",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⏜",
+        "sourceNotation": "@("
+      },
+      "banaRefs": [
+        "19.2",
+        "15.2.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.horizontal-bracket-under",
+      "commandLabel": "modifier.horizontal-bracket-under",
+      "cells": [
+        "⠈",
+        "⠾"
+      ],
+      "action": "insert-modifier",
+      "commitPolicy": "structural-followup",
+      "sourceNotation": "@)",
+      "sourceKind": null,
+      "args": {
+        "name": "mo",
+        "value": "⏝",
+        "sourceNotation": "@)"
+      },
+      "banaRefs": [
+        "19.2",
+        "15.2.1"
       ],
       "errataRefs": [],
       "validContexts": [

@@ -1169,6 +1169,14 @@ const MAPPINGS = [
   modifierToken('modifier.tilde.simple', ['⠈', '⠱'], ['15.19'], '~', { sourceNotation: '`:' }),
   modifierToken('modifier.triangle', ['⠫', '⠞'], ['15.10'], '△', { sourceNotation: '$t' }),
   modifierToken('modifier.bar-over', ['⠱'], ['15.1', '15.2', '15.13'], '¯', { sourceNotation: ':' }),
+  // Rule 19.2 sends a transcribed horizontal grouping sign through the
+  // ordinary Rule 15.2.1 over/under modifier workflow. These rows are only
+  // available while that modifier slot is active, so their baseline grouping
+  // counterparts remain separate atomic local signs.
+  modifierToken('modifier.horizontal-brace-over', ['⠨', '⠷'], ['19.2', '15.2.1'], '⏞', { sourceNotation: '.(' }),
+  modifierToken('modifier.horizontal-brace-under', ['⠨', '⠾'], ['19.2', '15.2.1'], '⏟', { sourceNotation: '.)' }),
+  modifierToken('modifier.horizontal-bracket-over', ['⠈', '⠷'], ['19.2', '15.2.1'], '⏜', { sourceNotation: '@(' }),
+  modifierToken('modifier.horizontal-bracket-under', ['⠈', '⠾'], ['19.2', '15.2.1'], '⏝', { sourceNotation: '@)' }),
   sourceClose('modifier.terminate.over', ['⠻'], ['15.2'], 'mover', ']'),
   sourceClose('modifier.terminate.under', ['⠻'], ['15.2'], 'munder', ']'),
   sourceClose('modifier.terminate.simultaneous', ['⠻'], ['15.4'], 'munderover', ']'),
@@ -1810,6 +1818,10 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.action === 'append-possessive' || mapping.action === 'append-plural') {
     return context.node.name !== 'math' && !isHole(context.node) && Boolean(findMathParent(context.tree, context.node.attrs?.['data-omniya-id']));
+  }
+  if (mapping.id.startsWith('modifier.horizontal-')) {
+    return Boolean(context.node.name !== 'math' &&
+      hasAncestor(context.tree, context.node, ['mover', 'munder', 'munderover']));
   }
   // Dot 4 is the cancellation opener on the baseline, but inside a script
   // it is BANA 14.7's contracted comma.  Context selects the local meaning;

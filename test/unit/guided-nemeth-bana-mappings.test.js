@@ -600,6 +600,24 @@ test('BANA Rules 8.4, 8.7, and 16.3 use bounded local transitions', () => {
   }
 });
 
+test('Rule 19.2 horizontal grouping signs reuse the structural modifier registry', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, source, value] of [
+    ['modifier.horizontal-brace-over', '.(', '⏞'],
+    ['modifier.horizontal-brace-under', '.)', '⏟'],
+    ['modifier.horizontal-bracket-over', '@(', '⏜'],
+    ['modifier.horizontal-bracket-under', '@)', '⏝']
+  ]) {
+    const entry = registry.get(id);
+    assert.ok(entry);
+    assert.equal(entry.commitPolicy, 'structural-followup');
+    assert.equal(entry.action, 'insert-modifier');
+    assert.equal(entry.args.sourceNotation, source);
+    assert.equal(entry.args.value, value);
+    assert.deepEqual(entry.banaRefs, ['19.2', '15.2.1']);
+  }
+});
+
 
 test('BANA Rule 13 preserves horizontal versus diagonal fraction lines', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
