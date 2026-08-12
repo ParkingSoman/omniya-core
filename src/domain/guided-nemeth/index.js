@@ -55,6 +55,10 @@ const GREEK_VARIANTS = [
   ['⠨⠈⠋', 'φ']  // alternative phi; standard phi is ϕ
 ];
 
+// BANA 6.1.5/6.2.2 uses the alternative-letter indicator (⠈) after the
+// Greek alphabet indicator. The MathCAT CSV contains a legacy final-sigma
+// spelling (⠨⠒), but the normative BANA table is the explicit .`s form.
+
 function normalizeCell(cell) {
   if (typeof cell !== 'string' || !cell) throw new TypeError('Nemeth input must contain one cell');
   if (cell.length === 1) {
@@ -185,15 +189,86 @@ function openModifier(tree, focus, elementName, initialSlot) {
   return wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
 }
 
-const token = (id, cells, banaRefs, value, name = 'mo', options = {}) => ({ id, cells, banaRefs, action: 'insert-token', args: { name, value, ...options } });
-const open = (id, cells, banaRefs, elementName, slots, attrs = {}, initialSlot = slots[0], preferLonger = false) => ({ id, cells, banaRefs, action: 'open-structure', args: { element: elementName, slots, attrs, initialSlot, preferLonger } });
-const fixedRoot = (id, cells, banaRefs, index, indexText) => ({ id, cells, banaRefs, action: 'open-fixed-root', args: { index, indexText } });
-const move = (id, cells, banaRefs, elementName, role) => ({ id, cells, banaRefs, action: 'move-slot', args: { element: elementName, role } });
-const close = (id, cells, banaRefs, elementName) => ({ id, cells, banaRefs, action: 'close-structure', args: { element: elementName } });
-const mode = (id, cells, banaRefs, value, preferLonger = false) => ({ id, cells, banaRefs, action: 'set-mode', args: { mode: value, preferLonger } });
-const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multipurpose') => ({
-  id, cells, banaRefs, action: 'open-modifier', args: { element: elementName, slot, requiresMode }
+export const LOCAL_COMMIT_POLICIES = Object.freeze({
+  IMMEDIATE: 'immediate',
+  ATOMIC_SEQUENCE: 'atomic-sequence',
+  STRUCTURAL_FOLLOWUP: 'structural-followup'
 });
+
+const withPolicy = (mapping, commitPolicy) => ({ ...mapping, commitPolicy });
+const token = (id, cells, banaRefs, value, name = 'mo', options = {}) => {
+  const { commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE, ...args } = options;
+  return { id, cells, banaRefs, action: 'insert-token', commitPolicy, args: { name, value, ...args } };
+};
+const open = (id, cells, banaRefs, elementName, slots, attrs = {}, initialSlot = slots[0], preferLonger = false, commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE) => ({ id, cells, banaRefs, action: 'open-structure', commitPolicy, args: { element: elementName, slots, attrs, initialSlot, preferLonger } });
+const fixedRoot = (id, cells, banaRefs, index, indexText) => ({ id, cells, banaRefs, action: 'open-fixed-root', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { index, indexText } });
+const move = (id, cells, banaRefs, elementName, role) => ({ id, cells, banaRefs, action: 'move-slot', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, role } });
+const close = (id, cells, banaRefs, elementName) => ({ id, cells, banaRefs, action: 'close-structure', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName } });
+const mode = (id, cells, banaRefs, value, preferLonger = false) => ({ id, cells, banaRefs, action: 'set-mode', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { mode: value, preferLonger } });
+const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multipurpose') => ({
+  id, cells, banaRefs, action: 'open-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, slot, requiresMode }
+});
+
+// Rule 22's remaining named arrow examples are still atomic transitions. The
+// table is intentionally data-only: each complete BANA construction inserts
+// one MathML operator. It does not infer arrow parts or parse an expression.
+// Cells are independently checked against BANA §§22.3–22.7 and MathCAT's
+// `nemeth.csv` regression corpus.
+const ADDITIONAL_ARROW_MAPPINGS = [
+  ['arrow.left-stroked', '⠳⠈⠫⠪⠒⠒⠻', '↚'],
+  ['arrow.right-stroked', '⠳⠈⠫⠒⠒⠕⠻', '↛'],
+  ['arrow.left-wave', '⠫⠪⠔⠒⠢', '↜'],
+  ['arrow.right-wave', '⠫⠔⠒⠢⠕', '↝'],
+  ['arrow.left-two-headed', '⠫⠪⠪⠒⠒', '↞'],
+  ['arrow.up-two-headed', '⠫⠣⠒⠒⠕⠕', '↟'],
+  ['arrow.right-two-headed', '⠫⠒⠒⠕⠕', '↠'],
+  ['arrow.down-two-headed', '⠫⠩⠒⠒⠕⠕', '↡'],
+  ['arrow.left-tail', '⠫⠪⠒⠒⠠⠽', '↢'],
+  ['arrow.right-tail', '⠫⠠⠯⠒⠒⠕', '↣'],
+  ['arrow.left-bar', '⠫⠪⠒⠒⠳', '↤'],
+  ['arrow.up-bar', '⠫⠣⠳⠒⠒⠕', '↥'],
+  ['arrow.right-bar', '⠫⠳⠒⠒⠕', '↦'],
+  ['arrow.down-bar', '⠫⠩⠳⠒⠒⠕', '↧'],
+  ['arrow.vertical-bar', '⠫⠣⠪⠒⠒⠕⠳', '↨'],
+  ['arrow.left-hook', '⠫⠪⠒⠒⠈⠽', '↩'],
+  ['arrow.right-hook', '⠫⠈⠯⠒⠒⠕', '↪'],
+  ['arrow.both-wave', '⠫⠪⠔⠒⠢⠕', '↭'],
+  ['arrow.both-stroked', '⠳⠈⠫⠪⠒⠒⠕⠻', '↮'],
+  ['arrow.down-zigzag', '⠫⠩⠔⠢⠔⠕', '↯'],
+  ['arrow.right-corner', '⠫⠩⠠⠳⠒⠕', '↴'],
+  ['arrow.down-corner', '⠫⠪⠒⠈⠳', '↵'],
+  ['arrow.open-circle-left', '⠫⠢⠔⠕', '↺'],
+  ['arrow.open-circle-right', '⠫⠪⠢⠔', '↻'],
+  ['arrow.left-harpoon-up', '⠫⠈⠪⠒⠒', '↼'],
+  ['arrow.left-harpoon-down', '⠫⠠⠪⠒⠒', '↽'],
+  ['arrow.up-harpoon-right', '⠫⠣⠒⠒⠠⠕', '↾'],
+  ['arrow.up-harpoon-left', '⠫⠣⠒⠒⠈⠕', '↿'],
+  ['arrow.right-harpoon-up', '⠫⠒⠒⠈⠕', '⇀'],
+  ['arrow.right-harpoon-down', '⠫⠒⠒⠠⠕', '⇁'],
+  ['arrow.down-harpoon-right', '⠫⠩⠒⠒⠈⠕', '⇂'],
+  ['arrow.down-harpoon-left', '⠫⠩⠒⠒⠠⠕', '⇃'],
+  ['arrow.right-over-left', '⠫⠒⠒⠕⠫⠪⠒⠒', '⇄'],
+  ['arrow.up-over-down', '⠫⠣⠒⠒⠕⠐⠫⠩⠒⠒⠕', '⇅'],
+  ['arrow.left-over-right', '⠫⠪⠒⠒⠫⠒⠒⠕', '⇆'],
+  ['arrow.left-paired', '⠫⠪⠒⠒⠫⠪⠒⠒', '⇇'],
+  ['arrow.up-paired', '⠫⠣⠒⠒⠕⠐⠫⠣⠒⠒⠕', '⇈'],
+  ['arrow.right-paired', '⠫⠒⠒⠕⠫⠒⠒⠕', '⇉'],
+  ['arrow.down-paired', '⠫⠩⠒⠒⠕⠐⠫⠩⠒⠒⠕', '⇊'],
+  ['arrow.left-harpoon-over-right', '⠫⠈⠪⠒⠒⠫⠒⠒⠠⠕', '⇋'],
+  ['arrow.right-harpoon-over-left', '⠫⠒⠒⠈⠕⠫⠠⠪⠒⠒', '⇌'],
+  ['arrow.left-double-stroked', '⠳⠈⠫⠪⠶⠶⠻', '⇍'],
+  ['arrow.both-double-stroked', '⠳⠈⠫⠪⠶⠶⠕⠻', '⇎'],
+  ['arrow.right-double-stroked', '⠳⠈⠫⠶⠶⠕⠻', '⇏'],
+  ['arrow.vertical-double', '⠫⠣⠪⠶⠶⠕', '⇕'],
+  ['arrow.northwest-double', '⠫⠘⠪⠶⠶', '⇖'],
+  ['arrow.northeast-double', '⠫⠘⠶⠶⠕', '⇗'],
+  ['arrow.southeast-double', '⠫⠰⠶⠶⠕', '⇘'],
+  ['arrow.southwest-double', '⠫⠰⠪⠶⠶', '⇙'],
+  ['arrow.left-triple', '⠫⠪⠸⠸', '⇚'],
+  ['arrow.right-triple', '⠫⠸⠸⠕', '⇛'],
+  ['arrow.left-squiggle', '⠫⠪⠢⠤⠔⠒⠢', '⇜'],
+  ['arrow.right-squiggle', '⠫⠢⠤⠔⠒⠢⠕', '⇝']
+].map(([id, cells, value]) => token(id, [...cells], ['22.3', '22.5', '22.7'], value, 'mo', { preferLonger: true }));
 
 // Normative mapping ledger: BANA 2022 is the authority for every cell sequence
 // and rule reference below. The October 2025 BANA errata is reviewed through
@@ -225,13 +300,36 @@ const MAPPINGS = [
   token('operator.multiply', ['⠈', '⠡'], ['20.7'], '×'),
   token('operator.plus-minus', ['⠬', '⠤'], ['20.6'], '±'),
   token('operator.minus-plus', ['⠤', '⠬'], ['20.6'], '∓'),
+  token('operator.ampersand', ['⠸', '⠯'], ['20.2'], '&'),
+  token('operator.backslash', ['⠸', '⠡'], ['20.1', '20.8'], '\\', 'mo', { preferLonger: true }),
+  token('operator.circle-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['20.1'], '⊙'),
+  token('operator.circle-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['20.1'], '⊕'),
+  token('operator.circle-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['20.1'], '⊖'),
+  token('operator.minus-bold', ['⠸', '⠤'], ['20.6'], '−', 'mo', { mathvariant: 'bold' }),
+  token('operator.minus-minus', ['⠤', '⠐', '⠤'], ['20.6'], '−−'),
+  token('operator.minus-plus-bold', ['⠸', '⠤', '⠐', '⠸', '⠬'], ['20.6'], '−+'),
+  token('operator.minus-plus-horizontal', ['⠤', '⠐', '⠬'], ['20.6'], '−+'),
+  token('operator.minus-plus-regular-bold', ['⠤', '⠐', '⠸', '⠬'], ['20.6'], '−+'),
+  token('operator.plus-bold', ['⠸', '⠬'], ['20.6'], '+', 'mo', { mathvariant: 'bold' }),
+  token('operator.plus-minus-bold', ['⠸', '⠬', '⠐', '⠸', '⠤'], ['20.6'], '+−'),
+  token('operator.plus-minus-regular', ['⠬', '⠐', '⠤'], ['20.6'], '+−'),
+  token('operator.plus-minus-regular-bold', ['⠬', '⠐', '⠸', '⠤'], ['20.6'], '+−'),
+  token('operator.proper-difference', ['⠨', '⠤'], ['20.6'], '∸'),
+  token('operator.number-sign', ['⠨', '⠼'], ['20.3'], '#'),
+  token('operator.paragraph', ['⠠', '⠏'], ['20.3'], '¶'),
+  token('operator.section', ['⠠', '⠎'], ['20.3'], '§'),
+  token('operator.star', ['⠫', '⠎'], ['20.3'], '☆'),
   token('operator.ring', ['⠨', '⠡'], ['20.3'], '∘'),
-  token('operator.integral', ['⠮'], ['23.12'], '∫', 'mo', { preferLonger: true }),
-  token('operator.double-integral', ['⠮', '⠮'], ['23.12'], '∬', 'mo', { preferLonger: true }),
-  token('operator.triple-integral', ['⠮', '⠮', '⠮'], ['23.12'], '∭'),
+  // An ordinary integral is a complete local code and is inserted at once.
+  // Double/triple integrals remain separately registered constructions.
+  token('operator.integral', ['⠮'], ['23.12'], '∫'),
+  token('operator.double-integral', ['⠮', '⠮'], ['23.12'], '∬', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('operator.triple-integral', ['⠮', '⠮', '⠮'], ['23.12'], '∭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('integral.lower', ['⠩', '⠮'], ['23.12'], '⨜'),
   token('integral.upper', ['⠣', '⠮'], ['23.12'], '⨛'),
   token('integral.contour', ['⠮', '⠈', '⠫', '⠉', '⠻'], ['23.12'], '∮'),
+  token('integral.superposed-infinity', ['⠮', '⠈', '⠠', '⠿', '⠻'], ['23.12'], '∰'),
+  token('integral.superposed-rectangle', ['⠮', '⠈', '⠫', '⠗', '⠻'], ['23.12'], '∯'),
   token('integral.quaternion', ['⠮', '⠈', '⠫', '⠲', '⠻'], ['23.12'], '⨖'),
   // The n-ary summation sign is a Greek capital sigma with the Greek
   // alphabet indicator and capitalization indicator (BANA 6.1.4, 6.2,
@@ -302,11 +400,24 @@ const MAPPINGS = [
   token('comparison.not-member', ['⠌', '⠈', '⠑'], ['21.4'], '∉'),
   token('comparison.subset', ['⠸', '⠐', '⠅'], ['21.5'], '⊂'),
   token('comparison.subset-equal', ['⠸', '⠐', '⠅', '⠱'], ['21.5'], '⊆'),
+  token('comparison.perpendicular', ['⠫', '⠏'], ['21.2'], '⊥'),
+  token('comparison.proportion', ['⠰', '⠆'], ['21.5'], '∷'),
+  token('comparison.ratio', ['⠐', '⠂'], ['21.5'], '∶'),
+  token('comparison.relation', ['⠠', '⠗'], ['21.5'], 'R'),
+  token('comparison.reverse-subset', ['⠸', '⠨', '⠂'], ['21.5'], '⊃'),
+  token('comparison.variation', ['⠸', '⠿'], ['21.5'], '∝'),
+  token('comparison.vertical-bar', ['⠳'], ['21.7'], '|', 'mo', { preferLonger: true }),
+  token('comparison.equals-bold', ['⠸', '⠨', '⠅'], ['21.5'], '='),
+  token('comparison.greater-curved', ['⠨', '⠨', '⠂'], ['21.5'], '≻'),
+  token('comparison.less-curved', ['⠨', '⠐', '⠅'], ['21.5'], '≺'),
+  token('comparison.simple-tilde', ['⠈', '⠱'], ['21.6'], '∼', 'mo', { preferLonger: true }),
+  token('comparison.extended-tilde', ['⠈', '⠠', '⠱'], ['21.6'], '〰'),
   token('operator.union', ['⠨', '⠬'], ['20.4'], '∪'),
   token('operator.intersection', ['⠨', '⠩'], ['20.4'], '∩'),
   token('operator.logical-and', ['⠈', '⠩'], ['20.5'], '∧'),
   token('operator.logical-or', ['⠈', '⠬'], ['20.5'], '∨'),
   token('operator.slash', ['⠸', '⠌'], ['20.8'], '/'),
+  token('operator.divides', ['⠳'], ['20.1', '20.8'], '∣'),
   token('operator.dot', ['⠡'], ['20.7'], '·'),
   token('operator.asterisk', ['⠈', '⠼'], ['20.3'], '∗'),
   token('misc.infinity', ['⠠', '⠿'], ['23.11'], '∞'),
@@ -316,7 +427,7 @@ const MAPPINGS = [
   // Errata 2025 restores crossed d as the ASCII sequence @$: at-sign
   // (⠈, multipurpose indicator) followed by shape ($, ⠫), not the ordinary
   // letter d cell.  The erratum's worked example uses the same sequence.
-  Object.assign(token('misc.crossed-d', ['⠈', '⠫'], ['23.4'], 'đ', 'mi'), {
+  Object.assign(token('misc.crossed-d', ['⠈', '⠫'], ['23.4'], 'đ', 'mi', { preferLonger: true }), {
     errataRefs: ['Rule 23 symbol list', 'Rule 23.4']
   }),
   token('misc.planck', ['⠈', '⠓'], ['23.4'], 'ℏ'),
@@ -335,8 +446,14 @@ const MAPPINGS = [
   token('misc.per-mille', ['⠈', '⠴', '⠴'], ['23.15'], '‰'),
   token('misc.partial', ['⠈', '⠙'], ['23.14'], '∂'),
   token('misc.nabla', ['⠨', '⠫'], ['23.5'], '∇'),
+  token('misc.ditto', ['⠠', '⠄'], ['23.6'], '〃'),
+  // `$qed is a UEB transcriber-defined icon. It is deliberately a named
+  // local token, not an invented ordinary Nemeth code, and is only offered
+  // through this explicit command path in the guided editor.
+  token('misc.end-proof', ['⠈', '⠫', '⠟', '⠑', '⠙'], ['23.8'], '∎', 'mo', { preferLonger: true }),
+  token('misc.hollow-dot', ['⠨', '⠡'], ['15.17', '23.10'], '∘'),
   token('misc.degree', ['⠘', '⠨', '⠡'], ['23.1'], '°'),
-  token('misc.prime', ['⠄'], ['23.16'], '′'),
+  token('misc.prime', ['⠄'], ['23.16'], '′', 'mo', { preferLonger: true }),
   token('misc.factorial', ['⠯'], ['23.9'], '!'),
   token('misc.percent', ['⠈', '⠴'], ['23.15'], '%', 'mo', { preferLonger: true }),
   token('misc.empty-set', ['⠸', '⠴'], ['23.7'], '∅'),
@@ -346,7 +463,10 @@ const MAPPINGS = [
   token('misc.angle', ['⠫', '⠪'], ['17.1'], '∠', 'mo', { preferLonger: true }),
   token('misc.therefore', ['⠠', '⠡'], ['23.18'], '∴'),
   token('misc.since', ['⠈', '⠌'], ['23.18'], '∵'),
-  token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″'),
+  token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″', 'mo', { preferLonger: true }),
+  token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴'),
+  token('misc.tally', ['⠸'], ['23.19'], '|', 'mo', { preferLonger: true }),
+  token('misc.vertical-bar', ['⠳'], ['23.20'], '|'),
   token('misc.divides', ['⠳'], ['23.11'], '∣'),
   token('misc.does-not-divide', ['⠌', '⠳'], ['23.11'], '∤'),
   token('misc.parallel', ['⠫', '⠇'], ['17.2', '21.2'], '∥'),
@@ -365,22 +485,23 @@ const MAPPINGS = [
   token('comparison.identical', ['⠸', '⠇'], ['21.3'], '≡'),
   token('comparison.not-less', ['⠌', '⠐', '⠅'], ['21.8'], '≮'),
   token('comparison.not-greater', ['⠌', '⠨', '⠂'], ['21.8'], '≯'),
-  token('arrow.up', ['⠫', '⠣', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↑'),
-  token('arrow.down', ['⠫', '⠩', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↓'),
-  token('arrow.vertical-both', ['⠫', '⠣', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↕'),
+  token('arrow.up', ['⠫', '⠣', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↑', 'mo', { preferLonger: true }),
+  token('arrow.down', ['⠫', '⠩', '⠒', '⠒', '⠕'], ['22.4', '22.5'], '↓', 'mo', { preferLonger: true }),
+  token('arrow.vertical-both', ['⠫', '⠣', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↕', 'mo', { preferLonger: true }),
   token('arrow.northwest', ['⠫', '⠘', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↖'),
-  token('arrow.northeast', ['⠫', '⠘', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↗'),
-  token('arrow.southeast', ['⠫', '⠰', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↘'),
+  token('arrow.northeast', ['⠫', '⠘', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↗', 'mo', { preferLonger: true }),
+  token('arrow.southeast', ['⠫', '⠰', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↘', 'mo', { preferLonger: true }),
   token('arrow.southwest', ['⠫', '⠰', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↙'),
   token('arrow.double-left', ['⠫', '⠪', '⠶', '⠶'], ['22.5.2'], '⇐', 'mo', { preferLonger: true }),
   token('arrow.double-right', ['⠫', '⠶', '⠶', '⠕'], ['22.5.2'], '⇒'),
   token('arrow.double-both', ['⠫', '⠪', '⠶', '⠶', '⠕'], ['22.5.2'], '⇔'),
   token('arrow.double-up', ['⠫', '⠣', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇑'),
   token('arrow.double-down', ['⠫', '⠩', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇓'),
+  ...ADDITIONAL_ARROW_MAPPINGS,
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*'),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†'),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡'),
-  token('shape.circle', ['⠫', '⠉'], ['17.1'], '○'),
+  token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { preferLonger: true }),
   token('shape.square', ['⠫', '⠲'], ['17.1'], '□'),
   token('shape.filled-circle', ['⠫', '⠸', '⠉'], ['17.3'], '●'),
   token('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■'),
@@ -391,17 +512,19 @@ const MAPPINGS = [
   close('cancellation.end', ['⠻'], ['12.1.1'], 'menclose'),
   token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→'),
   token('arrow.left', ['⠫', '⠪', '⠒', '⠒'], ['22.4'], '←', 'mo', { preferLonger: true }),
-  token('arrow.both', ['⠫', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↔'),
-  token('arrow.right.short', ['⠫', '⠒', '⠕'], ['22.5.3'], '⇢'),
-  token('arrow.left.short', ['⠫', '⠪', '⠒'], ['22.5.3'], '⇠'),
-  token('arrow.right.long', ['⠫', '⠒', '⠒', '⠒', '⠕'], ['22.5.3'], '⟶'),
-  token('arrow.left.long', ['⠫', '⠪', '⠒', '⠒', '⠒'], ['22.5.3'], '⟵'),
+  token('arrow.both', ['⠫', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↔', 'mo', { preferLonger: true }),
+  token('arrow.right.short', ['⠫', '⠒', '⠕'], ['22.5.3'], '⇢', 'mo', { preferLonger: true }),
+  token('arrow.left.short', ['⠫', '⠪', '⠒'], ['22.5.3'], '⇠', 'mo', { preferLonger: true }),
+  token('arrow.right.long', ['⠫', '⠒', '⠒', '⠒', '⠕'], ['22.5.3'], '⟶', 'mo', { preferLonger: true }),
+  token('arrow.left.long', ['⠫', '⠪', '⠒', '⠒', '⠒'], ['22.5.3'], '⟵', 'mo', { preferLonger: true }),
   ...GREEK_SMALL.map(([cells, value]) => token(`greek.${value}`, [...cells], ['6.1.4', '6.2.1'], value, 'mi')),
   ...GREEK_CAPITAL.map(([cells, value]) => token(`greek.capital-${value}`, [...cells], ['5.1.1', '6.1.4', '6.2.1'], value, 'mi')),
   ...GREEK_VARIANTS.map(([cells, value]) => token(`greek.variant-${value}`, [...cells], ['6.1.5', '6.2.2'], value, 'mi')),
   mode('indicator.number', ['⠼'], ['3.1', '3.3'], 'numeric'),
   mode('indicator.capital', ['⠠'], ['5.1', '6.1'], 'capital', true)
-];
+].map((mapping) => mapping.id.startsWith('arrow.')
+  ? withPolicy(mapping, LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE)
+  : mapping);
 
 const PREFIXES = new Map();
 for (const mapping of MAPPINGS) {
@@ -422,6 +545,7 @@ export function operationRegistry() {
     ...mapping,
     cells: [...mapping.cells],
     commandLabel: mapping.commandLabel ?? mapping.id,
+    commitPolicy: mapping.commitPolicy ?? LOCAL_COMMIT_POLICIES.IMMEDIATE,
     validContexts: mapping.validContexts ?? ['empty-root', 'row', 'structure-slot'],
     errataRefs: mapping.errataRefs ?? []
   }));
@@ -504,7 +628,7 @@ function applyMapping(document, focus, inputState, mapping) {
         : null;
     result = insertToken(tree, focus, args.name, args.value, {
       replace,
-      mathvariant: ['mi', 'mn'].includes(args.name) ? typeform : null
+      mathvariant: ['mi', 'mn'].includes(args.name) ? typeform : args.mathvariant ?? null
     });
   } else if (mapping.action === 'open-structure') {
     result = wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
@@ -596,7 +720,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       .filter((mapping) => state.mode === 'multipurpose'
         ? mapping.action === 'open-modifier'
         : mapping.action !== 'open-modifier') ?? [];
-    if (previousMappings.length === 1) {
+    if (previousMappings.length === 1 && previousMappings[0].commitPolicy !== LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE) {
       const first = applyMapping(document, focus, { ...state, prefix: '' }, previousMappings[0]);
     if (first.status !== 'rejected') {
       const second = applyNemethCell({ document: first.document, focus: first.focus, inputState: first.inputState, cell: normalized });
@@ -608,7 +732,13 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
   }
 
-  if (!match) return { status: 'rejected', document, focus, inputState: { prefix: '', mode: state.mode }, announcement: 'That Nemeth cell is not valid at this draft focus.' };
+  if (!match) return {
+    status: 'rejected', document, focus,
+    inputState: { ...state },
+    announcement: state.prefix
+      ? 'That cell does not complete the current local Nemeth code. The draft was not changed.'
+      : 'That Nemeth cell is not valid at this draft focus.'
+  };
   const mappings = match.mappings
     .filter((mapping) => mappingApplies(mapping, context))
     .filter((mapping) => mapping.id !== 'typeform.english-letter' || state.mode?.startsWith?.('typeform:'))
@@ -618,7 +748,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const hasLonger = [...PREFIXES.keys()].some((candidate) => candidate.startsWith(sequence) && candidate.length > sequence.length && [...(PREFIXES.get(candidate)?.mappings ?? [])].some((mapping) => mappingApplies(mapping, context)));
   if (!mappings.length) {
     if (hasLonger) return { status: 'pending', document, focus, inputState: { ...state, prefix: sequence }, announcement: 'Nemeth sequence pending.' };
-    return { status: 'rejected', document, focus, inputState: { prefix: '', mode: state.mode }, announcement: 'That Nemeth cell is not valid at this draft focus.' };
+    return { status: 'rejected', document, focus, inputState: { ...state }, announcement: 'That Nemeth cell is not valid at this draft focus.' };
   }
   if (mappings.length > 1 && !hasLonger) {
     return {
@@ -628,7 +758,46 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       announcement: 'Choose the meaning for this Nemeth sequence.'
     };
   }
+  if (mappings.length === 1 && mappings[0].commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE) {
+    return { status: 'pending', document, focus, inputState: { ...state, prefix: sequence }, announcement: 'Local Nemeth code ready. Press Enter to commit it.' };
+  }
+  // An immediate code remains immediate whenever it is unambiguous. If BANA
+  // also registers a longer atomic code with the same prefix, hold only this
+  // local code so the author can finish it or press Enter to choose the short
+  // meaning. This rule is registry-driven and applies to every construction,
+  // not just integrals or arrows.
   if (mappings.length === 1 && hasLonger && mappings[0].args?.preferLonger) return { status: 'pending', document, focus, inputState: { ...state, prefix: sequence }, announcement: 'Nemeth sequence may continue.' };
   if (mappings.length === 1) return applyMapping(document, focus, state, mappings[0]);
   return { status: 'pending', document, focus, inputState: { ...state, prefix: sequence }, announcement: 'Nemeth sequence pending.' };
+}
+
+/**
+ * Commit only the bounded local code currently held in the input state.
+ * This is deliberately not a passage parser: it can select only one exact
+ * registry row, and incomplete or invalid local input never mutates `document`.
+ */
+export function commitNemethLocalCode({ document, focus, inputState = { prefix: '', mode: null } }) {
+  const prefix = inputState.prefix ?? '';
+  if (!prefix) return {
+    status: 'rejected', document, focus, inputState,
+    announcement: 'There is no complete local Nemeth code to commit.'
+  };
+  const context = contextFor(document, focus);
+  const mappings = (PREFIXES.get(prefix)?.mappings ?? [])
+    .filter((mapping) => mappingApplies(mapping, context))
+    .filter((mapping) => mapping.id !== 'typeform.english-letter' || inputState.mode?.startsWith?.('typeform:'))
+    .filter((mapping) => inputState.mode === 'multipurpose'
+      ? mapping.action === 'open-modifier'
+      : mapping.action !== 'open-modifier');
+  if (!mappings.length) return {
+    status: 'rejected', document, focus, inputState,
+    announcement: 'That local Nemeth code is incomplete or invalid. The draft was not changed.'
+  };
+  if (mappings.length > 1) return {
+    status: 'choice', document, focus, inputState,
+    choices: mappings.map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+    announcement: 'Choose the meaning for this local Nemeth code.'
+  };
+  const mapping = mappings[0];
+  return applyMapping(document, focus, { ...inputState, prefix: '' }, mapping);
 }

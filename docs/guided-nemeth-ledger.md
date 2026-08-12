@@ -31,6 +31,24 @@ Normative sources:
 | Spatial arrangements | Rule 25 | deferred | separate design session |
 | Format | Rule 26 | document concern | excluded unless mathematical meaning changes |
 
+## Local input policy
+
+Every registry row is classified by the same three-way rule, across all
+mathematical families:
+
+- `immediate`: a complete local code applies as soon as it is recognized.
+- `atomic-sequence`: the bounded code stays in the local prefix buffer until
+  Enter commits that one registered construction. Invalid or incomplete input
+  never mutates the draft.
+- `structural-followup`: a complete local code moves between or modifies an
+  existing MathML structure, such as a fraction separator, script-slot move,
+  or modifier terminator.
+
+Arrows are a prominent atomic-sequence family. An ordinary integral is an
+immediate token; its bounds and modifiers are follow-up operations. This is a
+general registry decision, not a special case for either example. New BANA
+rows must choose one policy before they are added to the interpreter.
+
 This ledger is not a conformance claim. Release requires every applicable
 Rules 1–24 row to move from “pending” to “reviewed” with independently authored
 fixtures and qualified Nemeth-transcriber review.

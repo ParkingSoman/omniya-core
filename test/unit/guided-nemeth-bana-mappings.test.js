@@ -47,10 +47,43 @@ const RULE_23_FIXTURES = [
   ['operator.triple-integral', '⠮⠮⠮', '∭']
 ];
 
+const RULE_20_21_23_LITERALS = [
+  ['operator.ampersand', '⠸⠯', '&'],
+  ['operator.backslash', '⠸⠡', '\\'],
+  ['operator.circle-dot', '⠫⠉⠸⠫⠡⠻', '⊙'],
+  ['operator.circle-plus', '⠫⠉⠸⠫⠬⠻', '⊕'],
+  ['operator.circle-minus', '⠫⠉⠸⠫⠤⠻', '⊖'],
+  ['operator.number-sign', '⠨⠼', '#'],
+  ['operator.paragraph', '⠠⠏', '¶'],
+  ['operator.section', '⠠⠎', '§'],
+  ['comparison.perpendicular', '⠫⠏', '⊥'],
+  ['comparison.proportion', '⠰⠆', '∷'],
+  ['comparison.ratio', '⠐⠂', '∶'],
+  ['comparison.relation', '⠠⠗', 'R'],
+  ['comparison.reverse-subset', '⠸⠨⠂', '⊃'],
+  ['comparison.vertical-bar', '⠳', '|'],
+  ['comparison.simple-tilde', '⠈⠱', '∼'],
+  ['comparison.extended-tilde', '⠈⠠⠱', '〰'],
+  ['misc.ditto', '⠠⠄', '〃'],
+  ['misc.hollow-dot', '⠨⠡', '∘'],
+  ['misc.triple-prime', '⠄⠄⠄', '‴'],
+  ['misc.tally', '⠸', '|'],
+  ['misc.vertical-bar', '⠳', '|'],
+  ['operator.star', '⠫⠎', '☆']
+];
+
 function applyFixture(id, cells) {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
+  const registryEntry = operationRegistry().find((entry) => entry.id === id);
+  // An atomic code is deliberately tested as one bounded local construction.
+  // Seeding its already-collected prefix avoids treating a shared standalone
+  // prefix, such as ∫ inside a double-integral code, as an unrelated passage.
+  if (registryEntry?.commitPolicy === 'atomic-sequence' && cells.length > 1) {
+    inputState.prefix = [...cells].slice(0, -1).join('');
+    cells = cells.slice(-1);
+  }
   for (const cell of [...cells]) {
     let result = applyNemethCell({ document, focus, inputState, cell });
     if (result.status === 'choice') {
@@ -109,6 +142,17 @@ test('BANA Rule 23 and compound-integral literals are source-linked', () => {
     const entry = registry.get(id);
     assert.ok(entry, id);
     assert.deepEqual(entry.cells.join(''), cells, id);
+    const tree = applyFixture(id, cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
+  }
+});
+
+test('Rules 20, 21, and 23 table literals remain independently source-linked', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, expected] of RULE_20_21_23_LITERALS) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.cells.join(''), cells, id);
     const tree = applyFixture(id, cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
   }

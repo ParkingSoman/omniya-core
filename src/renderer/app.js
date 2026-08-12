@@ -13,6 +13,7 @@ import { createEmptyDraftMathDocument } from '../domain/guided-nemeth/index.js';
 import {
   applyNemethCell,
   applyNemethChoice,
+  commitNemethLocalCode,
   cancelReplacement,
   setLatexSource,
   setReplacementMethod,
@@ -492,7 +493,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     ? focus.target.nodeId
     : focus.target.firstNodeId;
   elements['replacement-status'].textContent = preferredAuthoringMethod === 'nemeth'
-    ? 'Enter Nemeth cells. The draft updates as each code completes.'
+    ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
     : 'Enter LaTeX for the replacement expression.';
   elements['replacement-method'].querySelectorAll('input').forEach((input) => { input.checked = input.value === preferredAuthoringMethod; });
   elements['replacement-choices'].replaceChildren();
@@ -589,7 +590,34 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     event.stopPropagation();
     try {
       await inputProcessing;
-      if (replacementSession.method === 'nemeth' && replacementSession.nemethState.prefix) throw new Error('The Nemeth sequence is incomplete.');
+      if (replacementSession.method === 'nemeth' && replacementSession.nemethState.prefix) {
+        const local = commitNemethLocalCode(replacementSession);
+        replacementSession = local.session;
+        if (local.status === 'applied') {
+          elements['replacement-status'].textContent = `Local code committed: ${local.announcement}`;
+          editor.value = '';
+          await renderDraftPreview();
+          editor.focus();
+          return;
+        }
+        if (local.status === 'choice') {
+          elements['replacement-status'].textContent = local.announcement;
+          elements['replacement-choices'].replaceChildren(...local.choices.map((choice) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'replacement-choice';
+            button.dataset.operationId = choice.operationId;
+            button.textContent = choice.label;
+            button.title = `BANA ${choice.banaRefs.join(', ')}`;
+            return button;
+          }));
+          elements['replacement-choices'].hidden = false;
+          return;
+        }
+        elements['replacement-status'].textContent = local.announcement;
+        editor.setAttribute('aria-invalid', 'true');
+        return;
+      }
       const result = await submitReplacement(replacementSession, {
         convertLatexToMathML: async (source) => {
           const converted = await window.omniya.latexToMathML(source);
@@ -860,7 +888,7 @@ elements['replacement-method'].addEventListener('change', () => {
     replacementEditor.className = selected === 'nemeth' ? 'nemeth-inline-editor' : 'latex-inline-editor';
     replacementEditor.value = '';
     elements['replacement-status'].textContent = selected === 'nemeth'
-      ? 'Enter Nemeth cells. The draft updates as each code completes.'
+      ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
       : 'Enter LaTeX for the replacement expression.';
   } catch (error) {
     elements['replacement-method'].querySelectorAll('input').forEach((input) => { input.checked = input.value === replacementSession.method; });

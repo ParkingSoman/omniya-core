@@ -7,6 +7,7 @@ import { findMathNode, parseMathML } from '../../src/domain/math-tree.js';
 import {
   startReplacementSession,
   applyNemethCell,
+  commitNemethLocalCode,
   cancelReplacement,
   submitReplacement,
   setLatexSource,
@@ -109,4 +110,14 @@ test('authoring method can change only before the replacement draft receives inp
   const pending = applyNemethCell(session, '⠼');
   assert.equal(pending.status, 'pending');
   assert.throws(() => setReplacementMethod(pending.session, 'latex'), /before entering content/i);
+});
+
+test('Enter commits one atomic Nemeth code before replacement submission', () => {
+  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
+  for (const cell of ['⠫', '⠒', '⠕']) session = applyNemethCell(session, cell).session;
+  assert.match(session.draft.mathml, /<math[^>]*\/>/);
+  const committed = commitNemethLocalCode(session);
+  assert.equal(committed.status, 'applied');
+  assert.match(committed.session.draft.mathml, />⇢</);
+  assert.equal(committed.session.nemethState.prefix, '');
 });

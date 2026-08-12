@@ -5,6 +5,7 @@ import { parseMathML } from '../../src/domain/math-tree.js';
 import {
   applyNemethCell,
   applyNemethChoice,
+  commitNemethLocalCode,
   createEmptyDraftMathDocument,
   operationRegistry
 } from '../../src/domain/guided-nemeth/index.js';
@@ -212,6 +213,50 @@ test('the shared baseline and multipurpose cell is selected by valid local conte
   }
   assert.equal(inputState.mode, null);
   assert.match(nested.mathml, /<msup/);
+});
+
+test('local input policies are declarative and apply across construction families', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  assert.equal(registry.get('operator.integral').commitPolicy, 'immediate');
+  assert.equal(registry.get('arrow.right').commitPolicy, 'atomic-sequence');
+  assert.equal(registry.get('script.superscript').commitPolicy, 'immediate');
+  assert.equal(registry.get('fraction.next.denominator').commitPolicy, 'structural-followup');
+  assert.ok(operationRegistry().every((entry) => ['immediate', 'atomic-sequence', 'structural-followup'].includes(entry.commitPolicy)));
+});
+
+test('an atomic local code waits for Enter and then applies exactly once', () => {
+  const document = createEmptyDraftMathDocument();
+  let state = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus: document.focus, inputState: state, cell: '⠫' });
+  assert.equal(result.status, 'pending');
+  assert.equal(result.document.mathml, document.mathml);
+  state = result.inputState;
+  for (const cell of ['⠒', '⠕']) result = applyNemethCell({ document, focus: document.focus, inputState: state, cell });
+  assert.equal(result.status, 'pending');
+  assert.equal(result.document.mathml, document.mathml);
+  const committed = commitNemethLocalCode({ document, focus: document.focus, inputState: result.inputState });
+  assert.equal(committed.status, 'applied');
+  assert.match(committed.document.mathml, />→</);
+  assert.equal(committed.inputState.prefix, '');
+});
+
+test('a standalone immediate code can coexist with longer atomic codes', () => {
+  const document = createEmptyDraftMathDocument();
+  const result = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠮' });
+  assert.equal(result.status, 'applied');
+  assert.match(result.document.mathml, />∫</);
+});
+
+test('incomplete or invalid atomic input never mutates the draft', () => {
+  const document = createEmptyDraftMathDocument();
+  const pending = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠫' });
+  const invalid = commitNemethLocalCode({ document, focus: document.focus, inputState: pending.inputState });
+  assert.equal(invalid.status, 'rejected');
+  assert.equal(invalid.document.mathml, document.mathml);
+  const badNext = applyNemethCell({ document, focus: document.focus, inputState: pending.inputState, cell: '⠁' });
+  assert.equal(badNext.status, 'rejected');
+  assert.equal(badNext.document.mathml, document.mathml);
+  assert.equal(badNext.inputState.prefix, pending.inputState.prefix);
 });
 
 test('punctuation and Greek symbols remain declarative token mappings', () => {

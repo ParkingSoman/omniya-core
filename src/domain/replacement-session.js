@@ -7,7 +7,8 @@ import {
 } from './math-tree.js';
 import {
   applyNemethCell as applyDraftNemethCell,
-  applyNemethChoice as applyDraftNemethChoice
+  applyNemethChoice as applyDraftNemethChoice,
+  commitNemethLocalCode as commitDraftNemethLocalCode
 } from './guided-nemeth/index.js';
 
 function emptyDraft() {
@@ -80,6 +81,23 @@ export function applyNemethChoice(session, operationId) {
     focus: session.draftFocus ?? session.draft.focus,
     inputState: session.nemethState,
     operationId
+  });
+  const next = cloneSession(session);
+  next.nemethState = result.inputState;
+  if (result.status === 'applied') {
+    next.draft = result.document;
+    next.draftFocus = result.focus;
+  }
+  return { ...result, session: next };
+}
+
+/** Commit exactly the bounded local code currently held by the Nemeth input. */
+export function commitNemethLocalCode(session) {
+  if (session.method !== 'nemeth') throw new Error('The replacement session is not in Nemeth mode.');
+  const result = commitDraftNemethLocalCode({
+    document: session.draft,
+    focus: session.draftFocus ?? session.draft.focus,
+    inputState: session.nemethState
   });
   const next = cloneSession(session);
   next.nemethState = result.inputState;

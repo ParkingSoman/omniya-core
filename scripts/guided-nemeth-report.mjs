@@ -8,8 +8,8 @@ const report = {
   errata: BANA_2022_ERRATA_URL,
   scope: 'nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred',
   status: 'development',
-  operations: operations.map(({ id, commandLabel, cells, action, args, banaRefs, errataRefs, validContexts }) => ({
-    id, commandLabel, cells, action, args, banaRefs, errataRefs, validContexts
+  operations: operations.map(({ id, commandLabel, cells, action, commitPolicy, args, banaRefs, errataRefs, validContexts }) => ({
+    id, commandLabel, cells, action, commitPolicy, args, banaRefs, errataRefs, validContexts
   })),
   releaseBlockers: ['qualified Nemeth-transcriber review', 'blind-contributor task validation', 'complete Rules 1–24 ledger fixtures']
 };
