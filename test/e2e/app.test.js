@@ -40,6 +40,7 @@ async function launch(dataDirectory) {
   });
   await electronApp.context().setOffline(true);
   await page.waitForLoadState('domcontentloaded');
+  await page.locator('#app-shell[aria-busy="false"]').waitFor();
   return { electronApp, page, externalRequests };
 }
 
@@ -85,7 +86,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await source.fill('Let a be positive.');
   await page.getByRole('button', { name: 'Add note' }).click();
   await page.getByLabel('Note', { exact: true }).fill('Define the domain.');
-  await source.press('Enter');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
 
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   assert.equal(await articles.count(), 1);
@@ -94,10 +95,14 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
 
   await page.getByRole('button', { name: 'Add item' }).click();
   await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
-  await source.fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
   await page.getByRole('button', { name: 'Add note' }).click();
   await page.getByLabel('Note', { exact: true }).fill('Fundamental theorem example.');
-  await source.press('Enter');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+
+  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
 
   assert.equal(await articles.count(), 2);
   assert.equal(await articles.nth(1).locator('h4').count(), 0);
@@ -120,11 +125,12 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.keyboard.press('Escape');
   assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
   await page.keyboard.press('e');
-  assert.equal(await page.getByRole('heading', { name: 'Editing item 2' }).count(), 1);
-  assert.equal(await page.getByRole('button', { name: 'Save changes' }).count(), 1);
+  assert.equal(await page.getByRole('heading', { name: 'Replace focused mathematics' }).count(), 1);
   await assertNoAxeViolations(page);
-  await source.fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
-  await page.getByRole('button', { name: 'Save changes' }).click();
+  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   await articles.nth(1).locator('mjx-container').waitFor();
   assert.ok(await articles.nth(1).locator('mjx-container math').count());
@@ -145,11 +151,13 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
 
   await page.getByRole('button', { name: 'Add item' }).click();
   await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
-  await source.fill('\\frac{');
-  await source.press('Enter');
-  assert.equal(await page.getByText('The LaTeX could not be converted. Check its syntax.').count(), 1);
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  assert.match(await page.locator('#replacement-status').textContent(), /convert|incomplete|empty/i);
   await assertNoAxeViolations(page);
-  await page.getByRole('button', { name: 'Discard draft' }).click();
+  await page.getByRole('button', { name: 'Cancel' }).click();
 
   await page.getByRole('button', { name: 'Keyboard help' }).click();
   assert.equal(await page.getByRole('dialog', { name: 'Keyboard help' }).count(), 1);
@@ -205,8 +213,12 @@ test('moves left and right between sibling expressions inside MathML', { timeout
   const { page } = session;
   await page.getByRole('button', { name: 'Add item' }).click();
   await page.getByRole('radio', { name: 'Equation' }).check();
-  await page.getByLabel('Content', { exact: true }).fill('a+b');
-  await page.getByLabel('Content', { exact: true }).press('Enter');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await page.locator('#replacement-dock').waitFor();
+  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await page.getByLabel('Replacement input', { exact: true }).fill('a+b');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
 
   const article = page.locator('article.napkin-article').first();
   await article.locator('mjx-container').waitFor();

@@ -9,10 +9,10 @@ and the [accessibility components guide](https://docs.mathjax.org/en/latest/web/
 The renderer bridge captures the node MathJax has selected and maps it to the
 persistent `data-omniya-id`; it does not reproduce MathJax's arrow-key logic.
 
-The one additional movement operation is `nextEmptyFocus()`. It is used only
-for persisted required holes, which have no mathematical content for MathJax
-to focus. It is a slot fallback for guided writing, not a parallel navigator.
-Once a hole is filled, the user returns to MathJax's normal arrow navigation.
+Replacement drafts start at an empty MathML root, so no second navigator is
+needed. During authoring, a structural transition focuses the required slot it
+just created. Once populated, that draft is rendered through MathJax and the
+same Explorer navigation is used for further replacement sessions.
 
 ## Accuracy layers
 
@@ -34,11 +34,10 @@ The tests deliberately use three separate evidence sources:
 
 The Electron suite checks the same contract at the accessibility boundary:
 MathJax's explorer speech node exposes the reviewed whole-expression cells,
-then exposes the focused numerator cells after an ArrowDown navigation. The
-inline writing test inserts a fraction, moves to the persisted denominator
-hole with Tab, commits the denominator, and checks the resulting whole
-expression Braille. This catches errors that domain-only tests cannot, such as
-lost focus, stale rendering, or Braille attached to the wrong transient node.
+then exposes focused subexpressions after ArrowDown/Left/Right navigation.
+Replacement tests commit nested drafts and check the resulting whole-expression
+Braille. This catches errors that domain-only tests cannot, such as lost focus,
+stale rendering, or Braille attached to the wrong transient node.
 
 ## Scope of comparisons
 

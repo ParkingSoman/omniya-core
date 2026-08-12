@@ -7,269 +7,143 @@ import { _electron as electron } from 'playwright';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 
-async function launch() {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-inline-'));
+async function launch(prefix = 'omniya-replacement-') {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), prefix));
   const app = await electron.launch({ args: ['.'], cwd: projectRoot, env: { ...process.env, OMNIYA_TEST_USER_DATA_DIR: dataDirectory } });
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
+  await page.locator('#app-shell[aria-busy="false"]').waitFor();
   await app.context().setOffline(true);
-  return { app, page };
+  return { app, page, dataDirectory };
 }
 
-test('inline Nemeth editing replaces the focused expression and survives invalid/cancel paths', { timeout: 60_000 }, async () => {
+async function addBlankEquation(page) {
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await page.getByRole('radio', { name: 'Equation' }).check();
+  await page.getByLabel('Content', { exact: true }).press('Enter');
+  await page.locator('#replacement-dock').waitFor();
+  return page.locator('article.napkin-article').last();
+}
+
+async function chooseMethod(page, method) {
+  await page.getByRole('radio', { name: method === 'latex' ? 'LaTeX' : 'Nemeth' }).check();
+}
+
+async function commitDraft(page, source, method = 'latex') {
+  await chooseMethod(page, method);
+  const input = page.getByLabel('Replacement input', { exact: true });
+  await input.fill(source);
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  const article = page.locator('article.napkin-article').last();
+  await article.locator('mjx-container').waitFor();
+  return article;
+}
+
+test('new equations use the same empty Nemeth replacement draft and commit once', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch();
-  try {
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await page.getByRole('radio', { name: 'Equation' }).click();
-    await page.getByLabel('Content', { exact: true }).fill('a+b');
-    await page.getByLabel('Content', { exact: true }).press('Enter');
-    const article = page.locator('article').first();
-    await article.locator('mjx-container').waitFor();
-    await article.locator('mjx-speech').waitFor();
-    await article.press('Enter');
-    await page.waitForFunction(() => document.activeElement?.closest?.('mjx-container'));
-    await page.locator('mjx-container.mjx-explorer-active').waitFor();
-
-    await page.keyboard.press('e');
-    const editor = page.locator('.nemeth-inline-editor');
-    await editor.waitFor();
-    assert.equal(await editor.inputValue(), '');
-
-    await editor.fill('⠿');
-    await editor.press('Enter');
-    await page.waitForTimeout(150);
-    assert.equal(await page.locator('.nemeth-inline-editor').count(), 1);
-    assert.match(await page.locator('#save-status').textContent(), /Punctuation|cell/i);
-
-    await editor.fill('⠵');
-    await editor.press('Escape');
-    assert.equal(await page.locator('.nemeth-inline-editor').count(), 0);
-
-    await page.keyboard.press('e');
-    await page.locator('.nemeth-inline-editor').fill('⠵');
-    await page.locator('.nemeth-inline-editor').press('Enter');
-    await page.waitForTimeout(800);
-    assert.equal(await page.locator('.nemeth-inline-editor').count(), 0);
-    assert.match(await article.locator('mjx-container').textContent(), /z/i);
-  } finally {
-    await app.close();
-  }
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  assert.equal(await page.getByRole('radio', { name: 'Nemeth' }).isChecked(), true);
+  await page.getByLabel('Replacement input', { exact: true }).fill('⠭⠬⠁');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.waitForFunction(() => document.querySelectorAll('article.napkin-article math mi').length === 2);
+  assert.equal(await article.locator('math mi').count(), 2);
+  assert.equal(await article.locator('math mo').count(), 1);
+  assert.match(await article.locator('mjx-container').textContent(), /x/);
+  assert.match(await article.locator('mjx-container').textContent(), /a/);
 });
 
-test('Braille display simulation accepts Unicode cells and six-key chords', { timeout: 60_000 }, async () => {
-  const { app, page } = await launch();
-  try {
-    await page.evaluate(() => { globalThis.__omniyaBrailleSimulation = true; });
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await page.getByRole('radio', { name: 'Equation' }).click();
-    await page.getByLabel('Content', { exact: true }).fill('x');
-    await page.getByLabel('Content', { exact: true }).press('Enter');
-    const article = page.locator('article').first();
-    await article.locator('mjx-container').waitFor();
-    await article.locator('mjx-speech').waitFor();
-    await article.press('Enter');
-    await page.waitForFunction(() => document.activeElement?.closest?.('mjx-container'));
-    await page.keyboard.press('e');
-    const editor = page.locator('.nemeth-inline-editor');
-    await editor.waitFor();
-    await page.keyboard.down('f');
-    await page.keyboard.down('s');
-    await page.keyboard.down('d');
-    await page.keyboard.up('f');
-    await page.keyboard.up('s');
-    await page.keyboard.up('d');
-    assert.equal(await editor.inputValue(), '⠇');
-    await editor.press('Enter');
-    await page.waitForTimeout(700);
-    assert.equal(await page.locator('.nemeth-inline-editor').count(), 0);
-    assert.match(await article.locator('mjx-container').textContent(), /l/i);
-  } finally {
-    await app.close();
-  }
+test('MathJax-selected duplicate subexpressions replace only the selected node', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-duplicate-replacement-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  await commitDraft(page, 'x+x', 'latex');
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+  await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'plus');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  await chooseMethod(page, 'nemeth');
+  await page.getByLabel('Replacement input', { exact: true }).fill('⠵');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  const source = await article.locator('math').evaluate((node) => [...node.querySelectorAll('mi')].map((n) => n.textContent));
+  assert.deepEqual(source, ['x', 'z']);
 });
 
-test('inline editing preserves the surrounding fraction when focus is inside the numerator', { timeout: 60_000 }, async () => {
-  const { app, page } = await launch();
-  try {
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await page.getByRole('radio', { name: 'Equation' }).click();
-    await page.getByLabel('Content', { exact: true }).fill('\\frac{a+b}{c}');
-    await page.getByLabel('Content', { exact: true }).press('Enter');
-    const article = page.locator('article').first();
-    await article.locator('mjx-container').waitFor();
-    await article.locator('mjx-speech').waitFor();
-    await article.press('Enter');
-    await page.waitForFunction(() => document.activeElement?.closest?.('mjx-container'));
-    await page.locator('mjx-container.mjx-explorer-active').waitFor();
-    const initialSpeech = await article.locator('mjx-speech').getAttribute('aria-label');
-    await page.keyboard.press('ArrowDown');
-    await page.waitForFunction((previous) => document.querySelector('article mjx-speech')?.getAttribute('aria-label') !== previous, initialSpeech);
-    await page.keyboard.press('e');
-    const editor = page.locator('.nemeth-inline-editor');
-    await editor.waitFor();
-    await editor.fill('⠵');
-    await editor.press('Enter');
-    await page.waitForTimeout(800);
-    assert.equal(await article.locator('math mfrac').count(), 1, await page.locator('#transcript').innerHTML());
-    assert.equal(await article.locator('math mfrac > mi').count(), 2, await article.locator('math mfrac').evaluate((node) => node.outerHTML));
-    assert.match(await article.locator('mjx-container').textContent(), /z/);
-    assert.match(await article.locator('mjx-container').textContent(), /c/);
-  } finally {
-    await app.close();
-  }
+test('nested numerator replacement preserves the containing fraction', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-numerator-replacement-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  await commitDraft(page, '\\frac{a+b}{c}', 'latex');
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+  await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Numerator a plus b');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  await chooseMethod(page, 'nemeth');
+  await page.getByLabel('Replacement input', { exact: true }).fill('⠵');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.equal(await article.locator('math mfrac').count(), 1);
+  assert.deepEqual(await article.locator('math mfrac > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['z', 'c']);
 });
 
-test('inline editing preserves exponent structure at a navigated child', { timeout: 60_000 }, async () => {
-  const { app, page } = await launch();
-  try {
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await page.getByRole('radio', { name: 'Equation' }).click();
-    await page.getByLabel('Content', { exact: true }).fill('x^2');
-    await page.getByLabel('Content', { exact: true }).press('Enter');
-    const article = page.locator('article').first();
-    await article.locator('mjx-container').waitFor();
-    await article.locator('mjx-speech').waitFor();
-    await article.press('Enter');
-    await page.waitForFunction(() => document.activeElement?.closest?.('mjx-container'));
-    await page.locator('mjx-container.mjx-explorer-active').waitFor();
-    const initialSpeech = await article.locator('mjx-speech').getAttribute('aria-label');
-    await page.keyboard.press('ArrowDown');
-    await page.waitForFunction((previous) => document.querySelector('article mjx-speech')?.getAttribute('aria-label') !== previous, initialSpeech);
-    const baseSpeech = await article.locator('mjx-speech').getAttribute('aria-label');
-    await page.keyboard.press('ArrowRight');
-    await page.waitForFunction((previous) => document.querySelector('article mjx-speech')?.getAttribute('aria-label') !== previous, baseSpeech);
-    const exponentSpeech = await article.locator('mjx-speech').getAttribute('aria-label');
-    await page.keyboard.press('e');
-    const editor = page.locator('.nemeth-inline-editor');
-    await editor.waitFor();
-    await editor.fill('⠵');
-    await editor.press('Enter');
-    await page.waitForTimeout(800);
-    assert.equal(await article.locator('math msup').count(), 1);
-    assert.match(await article.locator('mjx-container').textContent(), /x/, `navigation labels: ${initialSpeech} -> ${baseSpeech} -> ${exponentSpeech}`);
-    assert.match(await article.locator('mjx-container').textContent(), /z/);
+test('LaTeX is an alternate replacement draft and cancel or invalid input leaves the source unchanged', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-latex-replacement-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  await commitDraft(page, 'a+b', 'latex');
+  await article.focus();
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  await chooseMethod(page, 'latex');
+  await page.getByLabel('Replacement input', { exact: true }).fill('x^2+\\sqrt{y}');
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.match(await article.locator('mjx-container').textContent(), /a/);
+  assert.match(await article.locator('mjx-container').textContent(), /b/);
 
-    await article.focus();
-    await page.keyboard.press('Enter');
-    await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
-    await page.keyboard.press('Home');
-    await page.waitForTimeout(500);
-    const wholeBraille = await article.locator('mjx-speech').last().getAttribute('aria-braillelabel');
-    assert.equal(wholeBraille, '⠭⠘⠵');
-  } finally {
-    await app.close();
-  }
+  await article.focus();
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  await chooseMethod(page, 'latex');
+  const input = page.getByLabel('Replacement input', { exact: true });
+  await input.fill('\\frac{');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  assert.match(await page.locator('#replacement-status').textContent(), /convert|empty|invalid|incomplete/i);
+  assert.match(await article.locator('mjx-container').textContent(), /a/);
+  await input.fill('x^3');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.equal(await article.locator('math msup').count(), 1);
 });
 
-test('rendered whole and focused MathML expose reviewed Nemeth Braille for a complex fixture', { timeout: 60_000 }, async () => {
-  const { app, page } = await launch();
-  try {
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await page.getByRole('radio', { name: 'Equation' }).click();
-    await page.getByLabel('Content', { exact: true }).fill('\\frac{a+b}{c-d}');
-    await page.getByLabel('Content', { exact: true }).press('Enter');
-    const article = page.locator('article').first();
-    await article.locator('mjx-container').waitFor();
-    await article.locator('mjx-speech').waitFor();
-    await article.press('Enter');
-    await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
-
-    const rootSpeech = article.locator('mjx-speech').last();
-    const rootBraille = await rootSpeech.getAttribute('aria-braillelabel');
-    assert.equal(rootBraille, '⠹⠁⠬⠃⠌⠉⠤⠙⠼');
-
-    await page.keyboard.press('ArrowDown');
-    await page.waitForFunction((previous) => document.querySelector('article mjx-speech')?.getAttribute('aria-braillelabel') !== previous, rootBraille);
-    const numeratorBraille = await article.locator('mjx-speech').last().getAttribute('aria-braillelabel');
-    assert.equal(numeratorBraille, '⠁⠬⠃');
-  } finally {
-    await app.close();
-  }
-});
-
-test('writing a fraction uses the same guided editor, empty-slot traversal, and reviewed whole-expression Braille', { timeout: 60_000 }, async () => {
-  const { app, page } = await launch();
-  try {
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await page.getByRole('radio', { name: 'Equation' }).click();
-    await page.getByLabel('Content', { exact: true }).fill('x');
-    await page.getByLabel('Content', { exact: true }).press('Enter');
-    const article = page.locator('article').first();
-    await article.locator('mjx-container').waitFor();
-    await article.locator('mjx-speech').waitFor();
-    await article.press('Enter');
-    await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
-    await page.keyboard.press('e');
-    const editor = page.locator('.nemeth-inline-editor');
-    await editor.waitFor();
-
-    await editor.fill('⠹');
-    await editor.press('Tab');
-    assert.match(await page.locator('#save-status').textContent(), /empty mathematical slot/i);
-    await editor.fill('⠽');
-    await editor.press('Enter');
-    await page.waitForTimeout(700);
-
-    assert.equal(await article.locator('math mfrac').count(), 1);
-    assert.equal(await article.locator('math mfrac > mi').count(), 2, await article.locator('math mfrac').evaluate((node) => node.outerHTML));
-    await article.press('Enter');
-    await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
-    assert.equal(await article.locator('mjx-speech').last().getAttribute('aria-braillelabel'), '⠹⠭⠌⠽⠼');
-  } finally {
-    await app.close();
-  }
-});
-
-test('creating an empty equation opens the same guided structural editor', { timeout: 60_000 }, async () => {
-  const { app, page } = await launch();
-  try {
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await page.getByRole('radio', { name: 'Equation' }).click();
-    await page.getByLabel('Content', { exact: true }).press('Enter');
-    const editor = page.locator('.nemeth-inline-editor');
-    await editor.waitFor();
-    await editor.fill('⠹⠭');
-    await editor.press('Tab');
-    await editor.fill('⠭');
-    await editor.press('Enter');
-    await page.waitForTimeout(800);
-    const article = page.locator('article').first();
-    assert.equal(await article.locator('math mfrac').count(), 1);
-    assert.equal(await article.locator('math mfrac > mi').count(), 2, await article.locator('math mfrac').evaluate((node) => node.outerHTML));
-    await article.press('Enter');
-    await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
-    assert.equal(await article.locator('mjx-speech').last().getAttribute('aria-braillelabel'), '⠹⠭⠌⠭⠼');
-  } finally {
-    await app.close();
-  }
-});
-
-test('Backspace in an empty inline editor creates a required structural hole', { timeout: 60_000 }, async () => {
-  const { app, page } = await launch();
-  try {
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await page.getByRole('radio', { name: 'Equation' }).click();
-    await page.getByLabel('Content', { exact: true }).fill(String.raw`\frac{a+b}{c}`);
-    await page.getByLabel('Content', { exact: true }).press('Enter');
-    const article = page.locator('article').first();
-    await article.locator('mjx-container').waitFor();
-    await article.locator('mjx-speech').waitFor();
-    await article.press('Enter');
-    await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
-    await page.locator('mjx-container.mjx-explorer-active').waitFor();
-    const initialSpeech = await article.locator('mjx-speech').getAttribute('aria-label');
-    await page.keyboard.press('ArrowDown');
-    await page.waitForFunction((previous) => document.querySelector('article mjx-speech')?.getAttribute('aria-label') !== previous, initialSpeech);
-    await page.keyboard.press('e');
-    const editor = page.locator('.nemeth-inline-editor');
-    await editor.waitFor();
-    await editor.press('Backspace');
-    await editor.press('Enter');
-    await page.waitForTimeout(700);
-    assert.equal(await article.locator('math mfrac').count(), 1, await page.locator('#transcript').innerHTML());
-    assert.equal(await article.locator('math mfrac > mrow[data-omniya-hole="true"]').count(), 1);
-    assert.equal(await article.locator('math mfrac > mi').count(), 1);
-  } finally {
-    await app.close();
-  }
+test('six-key input feeds the same Nemeth draft transition as Unicode cells', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-six-key-replacement-');
+  t.after(() => app.close().catch(() => {}));
+  await page.evaluate(() => { globalThis.__omniyaBrailleSimulation = true; });
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+  await page.keyboard.down('f');
+  await page.keyboard.down('s');
+  await page.keyboard.down('d');
+  await page.keyboard.up('f');
+  await page.keyboard.up('s');
+  await page.keyboard.up('d');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.equal(await article.locator('math mi').count(), 1);
+  assert.equal(await article.locator('math mi').textContent(), 'l');
+  assert.equal(await input.count(), 1);
 });

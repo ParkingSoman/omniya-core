@@ -1,6 +1,5 @@
 import { convertLatexToMathML } from './mathml.js';
 import { canonicalizeMathML, completionReport, parseMathML, replaceMathTarget, serializeMathML, structuralEquivalent } from '../domain/math-tree.js';
-import { applyMathTransition } from '../domain/guided-nemeth/index.js';
 
 export function latexFromMathML(tree) {
   if (!tree) return '';
@@ -46,10 +45,6 @@ export async function importLatex(source) {
   const mathml = canonicalizeMathML(await convertLatexToMathML(source));
   const tree = parseMathML(mathml);
   return { formatVersion: 2, mathml, latex: source.trim(), focus: null, tree };
-}
-
-export function applyMathTransitionInDocument(payload) {
-  return applyMathTransition(payload);
 }
 
 export async function replaceMathTargetInDocument({ document, target, replacementLatex }) {

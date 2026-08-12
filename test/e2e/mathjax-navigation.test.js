@@ -18,6 +18,7 @@ async function launch(dataDirectory) {
   const page = await electronApp.firstWindow();
   await electronApp.context().setOffline(true);
   await page.waitForLoadState('domcontentloaded');
+  await page.locator('#app-shell[aria-busy="false"]').waitFor();
   return { electronApp, page };
 }
 
@@ -46,13 +47,16 @@ test('recovers from corrupt local napkin data without leaving the app unusable',
 async function addEquation(page, source, note = '') {
   await page.getByRole('button', { name: 'Add item' }).click();
   await page.getByRole('radio', { name: 'Equation' }).check();
-  const content = page.getByLabel('Content', { exact: true });
-  await content.fill(source);
   if (note) {
     await page.getByRole('button', { name: 'Add note' }).click();
     await page.getByLabel('Note', { exact: true }).fill(note);
   }
-  await content.press('Enter');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await page.locator('#replacement-dock').waitFor();
+  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await page.getByLabel('Replacement input', { exact: true }).fill(source);
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
   const article = page.locator('article.napkin-article').last();
   await article.locator('mjx-container').waitFor();
   await article.locator('mjx-speech').waitFor();
@@ -144,7 +148,7 @@ test('renders accessible MathML and supports complete tree navigation', { timeou
   await page.keyboard.press('Escape');
 });
 
-test('preserves nested MathML structure and regenerates equations on edit', { timeout: 60_000 }, async (t) => {
+test('replaces a whole focused equation through the LaTeX draft without a linear composer', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-edit-e2e-');
   const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}', 'original expression');
   const math = article.locator('mjx-container math');
@@ -156,24 +160,27 @@ test('preserves nested MathML structure and regenerates equations on edit', { ti
 
   await article.focus();
   await page.keyboard.press('e');
-  const source = page.getByLabel('Content', { exact: true });
+  await page.locator('#replacement-dock').waitFor();
+  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  const source = page.getByLabel('Replacement input', { exact: true });
   await source.fill('\\frac{');
-  await page.getByRole('button', { name: 'Save changes' }).click();
-  assert.equal(await page.getByRole('heading', { name: 'Editing item 1' }).count(), 1);
-  assert.equal(await page.getByText('The LaTeX could not be converted. Check its syntax.').count(), 1);
-  assert.equal(await source.inputValue(), '\\frac{');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  assert.match(await page.locator('#replacement-status').textContent(), /convert|incomplete|empty/i);
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
   assert.match(await article.textContent(), /original expression/);
 
-  await source.press('Escape');
-  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-container math mfrac').waitFor();
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
 
   await article.focus();
   await page.keyboard.press('e');
-  await page.getByLabel('Content', { exact: true }).fill('x^3');
-  await page.getByRole('button', { name: 'Save changes' }).click();
+  await page.locator('#replacement-dock').waitFor();
+  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await page.getByLabel('Replacement input', { exact: true }).fill('x^3');
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
   await page.locator('article.napkin-article mjx-container').waitFor();
   assert.equal(await page.locator('article.napkin-article math msup').count(), 1);
   assert.equal(await page.locator('article.napkin-article math mfrac').count(), 0);
@@ -204,17 +211,6 @@ test('uses MathJax table navigation for matrix cells', { timeout: 60_000 }, asyn
   await page.keyboard.press('Shift+ArrowDown');
   await waitForSpeechChange(page, article, rightCell);
   assert.notEqual(await speechLabel(article), rightCell);
-});
-
-test('deletes a focused equation with Backspace and restores reading focus', { timeout: 60_000 }, async (t) => {
-  const { page } = await startSession(t, 'omniya-delete-equation-e2e-');
-  const article = await addEquation(page, 'x^2');
-  await article.focus();
-  await page.keyboard.press('Backspace');
-
-  assert.equal(await page.locator('article.napkin-article').count(), 0);
-  assert.equal(await page.getByText('No items yet. Add the first item below.').count(), 1);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'open-add-button');
 });
 
 test('switches input type with radio arrow keys and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {

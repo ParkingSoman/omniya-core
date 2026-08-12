@@ -93,6 +93,18 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 #keyboard-help-button { background: transparent; color: var(--muted); }
 
 #composer-dock { background: #f3f5f6; border-top: 0.25rem solid var(--accent); padding: 0.75rem clamp(1rem, 4vw, 3rem) 1rem; }
+#replacement-dock { background: #f3f5f6; border-top: 0.25rem solid var(--accent); padding: 0.75rem clamp(1rem, 4vw, 3rem) 1rem; }
+#replacement-dock textarea { background: white; border: 1px solid #bec8cd; border-radius: 0.35rem; color: var(--rail); padding: 0.65rem 0.75rem; resize: vertical; width: 100%; }
+#replacement-choices { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+#replacement-choices button { background: #eef3f5; border: 1px solid #95a8ae; border-radius: 0.3rem; color: var(--rail); padding: 0.35rem 0.55rem; }
+.replacement-bar, .replacement-actions { align-items: center; display: flex; gap: 0.7rem; justify-content: space-between; }
+#replacement-heading { font-size: 0.8rem; margin: 0; }
+#replacement-method { border: 0; display: flex; gap: 0.75rem; margin: 0.5rem 0; padding: 0; }
+#replacement-method legend { font-size: 0.72rem; font-weight: 600; margin-right: 0.4rem; }
+#replacement-submit, #replacement-cancel { border: 1px solid var(--accent); border-radius: 0.35rem; padding: 0.45rem 0.8rem; }
+#replacement-submit { background: var(--accent); color: white; }
+#replacement-cancel { background: transparent; color: var(--muted); }
+#replacement-status { color: var(--muted); font-size: 0.72rem; min-height: 1.1rem; }
 #composer-form { margin: 0 auto; max-width: 52rem; }
 .composer-bar { gap: 0.7rem; justify-content: space-between; margin-bottom: 0.5rem; }
 .composer-bar h3 { font-size: 0.8rem; margin: 0; }

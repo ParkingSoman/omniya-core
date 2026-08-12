@@ -51,17 +51,30 @@
           <section id="transcript" aria-label="Napkin content"></section>
           <div id="reading-actions" class="reading-actions">
             <button id="open-add-button" type="button">Add item</button>
-            <button id="open-operations-button" type="button">Math operations</button>
             <button id="keyboard-help-button" type="button">Keyboard help</button>
           </div>
         </section>
 
-        <dialog id="operation-dialog" aria-labelledby="operation-heading">
-          <h3 id="operation-heading">Math operations</h3>
-          <p id="operation-help">Choose an operation for the current mathematical focus.</p>
-          <div id="operation-list"></div>
-          <button id="close-operation-dialog" type="button">Close</button>
-        </dialog>
+        <section id="replacement-dock" aria-labelledby="replacement-heading" hidden>
+          <div class="replacement-bar">
+            <h3 id="replacement-heading">Replace focused mathematics</h3>
+            <span id="replacement-scope" class="muted"></span>
+          </div>
+          <fieldset id="replacement-method" aria-describedby="replacement-method-help">
+            <legend>Authoring method</legend>
+            <label><input type="radio" name="replacement-method" value="nemeth" checked> Nemeth</label>
+            <label><input type="radio" name="replacement-method" value="latex"> LaTeX</label>
+          </fieldset>
+          <p id="replacement-method-help">Nemeth builds the replacement one cell at a time. LaTeX accepts the complete replacement expression.</p>
+          <label for="replacement-input" class="sr-only">Replacement input</label>
+          <textarea id="replacement-input" rows="2"></textarea>
+          <p id="replacement-status" role="status" aria-live="polite" aria-atomic="true"></p>
+          <div id="replacement-choices" class="replacement-choices" aria-label="Nemeth choices" hidden></div>
+          <div class="replacement-actions">
+            <button id="replacement-submit" type="button">Replace</button>
+            <button id="replacement-cancel" type="button">Cancel</button>
+          </div>
+        </section>
 
         <section id="composer-dock" aria-labelledby="composer-heading" hidden>
           <form id="composer-form" aria-label="Napkin item form">
@@ -100,9 +113,9 @@
 
         <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
           <h3 id="keyboard-help-heading">Keyboard help</h3>
-          <p><strong>Reading:</strong> Up and Down move between items. Enter explores an equation; E edits the exact focus.</p>
-          <p><strong>Nemeth:</strong> Type one cell at a time, or use S/D/F and J/K/L six-key chords. Enter commits; Escape cancels. Command/Ctrl+K opens operations.</p>
-          <p><strong>History:</strong> Command/Ctrl+Z undoes a structural operation. Command/Ctrl+Shift+Z redoes it.</p>
+          <p><strong>Reading:</strong> Enter explores an equation. MathJax arrows navigate its hierarchy; E replaces the exact focus.</p>
+          <p><strong>Authoring:</strong> Nemeth is the default. LaTeX is an alternate replacement method. Replace commits; Escape cancels.</p>
+          <p><strong>History:</strong> Command/Ctrl+Z undoes a submitted replacement. Command/Ctrl+Shift+Z redoes it.</p>
           <button id="close-keyboard-help" type="button">Close</button>
         </dialog>
 

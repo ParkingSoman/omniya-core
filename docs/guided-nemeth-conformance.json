@@ -6,1170 +6,3108 @@
   "status": "development",
   "operations": [
     {
-      "id": "atom.letter",
-      "commandLabel": "Insert letter",
+      "id": "letter.a",
+      "commandLabel": "letter.a",
+      "cells": [
+        "⠁"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "a"
+      },
       "banaRefs": [
         "6.3",
         "6.4"
       ],
-      "nemethSequences": [
-        "⠁",
-        "⠃",
-        "⠉",
-        "⠙",
-        "⠑",
-        "⠋",
-        "⠛",
-        "⠓",
-        "⠊",
-        "⠚",
-        "⠅",
-        "⠇",
-        "⠍",
-        "⠝",
-        "⠕",
-        "⠏",
-        "⠟",
-        "⠗",
-        "⠎",
-        "⠞",
-        "⠥",
-        "⠧",
-        "⠺",
-        "⠭",
-        "⠽",
-        "⠵"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "atom.number",
-      "commandLabel": "Insert number",
-      "banaRefs": [
-        "3.1",
-        "3.2"
+      "id": "letter.b",
+      "commandLabel": "letter.b",
+      "cells": [
+        "⠃"
       ],
-      "nemethSequences": [],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "b"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.c",
+      "commandLabel": "letter.c",
+      "cells": [
+        "⠉"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "c"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.d",
+      "commandLabel": "letter.d",
+      "cells": [
+        "⠙"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "d"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.e",
+      "commandLabel": "letter.e",
+      "cells": [
+        "⠑"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "e"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.f",
+      "commandLabel": "letter.f",
+      "cells": [
+        "⠋"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "f"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.g",
+      "commandLabel": "letter.g",
+      "cells": [
+        "⠛"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "g"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.h",
+      "commandLabel": "letter.h",
+      "cells": [
+        "⠓"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "h"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.i",
+      "commandLabel": "letter.i",
+      "cells": [
+        "⠊"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "i"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.j",
+      "commandLabel": "letter.j",
+      "cells": [
+        "⠚"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "j"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.k",
+      "commandLabel": "letter.k",
+      "cells": [
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "k"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.l",
+      "commandLabel": "letter.l",
+      "cells": [
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "l"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.m",
+      "commandLabel": "letter.m",
+      "cells": [
+        "⠍"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "m"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.n",
+      "commandLabel": "letter.n",
+      "cells": [
+        "⠝"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "n"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.o",
+      "commandLabel": "letter.o",
+      "cells": [
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "o"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.p",
+      "commandLabel": "letter.p",
+      "cells": [
+        "⠏"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "p"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.q",
+      "commandLabel": "letter.q",
+      "cells": [
+        "⠟"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "q"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.r",
+      "commandLabel": "letter.r",
+      "cells": [
+        "⠗"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "r"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.s",
+      "commandLabel": "letter.s",
+      "cells": [
+        "⠎"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "s"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.t",
+      "commandLabel": "letter.t",
+      "cells": [
+        "⠞"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "t"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.u",
+      "commandLabel": "letter.u",
+      "cells": [
+        "⠥"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "u"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.v",
+      "commandLabel": "letter.v",
+      "cells": [
+        "⠧"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "v"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.w",
+      "commandLabel": "letter.w",
+      "cells": [
+        "⠺"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "w"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.x",
+      "commandLabel": "letter.x",
+      "cells": [
+        "⠭"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "x"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.y",
+      "commandLabel": "letter.y",
+      "cells": [
+        "⠽"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "y"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "letter.z",
+      "commandLabel": "letter.z",
+      "cells": [
+        "⠵"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "z"
+      },
+      "banaRefs": [
+        "6.3",
+        "6.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
       ]
     },
     {
       "id": "operator.plus",
-      "commandLabel": "Insert plus",
+      "commandLabel": "operator.plus",
+      "cells": [
+        "⠬"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "+"
+      },
       "banaRefs": [
         "20.1"
       ],
-      "nemethSequences": [
-        "⠬"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "space",
+      "commandLabel": "space",
+      "cells": [
+        " "
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mspace",
+        "value": ""
+      },
+      "banaRefs": [
+        "2.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.comma",
+      "commandLabel": "punctuation.comma",
+      "cells": [
+        "⠂"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": ","
+      },
+      "banaRefs": [
+        "8.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.period",
+      "commandLabel": "punctuation.period",
+      "cells": [
+        "⠸",
+        "⠲"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "."
+      },
+      "banaRefs": [
+        "8.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.colon",
+      "commandLabel": "punctuation.colon",
+      "cells": [
+        "⠸",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": ":"
+      },
+      "banaRefs": [
+        "8.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.semicolon",
+      "commandLabel": "punctuation.semicolon",
+      "cells": [
+        "⠸",
+        "⠆"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": ";"
+      },
+      "banaRefs": [
+        "8.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.question",
+      "commandLabel": "punctuation.question",
+      "cells": [
+        "⠸",
+        "⠦"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "?"
+      },
+      "banaRefs": [
+        "8.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "punctuation.quote",
+      "commandLabel": "punctuation.quote",
+      "cells": [
+        "⠠",
+        "⠶"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "\""
+      },
+      "banaRefs": [
+        "8.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
       ]
     },
     {
       "id": "operator.minus",
-      "commandLabel": "Insert minus",
+      "commandLabel": "operator.minus",
+      "cells": [
+        "⠤"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "−"
+      },
       "banaRefs": [
         "20.6"
       ],
-      "nemethSequences": [
-        "⠤"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "operator.equals",
-      "commandLabel": "Insert equals",
+      "commandLabel": "operator.equals",
+      "cells": [
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "="
+      },
       "banaRefs": [
         "21.1"
       ],
-      "nemethSequences": [
-        "⠨⠅"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "comparison.less",
-      "commandLabel": "Insert less-than",
+      "commandLabel": "comparison.less",
+      "cells": [
+        "⠐",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "<"
+      },
       "banaRefs": [
         "21.5"
       ],
-      "nemethSequences": [
-        "⠐⠅"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "comparison.greater",
-      "commandLabel": "Insert greater-than",
+      "commandLabel": "comparison.greater",
+      "cells": [
+        "⠨",
+        "⠂"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": ">"
+      },
       "banaRefs": [
         "21.5"
       ],
-      "nemethSequences": [
-        "⠨⠂"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "operator.divide",
-      "commandLabel": "Insert division",
+      "commandLabel": "operator.divide",
+      "cells": [
+        "⠨",
+        "⠌"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "÷"
+      },
       "banaRefs": [
         "20.8"
       ],
-      "nemethSequences": [
-        "⠨⠌"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "operator.multiply",
-      "commandLabel": "Insert multiplication",
+      "commandLabel": "operator.multiply",
+      "cells": [
+        "⠈",
+        "⠡"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "×"
+      },
       "banaRefs": [
         "20.7"
       ],
-      "nemethSequences": [
-        "⠈⠡"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "operator.integral",
-      "commandLabel": "Insert integral operator",
+      "commandLabel": "operator.integral",
+      "cells": [
+        "⠮"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∫"
+      },
       "banaRefs": [
         "23.11"
       ],
-      "nemethSequences": [
-        "⠮"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "operator.sum",
-      "commandLabel": "Insert summation operator",
+      "commandLabel": "operator.sum",
+      "cells": [
+        "⠠",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∑"
+      },
       "banaRefs": [
         "23.11"
       ],
-      "nemethSequences": [
-        "⠠⠎"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "operator.product",
-      "commandLabel": "Insert product operator",
+      "commandLabel": "operator.product",
+      "cells": [
+        "⠠",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∏"
+      },
       "banaRefs": [
         "23.11"
       ],
-      "nemethSequences": [
-        "⠠⠏"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "fraction.insert.simple",
-      "commandLabel": "Insert simple fraction",
+      "id": "fraction.start.simple",
+      "commandLabel": "fraction.start.simple",
+      "cells": [
+        "⠹"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "mfrac",
+        "slots": [
+          "numerator",
+          "denominator"
+        ],
+        "attrs": {}
+      },
       "banaRefs": [
         "13.1",
         "13.2"
       ],
-      "nemethSequences": [
-        "⠹"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "fraction.close.simple",
-      "commandLabel": "End simple fraction",
+      "id": "fraction.next.denominator",
+      "commandLabel": "fraction.next.denominator",
+      "cells": [
+        "⠌"
+      ],
+      "action": "move-slot",
+      "args": {
+        "element": "mfrac",
+        "role": "denominator"
+      },
+      "banaRefs": [
+        "13.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "fraction.end.simple",
+      "commandLabel": "fraction.end.simple",
+      "cells": [
+        "⠼"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "mfrac"
+      },
       "banaRefs": [
         "13.2.1"
       ],
-      "nemethSequences": [
-        "⠼"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "script.superscript",
-      "commandLabel": "Insert superscript",
+      "commandLabel": "script.superscript",
+      "cells": [
+        "⠘"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "msup",
+        "slots": [
+          "base",
+          "superscript"
+        ],
+        "attrs": {}
+      },
       "banaRefs": [
         "14.3",
         "14.4"
       ],
-      "nemethSequences": [
-        "⠘"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "script.subscript",
-      "commandLabel": "Insert subscript",
-      "banaRefs": [
-        "14.8"
-      ],
-      "nemethSequences": [
+      "commandLabel": "script.subscript",
+      "cells": [
         "⠰"
       ],
-      "validContexts": [
-        "row",
-        "replacement"
-      ]
-    },
-    {
-      "id": "script.under",
-      "commandLabel": "Insert underscript",
+      "action": "open-structure",
+      "args": {
+        "element": "msub",
+        "slots": [
+          "base",
+          "subscript"
+        ],
+        "attrs": {}
+      },
       "banaRefs": [
-        "14.8",
-        "15.1"
-      ],
-      "nemethSequences": [],
-      "validContexts": [
-        "row",
-        "replacement"
-      ]
-    },
-    {
-      "id": "script.over",
-      "commandLabel": "Insert overscript",
-      "banaRefs": [
-        "14.3",
-        "15.1"
-      ],
-      "nemethSequences": [],
-      "validContexts": [
-        "row",
-        "replacement"
-      ]
-    },
-    {
-      "id": "script.under-over",
-      "commandLabel": "Insert underscript and overscript",
-      "banaRefs": [
-        "14.3",
         "14.8"
       ],
-      "nemethSequences": [],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "replacement"
-      ]
-    },
-    {
-      "id": "radical.insert.square",
-      "commandLabel": "Insert square root",
-      "banaRefs": [
-        "16.1",
-        "16.2"
-      ],
-      "nemethSequences": [
-        "⠜"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "radical.close",
-      "commandLabel": "End radical",
-      "banaRefs": [
-        "16.1.1"
-      ],
-      "nemethSequences": [
-        "⠻"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "group.insert.round",
-      "commandLabel": "Insert grouped expression",
-      "banaRefs": [
-        "19.1",
-        "19.5"
-      ],
-      "nemethSequences": [
-        "⠷"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "bar.absolute",
-      "commandLabel": "Insert absolute-value bars",
-      "banaRefs": [
-        "19.9",
-        "23.7"
-      ],
-      "nemethSequences": [
-        "⠸"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "bar.conditional",
-      "commandLabel": "Insert conditional bar",
-      "banaRefs": [
-        "23.7",
-        "21.1"
-      ],
-      "nemethSequences": [
-        "⠸"
-      ],
-      "validContexts": [
-        "row",
-        "replacement"
-      ]
-    },
-    {
-      "id": "fraction.insert.complex",
-      "commandLabel": "Insert complex fraction",
-      "banaRefs": [
-        "13.5",
-        "13.6"
-      ],
-      "nemethSequences": [
-        "⠂⠹"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "fraction.close.complex",
-      "commandLabel": "End complex fraction",
-      "banaRefs": [
-        "13.6"
-      ],
-      "nemethSequences": [
-        "⠂⠼"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "fraction.insert.hypercomplex",
-      "commandLabel": "Insert hypercomplex fraction",
-      "banaRefs": [
-        "13.7",
-        "13.8"
-      ],
-      "nemethSequences": [
-        "⠂⠂⠹"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "fraction.close.hypercomplex",
-      "commandLabel": "End hypercomplex fraction",
-      "banaRefs": [
-        "13.8"
-      ],
-      "nemethSequences": [
-        "⠂⠂⠼"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "script.baseline",
-      "commandLabel": "Return to baseline",
+      "commandLabel": "script.baseline",
+      "cells": [
+        "⠐"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "baseline",
+        "preferLonger": false
+      },
       "banaRefs": [
         "14.3",
         "14.8"
       ],
-      "nemethSequences": [
-        "⠐"
-      ],
+      "errataRefs": [],
       "validContexts": [
-        "hole",
-        "replacement",
-        "row"
-      ]
-    },
-    {
-      "id": "script.multiscript",
-      "commandLabel": "Insert multiscript",
-      "banaRefs": [
-        "14.5",
-        "14.11"
-      ],
-      "nemethSequences": [],
-      "validContexts": [
-        "replacement"
-      ]
-    },
-    {
-      "id": "delete.focused",
-      "commandLabel": "Delete focused mathematics",
-      "banaRefs": [
-        "11.1",
-        "12.1"
-      ],
-      "nemethSequences": [],
-      "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "radical.insert.indexed",
-      "commandLabel": "Insert indexed radical",
+      "id": "radical.square",
+      "commandLabel": "radical.square",
+      "cells": [
+        "⠜"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "msqrt",
+        "slots": [
+          "radicand"
+        ],
+        "attrs": {}
+      },
+      "banaRefs": [
+        "16.1",
+        "16.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.end",
+      "commandLabel": "radical.end",
+      "cells": [
+        "⠻"
+      ],
+      "action": "close-structure",
+      "args": {
+        "element": "msqrt"
+      },
+      "banaRefs": [
+        "16.1.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "radical.indexed",
+      "commandLabel": "radical.indexed",
+      "cells": [
+        "⠣"
+      ],
+      "action": "open-structure",
+      "args": {
+        "element": "mroot",
+        "slots": [
+          "index",
+          "radicand"
+        ],
+        "attrs": {}
+      },
       "banaRefs": [
         "16.2",
         "16.3"
       ],
-      "nemethSequences": [
-        "⠣"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "comparison.less-equal",
-      "commandLabel": "Insert less-than-or-equal",
-      "banaRefs": [
-        "21.5",
-        "21.8"
+      "id": "group.round",
+      "commandLabel": "group.round",
+      "cells": [
+        "⠷"
       ],
-      "nemethSequences": [],
+      "action": "open-structure",
+      "args": {
+        "element": "mrow",
+        "slots": [
+          "content"
+        ],
+        "attrs": {
+          "data-omniya-group": "round"
+        }
+      },
+      "banaRefs": [
+        "19.1",
+        "19.5"
+      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "comparison.greater-equal",
-      "commandLabel": "Insert greater-than-or-equal",
-      "banaRefs": [
-        "21.5",
-        "21.8"
+      "id": "group.round.end",
+      "commandLabel": "group.round.end",
+      "cells": [
+        "⠾"
       ],
-      "nemethSequences": [],
+      "action": "close-structure",
+      "args": {
+        "element": "mrow"
+      },
+      "banaRefs": [
+        "19.1"
+      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "comparison.not-equal",
-      "commandLabel": "Insert not-equal",
+      "id": "group.parenthesis-open",
+      "commandLabel": "group.parenthesis-open",
+      "cells": [
+        "⠷"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "("
+      },
       "banaRefs": [
-        "21.1",
-        "21.8"
+        "19.1"
       ],
-      "nemethSequences": [
-        "⠌⠨⠅"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "comparison.approximately",
-      "commandLabel": "Insert approximately-equal",
-      "banaRefs": [
-        "21.6"
-      ],
-      "nemethSequences": [
-        "⠈⠱⠈⠱"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "comparison.similar",
-      "commandLabel": "Insert similar",
-      "banaRefs": [
-        "21.6"
-      ],
-      "nemethSequences": [
-        "⠈⠱"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "comparison.member",
-      "commandLabel": "Insert membership",
-      "banaRefs": [
-        "21.4"
-      ],
-      "nemethSequences": [
-        "⠈⠑"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "comparison.not-member",
-      "commandLabel": "Insert non-membership",
-      "banaRefs": [
-        "21.4"
-      ],
-      "nemethSequences": [
-        "⠌⠈⠑"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "comparison.subset",
-      "commandLabel": "Insert subset",
-      "banaRefs": [
-        "21.5"
-      ],
-      "nemethSequences": [
-        "⠸⠐⠅"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "comparison.subset-equal",
-      "commandLabel": "Insert subset-or-equal",
-      "banaRefs": [
-        "21.5"
-      ],
-      "nemethSequences": [
-        "⠸⠐⠅⠱"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "operator.union",
-      "commandLabel": "Insert union",
-      "banaRefs": [
-        "20.4"
-      ],
-      "nemethSequences": [
-        "⠨⠬"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "operator.intersection",
-      "commandLabel": "Insert intersection",
-      "banaRefs": [
-        "20.4"
-      ],
-      "nemethSequences": [
-        "⠨⠩"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "operator.logical-and",
-      "commandLabel": "Insert logical product",
-      "banaRefs": [
-        "20.5"
-      ],
-      "nemethSequences": [
-        "⠈⠩"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "operator.logical-or",
-      "commandLabel": "Insert logical sum",
-      "banaRefs": [
-        "20.5"
-      ],
-      "nemethSequences": [
-        "⠈⠬"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "operator.slash",
-      "commandLabel": "Insert slash",
-      "banaRefs": [
-        "20.8"
-      ],
-      "nemethSequences": [
-        "⠸⠌"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "operator.dot",
-      "commandLabel": "Insert multiplication dot",
-      "banaRefs": [
-        "20.7"
-      ],
-      "nemethSequences": [
-        "⠡"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "operator.asterisk",
-      "commandLabel": "Insert asterisk",
-      "banaRefs": [
-        "20.3"
-      ],
-      "nemethSequences": [
-        "⠈⠼"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "operator.plus-minus",
-      "commandLabel": "Insert plus-or-minus",
-      "banaRefs": [
-        "20.6"
-      ],
-      "nemethSequences": [],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.infinity",
-      "commandLabel": "Insert infinity",
-      "banaRefs": [
-        "23.11"
-      ],
-      "nemethSequences": [
-        "⠠⠿"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.partial",
-      "commandLabel": "Insert partial derivative",
-      "banaRefs": [
-        "23.14"
-      ],
-      "nemethSequences": [
-        "⠈⠙"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.nabla",
-      "commandLabel": "Insert nabla",
-      "banaRefs": [
-        "23.5"
-      ],
-      "nemethSequences": [
-        "⠨⠫"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.degree",
-      "commandLabel": "Insert degree",
-      "banaRefs": [
-        "23.1"
-      ],
-      "nemethSequences": [
-        "⠘⠨⠡"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.prime",
-      "commandLabel": "Insert prime",
-      "banaRefs": [
-        "23.16"
-      ],
-      "nemethSequences": [
-        "⠄"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.factorial",
-      "commandLabel": "Insert factorial",
-      "banaRefs": [
-        "23.9"
-      ],
-      "nemethSequences": [
-        "⠯"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.percent",
-      "commandLabel": "Insert percent",
-      "banaRefs": [
-        "23.15"
-      ],
-      "nemethSequences": [
-        "⠈⠴"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.empty-set",
-      "commandLabel": "Insert empty set",
-      "banaRefs": [
-        "23.7"
-      ],
-      "nemethSequences": [
-        "⠸⠴"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.angle",
-      "commandLabel": "Insert angle",
-      "banaRefs": [
-        "23"
-      ],
-      "nemethSequences": [
-        "⠫⠪"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.therefore",
-      "commandLabel": "Insert therefore",
-      "banaRefs": [
-        "23.18"
-      ],
-      "nemethSequences": [
-        "⠠⠡"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
-      ]
-    },
-    {
-      "id": "misc.since",
-      "commandLabel": "Insert since",
-      "banaRefs": [
-        "23.18"
-      ],
-      "nemethSequences": [
-        "⠈⠌"
-      ],
-      "validContexts": [
-        "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "group.parenthesis-close",
-      "commandLabel": "Insert closing parenthesis",
+      "commandLabel": "group.parenthesis-close",
+      "cells": [
+        "⠾"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": ")"
+      },
       "banaRefs": [
         "19.1"
       ],
-      "nemethSequences": [
-        "⠾"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "group.bracket-open",
-      "commandLabel": "Insert opening bracket",
+      "commandLabel": "group.bracket-open",
+      "cells": [
+        "⠈",
+        "⠷"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "["
+      },
       "banaRefs": [
         "19.1"
       ],
-      "nemethSequences": [
-        "⠈⠷"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "group.bracket-close",
-      "commandLabel": "Insert closing bracket",
+      "commandLabel": "group.bracket-close",
+      "cells": [
+        "⠈",
+        "⠾"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "]"
+      },
       "banaRefs": [
         "19.1"
       ],
-      "nemethSequences": [
-        "⠈⠾"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "group.brace-open",
-      "commandLabel": "Insert opening brace",
+      "commandLabel": "group.brace-open",
+      "cells": [
+        "⠨",
+        "⠷"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "{"
+      },
       "banaRefs": [
         "19.1"
       ],
-      "nemethSequences": [
-        "⠨⠷"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "group.brace-close",
-      "commandLabel": "Insert closing brace",
+      "commandLabel": "group.brace-close",
+      "cells": [
+        "⠨",
+        "⠾"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "}"
+      },
       "banaRefs": [
         "19.1"
       ],
-      "nemethSequences": [
-        "⠨⠾"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.not-equal",
+      "commandLabel": "comparison.not-equal",
+      "cells": [
+        "⠌",
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≠"
+      },
+      "banaRefs": [
+        "21.1",
+        "21.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.approximately",
+      "commandLabel": "comparison.approximately",
+      "cells": [
+        "⠈",
+        "⠱",
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "≈"
+      },
+      "banaRefs": [
+        "21.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.similar",
+      "commandLabel": "comparison.similar",
+      "cells": [
+        "⠈",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∼"
+      },
+      "banaRefs": [
+        "21.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.member",
+      "commandLabel": "comparison.member",
+      "cells": [
+        "⠈",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∈"
+      },
+      "banaRefs": [
+        "21.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.not-member",
+      "commandLabel": "comparison.not-member",
+      "cells": [
+        "⠌",
+        "⠈",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∉"
+      },
+      "banaRefs": [
+        "21.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.subset",
+      "commandLabel": "comparison.subset",
+      "cells": [
+        "⠸",
+        "⠐",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⊂"
+      },
+      "banaRefs": [
+        "21.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.subset-equal",
+      "commandLabel": "comparison.subset-equal",
+      "cells": [
+        "⠸",
+        "⠐",
+        "⠅",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⊆"
+      },
+      "banaRefs": [
+        "21.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.union",
+      "commandLabel": "operator.union",
+      "cells": [
+        "⠨",
+        "⠬"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∪"
+      },
+      "banaRefs": [
+        "20.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.intersection",
+      "commandLabel": "operator.intersection",
+      "cells": [
+        "⠨",
+        "⠩"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∩"
+      },
+      "banaRefs": [
+        "20.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.logical-and",
+      "commandLabel": "operator.logical-and",
+      "cells": [
+        "⠈",
+        "⠩"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∧"
+      },
+      "banaRefs": [
+        "20.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.logical-or",
+      "commandLabel": "operator.logical-or",
+      "cells": [
+        "⠈",
+        "⠬"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∨"
+      },
+      "banaRefs": [
+        "20.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.slash",
+      "commandLabel": "operator.slash",
+      "cells": [
+        "⠸",
+        "⠌"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "/"
+      },
+      "banaRefs": [
+        "20.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.dot",
+      "commandLabel": "operator.dot",
+      "cells": [
+        "⠡"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "·"
+      },
+      "banaRefs": [
+        "20.7"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "operator.asterisk",
+      "commandLabel": "operator.asterisk",
+      "cells": [
+        "⠈",
+        "⠼"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∗"
+      },
+      "banaRefs": [
+        "20.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.infinity",
+      "commandLabel": "misc.infinity",
+      "cells": [
+        "⠠",
+        "⠿"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∞"
+      },
+      "banaRefs": [
+        "23.11"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.partial",
+      "commandLabel": "misc.partial",
+      "cells": [
+        "⠈",
+        "⠙"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∂"
+      },
+      "banaRefs": [
+        "23.14"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.nabla",
+      "commandLabel": "misc.nabla",
+      "cells": [
+        "⠨",
+        "⠫"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∇"
+      },
+      "banaRefs": [
+        "23.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.degree",
+      "commandLabel": "misc.degree",
+      "cells": [
+        "⠘",
+        "⠨",
+        "⠡"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "°"
+      },
+      "banaRefs": [
+        "23.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.prime",
+      "commandLabel": "misc.prime",
+      "cells": [
+        "⠄"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "′"
+      },
+      "banaRefs": [
+        "23.16"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.factorial",
+      "commandLabel": "misc.factorial",
+      "cells": [
+        "⠯"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "!"
+      },
+      "banaRefs": [
+        "23.9"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.percent",
+      "commandLabel": "misc.percent",
+      "cells": [
+        "⠈",
+        "⠴"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "%"
+      },
+      "banaRefs": [
+        "23.15"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.empty-set",
+      "commandLabel": "misc.empty-set",
+      "cells": [
+        "⠸",
+        "⠴"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∅"
+      },
+      "banaRefs": [
+        "23.7"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.angle",
+      "commandLabel": "misc.angle",
+      "cells": [
+        "⠫",
+        "⠪"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∠"
+      },
+      "banaRefs": [
+        "23"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.therefore",
+      "commandLabel": "misc.therefore",
+      "cells": [
+        "⠠",
+        "⠡"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∴"
+      },
+      "banaRefs": [
+        "23.18"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "misc.since",
+      "commandLabel": "misc.since",
+      "cells": [
+        "⠈",
+        "⠌"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "∵"
+      },
+      "banaRefs": [
+        "23.18"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
       ]
     },
     {
       "id": "arrow.right",
-      "commandLabel": "Insert right arrow",
+      "commandLabel": "arrow.right",
+      "cells": [
+        "⠫",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "→"
+      },
       "banaRefs": [
         "22.1",
         "22.4"
       ],
-      "nemethSequences": [
-        "⠫⠕"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "arrow.left",
-      "commandLabel": "Insert left arrow",
+      "commandLabel": "arrow.left",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "←"
+      },
       "banaRefs": [
         "22.4"
       ],
-      "nemethSequences": [
-        "⠫⠪⠒⠒"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "arrow.both",
-      "commandLabel": "Insert two-way arrow",
+      "commandLabel": "arrow.both",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠒",
+        "⠒",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "↔"
+      },
       "banaRefs": [
         "22.4"
       ],
-      "nemethSequences": [
-        "⠫⠪⠒⠒⠕"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
       "id": "arrow.implies",
-      "commandLabel": "Insert implies arrow",
+      "commandLabel": "arrow.implies",
+      "cells": [
+        "⠫",
+        "⠶",
+        "⠶",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mo",
+        "value": "⇒"
+      },
       "banaRefs": [
         "21.2"
       ],
-      "nemethSequences": [
-        "⠫⠶⠶⠕"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "greek.pi",
-      "commandLabel": "Insert pi",
+      "id": "greek.α",
+      "commandLabel": "greek.α",
+      "cells": [
+        "⠨",
+        "⠁"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "α"
+      },
       "banaRefs": [
         "6.2"
       ],
-      "nemethSequences": [
-        "⠨⠏"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "greek.alpha",
-      "commandLabel": "Insert alpha",
+      "id": "greek.β",
+      "commandLabel": "greek.β",
+      "cells": [
+        "⠨",
+        "⠃"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "β"
+      },
       "banaRefs": [
         "6.2"
       ],
-      "nemethSequences": [
-        "⠨⠁"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "greek.beta",
-      "commandLabel": "Insert beta",
+      "id": "greek.γ",
+      "commandLabel": "greek.γ",
+      "cells": [
+        "⠨",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "γ"
+      },
       "banaRefs": [
         "6.2"
       ],
-      "nemethSequences": [
-        "⠨⠃"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "greek.gamma",
-      "commandLabel": "Insert gamma",
+      "id": "greek.δ",
+      "commandLabel": "greek.δ",
+      "cells": [
+        "⠨",
+        "⠙"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "δ"
+      },
       "banaRefs": [
         "6.2"
       ],
-      "nemethSequences": [
-        "⠨⠛"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "greek.delta",
-      "commandLabel": "Insert delta",
+      "id": "greek.ε",
+      "commandLabel": "greek.ε",
+      "cells": [
+        "⠨",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ε"
+      },
       "banaRefs": [
         "6.2"
       ],
-      "nemethSequences": [
-        "⠨⠙"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "greek.capital-sigma",
-      "commandLabel": "Insert capital sigma",
+      "id": "greek.ζ",
+      "commandLabel": "greek.ζ",
+      "cells": [
+        "⠨",
+        "⠵"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ζ"
+      },
       "banaRefs": [
         "6.2"
       ],
-      "nemethSequences": [
-        "⠨⠠⠎"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "greek.capital-delta",
-      "commandLabel": "Insert capital delta",
+      "id": "greek.η",
+      "commandLabel": "greek.η",
+      "cells": [
+        "⠨",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "η"
+      },
       "banaRefs": [
         "6.2"
       ],
-      "nemethSequences": [
-        "⠨⠠⠙"
-      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
       ]
     },
     {
-      "id": "function.sin",
-      "commandLabel": "Insert sine function",
-      "banaRefs": [
-        "18.1",
-        "18.4"
+      "id": "greek.θ",
+      "commandLabel": "greek.θ",
+      "cells": [
+        "⠨",
+        "⠹"
       ],
-      "nemethSequences": [],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "θ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
       "validContexts": [
+        "empty-root",
         "row",
-        "hole",
-        "replacement"
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.ι",
+      "commandLabel": "greek.ι",
+      "cells": [
+        "⠨",
+        "⠊"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ι"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.κ",
+      "commandLabel": "greek.κ",
+      "cells": [
+        "⠨",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "κ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.λ",
+      "commandLabel": "greek.λ",
+      "cells": [
+        "⠨",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "λ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.μ",
+      "commandLabel": "greek.μ",
+      "cells": [
+        "⠨",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "μ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.ν",
+      "commandLabel": "greek.ν",
+      "cells": [
+        "⠨",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ν"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.ξ",
+      "commandLabel": "greek.ξ",
+      "cells": [
+        "⠨",
+        "⠭"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ξ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.ο",
+      "commandLabel": "greek.ο",
+      "cells": [
+        "⠨",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ο"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.π",
+      "commandLabel": "greek.π",
+      "cells": [
+        "⠨",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "π"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.ρ",
+      "commandLabel": "greek.ρ",
+      "cells": [
+        "⠨",
+        "⠗"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ρ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.σ",
+      "commandLabel": "greek.σ",
+      "cells": [
+        "⠨",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "σ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.τ",
+      "commandLabel": "greek.τ",
+      "cells": [
+        "⠨",
+        "⠞"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "τ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.υ",
+      "commandLabel": "greek.υ",
+      "cells": [
+        "⠨",
+        "⠥"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "υ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.φ",
+      "commandLabel": "greek.φ",
+      "cells": [
+        "⠨",
+        "⠋"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "φ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.χ",
+      "commandLabel": "greek.χ",
+      "cells": [
+        "⠨",
+        "⠯"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "χ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.ψ",
+      "commandLabel": "greek.ψ",
+      "cells": [
+        "⠨",
+        "⠽"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ψ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.ω",
+      "commandLabel": "greek.ω",
+      "cells": [
+        "⠨",
+        "⠺"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "ω"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Α",
+      "commandLabel": "greek.capital-Α",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠁"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Α"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Β",
+      "commandLabel": "greek.capital-Β",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠃"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Β"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Γ",
+      "commandLabel": "greek.capital-Γ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠛"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Γ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Δ",
+      "commandLabel": "greek.capital-Δ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠙"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Δ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ε",
+      "commandLabel": "greek.capital-Ε",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠑"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ε"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ζ",
+      "commandLabel": "greek.capital-Ζ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠵"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ζ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Η",
+      "commandLabel": "greek.capital-Η",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠱"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Η"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Θ",
+      "commandLabel": "greek.capital-Θ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠹"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Θ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ι",
+      "commandLabel": "greek.capital-Ι",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠊"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ι"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Κ",
+      "commandLabel": "greek.capital-Κ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠅"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Κ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Λ",
+      "commandLabel": "greek.capital-Λ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠇"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Λ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Μ",
+      "commandLabel": "greek.capital-Μ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠍"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Μ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ν",
+      "commandLabel": "greek.capital-Ν",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠝"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ν"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ξ",
+      "commandLabel": "greek.capital-Ξ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠭"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ξ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ο",
+      "commandLabel": "greek.capital-Ο",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠕"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ο"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Π",
+      "commandLabel": "greek.capital-Π",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠏"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Π"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ρ",
+      "commandLabel": "greek.capital-Ρ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠗"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ρ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Σ",
+      "commandLabel": "greek.capital-Σ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠎"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Σ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Τ",
+      "commandLabel": "greek.capital-Τ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠞"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Τ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Υ",
+      "commandLabel": "greek.capital-Υ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠥"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Υ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Φ",
+      "commandLabel": "greek.capital-Φ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠋"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Φ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Χ",
+      "commandLabel": "greek.capital-Χ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠯"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Χ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ψ",
+      "commandLabel": "greek.capital-Ψ",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠽"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ψ"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "greek.capital-Ω",
+      "commandLabel": "greek.capital-Ω",
+      "cells": [
+        "⠨",
+        "⠠",
+        "⠺"
+      ],
+      "action": "insert-token",
+      "args": {
+        "name": "mi",
+        "value": "Ω"
+      },
+      "banaRefs": [
+        "6.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "indicator.number",
+      "commandLabel": "indicator.number",
+      "cells": [
+        "⠼"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "numeric",
+        "preferLonger": false
+      },
+      "banaRefs": [
+        "3.1",
+        "3.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "indicator.capital",
+      "commandLabel": "indicator.capital",
+      "cells": [
+        "⠠"
+      ],
+      "action": "set-mode",
+      "args": {
+        "mode": "capital",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "5.1",
+        "6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
       ]
     }
   ],

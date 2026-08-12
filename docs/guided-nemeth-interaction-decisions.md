@@ -16,8 +16,8 @@ from a conventional linear Nemeth writing session. BANA 2022 and the October
   omit an unfinished child from the saved equation.
 - **Contributor validation:** Pending qualified-transcriber and blind-user
   task validation.
-- **Status:** Implemented in the transition core; accessibility validation
-  pending.
+- **Status:** Implemented in the draft transition core; VoiceOver and display
+  validation remains a release task.
 
 ## Explicit ambiguity choices
 
@@ -29,35 +29,8 @@ from a conventional linear Nemeth writing session. BANA 2022 and the October
 - **Rejected alternatives:** Guess from a global expression parser, or choose
   the first registry entry silently.
 - **Contributor validation:** Pending contributor review.
-- **Status:** Implemented in the transition API; UI choice palette pending.
-
-## Named commands as aliases
-
-- **User problem:** Keyboard users and display users need an accessible way to
-  invoke a structural operation when a Nemeth prefix is not discoverable.
-- **BANA references:** Rules 2 and 24, which govern indicators and
-  multipurpose use rather than application commands.
-- **Chosen behavior:** A named command is an equal entry point to the same
-  operation registry entry. It produces the same tree, focus, patch, and
-  announcement category as the corresponding Nemeth sequence.
-- **Rejected alternatives:** Add convenience macros that bypass Nemeth
-  semantics or create a second editing model.
-- **Contributor validation:** Pending contributor review.
-- **Status:** Core registry implemented; command palette pending.
-
-## Backspace to a hole
-
-- **User problem:** Removing content from a required structural slot must not
-  destroy the fraction, script, or radical that owns it.
-- **BANA references:** Rules 13–16; this is an editing policy layered over the
-  notation rules.
-- **Chosen behavior:** Backspace replaces required content with an empty stable
-  node. An empty optional child is removable with the same command.
-- **Rejected alternatives:** Delete the owning structure, or leave a malformed
-  MathML element with too few children.
-- **Contributor validation:** Pending contributor review.
-- **Status:** Tree primitive and inline editor command implemented; full
-  contributor validation remains pending.
+- **Status:** Implemented in the transition API and the small choice control in
+  the replacement dock; contributor validation remains pending.
 
 ## Terminators move focus
 
@@ -69,7 +42,8 @@ from a conventional linear Nemeth writing session. BANA 2022 and the October
 - **Rejected alternatives:** Treat terminators as inert punctuation and require
   a separate navigation command.
 - **Contributor validation:** Pending contributor review.
-- **Status:** Registry policy documented; family-specific operations pending.
+- **Status:** Implemented for the currently registered fraction, radical, and
+  grouping transitions; family-specific coverage remains pending.
 
 ## Paired grouping boundaries
 
@@ -81,4 +55,5 @@ from a conventional linear Nemeth writing session. BANA 2022 and the October
 - **Rejected alternatives:** Insert only a literal opening bar or parenthesis
   and ask a later global parser to infer the extent.
 - **Contributor validation:** Pending contributor review.
-- **Status:** Core grouping operation implemented; close behavior pending.
+- **Status:** Implemented for the registered round-group transition; additional
+  delimiter families remain pending.
