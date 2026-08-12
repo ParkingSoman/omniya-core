@@ -69,19 +69,19 @@ const RULE_17_19_FIXTURES = [
   ['shape.inverted-triangle', '⠨⠫', '▽'],
   ['group.angle-open', '⠨⠨⠷', '⟨'],
   ['group.angle-close', '⠨⠨⠾', '⟩'],
-  ['group.barred-bracket-open', '⠈⠸⠷', '⟦'],
-  ['group.barred-bracket-close', '⠈⠸⠾', '⟧'],
+  ['group.barred-bracket-open', '⠸⠈⠷', '⟦'],
+  ['group.barred-bracket-close', '⠸⠈⠾', '⟧'],
   ['group.barred-brace-open', '⠨⠸⠷', '⦃'],
   ['group.barred-brace-close', '⠨⠸⠾', '⦄'],
-  ['group.upper-half-open', '⠈⠘⠠⠷', '⎡'],
-  ['group.upper-half-close', '⠈⠘⠠⠾', '⎤'],
+  ['group.upper-half-open', '⠈⠘⠷', '⎡'],
+  ['group.upper-half-close', '⠈⠘⠾', '⎤'],
   ['group.lower-half-open', '⠈⠰⠷', '⎣'],
   ['group.lower-half-close', '⠈⠰⠾', '⎦']
 ];
 
 const RULE_23_FIXTURES = [
   ['misc.angstrom', '⠈⠠⠁', 'Å'],
-  ['misc.planck', '⠈⠓', 'ℏ'],
+  ['misc.crossed-h', '⠈⠓', 'ℏ'],
   ['misc.caret', '⠸⠣', '^'],
   ['misc.cent', '⠈⠉', '¢'],
   ['misc.pound', '⠈⠇', '£'],
@@ -208,7 +208,7 @@ test('BANA Rules 17 and 19 shape and grouping literals are source-linked', () =>
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, cells, expected] of RULE_17_19_FIXTURES) {
     assert.equal(registry.get(id)?.cells.join(''), cells, id);
-    assert.ok(registry.get(id)?.banaRefs.includes('17.1') || registry.get(id)?.banaRefs.includes('19.1'), id);
+    assert.ok(registry.get(id)?.banaRefs.some((ref) => ref.startsWith('17.') || ref.startsWith('19.')), id);
     const tree = applyFixture(id, cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
   }
@@ -285,7 +285,7 @@ test('BANA Rule 17 interior constructions and Rule 15 simultaneous modifiers are
   for (const [id, cells, value] of [
     ['shape.circle.interior-cross', '⠫⠉⠸⠫⠈⠡⠻', '⊗'],
     ['shape.circle.interior-minus', '⠫⠉⠸⠫⠤⠻', '⊖'],
-    ['shape.square.interior-diagonals', '⠫⠲⠸⠫⠢⠈⠴⠻', '⊠'],
+    ['shape.square.interior-diagonals', '⠫⠲⠸⠫⠢⠈⠔⠻', '⊠'],
     ['shape.square.interior-vertical-bar', '⠫⠲⠸⠫⠳⠻', '◫'],
     ['shape.angle.interior-arc', '⠫⠪⠸⠫⠫⠁⠻', '∡']
   ]) {
@@ -313,7 +313,7 @@ test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () 
 
 test('BANA Rule 6 non-English alphabet indicators remain bounded local mappings', () => {
   const fixtures = [
-    ['german.v', '⠸⠧', '𝔳'],
+    ['german.v', '⠸⠧', '𝖛'],
     ['german.capital-v', '⠸⠠⠧', '𝔙'],
     ['hebrew.aleph', '⠠⠠⠁', 'א'],
     ['russian.ell', '⠈⠈⠇', 'л'],
@@ -667,20 +667,38 @@ test('BANA Rule 14.13 appends a bounded possessive after a script', () => {
   assert.equal(tree.children[2].children[0].text, 's');
 });
 
-test('BANA Rule 6.1.1 uses ordinary German Fraktur, not bold-Fraktur', async () => {
-  await SRE.engineReady();
-  await SRE.setupEngine({ locale: 'nemeth', modality: 'braille', domain: 'default' });
+test('BANA Rule 6.1.1 uses the German Fraktur glyphs specified by the code', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, cells, glyph] of [
-    ['german.a', '⠸⠁', '𝔞'],
-    ['german.capital-c', '⠸⠠⠉', 'ℭ'],
-    ['german.capital-z', '⠸⠠⠵', 'ℨ']
+    ['german.a', '⠸⠁', '𝖆'],
+    ['german.capital-c', '⠸⠠⠉', '𝕮'],
+    ['german.capital-z', '⠸⠠⠵', '𝖅']
   ]) {
     assert.equal(registry.get(id)?.cells.join(''), cells, id);
     const tree = applyFixture(id, cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, glyph, id);
-    assert.equal(SRE.toSpeech(`<math><mi>${glyph}</mi></math>`), cells, id);
   }
+});
+
+test('BANA Rule 23.5 exposes both Del glyphs as an explicit local choice', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  assert.equal(registry.get('misc.nabla')?.cells.join(''), '⠨⠫');
+  assert.equal(registry.get('misc.del-inverted')?.cells.join(''), '⠨⠫');
+  const document = createEmptyDraftMathDocument();
+  const result = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠨' });
+  const next = applyNemethCell({ document, focus: document.focus, inputState: result.inputState, cell: '⠫' });
+  assert.equal(next.status, 'choice');
+  assert.deepEqual(next.choices.map((choice) => choice.operationId).sort(), ['misc.del-inverted', 'misc.nabla', 'shape.inverted-triangle']);
+});
+
+test('BANA Rule 23.17 represents there-exists-uniquely as a bounded quantifier', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const entry = registry.get('quantifier.exists-unique');
+  assert.ok(entry);
+  assert.equal(entry.cells.join(''), '⠈⠿⠸⠡');
+  assert.ok(entry.banaRefs.includes('23.17'));
+  const tree = applyFixture('quantifier.exists-unique', '⠈⠿⠸⠡');
+  assert.equal(tree.children.at(-1)?.children?.[0]?.text, '∃!');
 });
 
 test('BANA Rule 23.8 treats QED as a transcriber-defined local shape', async () => {

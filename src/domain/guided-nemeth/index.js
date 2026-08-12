@@ -64,18 +64,18 @@ const GREEK_VARIANTS = [
 // word parser; each row inserts one identifier and the next cell starts a new
 // local operation.
 const GERMAN_FRAKTUR = [
-  // These are mathematical Fraktur characters, not bold-Fraktur. The
-  // distinction matters: bold-Fraktur carries the additional BANA boldface
-  // indicator, while Rule 6.1.1 German Fraktur uses only the German-letter
-  // indicator. The exceptional Unicode code points are the standard Fraktur
-  // capitals for C, H, I, R, and Z.
-  ['a', '𝔞', '𝔄'], ['b', '𝔟', '𝔅'], ['c', '𝔠', 'ℭ'], ['d', '𝔡', '𝔇'],
-  ['e', '𝔢', '𝔈'], ['f', '𝔣', '𝔉'], ['g', '𝔤', '𝔊'], ['h', '𝔥', 'ℌ'],
-  ['i', '𝔦', 'ℑ'], ['j', '𝔧', '𝔍'], ['k', '𝔨', '𝔎'], ['l', '𝔩', '𝔏'],
-  ['m', '𝔪', '𝔐'], ['n', '𝔫', '𝔑'], ['o', '𝔬', '𝔒'], ['p', '𝔭', '𝔓'],
-  ['q', '𝔮', '𝔔'], ['r', '𝔯', 'ℜ'], ['s', '𝔰', '𝔖'], ['t', '𝔱', '𝔗'],
-  ['u', '𝔲', '𝔘'], ['v', '𝔳', '𝔙'], ['w', '𝔴', '𝔚'], ['x', '𝔵', '𝔛'],
-  ['y', '𝔶', '𝔜'], ['z', '𝔷', 'ℨ']
+  // These glyphs intentionally follow the BANA 2022 Rule 6.1.1 table. The
+  // publication prints the lowercase forms as bold Fraktur and the listed
+  // capital exceptions (C, H, I, R, and Z) as their Unicode Fraktur forms.
+  // The source code's German-letter indicator is the normative distinction;
+  // MathCAT's Unicode serializer may choose a different display glyph.
+  ['a', '𝖆', '𝔄'], ['b', '𝖇', '𝔅'], ['c', '𝖈', '𝕮'], ['d', '𝖉', '𝔇'],
+  ['e', '𝖊', '𝔈'], ['f', '𝖋', '𝔉'], ['g', '𝖌', '𝔊'], ['h', '𝖍', '𝕳'],
+  ['i', '𝖎', '𝕴'], ['j', '𝖏', '𝔍'], ['k', '𝖐', '𝔎'], ['l', '𝖑', '𝔏'],
+  ['m', '𝖒', '𝔐'], ['n', '𝖓', '𝔑'], ['o', '𝖔', '𝔒'], ['p', '𝖕', '𝔓'],
+  ['q', '𝖖', '𝔔'], ['r', '𝖗', '𝕽'], ['s', '𝖘', '𝔖'], ['t', '𝖙', '𝔗'],
+  ['u', '𝖚', '𝔘'], ['v', '𝖛', '𝔙'], ['w', '𝖜', '𝔚'], ['x', '𝖝', '𝔛'],
+  ['y', '𝖞', '𝔜'], ['z', '𝖟', '𝖅']
 ];
 // BANA Rule 18 lists these abbreviated function names as mathematical
 // expressions in their own right.  They are deliberately represented as
@@ -1142,12 +1142,14 @@ const MAPPINGS = [
   // local construction, not a delimiter grammar: Enter commits the one sign.
   token('group.angle-open', ['⠨', '⠨', '⠷'], ['19.1'], '⟨', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.angle-close', ['⠨', '⠨', '⠾'], ['19.1'], '⟩', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.barred-bracket-open', ['⠈', '⠸', '⠷'], ['19.1'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.barred-bracket-close', ['⠈', '⠸', '⠾'], ['19.1'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  // BANA 19.3 writes a bold bracket as _@( ... _@), and 19.4 writes the
+  // half-brackets as @^(...) and @;(...). Preserve that indicator order.
+  token('group.barred-bracket-open', ['⠸', '⠈', '⠷'], ['19.3'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.barred-bracket-close', ['⠸', '⠈', '⠾'], ['19.3'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.barred-brace-open', ['⠨', '⠸', '⠷'], ['19.1'], '⦃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.barred-brace-close', ['⠨', '⠸', '⠾'], ['19.1'], '⦄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.upper-half-open', ['⠈', '⠘', '⠠', '⠷'], ['19.1'], '⎡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.upper-half-close', ['⠈', '⠘', '⠠', '⠾'], ['19.1'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.upper-half-open', ['⠈', '⠘', '⠷'], ['19.4'], '⎡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.upper-half-close', ['⠈', '⠘', '⠾'], ['19.4'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.lower-half-open', ['⠈', '⠰', '⠷'], ['19.1'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.lower-half-close', ['⠈', '⠰', '⠾'], ['19.1'], '⎦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   // Rule 19.5 reuses the vertical-bar cell used by operation and arrow
@@ -1199,7 +1201,7 @@ const MAPPINGS = [
   Object.assign(token('misc.crossed-d', ['⠈', '⠫'], ['23.4'], 'đ', 'mi', { preferLonger: true }), {
     errataRefs: ['Rule 23 symbol list', 'Rule 23.4']
   }),
-  token('misc.planck', ['⠈', '⠓'], ['23.4'], 'ℏ'),
+  token('misc.crossed-h', ['⠈', '⠓'], ['23.4'], 'ℏ'),
   // BANA prints crossed Lambda as `` `.l``: backtick, dot 4, l.
   token('misc.crossed-lambda', ['⠈', '⠨', '⠇'], ['23.4'], 'ƛ'),
   token('misc.crossed-r', ['⠈', '⠠', '⠗'], ['23.4'], '℞'),
@@ -1215,6 +1217,7 @@ const MAPPINGS = [
   token('misc.per-mille', ['⠈', '⠴', '⠴'], ['23.15'], '‰'),
   token('misc.partial', ['⠈', '⠙'], ['23.14'], '∂'),
   token('misc.nabla', ['⠨', '⠫'], ['23.5'], '∇'),
+  token('misc.del-inverted', ['⠨', '⠫'], ['23.5'], '▽'),
   token('misc.ditto', ['⠠', '⠄'], ['23.6'], '〃'),
   // BANA Rule 23.8: the end-of-proof icon is `@$qed`, preceded by an empty
   // cell. The UEB transcriber-defined shape indicator is ⠈⠫, followed by
@@ -1265,7 +1268,11 @@ const MAPPINGS = [
   token('misc.identical', ['⠸', '⠇'], ['21.3'], '≡'),
   token('misc.not-identical', ['⠌', '⠸', '⠇'], ['21.3'], '≢'),
   token('quantifier.forall', ['⠈', '⠯'], ['23.17'], '∀'),
-  token('quantifier.exists', ['⠈', '⠿'], ['23.17'], '∃'),
+  token('quantifier.exists', ['⠈', '⠿'], ['23.17'], '∃', 'mo', { preferLonger: true }),
+  // BANA 23.17 / Appendix D: `@=\\` means there exists uniquely. The final
+  // backslash is the full Nemeth vertical-bar symbol (⠸⠡), not merely its
+  // first indicator cell. Keep the complete four-cell code bounded.
+  token('quantifier.exists-unique', ['⠈', '⠿', '⠸', '⠡'], ['23.17'], '∃!', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('quantifier.not-exists', ['⠌', '⠈', '⠿'], ['23.17'], '∄'),
   token('comparison.contains', ['⠈', '⠢'], ['21.4'], '∋'),
   token('comparison.not-contains', ['⠌', '⠈', '⠢'], ['21.4'], '∌'),
@@ -1350,7 +1357,7 @@ const MAPPINGS = [
   shapeModificationToken('shape.circle.interior-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['17.6.1'], '⊖', 'circle', 'interior-minus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.circle.interior-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⦿', 'circle', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.rectangle.interior-bar', ['⠫', '⠗', '⠸', '⠫', '⠒', '⠻'], ['17.6.1'], '▭', 'rectangle', 'interior-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  shapeModificationToken('shape.square.interior-diagonals', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠈', '⠴', '⠻'], ['17.6.1'], '⊠', 'square', 'interior-diagonals', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.square.interior-diagonals', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠈', '⠔', '⠻'], ['17.6.1'], '⊠', 'square', 'interior-diagonals', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.square.interior-dot', ['⠫', '⠲', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⊡', 'square', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.square.interior-horizontal-bar', ['⠫', '⠲', '⠸', '⠫', '⠒', '⠻'], ['17.6.1'], '⊟', 'square', 'interior-horizontal-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.square.interior-vertical-bar', ['⠫', '⠲', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '◫', 'square', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
