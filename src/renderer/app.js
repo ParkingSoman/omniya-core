@@ -48,6 +48,11 @@ let replacementSession = null;
 let replacementEditor = null;
 let preferredAuthoringMethod = 'nemeth';
 const mathHistory = new Map();
+// MathJax changes the visual and speech nodes in a short asynchronous handoff
+// after an arrow key. Keep the last successfully resolved *exact* address so
+// E remains reliable during that handoff. This is a runtime cache only; the
+// persisted cursor is still the canonical MathFocus on the equation item.
+const explorerFocusCache = new Map();
 
 function activeNapkin() {
   return state.napkins.find(({ id }) => id === state.activeNapkinId) ?? null;
@@ -352,14 +357,30 @@ async function enterEquation(article) {
   }
   math.focus();
   exploringEquationItemId = article.dataset.itemId;
+  explorerFocusCache.delete(exploringEquationItemId);
   elements['save-status'].textContent = 'Equation entered. Use arrow keys to explore it. Escape returns to the item.';
+  void cacheExplorerFocus(article);
   return true;
 }
 
 function leaveEquation(article) {
+  if (article?.dataset.itemId) explorerFocusCache.delete(article.dataset.itemId);
   exploringEquationItemId = null;
   article.focus();
   elements['save-status'].textContent = 'Equation level';
+}
+
+async function cacheExplorerFocus(article) {
+  if (!article?.isConnected || exploringEquationItemId !== article.dataset.itemId) return null;
+  try {
+    const focus = await captureExplorerFocusWithRetry(article);
+    if (exploringEquationItemId === article.dataset.itemId) explorerFocusCache.set(article.dataset.itemId, focus);
+    return focus;
+  } catch {
+    // A later navigation event or the E handler will retry. Never publish a
+    // user-facing "unsafe" state for this transient DOM handoff.
+    return null;
+  }
 }
 
 function closeReplacementEditor() {
@@ -430,7 +451,16 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     if (startingFocus) {
       focus = { target: startingFocus, speech: '', nemeth: '' };
     } else if (exploringEquationItemId === article.dataset.itemId) {
-      focus = await captureExplorerFocusWithRetry(article);
+      try {
+        focus = await captureExplorerFocusWithRetry(article);
+      } catch (error) {
+        // MathJax's explorer can briefly expose its speech proxy while it is
+        // moving the current node. Reuse the last exact bridge result from
+        // this same item rather than broadening the edit or showing an error.
+        focus = explorerFocusCache.get(article.dataset.itemId);
+        if (!focus) throw error;
+      }
+      explorerFocusCache.set(article.dataset.itemId, focus);
     } else {
       const root = item.math && new DOMParser().parseFromString(item.math.mathml, 'application/xml').documentElement;
       const rootId = root?.getAttribute('data-omniya-id');
@@ -451,6 +481,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     method: preferredAuthoringMethod
   });
   replacementSession.isNew = isNew;
+  explorerFocusCache.delete(article.dataset.itemId);
   const editor = elements['replacement-input'];
   replacementEditor = editor;
   editor.className = preferredAuthoringMethod === 'nemeth' ? 'nemeth-inline-editor' : 'latex-inline-editor';
@@ -609,6 +640,12 @@ document.addEventListener('keydown', (event) => {
     event.stopImmediatePropagation();
     void openReplacementEditor(article);
     return;
+  }
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+    // A navigation key changes the exact scope. Do not let the cache from the
+    // previous node survive a move; refresh it after MathJax settles.
+    explorerFocusCache.delete(article.dataset.itemId);
+    setTimeout(() => void cacheExplorerFocus(article), 0);
   }
   if (event.key !== 'Escape') return;
   event.preventDefault();

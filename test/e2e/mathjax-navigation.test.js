@@ -288,6 +288,23 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
   await assertCurrentFocusCanBeReplaced(page);
 });
 
+test('E opens the exact replacement even during the explorer focus handoff', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-focus-handoff-e2e-');
+  const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}');
+
+  await article.focus();
+  await page.keyboard.press('Enter');
+  // Deliberately do not wait for a speech-region mutation here. This models
+  // the real VoiceOver timing where E can arrive while MathJax is handing the
+  // current node from the visual explorer to its speech proxy.
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id') !== null, true);
+  assert.doesNotMatch(await page.locator('#save-status').textContent(), /cannot be edited safely|unsafe/i);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+});
+
 test('switches input type with radio arrow keys and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-keyboard-input-e2e-');
   await page.getByRole('button', { name: 'Add item' }).click();
