@@ -545,6 +545,53 @@ test('BANA Rule 15.4 adds the opposite side through the same local follow-up pol
   assert.equal(inputState.prefix, '');
 });
 
+test('BANA Rule 15.3 keeps same-side higher-order modifiers distinct from simultaneous modifiers', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠭', '⠣', '⠱', '⠻', '⠣', '⠣']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[0].name, 'mover');
+  assert.equal(tree.children[0].children[1].attrs['data-omniya-hole'], 'true');
+});
+
+test('BANA Rule 15.5 keeps parallel bars in one local modifier row', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠱', '⠱', '⠻']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[1].name, 'mrow');
+  assert.deepEqual(tree.children[0].children[1].children.map((node) => node.children[0].text), ['¯', '¯']);
+});
+
+test('BANA Rule 15.6 builds a bounded binomial table through local choices', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const [cell, operationId] of [['⠷', 'binomial.open'], ['⠝', null], ['⠩', 'binomial.lower'], ['⠅', null], ['⠾', 'binomial.close']]) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'choice') result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].attrs['data-omniya-binomial'], 'true');
+  assert.equal(tree.children[0].children[1].name, 'mtable');
+  assert.equal(tree.children[0].children[1].children[0].children[0].children[0].children[0].text, 'n');
+  assert.equal(tree.children[0].children[1].children[1].children[0].children[0].children[0].text, 'k');
+});
+
 test('BANA Rule 15 modifier scope wraps a complete local multi-token expression', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
@@ -579,12 +626,52 @@ test('Rule 15 typeform and modifier mappings agree with the independent SRE Neme
   }
 });
 
+test('BANA Rules 3.6 and 3.11 keep base digits and Roman numerals bounded', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠂', '⠒', '⠞', '⠑', '⠶']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(parseMathML(document.mathml).children[0].children[0].text, '13te7');
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  for (const cell of ['⠠', '⠠', '⠧', '⠊', '⠊']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const roman = parseMathML(document.mathml).children[0];
+  assert.equal(roman.children[0].text, 'VII');
+  assert.equal(roman.attrs['data-omniya-nemeth-intent'], 'roman');
+});
+
+test('BANA Rule 14.13 appends a bounded possessive after a script', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠘', '⠁', '⠸', '⠄', '⠎']) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'pending' && result.inputState.prefix === '⠸⠄⠎') result = commitNemethLocalCode({ document, focus, inputState: result.inputState });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[1].children[0].text, '′');
+  assert.equal(tree.children[2].children[0].text, 's');
+});
+
 test('every accepted mapping has an explicit BANA source and action', () => {
   for (const entry of operationRegistry()) {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'insert-contracted-script-comma', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
   }
 });
 

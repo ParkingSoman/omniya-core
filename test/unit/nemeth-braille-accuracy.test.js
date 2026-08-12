@@ -394,3 +394,20 @@ test('BANA Rule 14.7 and 14.12 guided script fixtures match the independent Brai
   const focusedBase = parseMathML(primedSubscript.mathml).children[0];
   assert.equal(await nemeth(subtreeMathML(focusedBase)), '⠭⠄⠰⠊');
 });
+
+test('BANA Rule 15.3 and 15.6 local structures match independent Nemeth output', async () => {
+  const higher = '<math><mover><mover><mi>x</mi><mo>¯</mo></mover><mo>¯</mo></mover></math>';
+  assert.equal(await nemeth(higher), '⠐⠭⠱⠣⠱⠻');
+  const binomial = '<math><mrow data-omniya-binomial="true" intent="binomial($upper,$lower)"><mo>(</mo><mtable data-omniya-role="binomial-table"><mtr><mtd><mi>n</mi></mtd></mtr><mtr><mtd><mi>k</mi></mtd></mtr></mtable><mo>)</mo></mrow></math>';
+  assert.equal(await nemeth(binomial), '⠷⠝⠩⠅⠾');
+  const parallel = '<math><mover><mi>x</mi><mrow><mo>¯</mo><mo>¯</mo></mrow></mover></math>';
+  assert.equal(await nemeth(parallel), '⠐⠭⠣⠱⠱⠻');
+});
+
+test('BANA Rules 3.6 and 3.11 guided drafts match independent Nemeth output', async () => {
+  const base = '<math><mn>13te7</mn></math>';
+  assert.equal(await nemeth(base), '⠼⠂⠒⠞⠑⠶');
+  const roman = '<math><mi data-omniya-nemeth-intent="roman">VII</mi></math>';
+  assert.equal(await nemeth(roman), '⠠⠠⠧⠊⠊');
+  assert.equal(await nemeth('<math><msup><mi>x</mi><mi>a</mi></msup><mo>′</mo><mi>s</mi></math>'), '⠭⠘⠁⠄⠎');
+});

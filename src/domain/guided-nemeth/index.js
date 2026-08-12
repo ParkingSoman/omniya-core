@@ -85,6 +85,7 @@ const BANA_FUNCTION_NAMES = [
   'grad', 'hav', 'im', 'inf', 'lim', 'ln', 'log', 'max', 'min', 'mod',
   're', 'sec', 'sech', 'sin', 'sinh', 'sup', 'tan', 'tanh', 'vers'
 ];
+const ROMAN_LETTERS = new Map([['⠊', 'i'], ['⠧', 'v'], ['⠭', 'x'], ['⠇', 'l'], ['⠉', 'c'], ['⠙', 'd'], ['⠍', 'm']]);
 
 // BANA 6.1.5/6.2.2 uses the alternative-letter indicator (⠈) after the
 // Greek alphabet indicator. The MathCAT CSV contains a legacy final-sigma
@@ -390,6 +391,116 @@ function addSimultaneousModifier(tree, focus, direction) {
   return { tree, focus: focusNode(target) };
 }
 
+// BANA 15.3: a second-order modifier is a modifier of the already modified
+// expression, not a second side of the original expression.  This operation
+// wraps only the nearest existing mover/munder and opens its same-side slot.
+// It never searches for operands or consumes anything outside that one local
+// MathML structure.
+function addHigherOrderModifier(tree, focus, direction) {
+  let current = currentNode(tree, focus);
+  // A terminator normally returns focus to the surrounding row. For a
+  // higher-order code, the immediately preceding same-side modifier is the
+  // exact local target and is therefore safe to recover without broadening.
+  if (current.name === 'math' || current.name === 'mrow') {
+    const candidate = [...(current.children ?? [])].reverse().find((child) =>
+      child.name === (direction === 'under' ? 'munder' : 'mover'));
+    if (candidate) current = candidate;
+  }
+  const inner = ancestor(tree, current, direction === 'under' ? ['munder', 'munderover'] : ['mover', 'munderover']);
+  if (!inner || inner.name === 'munderover') {
+    throw new RangeError('A higher-order modifier requires an existing same-side modifier.');
+  }
+  const parent = findMathParent(tree, inner.attrs?.['data-omniya-id']);
+  if (!parent) throw new RangeError('The higher-order modifier has no local parent.');
+  const index = parent.children.indexOf(inner);
+  if (index < 0) throw new RangeError('The higher-order modifier target is unavailable.');
+  const wrapperName = direction === 'under' ? 'munder' : 'mover';
+  const wrapper = element(wrapperName, [], { 'data-omniya-id': inner.attrs?.['data-omniya-id'] ?? id() });
+  inner.attrs['data-omniya-id'] = id();
+  wrapper.children.push(inner, hole(wrapper, direction === 'under' ? 'underscript' : 'overscript'));
+  parent.children[index] = wrapper;
+  return { tree, focus: focusNode(wrapper.children[1]) };
+}
+
+// Rule 15.6's binomial is represented as an explicit two-row MathML table.
+// The upper/lower cells are the only editable state; the surrounding fences
+// are ordinary local children and no passage-level delimiter stack is kept.
+function openBinomial(tree, focus) {
+  const current = currentNode(tree, focus);
+  const wrapper = element('mrow', [], { 'data-omniya-binomial': 'true', intent: 'binomial($upper,$lower)' });
+  const table = element('mtable', [], { 'data-omniya-role': 'binomial-table' });
+  const upperRow = element('mtr', [element('mtd', [hole(table, 'binomial-upper')])]);
+  const lowerRow = element('mtr', [element('mtd', [hole(table, 'binomial-lower')])]);
+  table.children.push(upperRow, lowerRow);
+  wrapper.children.push(atom('mo', '('), table, atom('mo', ')'));
+  replaceCurrent(tree, focus, wrapper);
+  return { tree, focus: focusNode(upperRow.children[0].children[0]) };
+}
+
+function moveBinomialLower(tree, focus) {
+  const current = currentNode(tree, focus);
+  const table = ancestor(tree, current, ['mtable']);
+  if (!table || table.attrs?.['data-omniya-role'] !== 'binomial-table') {
+    throw new RangeError('The directly-under separator requires a binomial upper cell.');
+  }
+  const lower = table.children?.[1]?.children?.[0]?.children?.[0];
+  if (!lower) throw new RangeError('The binomial lower cell is unavailable.');
+  return { tree, focus: focusNode(lower) };
+}
+
+function closeBinomial(tree, focus) {
+  const current = currentNode(tree, focus);
+  const table = ancestor(tree, current, ['mtable']);
+  if (!table || table.attrs?.['data-omniya-role'] !== 'binomial-table') {
+    throw new RangeError('A binomial terminator requires the lower cell.');
+  }
+  const wrapper = ancestor(tree, table, ['mrow']);
+  const parent = wrapper ? findMathParent(tree, wrapper.attrs?.['data-omniya-id']) : null;
+  return { tree, focus: focusNode(parent ?? wrapper ?? tree) };
+}
+
+// A local base-n digit is still one numeric atom. The mode is entered by the
+// numeric indicator and cleared only by a non-digit structural transition;
+// it does not infer a base or parse an arbitrary numeral passage.
+function insertBaseDigit(tree, focus, value) {
+  const current = currentNode(tree, focus);
+  if (current.name === 'mn' && current.children?.length === 1) {
+    current.children[0].text += value;
+    return { tree, focus: focusNode(current) };
+  }
+  return insertToken(tree, focus, 'mn', value);
+}
+
+function insertRomanLetter(tree, focus, value) {
+  const current = currentNode(tree, focus);
+  if (current.name === 'mi' && current.attrs?.['data-omniya-nemeth-intent'] === 'roman' && current.children?.length === 1) {
+    current.children[0].text += value;
+    return { tree, focus: focusNode(current) };
+  }
+  return insertToken(tree, focus, 'mi', value, {
+    dataAttributes: { 'data-omniya-nemeth-intent': 'roman' }
+  });
+}
+
+// BANA 14.13/8.4: punctuation-indicator apostrophe-s returns to baseline
+// after a scripted expression. This operation appends only that bounded
+// suffix after the nearest script container; it never parses a word or the
+// surrounding equation.
+function appendScriptPossessive(tree, focus) {
+  const current = currentNode(tree, focus);
+  const script = ancestor(tree, current, ['msup', 'msub', 'msubsup', 'mmultiscripts']);
+  if (!script) throw new RangeError('Apostrophe-s requires a scripted expression.');
+  const parent = findMathParent(tree, script.attrs?.['data-omniya-id']);
+  if (!parent) throw new RangeError('The scripted possessive has no local parent.');
+  const index = parent.children.indexOf(script);
+  if (index < 0) throw new RangeError('The scripted possessive target is unavailable.');
+  const apostrophe = atom('mo', '′', { 'data-omniya-nemeth-intent': 'possessive-apostrophe' });
+  const suffix = atom('mi', 's', { 'data-omniya-nemeth-intent': 'possessive-s' });
+  parent.children.splice(index + 1, 0, apostrophe, suffix);
+  return { tree, focus: focusNode(suffix) };
+}
+
+
 function modifierElementForMode(modeValue) {
   return modeValue === 'modifier-under' ? 'munder' : 'mover';
 }
@@ -462,6 +573,25 @@ function wrapModifierScope(tree, scope, elementName, value) {
 }
 
 function insertModifier(tree, focus, value, modeValue = null, scope = null) {
+  // BANA 15.5: parallel horizontal bars are one modifier, not higher-order
+  // modifiers.  Append only to the currently occupied local modifier slot.
+  if (modeValue === 'modifier-complete' && value === '¯') {
+    const current = currentNode(tree, focus);
+    const parent = current.name !== 'math' ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
+    const role = current.attrs?.['data-omniya-role'];
+    if (parent && ['mover', 'munder'].includes(parent.name) &&
+      ['overscript', 'underscript'].includes(role) && current.name === 'mo' && current.children?.[0]?.text === '¯') {
+      const row = element('mrow', [current, atom('mo', '¯', { 'data-omniya-role': role })]);
+      const index = parent.children.indexOf(current);
+      parent.children[index] = row;
+      return { tree, focus: focusNode(row.children[1]), wrapper: parent };
+    }
+    if (parent && ['mover', 'munder'].includes(parent.name) &&
+      ['overscript', 'underscript'].includes(role) && current.name === 'mrow') {
+      current.children.push(atom('mo', '¯', { 'data-omniya-role': role }));
+      return { tree, focus: focusNode(current.children.at(-1)), wrapper: parent };
+    }
+  }
   // When the expression starts in an empty replacement root, the
   // multipurpose/directly-over (or under) cells stage a local expectation.
   // Do not wrap the first token eagerly: ordinary guided input must remain
@@ -609,6 +739,10 @@ const simultaneous = (id, cells, banaRefs, direction) => ({
   id, cells, banaRefs, action: 'simultaneous-modifier',
   commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
   args: { direction }
+});
+const higherModifier = (id, cells, banaRefs, direction) => ({
+  id, cells, banaRefs, action: 'higher-order-modifier',
+  commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { direction }
 });
 const contractedComma = (id, cells, banaRefs) => ({
   id, cells, banaRefs, action: 'insert-contracted-script-comma',
@@ -943,8 +1077,11 @@ const MAPPINGS = [
   mode('typeform.terminate', ['⠠', '⠄'], ['7.1', '7.3'], 'typeform-end'),
   modifier('modifier.directly-over', ['⠣'], ['15.1', '15.2'], 'mover', 'overscript', 'multipurpose', { preferLonger: true }),
   modifier('modifier.directly-under', ['⠩'], ['15.1', '15.2'], 'munder', 'underscript'),
-  modifier('modifier.directly-over.second', ['⠣', '⠣'], ['15.3'], 'mover', 'overscript', 'multipurpose'),
-  modifier('modifier.directly-under.second', ['⠩', '⠩'], ['15.3'], 'munder', 'underscript', 'multipurpose'),
+  // The doubled indicator is one bounded higher-order code. A single
+  // same-side indicator is held until the second cell arrives, so it cannot
+  // be mistaken for a simultaneous opposite-side follow-up.
+  higherModifier('modifier.directly-over.higher', ['⠣', '⠣'], ['15.3'], 'over'),
+  higherModifier('modifier.directly-under.higher', ['⠩', '⠩'], ['15.3'], 'under'),
   // Rule 15.4: once one side exists, a second-side indicator makes a
   // munderover and opens only the missing required slot.
   simultaneous('modifier.simultaneous.over', ['⠣'], ['15.4'], 'over'),
@@ -979,6 +1116,13 @@ const MAPPINGS = [
   close('radical.indexed.end', ['⠻'], ['16.2', '16.3'], 'mroot'),
   open('group.round', ['⠷'], ['19.1', '19.5'], 'mrow', ['content'], { 'data-omniya-group': 'round' }),
   close('group.round.end', ['⠾'], ['19.1'], 'mrow'),
+  // Rule 15.6: a binomial is one bounded local structure.  Its opening
+  // creates two editable table cells; ⠩ moves to the lower cell and ⠾ closes
+  // the local structure.  It is not a delimiter parser for the surrounding
+  // expression.
+  { id: 'binomial.open', cells: ['⠷'], banaRefs: ['15.6'], action: 'open-binomial', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
+  { id: 'binomial.lower', cells: ['⠩'], banaRefs: ['15.6'], action: 'move-binomial-lower', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
+  { id: 'binomial.close', cells: ['⠾'], banaRefs: ['15.6'], action: 'close-binomial', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: {} },
   token('group.parenthesis-open', ['⠷'], ['19.1'], '(', 'mo'),
   token('group.parenthesis-close', ['⠾'], ['19.1'], ')', 'mo'),
   token('group.bracket-open', ['⠈', '⠷'], ['19.1'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
@@ -1082,6 +1226,12 @@ const MAPPINGS = [
   token('misc.since', ['⠈', '⠌'], ['23.18'], '∵'),
   token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″', 'mo', { preferLonger: true }),
   token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴', 'mo', { preferLonger: true }),
+  {
+    // BANA examples 8-39 through 8-45 transcribe apostrophe-s as `_'s`:
+    // punctuation indicator (456), apostrophe (3), and the letter s.
+    id: 'script.possessive', cells: ['⠸', '⠄', '⠎'], banaRefs: ['8.4', '14.13'],
+    action: 'append-script-possessive', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: {}
+  },
   // BANA 14.7's contracted comma is distinct from the baseline mathematical
   // comma: it preserves the current script level and represents the optional
   // following space as part of this one local follow-up.
@@ -1211,6 +1361,10 @@ const MAPPINGS = [
   ...GREEK_VARIANTS.map(([cells, value]) => token(`greek.variant-${value}`, [...cells], ['6.1.5', '6.2.2'], value, 'mi')),
   mode('indicator.number', ['⠼'], ['3.1', '3.3'], 'numeric'),
   mode('indicator.capital', ['⠠'], ['5.1', '6.1'], 'capital', true),
+  // BANA 3.11.1: a double capital indicator introduces one uppercase Roman
+  // numeral construction. Letters are collected only into that one local
+  // identifier; ordinary expression input remains unaffected.
+  mode('indicator.roman', ['⠠', '⠠'], ['3.11.1', '6.5'], 'roman', true),
   // BANA Rules 6.2 and 10.3: one English-letter abbreviation is introduced
   // by a bounded indicator mode, not by a literary-word parser.
   mode('indicator.english-letter', ['⠰'], ['6.2', '10.3'], 'english-letter', true)
@@ -1370,6 +1524,24 @@ function mappingApplies(mapping, context) {
     const container = hasAncestor(context.tree, context.node, ['mover', 'munder']);
     return Boolean(container && container.name !== 'munderover');
   }
+  if (mapping.action === 'higher-order-modifier') {
+    let node = context.node;
+    if (node.name === 'math' || node.name === 'mrow') {
+      node = [...(node.children ?? [])].reverse().find((child) => child.name === (mapping.args.direction === 'under' ? 'munder' : 'mover')) ?? node;
+    }
+    const container = hasAncestor(context.tree, node, mapping.args.direction === 'under' ? ['munder'] : ['mover']);
+    return Boolean(container && container.name !== 'munderover');
+  }
+  if (mapping.action === 'move-binomial-lower') {
+    const table = hasAncestor(context.tree, context.node, 'mtable');
+    return Boolean(table?.attrs?.['data-omniya-role'] === 'binomial-table' &&
+      table.children?.[0]?.children?.[0]?.children?.[0] === context.node);
+  }
+  if (mapping.action === 'close-binomial') {
+    const table = hasAncestor(context.tree, context.node, 'mtable');
+    return Boolean(table?.attrs?.['data-omniya-role'] === 'binomial-table' &&
+      table.children?.[1]?.children?.[0]?.children?.[0] === context.node);
+  }
   if (mapping.id === 'modifier.terminate.over') return Boolean(hasAncestor(context.tree, context.node, ['mover', 'munderover']));
   if (mapping.id === 'modifier.terminate.under') return Boolean(hasAncestor(context.tree, context.node, ['munder', 'munderover']));
   if (mapping.id === 'modifier.terminate.simultaneous') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
@@ -1379,6 +1551,9 @@ function mappingApplies(mapping, context) {
   if (mapping.action === 'insert-contracted-script-comma') {
     return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
       context.node.name !== 'math' && !isHole(context.node));
+  }
+  if (mapping.action === 'append-script-possessive') {
+    return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']));
   }
   // Dot 4 is the cancellation opener on the baseline, but inside a script
   // it is BANA 14.7's contracted comma.  Context selects the local meaning;
@@ -1448,6 +1623,12 @@ function applyMapping(document, focus, inputState, mapping) {
     } catch (error) {
       return { status: 'rejected', document, focus, inputState, announcement: error.message };
     }
+  } else if (mapping.action === 'append-script-possessive') {
+    try {
+      result = appendScriptPossessive(tree, focus);
+    } catch (error) {
+      return { status: 'rejected', document, focus, inputState, announcement: error.message };
+    }
   } else if (mapping.action === 'open-fixed-root') {
     result = openFixedRoot(tree, focus, args.index, args.indexText);
   } else if (mapping.action === 'open-script-chain') {
@@ -1473,6 +1654,26 @@ function applyMapping(document, focus, inputState, mapping) {
   } else if (mapping.action === 'simultaneous-modifier') {
     try {
       result = addSimultaneousModifier(tree, focus, args.direction);
+    } catch (error) {
+      return { status: 'rejected', document, focus, inputState, announcement: error.message };
+    }
+  } else if (mapping.action === 'higher-order-modifier') {
+    try {
+      result = addHigherOrderModifier(tree, focus, args.direction);
+    } catch (error) {
+      return { status: 'rejected', document, focus, inputState, announcement: error.message };
+    }
+  } else if (mapping.action === 'open-binomial') {
+    result = openBinomial(tree, focus);
+  } else if (mapping.action === 'move-binomial-lower') {
+    try {
+      result = moveBinomialLower(tree, focus);
+    } catch (error) {
+      return { status: 'rejected', document, focus, inputState, announcement: error.message };
+    }
+  } else if (mapping.action === 'close-binomial') {
+    try {
+      result = closeBinomial(tree, focus);
     } catch (error) {
       return { status: 'rejected', document, focus, inputState, announcement: error.message };
     }
@@ -1518,7 +1719,7 @@ function applyMapping(document, focus, inputState, mapping) {
   } else {
     return { status: 'rejected', document, focus, inputState, announcement: `Unknown Nemeth action: ${mapping.action}` };
   }
-  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma'].includes(mapping.action);
+  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-');
   const nextModifierScope = collectingModifierScope && insertedAction
     ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
@@ -1612,6 +1813,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
 
   if (state.mode?.startsWith?.('numeric') && !state.prefix) {
     if (DIGITS.has(normalized)) return applyMapping(document, focus, state, digitMapping(normalized));
+    if (LETTERS.has(normalized) && context.node.name === 'mn') {
+      // Rule 3.6: letters used as extra digits in a non-decimal base remain
+      // in the same local numeric atom. The editor does not infer the base;
+      // the transcriber-provided numeric indicator establishes this mode.
+      const result = insertBaseDigit(context.tree, focus, LETTERS.get(normalized));
+      return {
+        status: 'applied', document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(result.tree), focus: result.focus },
+        focus: result.focus, inputState: { ...state, prefix: '' }, announcement: `number.${LETTERS.get(normalized)}`
+      };
+    }
     if (normalized === '⠨') return applyMapping(document, focus, state, numericPunctuationMapping(normalized, '.', '3.2.3'));
     if (normalized === '⠠') return applyMapping(document, focus, state, numericPunctuationMapping(normalized, ',', '3.2.2'));
     // BANA 24.1.g: after a decimal point, dot 5 makes the next symbol
@@ -1673,6 +1884,13 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // MathML operator; only the next number indicator is consumed in this mode.
   if (state.mode === 'polygon-numeric' && !state.prefix && normalized === '⠼') {
     return applyMapping(document, focus, { ...state, mode: null }, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
+  }
+  if (state.mode === 'roman' && !state.prefix && ROMAN_LETTERS.has(normalized)) {
+    const result = insertRomanLetter(context.tree, focus, ROMAN_LETTERS.get(normalized).toUpperCase());
+    return {
+      status: 'applied', document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(result.tree), focus: result.focus },
+      focus: result.focus, inputState: { ...state, prefix: '' }, announcement: `roman.${ROMAN_LETTERS.get(normalized)}`
+    };
   }
   if ((state.mode === 'capital' || state.mode === 'english-letter') && !state.prefix && LETTERS.has(normalized)) return applyMapping(document, focus, { ...state, mode: null }, letterMapping(normalized, state));
   // After the Rule 24 multipurpose indicator, a letter begins the expression

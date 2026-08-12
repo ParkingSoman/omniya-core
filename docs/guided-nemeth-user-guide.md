@@ -62,6 +62,30 @@ entered before a later script, so the editor keeps the prime with the base.
 These are local tree operations, not punctuation that makes you restart or
 retype the expression.
 
+The same-side modifier code is also local. After completing one overbar or
+underbar, enter the BANA higher-order indicator twice to open a new modifier
+on that already modified object. This creates nested MathML rather than
+turning the second modifier into an opposite-side modifier. For a binomial,
+choose the binomial operation at the opening parenthesis, enter the upper
+cell, use the directly-under separator to move to the lower cell, and close
+the bounded two-cell object. The editor never buffers the surrounding
+equation.
+
+When the same bar is repeated directly over or under one object, the editor
+keeps the bars together as one parallel-bar modifier. This is different from
+the doubled higher-order indicator, which deliberately opens a modifier on
+the previous modifier.
+
+For a non-decimal numeral, start the numeric indicator and enter its digit
+symbols, including the BANA-approved letter digits, as one local numeric atom.
+For an uppercase Roman numeral, enter the double-capital indicator followed by
+the Roman letters. The editor groups only that numeral and then returns to
+ordinary local operations.
+
+After a scripted expression, the bounded punctuation-indicator apostrophe-s
+code adds the possessive suffix at baseline. It changes only the local script
+and leaves the rest of the expression untouched.
+
 ### Bounded modifier scopes
 
 Some BANA modifiers cover more than one adjacent symbol. Enter the modifier

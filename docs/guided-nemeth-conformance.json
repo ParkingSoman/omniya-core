@@ -5252,18 +5252,16 @@
       ]
     },
     {
-      "id": "modifier.directly-over.second",
-      "commandLabel": "modifier.directly-over.second",
+      "id": "modifier.directly-over.higher",
+      "commandLabel": "modifier.directly-over.higher",
       "cells": [
         "⠣",
         "⠣"
       ],
-      "action": "open-modifier",
+      "action": "higher-order-modifier",
       "commitPolicy": "structural-followup",
       "args": {
-        "element": "mover",
-        "slot": "overscript",
-        "requiresMode": "multipurpose"
+        "direction": "over"
       },
       "banaRefs": [
         "15.3"
@@ -5276,18 +5274,16 @@
       ]
     },
     {
-      "id": "modifier.directly-under.second",
-      "commandLabel": "modifier.directly-under.second",
+      "id": "modifier.directly-under.higher",
+      "commandLabel": "modifier.directly-under.higher",
       "cells": [
         "⠩",
         "⠩"
       ],
-      "action": "open-modifier",
+      "action": "higher-order-modifier",
       "commitPolicy": "structural-followup",
       "args": {
-        "element": "munder",
-        "slot": "underscript",
-        "requiresMode": "multipurpose"
+        "direction": "under"
       },
       "banaRefs": [
         "15.3"
@@ -5917,6 +5913,63 @@
       },
       "banaRefs": [
         "19.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "binomial.open",
+      "commandLabel": "binomial.open",
+      "cells": [
+        "⠷"
+      ],
+      "action": "open-binomial",
+      "commitPolicy": "structural-followup",
+      "args": {},
+      "banaRefs": [
+        "15.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "binomial.lower",
+      "commandLabel": "binomial.lower",
+      "cells": [
+        "⠩"
+      ],
+      "action": "move-binomial-lower",
+      "commitPolicy": "structural-followup",
+      "args": {},
+      "banaRefs": [
+        "15.6"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "binomial.close",
+      "commandLabel": "binomial.close",
+      "cells": [
+        "⠾"
+      ],
+      "action": "close-binomial",
+      "commitPolicy": "structural-followup",
+      "args": {},
+      "banaRefs": [
+        "15.6"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -7775,6 +7828,28 @@
       },
       "banaRefs": [
         "23.16"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.possessive",
+      "commandLabel": "script.possessive",
+      "cells": [
+        "⠸",
+        "⠄",
+        "⠎"
+      ],
+      "action": "append-script-possessive",
+      "commitPolicy": "atomic-sequence",
+      "args": {},
+      "banaRefs": [
+        "8.4",
+        "14.13"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -14164,6 +14239,30 @@
       "banaRefs": [
         "5.1",
         "6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "indicator.roman",
+      "commandLabel": "indicator.roman",
+      "cells": [
+        "⠠",
+        "⠠"
+      ],
+      "action": "set-mode",
+      "commitPolicy": "immediate",
+      "args": {
+        "mode": "roman",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "3.11.1",
+        "6.5"
       ],
       "errataRefs": [],
       "validContexts": [
