@@ -91,6 +91,9 @@ const RULE_23_FIXTURES = [
   ['misc.yen', '⠈⠽', '¥'],
   ['misc.per-mille', '⠈⠴⠴', '‰'],
   ['misc.end-proof', '⠈⠫⠟⠑⠙', '∎'],
+  ['misc.not-therefore', '⠌⠠⠡', '∴'],
+  ['misc.degree', '⠘⠨⠡', '°'],
+  ['misc.empty-set', '⠸⠴', '∅'],
   ['operator.integral', '⠮', '∫']
 ];
 
@@ -460,8 +463,20 @@ test('BANA source notation is retained for the basic Rule 20 and comparison atom
     ['misc.per-mille', '`00'],
     ['misc.partial', '`d'],
     ['misc.therefore', ',*'],
+    ['misc.not-therefore', '/,*'],
     ['misc.since', '`/'],
-    ['misc.degree', '.*'],
+    ['misc.degree', '~.*'],
+    ['misc.prime', "'"],
+    ['misc.double-prime', "''"],
+    ['misc.triple-prime', "'''"],
+    ['misc.empty-set', '_0'],
+    ['misc.does-not-divide', '/|'],
+    ['quantifier.forall', '`&'],
+    ['quantifier.exists', '`='],
+    ['quantifier.exists-unique', '`=|'],
+    ['quantifier.not-exists', '/`='],
+    ['misc.end-proof', '@$qed'],
+    ['omission.general', '='],
     ['shape.parallel', '$l'],
     ['shape.perpendicular', '$p']
   ]) {

@@ -1227,22 +1227,34 @@ const MAPPINGS = [
   // square is the local QED token; its canonical Nemeth projection is ⠸⠳.
   token('misc.end-proof', ['⠈', '⠫', '⠟', '⠑', '⠙'], ['23.8'], '∎', 'mo', {
     preferLonger: true,
+    sourceNotation: '@$qed',
     dataAttributes: { 'data-omniya-nemeth-intent': 'qed' }
   }),
   token('misc.hollow-dot', ['⠨', '⠡'], ['15.17', '23.10'], '∘', 'mo', { preferLonger: true, sourceNotation: '.*', dataAttributes: { 'data-omniya-nemeth-intent': 'hollow-dot-symbol' } }),
-  token('misc.degree', ['⠘', '⠨', '⠡'], ['23.1'], '°', 'mo', { sourceNotation: '.*' }),
-  token('misc.prime', ['⠄'], ['23.16'], '′', 'mo', { preferLonger: true }),
+  // The hollow-dot symbol is `.*` when it is a standalone degree-like sign;
+  // BANA's degree symbol in mathematical position is the same sign preceded
+  // by the direct-over/superscript indicator `~.*` (Rule 23.10 and Example
+  // 23-13). Keeping the indicator in sourceNotation prevents the two local
+  // constructions from being conflated.
+  token('misc.degree', ['⠘', '⠨', '⠡'], ['23.10'], '°', 'mo', { sourceNotation: '~.*' }),
+  token('misc.prime', ['⠄'], ['23.16'], '′', 'mo', { preferLonger: true, sourceNotation: "'" }),
   token('misc.factorial', ['⠯'], ['23.9'], '!', 'mo', { sourceNotation: '&' }),
   token('misc.percent', ['⠈', '⠴'], ['23.15'], '%', 'mo', { preferLonger: true, sourceNotation: '`0' }),
-  token('misc.empty-set', ['⠸', '⠴'], ['23.7'], '∅'),
+  token('misc.empty-set', ['⠸', '⠴'], ['23.7'], '∅', 'mo', { sourceNotation: '_0' }),
   // The shape + left-head prefix is also the start of every left/vertical
   // arrow. Keep the local meaning pending while a shaft or right head may
   // follow; end-of-code commits the standalone angle.
   token('misc.angle', ['⠫', '⠪'], ['17.1'], '∠', 'mo', { preferLonger: true }),
   token('misc.therefore', ['⠠', '⠡'], ['23.18'], '∴', 'mo', { sourceNotation: ',*' }),
+  // BANA 23.18 lists the negated therefore sign as /,*; the slash is an
+  // oblique negation cell placed before the ordinary therefore construction.
+  token('misc.not-therefore', ['⠌', '⠠', '⠡'], ['23.18'], '∴', 'mo', {
+    sourceNotation: '/,*',
+    dataAttributes: { 'data-omniya-nemeth-intent': 'negated-therefore' }
+  }),
   token('misc.since', ['⠈', '⠌'], ['23.18'], '∵', 'mo', { sourceNotation: '`/' }),
-  token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″', 'mo', { preferLonger: true }),
-  token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴', 'mo', { preferLonger: true }),
+  token('misc.double-prime', ['⠄', '⠄'], ['23.16'], '″', 'mo', { preferLonger: true, sourceNotation: "''" }),
+  token('misc.triple-prime', ['⠄', '⠄', '⠄'], ['23.16'], '‴', 'mo', { preferLonger: true, sourceNotation: "'''" }),
   {
     // BANA examples 8-39 through 8-45 transcribe apostrophe-s as `_'s`:
     // punctuation indicator (456), apostrophe (3), and the letter s.
@@ -1258,19 +1270,19 @@ const MAPPINGS = [
   // its meaning is selected by the local context (such-that, grouping, or
   // operation), never by inventing a second Unicode bar glyph.
   token('misc.vertical-bar', ['⠳'], ['23.20'], '|'),
-  token('misc.does-not-divide', ['⠌', '⠳'], ['23.20'], '∤'),
+  token('misc.does-not-divide', ['⠌', '⠳'], ['23.20'], '∤', 'mo', { sourceNotation: '/|' }),
   token('misc.parallel', ['⠫', '⠇'], ['17.2', '21.2'], '∥', 'mo', { sourceNotation: '$l', dataAttributes: { 'data-omniya-nemeth-intent': 'parallel-relation' } }),
   token('misc.not-parallel', ['⠌', '⠫', '⠇'], ['21.2'], '∦', 'mo', { sourceNotation: '/$l' }),
   token('misc.not-identical', ['⠌', '⠸', '⠇'], ['21.3'], '≢'),
-  token('quantifier.forall', ['⠈', '⠯'], ['23.17'], '∀'),
-  token('quantifier.exists', ['⠈', '⠿'], ['23.17'], '∃', 'mo', { preferLonger: true }),
+  token('quantifier.forall', ['⠈', '⠯'], ['23.17'], '∀', 'mo', { sourceNotation: '`&' }),
+  token('quantifier.exists', ['⠈', '⠿'], ['23.17'], '∃', 'mo', { preferLonger: true, sourceNotation: '`=' }),
   // BANA Rule 23.17 writes “there exists uniquely” as `=|.  It is a
   // composition of the existential quantifier and the ordinary vertical-bar
   // sign, not the unrelated backslash/operation sequence.  Keep it bounded
   // to this one local code while emitting a structural mrow so the projected
   // Nemeth remains ⠈⠿⠳ under SRE.
-  { id: 'quantifier.exists-unique', cells: ['⠈', '⠿', '⠳'], banaRefs: ['23.17'], action: 'insert-quantifier-unique', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: {} },
-  token('quantifier.not-exists', ['⠌', '⠈', '⠿'], ['23.17'], '∄'),
+  { id: 'quantifier.exists-unique', cells: ['⠈', '⠿', '⠳'], banaRefs: ['23.17'], action: 'insert-quantifier-unique', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: { sourceNotation: '`=|' } },
+  token('quantifier.not-exists', ['⠌', '⠈', '⠿'], ['23.17'], '∄', 'mo', { sourceNotation: '/`=' }),
   token('comparison.contains', ['⠈', '⠢'], ['21.4'], '∋'),
   token('comparison.not-contains', ['⠌', '⠈', '⠢'], ['21.4'], '∌'),
   token('comparison.less-equal', ['⠐', '⠅', '⠱'], ['21.5'], '≤'),
@@ -1415,7 +1427,7 @@ const MAPPINGS = [
   shapeToken('shape.triangle.plural', ['⠫', '⠞', '⠎'], ['17.9'], '⧌', 'triangle-plural', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   // Rule 11.1.1: the general omission sign is the equals-shaped cell ⠿.
   // Its MathML placeholder is a question mark; it is not ordinary equals.
-  token('omission.general', ['⠿'], ['11.1.1'], '?'),
+  token('omission.general', ['⠿'], ['11.1.1'], '?', 'mo', { sourceNotation: '=' }),
   open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike' }),
   close('cancellation.end', ['⠻'], ['12.1.1'], 'menclose'),
   token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→', 'mo', { sourceNotation: '$o' }),
