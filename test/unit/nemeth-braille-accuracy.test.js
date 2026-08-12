@@ -152,17 +152,24 @@ test('atomic-sequence and structural-followup policies stay local across the reg
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  // The complete right two-headed arrow is held as one local sequence. No
-  // partial cell is allowed to mutate the draft.
-  for (const cell of ['⠫', '⠒', '⠒', '⠕', '⠕']) {
+  // The complete right spear arrow is held as one local sequence. No partial
+  // cell is allowed to mutate the draft.
+  for (const cell of ['⠫', '⠶', '⠶', '⠕']) {
     const result = applyNemethCell({ document, focus, inputState, cell });
     assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);
-    assert.equal(document.mathml.includes('↠'), false);
+    assert.equal(document.mathml.includes('⟹'), false);
   }
-  const held = commitNemethLocalCode({ document, focus, inputState });
+  let held = commitNemethLocalCode({ document, focus, inputState });
+  if (held.status === 'choice') {
+    held = applyNemethChoice({ document, focus, inputState: held.inputState, operationId: 'arrow.spear.right' });
+  }
   assert.equal(held.status, 'applied');
-  assert.equal(await nemeth(held.document.mathml), '⠫⠒⠒⠕⠕');
+  // SRE's current Nemeth serializer renders the Unicode spear glyph with its
+  // explicit shaft cell as well. The input remains the BANA `$77o` code above;
+  // this projection difference is recorded rather than used to redefine the
+  // normative input mapping.
+  assert.equal(await nemeth(held.document.mathml), '⠫⠶⠶⠶⠕');
 
   // An ordinary integral is immediate; adding its superposition is a second,
   // structural local code and cannot replace the surrounding expression.
@@ -296,10 +303,10 @@ test('guided Rule 24.1.i and 24.1.k local follow-ups retain reviewed Braille', a
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  let result = applyNemethCell({ document, focus, inputState, cell: '⠡' });
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠳' });
   result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'misc.vertical-bar' });
   ({ document, focus, inputState } = result);
-  for (const cell of ['⠐', '⠡']) {
+  for (const cell of ['⠐', '⠳']) {
     result = applyNemethCell({ document, focus, inputState, cell });
     assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);

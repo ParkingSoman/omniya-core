@@ -1,0 +1,51 @@
+# Guided Nemeth registry audit notes
+
+This file records decisions made while auditing the local-operation registry
+against the normative sources:
+
+- BANA, *The Nemeth Braille Code for Mathematics and Science Notation 2022*,
+  Rules 1–24 and Appendix D: [official PDF](https://www.brailleauthority.org/sites/default/files/2024-02/Nemeth_2022.pdf).
+- BANA, *Errata Nemeth Code 2022*, approved October 2025: the errata PDF named
+  by the project ledger.
+
+MathJax/SRE and MathCAT are independent projection and regression checks. They
+do not establish that a Nemeth input sequence is valid. A row is accepted only
+when its `banaRefs` points to the rule/table/example that defines the code.
+
+## Corrections made in this audit
+
+| Registry area | Normative decision | Implementation consequence |
+| --- | --- | --- |
+| Rule 19 bold brackets | BANA 19.3 uses `_@(` and `_@)`. | `group.bold-bracket-*` uses cells `⠸⠈⠷` / `⠸⠈⠾`. |
+| Rule 19 barred brackets | BANA’s barred brackets use `@_(` and `@_)`, distinct from bold brackets. | `group.barred-bracket-*` uses cells `⠈⠸⠷` / `⠈⠸⠾`. |
+| Rule 19 half brackets | Half-brackets are Rule 19.4, including lower halves. | Lower-half rows cite 19.4 rather than 19.1. |
+| Rules 21.7 and 23.20 vertical bar | The “such that” and ordinary vertical-bar signs use the bar cell `|` (`⠳`); context selects the meaning. | The registry no longer uses `⠡` for a vertical bar. `⠡` remains the dot/asterisk family where BANA defines it. |
+| Rule 23.17 unique existence | BANA writes “there exists uniquely” as `` `=| ``. | The bounded code is `⠈⠿⠳`; it creates an `<mrow>` containing `∃` and `|`, allowing the normal MathJax tree to expose both pieces. |
+| Rule 22 expansion | The standard specifies component order and examples, but not every Unicode arrow-name guess. | Unsupported guessed arrow rows were deleted. Retained rows are exact source examples; further combinations require a separately reviewed bounded component registry. |
+
+## Three local input policies
+
+The policy is applied to every construction family, not only arrows and
+integrals:
+
+1. **Immediate**: a complete BANA sign can be applied now. An ordinary
+   integral, a comparison sign, or a fraction opener may create MathML holes
+   and move focus immediately.
+2. **Atomic sequence**: the prefix is not itself a complete local sign. The
+   dispatcher collects only the registered cells for that one construction and
+   commits it on Enter. Invalid or incomplete input cannot mutate the draft.
+3. **Structural follow-up**: a later local sign operates on an existing tree
+   object, for example adding a bound or a modifier to an integral.
+
+This is bounded input recognition, not a passage parser. There is no
+precedence grammar, operand inference, delimiter stack, AST, or arbitrary
+expression buffer.
+
+## Evidence status
+
+The generated conformance report intentionally remains `development`. Unit
+fixtures prove registry integrity and local transitions; SRE and MathCAT tests
+prove projection agreement; neither substitutes for a complete subsection and
+Appendix D ledger review by a qualified Nemeth transcriber. Rule 25 spatial
+arrangements, chemistry, and Rule 26 document formatting remain outside the
+equation-tree claim.

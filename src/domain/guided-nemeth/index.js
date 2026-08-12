@@ -167,6 +167,20 @@ function insertToken(tree, focus, name, value, { replace = false, mathvariant = 
   return { tree, focus: focusNode(inserted) };
 }
 
+// Rule 23.17's `=| is one bounded local construction, but its mathematical
+// value is structurally composed: an existential quantifier followed by the
+// ordinary vertical-bar sign.  Keeping the two <mo> children visible lets
+// MathJax/SRE navigate and voice the same structure it would produce from
+// ordinary MathML, while the registry still treats the three cells as one
+// atomic local code.
+function insertQuantifierUnique(tree, focus) {
+  const unique = element('mrow', [atom('mo', '∃'), atom('mo', '|')], {
+    'data-omniya-nemeth-intent': 'exists-unique'
+  });
+  const inserted = replaceCurrent(tree, focus, unique);
+  return { tree, focus: focusNode(inserted) };
+}
+
 // BANA 14.7 uses the contracted comma (⠪) for a comma plus its optional
 // following space inside a superscript or subscript.  MathML keeps those as
 // two ordinary local siblings; the transition merely inserts those siblings
@@ -794,106 +808,6 @@ const BANA_LIMIT_MAPPINGS = [
 ];
 const FUNCTION_INITIAL_CELLS = new Set(BANA_FUNCTION_MAPPINGS.map((mapping) => mapping.cells[0]));
 
-// Rule 22's remaining named arrow examples are still atomic transitions. The
-// table is intentionally data-only: each complete BANA construction inserts
-// one MathML operator. It does not infer arrow parts or parse an expression.
-// Cells are independently checked against BANA §§22.3–22.7 and MathCAT's
-// `nemeth.csv` regression corpus.
-const ADDITIONAL_ARROW_MAPPINGS = [
-  ['arrow.left-stroked', '⠳⠈⠫⠪⠒⠒⠻', '↚'],
-  ['arrow.right-stroked', '⠳⠈⠫⠒⠒⠕⠻', '↛'],
-  ['arrow.left-wave', '⠫⠪⠔⠒⠢', '↜'],
-  ['arrow.right-wave', '⠫⠔⠒⠢⠕', '↝'],
-  ['arrow.left-two-headed', '⠫⠪⠪⠒⠒', '↞'],
-  ['arrow.up-two-headed', '⠫⠣⠒⠒⠕⠕', '↟'],
-  ['arrow.right-two-headed', '⠫⠒⠒⠕⠕', '↠'],
-  ['arrow.down-two-headed', '⠫⠩⠒⠒⠕⠕', '↡'],
-  ['arrow.left-tail', '⠫⠪⠒⠒⠠⠽', '↢'],
-  ['arrow.right-tail', '⠫⠠⠯⠒⠒⠕', '↣'],
-  ['arrow.left-bar', '⠫⠪⠒⠒⠳', '↤'],
-  ['arrow.up-bar', '⠫⠣⠳⠒⠒⠕', '↥'],
-  ['arrow.right-bar', '⠫⠳⠒⠒⠕', '↦'],
-  ['arrow.down-bar', '⠫⠩⠳⠒⠒⠕', '↧'],
-  ['arrow.vertical-bar', '⠫⠣⠪⠒⠒⠕⠳', '↨'],
-  ['arrow.left-hook', '⠫⠪⠒⠒⠈⠽', '↩'],
-  ['arrow.right-hook', '⠫⠈⠯⠒⠒⠕', '↪'],
-  ['arrow.both-wave', '⠫⠪⠔⠒⠢⠕', '↭'],
-  ['arrow.both-stroked', '⠳⠈⠫⠪⠒⠒⠕⠻', '↮'],
-  ['arrow.down-zigzag', '⠫⠩⠔⠢⠔⠕', '↯'],
-  ['arrow.right-corner', '⠫⠩⠠⠳⠒⠕', '↴'],
-  ['arrow.down-corner', '⠫⠪⠒⠈⠳', '↵'],
-  ['arrow.open-circle-left', '⠫⠢⠔⠕', '↺'],
-  ['arrow.open-circle-right', '⠫⠪⠢⠔', '↻'],
-  ['arrow.left-harpoon-up', '⠫⠈⠪⠒⠒', '↼'],
-  ['arrow.left-harpoon-down', '⠫⠠⠪⠒⠒', '↽'],
-  ['arrow.up-harpoon-right', '⠫⠣⠒⠒⠠⠕', '↾'],
-  ['arrow.up-harpoon-left', '⠫⠣⠒⠒⠈⠕', '↿'],
-  ['arrow.right-harpoon-up', '⠫⠒⠒⠈⠕', '⇀'],
-  ['arrow.right-harpoon-down', '⠫⠒⠒⠠⠕', '⇁'],
-  ['arrow.down-harpoon-right', '⠫⠩⠒⠒⠈⠕', '⇂'],
-  ['arrow.down-harpoon-left', '⠫⠩⠒⠒⠠⠕', '⇃'],
-  ['arrow.right-over-left', '⠫⠒⠒⠕⠫⠪⠒⠒', '⇄'],
-  ['arrow.up-over-down', '⠫⠣⠒⠒⠕⠐⠫⠩⠒⠒⠕', '⇅'],
-  ['arrow.left-over-right', '⠫⠪⠒⠒⠫⠒⠒⠕', '⇆'],
-  ['arrow.left-paired', '⠫⠪⠒⠒⠫⠪⠒⠒', '⇇'],
-  ['arrow.up-paired', '⠫⠣⠒⠒⠕⠐⠫⠣⠒⠒⠕', '⇈'],
-  ['arrow.right-paired', '⠫⠒⠒⠕⠫⠒⠒⠕', '⇉'],
-  ['arrow.down-paired', '⠫⠩⠒⠒⠕⠐⠫⠩⠒⠒⠕', '⇊'],
-  ['arrow.left-harpoon-over-right', '⠫⠈⠪⠒⠒⠫⠒⠒⠠⠕', '⇋'],
-  ['arrow.right-harpoon-over-left', '⠫⠒⠒⠈⠕⠫⠠⠪⠒⠒', '⇌'],
-  ['arrow.left-double-stroked', '⠳⠈⠫⠪⠶⠶⠻', '⇍'],
-  ['arrow.both-double-stroked', '⠳⠈⠫⠪⠶⠶⠕⠻', '⇎'],
-  ['arrow.right-double-stroked', '⠳⠈⠫⠶⠶⠕⠻', '⇏'],
-  ['arrow.vertical-double', '⠫⠣⠪⠶⠶⠕', '⇕'],
-  ['arrow.northwest-double', '⠫⠘⠪⠶⠶', '⇖'],
-  ['arrow.northeast-double', '⠫⠘⠶⠶⠕', '⇗'],
-  ['arrow.southeast-double', '⠫⠰⠶⠶⠕', '⇘'],
-  ['arrow.southwest-double', '⠫⠰⠪⠶⠶', '⇙'],
-  ['arrow.left-triple', '⠫⠪⠸⠸', '⇚'],
-  ['arrow.right-triple', '⠫⠸⠸⠕', '⇛'],
-  ['arrow.left-squiggle', '⠫⠪⠢⠤⠔⠒⠢', '⇜'],
-  ['arrow.right-squiggle', '⠫⠢⠤⠔⠒⠢⠕', '⇝']
-].map(([id, cells, value]) => token(id, [...cells], ['22.3', '22.5', '22.7'], value, 'mo', { preferLonger: true }));
-
-// Additional finite constructions from BANA 22.3–22.7.  These remain data,
-// not arrow grammar: each row is one bounded local code and is committed only
-// after its complete cell sequence is present.  The component order in the
-// standard (shape, direction, type, left head, shaft, right head) is retained
-// in the source-linked cells.
-const BANA_ARROW_COMPONENT_FIXTURES = [
-  ['arrow.up-double-stroked', '⠳⠳⠈⠫⠣⠒⠒⠕⠻', '⇞'],
-  ['arrow.down-double-stroked', '⠳⠳⠈⠫⠩⠒⠒⠕⠻', '⇟'],
-  ['arrow.left-to-bar', '⠳⠫⠪⠒⠒', '⇤'],
-  ['arrow.right-to-bar', '⠫⠒⠒⠕⠳', '⇥'],
-  ['arrow.right-small-circle', '⠨⠡⠈⠫⠒⠒⠕⠻', '⇴'],
-  ['arrow.down-over-up', '⠫⠩⠒⠒⠕⠐⠫⠣⠒⠒⠕', '⇵'],
-  ['arrow.three-right', '⠫⠒⠒⠕⠫⠒⠒⠕⠫⠒⠒⠕', '⇶'],
-  ['arrow.left-double-vertical', '⠳⠳⠈⠫⠪⠒⠒⠻', '⇺'],
-  ['arrow.right-double-vertical', '⠳⠳⠈⠫⠒⠒⠕⠻', '⇻'],
-  ['arrow.both-double-vertical', '⠳⠳⠈⠫⠪⠒⠒⠕⠻', '⇼'],
-  ['arrow.long-both', '⠫⠪⠒⠒⠒⠕', '⟷'],
-  ['arrow.long-double-left', '⠫⠪⠶⠶⠶', '⟸'],
-  ['arrow.long-double-right', '⠫⠶⠶⠶⠕', '⟹'],
-  ['arrow.long-double-both', '⠫⠪⠶⠶⠶⠕', '⟺'],
-  ['arrow.long-left-bar', '⠫⠪⠒⠒⠒⠳', '⟻'],
-  ['arrow.long-right-bar', '⠫⠳⠒⠒⠒⠕', '⟼'],
-  ['arrow.long-double-left-bar', '⠫⠪⠶⠶⠶⠳', '⟽'],
-  ['arrow.long-double-right-bar', '⠫⠳⠶⠶⠶⠕', '⟾'],
-  ['arrow.long-right-squiggle', '⠫⠢⠤⠔⠒⠢⠤⠔⠒⠢⠕', '⟿'],
-  ['arrow.two-way-diagonal-nw-se', '⠫⠘⠪⠒⠒⠕', '⤡'],
-  ['arrow.two-way-diagonal-ne-sw', '⠫⠰⠪⠒⠒⠕', '⤢'],
-  // BANA 22.7.1 arrowhead forms.
-  ['arrow.right-blunted', '⠫⠒⠒⠿', '⇢'],
-  ['arrow.left-blunted', '⠫⠿⠒⠒', '⇠'],
-  ['arrow.both-blunted', '⠫⠿⠒⠒⠿', '⇔'],
-  ['arrow.right-curved', '⠫⠒⠒⠽', '⇢'],
-  ['arrow.left-curved', '⠫⠯⠒⠒', '⇠'],
-  ['arrow.both-curved', '⠫⠯⠒⠒⠽', '↔'],
-  ['arrow.right-straight', '⠫⠒⠒⠳', '⇥'],
-  ['arrow.left-straight', '⠫⠳⠒⠒', '⇤'],
-  ['arrow.both-straight', '⠫⠳⠒⠒⠳', '↔']
-].map(([id, cells, value]) => token(id, [...cells], ['22.3', '22.5', '22.7'], value, 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }));
-
 // Normative mapping ledger: BANA 2022 is the authority for every cell sequence
 // and rule reference below. The October 2025 BANA errata is reviewed through
 // `errataRefs` on operation rows when it changes a rule. MathCAT's Nemeth
@@ -1142,16 +1056,19 @@ const MAPPINGS = [
   // local construction, not a delimiter grammar: Enter commits the one sign.
   token('group.angle-open', ['⠨', '⠨', '⠷'], ['19.1'], '⟨', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.angle-close', ['⠨', '⠨', '⠾'], ['19.1'], '⟩', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  // BANA 19.3 writes a bold bracket as _@( ... _@), and 19.4 writes the
-  // half-brackets as @^(...) and @;(...). Preserve that indicator order.
-  token('group.barred-bracket-open', ['⠸', '⠈', '⠷'], ['19.3'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.barred-bracket-close', ['⠸', '⠈', '⠾'], ['19.3'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  // BANA Rule 19 distinguishes bold brackets (_@( ... _@)) from barred
+  // brackets (@_( ... @_)).  The indicator order is normative: swapping the
+  // two produces a different sign even though the Unicode glyphs look alike.
+  token('group.bold-bracket-open', ['⠸', '⠈', '⠷'], ['19.3'], '[', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.bold-bracket-close', ['⠸', '⠈', '⠾'], ['19.3'], ']', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.barred-bracket-open', ['⠈', '⠸', '⠷'], ['19.1'], '⟦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.barred-bracket-close', ['⠈', '⠸', '⠾'], ['19.1'], '⟧', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.barred-brace-open', ['⠨', '⠸', '⠷'], ['19.1'], '⦃', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.barred-brace-close', ['⠨', '⠸', '⠾'], ['19.1'], '⦄', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.upper-half-open', ['⠈', '⠘', '⠷'], ['19.4'], '⎡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('group.upper-half-close', ['⠈', '⠘', '⠾'], ['19.4'], '⎤', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.lower-half-open', ['⠈', '⠰', '⠷'], ['19.1'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('group.lower-half-close', ['⠈', '⠰', '⠾'], ['19.1'], '⎦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.lower-half-open', ['⠈', '⠰', '⠷'], ['19.4'], '⎣', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  token('group.lower-half-close', ['⠈', '⠰', '⠾'], ['19.4'], '⎦', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   // Rule 19.5 reuses the vertical-bar cell used by operation and arrow
   // constructions. Hold it for local lookahead so a longer arrow code stays
   // reachable; Enter/choice selects the standalone grouping meaning.
@@ -1174,7 +1091,7 @@ const MAPPINGS = [
   // Rule 21.7's such-that bar uses the same Nemeth bar cell as the operation
   // bar. Context chooses the meaning; the local registry never invents a
   // second bar glyph.
-  token('comparison.vertical-bar', ['⠡'], ['21.7'], '|', 'mo', { preferLonger: true }),
+  token('comparison.vertical-bar', ['⠳'], ['21.7'], '|', 'mo', { preferLonger: true }),
   token('comparison.equals-bold', ['⠸', '⠨', '⠅'], ['21.5'], '='),
   token('comparison.greater-curved', ['⠨', '⠨', '⠂'], ['21.5'], '≻'),
   token('comparison.less-curved', ['⠨', '⠐', '⠅'], ['21.5'], '≺'),
@@ -1258,7 +1175,7 @@ const MAPPINGS = [
   // Rule 23.20's vertical-bar symbol uses the same cell as the operation bar;
   // its meaning is selected by the local context (such-that, grouping, or
   // operation), never by inventing a second Unicode bar glyph.
-  token('misc.vertical-bar', ['⠡'], ['23.20'], '|'),
+  token('misc.vertical-bar', ['⠳'], ['23.20'], '|'),
   token('misc.does-not-divide', ['⠌', '⠳'], ['23.20'], '∤'),
   token('misc.parallel', ['⠫', '⠇'], ['17.2', '21.2'], '∥'),
   token('misc.not-parallel', ['⠌', '⠫', '⠇'], ['21.2'], '∦'),
@@ -1269,10 +1186,12 @@ const MAPPINGS = [
   token('misc.not-identical', ['⠌', '⠸', '⠇'], ['21.3'], '≢'),
   token('quantifier.forall', ['⠈', '⠯'], ['23.17'], '∀'),
   token('quantifier.exists', ['⠈', '⠿'], ['23.17'], '∃', 'mo', { preferLonger: true }),
-  // BANA 23.17 / Appendix D: `@=\\` means there exists uniquely. The final
-  // backslash is the full Nemeth vertical-bar symbol (⠸⠡), not merely its
-  // first indicator cell. Keep the complete four-cell code bounded.
-  token('quantifier.exists-unique', ['⠈', '⠿', '⠸', '⠡'], ['23.17'], '∃!', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  // BANA Rule 23.17 writes “there exists uniquely” as `=|.  It is a
+  // composition of the existential quantifier and the ordinary vertical-bar
+  // sign, not the unrelated backslash/operation sequence.  Keep it bounded
+  // to this one local code while emitting a structural mrow so the projected
+  // Nemeth remains ⠈⠿⠳ under SRE.
+  { id: 'quantifier.exists-unique', cells: ['⠈', '⠿', '⠳'], banaRefs: ['23.17'], action: 'insert-quantifier-unique', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, args: {} },
   token('quantifier.not-exists', ['⠌', '⠈', '⠿'], ['23.17'], '∄'),
   token('comparison.contains', ['⠈', '⠢'], ['21.4'], '∋'),
   token('comparison.not-contains', ['⠌', '⠈', '⠢'], ['21.4'], '∌'),
@@ -1319,8 +1238,6 @@ const MAPPINGS = [
   token('arrow.lower-left', ['⠫', '⠠', '⠪', '⠒', '⠒'], ['22.7.2'], '↙', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('arrow.upper-right', ['⠫', '⠒', '⠒', '⠈', '⠕'], ['22.7.2'], '↗', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   token('arrow.lower-right', ['⠫', '⠒', '⠒', '⠠', '⠕'], ['22.7.2'], '↘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
-  ...ADDITIONAL_ARROW_MAPPINGS,
-  ...BANA_ARROW_COMPONENT_FIXTURES,
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*'),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†'),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡'),
@@ -1687,6 +1604,8 @@ function applyMapping(document, focus, inputState, mapping) {
         : insertAfter(tree, focus, inserted);
       result = { tree, focus: focusNode(target) };
     }
+  } else if (mapping.action === 'insert-quantifier-unique') {
+    result = insertQuantifierUnique(tree, focus);
   } else if (mapping.action === 'insert-modifier') {
     try {
       result = insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope);
@@ -1944,7 +1863,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // BANA 24.1.i: dot 5 between adjacent vertical grouping bars is a
   // one-symbol structural follow-up.  The current bar remains untouched
   // until the next bar code is complete.
-  if (state.mode === 'vertical-bar-horizontal' && !state.prefix && normalized === '⠡') {
+  if (state.mode === 'vertical-bar-horizontal' && !state.prefix && normalized === '⠳') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'misc.vertical-bar');
     return applyMapping(document, focus, { ...state, mode: null }, mapping);
   }
@@ -2044,7 +1963,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     context.node.name === 'mo' && ['□', '■', '△', '▽', '◇', '⬡', '⬠', '⯃'].includes(context.node.children?.[0]?.text)) {
     return applyMapping(document, focus, { ...state, prefix: '', mode: null }, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
   }
-  if (state.mode === null && state.prefix === '⠐' && normalized === '⠡' &&
+  if (state.mode === null && state.prefix === '⠐' && normalized === '⠳' &&
     context.node.name === 'mo' && context.node.children?.[0]?.text === '|') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'misc.vertical-bar');
     return applyMapping(document, focus, { ...state, prefix: '', mode: null }, mapping);

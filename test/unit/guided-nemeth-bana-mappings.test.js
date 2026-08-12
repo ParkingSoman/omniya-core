@@ -69,8 +69,10 @@ const RULE_17_19_FIXTURES = [
   ['shape.inverted-triangle', '⠨⠫', '▽'],
   ['group.angle-open', '⠨⠨⠷', '⟨'],
   ['group.angle-close', '⠨⠨⠾', '⟩'],
-  ['group.barred-bracket-open', '⠸⠈⠷', '⟦'],
-  ['group.barred-bracket-close', '⠸⠈⠾', '⟧'],
+  ['group.bold-bracket-open', '⠸⠈⠷', '['],
+  ['group.bold-bracket-close', '⠸⠈⠾', ']'],
+  ['group.barred-bracket-open', '⠈⠸⠷', '⟦'],
+  ['group.barred-bracket-close', '⠈⠸⠾', '⟧'],
   ['group.barred-brace-open', '⠨⠸⠷', '⦃'],
   ['group.barred-brace-close', '⠨⠸⠾', '⦄'],
   ['group.upper-half-open', '⠈⠘⠷', '⎡'],
@@ -108,13 +110,13 @@ const RULE_20_21_23_LITERALS = [
   ['comparison.ratio', '⠐⠂', '∶'],
   ['comparison.relation', '⠠⠗', 'R'],
   ['comparison.reverse-subset', '⠸⠨⠂', '⊃'],
-  ['comparison.vertical-bar', '⠡', '|'],
+  ['comparison.vertical-bar', '⠳', '|'],
   ['comparison.simple-tilde', '⠈⠱', '∼'],
   ['comparison.extended-tilde', '⠈⠠⠱', '〰'],
   ['misc.ditto', '⠠⠄', '〃'],
   ['misc.hollow-dot', '⠨⠡', '∘'],
   ['misc.triple-prime', '⠄⠄⠄', '‴'],
-  ['misc.vertical-bar', '⠡', '|'],
+  ['misc.vertical-bar', '⠳', '|'],
   ['operator.star', '⠫⠎', '☆']
 ];
 
@@ -277,29 +279,6 @@ test('official BANA and MathCAT cells guard corrected Greek, summation, and arro
     assert.equal(registry.get(id)?.cells.join(''), cells, `${id}: BANA/MathCAT sequence`);
     const tree = applyFixture(id, cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
-  }
-});
-
-test('BANA Rule 22 component constructions remain bounded and source-linked', () => {
-  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
-  const fixtures = [
-    ['arrow.up-double-stroked', '⠳⠳⠈⠫⠣⠒⠒⠕⠻', '⇞'],
-    ['arrow.left-to-bar', '⠳⠫⠪⠒⠒', '⇤'],
-    ['arrow.right-to-bar', '⠫⠒⠒⠕⠳', '⇥'],
-    ['arrow.right-small-circle', '⠨⠡⠈⠫⠒⠒⠕⠻', '⇴'],
-    ['arrow.long-both', '⠫⠪⠒⠒⠒⠕', '⟷'],
-    ['arrow.long-double-right-bar', '⠫⠳⠶⠶⠶⠕', '⟾'],
-    ['arrow.right-blunted', '⠫⠒⠒⠿', '⇢'],
-    ['arrow.both-curved', '⠫⠯⠒⠒⠽', '↔']
-  ];
-  for (const [id, cells, value] of fixtures) {
-    const entry = registry.get(id);
-    assert.ok(entry, id);
-    assert.equal(entry.cells.join(''), cells, id);
-    assert.ok(entry.banaRefs.includes('22.7') || entry.banaRefs.includes('22.5'), id);
-    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
-    const tree = applyFixture(id, cells);
-    assert.equal(tree.children.at(-1)?.children?.[0]?.text, value, id);
   }
 });
 
@@ -754,10 +733,12 @@ test('BANA Rule 23.17 represents there-exists-uniquely as a bounded quantifier',
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   const entry = registry.get('quantifier.exists-unique');
   assert.ok(entry);
-  assert.equal(entry.cells.join(''), '⠈⠿⠸⠡');
+  assert.equal(entry.cells.join(''), '⠈⠿⠳');
   assert.ok(entry.banaRefs.includes('23.17'));
-  const tree = applyFixture('quantifier.exists-unique', '⠈⠿⠸⠡');
-  assert.equal(tree.children.at(-1)?.children?.[0]?.text, '∃!');
+  const tree = applyFixture('quantifier.exists-unique', '⠈⠿⠳');
+  const unique = tree.children.at(-1);
+  assert.equal(unique.name, 'mrow');
+  assert.deepEqual(unique.children.map((child) => child.children?.[0]?.text), ['∃', '|']);
 });
 
 test('BANA Rule 23.8 treats QED as a transcriber-defined local shape', async () => {
@@ -774,7 +755,7 @@ test('every accepted mapping has an explicit BANA source and action', () => {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-quantifier-unique', 'insert-modifier', 'insert-contracted-script-comma', 'append-script-possessive', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial'].includes(entry.action), entry.id);
   }
 });
 
@@ -934,13 +915,14 @@ test('BANA Rule 24.1.i adjacent bars and 24.1.k tildes use bounded follow-ups', 
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
   let inputState = { prefix: '', mode: null };
-  for (const cell of ['⠡']) {
+  for (const cell of ['⠳']) {
     let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'pending') result = commitNemethLocalCode({ document, focus, inputState: result.inputState });
     assert.equal(result.status, 'choice');
     result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'misc.vertical-bar' });
     ({ document, focus, inputState } = result);
   }
-  for (const cell of ['⠐', '⠡']) {
+  for (const cell of ['⠐', '⠳']) {
     const result = applyNemethCell({ document, focus, inputState, cell });
     assert.notEqual(result.status, 'rejected', result.announcement);
     ({ document, focus, inputState } = result);
