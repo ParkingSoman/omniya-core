@@ -1531,6 +1531,7 @@ test('atomic local codes are reachable and never shadowed by immediate prefixes'
   assert.deepEqual(registryDiagnostics().policyErrors, []);
   assert.deepEqual(registryDiagnostics().shadowedImmediate, []);
   assert.deepEqual(registryDiagnostics().classificationErrors, []);
+  assert.deepEqual(registryDiagnostics().operationErrors, []);
 });
 
 test('all immediate rows that prefix an atomic row use bounded lookahead', () => {

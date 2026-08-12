@@ -46,6 +46,14 @@ atomic sequence. Each buffer is discarded after that one local code is
 accepted, so writing from an empty equation and replacing a selected
 subexpression use exactly the same small operations.
 
+Underneath those input policies, every accepted code uses one of six tree
+operations: insert, open, move, close, decorate, or mode. The operation is
+applied to the current MathJax-selected focus and its local MathML ancestors.
+An atomic sequence only delays recognition until its registered BANA code is
+complete; it does not create a second representation or a separate parser.
+That is why a fraction opener, an arrow, and an integral bound can all compose
+in the same draft while remaining faithful to their different Nemeth codes.
+
 The same classification applies to alphabet indicators, typeforms, named
 functions, radicals, grouping signs, operators, comparisons, shapes, and
 arrows. If BANA defines a standalone symbol, it is immediate. If BANA defines

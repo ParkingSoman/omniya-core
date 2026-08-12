@@ -1816,7 +1816,11 @@ export function registryDiagnostics() {
     }
     return errors;
   });
-  return { shadowedAtomic, policyErrors, shadowedImmediate, classificationErrors };
+  const actionSet = new Set(Object.keys(TREE_OPERATIONS));
+  const operationErrors = entries
+    .filter((entry) => !actionSet.has(entry.action))
+    .map((entry) => ({ id: entry.id, action: entry.action }));
+  return { shadowedAtomic, policyErrors, shadowedImmediate, classificationErrors, operationErrors };
 }
 
 function contextFor(document, focus) {
@@ -1982,44 +1986,39 @@ function hasAtomicContinuation(prefix, nextCell, context) {
     mappingApplies(mapping, context));
 }
 
-function applyMapping(document, focus, inputState, mapping) {
-  const { tree, node } = contextFor(document, focus);
-  let result;
-  const args = mapping.args ?? {};
-  if (mapping.action === 'insert-token') {
-    const replace = node.name === 'math' && tree.children.length === 0;
+// Input rows are intentionally richer than their tree operation. This table
+// is the sole translation boundary from a recognized row to a structural
+// transition. A new BANA row chooses an existing handler and supplies data;
+// it does not add another parser branch.
+const TREE_OPERATIONS = Object.freeze({
+  'insert-token': ({ tree, focus, node, args, inputState }) => {
     const typeform = inputState.mode?.startsWith?.('typeform:')
       ? inputState.mode.slice('typeform:'.length).split(':')[0]
       : inputState.mode?.startsWith?.('numeric:')
         ? inputState.mode.slice('numeric:'.length)
         : null;
-    result = insertToken(tree, focus, args.name, args.value, {
-      replace,
+    return insertToken(tree, focus, args.name, args.value, {
+      replace: node.name === 'math' && tree.children.length === 0,
       mathvariant: ['mi', 'mn'].includes(args.name) ? typeform : args.mathvariant ?? null,
       dataAttributes: args.dataAttributes ?? {}
     });
-  } else if (mapping.action === 'insert-numeric') {
+  },
+  'insert-numeric': ({ tree, focus, node, args, inputState }) => {
     const numericVariant = inputState.mode?.startsWith?.('numeric:')
       ? inputState.mode.slice('numeric:'.length)
       : null;
     if (node.name === 'mn' && node.children?.length === 1) {
-      result = insertNumeric(tree, focus, args.value, { mathvariant: numericVariant, dataAttributes: args.dataAttributes ?? {} });
-    } else {
-      const inserted = atom('mn', args.value, { ...(numericVariant ? { mathvariant: numericVariant } : {}), ...(args.dataAttributes ?? {}) });
-      const target = (node.name === 'math' && node.children.length === 0) || isHole(node)
-        ? replaceCurrent(tree, focus, inserted)
-        : insertAfter(tree, focus, inserted);
-      result = { tree, focus: focusNode(target) };
+      return insertNumeric(tree, focus, args.value, { mathvariant: numericVariant, dataAttributes: args.dataAttributes ?? {} });
     }
-  } else if (mapping.action === 'insert-quantifier-unique') {
-    result = insertQuantifierUnique(tree, focus);
-  } else if (mapping.action === 'insert-modifier') {
-    try {
-      result = insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope, args.dataAttributes ?? {});
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'open-structure') {
+    const inserted = atom('mn', args.value, { ...(numericVariant ? { mathvariant: numericVariant } : {}), ...(args.dataAttributes ?? {}) });
+    const target = (node.name === 'math' && node.children.length === 0) || isHole(node)
+      ? replaceCurrent(tree, focus, inserted)
+      : insertAfter(tree, focus, inserted);
+    return { tree, focus: focusNode(target) };
+  },
+  'insert-quantifier-unique': ({ tree, focus }) => insertQuantifierUnique(tree, focus),
+  'insert-modifier': ({ tree, focus, inputState, args }) => insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope, args.dataAttributes ?? {}),
+  'open-structure': ({ tree, focus, args, inputState }) => {
     const primeWrapped = ['msup', 'msub', 'msubsup'].includes(args.element)
       ? wrapScriptAfterPrime(tree, focus, args.element, args.slots, args.attrs, args.initialSlot)
       : null;
@@ -2027,127 +2026,70 @@ function applyMapping(document, focus, inputState, mapping) {
     const attrs = radicalOrder && ['msqrt', 'mroot'].includes(args.element)
       ? { ...(args.attrs ?? {}), 'data-omniya-radical-order': radicalOrder }
       : args.attrs;
-    result = primeWrapped ?? wrapCurrent(tree, focus, args.element, args.slots, attrs, args.initialSlot);
-  } else if (mapping.action === 'open-function-limit') {
-    result = openFunctionLimit(tree, focus, args.direction);
-  } else if (mapping.action === 'insert-contracted-script-comma') {
-    try {
-      result = insertContractedScriptComma(tree, focus);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'append-possessive') {
-    try {
-      result = appendPossessive(tree, focus);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'append-plural') {
-    try {
-      result = appendPlural(tree, focus);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'open-fixed-root') {
-    result = openFixedRoot(tree, focus, args.index, args.indexText);
-  } else if (mapping.action === 'open-script-chain') {
-    result = openScriptChain(tree, focus, args.directions);
-  } else if (mapping.action === 'open-modifier') {
-    if (inputState.mode !== args.requiresMode) {
-      return { status: 'rejected', document, focus, inputState, announcement: 'A multipurpose indicator is required before a modifier.' };
-    }
-    const modeValue = args.slot === 'underscript' ? 'modifier-under' : 'modifier-over';
-    const existingScope = inputState.modifierScope ?? scopeForCurrent(tree, focus);
-    if (existingScope) {
-      return {
-        status: 'pending', document, focus,
-        inputState: { ...inputState, prefix: '', mode: modeValue, modifierScope: existingScope },
-        announcement: `Modifier ${args.slot === 'underscript' ? 'under' : 'over'} is ready for its modifier cell.`
-      };
-    }
-    return {
-      status: 'pending', document, focus,
-      inputState: { ...inputState, prefix: '', mode: modeValue, modifierScope: scopeForCurrent(tree, focus) },
-      announcement: `Modifier ${args.slot === 'underscript' ? 'under' : 'over'} is ready for its modifier cell.`
-    };
-  } else if (mapping.action === 'simultaneous-modifier') {
-    try {
-      result = addSimultaneousModifier(tree, focus, args.direction);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'higher-order-modifier') {
-    try {
-      result = addHigherOrderModifier(tree, focus, args.direction);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'open-binomial') {
-    result = openBinomial(tree, focus);
-  } else if (mapping.action === 'move-binomial-lower') {
-    try {
-      result = moveBinomialLower(tree, focus);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'close-binomial') {
-    try {
-      result = closeBinomial(tree, focus);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'close-structure') {
-    result = closeStructure(tree, focus, args.element);
-  } else if (mapping.action === 'extend-integral') {
-    result = extendIntegral(tree, focus, args.values);
-  } else if (mapping.action === 'superpose-integral') {
-    try {
-      result = superposeIntegral(tree, focus, args.value);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'superpose-token') {
-    try {
-      result = superposeToken(tree, focus, args.value, args.intent);
-    } catch (error) {
-      return { status: 'rejected', document, focus, inputState, announcement: error.message };
-    }
-  } else if (mapping.action === 'move-slot') {
+    return primeWrapped ?? wrapCurrent(tree, focus, args.element, args.slots, attrs, args.initialSlot);
+  },
+  'open-function-limit': ({ tree, focus, args }) => openFunctionLimit(tree, focus, args.direction),
+  'insert-contracted-script-comma': ({ tree, focus }) => insertContractedScriptComma(tree, focus),
+  'append-possessive': ({ tree, focus }) => appendPossessive(tree, focus),
+  'append-plural': ({ tree, focus }) => appendPlural(tree, focus),
+  'open-fixed-root': ({ tree, focus, args }) => openFixedRoot(tree, focus, args.index, args.indexText),
+  'open-script-chain': ({ tree, focus, args }) => openScriptChain(tree, focus, args.directions),
+  'open-modifier': ({ document, focus, tree, inputState, args }) => {
+    if (inputState.mode !== args.requiresMode) throw new RangeError('A multipurpose indicator is required before a modifier.');
+    const mode = args.slot === 'underscript' ? 'modifier-under' : 'modifier-over';
+    return { status: 'pending', document, focus,
+      inputState: { ...inputState, prefix: '', mode, modifierScope: inputState.modifierScope ?? scopeForCurrent(tree, focus) },
+      announcement: `Modifier ${args.slot === 'underscript' ? 'under' : 'over'} is ready for its modifier cell.` };
+  },
+  'simultaneous-modifier': ({ tree, focus, args }) => addSimultaneousModifier(tree, focus, args.direction),
+  'higher-order-modifier': ({ tree, focus, args }) => addHigherOrderModifier(tree, focus, args.direction),
+  'open-binomial': ({ tree, focus }) => openBinomial(tree, focus),
+  'move-binomial-lower': ({ tree, focus }) => moveBinomialLower(tree, focus),
+  'close-binomial': ({ tree, focus }) => closeBinomial(tree, focus),
+  'close-structure': ({ tree, focus, args }) => closeStructure(tree, focus, args.element),
+  'extend-integral': ({ tree, focus, args }) => extendIntegral(tree, focus, args.values),
+  'superpose-integral': ({ tree, focus, args }) => superposeIntegral(tree, focus, args.value),
+  'superpose-token': ({ tree, focus, args }) => superposeToken(tree, focus, args.value, args.intent),
+  'move-slot': ({ tree, focus, node, args }) => {
     if (args.element === 'mfrac' && Object.hasOwn(args, 'bevelled')) {
       const fraction = fractionAtFocus(tree, node);
       if (fraction) fraction.attrs.bevelled = args.bevelled ? 'true' : 'false';
     }
-    result = focusRole(tree, focus, args.element, args.role);
-  } else if (mapping.action === 'set-mode') {
+    return focusRole(tree, focus, args.element, args.role);
+  },
+  'set-mode': ({ tree, focus, node, inputState, args, document }) => {
     if (args.mode === 'baseline') {
-      const scriptContainer = ancestor(tree, node, ['msup', 'msub']);
-      const promoted = promoteScriptToPrescript(tree, focus, scriptContainer?.name === 'msub' ? 'sub' : 'sup');
-      if (promoted) {
-        result = promoted;
-      } else {
-        const containers = ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover'];
-        const container = ancestor(tree, node, containers);
-        result = { tree, focus: focusNode(container ? findMathParent(tree, container.attrs['data-omniya-id']) ?? tree : node) };
-      }
-    } else if (args.mode === 'letter-indicator') {
-      if (!inputState.mode?.startsWith?.('typeform:')) {
-        return { status: 'rejected', document, focus, inputState, announcement: 'The alphabetic indicator is not valid at this focus.' };
-      }
-      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: `${inputState.mode}:alpha` }, announcement: 'Typeform alphabetic indicator active.' };
-    } else if (args.mode === 'numeric') {
-      const typeform = inputState.mode?.startsWith?.('typeform:')
-        ? inputState.mode.slice('typeform:'.length).split(':')[0]
-        : null;
-      const nextMode = typeform ? `numeric:${typeform}` : 'numeric';
-      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: nextMode }, announcement: 'Nemeth numeric indicator active.' };
-    } else if (args.mode === 'typeform-end') {
-      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: null }, announcement: 'Nemeth typeform terminated.' };
-    } else {
-      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: args.mode }, announcement: `Nemeth ${args.mode} indicator active.` };
+      const script = ancestor(tree, node, ['msup', 'msub']);
+      const promoted = promoteScriptToPrescript(tree, focus, script?.name === 'msub' ? 'sub' : 'sup');
+      if (promoted) return promoted;
+      const container = ancestor(tree, node, ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover']);
+      return { tree, focus: focusNode(container ? findMathParent(tree, container.attrs['data-omniya-id']) ?? tree : node) };
     }
-  } else {
-    return { status: 'rejected', document, focus, inputState, announcement: `Unknown Nemeth action: ${mapping.action}` };
+    if (args.mode === 'letter-indicator') {
+      if (!inputState.mode?.startsWith?.('typeform:')) throw new RangeError('The alphabetic indicator is not valid at this focus.');
+      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: `${inputState.mode}:alpha` }, announcement: 'Typeform alphabetic indicator active.' };
+    }
+    if (args.mode === 'numeric') {
+      const typeform = inputState.mode?.startsWith?.('typeform:') ? inputState.mode.slice('typeform:'.length).split(':')[0] : null;
+      return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: typeform ? `numeric:${typeform}` : 'numeric' }, announcement: 'Nemeth numeric indicator active.' };
+    }
+    if (args.mode === 'typeform-end') return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: null }, announcement: 'Nemeth typeform terminated.' };
+    return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: args.mode }, announcement: `Nemeth ${args.mode} indicator active.` };
   }
+});
+
+function applyMapping(document, focus, inputState, mapping) {
+  const { tree, node } = contextFor(document, focus);
+  const args = mapping.args ?? {};
+  const operation = TREE_OPERATIONS[mapping.action];
+  if (!operation) return { status: 'rejected', document, focus, inputState, announcement: `Unknown local operation: ${mapping.action}` };
+  let result;
+  try {
+    result = operation({ document, tree, node, focus, inputState, args, mapping });
+  } catch (error) {
+    return { status: 'rejected', document, focus, inputState, announcement: error.message };
+  }
+  if (result.status === 'pending') return result;
   const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-');
   const nextModifierScope = collectingModifierScope && insertedAction
