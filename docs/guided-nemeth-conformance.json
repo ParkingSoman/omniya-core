@@ -3645,7 +3645,8 @@
         "value": "⊖"
       },
       "banaRefs": [
-        "20.1"
+        "20.1",
+        "20.6"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -5301,6 +5302,48 @@
       ]
     },
     {
+      "id": "modifier.simultaneous.over",
+      "commandLabel": "modifier.simultaneous.over",
+      "cells": [
+        "⠣"
+      ],
+      "action": "simultaneous-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "direction": "over"
+      },
+      "banaRefs": [
+        "15.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.simultaneous.under",
+      "commandLabel": "modifier.simultaneous.under",
+      "cells": [
+        "⠩"
+      ],
+      "action": "simultaneous-modifier",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "direction": "under"
+      },
+      "banaRefs": [
+        "15.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "modifier.arc.down",
       "commandLabel": "modifier.arc.down",
       "cells": [
@@ -5634,6 +5677,27 @@
       },
       "banaRefs": [
         "15.2"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "modifier.terminate.simultaneous",
+      "commandLabel": "modifier.terminate.simultaneous",
+      "cells": [
+        "⠻"
+      ],
+      "action": "close-structure",
+      "commitPolicy": "structural-followup",
+      "args": {
+        "element": "munderover"
+      },
+      "banaRefs": [
+        "15.4"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -6558,6 +6622,29 @@
       },
       "banaRefs": [
         "21.5"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "comparison.reverse-membership",
+      "commandLabel": "comparison.reverse-membership",
+      "cells": [
+        "⠈",
+        "⠢"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "immediate",
+      "args": {
+        "name": "mo",
+        "value": "∋"
+      },
+      "banaRefs": [
+        "21.4"
       ],
       "errataRefs": [],
       "validContexts": [
@@ -12035,6 +12122,101 @@
       ]
     },
     {
+      "id": "shape.angle.interior-arc",
+      "commandLabel": "shape.angle.interior-arc",
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠸",
+        "⠫",
+        "⠫",
+        "⠁",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "∡",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "angle",
+          "data-omniya-shape-modification": "interior-arc"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.circle.interior-cross",
+      "commandLabel": "shape.circle.interior-cross",
+      "cells": [
+        "⠫",
+        "⠉",
+        "⠸",
+        "⠫",
+        "⠈",
+        "⠡",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⊗",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "circle",
+          "data-omniya-shape-modification": "interior-cross"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.circle.interior-minus",
+      "commandLabel": "shape.circle.interior-minus",
+      "cells": [
+        "⠫",
+        "⠉",
+        "⠸",
+        "⠫",
+        "⠤",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⊖",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "circle",
+          "data-omniya-shape-modification": "interior-minus"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
       "id": "shape.circle.interior-dot",
       "commandLabel": "shape.circle.interior-dot",
       "cells": [
@@ -12085,6 +12267,194 @@
         "dataAttributes": {
           "data-omniya-shape-kind": "rectangle",
           "data-omniya-shape-modification": "interior-bar"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.square.interior-diagonals",
+      "commandLabel": "shape.square.interior-diagonals",
+      "cells": [
+        "⠫",
+        "⠲",
+        "⠸",
+        "⠫",
+        "⠢",
+        "⠈",
+        "⠴",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⊠",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "square",
+          "data-omniya-shape-modification": "interior-diagonals"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.square.interior-dot",
+      "commandLabel": "shape.square.interior-dot",
+      "cells": [
+        "⠫",
+        "⠲",
+        "⠸",
+        "⠫",
+        "⠡",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⊡",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "square",
+          "data-omniya-shape-modification": "interior-dot"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.square.interior-horizontal-bar",
+      "commandLabel": "shape.square.interior-horizontal-bar",
+      "cells": [
+        "⠫",
+        "⠲",
+        "⠸",
+        "⠫",
+        "⠒",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⊟",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "square",
+          "data-omniya-shape-modification": "interior-horizontal-bar"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.square.interior-vertical-bar",
+      "commandLabel": "shape.square.interior-vertical-bar",
+      "cells": [
+        "⠫",
+        "⠲",
+        "⠸",
+        "⠫",
+        "⠳",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "◫",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "square",
+          "data-omniya-shape-modification": "interior-vertical-bar"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.square.interior-nw-se-diagonal",
+      "commandLabel": "shape.square.interior-nw-se-diagonal",
+      "cells": [
+        "⠫",
+        "⠲",
+        "⠸",
+        "⠫",
+        "⠢",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⧅",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "square",
+          "data-omniya-shape-modification": "interior-nw-se-diagonal"
+        }
+      },
+      "banaRefs": [
+        "17.6.1"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "shape.square.interior-sw-ne-diagonal",
+      "commandLabel": "shape.square.interior-sw-ne-diagonal",
+      "cells": [
+        "⠫",
+        "⠲",
+        "⠸",
+        "⠫",
+        "⠔",
+        "⠻"
+      ],
+      "action": "insert-token",
+      "commitPolicy": "atomic-sequence",
+      "args": {
+        "name": "mo",
+        "value": "⧄",
+        "dataAttributes": {
+          "data-omniya-shape-kind": "square",
+          "data-omniya-shape-modification": "interior-sw-ne-diagonal"
         }
       },
       "banaRefs": [

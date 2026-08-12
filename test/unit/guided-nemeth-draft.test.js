@@ -271,7 +271,7 @@ test('local input policies are declarative and apply across construction familie
   ]) assert.ok(registry.get(id), `missing representative registry row: ${id}`);
   assert.ok(operationRegistry().some((entry) => entry.commitPolicy === 'immediate' && entry.action === 'insert-token'));
   assert.ok(operationRegistry().some((entry) => entry.commitPolicy === 'atomic-sequence' && entry.action === 'insert-token'));
-  assert.ok(operationRegistry().some((entry) => entry.commitPolicy === 'structural-followup' && ['move-slot', 'close-structure', 'superpose-integral'].includes(entry.action)));
+  assert.ok(operationRegistry().some((entry) => entry.commitPolicy === 'structural-followup' && ['move-slot', 'close-structure', 'superpose-integral', 'simultaneous-modifier'].includes(entry.action)));
 });
 
 test('an atomic local code waits for Enter and then applies exactly once', () => {

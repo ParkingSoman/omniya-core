@@ -279,6 +279,25 @@ test('BANA Rule 22 component constructions remain bounded and source-linked', ()
   }
 });
 
+test('BANA Rule 17 interior constructions and Rule 15 simultaneous modifiers are bounded', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, value] of [
+    ['shape.circle.interior-cross', '⠫⠉⠸⠫⠈⠡⠻', '⊗'],
+    ['shape.circle.interior-minus', '⠫⠉⠸⠫⠤⠻', '⊖'],
+    ['shape.square.interior-diagonals', '⠫⠲⠸⠫⠢⠈⠴⠻', '⊠'],
+    ['shape.square.interior-vertical-bar', '⠫⠲⠸⠫⠳⠻', '◫'],
+    ['shape.angle.interior-arc', '⠫⠪⠸⠫⠫⠁⠻', '∡']
+  ]) {
+    const entry = registry.get(id);
+    assert.equal(entry?.cells.join(''), cells, id);
+    assert.equal(entry?.args.value, value, id);
+    assert.equal(entry?.commitPolicy, 'atomic-sequence', id);
+    assert.ok(entry.banaRefs.includes('17.6.1') || entry.banaRefs.includes('15.4'), id);
+  }
+  assert.equal(registry.get('modifier.simultaneous.over')?.commitPolicy, 'structural-followup');
+  assert.equal(registry.get('modifier.simultaneous.under')?.commitPolicy, 'structural-followup');
+});
+
 test('BANA Rule 6.2 Greek variant codes remain literal composable mappings', () => {
   for (const [cells, value] of [
     ['⠨⠈⠃', 'ϐ'],
@@ -503,6 +522,25 @@ test('BANA Rule 15 five-step order works for under-modifiers as well', () => {
   assert.equal(tree.children[0].children[1].children[0].text, '¯');
 });
 
+test('BANA Rule 15.4 adds the opposite side through the same local follow-up policy', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  // BANA's simultaneous form is under side first, then over side, followed
+  // by one terminator. The buffer never contains more than that local code.
+  for (const cell of ['⠐', '⠁', '⠩', '⠱', '⠣', '⠱', '⠻']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'munderover');
+  assert.equal(tree.children[0].children[0].children[0].text, 'a');
+  assert.equal(tree.children[0].children[1].children[0].text, '¯');
+  assert.equal(tree.children[0].children[2].children[0].text, '¯');
+  assert.equal(inputState.prefix, '');
+});
+
 test('BANA Rule 15 modifier scope wraps a complete local multi-token expression', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
@@ -542,7 +580,7 @@ test('every accepted mapping has an explicit BANA source and action', () => {
     assert.match(entry.id, /^\S+$/);
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-modifier', 'open-structure', 'open-fixed-root', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'simultaneous-modifier'].includes(entry.action), entry.id);
   }
 });
 

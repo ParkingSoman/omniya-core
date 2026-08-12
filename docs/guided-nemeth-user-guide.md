@@ -69,3 +69,12 @@ The same bounded-scope rule applies wherever BANA defines a decoration over
 several adjacent symbols. Standalone symbols still appear immediately, and
 later structural codes modify the focused MathML object or the exact local
 range selected by the current construction.
+
+When a BANA modifier has both an under and an over part, enter the first side,
+its local value, the second-side indicator, its local value, and the final
+terminator. For example, an underbar and overbar on `a` is one bounded
+modifier construction. The editor turns the existing `munder` into a
+`munderover` and opens only the missing slot. This is the same structural
+follow-up rule used for bounds, scripts, and radicals: the code changes the
+object already under the cursor; it does not start a second expression
+parser.

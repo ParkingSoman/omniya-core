@@ -20,7 +20,7 @@ Normative sources:
 | Omissions and cancellation | Rules 11, 12 | general omission and diagonal cancellation transitions implemented; remaining omission/cancellation variants pending | deletion and cancellation fixtures |
 | Fractions | Rule 13 | simple, complex, hypercomplex, and mixed structural openings implemented | nested fraction depths 2, 8, 32 and terminators |
 | Scripts | Rule 14 | superscript/subscript and first compound msubsup transitions implemented; prescripts and deeper level combinations pending | scripts, prescripts, multiscripts and baseline return |
-| Modifiers | Rule 15 | five-step directly-over/under transitions, bounded multi-token modifier scopes, modifier catalog, and integral superposition follow-ups implemented; higher-order/simultaneous combinations remain pending | modifiers on atoms, grouped expressions, and nested scopes |
+| Modifiers | Rule 15 | five-step directly-over/under transitions, bounded multi-token modifier scopes, modifier catalog, simultaneous under/over conversion, and integral superposition follow-ups implemented; remaining higher-order combinations remain pending | modifiers on atoms, grouped expressions, and nested scopes |
 | Radicals | Rule 16 | square, indexed, cube, and fourth-root transitions implemented | nested radicals and index slots |
 | Shapes and functions | Rules 17, 18 | source-listed abbreviated function names and upper/lower limit forms are bounded atomic rows; open-ended unlisted names remain ordinary compositional letters | named and abbreviated functions |
 | Grouping | Rule 19 | round grouping core operation implemented | paired boundaries and exact focus restoration |
@@ -45,9 +45,13 @@ mathematical families:
   or modifier terminator.
 
 Arrows are a prominent atomic-sequence family. An ordinary integral is an
-immediate token; its bounds and modifiers are follow-up operations. This is a
-general registry decision, not a special case for either example. New BANA
-rows must choose one policy before they are added to the interpreter.
+immediate token; its bounds and modifiers are follow-up operations.
+Simultaneous under/over modifiers are also follow-ups: the first side creates
+a one-sided MathML object, and the second-side indicator upgrades that object
+locally. These are examples of the general registry decision, not special
+cases. Every new BANA row, whether it is a letter indicator, shape, operator,
+function, modifier, radical, comparison, or arrow, must choose one policy
+before it is added to the interpreter.
 
 This ledger is not a conformance claim. Release requires every applicable
 Rules 1–24 row to move from “pending” to “reviewed” with independently authored

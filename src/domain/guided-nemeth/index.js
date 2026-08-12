@@ -209,6 +209,7 @@ function wrapCurrent(tree, focus, elementName, roles, attrs = {}, initialSlot = 
   return { tree, focus: focusNode(first ?? wrapper) };
 }
 
+
 function openFixedRoot(tree, focus, index, indexText) {
   const current = currentNode(tree, focus);
   const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
@@ -241,7 +242,10 @@ function focusRole(tree, focus, elementName, role) {
 }
 
 function closeStructure(tree, focus, elementName) {
-  const container = ancestor(tree, currentNode(tree, focus), [elementName]);
+  const names = elementName === 'mover' || elementName === 'munder'
+    ? [elementName, 'munderover']
+    : [elementName];
+  const container = ancestor(tree, currentNode(tree, focus), names);
   if (!container) throw new RangeError(`No open ${elementName} at the current draft focus.`);
   const parent = findMathParent(tree, container.attrs['data-omniya-id']);
   return { tree, focus: focusNode(parent ?? tree) };
@@ -249,6 +253,33 @@ function closeStructure(tree, focus, elementName) {
 
 function openModifier(tree, focus, elementName, initialSlot) {
   return wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
+}
+
+// Rule 15.4's simultaneous modifier is a local structural follow-up.  It
+// upgrades the already-created one-sided mover/munder without inspecting any
+// surrounding passage.  The existing base and modifier retain their IDs;
+// only the missing opposite slot is created.
+function addSimultaneousModifier(tree, focus, direction) {
+  const current = currentNode(tree, focus);
+  const container = ancestor(tree, current, ['mover', 'munder']);
+  if (!container) throw new RangeError('A simultaneous modifier needs an existing over or under structure.');
+  const parent = findMathParent(tree, container.attrs['data-omniya-id']);
+  const base = container.children[0];
+  const existing = container.children[1];
+  const under = container.name === 'munder' ? existing : hole(container, 'underscript');
+  const over = container.name === 'mover' ? existing : hole(container, 'overscript');
+  // The indicator is itself the next local operation.  If the current focus
+  // is already in the occupied side, retain it as the container anchor.
+  container.name = 'munderover';
+  container.children = [base, under, over];
+  // Keep the source node in place and put the editor in the newly-created
+  // required slot.  This is one structural operation, not a second parser.
+  if (parent) {
+    const index = parent.children.indexOf(container);
+    if (index < 0) throw new RangeError('The simultaneous modifier is not attached to its parent.');
+  }
+  const target = direction === 'under' ? under : over;
+  return { tree, focus: focusNode(target) };
 }
 
 function modifierElementForMode(modeValue) {
@@ -332,6 +363,16 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null) {
   // applying the modifier, just as they can elsewhere in the tree.
   if (modeValue?.startsWith?.('modifier-')) {
     const current = currentNode(tree, focus);
+    const slotParent = current.name !== 'math' && isHole(current)
+      ? findMathParent(tree, current.attrs?.['data-omniya-id'])
+      : null;
+    if (slotParent?.name === 'munderover') {
+      const role = current.attrs?.['data-omniya-role'];
+      const replacement = atom('mo', value, { 'data-omniya-role': role });
+      const index = slotParent.children.indexOf(current);
+      slotParent.children[index] = replacement;
+      return { tree, focus: focusNode(replacement), wrapper: slotParent };
+    }
     if (current.name === 'math' || isHole(current)) {
       if (value === '¯' && tree.children.length === 0) {
         throw new RangeError('A modifier needs an expression before its modifier cell.');
@@ -455,6 +496,11 @@ const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multip
 const modifierToken = (id, cells, banaRefs, value, options = {}) => ({
   id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
   args: { name: 'mo', value, ...options }
+});
+const simultaneous = (id, cells, banaRefs, direction) => ({
+  id, cells, banaRefs, action: 'simultaneous-modifier',
+  commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+  args: { direction }
 });
 
 const cellForLetter = (letter) => [...LETTERS.entries()].find(([, value]) => value === letter)?.[0] ?? letter;
@@ -636,7 +682,7 @@ const MAPPINGS = [
   token('operator.backslash', ['⠸', '⠡'], ['20.1', '20.8'], '\\', 'mo', { preferLonger: true }),
   token('operator.circle-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['20.1'], '⊙'),
   token('operator.circle-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['20.1'], '⊕'),
-  token('operator.circle-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['20.1'], '⊖'),
+  token('operator.circle-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['20.1', '20.6'], '⊖'),
   token('operator.minus-bold', ['⠸', '⠤'], ['20.6'], '−', 'mo', { mathvariant: 'bold', preferLonger: true }),
   token('operator.minus-minus', ['⠤', '⠐', '⠤'], ['20.6'], '−−'),
   token('operator.minus-plus-bold', ['⠸', '⠤', '⠐', '⠸', '⠬'], ['20.6'], '−+'),
@@ -779,6 +825,10 @@ const MAPPINGS = [
   modifier('modifier.directly-under', ['⠩'], ['15.1', '15.2'], 'munder', 'underscript'),
   modifier('modifier.directly-over.second', ['⠣', '⠣'], ['15.3'], 'mover', 'overscript', 'multipurpose'),
   modifier('modifier.directly-under.second', ['⠩', '⠩'], ['15.3'], 'munder', 'underscript', 'multipurpose'),
+  // Rule 15.4: once one side exists, a second-side indicator makes a
+  // munderover and opens only the missing required slot.
+  simultaneous('modifier.simultaneous.over', ['⠣'], ['15.4'], 'over'),
+  simultaneous('modifier.simultaneous.under', ['⠩'], ['15.4'], 'under'),
   modifierToken('modifier.arc.down', ['⠫', '⠁'], ['15.11'], '⁀'),
   modifierToken('modifier.arc.up', ['⠫', '⠄'], ['15.11'], '‿'),
   modifierToken('modifier.caret.over', ['⠸', '⠣'], ['15.15'], '^'),
@@ -794,6 +844,7 @@ const MAPPINGS = [
   modifierToken('modifier.bar-over', ['⠱'], ['15.1', '15.2', '15.13'], '¯'),
   close('modifier.terminate.over', ['⠻'], ['15.2'], 'mover'),
   close('modifier.terminate.under', ['⠻'], ['15.2'], 'munder'),
+  close('modifier.terminate.simultaneous', ['⠻'], ['15.4'], 'munderover'),
   open('radical.square', ['⠜'], ['16.1', '16.2'], 'msqrt', ['radicand']),
   fixedRoot('radical.cube', ['⠣', '⠒', '⠜'], ['16.2'], '3', '3'),
   fixedRoot('radical.fourth', ['⠣', '⠲', '⠜'], ['16.2'], '4', '4'),
@@ -842,6 +893,7 @@ const MAPPINGS = [
   token('comparison.ratio', ['⠐', '⠂'], ['21.5'], '∶'),
   token('comparison.relation', ['⠠', '⠗'], ['21.5'], 'R'),
   token('comparison.reverse-subset', ['⠸', '⠨', '⠂'], ['21.5'], '⊃'),
+  token('comparison.reverse-membership', ['⠈', '⠢'], ['21.4'], '∋'),
   token('comparison.variation', ['⠸', '⠿'], ['21.5'], '∝'),
   token('comparison.equivalence', ['⠈', '⠣', '⠠', '⠣'], ['21.9', '21.11'], '≎', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   // Rule 21's comparison bar is Braille ASCII | (Unicode cell ⠡). The
@@ -1002,8 +1054,17 @@ const MAPPINGS = [
   // a shape is represented by a separate named operation in a later editor
   // step rather than by buffering an arbitrary passage.
   shapeModificationToken('shape.circle.interior-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['17.6.1'], '⨁', 'circle', 'interior-plus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.angle.interior-arc', ['⠫', '⠪', '⠸', '⠫', '⠫', '⠁', '⠻'], ['17.6.1'], '∡', 'angle', 'interior-arc', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.circle.interior-cross', ['⠫', '⠉', '⠸', '⠫', '⠈', '⠡', '⠻'], ['17.6.1'], '⊗', 'circle', 'interior-cross', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.circle.interior-minus', ['⠫', '⠉', '⠸', '⠫', '⠤', '⠻'], ['17.6.1'], '⊖', 'circle', 'interior-minus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.circle.interior-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⦿', 'circle', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.rectangle.interior-bar', ['⠫', '⠗', '⠸', '⠫', '⠒', '⠻'], ['17.6.1'], '▭', 'rectangle', 'interior-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.square.interior-diagonals', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠈', '⠴', '⠻'], ['17.6.1'], '⊠', 'square', 'interior-diagonals', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.square.interior-dot', ['⠫', '⠲', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⊡', 'square', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.square.interior-horizontal-bar', ['⠫', '⠲', '⠸', '⠫', '⠒', '⠻'], ['17.6.1'], '⊟', 'square', 'interior-horizontal-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.square.interior-vertical-bar', ['⠫', '⠲', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '◫', 'square', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.square.interior-nw-se-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠢', '⠻'], ['17.6.1'], '⧅', 'square', 'interior-nw-se-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.square.interior-sw-ne-diagonal', ['⠫', '⠲', '⠸', '⠫', '⠔', '⠻'], ['17.6.1'], '⧄', 'square', 'interior-sw-ne-diagonal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.circle.superposed-bar', ['⠳', '⠈', '⠫', '⠉', '⠻'], ['17.7'], '⌽', 'circle', 'superposed-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeModificationToken('shape.circle.interior-bar', ['⠫', '⠉', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '⦶', 'circle', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
   shapeToken('shape.triangle.plural', ['⠫', '⠞', '⠎'], ['17.9'], '⧌', 'triangle-plural', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
@@ -1087,9 +1148,10 @@ function contextFor(document, focus) {
 }
 
 function hasAncestor(tree, node, name) {
+  const names = Array.isArray(name) ? name : [name];
   let current = node;
   while (current) {
-    if (current.name === name) return current;
+    if (names.includes(current.name)) return current;
     current = isElement(current) ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
   }
   return null;
@@ -1121,7 +1183,7 @@ function mappingApplies(mapping, context) {
   // At an empty replacement root the same BANA cells may begin a shape code;
   // do not expose a spurious modifier choice or mutate an empty draft.
   if (mapping.action === 'insert-modifier' &&
-    (context.node.name === 'math' || isHole(context.node))) return false;
+    (context.node.name === 'math' || (isHole(context.node) && findMathParent(context.tree, context.node.attrs?.['data-omniya-id'])?.name !== 'munderover'))) return false;
   // The English-letter indicator is a local abbreviation mode, not a
   // structural navigation command.  In a script slot the same cell is a
   // Rule 14 return/move indicator, so leave that structural follow-up as the
@@ -1166,8 +1228,14 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'script.subscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
   if (mapping.id === 'cancellation.end') return Boolean(hasAncestor(context.tree, context.node, 'menclose'));
   if (mapping.id === 'script.baseline') return Boolean(hasAncestor(context.tree, context.node, 'msup') || hasAncestor(context.tree, context.node, 'msub') || hasAncestor(context.tree, context.node, 'msubsup') || hasAncestor(context.tree, context.node, 'mover') || hasAncestor(context.tree, context.node, 'munder') || hasAncestor(context.tree, context.node, 'munderover'));
-  if (mapping.id === 'modifier.terminate.over') return Boolean(hasAncestor(context.tree, context.node, 'mover'));
-  if (mapping.id === 'modifier.terminate.under') return Boolean(hasAncestor(context.tree, context.node, 'munder'));
+  if (mapping.action === 'simultaneous-modifier') {
+    const container = hasAncestor(context.tree, context.node, ['mover', 'munder']);
+    return Boolean(container && container.name !== 'munderover');
+  }
+  if (mapping.id === 'modifier.terminate.over') return Boolean(hasAncestor(context.tree, context.node, ['mover', 'munderover']));
+  if (mapping.id === 'modifier.terminate.under') return Boolean(hasAncestor(context.tree, context.node, ['munder', 'munderover']));
+  if (mapping.id === 'modifier.terminate.simultaneous') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
+  if (mapping.action === 'close-structure' && mapping.args?.element === 'munderover') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.id === 'indicator.multipurpose') return true;
   if (mapping.id === 'indicator.number' && fraction) return !contains(context.tree, fraction.children[1], context.node);
   return true;
@@ -1221,6 +1289,8 @@ function applyMapping(document, focus, inputState, mapping) {
     result = wrapCurrent(tree, focus, args.element, args.slots, args.attrs, args.initialSlot);
   } else if (mapping.action === 'open-fixed-root') {
     result = openFixedRoot(tree, focus, args.index, args.indexText);
+  } else if (mapping.action === 'open-script-chain') {
+    result = openScriptChain(tree, focus, args.directions);
   } else if (mapping.action === 'open-modifier') {
     if (inputState.mode !== args.requiresMode) {
       return { status: 'rejected', document, focus, inputState, announcement: 'A multipurpose indicator is required before a modifier.' };
@@ -1239,6 +1309,14 @@ function applyMapping(document, focus, inputState, mapping) {
       inputState: { ...inputState, prefix: '', mode: modeValue, modifierScope: scopeForCurrent(tree, focus) },
       announcement: `Modifier ${args.slot === 'underscript' ? 'under' : 'over'} is ready for its modifier cell.`
     };
+  } else if (mapping.action === 'simultaneous-modifier') {
+    try {
+      result = addSimultaneousModifier(tree, focus, args.direction);
+    } catch (error) {
+      return { status: 'rejected', document, focus, inputState, announcement: error.message };
+    }
+  } else if (mapping.action === 'close-structure') {
+    result = closeStructure(tree, focus, args.element);
   } else if (mapping.action === 'extend-integral') {
     result = extendIntegral(tree, focus, args.values);
   } else if (mapping.action === 'superpose-integral') {
@@ -1249,8 +1327,6 @@ function applyMapping(document, focus, inputState, mapping) {
     }
   } else if (mapping.action === 'move-slot') {
     result = focusRole(tree, focus, args.element, args.role);
-  } else if (mapping.action === 'close-structure') {
-    result = closeStructure(tree, focus, args.element);
   } else if (mapping.action === 'set-mode') {
     if (args.mode === 'baseline') {
       const containers = ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover'];
@@ -1280,7 +1356,11 @@ function applyMapping(document, focus, inputState, mapping) {
   const nextModifierScope = collectingModifierScope && insertedAction
     ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
     : inputState.modifierScope;
-  const nextMode = ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('numeric')
+  const nextMode = mapping.action === 'insert-modifier'
+    ? 'modifier-complete'
+    : mapping.action === 'simultaneous-modifier'
+      ? `modifier-${args.direction}`
+    : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('numeric')
     ? inputState.mode
     : ['insert-token', 'insert-numeric'].includes(mapping.action) && inputState.mode?.startsWith?.('modifier-')
       ? inputState.mode
@@ -1299,7 +1379,7 @@ function applyMapping(document, focus, inputState, mapping) {
     inputState: {
       prefix: '',
       mode: nextMode,
-      modifierScope: mapping.action === 'insert-modifier'
+      modifierScope: mapping.action === 'insert-modifier' || mapping.action === 'simultaneous-modifier'
         ? null
         : (inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-')) ? nextModifierScope : null
     },
@@ -1373,6 +1453,29 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');
     return applyMapping(document, focus, { ...state, mode: 'multipurpose' }, mapping);
   }
+  // After the first modifier cell, Rule 15.4 permits the opposite-side
+  // indicator before the single terminator.  This is still a one-structure
+  // transition; the state carries only the local modifier phase.
+  if (state.mode === 'modifier-complete' && !state.prefix && (normalized === '⠣' || normalized === '⠩')) {
+    const operationId = normalized === '⠣' ? 'modifier.simultaneous.over' : 'modifier.simultaneous.under';
+    const mapping = MAPPINGS.find((candidate) => candidate.id === operationId);
+    return applyMapping(document, focus, state, mapping);
+  }
+  if (state.mode === 'modifier-under' && !state.prefix && normalized === '⠱') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');
+    return applyMapping(document, focus, state, mapping);
+  }
+  if (state.mode === 'modifier-complete' && !state.prefix && normalized === '⠻') {
+    // The same terminator closes either a one-sided mover/munder or a
+    // completed munderover.  Resolve that choice from the current local
+    // structure only; it is not a passage-level parse.
+    const container = hasAncestor(context.tree, context.node, ['mover', 'munder', 'munderover']);
+    const operationId = container?.name === 'munderover'
+      ? 'modifier.terminate.simultaneous'
+      : container?.name === 'munder' ? 'modifier.terminate.under' : 'modifier.terminate.over';
+    const mapping = MAPPINGS.find((candidate) => candidate.id === operationId);
+    return applyMapping(document, focus, state, mapping);
+  }
   if (state.mode === 'multipurpose' && state.prefix === '⠣' && normalized === '⠁') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.directly-over');
     return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
@@ -1430,7 +1533,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const mappings = match.mappings
     .filter((mapping) => mappingApplies(mapping, context))
     .filter((mapping) => state.mode?.startsWith?.('modifier-')
-      ? ['insert-token', 'insert-numeric', 'insert-modifier'].includes(mapping.action)
+      ? ['insert-token', 'insert-numeric', 'insert-modifier', 'close-structure'].includes(mapping.action)
       : true)
     .filter((mapping) => state.mode === 'multipurpose'
       ? mapping.action !== 'open-modifier'
@@ -1444,6 +1547,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     mappings.length === 1 && mappings[0].action === 'open-modifier') {
     return applyMapping(document, focus, { ...state, prefix: '' }, mappings[0]);
   }
+  // Rule 15.4 is a structural follow-up, not an ambiguous token choice: if
+  // the current focus is already a one-sided modifier, the same local cell
+  // deterministically opens the missing side even when it also begins a
+  // longer radical or modifier code.
+  const simultaneousMapping = mappings.find((mapping) => mapping.action === 'simultaneous-modifier');
+  if (simultaneousMapping) return applyMapping(document, focus, state, simultaneousMapping);
   if (mappings.length > 1 && !hasLonger) {
     return {
       status: 'choice',
@@ -1487,7 +1596,7 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
   const mappings = (PREFIXES.get(prefix)?.mappings ?? [])
     .filter((mapping) => mappingApplies(mapping, context))
     .filter((mapping) => inputState.mode?.startsWith?.('modifier-')
-      ? ['insert-token', 'insert-numeric', 'insert-modifier'].includes(mapping.action)
+      ? ['insert-token', 'insert-numeric', 'insert-modifier', 'close-structure'].includes(mapping.action)
       : true)
     .filter((mapping) => inputState.mode === 'multipurpose'
       ? mapping.action === 'open-modifier'
