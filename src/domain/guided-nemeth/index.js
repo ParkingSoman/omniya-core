@@ -150,11 +150,11 @@ function insertAfter(tree, focus, replacement) {
   return replacement;
 }
 
-function insertToken(tree, focus, name, value, { replace = false, mathvariant = null } = {}) {
+function insertToken(tree, focus, name, value, { replace = false, mathvariant = null, dataAttributes = {} } = {}) {
   const current = currentNode(tree, focus);
   const node = name === 'mspace'
     ? element('mspace', [], { width: '0.3em' })
-    : atom(name, value, mathvariant ? { mathvariant } : {});
+    : atom(name, value, { ...(mathvariant ? { mathvariant } : {}), ...dataAttributes });
   const inserted = replace || current.name === 'math' || isHole(current)
     ? replaceCurrent(tree, focus, node)
     : insertAfter(tree, focus, node);
@@ -291,7 +291,11 @@ function scopeForCurrent(tree, focus) {
   if (last < 0) return null;
   return {
     parentNodeId: parent.attrs['data-omniya-id'],
-    firstNodeId: parent.children[0]?.attrs?.['data-omniya-id'] ?? direct.attrs['data-omniya-id'],
+    // A newly opened modifier applies to the focused direct child only. A
+    // multi-token range is recorded explicitly by extendModifierScope while
+    // the local construction is being entered; falling back to the first
+    // sibling would silently broaden a modifier over pre-existing content.
+    firstNodeId: direct.attrs['data-omniya-id'],
     lastNodeId: direct.attrs['data-omniya-id']
   };
 }
@@ -422,6 +426,24 @@ const token = (id, cells, banaRefs, value, name = 'mo', options = {}) => {
   const { commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE, ...args } = options;
   return { id, cells, banaRefs, action: 'insert-token', commitPolicy, args: { name, value, ...args } };
 };
+// A shape may be represented by a Unicode glyph, a MathML grouping, or a
+// transcriber-defined local construction.  Keep the BANA meaning on the
+// source node instead of inventing a notation grammar.  The attributes are
+// application-owned and survive canonicalization; MathJax/SRE can still use
+// the ordinary MathML children when it has a standard projection.
+const shapeToken = (id, cells, banaRefs, value, shapeKind, options = {}) => token(
+  id, cells, banaRefs, value, 'mo', { ...options, dataAttributes: {
+    'data-omniya-shape-kind': shapeKind,
+    ...(options.dataAttributes ?? {})
+  }}
+);
+const shapeModificationToken = (id, cells, banaRefs, value, shapeKind, modification, options = {}) => token(
+  id, cells, banaRefs, value, 'mo', { ...options, dataAttributes: {
+    'data-omniya-shape-kind': shapeKind,
+    'data-omniya-shape-modification': modification,
+    ...(options.dataAttributes ?? {})
+  }}
+);
 const open = (id, cells, banaRefs, elementName, slots, attrs = {}, initialSlot = slots[0], preferLonger = false, commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE) => ({ id, cells, banaRefs, action: 'open-structure', commitPolicy, args: { element: elementName, slots, attrs, initialSlot, preferLonger } });
 const fixedRoot = (id, cells, banaRefs, index, indexText) => ({ id, cells, banaRefs, action: 'open-fixed-root', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { index, indexText } });
 const move = (id, cells, banaRefs, elementName, role) => ({ id, cells, banaRefs, action: 'move-slot', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, role } });
@@ -528,6 +550,45 @@ const ADDITIONAL_ARROW_MAPPINGS = [
   ['arrow.right-squiggle', '⠫⠢⠤⠔⠒⠢⠕', '⇝']
 ].map(([id, cells, value]) => token(id, [...cells], ['22.3', '22.5', '22.7'], value, 'mo', { preferLonger: true }));
 
+// Additional finite constructions from BANA 22.3–22.7.  These remain data,
+// not arrow grammar: each row is one bounded local code and is committed only
+// after its complete cell sequence is present.  The component order in the
+// standard (shape, direction, type, left head, shaft, right head) is retained
+// in the source-linked cells.
+const BANA_ARROW_COMPONENT_FIXTURES = [
+  ['arrow.up-double-stroked', '⠳⠳⠈⠫⠣⠒⠒⠕⠻', '⇞'],
+  ['arrow.down-double-stroked', '⠳⠳⠈⠫⠩⠒⠒⠕⠻', '⇟'],
+  ['arrow.left-to-bar', '⠳⠫⠪⠒⠒', '⇤'],
+  ['arrow.right-to-bar', '⠫⠒⠒⠕⠳', '⇥'],
+  ['arrow.right-small-circle', '⠨⠡⠈⠫⠒⠒⠕⠻', '⇴'],
+  ['arrow.down-over-up', '⠫⠩⠒⠒⠕⠐⠫⠣⠒⠒⠕', '⇵'],
+  ['arrow.three-right', '⠫⠒⠒⠕⠫⠒⠒⠕⠫⠒⠒⠕', '⇶'],
+  ['arrow.left-double-vertical', '⠳⠳⠈⠫⠪⠒⠒⠻', '⇺'],
+  ['arrow.right-double-vertical', '⠳⠳⠈⠫⠒⠒⠕⠻', '⇻'],
+  ['arrow.both-double-vertical', '⠳⠳⠈⠫⠪⠒⠒⠕⠻', '⇼'],
+  ['arrow.long-both', '⠫⠪⠒⠒⠒⠕', '⟷'],
+  ['arrow.long-double-left', '⠫⠪⠶⠶⠶', '⟸'],
+  ['arrow.long-double-right', '⠫⠶⠶⠶⠕', '⟹'],
+  ['arrow.long-double-both', '⠫⠪⠶⠶⠶⠕', '⟺'],
+  ['arrow.long-left-bar', '⠫⠪⠒⠒⠒⠳', '⟻'],
+  ['arrow.long-right-bar', '⠫⠳⠒⠒⠒⠕', '⟼'],
+  ['arrow.long-double-left-bar', '⠫⠪⠶⠶⠶⠳', '⟽'],
+  ['arrow.long-double-right-bar', '⠫⠳⠶⠶⠶⠕', '⟾'],
+  ['arrow.long-right-squiggle', '⠫⠢⠤⠔⠒⠢⠤⠔⠒⠢⠕', '⟿'],
+  ['arrow.two-way-diagonal-nw-se', '⠫⠘⠪⠒⠒⠕', '⤡'],
+  ['arrow.two-way-diagonal-ne-sw', '⠫⠰⠪⠒⠒⠕', '⤢'],
+  // BANA 22.7.1 arrowhead forms.
+  ['arrow.right-blunted', '⠫⠒⠒⠿', '⇢'],
+  ['arrow.left-blunted', '⠫⠿⠒⠒', '⇠'],
+  ['arrow.both-blunted', '⠫⠿⠒⠒⠿', '⇔'],
+  ['arrow.right-curved', '⠫⠒⠒⠽', '⇢'],
+  ['arrow.left-curved', '⠫⠯⠒⠒', '⇠'],
+  ['arrow.both-curved', '⠫⠯⠒⠒⠽', '↔'],
+  ['arrow.right-straight', '⠫⠒⠒⠳', '⇥'],
+  ['arrow.left-straight', '⠫⠳⠒⠒', '⇤'],
+  ['arrow.both-straight', '⠫⠳⠒⠒⠳', '↔']
+].map(([id, cells, value]) => token(id, [...cells], ['22.3', '22.5', '22.7'], value, 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }));
+
 // Normative mapping ledger: BANA 2022 is the authority for every cell sequence
 // and rule reference below. The October 2025 BANA errata is reviewed through
 // `errataRefs` on operation rows when it changes a rule. MathCAT's Nemeth
@@ -592,7 +653,7 @@ const MAPPINGS = [
   // BANA Rule 20.3 names this the star symbol (☆); MathCAT's glyph choice
   // is an independent rendering convention and does not override BANA.
   token('operator.star', ['⠫', '⠎'], ['20.3'], '☆'),
-  token('operator.ring', ['⠨', '⠡'], ['20.3'], '∘'),
+  token('operator.ring', ['⠨', '⠡'], ['20.3'], '∘', 'mo', { preferLonger: true }),
   // An ordinary integral is a complete local code and is inserted at once.
   // Any bounds, multiplicity, or superposed decoration is added afterward by
   // the same structural-followup operations used for every other operator.
@@ -725,7 +786,7 @@ const MAPPINGS = [
   modifierToken('modifier.caret.left', ['⠰', '⠣'], ['15.15'], '‹'),
   modifierToken('modifier.caret.right', ['⠰', '⠩'], ['15.15'], '›'),
   modifierToken('modifier.dot', ['⠡'], ['15.16'], '•'),
-  modifierToken('modifier.hollow-dot', ['⠨', '⠡'], ['15.17'], '∘'),
+  modifierToken('modifier.hollow-dot', ['⠨', '⠡'], ['15.17'], '∘', { preferLonger: true }),
   modifierToken('modifier.question', ['⠸', '⠦'], ['15.18'], '?'),
   modifierToken('modifier.tilde.extended', ['⠠', '⠱'], ['15.19'], '〰'),
   modifierToken('modifier.tilde.simple', ['⠈', '⠱'], ['15.19'], '~'),
@@ -776,7 +837,7 @@ const MAPPINGS = [
   token('comparison.not-member', ['⠌', '⠈', '⠑'], ['21.4'], '∉'),
   token('comparison.subset', ['⠸', '⠐', '⠅'], ['21.5'], '⊂', 'mo', { preferLonger: true }),
   token('comparison.subset-equal', ['⠸', '⠐', '⠅', '⠱'], ['21.5'], '⊆'),
-  token('comparison.perpendicular', ['⠫', '⠏'], ['21.2'], '⊥'),
+  token('comparison.perpendicular', ['⠫', '⠏'], ['21.2'], '⊥', 'mo', { preferLonger: true }),
   token('comparison.proportion', ['⠰', '⠆'], ['21.5'], '∷'),
   token('comparison.ratio', ['⠐', '⠂'], ['21.5'], '∶'),
   token('comparison.relation', ['⠠', '⠗'], ['21.5'], 'R'),
@@ -834,7 +895,7 @@ const MAPPINGS = [
   // q-e-d. The empty-cell/document spacing is represented by the surrounding
   // passage policy, not folded into this local mathematical token.
   token('misc.end-proof', ['⠈', '⠫', '⠟', '⠑', '⠙'], ['23.8'], '∎', 'mo', { preferLonger: true }),
-  token('misc.hollow-dot', ['⠨', '⠡'], ['15.17', '23.10'], '∘'),
+  token('misc.hollow-dot', ['⠨', '⠡'], ['15.17', '23.10'], '∘', 'mo', { preferLonger: true }),
   token('misc.degree', ['⠘', '⠨', '⠡'], ['23.1'], '°'),
   token('misc.prime', ['⠄'], ['23.16'], '′', 'mo', { preferLonger: true }),
   token('misc.factorial', ['⠯'], ['23.9'], '!'),
@@ -883,6 +944,7 @@ const MAPPINGS = [
   token('arrow.double-up', ['⠫', '⠣', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇑'),
   token('arrow.double-down', ['⠫', '⠩', '⠶', '⠶', '⠕'], ['22.4.2', '22.5.2'], '⇓'),
   ...ADDITIONAL_ARROW_MAPPINGS,
+  ...BANA_ARROW_COMPONENT_FIXTURES,
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*'),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†'),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡'),
@@ -902,11 +964,49 @@ const MAPPINGS = [
   token('shape.star', ['⠫', '⠎'], ['17.1'], '☆', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.trapezoid', ['⠫', '⠵'], ['17.1'], '⏢', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   token('shape.inverted-triangle', ['⠨', '⠫'], ['17.1'], '▽', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
-  token('shape.square', ['⠫', '⠲'], ['17.1'], '□'),
-  token('shape.filled-circle', ['⠫', '⠸', '⠉'], ['17.3'], '●'),
-  token('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■'),
-  token('shape.triangle', ['⠫', '⠞'], ['17.1'], '△'),
-  token('shape.rectangle', ['⠫', '⠗'], ['17.2'], '▭'),
+  token('shape.square', ['⠫', '⠲'], ['17.1'], '□', 'mo', { preferLonger: true }),
+  token('shape.filled-circle', ['⠫', '⠸', '⠉'], ['17.3'], '●', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('shape.shaded-circle', ['⠫', '⠨', '⠉'], ['17.3'], '◍', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('shape.shaded-ellipse', ['⠫', '⠨', '⠑'], ['17.3'], '◌', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  token('shape.triangle', ['⠫', '⠞'], ['17.1'], '△', 'mo', { preferLonger: true }),
+  token('shape.rectangle', ['⠫', '⠗'], ['17.2'], '▭', 'mo', { preferLonger: true }),
+  shapeToken('shape.arc.down', ['⠫', '⠁'], ['17.1'], '⁀', 'arc-down', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeToken('shape.arc.up', ['⠫', '⠄'], ['17.1'], '⌢', 'arc-up', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // BANA 17.2 basic-shape index entries without a dedicated Unicode glyph
+  // remain valid local MathML tokens.  The source-linked shape metadata is
+  // what preserves the distinction for export and later shape operations.
+  shapeToken('shape.rhombus', ['⠫', '⠓'], ['17.2'], '◇', 'rhombus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeToken('shape.intersecting-lines', ['⠫', '⠊'], ['17.2'], '╳', 'intersecting-lines', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeToken('shape.quadrilateral', ['⠫', '⠟'], ['17.2'], '▱', 'quadrilateral', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeToken('shape.irregular-hexagon', ['⠫', '⠓', '⠭'], ['17.2'], '⬡', 'irregular-hexagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeToken('shape.irregular-pentagon', ['⠫', '⠏', '⠛'], ['17.2'], '⭔', 'irregular-pentagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeToken('shape.irregular-octagon', ['⠫', '⠕', '⠉'], ['17.4'], '⯃', 'irregular-octagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // Rule 17.4 regular polygons are local shape constructions. Their numeral
+  // is collected with the shape indicator and then committed as one token;
+  // no numeric passage is parsed.
+  shapeToken('shape.regular-octagon', ['⠫', '⠦'], ['17.4'], '⯃', 'regular-octagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeToken('shape.regular-dodecagon', ['⠫', '⠂', '⠆'], ['17.4'], '⯃', 'regular-12-gon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  // Rule 17.5 structural shape modification: the base shape and the
+  // modification letters are one bounded construction.  The metadata keeps
+  // the exact BANA modifier while MathML remains a valid atomic operator.
+  shapeModificationToken('shape.triangle.isosceles', ['⠫', '⠞', '⠨', '⠊', '⠻'], ['17.5'], '△', 'triangle', 'isosceles', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.triangle.acute', ['⠫', '⠞', '⠨', '⠁', '⠻'], ['17.5'], '△', 'triangle', 'acute', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.triangle.obtuse', ['⠫', '⠞', '⠨', '⠕', '⠻'], ['17.5'], '△', 'triangle', 'obtuse', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.triangle.right', ['⠫', '⠞', '⠨', '⠗', '⠻'], ['17.5'], '⊿', 'triangle', 'right', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.triangle.scalene', ['⠫', '⠞', '⠨', '⠎', '⠻'], ['17.5'], '△', 'triangle', 'scalene', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.angle.right', ['⠫', '⠪', '⠨', '⠗', '⠻'], ['17.5'], '∟', 'angle', 'right', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.angle.adjacent', ['⠫', '⠪', '⠨', '⠚', '⠻'], ['17.5'], '∠', 'angle', 'adjacent', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  // Rule 17.6 uses the interior-shape indicator (⠸⠫) and terminator. These
+  // examples are intentionally bounded; a letter, operation, or arrow inside
+  // a shape is represented by a separate named operation in a later editor
+  // step rather than by buffering an arbitrary passage.
+  shapeModificationToken('shape.circle.interior-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['17.6.1'], '⨁', 'circle', 'interior-plus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.circle.interior-dot', ['⠫', '⠉', '⠸', '⠫', '⠡', '⠻'], ['17.6.1'], '⦿', 'circle', 'interior-dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.rectangle.interior-bar', ['⠫', '⠗', '⠸', '⠫', '⠒', '⠻'], ['17.6.1'], '▭', 'rectangle', 'interior-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
+  shapeModificationToken('shape.circle.superposed-bar', ['⠳', '⠈', '⠫', '⠉', '⠻'], ['17.7'], '⌽', 'circle', 'superposed-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeModificationToken('shape.circle.interior-bar', ['⠫', '⠉', '⠸', '⠫', '⠳', '⠻'], ['17.6.1'], '⦶', 'circle', 'interior-vertical-bar', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE }),
+  shapeToken('shape.triangle.plural', ['⠫', '⠞', '⠎'], ['17.9'], '⧌', 'triangle-plural', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true }),
   // Rule 11.1.1: the general omission sign is the equals-shaped cell ⠿.
   // Its MathML placeholder is a question mark; it is not ordinary equals.
   token('omission.general', ['⠿'], ['11.1.1'], '?'),
@@ -1017,6 +1117,11 @@ function fractionAtFocus(tree, node) {
 }
 
 function mappingApplies(mapping, context) {
+  // Modifier cells are only meaningful after an expression has been opened.
+  // At an empty replacement root the same BANA cells may begin a shape code;
+  // do not expose a spurious modifier choice or mutate an empty draft.
+  if (mapping.action === 'insert-modifier' &&
+    (context.node.name === 'math' || isHole(context.node))) return false;
   // The English-letter indicator is a local abbreviation mode, not a
   // structural navigation command.  In a script slot the same cell is a
   // Rule 14 return/move indicator, so leave that structural follow-up as the
@@ -1090,7 +1195,8 @@ function applyMapping(document, focus, inputState, mapping) {
         : null;
     result = insertToken(tree, focus, args.name, args.value, {
       replace,
-      mathvariant: ['mi', 'mn'].includes(args.name) ? typeform : args.mathvariant ?? null
+      mathvariant: ['mi', 'mn'].includes(args.name) ? typeform : args.mathvariant ?? null,
+      dataAttributes: args.dataAttributes ?? {}
     });
   } else if (mapping.action === 'insert-numeric') {
     const numericVariant = inputState.mode?.startsWith?.('numeric:')
@@ -1120,7 +1226,7 @@ function applyMapping(document, focus, inputState, mapping) {
       return { status: 'rejected', document, focus, inputState, announcement: 'A multipurpose indicator is required before a modifier.' };
     }
     const modeValue = args.slot === 'underscript' ? 'modifier-under' : 'modifier-over';
-    const existingScope = scopeForCurrent(tree, focus);
+    const existingScope = inputState.modifierScope ?? scopeForCurrent(tree, focus);
     if (existingScope) {
       return {
         status: 'pending', document, focus,

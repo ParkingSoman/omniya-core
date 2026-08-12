@@ -303,7 +303,9 @@ test('incomplete or invalid atomic input never mutates the draft', () => {
   const invalid = commitNemethLocalCode({ document, focus: document.focus, inputState: pending.inputState });
   assert.equal(invalid.status, 'rejected');
   assert.equal(invalid.document.mathml, document.mathml);
-  const badNext = applyNemethCell({ document, focus: document.focus, inputState: pending.inputState, cell: '⠁' });
+  // ⠁ now correctly begins the BANA 17.1 arc construction ($a). Use a cell
+  // that is neither a continuation nor a completed local code instead.
+  const badNext = applyNemethCell({ document, focus: document.focus, inputState: pending.inputState, cell: '⠼' });
   assert.equal(badNext.status, 'rejected');
   assert.equal(badNext.document.mathml, document.mathml);
   assert.equal(badNext.inputState.prefix, pending.inputState.prefix);

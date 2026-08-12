@@ -5,7 +5,7 @@ import { importLatex, replaceMathTargetInDocument } from '../../src/main/math-se
 import { findMathNode, parseMathML, serializeMathML } from '../../src/domain/math-tree.js';
 import { SUBEXPRESSION_FIXTURES, WHOLE_EXPRESSION_FIXTURES, fixtureById } from '../fixtures/nemeth-braille-fixtures.js';
 import { MATHCAT_FIXTURES } from '../fixtures/mathcat-braille-fixtures.js';
-import { applyNemethCell, createEmptyDraftMathDocument } from '../../src/domain/guided-nemeth/index.js';
+import { applyNemethCell, commitNemethLocalCode, createEmptyDraftMathDocument } from '../../src/domain/guided-nemeth/index.js';
 
 async function nemeth(mathml) {
   await SRE.engineReady();
@@ -100,6 +100,76 @@ test('ported MathCAT Nemeth cases remain stable through Omniya MathML import', a
     const document = await importLatex(fixture.latex);
     assert.equal(await nemeth(document.mathml), fixture.expected, fixture.sourceFile);
   }
+});
+
+test('long nested expressions match the independent SRE projection at whole and focused scopes', async () => {
+  // These are deliberately longer than the small arithmetic fixtures.  The
+  // expected cells are captured from the pinned SRE Nemeth serializer; the
+  // MathCAT corpus and BANA examples above remain the normative review data.
+  const fixtures = [
+    {
+      id: 'sum-fraction-radical-integral',
+      latex: '\\sum_{i=1}^{n}\\frac{\\sqrt{x^2+y^2}}{\\int_0^1 \\sin(t)\\,dt}',
+      expected: '⠐⠨⠠⠎⠩⠊⠀⠨⠅⠀⠼⠂⠣⠝⠻⠹⠜⠭⠘⠆⠐⠬⠽⠘⠆⠐⠻⠌⠮⠰⠴⠘⠂⠐⠎⠊⠝⠀⠷⠞⠾⠙⠞⠼'
+    },
+    {
+      id: 'nested-scripted-radical-fraction',
+      latex: '\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}^2 + \\sqrt[3]{\\frac{x_1+y_1}{x_2-y_2}}',
+      expected: '⠠⠷⠁⠀⠃⠠⠾⠀⠠⠷⠉⠀⠙⠠⠾⠘⠆⠐⠬⠣⠒⠜⠹⠭⠂⠬⠽⠂⠌⠭⠆⠤⠽⠆⠼⠻'
+    },
+    {
+      id: 'limit-sine-quotient',
+      latex: '\\lim_{x\\to0}\\frac{\\sin x}{x} = 1',
+      expected: '⠐⠇⠊⠍⠩⠭⠀⠫⠕⠀⠼⠴⠻⠀⠹⠎⠊⠝⠀⠭⠌⠭⠼⠀⠨⠅⠀⠼⠂'
+    },
+    {
+      id: 'absolute-fraction-plus-integral',
+      latex: '\\left|\\frac{a^2-b^2}{c+d}\\right| + \\int_{0}^{\\infty} e^{-t^2}dt',
+      expected: '⠳⠹⠁⠘⠆⠐⠤⠃⠘⠆⠐⠌⠉⠬⠙⠼⠳⠬⠮⠰⠴⠘⠠⠿⠐⠑⠘⠤⠞⠘⠘⠆⠘⠐⠙⠞'
+    }
+  ];
+  for (const fixture of fixtures) {
+    const document = await importLatex(fixture.latex);
+    assert.equal(await nemeth(document.mathml), fixture.expected, fixture.id);
+  }
+
+  const nested = await importLatex(fixtures[0].latex);
+  const tree = parseMathML(nested.mathml);
+  const allFractions = [];
+  const visit = (node) => {
+    if (node?.name === 'mfrac') allFractions.push(node);
+    for (const child of node?.children ?? []) if (child.text === undefined) visit(child);
+  };
+  visit(tree);
+  assert.ok(allFractions.length >= 1, 'nested fixture must contain a fraction');
+  const focusedNumerator = allFractions[0].children[0];
+  const focused = subtreeMathML(focusedNumerator);
+  assert.equal(await nemeth(focused), '⠜⠭⠘⠆⠐⠬⠽⠘⠆⠐⠻');
+  assert.equal(await nemeth(subtreeMathML(allFractions[0].children[1])), '⠮⠰⠴⠘⠂⠐⠎⠊⠝⠀⠷⠞⠾⠙⠞');
+});
+
+test('atomic-sequence and structural-followup policies stay local across the registry', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  // The complete right two-headed arrow is held as one local sequence. No
+  // partial cell is allowed to mutate the draft.
+  for (const cell of ['⠫', '⠒', '⠒', '⠕', '⠕']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+    assert.equal(document.mathml.includes('↠'), false);
+  }
+  const held = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(held.status, 'applied');
+  assert.equal(await nemeth(held.document.mathml), '⠫⠒⠒⠕⠕');
+
+  // An ordinary integral is immediate; adding its superposition is a second,
+  // structural local code and cannot replace the surrounding expression.
+  const empty = createEmptyDraftMathDocument();
+  const integral = applyNemethCell({ document: empty, focus: empty.focus, inputState: { prefix: '', mode: null }, cell: '⠮' });
+  assert.equal(integral.status, 'applied');
+  assert.equal(await nemeth(integral.document.mathml), '⠮');
 });
 
 test('MathCAT Rule 86 modifier fixtures remain exact for whole and focused scopes', async () => {

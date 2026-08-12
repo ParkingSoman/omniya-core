@@ -36,6 +36,25 @@ const FIXTURES = [
   ['shape.rectangle', '⠫⠗', '▭']
 ];
 
+const RULE_17_EXTENDED_FIXTURES = [
+  ['shape.arc.down', '⠫⠁', '⁀', '17.1'],
+  ['shape.arc.up', '⠫⠄', '⌢', '17.1'],
+  ['shape.rhombus', '⠫⠓', '◇', '17.2'],
+  ['shape.intersecting-lines', '⠫⠊', '╳', '17.2'],
+  ['shape.quadrilateral', '⠫⠟', '▱', '17.2'],
+  ['shape.irregular-hexagon', '⠫⠓⠭', '⬡', '17.2'],
+  ['shape.irregular-pentagon', '⠫⠏⠛', '⭔', '17.2'],
+  ['shape.regular-octagon', '⠫⠦', '⯃', '17.4'],
+  ['shape.regular-dodecagon', '⠫⠂⠆', '⯃', '17.4'],
+  ['shape.triangle.isosceles', '⠫⠞⠨⠊⠻', '△', '17.5'],
+  ['shape.triangle.right', '⠫⠞⠨⠗⠻', '⊿', '17.5'],
+  ['shape.angle.adjacent', '⠫⠪⠨⠚⠻', '∠', '17.5'],
+  ['shape.circle.interior-plus', '⠫⠉⠸⠫⠬⠻', '⨁', '17.6.1'],
+  ['shape.circle.interior-dot', '⠫⠉⠸⠫⠡⠻', '⦿', '17.6.1'],
+  ['shape.circle.superposed-bar', '⠳⠈⠫⠉⠻', '⌽', '17.7'],
+  ['shape.triangle.plural', '⠫⠞⠎', '⧌', '17.9']
+];
+
 const RULE_17_19_FIXTURES = [
   ['shape.diamond', '⠫⠙', '◊'],
   ['shape.ellipse', '⠫⠑', '⬭'],
@@ -194,6 +213,20 @@ test('BANA Rules 17 and 19 shape and grouping literals are source-linked', () =>
   }
 });
 
+test('BANA Rule 17 extended shape constructions are bounded atomic mappings', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const [id, cells, expected, banaRef] of RULE_17_EXTENDED_FIXTURES) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.cells.join(''), cells, id);
+    assert.ok(entry.banaRefs.includes(banaRef), id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    const tree = applyFixture(id, cells);
+    const inserted = tree.children.at(-1);
+    assert.equal(inserted.children?.[0]?.text, expected, id);
+  }
+});
+
 test('official BANA and MathCAT cells guard corrected Greek, summation, and arrow literals', async () => {
   const fixtures = [
     ['greek.ϵ', '⠨⠑', 'ϵ'],
@@ -220,6 +253,29 @@ test('official BANA and MathCAT cells guard corrected Greek, summation, and arro
     assert.equal(registry.get(id)?.cells.join(''), cells, `${id}: BANA/MathCAT sequence`);
     const tree = applyFixture(id, cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
+  }
+});
+
+test('BANA Rule 22 component constructions remain bounded and source-linked', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const fixtures = [
+    ['arrow.up-double-stroked', '⠳⠳⠈⠫⠣⠒⠒⠕⠻', '⇞'],
+    ['arrow.left-to-bar', '⠳⠫⠪⠒⠒', '⇤'],
+    ['arrow.right-to-bar', '⠫⠒⠒⠕⠳', '⇥'],
+    ['arrow.right-small-circle', '⠨⠡⠈⠫⠒⠒⠕⠻', '⇴'],
+    ['arrow.long-both', '⠫⠪⠒⠒⠒⠕', '⟷'],
+    ['arrow.long-double-right-bar', '⠫⠳⠶⠶⠶⠕', '⟾'],
+    ['arrow.right-blunted', '⠫⠒⠒⠿', '⇢'],
+    ['arrow.both-curved', '⠫⠯⠒⠒⠽', '↔']
+  ];
+  for (const [id, cells, value] of fixtures) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.cells.join(''), cells, id);
+    assert.ok(entry.banaRefs.includes('22.7') || entry.banaRefs.includes('22.5'), id);
+    assert.equal(entry.commitPolicy, 'atomic-sequence', id);
+    const tree = applyFixture(id, cells);
+    assert.equal(tree.children.at(-1)?.children?.[0]?.text, value, id);
   }
 });
 
