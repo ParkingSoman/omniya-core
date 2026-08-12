@@ -718,3 +718,38 @@ test('BANA Rule 24.1.i adjacent bars and 24.1.k tildes use bounded follow-ups', 
   }
   assert.deepEqual(parseMathML(document.mathml).children.map((node) => node.children[0].text), ['∼', '∼']);
 });
+
+test('BANA Rule 24.1.h keeps tally punctuation local to the current mark', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠸' });
+  assert.equal(result.status, 'pending');
+  result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'misc.tally' });
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠐', '⠸', '⠠']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.deepEqual(tree.children.map((node) => node.children[0].text), ['|', ',']);
+});
+
+test('BANA Rule 24.1.j polygon numeral transition remains local', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠫', '⠲']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  for (const cell of ['⠐', '⠼', '⠂', '⠲']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.deepEqual(tree.children.map((node) => node.children[0].text), ['□', '14']);
+});

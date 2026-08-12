@@ -324,6 +324,35 @@ test('guided Rule 24.1.i and 24.1.k local follow-ups retain reviewed Braille', a
   assert.equal(await nemeth(document.mathml), '⠈⠱⠈⠱');
 });
 
+test('guided Rule 24.1.h tally punctuation uses the reviewed local projection', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠸' });
+  result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'misc.tally' });
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠐', '⠸', '⠠']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  // SRE normalizes this as tally plus mathematical comma; BANA 24.1.h is the
+  // normative reason for the intermediate dot-5 transition.
+  assert.equal(await nemeth(document.mathml), '⠳⠠');
+});
+
+test('guided Rule 24.1.j polygon numeral agrees with the independent projection', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠫', '⠲', '⠐', '⠼', '⠂', '⠲']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(await nemeth(document.mathml), '⠫⠲⠀⠼⠂⠲');
+});
+
 test('MathCAT left-script fixtures remain accurate as canonical multiscripts', async () => {
   const fixtures = [
     ['<math><mmultiscripts><mi>n</mi><mprescripts/><none/><mi>x</mi></mmultiscripts></math>', '⠘⠭⠐⠝'],

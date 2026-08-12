@@ -1540,6 +1540,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'comparison.similar');
     return applyMapping(document, focus, { ...state, prefix: '', mode: null }, mapping);
   }
+  // BANA 24.1.h: after a tally, dot 5 separates the tally from the
+  // punctuation indicator. Both cells are local to this one punctuation
+  // transition; no tally run or passage buffer is accumulated here.
+  if (state.mode === 'tally-punctuation' && state.prefix === '⠸' && normalized === '⠠') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'punctuation.comma');
+    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, mapping);
+  }
+  // BANA 24.1.j: dot 5 between a regular-polygon operation symbol and the
+  // following numeral is a one-number local transition. The shape remains a
+  // MathML operator; only the next number indicator is consumed in this mode.
+  if (state.mode === 'polygon-numeric' && !state.prefix && normalized === '⠼') {
+    return applyMapping(document, focus, { ...state, mode: null }, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
+  }
   if ((state.mode === 'capital' || state.mode === 'english-letter') && !state.prefix && LETTERS.has(normalized)) return applyMapping(document, focus, { ...state, mode: null }, letterMapping(normalized, state));
   // After the Rule 24 multipurpose indicator, a letter begins the expression
   // being modified (Rule 15.2.1.b); it must not be held merely because the
@@ -1601,6 +1614,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     return { status: 'pending', document, focus,
       inputState: { ...state, prefix: '⠨', mode: 'comparison-horizontal' },
       announcement: 'Horizontal comparison code pending.' };
+  }
+  if (state.mode === null && state.prefix === '⠐' && normalized === '⠸' &&
+    context.node.name === 'mo' && context.node.children?.[0]?.text === '|') {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠸', mode: 'tally-punctuation' },
+      announcement: 'Tally punctuation code pending.' };
+  }
+  if (state.mode === null && state.prefix === '⠐' && normalized === '⠼' &&
+    context.node.name === 'mo' && ['□', '■', '△', '▽', '◇', '⬡', '⬠', '⯃'].includes(context.node.children?.[0]?.text)) {
+    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
   }
   if (state.mode === null && state.prefix === '⠐' && normalized === '⠡' &&
     context.node.name === 'mo' && context.node.children?.[0]?.text === '|') {
