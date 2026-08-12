@@ -5,13 +5,13 @@
   "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
   "status": "development",
   "inputPolicies": {
-    "immediate": 240,
-    "atomicSequence": 378,
+    "immediate": 241,
+    "atomicSequence": 377,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 410,
+    "shadowedAtomicCount": 411,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -1488,6 +1488,10 @@
       {
         "atomicId": "shape.irregular-pentagon",
         "immediateId": "comparison.perpendicular"
+      },
+      {
+        "atomicId": "shape.irregular-octagon",
+        "immediateId": "arrow.right"
       },
       {
         "atomicId": "shape.triangle.isosceles",
@@ -5292,7 +5296,8 @@
       "args": {
         "name": "mo",
         "value": "―",
-        "sourceNotation": "----"
+        "sourceNotation": "----",
+        "preferLonger": true
       },
       "banaRefs": [
         "8.8"
@@ -5773,7 +5778,8 @@
       "args": {
         "name": "mo",
         "value": "⊙",
-        "sourceNotation": "$c_$*]"
+        "sourceNotation": "$c_$*]",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.1"
@@ -5803,7 +5809,8 @@
       "args": {
         "name": "mo",
         "value": "⊕",
-        "sourceNotation": "$c_$+]"
+        "sourceNotation": "$c_$+]",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.1"
@@ -5833,7 +5840,8 @@
       "args": {
         "name": "mo",
         "value": "⊖",
-        "sourceNotation": "$c_$-]"
+        "sourceNotation": "$c_$-]",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.1",
@@ -6219,7 +6227,8 @@
       "args": {
         "name": "mo",
         "value": "☆",
-        "sourceNotation": "$s"
+        "sourceNotation": "$s",
+        "preferLonger": true
       },
       "banaRefs": [
         "20.3"
@@ -11535,7 +11544,8 @@
       "args": {
         "name": "mo",
         "value": "⊆",
-        "sourceNotation": "_\"k:"
+        "sourceNotation": "_\"k:",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.5"
@@ -15024,7 +15034,8 @@
         "sourceNotation": ".$",
         "dataAttributes": {
           "data-omniya-nemeth-intent": "nabla"
-        }
+        },
+        "preferLonger": true
       },
       "banaRefs": [
         "23.5"
@@ -15053,7 +15064,8 @@
         "sourceNotation": ".$",
         "dataAttributes": {
           "data-omniya-nemeth-intent": "del-inverted"
-        }
+        },
+        "preferLonger": true
       },
       "banaRefs": [
         "23.5"
@@ -15718,7 +15730,8 @@
         "sourceNotation": "$l",
         "dataAttributes": {
           "data-omniya-nemeth-intent": "parallel-relation"
-        }
+        },
+        "preferLonger": true
       },
       "banaRefs": [
         "17.2",
@@ -15958,7 +15971,8 @@
       "args": {
         "name": "mo",
         "value": "≤",
-        "sourceNotation": "\"k:"
+        "sourceNotation": "\"k:",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.5"
@@ -16011,7 +16025,8 @@
       "args": {
         "name": "mo",
         "value": "≡",
-        "sourceNotation": "_l"
+        "sourceNotation": "_l",
+        "preferLonger": true
       },
       "banaRefs": [
         "21.3"
@@ -19421,13 +19436,15 @@
         "⠕"
       ],
       "action": "insert-token",
-      "commitPolicy": "atomic-sequence",
+      "commitPolicy": "immediate",
       "sourceNotation": "$o",
       "sourceKind": null,
       "args": {
         "name": "mo",
         "value": "→",
-        "sourceNotation": "$o"
+        "sourceNotation": "$o",
+        "allowImmediateBeforeContinuation": true,
+        "preferLonger": true
       },
       "banaRefs": [
         "22.1",

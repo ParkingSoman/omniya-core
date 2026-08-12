@@ -63,6 +63,18 @@ on the page, it is structural-followup. These choices are properties of the
 registry rows, so adding a new BANA construction does not require a new
 editing mode or a second parser.
 
+### Abbreviations in mathematics
+
+The editor does not guess whether ordinary letters form a word, a measurement
+abbreviation, or an identifier. BANA makes that decision from the surrounding
+document context. Once the context calls for an abbreviation, use the same
+local operations as the code examples: the English-letter indicator before a
+single-letter abbreviation, ordinary letters for a multi-letter abbreviation,
+the mathematical punctuation indicator where punctuation is at another level,
+and an ordinary space where BANA requires spacing. This keeps abbreviation
+writing compositional and prevents a hidden literary-word parser from changing
+your equation.
+
 The number of cells does not decide the policy by itself. A two-cell opener can
 still be immediate when its first recognized code already denotes a valid local
 operation, while a longer code is collected only when BANA requires the later

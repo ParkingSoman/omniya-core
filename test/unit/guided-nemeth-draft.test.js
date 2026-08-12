@@ -497,7 +497,8 @@ test('the shared baseline and multipurpose cell is selected by valid local conte
 test('local input policies are declarative and apply across construction families', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   assert.equal(registry.get('operator.integral').commitPolicy, 'immediate');
-  assert.equal(registry.get('arrow.right').commitPolicy, 'atomic-sequence');
+  assert.equal(registry.get('arrow.right').commitPolicy, 'immediate');
+  assert.equal(registry.get('arrow.right.uncontracted').commitPolicy, 'atomic-sequence');
   assert.equal(registry.get('script.superscript').commitPolicy, 'immediate');
   assert.equal(registry.get('fraction.next.denominator').commitPolicy, 'structural-followup');
   assert.ok(operationRegistry().every((entry) => ['immediate', 'atomic-sequence', 'structural-followup'].includes(entry.commitPolicy)));
@@ -524,13 +525,34 @@ test('an atomic local code waits for Enter and then applies exactly once', () =>
   assert.equal(result.status, 'pending');
   assert.equal(result.document.mathml, document.mathml);
   state = result.inputState;
-  for (const cell of ['⠒', '⠕']) result = applyNemethCell({ document, focus: document.focus, inputState: state, cell });
+  for (const cell of ['⠒', '⠒', '⠕']) result = applyNemethCell({ document, focus: document.focus, inputState: result.inputState, cell });
   assert.equal(result.status, 'pending');
   assert.equal(result.document.mathml, document.mathml);
   const committed = commitNemethLocalCode({ document, focus: document.focus, inputState: result.inputState });
   assert.equal(committed.status, 'applied');
   assert.match(committed.document.mathml, />→</);
   assert.equal(committed.inputState.prefix, '');
+});
+
+test('a complete ordinary arrow is immediate while a compound arrow remains bounded', () => {
+  const document = createEmptyDraftMathDocument();
+  let result = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠫' });
+  assert.equal(result.status, 'pending');
+  result = applyNemethCell({ document: result.document, focus: result.focus, inputState: result.inputState, cell: '⠕' });
+  assert.equal(result.status, 'applied');
+  assert.equal(parseMathML(result.document.mathml).children[0].children[0].text, '→');
+
+  let state = { prefix: '', mode: null };
+  const compound = createEmptyDraftMathDocument();
+  result = applyNemethCell({ document: compound, focus: compound.focus, inputState: state, cell: '⠫' });
+  for (const cell of ['⠒', '⠒', '⠕']) {
+    result = applyNemethCell({ document: result.document, focus: result.focus, inputState: result.inputState, cell });
+    assert.equal(result.status, 'pending');
+  }
+  assert.equal(result.document.mathml, compound.mathml);
+  const committed = commitNemethLocalCode({ document: result.document, focus: result.focus, inputState: result.inputState });
+  assert.equal(committed.status, 'applied');
+  assert.equal(parseMathML(committed.document.mathml).children[0].children[0].text, '→');
 });
 
 test('a standalone immediate code can coexist with longer atomic codes', () => {

@@ -1549,6 +1549,24 @@ test('BANA Rule 9 erratum uses the complete checkmark construction', () => {
   assert.ok(entry.errataRefs.some((ref) => ref.includes('Rule 9.1')));
 });
 
+test('BANA Rule 10 abbreviation behavior stays compositional and bounded', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const indicator = registry.get('indicator.english-letter');
+  assert.deepEqual(indicator.cells, ['⠰']);
+  assert.ok(indicator.banaRefs.includes('10.3'));
+  // BANA 10.3 Example 10-18: the one-letter abbreviation g is an English
+  // letter after the local indicator. The registry intentionally does not
+  // classify words or measurement names; that is surrounding-language policy.
+  const document = createEmptyDraftMathDocument();
+  let result = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠰' });
+  result = applyNemethCell({ document, focus: document.focus, inputState: result.inputState, cell: '⠛' });
+  assert.equal(result.status, 'applied');
+  const tree = parseMathML(result.document.mathml);
+  assert.equal(tree.children[0].children[0].text, 'g');
+  assert.deepEqual(registry.get('punctuation.period').banaRefs, ['8.1', '8.2']);
+  assert.equal(registry.get('punctuation.period').args.sourceNotation, '_4');
+});
+
 test('every accepted mapping has explicit BANA source evidence and action', () => {
   for (const entry of operationRegistry()) {
     assert.match(entry.id, /^\S+$/);
@@ -1577,7 +1595,7 @@ test('all immediate rows that prefix an atomic row use bounded lookahead', () =>
       candidate.commitPolicy === 'atomic-sequence' &&
       candidate.cells.length > immediate.cells.length &&
       immediate.cells.every((cell, index) => cell === candidate.cells[index]));
-    if (hasAtomicContinuation) assert.equal(immediate.args?.preferLonger, true, immediate.id);
+    if (hasAtomicContinuation && !immediate.args?.allowImmediateBeforeContinuation) assert.equal(immediate.args?.preferLonger, true, immediate.id);
   }
 });
 

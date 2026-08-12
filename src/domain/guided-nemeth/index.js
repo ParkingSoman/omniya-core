@@ -1771,7 +1771,7 @@ const MAPPINGS = [
   token('omission.general', ['⠿'], ['11.1.1'], '?', 'mo', { sourceNotation: '=' }),
   open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike' }, 'content', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, { sourceNotation: '[' }),
   sourceClose('cancellation.end', ['⠻'], ['12.1.1'], 'menclose', ']'),
-  token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→', 'mo', { sourceNotation: '$o' }),
+  token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→', 'mo', { sourceNotation: '$o', allowImmediateBeforeContinuation: true }),
   // BANA 22.1 calls the ordinary right arrow `$o` only when it is regular,
   // single-shaft, and unmodified. The uncontracted `$33o` is a separate
   // bounded local construction (Examples 22-5 and 22-28), even though it
@@ -1795,7 +1795,7 @@ const MAPPINGS = [
   // BANA Rules 6.2 and 10.3: one English-letter abbreviation is introduced
   // by a bounded indicator mode, not by a literary-word parser.
   mode('indicator.english-letter', ['⠰'], ['6.2', '10.3'], 'english-letter', true, ';')
-].map((mapping) => mapping.id.startsWith('arrow.')
+].map((mapping) => mapping.id.startsWith('arrow.') && mapping.id !== 'arrow.right'
   ? withPolicy(mapping, LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE)
   : mapping);
 
@@ -1807,11 +1807,18 @@ const MAPPINGS = [
 // never an expression parser or an unrestricted input buffer.
 for (const mapping of MAPPINGS) {
   if (mapping.commitPolicy !== LOCAL_COMMIT_POLICIES.IMMEDIATE) continue;
+  // `$o` is complete even though the same cells can be used by the separate
+  // Rule 15.12 modifier construction. Context filtering resolves that
+  // structural alternative; do not hold the ordinary arrow itself.
+  const hasSameCodeAtomic = MAPPINGS.some((candidate) =>
+    candidate.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
+    candidate.cells.length === mapping.cells.length &&
+    candidate.cells.every((cell, index) => cell === mapping.cells[index]));
   const hasAtomicContinuation = MAPPINGS.some((candidate) =>
     candidate.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     candidate.cells.length > mapping.cells.length &&
     mapping.cells.every((cell, index) => cell === candidate.cells[index]));
-  if (hasAtomicContinuation) mapping.args = { ...(mapping.args ?? {}), preferLonger: true };
+  if (hasSameCodeAtomic || hasAtomicContinuation) mapping.args = { ...(mapping.args ?? {}), preferLonger: true };
 }
 
 const PREFIXES = new Map();
@@ -2361,13 +2368,18 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     mapping.cells.length > sequence.length &&
     mapping.cells.slice(0, sequence.length).join('') === sequence &&
     mappingApplies(mapping, context));
-  if (atomicContinuation) {
+  const immediateBeforeContinuation = state.mode === null && (PREFIXES.get(sequence)?.mappings ?? [])
+    .filter((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mapping.args?.allowImmediateBeforeContinuation)
+    .filter((mapping) => mappingApplies(mapping, context));
+  if (atomicContinuation && immediateBeforeContinuation.length === 0) {
     return {
       status: 'pending', document, focus,
       inputState: { ...state, prefix: sequence },
       announcement: 'Nemeth sequence may continue.'
     };
   }
+
+  if (immediateBeforeContinuation.length === 1) return applyMapping(document, focus, state, immediateBeforeContinuation[0]);
 
   // BANA 24.1.f places a dot-5 multipurpose indicator between two adjacent
   // comparison signs. Some of those same prefixes begin Rule 21 compound

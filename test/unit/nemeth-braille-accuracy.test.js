@@ -131,6 +131,14 @@ test('BANA Rule 7.3.5 scope rows retain reviewed source cells and exact MathML t
   assert.equal(expression.attrs.mathvariant, 'bold');
 });
 
+test('BANA Rule 10.3 single-letter abbreviation projection matches the local source cells', async () => {
+  const source = '<math><mn>10</mn><mspace width="0.3em"/><mi>g</mi><mo>+</mo><mn>10</mn><mspace width="0.3em"/><mi>g</mi><mo>=</mo><mn>20</mn><mspace width="0.3em"/><mi>g</mi></math>';
+  // This is BANA 10.3 Example 10-18 reduced to the mathematical cells. SRE
+  // confirms the numeric and comparison projection; the English-letter
+  // indicator is the guided input operation tested in the registry suite.
+  assert.equal(await nemeth(source), '⠼⠂⠴⠛⠬⠂⠴⠛⠀⠨⠅⠀⠼⠆⠴⠛');
+});
+
 test('ported MathCAT Nemeth cases remain stable through Omniya MathML import', async () => {
   for (const fixture of MATHCAT_FIXTURES) {
     const document = await importLatex(fixture.latex);

@@ -162,3 +162,16 @@ intent (`interior-arrows-horizontal` or `interior-arrows-vertical`) while SRE
 provides the independent projected Nemeth for the resulting mathematical
 symbol. See BANA 2022 Rule 17.6.2 and 17.6.3 and the corresponding accuracy
 fixture in `test/unit/nemeth-braille-accuracy.test.js`.
+
+## Rule 10 abbreviation boundary (current audit)
+
+BANA Rule 10 does not define a lexical abbreviation recognizer. It defines how
+an abbreviation is represented after the surrounding text or mathematical
+context has established that it is an abbreviation. The equation editor
+therefore uses the existing bounded English-letter indicator (Rule 10.3),
+letter atoms, mathematical punctuation indicators (Rule 10.4), scripts, and
+spaces (Rule 10.6). Rule 10.1's decision whether a sequence is a word,
+measurement abbreviation, or ordinary identifier remains a document/context
+policy and is not inferred from a cell stream. This preserves BANA's explicit
+"when in doubt" rule without adding a literary-word parser to the MathML
+writer.
