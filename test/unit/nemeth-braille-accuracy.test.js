@@ -279,6 +279,46 @@ test('new bounded Rule 8 and Rule 16 transitions match the independent Nemeth pr
   assert.equal(await nemeth(document.mathml), '⠜⠭⠨⠜⠬⠨⠻⠽⠻');
 });
 
+test('Rule 8.4 plural suffix stays at the expression level after a script', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠘', '⠁']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠎' });
+  if (result.status === 'pending') result = commitNemethLocalCode({ document: result.document, focus: result.focus, inputState: result.inputState });
+  if (result.status === 'choice') result = applyNemethChoice({ document: result.document, focus: result.focus, inputState: result.inputState, operationId: 'plural.s' });
+  assert.equal(result.status, 'applied', result.announcement);
+  assert.equal(await nemeth(result.document.mathml), '⠭⠘⠁⠐⠎');
+  const tree = parseMathML(result.document.mathml);
+  assert.equal(tree.children.at(-2).name, 'msup');
+  assert.equal(tree.children.at(-1).children[0].text, 's');
+});
+
+test('Rule 14.4.4 four-level drafts retain exact nested scope and independent Braille', async () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠘', '⠘', '⠘', '⠘']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const committed = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(committed.status, 'applied', committed.announcement);
+  assert.equal(await nemeth(committed.document.mathml), '⠭');
+  const tree = parseMathML(committed.document.mathml);
+  let node = tree.children[0];
+  for (let level = 0; level < 4; level += 1) {
+    assert.equal(node.name, 'msup');
+    assert.equal(node.children[1].attrs['data-omniya-hole'], 'true');
+    node = node.children[0];
+  }
+});
+
 test('guided numeric cells use the BANA lower-cell digits and match SRE output', async () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

@@ -6,12 +6,12 @@
   "status": "development",
   "inputPolicies": {
     "immediate": 239,
-    "atomicSequence": 291,
+    "atomicSequence": 307,
     "structuralFollowup": 58
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 241,
+    "shadowedAtomicCount": 273,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -522,6 +522,134 @@
         "immediateId": "indicator.english-letter"
       },
       {
+        "atomicId": "script.sup-sup-sup-sup",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sup-sup-sub",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sup-sub-sup",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sup-sub-sub",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sup-sup",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sup-sup",
+        "immediateId": "script.sup-sub"
+      },
+      {
+        "atomicId": "script.sup-sub-sup-sub",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sup-sub",
+        "immediateId": "script.sup-sub"
+      },
+      {
+        "atomicId": "script.sup-sub-sub-sup",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sub-sup",
+        "immediateId": "script.sup-sub"
+      },
+      {
+        "atomicId": "script.sup-sub-sub-sub",
+        "immediateId": "script.superscript"
+      },
+      {
+        "atomicId": "script.sup-sub-sub-sub",
+        "immediateId": "script.sup-sub"
+      },
+      {
+        "atomicId": "script.sub-sup-sup-sup",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sup-sup",
+        "immediateId": "script.sub-sup"
+      },
+      {
+        "atomicId": "script.sub-sup-sup-sup",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sup-sup-sub",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sup-sub",
+        "immediateId": "script.sub-sup"
+      },
+      {
+        "atomicId": "script.sub-sup-sup-sub",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sup-sub-sup",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sub-sup",
+        "immediateId": "script.sub-sup"
+      },
+      {
+        "atomicId": "script.sub-sup-sub-sup",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sup-sub-sub",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sub-sub",
+        "immediateId": "script.sub-sup"
+      },
+      {
+        "atomicId": "script.sub-sup-sub-sub",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sub-sup-sup",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sup-sup",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sub-sup-sub",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sup-sub",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sub-sub-sup",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sub-sup",
+        "immediateId": "indicator.english-letter"
+      },
+      {
+        "atomicId": "script.sub-sub-sub-sub",
+        "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sub-sub",
+        "immediateId": "indicator.english-letter"
+      },
+      {
         "atomicId": "modifier.arrow.barbed-both",
         "immediateId": "misc.angle"
       },
@@ -982,7 +1110,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 588,
+    "notation": 604,
     "contextual": 2
   },
   "operations": [
@@ -6782,6 +6910,518 @@
       "banaRefs": [
         "14.4.2",
         "14.4.3"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sup-sup-sup",
+      "commandLabel": "script.sup-sup-sup-sup",
+      "cells": [
+        "⠘",
+        "⠘",
+        "⠘",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~~~~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sup",
+          "sup",
+          "sup"
+        ],
+        "sourceNotation": "~~~~"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sup-sup-sub",
+      "commandLabel": "script.sup-sup-sup-sub",
+      "cells": [
+        "⠘",
+        "⠘",
+        "⠘",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~~~;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sup",
+          "sup",
+          "sub"
+        ],
+        "sourceNotation": "~~~;"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sup-sub-sup",
+      "commandLabel": "script.sup-sup-sub-sup",
+      "cells": [
+        "⠘",
+        "⠘",
+        "⠰",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~~;~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sup",
+          "sub",
+          "sup"
+        ],
+        "sourceNotation": "~~;~"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sup-sub-sub",
+      "commandLabel": "script.sup-sup-sub-sub",
+      "cells": [
+        "⠘",
+        "⠘",
+        "⠰",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~~;;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sup",
+          "sub",
+          "sub"
+        ],
+        "sourceNotation": "~~;;"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sub-sup-sup",
+      "commandLabel": "script.sup-sub-sup-sup",
+      "cells": [
+        "⠘",
+        "⠰",
+        "⠘",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~;~~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sub",
+          "sup",
+          "sup"
+        ],
+        "sourceNotation": "~;~~"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sub-sup-sub",
+      "commandLabel": "script.sup-sub-sup-sub",
+      "cells": [
+        "⠘",
+        "⠰",
+        "⠘",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~;~;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sub",
+          "sup",
+          "sub"
+        ],
+        "sourceNotation": "~;~;"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sub-sub-sup",
+      "commandLabel": "script.sup-sub-sub-sup",
+      "cells": [
+        "⠘",
+        "⠰",
+        "⠰",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~;;~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sub",
+          "sub",
+          "sup"
+        ],
+        "sourceNotation": "~;;~"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sup-sub-sub-sub",
+      "commandLabel": "script.sup-sub-sub-sub",
+      "cells": [
+        "⠘",
+        "⠰",
+        "⠰",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": "~;;;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sup",
+          "sub",
+          "sub",
+          "sub"
+        ],
+        "sourceNotation": "~;;;"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sup-sup-sup",
+      "commandLabel": "script.sub-sup-sup-sup",
+      "cells": [
+        "⠰",
+        "⠘",
+        "⠘",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";~~~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sup",
+          "sup",
+          "sup"
+        ],
+        "sourceNotation": ";~~~"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sup-sup-sub",
+      "commandLabel": "script.sub-sup-sup-sub",
+      "cells": [
+        "⠰",
+        "⠘",
+        "⠘",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";~~;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sup",
+          "sup",
+          "sub"
+        ],
+        "sourceNotation": ";~~;"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sup-sub-sup",
+      "commandLabel": "script.sub-sup-sub-sup",
+      "cells": [
+        "⠰",
+        "⠘",
+        "⠰",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";~;~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sup",
+          "sub",
+          "sup"
+        ],
+        "sourceNotation": ";~;~"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sup-sub-sub",
+      "commandLabel": "script.sub-sup-sub-sub",
+      "cells": [
+        "⠰",
+        "⠘",
+        "⠰",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";~;;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sup",
+          "sub",
+          "sub"
+        ],
+        "sourceNotation": ";~;;"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sub-sup-sup",
+      "commandLabel": "script.sub-sub-sup-sup",
+      "cells": [
+        "⠰",
+        "⠰",
+        "⠘",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";;~~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sub",
+          "sup",
+          "sup"
+        ],
+        "sourceNotation": ";;~~"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sub-sup-sub",
+      "commandLabel": "script.sub-sub-sup-sub",
+      "cells": [
+        "⠰",
+        "⠰",
+        "⠘",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";;~;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sub",
+          "sup",
+          "sub"
+        ],
+        "sourceNotation": ";;~;"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sub-sub-sup",
+      "commandLabel": "script.sub-sub-sub-sup",
+      "cells": [
+        "⠰",
+        "⠰",
+        "⠰",
+        "⠘"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";;;~",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sub",
+          "sub",
+          "sup"
+        ],
+        "sourceNotation": ";;;~"
+      },
+      "banaRefs": [
+        "14.4.4"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.sub-sub-sub-sub",
+      "commandLabel": "script.sub-sub-sub-sub",
+      "cells": [
+        "⠰",
+        "⠰",
+        "⠰",
+        "⠰"
+      ],
+      "action": "open-script-chain",
+      "commitPolicy": "atomic-sequence",
+      "sourceNotation": ";;;;",
+      "sourceKind": null,
+      "args": {
+        "directions": [
+          "sub",
+          "sub",
+          "sub",
+          "sub"
+        ],
+        "sourceNotation": ";;;;"
+      },
+      "banaRefs": [
+        "14.4.4"
       ],
       "errataRefs": [],
       "validContexts": [

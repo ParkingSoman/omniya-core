@@ -88,3 +88,9 @@ superscript direction indicator (raise the nearer head) and `;` means the
 subscript direction indicator (lower the nearer head). They are converted to
 the corresponding six-dot cells only while constructing one registry row;
 they are not accepted as a user passage encoding and do not add parser state.
+
+Rule 14.4.4 explicitly permits more than three level-indicator components.
+The registry now contains all 16 four-component direction combinations as
+declarative atomic rows. They call the same local script-chain operation as
+the two- and three-component rows; five-or-more-component combinations remain
+an explicit ledger item rather than being inferred by a general level parser.

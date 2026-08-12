@@ -618,6 +618,14 @@ test('Rule 19.2 horizontal grouping signs reuse the structural modifier registry
   }
 });
 
+test('Rule 14.4.4 four-component level indicators remain bounded registry rows', () => {
+  const rows = operationRegistry().filter((entry) => entry.banaRefs.includes('14.4.4'));
+  assert.equal(rows.length, 16);
+  assert.ok(rows.some((entry) => entry.args.sourceNotation === '~~~~'));
+  assert.ok(rows.some((entry) => entry.args.sourceNotation === ';;;;'));
+  assert.ok(rows.every((entry) => entry.action === 'open-script-chain' && entry.commitPolicy === 'atomic-sequence'));
+});
+
 
 test('BANA Rule 13 preserves horizontal versus diagonal fraction lines', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));

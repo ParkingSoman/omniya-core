@@ -603,10 +603,11 @@ function appendPossessive(tree, focus) {
 function appendPlural(tree, focus) {
   const current = currentNode(tree, focus);
   if (current.name === 'math' || isHole(current)) throw new RangeError('A plural ending requires a populated mathematical expression.');
-  const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+  const target = ancestor(tree, current, ['msup', 'msub', 'msubsup', 'mmultiscripts']) ?? current;
+  const parent = findMathParent(tree, target.attrs?.['data-omniya-id']);
   if (!parent || !['math', 'mrow'].includes(parent.name)) throw new RangeError('A plural ending requires a local expression row.');
   const suffix = atom('mi', 's', { 'data-omniya-nemeth-intent': 'plural-suffix' });
-  const index = parent.children.indexOf(current);
+  const index = parent.children.indexOf(target);
   if (index < 0) throw new RangeError('The plural target is unavailable.');
   parent.children.splice(index + 1, 0, suffix);
   return { tree, focus: focusNode(suffix) };
@@ -881,10 +882,10 @@ const sourceClose = (id, cells, banaRefs, elementName, sourceNotation) => close(
 const sourceOpen = (id, cells, banaRefs, elementName, slots, attrs, initialSlot, preferLonger, commitPolicy, sourceNotation) => open(
   id, cells, banaRefs, elementName, slots, attrs, initialSlot, preferLonger, commitPolicy, { sourceNotation }
 );
-const scriptChain = (id, sourceNotation, directions) => ({
+const scriptChain = (id, sourceNotation, directions, banaRefs = ['14.4.2', '14.4.3']) => ({
   id,
   cells: sourceCells(sourceNotation),
-  banaRefs: ['14.4.2', '14.4.3'],
+  banaRefs,
   action: 'open-script-chain',
   commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
   args: { directions, sourceNotation }
@@ -1107,6 +1108,17 @@ const MAPPINGS = [
   scriptChain('script.sub-sup-sub', ';~;', ['sub', 'sup', 'sub']),
   scriptChain('script.sub-sub-sup', ';;~', ['sub', 'sub', 'sup']),
   scriptChain('script.sub-sub-sub', ';;;', ['sub', 'sub', 'sub']),
+  // Rule 14.4.4 permits level indicators with more than three components.
+  // Four-component chains are registered explicitly as bounded local codes;
+  // the reusable operation composes the same MathML script slots without
+  // introducing an unrestricted level parser.
+  ...['sup', 'sub'].flatMap((first) => ['sup', 'sub'].flatMap((second) =>
+    ['sup', 'sub'].flatMap((third) => ['sup', 'sub'].map((fourth) => {
+      const directions = [first, second, third, fourth];
+      const sourceNotation = directions.map((direction) => direction === 'sup' ? '~' : ';').join('');
+      return scriptChain(`script.${directions.map((direction) => direction === 'sup' ? 'sup' : 'sub').join('-')}`, sourceNotation, directions, ['14.4.4']);
+    }))
+  )),
   sourceMove('script.sup-sub.move-sub', ['⠰'], ['14.4.2'], 'msubsup', 'subscript', ';'),
   sourceMove('script.sub-sup.move-sup', ['⠘'], ['14.4.2'], 'msubsup', 'superscript', '~'),
   mode('script.baseline', ['⠐'], ['14.3', '14.8'], 'baseline', true, '"'),

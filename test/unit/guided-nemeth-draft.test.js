@@ -179,6 +179,23 @@ test('Rule 8.4 plural and possessive endings append to the focused local express
   assert.equal(plural.status, 'applied', plural.announcement);
   tree = parseMathML(plural.document.mathml);
   assert.equal(tree.children.at(-1).children[0].text, 's');
+
+  document = createEmptyDraftMathDocument();
+  focus = document.focus;
+  inputState = { prefix: '', mode: null };
+  for (const value of ['⠭', '⠘', '⠁']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  plural = cell(document, focus, inputState, '⠎');
+  if (plural.status === 'pending') plural = commitNemethLocalCode({ document: plural.document, focus: plural.focus, inputState: plural.inputState });
+  if (plural.status === 'choice') plural = applyNemethChoice({ document: plural.document, focus: plural.focus, inputState: plural.inputState, operationId: 'plural.s' });
+  assert.equal(plural.status, 'applied', plural.announcement);
+  tree = parseMathML(plural.document.mathml);
+  assert.equal(tree.children.at(-1).name, 'mi');
+  assert.equal(tree.children.at(-1).children[0].text, 's');
+  assert.equal(tree.children.at(-2).name, 'msup');
 });
 
 test('Rule 16.3 nested radical order builds and closes a local inner radical', () => {
@@ -241,6 +258,33 @@ test('compound Rule 14 level indicators build one msubsup with navigable slots',
   const move = cell(document, focus, inputState, '⠰');
   assert.equal(move.status, 'applied');
   assert.equal(parseMathML(move.document.mathml).children[0].attrs['data-omniya-id'], tree.children[0].attrs['data-omniya-id']);
+});
+
+test('Rule 14.4.4 four-level script chains compose through the same bounded operation', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠭']) {
+    const result = cell(document, focus, inputState, value);
+    assert.equal(result.status, 'applied');
+    ({ document, focus, inputState } = result);
+  }
+  for (const value of ['⠘', '⠘', '⠘', '⠘']) {
+    const result = cell(document, focus, inputState, value);
+    assert.equal(result.status, 'pending');
+    ({ document, focus, inputState } = result);
+  }
+  const committed = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(committed.status, 'applied', committed.announcement);
+  const tree = parseMathML(committed.document.mathml);
+  let depth = 0;
+  let node = tree.children[0];
+  while (node?.name === 'msup') {
+    depth += 1;
+    node = node.children[0];
+  }
+  assert.equal(depth, 4);
+  assert.equal(committed.focus.kind, 'node');
 });
 
 test('every registered Nemeth mapping is declarative and source-linked', () => {
