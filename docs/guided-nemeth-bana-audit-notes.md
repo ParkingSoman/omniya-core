@@ -188,3 +188,16 @@ an existential quantifier and a vertical bar so MathJax can navigate those
 children. This is a composition of declared child atoms, not an expression
 grammar. New BANA rows must reuse one of these operations or add a genuinely
 general tree operation, rather than adding a family-specific parser branch.
+
+## Rule 14.5 left-script audit
+
+BANA 14.5.1 permits a left superscript or subscript before the sign to which
+it applies, and 14.5.2 places a multipurpose indicator between an existing
+right script and a following left script. The guided writer represents this
+with MathML `mmultiscripts`, `mprescripts`, and `none` children. At an empty
+root, the author explicitly chooses the left-subscript meaning when dot 6 is
+shared with the English-letter indicator. The base is an owned empty slot;
+the later baseline indicator fills it, and a subsequent subscript or
+superscript operation fills the right-side pair. The operation is local and
+does not infer a passage operand. The official examples 14-25 and 14-26 are
+covered by structural tests and independent SRE Nemeth projection fixtures.

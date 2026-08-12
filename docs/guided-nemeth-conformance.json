@@ -5,13 +5,13 @@
   "scope": "nonspatial Rules 1–24 transition operations; Rule 25 and chemistry deferred",
   "status": "development",
   "inputPolicies": {
-    "immediate": 241,
+    "immediate": 242,
     "atomicSequence": 377,
     "structuralFollowup": 61
   },
   "registryDiagnostics": {
     "policyErrors": [],
-    "shadowedAtomicCount": 411,
+    "shadowedAtomicCount": 424,
     "shadowedAtomic": [
       {
         "atomicId": "german.a",
@@ -483,11 +483,19 @@
       },
       {
         "atomicId": "script.sub-sub",
+        "immediateId": "script.left-subscript"
+      },
+      {
+        "atomicId": "script.sub-sub",
         "immediateId": "indicator.english-letter"
       },
       {
         "atomicId": "script.sub-sup-sup",
         "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sup",
+        "immediateId": "script.left-subscript"
       },
       {
         "atomicId": "script.sub-sup-sup",
@@ -500,6 +508,10 @@
       {
         "atomicId": "script.sub-sup-sub",
         "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sub",
+        "immediateId": "script.left-subscript"
       },
       {
         "atomicId": "script.sub-sup-sub",
@@ -512,6 +524,10 @@
       {
         "atomicId": "script.sub-sub-sup",
         "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sup",
+        "immediateId": "script.left-subscript"
       },
       {
         "atomicId": "script.sub-sub-sup",
@@ -520,6 +536,10 @@
       {
         "atomicId": "script.sub-sub-sub",
         "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sub",
+        "immediateId": "script.left-subscript"
       },
       {
         "atomicId": "script.sub-sub-sub",
@@ -579,6 +599,10 @@
       },
       {
         "atomicId": "script.sub-sup-sup-sup",
+        "immediateId": "script.left-subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sup-sup",
         "immediateId": "script.sub-sup"
       },
       {
@@ -591,6 +615,10 @@
       },
       {
         "atomicId": "script.sub-sup-sup-sub",
+        "immediateId": "script.left-subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sup-sub",
         "immediateId": "script.sub-sup"
       },
       {
@@ -603,6 +631,10 @@
       },
       {
         "atomicId": "script.sub-sup-sub-sup",
+        "immediateId": "script.left-subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sub-sup",
         "immediateId": "script.sub-sup"
       },
       {
@@ -615,6 +647,10 @@
       },
       {
         "atomicId": "script.sub-sup-sub-sub",
+        "immediateId": "script.left-subscript"
+      },
+      {
+        "atomicId": "script.sub-sup-sub-sub",
         "immediateId": "script.sub-sup"
       },
       {
@@ -627,11 +663,19 @@
       },
       {
         "atomicId": "script.sub-sub-sup-sup",
+        "immediateId": "script.left-subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sup-sup",
         "immediateId": "indicator.english-letter"
       },
       {
         "atomicId": "script.sub-sub-sup-sub",
         "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sup-sub",
+        "immediateId": "script.left-subscript"
       },
       {
         "atomicId": "script.sub-sub-sup-sub",
@@ -640,6 +684,10 @@
       {
         "atomicId": "script.sub-sub-sub-sup",
         "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sub-sup",
+        "immediateId": "script.left-subscript"
       },
       {
         "atomicId": "script.sub-sub-sub-sup",
@@ -648,6 +696,10 @@
       {
         "atomicId": "script.sub-sub-sub-sub",
         "immediateId": "script.subscript"
+      },
+      {
+        "atomicId": "script.sub-sub-sub-sub",
+        "immediateId": "script.left-subscript"
       },
       {
         "atomicId": "script.sub-sub-sub-sub",
@@ -1662,7 +1714,7 @@
   },
   "sourceEvidence": {
     "missing": [],
-    "notation": 679,
+    "notation": 680,
     "contextual": 2
   },
   "operations": [
@@ -7272,6 +7324,31 @@
       },
       "banaRefs": [
         "14.8"
+      ],
+      "errataRefs": [],
+      "validContexts": [
+        "empty-root",
+        "row",
+        "structure-slot"
+      ]
+    },
+    {
+      "id": "script.left-subscript",
+      "commandLabel": "script.left-subscript",
+      "cells": [
+        "⠰"
+      ],
+      "action": "open-left-script",
+      "commitPolicy": "immediate",
+      "sourceNotation": ";",
+      "sourceKind": null,
+      "args": {
+        "direction": "sub",
+        "sourceNotation": ";",
+        "preferLonger": true
+      },
+      "banaRefs": [
+        "14.5.1"
       ],
       "errataRefs": [],
       "validContexts": [

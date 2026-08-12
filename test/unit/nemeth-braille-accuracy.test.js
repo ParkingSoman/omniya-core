@@ -639,6 +639,13 @@ test('MathCAT left-script fixtures remain accurate as canonical multiscripts', a
   for (const [mathml, expected] of fixtures) assert.equal(await nemeth(mathml), expected, mathml);
 });
 
+test('BANA Rule 14.5 left-subscript and left-plus-right script fixtures retain exact Braille', async () => {
+  const leftSubscript = '<math><mmultiscripts><mi>n</mi><none/><none/><mprescripts/><mi>x</mi><none/></mmultiscripts></math>';
+  const leftAndRightSubscript = '<math><mmultiscripts><mi>n</mi><mi>y</mi><none/><mprescripts/><mi>x</mi><none/></mmultiscripts></math>';
+  assert.equal(await nemeth(leftSubscript), '⠰⠭⠐⠝');
+  assert.equal(await nemeth(leftAndRightSubscript), '⠰⠭⠐⠝⠰⠽');
+});
+
 test('BANA Rule 14.7 and 14.12 guided script fixtures match the independent Braille projection', async () => {
   const contractedComma = await importLatex('x_{i,j}');
   assert.equal(await nemeth(contractedComma.mathml), '⠭⠰⠊⠠⠀⠚');

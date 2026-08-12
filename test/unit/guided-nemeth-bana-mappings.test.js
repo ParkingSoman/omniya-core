@@ -1089,6 +1089,9 @@ test('BANA Rule 10.3 English-letter abbreviation indicator is a one-letter mode'
   assert.equal(result.status, 'pending');
   ({ document, focus, inputState } = result);
   result = applyNemethCell({ document, focus, inputState, cell: '⠛' });
+  if (result.status === 'choice') {
+    result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'indicator.english-letter' });
+  }
   assert.equal(result.status, 'applied');
   assert.equal(parseMathML(result.document.mathml).children[0].children[0].text, 'g');
 });
@@ -1559,7 +1562,9 @@ test('BANA Rule 10 abbreviation behavior stays compositional and bounded', () =>
   // classify words or measurement names; that is surrounding-language policy.
   const document = createEmptyDraftMathDocument();
   let result = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠰' });
+  if (result.status === 'choice') result = applyNemethChoice({ document, focus: document.focus, inputState: result.inputState, operationId: 'indicator.english-letter' });
   result = applyNemethCell({ document, focus: document.focus, inputState: result.inputState, cell: '⠛' });
+  if (result.status === 'choice') result = applyNemethChoice({ document, focus: document.focus, inputState: result.inputState, operationId: 'indicator.english-letter' });
   assert.equal(result.status, 'applied');
   const tree = parseMathML(result.document.mathml);
   assert.equal(tree.children[0].children[0].text, 'g');
@@ -1573,7 +1578,7 @@ test('every accepted mapping has explicit BANA source evidence and action', () =
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-composite', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'open-structure', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial', 'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-composite', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'open-structure', 'open-left-script', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial', 'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
   }
 });
 
@@ -1666,6 +1671,29 @@ test('Rule 14 left-script cells use a local baseline promotion, not passage pars
   assert.equal(scripts.children[1].name, 'mprescripts');
   assert.equal(scripts.children[2].name, 'none');
   assert.equal(scripts.children[3].children[0].text, 'x');
+});
+
+test('BANA Rule 14.5 left-subscript construction composes with a later right subscript', () => {
+  const document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠰' });
+  result = applyNemethCell({ document, focus, inputState: result.inputState, cell: '⠭' });
+  assert.equal(result.status, 'choice');
+  result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: 'script.left-subscript' });
+  ({ focus, inputState } = result);
+  result = applyNemethCell({ document: result.document, focus, inputState, cell: '⠐' });
+  ({ focus, inputState } = result);
+  result = applyNemethCell({ document: result.document, focus, inputState, cell: '⠝' });
+  ({ focus, inputState } = result);
+  result = applyNemethCell({ document: result.document, focus, inputState, cell: '⠰' });
+  result = applyNemethCell({ document: result.document, focus: result.focus, inputState: result.inputState, cell: '⠽' });
+  const tree = parseMathML(result.document.mathml);
+  assert.equal(tree.children.length, 1);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'n');
+  assert.equal(tree.children[0].children[1].children[0].text, 'y');
+  assert.equal(tree.children[0].children[4].children[0].text, 'x');
 });
 
 test('Rules 14.4.2-14.4.3 compose every two- and three-level direction chain locally', () => {

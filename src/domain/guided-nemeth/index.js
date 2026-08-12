@@ -408,6 +408,74 @@ function promoteScriptToPrescript(tree, focus, direction) {
   return { tree, focus: focusNode(baseHole) };
 }
 
+// Rule 14.5 input is written in display order: the left script arrives before
+// its base.  At an empty replacement root, create the native MathML
+// multiscript shape with a base hole and one left-script hole.  Subsequent
+// local level-return and script operations fill those holes; no operand is
+// inferred from later passage text.
+function openLeftScript(tree, focus, direction) {
+  const current = currentNode(tree, focus);
+  const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
+  const wrapper = element('mmultiscripts', [], inheritedId ? { 'data-omniya-id': inheritedId } : {});
+  const base = hole(wrapper, 'base');
+  const postSub = element('none');
+  const postSup = element('none');
+  const marker = element('mprescripts');
+  const leftSub = direction === 'sub' ? hole(wrapper, 'left-subscript') : element('none');
+  const leftSup = direction === 'sup' ? hole(wrapper, 'left-superscript') : element('none');
+  wrapper.children.push(base, postSub, postSup, marker, leftSub, leftSup);
+  replaceCurrent(tree, focus, wrapper);
+  return { tree, focus: focusNode(direction === 'sub' ? leftSub : leftSup) };
+}
+
+// Rule 14.5.1/14.5.2 can add a right script after a left script has already
+// established an `mmultiscripts` base.  This is the same local structural
+// operation as opening an ordinary msub/msup, but it fills the first missing
+// post-script pair before the `mprescripts` marker.  It never searches for an
+// operand or interprets a surrounding passage.
+function openScriptSlot(tree, focus, elementName, role) {
+  const current = currentNode(tree, focus);
+  const multiscripts = ancestor(tree, current, ['mmultiscripts']);
+  if (multiscripts && multiscripts.children?.[0] === current) {
+    const markerIndex = multiscripts.children.findIndex((child) => child.name === 'mprescripts');
+    if (markerIndex < 0) throw new RangeError('The multiscript has no prescript boundary.');
+    const postRole = role === 'subscript' ? 'subscript' : 'superscript';
+    const existingPostCount = markerIndex - 1;
+    if (existingPostCount === 0) {
+      const postSub = role === 'subscript' ? hole(multiscripts, 'subscript') : element('none');
+      const postSup = role === 'superscript' ? hole(multiscripts, 'superscript') : element('none');
+      multiscripts.children.splice(markerIndex, 0, postSub, postSup);
+      return { tree, focus: focusNode(role === 'subscript' ? postSub : postSup) };
+    }
+    if (existingPostCount === 2) {
+      const slot = multiscripts.children[role === 'subscript' ? 1 : 2];
+      if (isHole(slot)) return { tree, focus: focusNode(slot) };
+      if (slot?.name === 'none') {
+        const replacement = hole(multiscripts, postRole);
+        multiscripts.children[role === 'subscript' ? 1 : 2] = replacement;
+        return { tree, focus: focusNode(replacement) };
+      }
+    }
+    throw new RangeError(`The multiscript ${postRole} slot is already occupied.`);
+  }
+  if (multiscripts && multiscripts.children?.[0] !== current) {
+    const markerIndex = multiscripts.children.findIndex((child) => child.name === 'mprescripts');
+    if (markerIndex < 0) throw new RangeError('The multiscript has no prescript boundary.');
+    const postRole = role === 'subscript' ? 'subscript' : 'superscript';
+    const postIndex = role === 'subscript' ? markerIndex + 1 : markerIndex + 2;
+    const slot = multiscripts.children[postIndex];
+    if (slot?.name === 'none' || isHole(slot)) {
+      const replacement = isHole(slot) ? slot : hole(multiscripts, postRole);
+      if (isHole(slot)) {
+        replacement.attrs['data-omniya-role'] = postRole;
+      }
+      multiscripts.children[postIndex] = replacement;
+      return { tree, focus: focusNode(replacement) };
+    }
+  }
+  return wrapCurrent(tree, focus, elementName, ['base', role], {}, role);
+}
+
 // BANA Rule 14 permits more than one script level in a bounded indicator
 // sequence.  MathML's multiscripts element is the native representation for
 // that composition: each encountered direction contributes one post-script
@@ -1213,6 +1281,11 @@ const MAPPINGS = [
   sourceClose('fraction.end.mixed', ['⠸', '⠼'], ['13.4'], 'mfrac', '_#'),
   sourceOpen('script.superscript', ['⠘'], ['14.3', '14.4'], 'msup', ['base', 'superscript'], {}, 'superscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '~'),
   sourceOpen('script.subscript', ['⠰'], ['14.8'], 'msub', ['base', 'subscript'], {}, 'subscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, ';'),
+  {
+    id: 'script.left-subscript', cells: ['⠰'], banaRefs: ['14.5.1'], action: 'open-left-script',
+    commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+    args: { direction: 'sub', sourceNotation: ';' }
+  },
   sourceOpen('script.sup-sub', ['⠘', '⠰'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'superscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '~;'),
   sourceOpen('script.sub-sup', ['⠰', '⠘'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'subscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, ';~'),
   // Rules 14.4.2–14.4.3 are represented as bounded local chains. Each row
@@ -2034,6 +2107,7 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'script.sub-sup.move-sup') return Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
   if (mapping.id === 'script.superscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
   if (mapping.id === 'script.subscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
+  if (mapping.id === 'script.left-subscript') return context.node.name === 'math' || isHole(context.node);
   if (mapping.id === 'cancellation.end') return Boolean(hasAncestor(context.tree, context.node, 'menclose'));
   if (mapping.id === 'script.baseline') return Boolean(hasAncestor(context.tree, context.node, 'msup') || hasAncestor(context.tree, context.node, 'msub') || hasAncestor(context.tree, context.node, 'msubsup') || hasAncestor(context.tree, context.node, 'mover') || hasAncestor(context.tree, context.node, 'munder') || hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.action === 'simultaneous-modifier') {
@@ -2130,8 +2204,9 @@ const TREE_OPERATIONS = Object.freeze({
     return { tree, focus: focusNode(target) };
   },
   'insert-composite': ({ tree, focus, args }) => insertComposite(tree, focus, args.parts, args.dataAttributes),
+  'open-left-script': ({ tree, focus, args }) => openLeftScript(tree, focus, args.direction),
   'insert-modifier': ({ tree, focus, inputState, args }) => insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope, args.dataAttributes ?? {}),
-  'open-structure': ({ tree, focus, args, inputState }) => {
+  'open-structure': ({ tree, focus, node, args, inputState }) => {
     const primeWrapped = ['msup', 'msub', 'msubsup'].includes(args.element)
       ? wrapScriptAfterPrime(tree, focus, args.element, args.slots, args.attrs, args.initialSlot)
       : null;
@@ -2139,6 +2214,10 @@ const TREE_OPERATIONS = Object.freeze({
     const attrs = radicalOrder && ['msqrt', 'mroot'].includes(args.element)
       ? { ...(args.attrs ?? {}), 'data-omniya-radical-order': radicalOrder }
       : args.attrs;
+    if (!primeWrapped && ['msup', 'msub'].includes(args.element) && !(node.name === 'math' || isHole(node))) {
+      const result = openScriptSlot(tree, focus, args.element, args.initialSlot);
+      return result;
+    }
     return primeWrapped ?? wrapCurrent(tree, focus, args.element, args.slots, attrs, args.initialSlot);
   },
   'open-function-limit': ({ tree, focus, args }) => openFunctionLimit(tree, focus, args.direction),
@@ -2174,6 +2253,10 @@ const TREE_OPERATIONS = Object.freeze({
   },
   'set-mode': ({ tree, focus, node, inputState, args, document }) => {
     if (args.mode === 'baseline') {
+      const multiscript = ancestor(tree, node, ['mmultiscripts']);
+      if (multiscript && multiscript.children?.[0]?.attrs?.['data-omniya-hole'] === 'true') {
+        return { tree, focus: focusNode(multiscript.children[0]) };
+      }
       const script = ancestor(tree, node, ['msup', 'msub']);
       const promoted = promoteScriptToPrescript(tree, focus, script?.name === 'msub' ? 'sub' : 'sup');
       if (promoted) return promoted;
@@ -2640,6 +2723,14 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // the latter remains available at an empty/boundary focus.
   if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized) &&
     context.node.name !== 'math' && !isHole(context.node)) {
+    const multiscript = ancestor(context.tree, context.node, ['mmultiscripts']);
+    if (multiscript && multiscript.children?.[0] === context.node) {
+      const script = MAPPINGS.find((candidate) => candidate.id === 'script.subscript');
+      const opened = applyMapping(document, focus, { ...state, prefix: '' }, script);
+      if (opened.status !== 'rejected') {
+        return applyNemethCell({ document: opened.document, focus: opened.focus, inputState: opened.inputState, cell: normalized });
+      }
+    }
     const script = MAPPINGS.find((candidate) => candidate.id === 'script.subscript');
     const opened = applyMapping(document, focus, { ...state, prefix: '' }, script);
     if (opened.status !== 'rejected') {
@@ -2659,15 +2750,25 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
   }
   // At an empty replacement root, dot 6 followed by a letter is the BANA
-  // English-letter indicator (Rule 6.3/10.3), not a script with a missing
-  // base.  Resolve that boundary meaning before the shared-prefix matcher.
+  // English-letter indicator (Rule 6.3/10.3), but Rule 14.5 also permits the
+  // same local prefix to begin a left-subscript construction.  Keep both
+  // standards-defined meanings available as an explicit local choice rather
+  // than silently selecting the literary/English-letter interpretation. The
+  // chosen row then consumes only this one prefix and reprocesses the suffix
+  // cell through the ordinary tree operation.
   if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized) &&
     (context.node.name === 'math' || isHole(context.node))) {
-    const indicator = applyMapping(document, focus, { ...state, prefix: '' },
-      MAPPINGS.find((candidate) => candidate.id === 'indicator.english-letter'));
-    if (indicator.status === 'rejected') return indicator;
-    return applyNemethCell({ document: indicator.document, focus: indicator.focus,
-      inputState: indicator.inputState, cell: normalized });
+    return {
+      status: 'choice',
+      choices: [
+        { operationId: 'indicator.english-letter', label: 'English-letter indicator', banaRefs: ['6.3', '10.3'] },
+        { operationId: 'script.left-subscript', label: 'Begin left-subscript construction', banaRefs: ['14.5.1'] }
+      ],
+      document,
+      focus,
+      inputState: { ...state, prefix: `${state.prefix}${normalized}` },
+      announcement: 'This local Nemeth prefix can begin an English-letter indicator or a left-subscript construction. Choose its meaning.'
+    };
   }
   // A baseline return is a structural follow-up when the current focus is a
   // script slot. It is deliberately resolved only here, after the complete
