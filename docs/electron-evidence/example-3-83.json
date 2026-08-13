@@ -1,5 +1,12 @@
 {
   "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-13T23:38:16.410Z",
+  "filter": {
+    "rule": "3",
+    "example": "3-83"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-ionYud",
   "cases": [
     {
       "id": "electron:bana-2022:example-3-83",
