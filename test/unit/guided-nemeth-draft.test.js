@@ -353,6 +353,22 @@ test('BANA signed numeric construction accepts a local digit after plus', () => 
   assert.match(document.mathml, />\+<\/mo>[\s\S]*>3<\/mn>/);
 });
 
+test('BANA signed numeric indicator intent survives explicit number sign before a digit', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠤', '⠼', '⠒']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.deepEqual(tree.children.map((node) => [node.name, node.children[0]?.text]), [
+    ['mo', '−'], ['mn', '3']
+  ]);
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-intent'], 'signed-numeric-indicator');
+});
+
 test('Rule 8.4 plural and possessive endings append to the focused local expression', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

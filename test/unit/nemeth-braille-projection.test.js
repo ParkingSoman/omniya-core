@@ -124,6 +124,17 @@ test('signed numeric source intent restores the BANA number indicator', () => {
   assert.equal(applyNemethSourceIntentToBraille('⠤⠒⠷', sourceMath), '⠤⠼⠒⠷');
 });
 
+test('signed numeric intent stays local inside the Rule 3-16 subtraction shape', () => {
+  const sourceMath = new DOMParser().parseFromString(
+    '<math><mspace data-omniya-nemeth-intent="explicit-space"/><mrow><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="signed-numeric-indicator">3</mn><mo data-omniya-nemeth-cells="⠷">(</mo></mrow></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠀⠤⠒⠷', sourceMath),
+    '⠀⠤⠼⠒⠷'
+  );
+});
+
 
 test('decimal-return omission long dash restores BANA punctuation and nonnumeric cells', () => {
   // Keep this test DOM-free in Node by using the smallest querySelectorAll

@@ -2677,10 +2677,10 @@ const TREE_OPERATIONS = Object.freeze({
     }
     const inserted = atom('mn', args.value, {
       ...(numericVariant ? { mathvariant: numericVariant } : {}),
-      ...(inputState.mode === 'signed-numeric' ? { 'data-omniya-nemeth-intent': 'signed-numeric-indicator' } : {}),
       ...(args.value === '0' && node.attrs?.['data-omniya-nemeth-intent'] === 'hebrew-letter'
         ? { 'data-omniya-nemeth-intent': 'hebrew-subscript-zero' } : {}),
-      ...(args.dataAttributes ?? {})
+      ...(args.dataAttributes ?? {}),
+      ...(['signed-numeric', 'signed-numeric-indicator'].includes(inputState.mode) ? { 'data-omniya-nemeth-intent': 'signed-numeric-indicator' } : {})
     });
     const target = (node.name === 'math' && node.children.length === 0) || isHole(node)
       ? replaceCurrent(tree, focus, inserted)
@@ -3623,7 +3623,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // numeric indicator for the following digit. Resolve it before the shared
   // choice table can treat the same cell as a fraction terminator.
   if (state.mode === 'signed-numeric' && !state.prefix && normalized === '⠼') {
-    return applyMapping(document, focus, state, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
+    const indicator = applyMapping(document, focus, state, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
+    // Keep the signed-number phase through the indicator. The next digit
+    // owns the explicit source intent that distinguishes `−#3` from an
+    // ordinary isolated number; collapsing to generic numeric mode here
+    // loses that bounded provenance before insertion.
+    if (indicator.status === 'pending') {
+      return { ...indicator, inputState: { ...indicator.inputState, mode: 'signed-numeric-indicator' } };
+    }
+    return indicator;
   }
   // A lower-cell numeric run in a fraction numerator ends with the ordinary
   // fraction terminator. Resolve that local structural follow-up before the
@@ -3930,6 +3938,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode?.startsWith?.('numeric') && state.prefix === '⠸' && normalized === '⠲') {
     const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.period');
     if (punctuation) return applyMapping(document, focus, { ...state, prefix: '', mode: null }, punctuation);
+  }
+  if (state.mode === 'signed-numeric-indicator' && !state.prefix) {
+    if (DIGITS.has(normalized)) {
+      return applyMapping(document, focus, { ...state, mode: 'signed-numeric-indicator' }, digitMapping(normalized));
+    }
+    if (normalized === '⠨') return applyMapping(document, focus, { ...state, mode: 'numeric' }, numericPunctuationMapping(normalized, '.', '3.2.3'));
   }
   if (state.mode === 'signed-numeric' && !state.prefix) {
     if (DIGITS.has(normalized)) {
