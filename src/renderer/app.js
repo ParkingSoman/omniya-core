@@ -693,8 +693,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     // duplicate scripts/fractions while making a real Electron workflow look
     // like a parser bug.
     const visible = editor.value;
-    const pending = replacementSession.nemethState.prefix ?? '';
-    const cells = [...(pending && visible.startsWith(pending) ? visible.slice(pending.length) : visible)];
+    const cells = [...visible];
     editor.value = '';
     inputProcessing = inputProcessing.then(async () => {
       for (const cell of cells) await consumeCell(cell);
