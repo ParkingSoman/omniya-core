@@ -135,6 +135,17 @@ test('signed numeric intent stays local inside the Rule 3-16 subtraction shape',
   );
 });
 
+test('nested fraction denominator numerals do not expose SRE baseline return', () => {
+  const sourceMath = new DOMParser().parseFromString(
+    '<math><mfrac><mrow><mi>r</mi><msup><mn data-omniya-nemeth-intent="numeric-start">1</mn><mn data-omniya-nemeth-intent="numeric-start">2</mn></msup></mrow><mrow><mi>n</mi><mn data-omniya-nemeth-intent="numeric-start">1</mn></mrow></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠷⠹⠗⠼⠂⠘⠼⠆⠐⠌⠝⠐⠼⠂⠼⠾', sourceMath),
+    '⠷⠹⠗⠼⠂⠘⠼⠆⠐⠌⠝⠼⠂⠼⠾'
+  );
+});
+
 
 test('decimal-return omission long dash restores BANA punctuation and nonnumeric cells', () => {
   // Keep this test DOM-free in Node by using the smallest querySelectorAll

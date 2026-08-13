@@ -369,6 +369,31 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const pattern = new RegExp(`(?<!⠼)${cells}`);
       if (pattern.test(braille)) braille = braille.replace(pattern, `⠼${cells}`);
     }
+    // MathJax may expose a baseline-return cell before a numeric atom in a
+    // fraction denominator. The authored denominator is already at baseline;
+    // remove only that bounded presentation artifact for source-marked nodes.
+    const fractionDenominatorNumerals = [...numericStarts].filter((node) => {
+      let parent = node.parentElement ?? node.parentNode;
+      while (parent && parent.localName !== 'mfrac') parent = parent.parentElement ?? parent.parentNode;
+      const denominator = parent?.children?.[1];
+      if (!denominator) return false;
+      const descendants = denominator.querySelectorAll?.('*') ?? [];
+      return [...descendants].includes(node) || denominator === node;
+    });
+    const denominatorIntentCount = sourceMath.querySelectorAll?.('mfrac > *:nth-child(2) [data-omniya-nemeth-intent="numeric-start"]')?.length ?? 0;
+    for (const node of fractionDenominatorNumerals) {
+      const value = String(node.textContent ?? '').trim();
+      const digit = [...value].map((d) => digits.get(d) ?? '').join('');
+      if (digit) {
+        braille = braille.replace(`⠐⠼${digit}`, `⠼${digit}`);
+        braille = braille.replace(`⠐${digit}`, `${digit}`);
+      }
+    }
+    let remainingDenominatorReturns = Math.max(denominatorIntentCount, fractionDenominatorNumerals.length);
+    while (remainingDenominatorReturns-- > 0) braille = braille.replace(/⠐(?=⠼?[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/,'');
+    if (sourceMath.querySelector?.('mfrac')) {
+      braille = braille.replace(/(⠌[^⠾]*?)⠐(?=⠼[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1');
+    }
   }
   if (numericStarts.length && sourceMath.querySelector('mover')) {
     braille = braille.replace(/^⠐(?=⠼)/, '');
