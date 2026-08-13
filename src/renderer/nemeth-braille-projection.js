@@ -312,6 +312,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // passage. MathJax may expose an isolated-number sign after the script
   // indicator; remove it only for the source-marked exponent.
   if (lowerCellNumeric.length) {
+    if (sourceMath.querySelector?.('[data-omniya-nemeth-cells="⠨⠅"]') && sourceMath.querySelector?.('[data-omniya-nemeth-intent="lower-cell-numeric"]')) braille = braille.replace(/(⠨⠅⠀)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/, '$1⠼');
     const scriptedLower = [...lowerCellNumeric].filter((node) =>
       node.closest?.('msup, msub, msubsup, mmultiscripts'));
     for (const node of scriptedLower) {
