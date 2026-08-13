@@ -855,6 +855,25 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   const explicitCellNodes = [...sourceMath.querySelectorAll('[data-omniya-nemeth-cells]')]
     .map((node) => String(node.getAttribute?.('data-omniya-nemeth-cells') ?? ''))
     .filter(Boolean);
+  // SRE expresses a horizontal modifier's structural level but can omit the
+  // modifier glyph entirely (notably U+23DC/U+23DD horizontal brackets).
+  // The guided source node retains one exact bounded BANA construction, so
+  // restore that construction immediately after SRE's matching level marker.
+  // Braces take the same path when a future SRE version omits their glyph;
+  // an already projected local code is left unchanged.
+  const horizontalModifiers = [
+    ...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="horizontal-brace-over"]'),
+    ...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="horizontal-bracket-over"]')
+  ].map((node) => ({ level: '⠣', cells: node.getAttribute('data-omniya-nemeth-cells') })).concat(
+    [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="horizontal-brace-under"]'),
+      ...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="horizontal-bracket-under"]')]
+      .map((node) => ({ level: '⠩', cells: node.getAttribute('data-omniya-nemeth-cells') }))
+  ).filter((entry) => entry.cells);
+  for (const { level, cells } of horizontalModifiers) {
+    if (braille.includes(cells)) continue;
+    const marker = braille.lastIndexOf(level);
+    if (marker >= 0) braille = `${braille.slice(0, marker + level.length)}${cells}${braille.slice(marker + level.length)}`;
+  }
   // Directly-over/under horizontal grouping signs already carry their full
   // BANA local code on the modifier token. MathJax's semantic projection may
   // also emit the standalone over-level indicator before that token, yielding
