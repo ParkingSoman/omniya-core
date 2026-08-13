@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "caseId": "electron:bana-2022:example-17-42",
+  "sourceRows": [
+    "example-17-42",
+    "17.10.1"
+  ],
+  "inspectedPhases": [
+    "input",
+    "committed",
+    "focused",
+    "editing"
+  ],
+  "intendedConstruction": "Angle shape with an interior arrow, followed by the explicitly spaced capital identifier ABC.",
+  "visualConclusion": "The committed rendering visibly shows the modified angle followed by ABC; the MathJax focus box isolates only the shape atom, and the editing rendering replaces that exact atom while preserving ABC.",
+  "reviewer": "rule-17-implementation-worker",
+  "reviewedAt": "2026-08-13"
+}
