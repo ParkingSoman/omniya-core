@@ -43,7 +43,7 @@ const rows = inventory.rows.map((row) => {
     ...(contextPolicyIds.length ? { contextPolicyIds } : {}),
     ...(appendixRefs.length ? { appendixRefs } : {}),
     ...(isExample && example ? { exampleParentId: example.parentId } : {}),
-    ...(example ? { officialSource: { sourceLines: example.sourceLines, printAndBraille: example.printAndBraille, candidateBrailleLines: example.candidateBrailleLines } } : {}),
+    ...(example ? { officialSource: { sourceLines: example.sourceLines, printAndBraille: example.printAndBraille, candidateBrailleLines: example.candidateBrailleLines, expectedWholeBraille: example.expectedWholeBraille ?? null, sourceNotation: example.sourceNotation ?? null } } : {}),
     mappingIds,
     unitCaseIds: mappingIds.map((id) => `registry:${id}`),
     electronCreationCaseIds: matched.filter((entry) => entry.creation).map((entry) => entry.id),

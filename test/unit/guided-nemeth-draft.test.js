@@ -494,6 +494,20 @@ test('Rule 3 uses lower-cell Nemeth digits and keeps a numeric run local', () =>
   assert.equal(inputState.mode, 'numeric');
 });
 
+test('Rule 3.1.1 UEB numerals begin a bounded local run after a currency symbol', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠈', '⠎', '⠂', '⠠', '⠒', '⠶', '⠦', '⠨', '⠴', '⠶']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', `${value}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.map((node) => node.children?.[0]?.text).join(''), '$1,378.07');
+  assert.equal(inputState.mode, 'ueb-numeric');
+});
+
 test('the shared baseline and multipurpose cell is selected by valid local context', () => {
   const document = createEmptyDraftMathDocument();
   const rootResult = cell(document, document.focus, { prefix: '', mode: null }, '⠐');

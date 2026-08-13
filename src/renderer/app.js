@@ -9,6 +9,7 @@ import {
 } from '../domain/model.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { createSixKeyInput } from './braille-input.js';
+import { applyNemethSourceIntentToBraille } from './nemeth-braille-projection.js';
 import { createEmptyDraftMathDocument } from '../domain/guided-nemeth/index.js';
 import {
   applyNemethCell,
@@ -157,6 +158,12 @@ async function renderEquation(container, item, version) {
     container.replaceChildren(source);
     await globalThis.MathJax.typesetPromise([container]);
     stampCanonicalIds(container);
+    const speech = container.querySelector('mjx-speech[aria-braillelabel]');
+    const sourceMath = container.querySelector('mjx-assistive-mml math');
+    if (speech && sourceMath) {
+      const braille = speech.getAttribute('aria-braillelabel');
+      speech.setAttribute('aria-braillelabel', applyNemethSourceIntentToBraille(braille, sourceMath));
+    }
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
     if (item.math?.focus && activeNapkin()?.selectedItemId === item.id) {

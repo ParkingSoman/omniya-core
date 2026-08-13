@@ -136,6 +136,14 @@ function sourceCells(notation) {
   });
 }
 
+// Test and conformance tooling may translate one printed BANA local code into
+// the exact Unicode cells fed to the transition engine. This is deliberately
+// a character/code-table conversion only. It does not tokenize an expression,
+// infer operands, or maintain a passage parser state.
+export function sourceNotationToCells(notation) {
+  return sourceCells(notation);
+}
+
 function id() { return `omniya-${globalThis.crypto.randomUUID()}`; }
 function element(name, children = [], attrs = {}) { return { name, attrs: { ...attrs, 'data-omniya-id': attrs['data-omniya-id'] ?? id() }, children }; }
 function text(value) { return { text: value }; }
@@ -286,6 +294,36 @@ function insertNumeric(tree, focus, value, { replace = false, mathvariant = null
     return { tree, focus: focusNode(current) };
   }
   return insertToken(tree, focus, 'mn', value, { replace, dataAttributes });
+}
+
+// Rule 3.2.3's numeric decimal point is distinct from the ordinary decimal
+// point. MathML uses the same punctuation glyph for both, so retain the
+// bounded source distinction on the numeric atom for the Braille projection.
+function insertNumericDecimal(tree, focus, value, dataAttributes = {}) {
+  const current = currentNode(tree, focus);
+  if (current.name === 'mn' && current.children?.length === 1) {
+    current.children[0].text += value;
+    Object.assign(current.attrs, dataAttributes, { 'data-omniya-nemeth-intent': 'numeric-decimal' });
+    return { tree, focus: focusNode(current) };
+  }
+  return insertToken(tree, focus, 'mn', value, {
+    dataAttributes: { ...dataAttributes, 'data-omniya-nemeth-intent': 'numeric-decimal' }
+  });
+}
+
+function insertDecimalNonnumeric(tree, focus, value, dataAttributes = {}) {
+  const current = currentNode(tree, focus);
+  const parent = current.name === 'math' ? current : findMathParent(tree, current.attrs?.['data-omniya-id']);
+  if (!parent || !['math', 'mrow'].includes(parent.name)) return insertToken(tree, focus, 'mi', value, { dataAttributes });
+  const index = current.name === 'math' ? parent.children.length : parent.children.indexOf(current);
+  const last = parent.children[index];
+  if (last?.name === 'mi' && last.attrs?.['data-omniya-nemeth-intent'] === 'decimal-nonnumeric') {
+    last.children[0].text += value;
+    return { tree, focus: focusNode(last) };
+  }
+  const node = atom('mi', value, { ...dataAttributes, 'data-omniya-nemeth-intent': 'decimal-nonnumeric' });
+  if (current.name === 'math') parent.children.push(node); else parent.children.splice(index + 1, 0, node);
+  return { tree, focus: focusNode(node) };
 }
 
 function extendIntegral(tree, focus, values) {
@@ -2344,6 +2382,8 @@ const TREE_OPERATIONS = Object.freeze({
       : insertAfter(tree, focus, inserted);
     return { tree, focus: focusNode(target) };
   },
+  'insert-numeric-decimal': ({ tree, focus, args }) => insertNumericDecimal(tree, focus, args.value, args.dataAttributes ?? {}),
+  'insert-decimal-nonnumeric': ({ tree, focus, args }) => insertDecimalNonnumeric(tree, focus, args.value, args.dataAttributes ?? {}),
   'insert-composite': ({ tree, focus, args }) => insertComposite(tree, focus, args.parts, args.dataAttributes),
   'open-left-script': ({ tree, focus, args }) => openLeftScript(tree, focus, args.direction),
   'insert-modifier': ({ tree, focus, inputState, args }) => insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope, args.dataAttributes ?? {}),
@@ -2429,7 +2469,7 @@ function applyMapping(document, focus, inputState, mapping) {
     return { status: 'rejected', document, focus, inputState, announcement: error.message };
   }
   if (result.status === 'pending') return result;
-  const insertedAction = ['insert-token', 'insert-numeric', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token'].includes(mapping.action);
+  const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' ||
     (inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel');
   const nextModifierScope = collectingModifierScope && insertedAction
@@ -2448,11 +2488,11 @@ function applyMapping(document, focus, inputState, mapping) {
       : (inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-') ? 'modifier-complete' : 'modifier-parallel'))
     : mapping.action === 'simultaneous-modifier'
       ? `modifier-${args.direction}`
-    : ['insert-token', 'insert-numeric', 'wrap-script-token'].includes(mapping.action) && inputState.mode?.startsWith?.('numeric')
+    : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && (inputState.mode?.startsWith?.('numeric') || inputState.mode === 'ueb-numeric') && !(args.name === 'mspace' || args.name === 'mo')
     ? inputState.mode
-    : ['insert-token', 'insert-numeric', 'wrap-script-token'].includes(mapping.action) && inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel'
+    : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel'
       ? inputState.mode
-      : ['insert-token', 'insert-numeric', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'multipurpose'
+    : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'multipurpose'
         ? 'multipurpose'
     : null;
   return {
@@ -2523,7 +2563,13 @@ function digitMapping(cell) {
 }
 
 function numericPunctuationMapping(cell, value, banaRef) {
-  return { id: `number.${banaRef === '3.2.3' ? 'decimal-point' : 'comma'}`, cells: [cell], banaRefs: [banaRef], action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value } };
+  return {
+    id: `number.${banaRef === '3.2.3' ? 'decimal-point' : 'comma'}`,
+    cells: [cell], banaRefs: [banaRef],
+    action: 'insert-numeric',
+    commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+    args: { value, ...(banaRef === '3.2.3' ? { dataAttributes: { 'data-omniya-nemeth-intent': 'numeric-decimal' } } : {}) }
+  };
 }
 
 function letterMapping(cell, inputState) {
@@ -2542,6 +2588,9 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
 
+  // A leading dot-4 decimal marker after a relation is a new numeric item.
+  // Resolve this before shared comparison prefixes such as ."k, because the
+  // preceding focused operator is the local context that disambiguates it.
   // Rule 13.8.2 has a finite three-dot prefix that overlaps the ordinary
   // punctuation/capital indicators. Resolve only the published fraction
   // opener here, before generic prefix choices, and leave all other meanings
@@ -2701,13 +2750,61 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       };
     }
   }
-  if (state.mode === 'decimal-nonnumeric' && !state.prefix) {
+  // Rule 3.1.1: a freestanding UEB numeral may follow a currency symbol
+  // without the Nemeth number indicator. This is a bounded local mode owned
+  // by the immediately preceding currency atom; it accepts only the next
+  // numeric run's cells and never becomes a passage buffer.
+  const currency = context.node.name === 'mo' && ['$', '£', '¢', '₣', '₦', '€', '₩', '¥'].includes(context.node.children?.[0]?.text);
+  if (state.mode === null && currency && DIGITS.has(normalized)) {
+    return applyMapping(document, focus, { ...state, mode: 'ueb-numeric' }, {
+      id: `ueb-number.${DIGITS.get(normalized)}`,
+      cells: [normalized], banaRefs: ['3.1.1'], action: 'insert-numeric',
+      commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value: DIGITS.get(normalized) }
+    });
+  }
+  if (state.mode === 'ueb-numeric' && !state.prefix) {
+    if (DIGITS.has(normalized)) {
+      return applyMapping(document, focus, state, {
+        id: `ueb-number.${DIGITS.get(normalized)}`, cells: [normalized], banaRefs: ['3.1.1'], action: 'insert-numeric',
+        commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value: DIGITS.get(normalized) }
+      });
+    }
+    if (normalized === '⠠') return applyMapping(document, focus, state, { id: 'ueb-number.comma', cells: [normalized], banaRefs: ['3.2.1'], action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value: ',' } });
+    if (normalized === '⠨') return applyMapping(document, focus, state, { id: 'ueb-number.decimal', cells: [normalized], banaRefs: ['3.2.1'], action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value: '.' } });
+  }
+  if ((state.mode === 'decimal-nonnumeric' || context.node.attrs?.['data-omniya-nemeth-intent'] === 'decimal-nonnumeric') && !state.prefix) {
     // The indicator applies to exactly the next local symbol.  Resolve a
     // plain letter here instead of allowing a longer abbreviated-function
     // prefix to hold it; the author can still enter that function explicitly
     // as its own bounded atomic sequence after the decimal context ends.
     if (LETTERS.has(normalized)) {
-      return applyMapping(document, focus, { ...state, mode: null }, letterMapping(normalized, { ...state, mode: null }));
+      const result = applyMapping(document, focus, { ...state, mode: null }, {
+        id: `decimal-nonnumeric.letter.${LETTERS.get(normalized)}`,
+        cells: [normalized], banaRefs: ['3.2.3', '24.1.g'], action: 'insert-decimal-nonnumeric',
+        commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value: LETTERS.get(normalized) }
+      });
+      return result.status === 'applied' ? { ...result, inputState: { ...result.inputState, mode: null } } : result;
+    }
+    if (DIGITS.has(normalized)) {
+      // Once dot 5 has declared the following symbol nonnumeric, a lower-cell
+      // digit is still a local token, not a continuation of the preceding
+      // numeric <mn>. Keep the mode for the next cell only and insert the
+      // digit as a normal number atom.
+      const result = applyMapping(document, focus, { ...state, mode: null }, {
+        id: `decimal-nonnumeric.${DIGITS.get(normalized)}`,
+        cells: [normalized],
+        banaRefs: ['3.2.3', '24.1.g'],
+        action: 'insert-decimal-nonnumeric',
+        commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+        args: { name: 'mn', value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'decimal-nonnumeric' } }
+      });
+      return result.status === 'applied' ? { ...result, inputState: { ...result.inputState, mode: null } } : result;
+    }
+    // BANA treats an omission as nonnumeric even when it stands for a
+    // missing number. Hand the first dash back to the ordinary bounded
+    // omission sequence, rather than allowing decimal context to consume it.
+    if (normalized === '⠤') {
+      return applyNemethCell({ document, focus, inputState: { ...state, mode: null }, cell: normalized });
     }
   }
   // BANA 24.1.f: a multipurpose indicator between adjacent comparison

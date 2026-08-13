@@ -28,8 +28,22 @@ for (let i = bodyStart; i >= 0 && i < (bodyEnd > 0 ? bodyEnd : lines.length); i 
 const extracted = headings.map((heading, index) => {
   const end = headings[index + 1]?.start ?? (bodyEnd > 0 ? bodyEnd : lines.length);
   const block = lines.slice(heading.start, end);
-  const brailleLines = block.filter((line) => /(?:_%|_\s*%|;?%|_?:)/.test(line) || /[⠁-⣿]{2,}/u.test(line));
+  const normalizedBlock = block.map((line) => line.replace(/·/g, ' '));
+  const brailleLines = normalizedBlock.filter((line) => /(?:_%|_\s*%|;?%|_?:)/.test(line) || /[⠁-⣿]{2,}/u.test(line));
+  const candidate = brailleLines
+    .map((line) => line.trim())
+    .filter((line) => !/^Example\b/i.test(line) && !/^the following circumstances:/i.test(line));
   const rule = heading.number.split('-')[0];
+  const payloads = [];
+  for (let lineIndex = 0; lineIndex < normalizedBlock.length; lineIndex += 1) {
+    if (!normalizedBlock[lineIndex].includes('_%')) continue;
+    let text = normalizedBlock[lineIndex].split('_%')[1] ?? '';
+    while (!text.includes('_:') && lineIndex + 1 < normalizedBlock.length) text += ` ${normalizedBlock[++lineIndex]}`;
+    text = text.split('_:')[0].replace(/\s+/g, ' ').trim();
+    if (text && !/^[-—]+$/.test(text)) payloads.push(text);
+  }
+  const sourceBraille = payloads[0] ?? null;
+  const sourceNotation = sourceBraille && !/[A-Z]/.test(sourceBraille) && !/[·•]/.test(sourceBraille) ? sourceBraille : null;
   return {
     id: `bana-2022:example-${heading.number}`,
     kind: 'example',
@@ -40,7 +54,9 @@ const extracted = headings.map((heading, index) => {
     pdfPage: pageFor[heading.start],
     sourceLines: [heading.start + 1, end],
     printAndBraille: block.join('\n').trim(),
-    candidateBrailleLines: brailleLines.map((line) => line.trim()),
+    candidateBrailleLines: candidate,
+    expectedWholeBraille: sourceBraille,
+    sourceNotation,
     inputPolicy: null,
     sourceRows: [heading.parent.replace(/^bana-2022:/, '')],
     creationEvents: [],

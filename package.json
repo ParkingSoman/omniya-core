@@ -13,6 +13,7 @@
     "test:nemeth-electron-links": "node scripts/verify-nemeth-electron-coverage.mjs",
     "bana:inventory": "node scripts/bana-source-inventory.mjs docs/bana-source-inventory.json",
     "bana:examples": "node scripts/bana-example-extract.mjs docs/bana-official-examples.json",
+    "bana:example-corpus": "npm run bana:examples && node scripts/bana-example-corpus-generate.mjs docs/bana-official-examples.json docs/bana-electron-official-corpus.json",
     "bana:enrich": "node scripts/bana-coverage-enrich.mjs docs/bana-source-inventory.json docs/bana-electron-corpus.json docs/bana-coverage.json",
     "bana:audit": "npm run bana:enrich && node scripts/bana-coverage-gate.mjs docs/bana-coverage.json",
     "bana:registry-coverage": "node scripts/bana-registry-coverage.mjs docs/bana-source-inventory.json",
