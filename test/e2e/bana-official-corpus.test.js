@@ -16,7 +16,7 @@ function selectedCases() {
 
 async function launch(existingDataDirectory = null) {
   const dataDirectory = existingDataDirectory ?? await mkdtemp(path.join(os.tmpdir(), 'omniya-bana-official-'));
-  const app = await electron.launch({ args: ['.'], cwd: projectRoot, env: { ...process.env, OMNIYA_TEST_USER_DATA_DIR: dataDirectory } });
+  const app = await electron.launch({ args: ['.'], cwd: projectRoot, env: { ...process.env, OMNIYA_TEST_USER_DATA_DIR: dataDirectory, OMNIYA_REPLACEMENT_TRACE: '1' } });
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
   await page.locator('#app-shell[aria-busy="false"]').waitFor();
@@ -40,6 +40,8 @@ async function createDraft(page) {
  * BANA_ELECTRON_SCREENSHOTS=1 (normally one rule shard at a time).
  */
 async function visualEvidence(page, article, entry, phase, dataDirectory) {
+  await article.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(100);
   const geometry = await article.evaluate((node) => {
     const container = node.querySelector('.item-content mjx-container');
     const source = node.querySelector('.item-content mjx-assistive-mml math');
@@ -51,12 +53,19 @@ async function visualEvidence(page, article, entry, phase, dataDirectory) {
       sourceElementChildren: source ? [...source.children].length : 0,
       visualSpaces,
       containerWidth: container?.getBoundingClientRect().width ?? 0,
-      containerHeight: container?.getBoundingClientRect().height ?? 0
+      containerHeight: container?.getBoundingClientRect().height ?? 0,
+      containerText: container?.textContent?.trim() ?? '',
+      containerInViewport: container ? (() => {
+        const rect = container.getBoundingClientRect();
+        return rect.bottom > 0 && rect.right > 0 && rect.top < innerHeight && rect.left < innerWidth;
+      })() : false
     };
   });
   assert.equal(geometry.mathJaxContainers, 1, `${entry.exampleNumber} rendered more than one MathJax equation container`);
   assert.equal(geometry.sourceMathRoots, 1, `${entry.exampleNumber} lost its single source MathML root`);
   assert.ok(geometry.containerWidth > 0 && geometry.containerHeight > 0, `${entry.exampleNumber} rendered blank math`);
+  assert.ok(geometry.containerText.length > 1, `${entry.exampleNumber} rendered no meaningful visible math`);
+  assert.equal(geometry.containerInViewport, true, `${entry.exampleNumber} committed math is outside the captured viewport`);
   for (const space of geometry.visualSpaces) {
     assert.ok(space.width < 1, `${entry.exampleNumber} source blank became a visible layout gap (${space.width}px)`);
   }
@@ -89,23 +98,34 @@ async function captureInteractionScreenshot(page, entry, phase, dataDirectory, c
   await mkdir(screenshotDirectory, { recursive: true });
   const safeId = entry.id.replace(/[^a-z0-9_-]+/gi, '_');
   const screenshotPath = path.join(screenshotDirectory, `${safeId}-${phase}.png`);
+  await page.locator('article.napkin-article').last().scrollIntoViewIfNeeded();
+  await page.waitForTimeout(100);
   await page.screenshot({ path: screenshotPath });
   return { phase, screenshotPath, claim };
 }
 
 async function feedLocalCode(page, input, cells, choiceOperationIds = {}, options = {}) {
+  if (process.env.BANA_ELECTRON_TRACE === '1') await page.evaluate(() => {
+    globalThis.__omniyaNemethTrace = (entry) => console.log('[nemeth-trace]', JSON.stringify(entry));
+  });
   const resolveChoices = async (nextCell = null) => {
     for (let attempt = 0; attempt < 6; attempt += 1) {
       const choices = page.locator('#replacement-choices .replacement-choice');
       if (!(await choices.count())) return;
       const prefix = (await input.inputValue()).trimEnd();
-      const requested = choiceOperationIds[prefix];
+      const requested = choiceOperationIds[`${prefix}${nextCell ?? ''}`]
+        ?? choiceOperationIds[prefix]
+        ?? Object.entries(choiceOperationIds).find(([localPrefix]) => prefix.endsWith(localPrefix))?.[1]
+        ?? (prefix.endsWith('⠐') && nextCell && ['⠤', '⠬', '⠀'].includes(nextCell) ? 'script.baseline' : null);
       const contextChoice = !requested && nextCell && [...'⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵'].includes(nextCell)
         ? page.locator('#replacement-choices .replacement-choice[data-operation-id="indicator.capital"]')
         : null;
+      const inferredReferenceAsterisk = !requested && prefix.includes('⠈⠼')
+        ? page.locator('#replacement-choices .replacement-choice[data-operation-id="reference.asterisk"]')
+        : null;
       const selected = requested
         ? page.locator(`#replacement-choices .replacement-choice[data-operation-id="${requested}"]`)
-        : contextChoice || choices.first();
+        : inferredReferenceAsterisk || contextChoice || choices.first();
       const selectedCount = await selected.count();
       if (requested && !selectedCount) {
         const available = await choices.evaluateAll((nodes) => nodes.map((node) => ({ id: node.dataset.operationId, text: node.textContent })));
@@ -125,9 +145,8 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
       `bounded local choice did not resolve after six explicit selections; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
   };
   for (const [cellIndex, cell] of cells.entries()) {
-    // The textarea is a one-cell native proxy. Pending bounded prefixes live
-    // in NemethState and must never be concatenated into the next fill.
-    await input.fill(cell);
+    const existingPrefix = await input.inputValue();
+    await input.fill(`${existingPrefix}${cell}`);
     if (cellIndex === cells.length - 1 && options.captureInputEvidence) {
       await options.captureInputEvidence();
     }
@@ -214,6 +233,20 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
   await page.keyboard.press('ArrowDown');
   await page.waitForTimeout(60);
+  let selectedTarget = null;
+  for (let depth = 0; depth < 12; depth += 1) {
+    selectedTarget = await page.evaluate(() => {
+      const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+      const semanticId = current?.getAttribute('data-semantic-id');
+      const source = semanticId && [...document.querySelectorAll('[id^="omniya-source-"][data-semantic-id]')]
+        .find((node) => node.getAttribute('data-semantic-id') === semanticId);
+      return { semanticId, text: source?.textContent?.trim() ?? '', nodeName: source?.localName ?? '', childElements: source?.children?.length ?? -1 };
+    });
+    if (/^(?:mjx-)?m[ino]$/.test(selectedTarget.nodeName) && selectedTarget.text) break;
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(60);
+  }
+  assert.match(selectedTarget.nodeName, /^(?:mjx-)?m[ino]$/, `official edit must select an atomic canonical target: ${JSON.stringify(selectedTarget)}`);
   const focusedEvidence = options.captureFocusedEvidence
     ? await options.captureFocusedEvidence()
     : null;
@@ -225,6 +258,13 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   await feedLocalCode(page, input, cells);
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   await page.waitForTimeout(500);
+  if (options.originalElementCount) {
+    const editedElementCount = await article.locator('math *').count();
+    // Replacing an operator-like icon with an identifier can legitimately
+    // remove a small semantic wrapper, but must retain the surrounding tree.
+    assert.ok(editedElementCount >= options.originalElementCount - 3,
+      `focused edit discarded surrounding structure: before=${options.originalElementCount} after=${editedElementCount}`);
+  }
   // Submission restores the explorer to the replacement's inherited stable
   // Omniya ID. Do not re-enter Explorer here: restarting it would intentionally
   // reset focus to the equation root and would invalidate this assertion.
@@ -356,7 +396,7 @@ test('official BANA examples execute through the real Nemeth replacement rendere
             entry,
             'input',
             dataDirectory,
-            'The final Nemeth cell is visible in the bounded replacement control before the replacement is submitted; the original equation is still unchanged.'
+            'The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed.'
           );
         }
       });
@@ -390,7 +430,9 @@ test('official BANA examples execute through the real Nemeth replacement rendere
       // identifier so undo/redo proves a real structural transaction rather
       // than accidentally exercising a no-op replacement.
       const replacementCells = actual.startsWith('⠽') ? ['⠵'] : ['⠽'];
+      const originalElementCount = await created.article.locator('math *').count();
       const edited = await replaceFocusedEquationWithNemeth(page, replacementCells, {
+        originalElementCount,
         captureFocusedEvidence: async () => captureInteractionScreenshot(
           page,
           entry,

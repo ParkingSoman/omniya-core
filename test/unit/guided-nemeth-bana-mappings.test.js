@@ -943,6 +943,92 @@ test('BANA Rule 9.2 general reference indicator consumes exactly one local atom'
   assert.equal(inputState.mode, null);
 });
 
+test('BANA Rule 9.2 accepts the bounded English-letter indicator before a reference letter', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠈', '⠻', '⠰', '⠙']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.at(-1)?.children?.[0]?.text, 'd');
+  assert.equal(inputState.mode, null);
+});
+
+test('BANA Rule 9.3.2 accepts a numeral immediately after an authored comma focus', () => {
+  const commaId = 'rule9-comma-focus';
+  const document = {
+    mathml: `<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow data-omniya-id="rule9-row"><mo data-omniya-id="${commaId}" data-omniya-nemeth-intent="punctuation-comma">,</mo></mrow></math>`
+  };
+  const result = applyNemethCell({
+    document,
+    focus: { kind: 'node', nodeId: commaId },
+    inputState: { prefix: '', mode: null },
+    cell: '⠆'
+  });
+  assert.notEqual(result.status, 'rejected', result.announcement);
+});
+
+test('BANA Rule 9.1 exposes the reference star separately from the shape family', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const entry = registry.get('reference.star');
+  assert.ok(entry);
+  assert.deepEqual(entry.cells, ['⠫', '⠎']);
+  assert.equal(entry.args?.sourceNotation, '$s');
+  assert.ok(entry.banaRefs.includes('9.1'));
+});
+
+test('BANA Rule 9.4 exposes the pencil as one transcriber-defined icon', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  const entry = registry.get('reference.icon.pencil');
+  assert.ok(entry);
+  assert.deepEqual(entry.cells, ['⠈', '⠫', '⠏']);
+  assert.equal(entry.args?.sourceNotation, '`$p');
+  assert.ok(entry.banaRefs.includes('9.4'));
+  assert.deepEqual(registry.get('reference.icon.pencil-capital')?.cells, ['⠈', '⠫', '⠠', '⠏']);
+  assert.equal(registry.get('shape.perpendicular')?.banaRefs.includes('9.4'), false);
+});
+
+test('BANA Rule 9.4 blank after a numeric superscript returns to the surrounding row', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠘', '⠆', '⠀', '⠽']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.at(-1)?.children?.[0]?.text, 'y');
+});
+
+test('BANA Rule 9.4 baseline indicator before plus leaves a numeric superscript', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠘', '⠆', '⠐', '⠬', '⠢']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.some((node) => node.name === 'mo' && node.children?.[0]?.text === '+'), true);
+});
+
+test('BANA Rule 9.4 retains repeated one cells inside the numeral 112', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠂', '⠂', '⠆']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(parseMathML(document.mathml).children.at(-1)?.children?.[0]?.text, '112');
+});
+
 test('BANA Rule 17 structural and interior shape codes use the published cells', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   const fixtures = [

@@ -659,9 +659,6 @@
       ],
       "executable": true,
       "conversionError": null,
-      "localCommitBefore": [
-        19
-      ],
       "creation": false,
       "editing": false,
       "navigation": false,
@@ -14410,6 +14407,7 @@
       "printedPage": null,
       "pdfPage": 129,
       "sourceNotation": "`s4,265 `};d",
+      "choiceOperationIds": { "⠈": "reference.general" },
       "cells": [
         "⠈",
         "⠎",
@@ -14451,6 +14449,7 @@
       "printedPage": null,
       "pdfPage": 129,
       "sourceNotation": "#1.4709`*10~8 km4 `]#1",
+      "choiceOperationIds": { "⠈": "reference.general" },
       "cells": [
         "⠼",
         "⠂",
@@ -14539,6 +14538,7 @@
       "printedPage": null,
       "pdfPage": 130,
       "sourceNotation": "#1_4 ---- `#: #2_4 ----",
+      "choiceOperationIds": { "⠈⠼": "reference.asterisk", "⠼⠂⠸⠲⠀⠤⠤⠤⠤⠀⠈⠼": "reference.asterisk" },
       "cells": [
         "⠼",
         "⠂",
@@ -14590,6 +14590,7 @@
       "printedPage": null,
       "pdfPage": 130,
       "sourceNotation": "#1_4 ---- #2 @#_4 ----",
+      "choiceOperationIds": { "⠈⠼": "reference.asterisk", "⠈⠼⠱": "reference.asterisk" },
       "cells": [
         "⠼",
         "⠂",
@@ -14639,6 +14640,7 @@
       "printedPage": null,
       "pdfPage": 130,
       "sourceNotation": "#1_4 ---- #2_4 `# ----",
+      "choiceOperationIds": { "⠈⠼": "reference.asterisk", "⠈⠼⠱": "reference.asterisk" },
       "cells": [
         "⠼",
         "⠂",
@@ -14688,6 +14690,7 @@
       "printedPage": null,
       "pdfPage": 131,
       "sourceNotation": "`$p #75_4 x~4\"-y~2 `$P #76_4 x~2\"+5y-112",
+      "choiceOperationIds": { "⠈⠫⠏": "reference.icon.pencil", "⠈⠫⠠": "reference.icon.pencil-capital" },
       "cells": [
         "⠈",
         "⠫",

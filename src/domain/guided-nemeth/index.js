@@ -1232,6 +1232,10 @@ const CONTEXT_POLICY_REFS = [
   ...['2.1'],
   ...['3.1.1', '3.2', '3.2.1', '3.2.2', '3.2.3', '3.3.1', '3.3.2', '3.3.3', '3.3.4', '3.3.5', '3.3.6', '3.3.7', '3.3.8', '3.3.9', '3.4', '3.4.1', '3.4.2', '3.4.3', '3.4.4', '3.5', '3.5.1', '3.5.2', '3.5.3', '3.5.4', '3.6', '3.6.1', '3.6.2', '3.6.3', '3.8', '3.9', '3.10', '3.11', '3.11.2', '3.11.3', '3.12'],
   ...['4.1', '4.2', '4.3', '4.4', '4.4.1', '4.4.2', '4.4.3', '4.4.4', '4.4.5', '4.4.6', '4.4.7', '4.4.8', '4.4.9', '4.4.10', '4.5', '4.5.1', '4.5.2', '4.5.3', '4.6', '4.6.1', '4.6.2', '4.6.3', '4.6.4', '4.6.5', '4.6.6', '4.6.7', '4.6.8', '4.6.8.c', '4.7', '4.7.1', '4.7.2', '4.8', '4.8.1', '4.8.2', '4.8.3', '4.8.4', '4.8.5', '4.8.6', '4.8.7', '4.8.8', '4.8.9', '4.8.10', '4.8.11']
+  // Rule 9.3 governs placement/spacing and footnote formatting in the
+  // surrounding document, not an equation-tree node. Keep those provisions
+  // explicit as context policy rather than inventing spacing dispatcher rows.
+  , ...['9.3', '9.3.1', '9.3.2', '9.3.3']
 ];
 const APPENDIX_POLICY_REFS = ['appendix-A', 'appendix-B', 'appendix-C'];
 
@@ -2210,6 +2214,11 @@ const MAPPINGS = [
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*', 'mo', { sourceNotation: '@#' }),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†', 'mo', { sourceNotation: '_]' }),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡', 'mo', { sourceNotation: '__]' }),
+  // Rule 9.1's reference star shares the UEB transcriber-defined shape code
+  // with the geometric shape family, but its source intent is reference use.
+  // Keep it as a distinct registry atom so exact local focus and audit
+  // coverage retain the rule's semantic distinction.
+  token('reference.star', ['⠫', '⠎'], ['9.1'], '☆', 'mo', { preferLonger: true, sourceNotation: '$s', dataAttributes: { 'data-omniya-nemeth-intent': 'reference-star' } }),
   mode('reference.general', ['⠈', '⠻'], ['9.2'], 'reference', true, '@]'),
   // October 2025 errata, Rule 9.1: no fixed checkmark symbol exists; the
   // documented transcriber-defined shape code is `.=$cm` (⠨⠿⠫⠉⠍ in the
@@ -2224,6 +2233,16 @@ const MAPPINGS = [
   token('shape.regular-hexagon', ['⠫', '⠖'], ['17.1'], '⬡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$6' }),
   token('shape.parallel', ['⠫', '⠇'], ['17.1'], '∥', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$l', dataAttributes: { 'data-omniya-nemeth-intent': 'parallel-shape' } }),
   token('shape.perpendicular', ['⠫', '⠏'], ['17.1'], '⟂', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$p', dataAttributes: { 'data-omniya-nemeth-intent': 'perpendicular-shape' } }),
+  token('reference.icon.pencil', ['⠈', '⠫', '⠏'], ['9.4'], '✎', 'mo', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    sourceNotation: '`$p',
+    dataAttributes: { 'data-omniya-nemeth-intent': 'transcriber-defined-pencil-icon' }
+  }),
+  token('reference.icon.pencil-capital', ['⠈', '⠫', '⠠', '⠏'], ['9.4'], '✎', 'mo', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    sourceNotation: '`$P',
+    dataAttributes: { 'data-omniya-nemeth-intent': 'transcriber-defined-pencil-icon-capital' }
+  }),
   token('shape.parallelogram', ['⠫', '⠛'], ['17.1'], '▱', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$g' }),
   token('shape.regular-pentagon', ['⠫', '⠢'], ['17.1'], '⬠', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$5' }),
   token('shape.star', ['⠫', '⠎'], ['17.1'], '☆', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$s' }),
@@ -2550,14 +2569,6 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.id.startsWith('fraction.end.')) {
     const kind = mapping.id.split('.').at(-1);
-    // A denominator may contain a new numeric item after an explicit blank
-    // (for example `.../cos #2x#`). At that bounded boundary the immediate
-    // number indicator wins; the final terminator is still handled by the
-    // numeric-mode close below once the lower-cell number is complete.
-    const denominatorBoundary = context.node.name === 'mrow' && context.node.children?.at(-1)?.name === 'mspace';
-    const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
-    const trailingBlank = context.node.name === 'mspace' && parent?.name === 'mrow' && parent.children?.at(-1) === context.node;
-    if (denominatorBoundary || trailingBlank) return false;
     return Boolean(fraction && fractionKind === kind && denominatorFocus &&
       (!mapping.id.includes('order3') || fraction.attrs?.['data-omniya-fraction-order'] === '3'));
   }
@@ -2602,12 +2613,7 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'modifier.terminate.simultaneous') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.action === 'close-structure' && mapping.args?.element === 'munderover') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.id === 'indicator.multipurpose') return true;
-  if (mapping.id === 'indicator.number' && fraction) {
-    if (!contains(context.tree, fraction.children[1], context.node)) return true;
-    const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
-    return context.node.name === 'mrow' && context.node.children?.at(-1)?.name === 'mspace' ||
-      context.node.name === 'mspace' && parent?.name === 'mrow' && parent.children?.at(-1) === context.node;
-  }
+  if (mapping.id === 'indicator.number' && fraction) return !contains(context.tree, fraction.children[1], context.node);
   if (mapping.action === 'insert-contracted-script-comma') {
     return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
       context.node.name !== 'math' && !isHole(context.node));
@@ -2690,10 +2696,10 @@ const TREE_OPERATIONS = Object.freeze({
     }
     const inserted = atom('mn', args.value, {
       ...(numericVariant ? { mathvariant: numericVariant } : {}),
+      ...(inputState.mode === 'signed-numeric' ? { 'data-omniya-nemeth-intent': 'signed-numeric-indicator' } : {}),
       ...(args.value === '0' && node.attrs?.['data-omniya-nemeth-intent'] === 'hebrew-letter'
         ? { 'data-omniya-nemeth-intent': 'hebrew-subscript-zero' } : {}),
-      ...(args.dataAttributes ?? {}),
-      ...(['signed-numeric', 'signed-numeric-indicator'].includes(inputState.mode) ? { 'data-omniya-nemeth-intent': 'signed-numeric-indicator' } : {})
+      ...(args.dataAttributes ?? {})
     });
     const target = (node.name === 'math' && node.children.length === 0) || isHole(node)
       ? replaceCurrent(tree, focus, inserted)
@@ -2867,7 +2873,7 @@ function applyMapping(document, focus, inputState, mapping) {
   // digit/decimal transition can consume the retained mode.
   const retainNumericAfterOperator = inputState.mode?.startsWith?.('numeric') &&
     mapping.action === 'insert-token' && args.name === 'mo' &&
-    ['+', '−', '-', '±'].includes(args.value);
+    ['+', '−', '-', '±', '×', '÷'].includes(args.value);
   const beginSignedNumeric = inputState.mode === null &&
     mapping.action === 'insert-token' && args.name === 'mo' &&
     ['+', '−', '-', '±'].includes(args.value) &&
@@ -3059,6 +3065,60 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     ['msup', 'msub', 'msubsup', 'mmultiscripts']));
   const inSimpleSubscript = Boolean(hasAncestor(context.tree, context.node, 'msub')) &&
     !Boolean(hasAncestor(context.tree, context.node, ['msubsup', 'mmultiscripts']));
+  // A mathematical blank terminates a completed numeric script. Move the
+  // same authored blank to the surrounding row; otherwise subsequent icons
+  // or problem labels become descendants of the exponent despite the Nemeth
+  // boundary. This is a local focus transition, not expression parsing.
+  if (!state.prefix && normalized === ' ' && state.mode?.startsWith?.('numeric') &&
+      hasAncestor(context.tree, context.node, ['msup', 'msub'])) {
+    const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+    const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
+    if (returned.status !== 'rejected') {
+      return applyNemethCell({ document: returned.document, focus: returned.focus,
+        inputState: { ...returned.inputState, mode: null }, cell: normalized });
+    }
+  }
+  if (!state.prefix && normalized === '⠱' && context.node.attrs?.['data-omniya-nemeth-cells'] === '⠈⠼') {
+    return applyMapping(document, focus, { ...state, mode: null }, {
+      id: 'reference.colon-after-asterisk', cells: ['⠱'], banaRefs: ['9.3.1', '9.3.2'],
+      action: 'insert-token', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: { name: 'mo', value: ':', dataAttributes: { 'data-omniya-nemeth-cells': '⠱' } }
+    });
+  }
+  const localPreviousComma = context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma' ||
+    context.node.attrs?.['data-omniya-nemeth-cells'] === '⠂' ||
+    context.node.children?.at?.(-1)?.attrs?.['data-omniya-nemeth-cells'] === '⠂' ||
+    context.node.children?.at?.(-1)?.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma';
+  if (!state.prefix && (context.node.attrs?.['data-omniya-nemeth-cells'] === '⠤⠤⠤⠤' || localPreviousComma) && DIGITS.has(normalized)) {
+    return applyMapping(document, focus, { ...state, mode: null }, {
+      id: `number.after-omission.${DIGITS.get(normalized)}`, cells: [normalized], banaRefs: ['9.3.2'],
+      action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'numeric-start' } }
+    });
+  }
+  // Rule 9.2 reference operands take precedence over the ordinary numeric
+  // matcher. In particular, @]⠰d and @]#1 must retain their local indicator
+  // cells instead of being reclassified as a generic number/letter.
+  if (state.mode === 'reference' && !state.prefix && normalized === '⠼') {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, mode: 'reference-number' },
+      announcement: 'Nemeth reference number indicator active.' };
+  }
+  if ((state.mode === 'reference' || state.mode === 'reference-number') && (!state.prefix || state.prefix === '⠰') &&
+      (LETTERS.has(normalized) || DIGITS.has(normalized))) {
+    const isLetter = LETTERS.has(normalized);
+    const value = isLetter ? LETTERS.get(normalized) : DIGITS.get(normalized);
+    const cells = `${state.mode === 'reference-number' ? '⠈⠻⠼' : '⠈⠻'}${state.prefix === '⠰' ? '⠰' : ''}${normalized}`;
+    return applyMapping(document, focus, { ...state, mode: null }, {
+      id: `reference.${isLetter ? 'letter' : 'number'}.${value}`,
+      cells: [normalized], banaRefs: ['9.2'],
+      action: isLetter ? 'insert-token' : 'insert-numeric',
+      commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: isLetter
+        ? { name: 'mi', value, dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': cells } }
+        : { value, dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': cells } }
+    });
+  }
   // Rule 14.8.8: dot 6 before a symbol that does not itself change level
   // preserves the current script level.  It is therefore a local lookahead
   // boundary, not another subscript opener.  Keep only this one-cell state;
@@ -3172,7 +3232,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // completed numeric suffix (for example `wed4,`). This is a local suffix
   // operation owned by that number, even though the numeric mode has already
   // cleared. It must not accept a comma after a decimal number.
-  if (!state.prefix && normalized === '⠂' && context.node.name === 'mn' &&
+  if (state.mode === null && !state.prefix && normalized === '⠂' && context.node.name === 'mn' &&
       !String(context.node.children?.[0]?.text ?? '').includes('.')) {
     return applyMapping(document, focus, { ...state, mode: null }, {
       id: 'punctuation.comma-after-number', cells: ['⠂'], banaRefs: ['19.1'],
@@ -3482,7 +3542,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // follow-up: @] is followed immediately by one letter or numeral. It does
   // not open a passage buffer or infer a footnote number; it inserts exactly
   // that next local atom and annotates the source role.
-  if (state.mode === 'reference' && !state.prefix) {
+  if (state.mode === 'reference' && (!state.prefix || state.prefix === '⠰')) {
     if (LETTERS.has(normalized)) {
       return applyMapping(document, focus, { ...state, mode: null }, {
         id: `reference.letter.${LETTERS.get(normalized)}`,
@@ -3490,7 +3550,10 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         banaRefs: ['9.2', '6.3'],
         action: 'insert-token',
         commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference' } }
+        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: {
+          'data-omniya-nemeth-intent': 'general-reference',
+          'data-omniya-nemeth-cells': `⠈⠻${state.prefix === '⠰' ? '⠰' : ''}${normalized}`
+        } }
       });
     }
     if (DIGITS.has(normalized)) {
@@ -3500,7 +3563,10 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         banaRefs: ['9.2', '3.1.2'],
         action: 'insert-numeric',
         commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-        args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference' } }
+        args: { value: DIGITS.get(normalized), dataAttributes: {
+          'data-omniya-nemeth-intent': 'general-reference',
+          'data-omniya-nemeth-cells': `⠈⠻${state.prefix === '⠰' ? '⠰' : ''}${normalized}`
+        } }
       });
     }
   }
@@ -3636,15 +3702,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // numeric indicator for the following digit. Resolve it before the shared
   // choice table can treat the same cell as a fraction terminator.
   if (state.mode === 'signed-numeric' && !state.prefix && normalized === '⠼') {
-    const indicator = applyMapping(document, focus, state, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
-    // Keep the signed-number phase through the indicator. The next digit
-    // owns the explicit source intent that distinguishes `−#3` from an
-    // ordinary isolated number; collapsing to generic numeric mode here
-    // loses that bounded provenance before insertion.
-    if (indicator.status === 'pending') {
-      return { ...indicator, inputState: { ...indicator.inputState, mode: 'signed-numeric-indicator' } };
-    }
-    return indicator;
+    return applyMapping(document, focus, state, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
   }
   // A lower-cell numeric run in a fraction numerator ends with the ordinary
   // fraction terminator. Resolve that local structural follow-up before the
@@ -3756,11 +3814,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     context.node.attrs?.['data-omniya-hole'] === 'true' &&
     ancestor(context.tree, context.node, 'mfrac')?.attrs?.['data-omniya-fraction-kind']) {
-    const digit = digitMapping(normalized);
-    if (hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
-      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
-    }
-    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digitMapping(normalized));
   }
   // BANA 6.4.5 permits a lower-cell numeral after a mathematical blank
   // inside a grouped expression without repeating the number indicator. This
@@ -3902,11 +3956,6 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
     if (DIGITS.has(normalized)) {
       const digit = digitMapping(normalized);
-      // Numeric mode already records the local number indicator (or a script
-      // level that permits a lower-cell digit). Preserve that bounded intent
-      // on every consumed digit so projection never synthesizes a duplicate
-      // number sign after a script opener.
-      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
       // A number sign remains active across a baseline operator, but BANA's
       // following one-cell number is lower-cell. Preserve that distinction in
       // the source intent so MathJax cannot reintroduce a second number sign.
@@ -3960,12 +4009,6 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode?.startsWith?.('numeric') && state.prefix === '⠸' && normalized === '⠲') {
     const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.period');
     if (punctuation) return applyMapping(document, focus, { ...state, prefix: '', mode: null }, punctuation);
-  }
-  if (state.mode === 'signed-numeric-indicator' && !state.prefix) {
-    if (DIGITS.has(normalized)) {
-      return applyMapping(document, focus, { ...state, mode: 'signed-numeric-indicator' }, digitMapping(normalized));
-    }
-    if (normalized === '⠨') return applyMapping(document, focus, { ...state, mode: 'numeric' }, numericPunctuationMapping(normalized, '.', '3.2.3'));
   }
   if (state.mode === 'signed-numeric' && !state.prefix) {
     if (DIGITS.has(normalized)) {

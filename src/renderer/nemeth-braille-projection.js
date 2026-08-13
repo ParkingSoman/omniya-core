@@ -369,31 +369,6 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const pattern = new RegExp(`(?<!⠼)${cells}`);
       if (pattern.test(braille)) braille = braille.replace(pattern, `⠼${cells}`);
     }
-    // MathJax may expose a baseline-return cell before a numeric atom in a
-    // fraction denominator. The authored denominator is already at baseline;
-    // remove only that bounded presentation artifact for source-marked nodes.
-    const fractionDenominatorNumerals = [...numericStarts].filter((node) => {
-      let parent = node.parentElement ?? node.parentNode;
-      while (parent && parent.localName !== 'mfrac') parent = parent.parentElement ?? parent.parentNode;
-      const denominator = parent?.children?.[1];
-      if (!denominator) return false;
-      const descendants = denominator.querySelectorAll?.('*') ?? [];
-      return [...descendants].includes(node) || denominator === node;
-    });
-    const denominatorIntentCount = sourceMath.querySelectorAll?.('mfrac > *:nth-child(2) [data-omniya-nemeth-intent="numeric-start"]')?.length ?? 0;
-    for (const node of fractionDenominatorNumerals) {
-      const value = String(node.textContent ?? '').trim();
-      const digit = [...value].map((d) => digits.get(d) ?? '').join('');
-      if (digit) {
-        braille = braille.replace(`⠐⠼${digit}`, `⠼${digit}`);
-        braille = braille.replace(`⠐${digit}`, `${digit}`);
-      }
-    }
-    let remainingDenominatorReturns = Math.max(denominatorIntentCount, fractionDenominatorNumerals.length);
-    while (remainingDenominatorReturns-- > 0) braille = braille.replace(/⠐(?=⠼?[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/,'');
-    if (sourceMath.querySelector?.('mfrac')) {
-      braille = braille.replace(/(⠌[^⠾]*?)⠐(?=⠼[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1');
-    }
   }
   if (numericStarts.length && sourceMath.querySelector('mover')) {
     braille = braille.replace(/^⠐(?=⠼)/, '');
@@ -880,25 +855,6 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   const explicitCellNodes = [...sourceMath.querySelectorAll('[data-omniya-nemeth-cells]')]
     .map((node) => String(node.getAttribute?.('data-omniya-nemeth-cells') ?? ''))
     .filter(Boolean);
-  // SRE expresses a horizontal modifier's structural level but can omit the
-  // modifier glyph entirely (notably U+23DC/U+23DD horizontal brackets).
-  // The guided source node retains one exact bounded BANA construction, so
-  // restore that construction immediately after SRE's matching level marker.
-  // Braces take the same path when a future SRE version omits their glyph;
-  // an already projected local code is left unchanged.
-  const horizontalModifiers = [
-    ...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="horizontal-brace-over"]'),
-    ...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="horizontal-bracket-over"]')
-  ].map((node) => ({ level: '⠣', cells: node.getAttribute('data-omniya-nemeth-cells') })).concat(
-    [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="horizontal-brace-under"]'),
-      ...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="horizontal-bracket-under"]')]
-      .map((node) => ({ level: '⠩', cells: node.getAttribute('data-omniya-nemeth-cells') }))
-  ).filter((entry) => entry.cells);
-  for (const { level, cells } of horizontalModifiers) {
-    if (braille.includes(cells)) continue;
-    const marker = braille.lastIndexOf(level);
-    if (marker >= 0) braille = `${braille.slice(0, marker + level.length)}${cells}${braille.slice(marker + level.length)}`;
-  }
   // Directly-over/under horizontal grouping signs already carry their full
   // BANA local code on the modifier token. MathJax's semantic projection may
   // also emit the standalone over-level indicator before that token, yielding
@@ -916,6 +872,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠩⠣(?=⠨⠾|⠈⠾)/, '⠩');
   }
   if (explicitCellNodes.length) {
+    if (explicitCellNodes.includes('⠱')) braille = braille.replace(/(⠈⠼)⠒/u, '$1⠱');
     const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const present = new Map();
     for (const sequence of explicitCellNodes) {
@@ -948,6 +905,25 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         if (letter) braille = braille.replace(new RegExp(`([⠁-⠵])⠰${escape(letter)}`, 'g'), `$1${letter}`);
         const boundary = new RegExp(`⠀${escape(letter)}`);
         if (boundary.test(braille)) {
+          braille = braille.replace(boundary, `⠀${sequence}`);
+          present.set(sequence, (present.get(sequence) ?? 0) + 1);
+          continue;
+        }
+      }
+      // Rule 9.2 general-reference letters/numerals are emitted by MathJax as
+      // the trailing atom only. The authored indicator is retained on that
+      // atom, so restore the bounded local sequence at the explicit-space
+      // boundary without parsing surrounding expression content.
+      if (sequence.startsWith('⠈⠻')) {
+        const finalCell = base.at(-1);
+        const numericTail = finalCell && /[⠂-⠴]/u.test(finalCell) ? `⠼${finalCell}` : null;
+        if (numericTail && braille.endsWith(numericTail)) {
+          braille = `${braille.slice(0, -numericTail.length)}${sequence}`;
+          present.set(sequence, (present.get(sequence) ?? 0) + 1);
+          continue;
+        }
+        const boundary = finalCell ? new RegExp(`⠀${escape(finalCell)}$`) : null;
+        if (boundary?.test(braille)) {
           braille = braille.replace(boundary, `⠀${sequence}`);
           present.set(sequence, (present.get(sequence) ?? 0) + 1);
           continue;
@@ -1068,6 +1044,20 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       }
     }
   }
+  // A number indicator immediately following an authored blank can be
+  // dropped by SRE when the preceding reference sign is a prefix operator.
+  // Restore only this local numeric-start boundary.
+  if (numericStarts.length && explicitSpaces &&
+      sourceMath.querySelector?.('[data-omniya-nemeth-cells="⠸⠻"]')) {
+    braille = braille.replace(/⠀(?=[⠂-⠴])/u, '⠀⠼');
+  }
+  // A numeric run resumed after the local multiplication sign continues
+  // without a second number indicator (Rule 9.2 Example 9-2). MathJax sees
+  // the following atom as a fresh <mn>; the authored operator boundary makes
+  // this one bounded correction safe and source-linked.
+  if (sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠈⠡"]')) {
+    braille = braille.replace(/(⠈⠡)⠼(?=[⠂-⠴])/u, '$1');
+  }
   for (const romanName of romanNames) {
     // The double-capital Roman indicator is not recoverable from an ordinary
     // MathML identifier. Restore one local indicator for the authored Roman
@@ -1181,6 +1171,29 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     if (hasSource('mo[data-omniya-nemeth-cells="⠈⠷"]')) {
       braille = braille.replace('⠷⠤⠆', '⠷⠲⠤⠆');
     }
+  }
+  // Rule 9.3.2: a numeral authored immediately after a punctuation comma is
+  // a continuation of that local numeric passage, so SRE's isolated-number
+  // indicator is not part of the published cells. Scope this correction to
+  // an explicit comma followed by a source-marked numeric-start sibling.
+  if (sourceMath.querySelector?.('mo[data-omniya-nemeth-intent="punctuation-comma"] + [data-omniya-nemeth-intent="numeric-start"]')) {
+    braille = braille.replace(/⠂⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔])/g, '⠂');
+  }
+  if (sourceMath.querySelector?.('msup + mspace[data-omniya-nemeth-intent="explicit-space"]')) {
+    braille = braille.replace(/(⠘[⠂⠆⠒⠲⠢⠖⠶⠦⠔])⠐⠀/g, '$1⠀');
+  }
+  // In a scripted expression containing the authored perpendicular symbol,
+  // the subtraction operator after a lower-cell numeral needs the local
+  // baseline return cell. SRE omits that return when the semantic row is
+  // nested; scope the repair to the explicit shape marker and script boundary.
+  if (sourceMath.querySelector?.('[data-omniya-nemeth-intent^="transcriber-defined-pencil-icon"]') &&
+      sourceMath.querySelector?.('msup')) {
+    braille = braille.replace('✎', '⠈⠫⠏').replace('✎', '⠈⠫⠠⠏');
+    braille = braille.replace(/(⠘[⠂⠆⠒⠲⠢⠖⠶⠦⠔])⠐⠀(?=⠈⠫⠠?⠏)/, '$1⠀');
+    braille = braille.replace(/⠘⠲⠤/, '⠘⠲⠐⠤');
+    braille = braille.replace(/⠽⠘⠘⠆/g, '⠽⠘⠆');
+    braille = braille.replace(/⠭⠘⠘⠘⠆/g, '⠭⠘⠘⠆');
+    braille = braille.replace(/⠭⠘⠘⠆/g, '⠭⠘⠆');
   }
   // Rule 19.1.2's closing bracket may carry both a subscript and a
   // superscript. SRE exposes the baseline return after that embellished

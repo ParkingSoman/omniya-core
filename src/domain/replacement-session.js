@@ -84,7 +84,8 @@ export function applyNemethCell(session, cell) {
   // index slot to its radicand). Preserve that focus exactly like a content
   // mutation; otherwise the next physical cell is routed back to the stale
   // slot at the renderer boundary.
-  if (result.status === 'applied' || result.document?.mathml !== session.draft.mathml) {
+  if (result.status === 'applied' || result.document?.mathml !== session.draft.mathml ||
+      JSON.stringify(result.focus) !== JSON.stringify(session.draftFocus ?? session.draft.focus)) {
     next.draft = result.document;
     next.draftFocus = result.focus;
   }
@@ -106,7 +107,10 @@ export function applyNemethChoice(session, operationId) {
   // draft even while the suffix remains pending, exactly as one-cell input
   // does; otherwise the renderer drops the comma/indicator mutation and
   // repeatedly reopens the same choice.
-  if (result.status === 'applied' || (result.status === 'pending' && result.document?.mathml !== session.draft.mathml)) {
+  if (result.status === 'applied' || (result.status === 'pending' && (
+    result.document?.mathml !== session.draft.mathml ||
+    JSON.stringify(result.focus) !== JSON.stringify(session.draftFocus ?? session.draft.focus)
+  ))) {
     next.draft = result.document;
     next.draftFocus = result.focus;
   }

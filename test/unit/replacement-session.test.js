@@ -7,6 +7,7 @@ import { findMathNode, parseMathML } from '../../src/domain/math-tree.js';
 import {
   startReplacementSession,
   applyNemethCell,
+  applyNemethChoice,
   commitNemethLocalCode,
   cancelReplacement,
   submitReplacement,
@@ -130,4 +131,19 @@ test('a pending next local code retains an immediately committed preceding token
   assert.equal(result.status, 'pending');
   assert.equal(result.session.nemethState.prefix, '⠁');
   assert.match(result.session.draft.mathml, /<mo[^>]*>\+<\/mo>/);
+});
+
+test('a focus-only Nemeth choice updates the replacement session focus', () => {
+  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
+  for (const cell of ['⠭', '⠘', '⠆', '⠐']) session = applyNemethCell(session, cell).session;
+  const scriptFocus = session.draftFocus.nodeId;
+  const result = applyNemethChoice(session, 'script.baseline');
+  assert.notEqual(result.session.draftFocus.nodeId, scriptFocus);
+  assert.equal(result.session.draftFocus.nodeId, parseMathML(result.session.draft.mathml).attrs['data-omniya-id']);
+});
+
+test('a pending operator after a script baseline preserves the returned focus', () => {
+  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
+  for (const cell of ['⠭', '⠘', '⠆', '⠐', '⠤']) session = applyNemethCell(session, cell).session;
+  assert.equal(session.draftFocus.nodeId, parseMathML(session.draft.mathml).attrs['data-omniya-id']);
 });
