@@ -4605,7 +4605,7 @@
       "exampleNumber": "4-1",
       "printedPage": null,
       "pdfPage": 54,
-      "sourceNotation": ",op5+ ,neme? ,code 9dicator .=",
+  "sourceNotation": ",op5+ ,neme? ,code indicator .=",
       "cells": [
         "⠠",
         "⠕",
@@ -4626,7 +4626,8 @@
         "⠙",
         "⠑",
         "⠀",
-        "⠔",
+    "⠊",
+    "⠝",
         "⠙",
         "⠊",
         "⠉",
@@ -4638,9 +4639,9 @@
         "⠨",
         "⠿"
       ],
-      "expectedWholeBraille": ",op5+ ,neme? ,code 9dicator .=",
+      "expectedWholeBraille": ",op5+ ,neme? ,code indicator .=",
       "candidateBrailleLines": [
-        ".=_% ,op5+ ,neme? ,code 9dicator",
+        ".=_% ,op5+ ,neme? ,code indicator",
         ".=_: ,neme? ,code t]m9ator \"<,neme?"
       ],
       "executable": true,
