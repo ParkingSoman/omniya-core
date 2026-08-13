@@ -3756,7 +3756,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     context.node.attrs?.['data-omniya-hole'] === 'true' &&
     ancestor(context.tree, context.node, 'mfrac')?.attrs?.['data-omniya-fraction-kind']) {
-    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digitMapping(normalized));
+    const digit = digitMapping(normalized);
+    if (hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+    }
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
   }
   // BANA 6.4.5 permits a lower-cell numeral after a mathematical blank
   // inside a grouped expression without repeating the number indicator. This
