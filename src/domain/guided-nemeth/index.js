@@ -2216,7 +2216,10 @@ const MAPPINGS = [
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*', 'mo', { sourceNotation: '@#' }),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†', 'mo', { sourceNotation: '_]' }),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡', 'mo', { sourceNotation: '__]' }),
+  token('reference.star', ['⠫', '⠎'], ['9.1'], '☆', 'mo', { preferLonger: true, sourceNotation: '$s', dataAttributes: { 'data-omniya-nemeth-intent': 'reference-star' } }),
   mode('reference.general', ['⠈', '⠻'], ['9.2'], 'reference', true, '@]'),
+  token('reference.icon.pencil', ['⠈', '⠫', '⠏'], ['9.4'], '✎', 'mo', { sourceNotation: '`$p', dataAttributes: { 'data-omniya-nemeth-intent': 'transcriber-defined-pencil-icon' } }),
+  token('reference.icon.pencil-capital', ['⠈', '⠫', '⠠', '⠏'], ['9.4'], '✎', 'mo', { sourceNotation: '`$P', dataAttributes: { 'data-omniya-nemeth-intent': 'transcriber-defined-pencil-icon-capital' } }),
   // October 2025 errata, Rule 9.1: no fixed checkmark symbol exists; the
   // documented transcriber-defined shape code is `.=$cm` (⠨⠿⠫⠉⠍ in the
   // source's expanded notation). It remains a bounded local reference atom,
@@ -2337,8 +2340,7 @@ const MAPPINGS = [
   open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike', 'data-omniya-nemeth-cells': '⠪⠻' }, 'content', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, { sourceNotation: '[' }),
   sourceClose('cancellation.end', ['⠻'], ['12.1.1'], 'menclose', ']'),
   token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→', 'mo', {
-    sourceNotation: '$o', allowImmediateBeforeContinuation: true,
-    deferForAtomicContinuation: true
+    sourceNotation: '$o', allowImmediateBeforeContinuation: true
   }),
   // BANA 22.1 calls the ordinary right arrow `$o` only when it is regular,
   // single-shaft, and unmodified. The uncontracted `$33o` is a separate
@@ -3570,7 +3572,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // follow-up: @] is followed immediately by one letter or numeral. It does
   // not open a passage buffer or infer a footnote number; it inserts exactly
   // that next local atom and annotates the source role.
-  if (state.mode === 'reference' && !state.prefix) {
+  if (state.mode === 'reference' && (!state.prefix || state.prefix === '⠰')) {
     if (LETTERS.has(normalized)) {
       return applyMapping(document, focus, { ...state, mode: null }, {
         id: `reference.letter.${LETTERS.get(normalized)}`,
@@ -3578,7 +3580,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         banaRefs: ['9.2', '6.3'],
         action: 'insert-token',
         commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference' } }
+        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': `⠈⠻${state.prefix === '⠰' ? '⠰' : ''}${normalized}` } }
       });
     }
     if (DIGITS.has(normalized)) {
@@ -3588,8 +3590,28 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         banaRefs: ['9.2', '3.1.2'],
         action: 'insert-numeric',
         commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-        args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference' } }
+        args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': `⠈⠻${state.prefix === '⠰' ? '⠰' : ''}${normalized}` } }
       });
+    }
+  }
+
+  const localPreviousComma = context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma' ||
+    context.node.attrs?.['data-omniya-nemeth-cells'] === '⠂' ||
+    context.node.children?.at?.(-1)?.attrs?.['data-omniya-nemeth-cells'] === '⠂' ||
+    context.node.children?.at?.(-1)?.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma';
+  if (!state.prefix && localPreviousComma && DIGITS.has(normalized)) {
+    return applyMapping(document, focus, { ...state, mode: null }, {
+      id: `number.after-comma.${DIGITS.get(normalized)}`, cells: [normalized], banaRefs: ['9.3.2'],
+      action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'numeric-start' } }
+    });
+  }
+  if (!state.prefix && normalized === ' ' &&
+      hasAncestor(context.tree, context.node, 'msup')) {
+    const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+    if (baseline) {
+      const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
+      if (returned.status !== 'rejected') return { ...returned, inputState: { ...returned.inputState, mode: null } };
     }
   }
 
