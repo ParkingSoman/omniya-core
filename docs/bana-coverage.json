@@ -31484,7 +31484,7 @@
       "printedPage": "10-3",
       "pdfPage": 134,
       "auditOrder": 554,
-      "disposition": "unclassified",
+      "disposition": "document-context-exclusion",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -31495,15 +31495,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:10.2",
@@ -31518,7 +31518,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-10-16",
@@ -31528,7 +31528,7 @@
       "printedPage": "10-3",
       "pdfPage": 134,
       "auditOrder": 555,
-      "disposition": "unclassified",
+      "disposition": "document-context-exclusion",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -31539,15 +31539,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:10.2",
@@ -31562,7 +31562,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-10-17",
@@ -31572,7 +31572,7 @@
       "printedPage": "10-3",
       "pdfPage": 134,
       "auditOrder": 556,
-      "disposition": "unclassified",
+      "disposition": "document-context-exclusion",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -31583,15 +31583,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:10.2",
@@ -31608,7 +31608,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:10.3",

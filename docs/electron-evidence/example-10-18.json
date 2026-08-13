@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "filter": { "example": "10-18" },
+  "cases": [{
+    "id": "electron:bana-2022:example-10-18",
+    "sourceRows": ["example-10-18", "10.3"],
+    "creation": false,
+    "editing": false,
+    "navigation": false,
+    "wholeBraille": false,
+    "focusedBraille": false,
+    "undoRedo": false,
+    "persistence": false,
+    "diagnostic": {
+      "replacementStatus": "Draft updated: letter.g",
+      "replacementInput": "",
+      "speechNodes": [],
+      "rendererError": "The local MathJax runtime could not render an equation. Run npm install and restart the app.",
+      "timeout": "locator.waitFor: Timeout 30000ms exceeded waiting for article.napkin-article mjx-speech[aria-braillelabel]"
+    }
+  }]
+}
