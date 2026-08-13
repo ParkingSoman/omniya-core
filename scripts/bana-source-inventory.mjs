@@ -28,6 +28,7 @@ for (let pageIndex = pageStart; pageIndex < sourceLines.length; pageIndex += 1) 
 const rows = [];
 let order = 0;
 let currentRule = null;
+let currentProvision = null;
 const seen = new Set();
 const add = (row) => {
   if (seen.has(row.id)) return;
@@ -89,12 +90,13 @@ for (let index = bodyStart; index >= 0 && index < (bodyEnd > 0 ? bodyEnd : sourc
     const ruleNumber = Number(id.split('.')[0]);
     add({ id: `bana-2022:${id}`, kind: 'provision', parentId, title: match[2].replace(/\.{2,}.*$/, '').trim(), pdfPage: pageStarts[index], printedPage: printedPages[index] ?? null,
       disposition: ruleNumber >= 26 ? 'excluded-document-format' : ruleNumber === 25 ? 'excluded-spatial' : 'unclassified' });
+    currentProvision = id;
     continue;
   }
   match = line.match(/^Example\s+(\d{1,2}-\d+)(?::\s*(.*))?/i);
   if (match) {
     const rule = match[1].split('-')[0];
-    add({ id: `bana-2022:example-${match[1]}`, kind: 'example', parentId: `bana-2022:rule-${rule}`,
+    add({ id: `bana-2022:example-${match[1]}`, kind: 'example', parentId: currentProvision ? `bana-2022:${currentProvision}` : `bana-2022:rule-${rule}`,
       title: match[2] || `Example ${match[1]}`, pdfPage: pageStarts[index], printedPage: printedPages[index] ?? null,
       disposition: Number(rule) >= 26 ? 'excluded-document-format' : Number(rule) === 25 ? 'excluded-spatial' : 'unclassified' });
   }
