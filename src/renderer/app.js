@@ -614,15 +614,13 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
       await renderDraftPreview();
     } else if (result.status === 'pending') {
-      // This is the bounded local-code buffer, never a passage buffer. Keep
-      // the prefix visible so a user can review or correct an arrow, paired
-      // operator, or other registered atomic construction before Enter.
-      editor.value = replacementSession.nemethState.prefix;
-      editor.setSelectionRange(editor.value.length, editor.value.length);
+      // The input is a one-cell native proxy, not a Nemeth passage buffer.
+      // Keep the bounded prefix exclusively in NemethState; leaving it in the
+      // textarea causes the next physical cell to be dispatched as prefix+cell.
+      editor.value = '';
       elements['replacement-status'].textContent = result.announcement;
     } else if (result.status === 'choice') {
-      editor.value = replacementSession.nemethState.prefix;
-      editor.setSelectionRange(editor.value.length, editor.value.length);
+      editor.value = '';
       elements['replacement-status'].textContent = result.announcement;
       elements['replacement-choices'].replaceChildren(...result.choices.map((choice) => {
         const button = document.createElement('button');
@@ -638,8 +636,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       // Invalid local input must remain available for correction. The
       // canonical draft has not changed, and the visible value is still only
       // the current bounded code (not an accumulated expression).
-      editor.value = replacementSession.nemethState.prefix || cell;
-      editor.setSelectionRange(editor.value.length, editor.value.length);
+      editor.value = '';
       elements['replacement-status'].textContent = result.announcement;
       editor.setAttribute('aria-invalid', 'true');
     }

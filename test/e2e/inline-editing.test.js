@@ -133,7 +133,8 @@ test('renderer applies immediate, structural-followup, and atomic Nemeth codes i
   // the replacement transaction.
   const arrowInput = page.getByLabel('Replacement input', { exact: true });
   await arrowInput.fill('⠫⠒⠒⠕');
-  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠒⠒⠕');
+  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '' &&
+    document.querySelector('#replacement-status')?.textContent?.includes('Press Enter'));
   assert.equal(await fractionArticle.locator('mfrac mo').count(), 0);
   await arrowInput.press('Enter');
   await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Local code committed'));

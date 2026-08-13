@@ -125,8 +125,9 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
       `bounded local choice did not resolve after six explicit selections; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
   };
   for (const [cellIndex, cell] of cells.entries()) {
-    const existingPrefix = await input.inputValue();
-    await input.fill(`${existingPrefix}${cell}`);
+    // The textarea is a one-cell native proxy. Pending bounded prefixes live
+    // in NemethState and must never be concatenated into the next fill.
+    await input.fill(cell);
     if (cellIndex === cells.length - 1 && options.captureInputEvidence) {
       await options.captureInputEvidence();
     }

@@ -2550,6 +2550,14 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.id.startsWith('fraction.end.')) {
     const kind = mapping.id.split('.').at(-1);
+    // A denominator may contain a new numeric item after an explicit blank
+    // (for example `.../cos #2x#`). At that bounded boundary the immediate
+    // number indicator wins; the final terminator is still handled by the
+    // numeric-mode close below once the lower-cell number is complete.
+    const denominatorBoundary = context.node.name === 'mrow' && context.node.children?.at(-1)?.name === 'mspace';
+    const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+    const trailingBlank = context.node.name === 'mspace' && parent?.name === 'mrow' && parent.children?.at(-1) === context.node;
+    if (denominatorBoundary || trailingBlank) return false;
     return Boolean(fraction && fractionKind === kind && denominatorFocus &&
       (!mapping.id.includes('order3') || fraction.attrs?.['data-omniya-fraction-order'] === '3'));
   }
@@ -2594,7 +2602,12 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'modifier.terminate.simultaneous') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.action === 'close-structure' && mapping.args?.element === 'munderover') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.id === 'indicator.multipurpose') return true;
-  if (mapping.id === 'indicator.number' && fraction) return !contains(context.tree, fraction.children[1], context.node);
+  if (mapping.id === 'indicator.number' && fraction) {
+    if (!contains(context.tree, fraction.children[1], context.node)) return true;
+    const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+    return context.node.name === 'mrow' && context.node.children?.at(-1)?.name === 'mspace' ||
+      context.node.name === 'mspace' && parent?.name === 'mrow' && parent.children?.at(-1) === context.node;
+  }
   if (mapping.action === 'insert-contracted-script-comma') {
     return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
       context.node.name !== 'math' && !isHole(context.node));
