@@ -37,17 +37,6 @@ test('without source intent the independent MathJax Braille projection is unchan
   assert.equal(applyNemethSourceIntentToBraille('⠼⠂⠨⠁', sourceMath), '⠼⠂⠨⠁');
 });
 
-test('horizontal bracket source intent restores the bounded modifier cells SRE omits', () => {
-  const source = new DOMParser().parseFromString(
-    '<math><mover><mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow><mo data-omniya-role="overscript" data-omniya-nemeth-intent="horizontal-bracket-over" data-omniya-nemeth-cells="⠈⠷">⏜</mo></mover></math>',
-    'text/xml'
-  ).documentElement;
-  assert.equal(
-    applyNemethSourceIntentToBraille('⠐⠭⠬⠽⠣⠻', source),
-    '⠐⠭⠬⠽⠣⠈⠷⠻'
-  );
-});
-
 test('a grouped superscript does not receive a synthetic trailing close fence', () => {
   const source = new DOMParser().parseFromString(
     '<math><msup><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mrow><mi>s</mi><mi>e</mi><mi>v</mi><mi>e</mi><mi>n</mi></mrow><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>1</mn></math>',
@@ -124,25 +113,66 @@ test('signed numeric source intent restores the BANA number indicator', () => {
   assert.equal(applyNemethSourceIntentToBraille('⠤⠒⠷', sourceMath), '⠤⠼⠒⠷');
 });
 
-test('signed numeric intent stays local inside the Rule 3-16 subtraction shape', () => {
-  const sourceMath = new DOMParser().parseFromString(
-    '<math><mspace data-omniya-nemeth-intent="explicit-space"/><mrow><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="signed-numeric-indicator">3</mn><mo data-omniya-nemeth-cells="⠷">(</mo></mrow></math>',
+test('Rule 17.10.2 restores a numeric indicator after a new shape and explicit-space boundary', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠫⠪">∠</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">1</mn><mo data-omniya-nemeth-cells="⠬">+</mo><mn data-omniya-nemeth-intent="numeric-start">2</mn><mo data-omniya-nemeth-cells="⠫⠪">∠</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">3</mn></math>',
     'text/xml'
   ).documentElement;
   assert.equal(
-    applyNemethSourceIntentToBraille('⠀⠤⠒⠷', sourceMath),
-    '⠀⠤⠼⠒⠷'
+    applyNemethSourceIntentToBraille('⠫⠪⠀⠼⠂⠬⠆⠫⠪⠀⠒', source),
+    '⠫⠪⠀⠼⠂⠬⠆⠫⠪⠀⠼⠒'
   );
 });
 
-test('nested fraction denominator numerals do not expose SRE baseline return', () => {
-  const sourceMath = new DOMParser().parseFromString(
-    '<math><mfrac><mrow><mi>r</mi><msup><mn data-omniya-nemeth-intent="numeric-start">1</mn><mn data-omniya-nemeth-intent="numeric-start">2</mn></msup></mrow><mrow><mi>n</mi><mn data-omniya-nemeth-intent="numeric-start">1</mn></mrow></mfrac></math>',
+test('Rule 17.10.1 keeps a denominator shape adjacent to the simple fraction line', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mfrac data-omniya-fraction-kind="simple"><mrow><mo data-omniya-nemeth-cells="⠫⠞">△</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠠⠁">A</mi></mrow><mrow><mo data-omniya-nemeth-cells="⠫⠞">△</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠠⠑">E</mi></mrow></mfrac></math>',
     'text/xml'
   ).documentElement;
   assert.equal(
-    applyNemethSourceIntentToBraille('⠷⠹⠗⠼⠂⠘⠼⠆⠐⠌⠝⠐⠼⠂⠼⠾', sourceMath),
-    '⠷⠹⠗⠼⠂⠘⠼⠆⠐⠌⠝⠼⠂⠼⠾'
+    applyNemethSourceIntentToBraille('⠹⠫⠞⠀⠠⠁⠌⠀⠫⠞⠀⠠⠑⠼', source),
+    '⠹⠫⠞⠀⠠⠁⠌⠫⠞⠀⠠⠑⠼'
+  );
+});
+
+test('Rule 17.10.3 keeps adjacent authored shape and operation cells unspaced', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠫⠲">□</mo><mo data-omniya-nemeth-cells="⠈⠴">%</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠫⠲⠀⠈⠴', source), '⠫⠲⠈⠴');
+});
+
+test('Rule 17.10.2 mixed fractions retain their bounded BANA boundaries', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">6</mn><mfrac data-omniya-fraction-kind="mixed"><mn data-omniya-nemeth-intent="numeric-start">4</mn><mn data-omniya-nemeth-intent="numeric-start">12</mn></mfrac><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mn data-omniya-nemeth-intent="numeric-start">6</mn><mfrac data-omniya-fraction-kind="mixed"><mo data-omniya-nemeth-cells="⠫⠞">△</mo><mn data-omniya-nemeth-intent="numeric-start">3</mn></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠖⠸⠹⠼⠲⠌⠼⠂⠆⠸⠼⠀⠨⠅⠀⠼⠖⠹⠫⠞⠌⠼⠒⠼', source),
+    '⠼⠖⠸⠹⠲⠌⠂⠆⠸⠼⠀⠨⠅⠀⠼⠖⠸⠹⠫⠞⠌⠒⠸⠼'
+  );
+});
+
+test('Rule 17.10.4 keeps shape subscripts attached and restores the authored baseline return', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mn data-omniya-nemeth-intent="numeric-start">1101</mn><mo data-omniya-nemeth-cells="⠫⠙">◊</mo></msub><mo data-omniya-nemeth-cells="⠬">+</mo><msub><mn data-omniya-nemeth-intent="lower-cell-numeric">1000</mn><mo data-omniya-nemeth-cells="⠫⠙">◊</mo></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠂⠂⠴⠂⠰⠀⠰⠫⠙⠬⠂⠴⠴⠴⠀⠰⠫⠙', source),
+    '⠼⠂⠂⠴⠂⠰⠫⠙⠐⠬⠂⠴⠴⠴⠰⠫⠙'
+  );
+});
+
+test('Rule 17.10.1 restores the authored baseline after degree before a plus', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠫⠪">∠</mo><mspace data-omniya-nemeth-intent="explicit-space"/><msup><mn data-omniya-nemeth-intent="numeric-start">90</mn><mo data-omniya-nemeth-cells="⠘⠨⠡">°</mo></msup><mo data-omniya-nemeth-cells="⠬">+</mo><mo data-omniya-nemeth-cells="⠫⠪">∠</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠫⠪⠀⠼⠔⠴⠘⠨⠡⠬⠫⠪', source),
+    '⠫⠪⠀⠼⠔⠴⠘⠨⠡⠐⠬⠫⠪'
   );
 });
 

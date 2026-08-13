@@ -126,6 +126,7 @@ function sourceCells(notation) {
     if (character === '~') return '⠘'; // arrow direction: elevate nearer head
     if (character === ';') return '⠰'; // arrow direction: depress nearer head
     if (character === '|') return '⠳'; // BANA vertical bar cell
+    if (character === '{') return '⠪'; // printed angle-shape alias for the dots-2-4-6 cell
     if (character === '}') return '⠻'; // local shape/modifier terminator
     if (character === 'K') character = 'k'; // BANA's printed capital K is the same dot-3 k cell
     if (/^[A-Z]$/.test(character)) {
@@ -1231,11 +1232,9 @@ const CONTEXT_POLICY_REFS = [
   ...['1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.3', '1.3.1', '1.3.2', '1.4', '1.4.1', '1.4.2', '1.4.3', '1.4.4', '1.4.5', '1.4.6', '1.4.7'],
   ...['2.1'],
   ...['3.1.1', '3.2', '3.2.1', '3.2.2', '3.2.3', '3.3.1', '3.3.2', '3.3.3', '3.3.4', '3.3.5', '3.3.6', '3.3.7', '3.3.8', '3.3.9', '3.4', '3.4.1', '3.4.2', '3.4.3', '3.4.4', '3.5', '3.5.1', '3.5.2', '3.5.3', '3.5.4', '3.6', '3.6.1', '3.6.2', '3.6.3', '3.8', '3.9', '3.10', '3.11', '3.11.2', '3.11.3', '3.12'],
-  ...['4.1', '4.2', '4.3', '4.4', '4.4.1', '4.4.2', '4.4.3', '4.4.4', '4.4.5', '4.4.6', '4.4.7', '4.4.8', '4.4.9', '4.4.10', '4.5', '4.5.1', '4.5.2', '4.5.3', '4.6', '4.6.1', '4.6.2', '4.6.3', '4.6.4', '4.6.5', '4.6.6', '4.6.7', '4.6.8', '4.6.8.c', '4.7', '4.7.1', '4.7.2', '4.8', '4.8.1', '4.8.2', '4.8.3', '4.8.4', '4.8.5', '4.8.6', '4.8.7', '4.8.8', '4.8.9', '4.8.10', '4.8.11']
-  // Rule 9.3 governs placement/spacing and footnote formatting in the
-  // surrounding document, not an equation-tree node. Keep those provisions
-  // explicit as context policy rather than inventing spacing dispatcher rows.
-  , ...['9.3', '9.3.1', '9.3.2', '9.3.3']
+  ...['4.1', '4.2', '4.3', '4.4', '4.4.1', '4.4.2', '4.4.3', '4.4.4', '4.4.5', '4.4.6', '4.4.7', '4.4.8', '4.4.9', '4.4.10', '4.5', '4.5.1', '4.5.2', '4.5.3', '4.6', '4.6.1', '4.6.2', '4.6.3', '4.6.4', '4.6.5', '4.6.6', '4.6.7', '4.6.8', '4.6.8.c', '4.7', '4.7.1', '4.7.2', '4.8', '4.8.1', '4.8.2', '4.8.3', '4.8.4', '4.8.5', '4.8.6', '4.8.7', '4.8.8', '4.8.9', '4.8.10', '4.8.11'],
+  ...['17.6', '17.10', '17.10.1', '17.10.2', '17.10.3', '17.10.4', '17.10.5'],
+  'errata-2025:17.1-Special-Considerations-c-17-6'
 ];
 const APPENDIX_POLICY_REFS = ['appendix-A', 'appendix-B', 'appendix-C'];
 
@@ -1348,7 +1347,9 @@ const shapeToken = (id, cells, banaRefs, value, shapeKind, options = {}) => toke
   }}
 );
 const shapeModificationToken = (id, cells, banaRefs, value, shapeKind, modification, options = {}) => token(
-  id, cells, banaRefs, value, 'mo', { ...options, dataAttributes: {
+  id, cells, banaRefs, value, 'mo', { ...options,
+    ...(shapeKind === 'keystroke' ? { nextMode: 'keystroke-numeric' } : {}),
+    dataAttributes: {
     'data-omniya-shape-kind': shapeKind,
     'data-omniya-shape-modification': modification,
     ...(options.dataAttributes ?? {})
@@ -1358,7 +1359,7 @@ const open = (id, cells, banaRefs, elementName, slots, attrs = {}, initialSlot =
 const fixedRoot = (id, cells, banaRefs, index, indexText, sourceNotation = null) => ({ id, cells, banaRefs, action: 'open-fixed-root', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { index, indexText, ...(sourceNotation ? { sourceNotation } : {}) } });
 const move = (id, cells, banaRefs, elementName, role, options = {}) => ({ id, cells, banaRefs, action: 'move-slot', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, role, ...options } });
 const close = (id, cells, banaRefs, elementName, options = {}) => ({ id, cells, banaRefs, action: 'close-structure', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, ...options } });
-const mode = (id, cells, banaRefs, value, preferLonger = false, sourceNotation = null) => ({ id, cells, banaRefs, action: 'set-mode', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { mode: value, preferLonger, ...(sourceNotation ? { sourceNotation } : {}) } });
+const mode = (id, cells, banaRefs, value, preferLonger = false, sourceNotation = null, options = {}) => ({ id, cells, banaRefs, action: 'set-mode', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { mode: value, preferLonger, ...(sourceNotation ? { sourceNotation } : {}), ...options } });
 const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multipurpose', options = {}) => ({
   id, cells, banaRefs, action: 'open-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, slot, requiresMode, ...options }
 });
@@ -1496,6 +1497,7 @@ const MAPPINGS = [
   // silently accepted as an equation comma.
   token('punctuation.comma', ['⠠'], ['8.1', '8.2'], ',', 'mo', {
     preferLonger: true,
+    deferForAtomicContinuation: true,
     sourceNotation: ',',
     sourceKind: 'context-policy',
     // MathML does not retain whether BANA's punctuation indicator was
@@ -2214,11 +2216,6 @@ const MAPPINGS = [
   token('reference.asterisk', ['⠈', '⠼'], ['9.1'], '*', 'mo', { sourceNotation: '@#' }),
   token('reference.dagger', ['⠸', '⠻'], ['9.1'], '†', 'mo', { sourceNotation: '_]' }),
   token('reference.double-dagger', ['⠸', '⠸', '⠻'], ['9.1'], '‡', 'mo', { sourceNotation: '__]' }),
-  // Rule 9.1's reference star shares the UEB transcriber-defined shape code
-  // with the geometric shape family, but its source intent is reference use.
-  // Keep it as a distinct registry atom so exact local focus and audit
-  // coverage retain the rule's semantic distinction.
-  token('reference.star', ['⠫', '⠎'], ['9.1'], '☆', 'mo', { preferLonger: true, sourceNotation: '$s', dataAttributes: { 'data-omniya-nemeth-intent': 'reference-star' } }),
   mode('reference.general', ['⠈', '⠻'], ['9.2'], 'reference', true, '@]'),
   // October 2025 errata, Rule 9.1: no fixed checkmark symbol exists; the
   // documented transcriber-defined shape code is `.=$cm` (⠨⠿⠫⠉⠍ in the
@@ -2233,16 +2230,6 @@ const MAPPINGS = [
   token('shape.regular-hexagon', ['⠫', '⠖'], ['17.1'], '⬡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$6' }),
   token('shape.parallel', ['⠫', '⠇'], ['17.1'], '∥', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$l', dataAttributes: { 'data-omniya-nemeth-intent': 'parallel-shape' } }),
   token('shape.perpendicular', ['⠫', '⠏'], ['17.1'], '⟂', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$p', dataAttributes: { 'data-omniya-nemeth-intent': 'perpendicular-shape' } }),
-  token('reference.icon.pencil', ['⠈', '⠫', '⠏'], ['9.4'], '✎', 'mo', {
-    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
-    sourceNotation: '`$p',
-    dataAttributes: { 'data-omniya-nemeth-intent': 'transcriber-defined-pencil-icon' }
-  }),
-  token('reference.icon.pencil-capital', ['⠈', '⠫', '⠠', '⠏'], ['9.4'], '✎', 'mo', {
-    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
-    sourceNotation: '`$P',
-    dataAttributes: { 'data-omniya-nemeth-intent': 'transcriber-defined-pencil-icon-capital' }
-  }),
   token('shape.parallelogram', ['⠫', '⠛'], ['17.1'], '▱', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$g' }),
   token('shape.regular-pentagon', ['⠫', '⠢'], ['17.1'], '⬠', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$5' }),
   token('shape.star', ['⠫', '⠎'], ['17.1'], '☆', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$s' }),
@@ -2276,6 +2263,9 @@ const MAPPINGS = [
   // no numeric passage is parsed.
   shapeToken('shape.regular-octagon', ['⠫', '⠦'], ['17.4'], '⯃', 'regular-octagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$8' }),
   shapeToken('shape.regular-dodecagon', ['⠫', '⠂', '⠆'], ['17.4'], '⯃', 'regular-12-gon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$12' }),
+  // Rule 17.4/17.3: filled regular polygons retain the fill indicator before
+  // the polygon code.  Keep the numeral local to this bounded construction.
+  shapeToken('shape.filled-regular-octagon', ['⠫', '⠸', '⠦'], ['17.4'], '⬢', 'filled-regular-octagon', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_8' }),
   // Rule 17.5 structural shape modification: the base shape and the
   // modification letters are one bounded construction.  The metadata keeps
   // the exact BANA modifier while MathML remains a valid atomic operator.
@@ -2301,6 +2291,9 @@ const MAPPINGS = [
   // a shape is represented by a separate named operation in a later editor
   // step rather than by buffering an arbitrary passage.
   shapeModificationToken('shape.circle.interior-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['17.6.1'], '⨁', 'circle', 'interior-plus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$+]' }),
+  shapeModificationToken('shape.circle.interior-letter-a', sourceCells('$c_$,a]'), ['17.6.1'], 'Ⓐ', 'circle', 'interior-letter-a', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$,a]' }),
+  shapeModificationToken('shape.angle.interior-degree', sourceCells('$[_$#30^.*"]'), ['17.6.1'], '∠°', 'angle', 'interior-degree', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[_$#30^.*"]' }),
+  shapeModificationToken('shape.angle.interior-arrow', sourceCells('$[_$$59o]'), ['17.6.1', '17.10.1'], '∡', 'angle', 'interior-arrow', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[_$$59o]', dataAttributes: { 'data-omniya-projection-cells': sourceCells('$[_$$a]').join('') } }),
   // The printed `}` is the BANA interior-shape terminator, whose cell is ⠻.
   shapeModificationToken('shape.angle.interior-arc', ['⠫', '⠪', '⠸', '⠫', '⠫', '⠁', '⠻'], ['17.6.1'], '∡', 'angle', 'interior-arc', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[_$$a}' }),
   shapeModificationToken('shape.circle.interior-cross', ['⠫', '⠉', '⠸', '⠫', '⠈', '⠡', '⠻'], ['17.6.1'], '⊗', 'circle', 'interior-cross', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$@*]' }),
@@ -2318,12 +2311,35 @@ const MAPPINGS = [
   shapeModificationToken('shape.circle.interior-arrows-horizontal', sourceCells('$c_$$%33o"$<33o]'), ['17.6.2'], '⊚', 'circle', 'interior-arrows-horizontal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$$%33o"$<33o]' }),
   shapeModificationToken('shape.circle.interior-arrows-vertical', sourceCells('$c_$$33o$[33]'), ['17.6.3'], '⊚', 'circle', 'interior-arrows-vertical', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$$33o$[33]' }),
   shapeToken('shape.triangle.plural', ['⠫', '⠞', '⠎'], ['17.9'], '⧌', 'triangle-plural', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$ts', dataAttributes: { 'data-omniya-nemeth-cells': '⠫⠞⠎' } }),
+  // Rule 17.6.4 keystrokes are bounded shape labels.  The label remains a
+  // single local token; longer calculator sequences are composed by repeating
+  // this operation rather than buffering an entire expression.
+  shapeModificationToken('shape.keystroke.plus', sourceCells('$k+]'), ['17.6.4'], '+', 'keystroke', 'plus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k+]', dataAttributes: { 'data-omniya-projection-cells': '⠬' } }),
+  shapeModificationToken('shape.keystroke.square', sourceCells('$k8]'), ['17.6.4'], '8', 'keystroke', 'square', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k8]' }),
+  shapeModificationToken('shape.keystroke.radical', sourceCells('$k>x]]'), ['17.6.4'], '√x', 'keystroke', 'radical', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k>x]]' }),
+  shapeModificationToken('shape.keystroke.open-paren', sourceCells('$k(]'), ['17.6.4'], '(', 'keystroke', 'open-paren', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k(]', dataAttributes: { 'data-omniya-projection-cells': '⠷' } }),
+  shapeModificationToken('shape.keystroke.close-paren', sourceCells('$k)]'), ['17.6.4'], ')', 'keystroke', 'close-paren', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k)]', dataAttributes: { 'data-omniya-projection-cells': '⠾' } }),
+  shapeModificationToken('shape.keystroke.dot', sourceCells('$k@*]'), ['17.6.4'], '·', 'keystroke', 'dot', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k@*]', dataAttributes: { 'data-omniya-projection-cells': '⠡' } }),
+  shapeModificationToken('shape.keystroke.minus', sourceCells('$k-]'), ['17.6.4'], '−', 'keystroke', 'minus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k-]', dataAttributes: { 'data-omniya-projection-cells': '⠤' } }),
+  shapeModificationToken('shape.keystroke.decimal', sourceCells('$k.]'), ['17.6.4'], '.', 'keystroke', 'decimal', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k.]', dataAttributes: { 'data-omniya-projection-cells': '⠨' } }),
+  shapeModificationToken('shape.keystroke.equals', sourceCells('$k.k]'), ['17.6.4'], '=', 'keystroke', 'equals', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k.k]', dataAttributes: { 'data-omniya-projection-cells': '⠨⠅' } }),
+  shapeModificationToken('shape.keystroke.plus-minus', sourceCells('$k+_/-]'), ['17.6.4'], '±', 'keystroke', 'plus-minus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k+_/-]', dataAttributes: { 'data-omniya-projection-cells': '⠬⠤' } }),
+  shapeModificationToken('shape.keystroke.divide', sourceCells('$k./]'), ['17.6.4'], '÷', 'keystroke', 'divide', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k./]', dataAttributes: { 'data-omniya-projection-cells': '⠨⠌' } }),
+  shapeModificationToken('shape.keystroke.at-zero', sourceCells('$k@0]'), ['17.6.4'], '0', 'keystroke', 'at-zero', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k@0]', dataAttributes: { 'data-omniya-projection-cells': '⠼⠴' } }),
+  shapeModificationToken('shape.keystroke.power', sourceCells('$ky^x"]'), ['17.6.4'], 'yˣ', 'keystroke', 'power', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$ky^x"]', dataAttributes: { 'data-omniya-projection-cells': '⠽ˣ' } }),
+  shapeModificationToken('shape.keystroke.enter-arrow', sourceCells('$k,,enter$<33o]'), ['17.6.4'], 'ENTER↑', 'keystroke', 'enter-arrow', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k,,enter$<33o]' }),
+  shapeModificationToken('shape.keystroke.arrow-degree-c', sourceCells('$k$33o^.*",c]'), ['17.6.4'], '→°C', 'keystroke', 'arrow-degree-c', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k$33o^.*",c]' }),
+  shapeModificationToken('shape.keystroke.xy-arrows', sourceCells('$kx$3o$[3y]'), ['17.6.4'], 'x⇄y', 'keystroke', 'xy-arrows', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$kx$3o$[3y]' }),
+  shapeModificationToken('shape.keystroke.ee-arrow', sourceCells('$k,,ee$%33o]'), ['17.6.4', '17.10.5'], 'EE↓', 'keystroke', 'ee-arrow', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k,,ee$%33o]' }),
   // Rule 11.1.1: the general omission sign is the equals-shaped cell ⠿.
   // Its MathML placeholder is a question mark; it is not ordinary equals.
   token('omission.general', ['⠿'], ['11.1.1'], '?', 'mo', { sourceNotation: '=' }),
   open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike', 'data-omniya-nemeth-cells': '⠪⠻' }, 'content', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, { sourceNotation: '[' }),
   sourceClose('cancellation.end', ['⠻'], ['12.1.1'], 'menclose', ']'),
-  token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→', 'mo', { sourceNotation: '$o', allowImmediateBeforeContinuation: true }),
+  token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→', 'mo', {
+    sourceNotation: '$o', allowImmediateBeforeContinuation: true,
+    deferForAtomicContinuation: true
+  }),
   // BANA 22.1 calls the ordinary right arrow `$o` only when it is regular,
   // single-shaft, and unmodified. The uncontracted `$33o` is a separate
   // bounded local construction (Examples 22-5 and 22-28), even though it
@@ -2339,7 +2355,11 @@ const MAPPINGS = [
   ...GREEK_CAPITAL.map(([cells, value, sourceNotation]) => token(`greek.capital-${value}`, [...cells], ['5.1.1', '6.1.4', '6.2.1'], value, 'mi', { sourceNotation })),
   ...GREEK_VARIANTS.map(([cells, value, sourceNotation]) => token(`greek.variant-${value}`, [...cells], ['6.1.5', '6.2.2'], value, 'mi', { sourceNotation })),
   mode('indicator.number', ['⠼'], ['3.1', '3.3'], 'numeric', false, '#'),
-  mode('indicator.capital', ['⠠'], ['5.1', '6.1'], 'capital', true, ','),
+  mode('indicator.capital', ['⠠'], ['5.1', '6.1'], 'capital', true, ',', { deferForAtomicContinuation: true }),
+  ...[...LETTERS.entries()].map(([cell, value]) => token(
+    `letter.capital-${value}`, ['⠠', cell], ['5.1', '6.1'], value.toUpperCase(), 'mi',
+    { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: `,${value}` }
+  )),
   // BANA 3.11.1: a double capital indicator introduces one uppercase Roman
   // numeral construction. Letters are collected only into that one local
   // identifier; ordinary expression input remains unaffected.
@@ -2641,6 +2661,19 @@ function mappingApplies(mapping, context) {
   return true;
 }
 
+function resolveModifierAmbiguity(mappings, modeValue) {
+  if (modeValue?.startsWith?.('modifier-') && modeValue !== 'modifier-parallel') {
+    return mappings.filter((mapping) => ['insert-modifier', 'close-structure'].includes(mapping.action));
+  }
+  // Contracted modifiers remain valid directly after an existing expression.
+  // Only suppress them when the same complete cells also name an ordinary
+  // operation (for example a Rule 17 shape); modifier mode then remains the
+  // bounded discriminator for the modifier meaning.
+  return mappings.some((mapping) => mapping.action !== 'insert-modifier')
+    ? mappings.filter((mapping) => mapping.action !== 'insert-modifier')
+    : mappings;
+}
+
 function hasAtomicContinuation(prefix, nextCell, context) {
   const candidatePrefix = `${prefix}${nextCell}`;
   return MAPPINGS.some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
@@ -2745,7 +2778,8 @@ const TREE_OPERATIONS = Object.freeze({
       return { tree, focus: focusNode(first ?? inserted) };
     }
     if (args.element === 'mfrac' && node.name !== 'math' && !isHole(node) &&
-      findMathParent(tree, node.attrs?.['data-omniya-id'])?.name === 'mrow') {
+      (findMathParent(tree, node.attrs?.['data-omniya-id'])?.name === 'mrow' ||
+        (args.attrs?.['data-omniya-fraction-kind'] === 'mixed' && node.name === 'mn'))) {
       const wrapper = element(args.element, [], args.attrs ?? {});
       for (const role of args.slots ?? []) wrapper.children.push(hole(wrapper, role));
       const inserted = insertAfter(tree, focus, wrapper);
@@ -2873,7 +2907,7 @@ function applyMapping(document, focus, inputState, mapping) {
   // digit/decimal transition can consume the retained mode.
   const retainNumericAfterOperator = inputState.mode?.startsWith?.('numeric') &&
     mapping.action === 'insert-token' && args.name === 'mo' &&
-    ['+', '−', '-', '±', '×', '÷'].includes(args.value);
+    ['+', '−', '-', '±'].includes(args.value);
   const beginSignedNumeric = inputState.mode === null &&
     mapping.action === 'insert-token' && args.name === 'mo' &&
     ['+', '−', '-', '±'].includes(args.value) &&
@@ -2886,7 +2920,7 @@ function applyMapping(document, focus, inputState, mapping) {
   // distinction is structural and registry-wide: it keeps a following +,
   // script, or sibling token in the surrounding MathML slot instead of
   // accidentally treating it as another modifier operand.
-  const nextMode = mapping.action === 'insert-modifier'
+  const nextMode = args.nextMode ?? (mapping.action === 'insert-modifier'
     ? (inputState.mode === 'modifier-parallel'
       ? 'modifier-parallel'
       : (inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-') ? 'modifier-complete' : 'modifier-parallel'))
@@ -2902,7 +2936,7 @@ function applyMapping(document, focus, inputState, mapping) {
       ? inputState.mode
     : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'multipurpose'
         ? 'multipurpose'
-    : null;
+    : null);
   return {
     status: 'applied',
     // The renderer uses this only to distinguish a short immediate code that
@@ -3065,59 +3099,29 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     ['msup', 'msub', 'msubsup', 'mmultiscripts']));
   const inSimpleSubscript = Boolean(hasAncestor(context.tree, context.node, 'msub')) &&
     !Boolean(hasAncestor(context.tree, context.node, ['msubsup', 'mmultiscripts']));
-  // A mathematical blank terminates a completed numeric script. Move the
-  // same authored blank to the surrounding row; otherwise subsequent icons
-  // or problem labels become descendants of the exponent despite the Nemeth
-  // boundary. This is a local focus transition, not expression parsing.
-  if (!state.prefix && normalized === ' ' && state.mode?.startsWith?.('numeric') &&
-      hasAncestor(context.tree, context.node, ['msup', 'msub'])) {
-    const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
-    const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
-    if (returned.status !== 'rejected') {
-      return applyNemethCell({ document: returned.document, focus: returned.focus,
-        inputState: { ...returned.inputState, mode: null }, cell: normalized });
-    }
+  // Dot 6 is held for one cell so an immediately following alphabetic cell
+  // can form a bounded capital identifier. An explicit space proves the dot
+  // 6 was punctuation instead; commit that local atom and then route the
+  // space normally.
+  if (state.mode === null && state.prefix === '⠠' && normalized === ' ') {
+    const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.comma');
+    const applied = applyMapping(document, focus, { ...state, prefix: '' }, punctuation);
+    if (applied.status === 'rejected') return applied;
+    return applyNemethCell({ document: applied.document, focus: applied.focus, inputState: applied.inputState, cell: normalized });
   }
-  if (!state.prefix && normalized === '⠱' && context.node.attrs?.['data-omniya-nemeth-cells'] === '⠈⠼') {
-    return applyMapping(document, focus, { ...state, mode: null }, {
-      id: 'reference.colon-after-asterisk', cells: ['⠱'], banaRefs: ['9.3.1', '9.3.2'],
-      action: 'insert-token', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-      args: { name: 'mo', value: ':', dataAttributes: { 'data-omniya-nemeth-cells': '⠱' } }
-    });
+  // A multipurpose scope may begin with a capitalized identifier. Keep the
+  // same two-cell dot-6 decision inside that scope so the capital atom also
+  // extends the exact modifier operand range.
+  if (state.mode === 'multipurpose' && !state.prefix && normalized === '⠠') {
+    return {
+      status: 'pending', document, focus,
+      inputState: { ...state, prefix: normalized },
+      announcement: 'Capital identifier cell pending in the modifier scope.'
+    };
   }
-  const localPreviousComma = context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma' ||
-    context.node.attrs?.['data-omniya-nemeth-cells'] === '⠂' ||
-    context.node.children?.at?.(-1)?.attrs?.['data-omniya-nemeth-cells'] === '⠂' ||
-    context.node.children?.at?.(-1)?.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma';
-  if (!state.prefix && (context.node.attrs?.['data-omniya-nemeth-cells'] === '⠤⠤⠤⠤' || localPreviousComma) && DIGITS.has(normalized)) {
-    return applyMapping(document, focus, { ...state, mode: null }, {
-      id: `number.after-omission.${DIGITS.get(normalized)}`, cells: [normalized], banaRefs: ['9.3.2'],
-      action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-      args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'numeric-start' } }
-    });
-  }
-  // Rule 9.2 reference operands take precedence over the ordinary numeric
-  // matcher. In particular, @]⠰d and @]#1 must retain their local indicator
-  // cells instead of being reclassified as a generic number/letter.
-  if (state.mode === 'reference' && !state.prefix && normalized === '⠼') {
-    return { status: 'pending', document, focus,
-      inputState: { ...state, mode: 'reference-number' },
-      announcement: 'Nemeth reference number indicator active.' };
-  }
-  if ((state.mode === 'reference' || state.mode === 'reference-number') && (!state.prefix || state.prefix === '⠰') &&
-      (LETTERS.has(normalized) || DIGITS.has(normalized))) {
-    const isLetter = LETTERS.has(normalized);
-    const value = isLetter ? LETTERS.get(normalized) : DIGITS.get(normalized);
-    const cells = `${state.mode === 'reference-number' ? '⠈⠻⠼' : '⠈⠻'}${state.prefix === '⠰' ? '⠰' : ''}${normalized}`;
-    return applyMapping(document, focus, { ...state, mode: null }, {
-      id: `reference.${isLetter ? 'letter' : 'number'}.${value}`,
-      cells: [normalized], banaRefs: ['9.2'],
-      action: isLetter ? 'insert-token' : 'insert-numeric',
-      commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-      args: isLetter
-        ? { name: 'mi', value, dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': cells } }
-        : { value, dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': cells } }
-    });
+  if (state.mode === 'multipurpose' && state.prefix === '⠠' && LETTERS.has(normalized)) {
+    const capital = MAPPINGS.find((mapping) => mapping.id === `letter.capital-${LETTERS.get(normalized)}`);
+    if (capital) return applyMapping(document, focus, state, capital);
   }
   // Rule 14.8.8: dot 6 before a symbol that does not itself change level
   // preserves the current script level.  It is therefore a local lookahead
@@ -3330,8 +3334,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // has no applicable registered continuation for the next cell, commit the
   // already-held single-letter immediates and reprocess that cell. This is a
   // local prefix boundary, never a word or expression parser.
+  if (state.mode === null && state.prefix === '⠐' && normalized === '⠠' &&
+    !hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup'])) {
+    const indicator = PREFIXES.get('⠐')?.mappings?.find((mapping) => mapping.id === 'indicator.multipurpose');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
+    if (activated.status !== 'rejected') {
+      return applyNemethCell({ document: activated.document, focus: activated.focus,
+        inputState: activated.inputState, cell: normalized });
+    }
+  }
   if (state.prefix && (normalized === '⠨' || normalized === '⠠') && [...state.prefix].every((prefixCell) =>
     (PREFIXES.get(prefixCell)?.mappings ?? []).some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mappingApplies(mapping, context))) &&
+    !(PREFIXES.get(state.prefix)?.mappings ?? []).some((mapping) =>
+      mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE && mappingApplies(mapping, context)) &&
     !hasApplicableContinuation(state.prefix, normalized, context)) {
     let replayDocument = document;
     let replayFocus = focus;
@@ -3542,7 +3557,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // follow-up: @] is followed immediately by one letter or numeral. It does
   // not open a passage buffer or infer a footnote number; it inserts exactly
   // that next local atom and annotates the source role.
-  if (state.mode === 'reference' && (!state.prefix || state.prefix === '⠰')) {
+  if (state.mode === 'reference' && !state.prefix) {
     if (LETTERS.has(normalized)) {
       return applyMapping(document, focus, { ...state, mode: null }, {
         id: `reference.letter.${LETTERS.get(normalized)}`,
@@ -3550,10 +3565,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         banaRefs: ['9.2', '6.3'],
         action: 'insert-token',
         commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: {
-          'data-omniya-nemeth-intent': 'general-reference',
-          'data-omniya-nemeth-cells': `⠈⠻${state.prefix === '⠰' ? '⠰' : ''}${normalized}`
-        } }
+        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference' } }
       });
     }
     if (DIGITS.has(normalized)) {
@@ -3563,10 +3575,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         banaRefs: ['9.2', '3.1.2'],
         action: 'insert-numeric',
         commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-        args: { value: DIGITS.get(normalized), dataAttributes: {
-          'data-omniya-nemeth-intent': 'general-reference',
-          'data-omniya-nemeth-cells': `⠈⠻${state.prefix === '⠰' ? '⠰' : ''}${normalized}`
-        } }
+        args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference' } }
       });
     }
   }
@@ -3589,7 +3598,8 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     return applyMapping(document, focus, { ...state, prefix: '' }, scriptMove);
   }
   const exactImmediate = (PREFIXES.get(sequence)?.mappings ?? [])
-    .some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mappingApplies(mapping, context));
+    .some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE &&
+      !mapping.args?.deferForAtomicContinuation && mappingApplies(mapping, context));
   const atomicContinuation = state.mode === null && !existingComparison && !exactImmediate && MAPPINGS.some((mapping) =>
     mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     mapping.cells.length > sequence.length &&
@@ -3597,6 +3607,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     mappingApplies(mapping, context));
   const immediateBeforeContinuation = state.mode === null && (PREFIXES.get(sequence)?.mappings ?? [])
     .filter((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mapping.args?.allowImmediateBeforeContinuation)
+    .filter((mapping) => !mapping.args?.deferForAtomicContinuation)
     .filter((mapping) => mappingApplies(mapping, context));
   if (atomicContinuation && immediateBeforeContinuation.length === 0) {
     return {
@@ -3811,6 +3822,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // BANA fraction numerators may begin with lower-cell digits immediately
   // after the opener (`?12/`). The fraction itself supplies the numeric
   // context, so start the bounded numeric run only in that required slot.
+  if (state.mode === 'keystroke-numeric' && !state.prefix && DIGITS.has(normalized)) {
+    const digit = digitMapping(normalized);
+    digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
+  }
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     context.node.attrs?.['data-omniya-hole'] === 'true' &&
     ancestor(context.tree, context.node, 'mfrac')?.attrs?.['data-omniya-fraction-kind']) {
@@ -4545,11 +4561,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       }
     }
     const previous = PREFIXES.get(state.prefix);
-    const previousMappings = previous?.mappings
-      ?.filter((mapping) => mappingApplies(mapping, context))
+    const previousMappings = resolveModifierAmbiguity(previous?.mappings
+      ?.filter((mapping) => mappingApplies(mapping, context)) ?? [], state.mode)
       .filter((mapping) => state.mode === 'multipurpose'
         ? mapping.action !== 'open-modifier'
-        : mapping.action !== 'open-modifier') ?? [];
+        : mapping.action !== 'open-modifier');
     if (previousMappings.length === 1 &&
       !hasApplicableContinuation(state.prefix, normalized, context)) {
       const first = applyMapping(document, focus, { ...state, prefix: '' }, previousMappings[0]);
@@ -4608,13 +4624,10 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       ? 'That cell does not complete the current local Nemeth code. The draft was not changed.'
       : 'That Nemeth cell is not valid at this draft focus.'
   };
-  const mappings = match.mappings
-    .filter((mapping) => mappingApplies(mapping, context))
+  const mappings = resolveModifierAmbiguity(match.mappings
+    .filter((mapping) => mappingApplies(mapping, context)), state.mode)
     .filter((mapping) => state.mode === 'comparison-horizontal'
       ? ['operator.equals', 'comparison.less', 'comparison.greater', 'comparison.less-equal', 'comparison.greater-equal', 'comparison.not-equal'].includes(mapping.id)
-      : true)
-    .filter((mapping) => state.mode?.startsWith?.('modifier-')
-      ? ['insert-modifier', 'close-structure'].includes(mapping.action)
       : true)
     .filter((mapping) => state.mode === 'multipurpose'
       ? mapping.action !== 'open-modifier'
@@ -4754,11 +4767,8 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
     announcement: 'There is no complete local Nemeth code to commit.'
   };
   const context = contextFor(document, focus);
-  const mappings = (PREFIXES.get(prefix)?.mappings ?? [])
-    .filter((mapping) => mappingApplies(mapping, context))
-    .filter((mapping) => inputState.mode?.startsWith?.('modifier-')
-      ? ['insert-modifier', 'close-structure'].includes(mapping.action)
-      : true)
+  const mappings = resolveModifierAmbiguity((PREFIXES.get(prefix)?.mappings ?? [])
+    .filter((mapping) => mappingApplies(mapping, context)), inputState.mode)
     .filter((mapping) => inputState.mode === 'multipurpose'
       ? mapping.action === 'open-modifier'
       : mapping.action !== 'open-modifier');

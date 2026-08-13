@@ -802,14 +802,108 @@ test('incomplete or invalid atomic input never mutates the draft', () => {
   assert.equal(badNext.inputState.prefix, pending.inputState.prefix);
 });
 
-test('shared local prefixes return a bounded choice instead of rejecting the next cell', () => {
-  const document = createEmptyDraftMathDocument();
-  let result = applyNemethCell({ document, focus: document.focus, inputState: { prefix: '', mode: null }, cell: '⠠' });
-  assert.equal(result.status, 'pending');
-  result = applyNemethCell({ document, focus: document.focus, inputState: result.inputState, cell: '⠁' });
-  assert.equal(result.status, 'choice');
-  assert.deepEqual(result.choices.map((choice) => choice.operationId).sort(), ['indicator.capital', 'punctuation.comma']);
-  assert.equal(result.document.mathml, document.mathml);
+test('Rule 17.10.1 resolves each dot-6 plus alphabetic cell as a bounded capital identifier', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of sourceNotationToCells('$[_$$59o] ,a,b,c')) {
+    let result = cell(document, focus, inputState, value);
+    if (result.status === 'pending' && result.inputState.prefix && value === ' ') {
+      result = commitNemethLocalCode({ document, focus, inputState: result.inputState });
+    }
+    assert.notEqual(result.status, 'rejected', `${value}: ${result.announcement}`);
+    assert.notEqual(result.status, 'choice', `${value}: dot-6 lookahead must be deterministic`);
+    ({ document, focus, inputState } = result);
+  }
+  if (inputState.prefix) {
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    assert.equal(committed.status, 'applied', committed.announcement);
+    ({ document, focus, inputState } = committed);
+  }
+  const tree = parseMathML(document.mathml);
+  const identifiers = tree.children.filter((node) => node.name === 'mi');
+  assert.deepEqual(identifiers.map((node) => node.children[0].text), ['A', 'B', 'C']);
+  assert.equal(tree.children.some((node) => node.name === 'mo' && node.children[0]?.text === ','), false);
+});
+
+test('dot-6 immediately before an explicit space remains punctuation', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠠', ' ']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.deepEqual(tree.children.map((node) => [node.name, node.children[0]?.text ?? '']), [
+    ['mo', ','],
+    ['mspace', '']
+  ]);
+});
+
+test('Rule 17.10.2 triangle after a dollar sign is a shape outside modifier slots', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of sourceNotationToCells('@s$t')) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'choice', `${value}: baseline triangle must not expose a modifier choice`);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const committed = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(committed.status, 'applied', committed.announcement);
+  assert.deepEqual(parseMathML(committed.document.mathml).children.map((node) => node.children[0]?.text), ['$', '△']);
+});
+
+test('a mixed fraction opens after its whole-number atom and focuses its numerator', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of sourceNotationToCells('#6_?4/12_#')) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', `${value}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].children[0].text, '6');
+  assert.equal(tree.children[1].name, 'mfrac');
+  assert.equal(tree.children[1].children[0].children[0].text, '4');
+  assert.equal(tree.children[1].children[1].children[0].text, '12');
+});
+
+test('Rule 17.10.3 multipurpose scope accepts capital identifiers before an over modifier', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of sourceNotationToCells('",a,b<$o]')) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', `${value}: ${result.announcement}`);
+    assert.notEqual(result.status, 'choice', `${value}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.deepEqual(tree.children[0].children[0].children.map((node) => node.children[0].text), ['A', 'B']);
+  assert.equal(tree.children[0].children[1].children[0].text, '→');
+});
+
+test('Rule 17.10.3 repeated lower-cell digits stay numeric in a polygon expression', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of sourceNotationToCells('#1101')) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', `${value}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(parseMathML(document.mathml).children[0].children[0].text, '1101');
+  assert.equal(inputState.mode, 'numeric');
+});
+
+test('Rule 17.10.1 accepts the printed brace alias for the angle-shape cell', () => {
+  assert.deepEqual(sourceNotationToCells('${ #90^.*"'), sourceNotationToCells('$[ #90^.*"'));
 });
 
 test('BANA Rule 15.7 contracted bars compose inside a subscript without widening scope', () => {

@@ -29666,7 +29666,8 @@
       "id": "electron:bana-2022:example-17-1",
       "sourceRows": [
         "example-17-1",
-        "17.1"
+        "17.1",
+        "17.2"
       ],
       "exampleNumber": "17-1",
       "printedPage": null,
@@ -31387,13 +31388,35 @@
       "printedPage": null,
       "pdfPage": 242,
       "sourceNotation": "${ #90^.*\"+${ #120^.*",
-      "cells": null,
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠀",
+        "⠼",
+        "⠔",
+        "⠴",
+        "⠘",
+        "⠨",
+        "⠡",
+        "⠐",
+        "⠬",
+        "⠫",
+        "⠪",
+        "⠀",
+        "⠼",
+        "⠂",
+        "⠆",
+        "⠴",
+        "⠘",
+        "⠨",
+        "⠡"
+      ],
       "expectedWholeBraille": "${ #90^.*\"+${ #120^.*",
       "candidateBrailleLines": [
         "_% ${ #90^.*\"+${ #120^.* _:"
       ],
-      "executable": false,
-      "conversionError": "Unsupported BANA source notation character: {",
+      "executable": true,
+      "conversionError": null,
       "creation": false,
       "editing": false,
       "navigation": false,
