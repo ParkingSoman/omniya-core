@@ -2589,6 +2589,14 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.id.startsWith('fraction.end.')) {
     const kind = mapping.id.split('.').at(-1);
+    // A denominator may contain a new numeric item after an explicit blank
+    // (for example `.../cos #2x#`). At that bounded boundary the immediate
+    // number indicator wins; the final terminator is still handled by the
+    // numeric-mode close below once the lower-cell number is complete.
+    const denominatorBoundary = context.node.name === 'mrow' && context.node.children?.at(-1)?.name === 'mspace';
+    const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+    const trailingBlank = context.node.name === 'mspace' && parent?.name === 'mrow' && parent.children?.at(-1) === context.node;
+    if (denominatorBoundary || trailingBlank) return false;
     return Boolean(fraction && fractionKind === kind && denominatorFocus &&
       (!mapping.id.includes('order3') || fraction.attrs?.['data-omniya-fraction-order'] === '3'));
   }
@@ -2633,7 +2641,12 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'modifier.terminate.simultaneous') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.action === 'close-structure' && mapping.args?.element === 'munderover') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.id === 'indicator.multipurpose') return true;
-  if (mapping.id === 'indicator.number' && fraction) return !contains(context.tree, fraction.children[1], context.node);
+  if (mapping.id === 'indicator.number' && fraction) {
+    if (!contains(context.tree, fraction.children[1], context.node)) return true;
+    const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+    return context.node.name === 'mrow' && context.node.children?.at(-1)?.name === 'mspace' ||
+      context.node.name === 'mspace' && parent?.name === 'mrow' && parent.children?.at(-1) === context.node;
+  }
   if (mapping.action === 'insert-contracted-script-comma') {
     return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
       context.node.name !== 'math' && !isHole(context.node));
@@ -2729,10 +2742,10 @@ const TREE_OPERATIONS = Object.freeze({
     }
     const inserted = atom('mn', args.value, {
       ...(numericVariant ? { mathvariant: numericVariant } : {}),
-      ...(inputState.mode === 'signed-numeric' ? { 'data-omniya-nemeth-intent': 'signed-numeric-indicator' } : {}),
       ...(args.value === '0' && node.attrs?.['data-omniya-nemeth-intent'] === 'hebrew-letter'
         ? { 'data-omniya-nemeth-intent': 'hebrew-subscript-zero' } : {}),
-      ...(args.dataAttributes ?? {})
+      ...(args.dataAttributes ?? {}),
+      ...(['signed-numeric', 'signed-numeric-indicator'].includes(inputState.mode) ? { 'data-omniya-nemeth-intent': 'signed-numeric-indicator' } : {})
     });
     const target = (node.name === 'math' && node.children.length === 0) || isHole(node)
       ? replaceCurrent(tree, focus, inserted)
@@ -3713,7 +3726,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // numeric indicator for the following digit. Resolve it before the shared
   // choice table can treat the same cell as a fraction terminator.
   if (state.mode === 'signed-numeric' && !state.prefix && normalized === '⠼') {
-    return applyMapping(document, focus, state, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
+    const indicator = applyMapping(document, focus, state, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
+    // Keep the signed-number phase through the indicator. The next digit
+    // owns the explicit source intent that distinguishes `−#3` from an
+    // ordinary isolated number; collapsing to generic numeric mode here
+    // loses that bounded provenance before insertion.
+    if (indicator.status === 'pending') {
+      return { ...indicator, inputState: { ...indicator.inputState, mode: 'signed-numeric-indicator' } };
+    }
+    return indicator;
   }
   // A lower-cell numeric run in a fraction numerator ends with the ordinary
   // fraction terminator. Resolve that local structural follow-up before the
@@ -3830,7 +3851,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     context.node.attrs?.['data-omniya-hole'] === 'true' &&
     ancestor(context.tree, context.node, 'mfrac')?.attrs?.['data-omniya-fraction-kind']) {
-    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digitMapping(normalized));
+    const digit = digitMapping(normalized);
+    if (hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+    }
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
   }
   // BANA 6.4.5 permits a lower-cell numeral after a mathematical blank
   // inside a grouped expression without repeating the number indicator. This
@@ -3972,6 +3997,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
     if (DIGITS.has(normalized)) {
       const digit = digitMapping(normalized);
+      // Numeric mode already records the local number indicator (or a script
+      // level that permits a lower-cell digit). Preserve that bounded intent
+      // on every consumed digit so projection never synthesizes a duplicate
+      // number sign after a script opener.
+      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
       // A number sign remains active across a baseline operator, but BANA's
       // following one-cell number is lower-cell. Preserve that distinction in
       // the source intent so MathJax cannot reintroduce a second number sign.
@@ -4025,6 +4055,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode?.startsWith?.('numeric') && state.prefix === '⠸' && normalized === '⠲') {
     const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.period');
     if (punctuation) return applyMapping(document, focus, { ...state, prefix: '', mode: null }, punctuation);
+  }
+  if (state.mode === 'signed-numeric-indicator' && !state.prefix) {
+    if (DIGITS.has(normalized)) {
+      return applyMapping(document, focus, { ...state, mode: 'signed-numeric-indicator' }, digitMapping(normalized));
+    }
+    if (normalized === '⠨') return applyMapping(document, focus, { ...state, mode: 'numeric' }, numericPunctuationMapping(normalized, '.', '3.2.3'));
   }
   if (state.mode === 'signed-numeric' && !state.prefix) {
     if (DIGITS.has(normalized)) {
