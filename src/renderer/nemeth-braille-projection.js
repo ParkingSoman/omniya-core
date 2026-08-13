@@ -1316,6 +1316,19 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/(⠫⠅⠨⠻)⠐?⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/g, '$1');
   }
   const finalize = (value) => {
+    const englishCells = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="english-letter"][data-omniya-nemeth-cells]')]
+      .map((node) => node.getAttribute('data-omniya-nemeth-cells')).filter(Boolean);
+    let englishCursor = 0;
+    for (const sequence of englishCells) {
+      const base = sequence.at(-1);
+      const index = value.indexOf(base, englishCursor);
+      if (index < 0) continue;
+      const prefix = sequence.slice(0, -1);
+      if (value.slice(Math.max(0, index - prefix.length), index) !== prefix) {
+        value = `${value.slice(0, index)}${sequence}${value.slice(index + base.length)}`;
+      }
+      englishCursor = index + sequence.length;
+    }
     if (sourceMath.querySelector?.('[data-omniya-shape-kind="keystroke"]')) {
       value = value.replace(/(⠫⠅⠨⠻)⠐?⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/g, '$1');
     }
