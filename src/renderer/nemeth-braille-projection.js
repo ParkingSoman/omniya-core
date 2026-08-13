@@ -1316,6 +1316,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/(⠫⠅⠨⠻)⠐?⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/g, '$1');
   }
   const finalize = (value) => {
+    const degreeWithFollowingNumber = sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠘⠨⠡"]') &&
+      [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="lower-cell-numeric"]')].some((node) =>
+        String(node.textContent ?? '').trim() === '20' && node.parentElement?.localName !== 'msup');
+    if (degreeWithFollowingNumber && !value.includes('⠘⠨⠡⠐⠆⠴')) {
+      value = value.replace('⠘⠨⠡⠆⠴', '⠘⠨⠡⠐⠆⠴');
+    }
     const englishCells = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="english-letter"][data-omniya-nemeth-cells]')]
       .map((node) => node.getAttribute('data-omniya-nemeth-cells')).filter(Boolean);
     let englishCursor = 0;

@@ -2616,7 +2616,8 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'script.subscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
   if (mapping.id === 'script.left-subscript') return context.node.name === 'math' || isHole(context.node);
   if (mapping.id === 'cancellation.end') return Boolean(hasAncestor(context.tree, context.node, 'menclose'));
-  if (mapping.id === 'script.baseline') return Boolean(hasAncestor(context.tree, context.node, 'msup') || hasAncestor(context.tree, context.node, 'msub') || hasAncestor(context.tree, context.node, 'msubsup') || hasAncestor(context.tree, context.node, 'mover') || hasAncestor(context.tree, context.node, 'munder') || hasAncestor(context.tree, context.node, 'munderover'));
+  if (mapping.id === 'script.baseline') return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover']) ||
+    (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-cells'] === '⠘⠨⠡'));
   if (mapping.action === 'simultaneous-modifier') {
     const container = hasAncestor(context.tree, context.node, ['mover', 'munder']);
     return Boolean(container && container.name !== 'munderover');
@@ -3035,6 +3036,9 @@ export function applyNemethChoice({ document, focus, inputState = { prefix: '', 
   // same bounded transition loop used after a short code is selected from a
   // shared prefix, never an arbitrary-expression parser.
   let next = applied;
+  if (mapping.id === 'script.baseline' && DIGITS.has([...prefix.slice(mappingPrefix.length)][0])) {
+    next = { ...next, inputState: { ...next.inputState, mode: 'numeric' } };
+  }
   // The UI presents a complete shared prefix as the choice target. Once the
   // author selects the shorter punctuation/capital meaning, the unmatched
   // suffix is still part of the same local code and must be replayed through
@@ -3625,6 +3629,13 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
       if (returned.status !== 'rejected') return { ...returned, inputState: { ...returned.inputState, mode: null } };
     }
+  }
+  // A selected baseline-return indicator has already moved focus to the
+  // surrounding row. Consume the immediately following local cell there;
+  // retaining `baseline` would leave the numeric operand rejected and drop
+  // the authored `⠐⠆⠴` continuation.
+  if (state.mode === 'baseline' && !state.prefix) {
+    return applyNemethCell({ document, focus, inputState: { ...state, mode: null }, cell: normalized });
   }
 
   // Give a registered atomic construction priority over a structural
