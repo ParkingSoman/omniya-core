@@ -597,6 +597,10 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     }
     elements['replacement-choices'].replaceChildren();
     elements['replacement-choices'].hidden = true;
+    // The selected operation consumes the entire bounded local prefix. Clear
+    // the visible one-cell proxy before the next physical key can arrive; a
+    // stale prefix here would be re-fed and duplicate the next local code.
+    editor.value = '';
     elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
     await renderDraftPreview();
     editor.focus();
