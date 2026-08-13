@@ -92,6 +92,17 @@ export function applyNemethCell(session, cell) {
   return { ...result, session: next };
 }
 
+export function applyNemethBoundary(session, boundary = 'space') {
+  if (boundary !== 'space') throw new Error('Unknown Nemeth boundary');
+  let current = session;
+  if (current.nemethState?.prefix) {
+    const committed = commitNemethLocalCode(current);
+    if (committed.status !== 'applied') return committed;
+    current = committed.session;
+  }
+  return applyNemethCell(current, ' ');
+}
+
 export function applyNemethChoice(session, operationId) {
   if (session.method !== 'nemeth') throw new Error('The replacement session is not in Nemeth mode.');
   const result = applyDraftNemethChoice({
