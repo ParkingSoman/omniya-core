@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-3-17",
+      "sourceRows": [
+        "example-3-17",
+        "3.3.1"
+      ],
+      "creation": true,
+      "editing": true,
+      "navigation": true,
+      "wholeBraille": true,
+      "focusedBraille": true,
+      "undoRedo": true,
+      "persistence": true,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/private/tmp/bana-rule3-17-controlled-1786659490/screenshots/electron_bana-2022_example-3-17-input.png",
+        "claim": "The final Nemeth cell is visible in the bounded replacement control before the replacement is submitted; the original equation is still unchanged."
+      },
+      "creationWholeBraille": "⠽⠀⠨⠅⠀⠹⠎⠊⠝⠘⠆⠀⠭⠌⠉⠕⠎⠀⠼⠆⠭⠼",
+      "creationMathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-7cb6c1fb-464c-442e-98b4-c09df3c9a3e2\" data-semantic-type=\"relseq\" data-semantic-role=\"equality\" data-semantic-annotation=\"depth:1\" data-semantic-id=\"23\" data-semantic-children=\"20,22\" data-semantic-content=\"2\" data-semantic-owns=\"20 2 22\" data-semantic-level-number=\"0\" data-speech-node=\"true\" data-semantic-structure=\"(23 (20 0 19 1) 2 (22 3 21 (18 (11 4 (10 5 6 7)) (17 12 13 14))))\"><mrow data-semantic-added=\"true\" data-semantic-type=\"infixop\" data-semantic-role=\"implicit\" data-semantic-annotation=\"clearspeak:unit;depth:2\" data-semantic-=\"\" data-semantic-children=\"0,1\" data-semantic-content=\"19\" data-semantic-parent=\"23\" data-semantic-owns=\"0 19 1\" data-semantic-level-number=\"1\" data-speech-node=\"true\"><mi data-omniya-nemeth-cells=\"⠽\" data-omniya-=\"\" id=\"omniya-source-omniya-790068e9-6b6c-45f4-a104-ea3a19fb8537\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:3\" data-semantic-id=\"0\" data-semantic-parent=\"20\" data-semantic-level-number=\"2\" data-speech-node=\"true\">y</mi><mo data-semantic-type=\"operator\" data-semantic-role=\"multiplication\" data-semantic-annotation=\"depth:3\" data-semantic-=\"\" data-semantic-parent=\"20\" data-semantic-added=\"true\" data-semantic-operator=\"infixop,⁢\" data-semantic-level-number=\"2\" data-speech-node=\"true\">⁢</mo><mspace width=\"1em\" data-omniya-nemeth-intent=\"explicit-space\" data-omniya-=\"\" id=\"omniya-source-omniya-3ddd775d-8bbb-4283-ad6f-53a34bf5464b\" data-semantic-type=\"text\" data-semantic-role=\"space\" data-semantic-annotation=\"factor:relation;clearspeak:unit;depth:3\" data-semantic-id=\"1\" data-semantic-parent=\"20\" data-semantic-level-number=\"2\" data-speech-node=\"true\"></mspace></mrow><mo data-omniya-nemeth-cells=\"⠨⠅\" data-omniya-=\"\" id=\"omniya-source-omniya-15e674f9-4c6f-4440-9b0d-e39f84f53543\" data-semantic-type=\"relation\" data-semantic-role=\"equality\" data-semantic-annotation=\"nemeth:number;depth:2\" data-semantic-id=\"2\" data-semantic-parent=\"23\" data-semantic-operator=\"relseq,=\" data-semantic-level-number=\"1\" data-speech-node=\"true\">=</mo><mrow data-semantic-added=\"true\" data-semantic-type=\"infixop\" data-semantic-role=\"implicit\" data-semantic-annotation=\"clearspeak:unit;depth:2\" data-semantic-=\"\" data-semantic-children=\"3,18\" data-semantic-content=\"21\" data-semantic-parent=\"23\" data-semantic-owns=\"3 21 18\" data-semantic-level-number=\"1\" data-speech-node=\"true\"><mspace width=\"1em\" data-omniya-nemeth-intent=\"explicit-space\" data-omniya-=\"\" id=\"omniya-source-omniya-7ce6047a-d196-4f44-8b1c-476ca760fabe\" data-semantic-type=\"text\" data-semantic-role=\"space\" data-semantic-annotation=\"factor:relation;clearspeak:unit;nemeth:number;depth:3\" data-semantic-id=\"3\" data-semantic-parent=\"22\" data-semantic-level-number=\"2\" data-speech-node=\"true\"></mspace><mo data-semantic-type=\"operator\" data-semantic-role=\"multiplication\" data-semantic-annotation=\"depth:3\" data-semantic-=\"\" data-semantic-parent=\"22\" data-semantic-added=\"true\" data-semantic-operator=\"infixop,⁢\" data-semantic-level-number=\"2\" data-speech-node=\"true\">⁢</mo><mfrac data-omniya-fraction-kind=\"simple\" data-omniya-=\"\" bevelled=\"false\" id=\"omniya-source-omniya-604ddde7-7c7d-42b3-800f-da5bb55b1afe\" data-semantic-type=\"fraction\" data-semantic-role=\"division\" data-semantic-annotation=\"depth:3\" data-semantic-id=\"18\" data-semantic-children=\"11,17\" data-semantic-parent=\"22\" data-semantic-owns=\"11 17\" data-semantic-level-number=\"2\" data-speech-node=\"true\"><msup data-omniya-=\"\" id=\"omniya-source-omniya-4fdb8f55-1816-4337-8bca-eb6ddd475eb1\" data-semantic-type=\"superscript\" data-semantic-role=\"prefix function\" data-semantic-annotation=\"depth:4\" data-semantic-id=\"11\" data-semantic-children=\"4,10\" data-semantic-parent=\"18\" data-semantic-owns=\"4 10\" data-semantic-level-number=\"3\" data-speech-node=\"true\"><mi data-omniya-nemeth-intent=\"function-name\" data-omniya-nemeth-cells=\"⠎⠊⠝\" data-omniya-=\"\" id=\"omniya-source-omniya-5a81fe45-fcd2-49c5-ba55-6432d8ed4f0c\" data-semantic-type=\"function\" data-semantic-role=\"prefix function\" data-semantic-font=\"normal\" data-semantic-annotation=\"depth:5\" data-semantic-id=\"4\" data-semantic-parent=\"11\" data-semantic-level-number=\"4\" data-speech-node=\"true\">sin</mi><mrow data-omniya-=\"\" id=\"omniya-source-omniya-6600a86a-b782-49fa-8101-bc9b2f441ea3\" data-semantic-type=\"punctuated\" data-semantic-role=\"text\" data-semantic-annotation=\"depth:5\" data-semantic-id=\"10\" data-semantic-children=\"5,6,7\" data-semantic-parent=\"11\" data-semantic-collapsed=\"(10 (c 8 9) 5 6 7)\" data-semantic-owns=\"5 6 7\" data-semantic-level-number=\"4\" data-speech-node=\"true\"><mn data-omniya-nemeth-intent=\"lower-cell-numeric\" data-omniya-=\"\" id=\"omniya-source-omniya-53b63cf7-8f75-4bf5-bf3d-5fcce80d78a1\" data-semantic-type=\"number\" data-semantic-role=\"integer\" data-semantic-font=\"normal\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:6\" data-semantic-id=\"5\" data-semantic-parent=\"10\" data-semantic-level-number=\"5\" data-speech-node=\"true\">2</mn><mspace width=\"1em\" data-omniya-nemeth-intent=\"explicit-space\" data-omniya-=\"\" id=\"omniya-source-omniya-c8e9b1dd-2817-4e7f-9c00-9d0e78feff65\" data-semantic-type=\"text\" data-semantic-role=\"space\" data-semantic-annotation=\"clearspeak:unit;nemeth:number;depth:6\" data-semantic-id=\"6\" data-semantic-parent=\"10\" data-semantic-level-number=\"5\" data-speech-node=\"true\"></mspace><mi data-omniya-=\"\" id=\"omniya-source-omniya-68067833-d0dc-400e-a57f-0bb332e3862c\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:6\" data-semantic-id=\"7\" data-semantic-parent=\"10\" data-semantic-level-number=\"5\" data-speech-node=\"true\">x</mi></mrow></msup><mrow data-omniya-=\"\" id=\"omniya-source-omniya-be510b29-5ddf-4be1-ad4b-0d8a8f720902\" data-semantic-type=\"punctuated\" data-semantic-role=\"text\" data-semantic-annotation=\"depth:4\" data-semantic-id=\"17\" data-semantic-children=\"12,13,14\" data-semantic-parent=\"18\" data-semantic-collapsed=\"(17 (c 15 16) 12 13 14)\" data-semantic-owns=\"12 13 14\" data-semantic-level-number=\"3\" data-speech-node=\"true\"><mi data-omniya-nemeth-intent=\"function-name\" data-omniya-nemeth-cells=\"⠉⠕⠎\" data-omniya-=\"\" id=\"omniya-source-omniya-de847a62-becc-4a3c-a736-0ba499bfa03c\" data-semantic-type=\"function\" data-semantic-role=\"prefix function\" data-semantic-font=\"normal\" data-semantic-annotation=\"nemeth:number;depth:5\" data-semantic-id=\"12\" data-semantic-parent=\"17\" data-semantic-level-number=\"4\" data-speech-node=\"true\">cos</mi><mspace width=\"1em\" data-omniya-nemeth-intent=\"explicit-space\" data-omniya-=\"\" id=\"omniya-source-omniya-ecc9ace6-4900-483e-96c8-76a55de99a26\" data-semantic-type=\"text\" data-semantic-role=\"space\" data-semantic-annotation=\"clearspeak:unit;nemeth:number;depth:5\" data-semantic-id=\"13\" data-semantic-parent=\"17\" data-semantic-level-number=\"4\" data-speech-node=\"true\"></mspace><mn data-omniya-nemeth-intent=\"lower-cell-numeric\" data-omniya-=\"\" id=\"omniya-source-omniya-f6446ae7-10f1-488f-aeb3-f2a43dfe1f04\" data-semantic-type=\"number\" data-semantic-role=\"othernumber\" data-semantic-font=\"normal\" data-semantic-annotation=\"nemeth:number;depth:5\" data-semantic-id=\"14\" data-semantic-parent=\"17\" data-semantic-level-number=\"4\" data-speech-node=\"true\">2x</mn></mrow></mfrac></mrow></math>",
+      "visualCreation": {
+        "phase": "committed",
+        "geometry": {
+          "mathJaxContainers": 1,
+          "sourceMathRoots": 1,
+          "sourceElementChildren": 3,
+          "visualSpaces": [
+            {
+              "width": 0,
+              "computedWidth": "0px"
+            },
+            {
+              "width": 0,
+              "computedWidth": "0px"
+            },
+            {
+              "width": 0,
+              "computedWidth": "0px"
+            },
+            {
+              "width": 0,
+              "computedWidth": "0px"
+            }
+          ],
+          "containerWidth": 77.21875,
+          "containerHeight": 22.5
+        },
+        "claim": "Committed whole expression is rendered as one source MathML tree with no visible source blanks.",
+        "screenshotPath": "/private/tmp/bana-rule3-17-controlled-1786659490/screenshots/electron_bana-2022_example-3-17-committed.png"
+      },
+      "expectedPersistedBraille": "⠵",
+      "replacementWholeBraille": "⠵",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-7cb6c1fb-464c-442e-98b4-c09df3c9a3e2\" data-semantic-structure=\"0\"><mi data-omniya-nemeth-cells=\"⠵\" data-omniya-=\"\" id=\"omniya-source-omniya-80df6f9d-cd40-44cf-95c7-8a3081e82aef\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">z</mi></math>",
+      "visualEditing": {
+        "phase": "editing",
+        "geometry": {
+          "mathJaxContainers": 1,
+          "sourceMathRoots": 1,
+          "sourceElementChildren": 1,
+          "visualSpaces": [],
+          "containerWidth": 8.890625,
+          "containerHeight": 22.5
+        },
+        "claim": "The exact replacement is rendered while the surrounding expression remains present.",
+        "screenshotPath": "/private/tmp/bana-rule3-17-controlled-1786659490/screenshots/electron_bana-2022_example-3-17-editing.png"
+      },
+      "visualFocused": {
+        "phase": "focused",
+        "screenshotPath": "/private/tmp/bana-rule3-17-controlled-1786659490/screenshots/electron_bana-2022_example-3-17-focused.png",
+        "claim": "MathJax Explorer has selected the exact scope immediately before E; this image is the navigation-to-edit handoff."
+      }
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-13T22:03:51.465Z",
+  "filter": {
+    "rule": "3",
+    "example": "3-15"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-85no1o",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-3-15",
+      "sourceRows": [
+        "example-3-15",
+        "3.3.1"
+      ],
+      "creation": true,
+      "editing": true,
+      "navigation": true,
+      "wholeBraille": true,
+      "focusedBraille": true,
+      "undoRedo": true,
+      "persistence": true,
+      "visualInput": null,
+      "creationWholeBraille": "⠽⠀⠨⠅⠀⠼⠆⠎⠊⠝⠀⠭",
+      "creationMathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-7a5f29bc-94a2-46c7-af88-d16fb6b5b90d\" data-semantic-type=\"punctuated\" data-semantic-role=\"text\" data-semantic-annotation=\"depth:1\" data-semantic-id=\"16\" data-semantic-children=\"13,6,7\" data-semantic-collapsed=\"(16 (c 14 15) 13 6 7)\" data-semantic-owns=\"13 6 7\" data-semantic-level-number=\"0\" data-speech-node=\"true\" data-semantic-structure=\"(16 (13 (9 0 8 1) 2 (12 3 10 4 11 5)) 6 7)\"><mrow data-semantic-added=\"true\" data-semantic-type=\"relseq\" data-semantic-role=\"equality\" data-semantic-annotation=\"depth:2\" data-semantic-=\"\" data-semantic-children=\"9,12\" data-semantic-content=\"2\" data-semantic-parent=\"16\" data-semantic-owns=\"9 2 12\" data-semantic-level-number=\"1\" data-speech-node=\"true\"><mrow data-semantic-added=\"true\" data-semantic-type=\"infixop\" data-semantic-role=\"implicit\" data-semantic-annotation=\"clearspeak:unit;depth:3\" data-semantic-=\"\" data-semantic-children=\"0,1\" data-semantic-content=\"8\" data-semantic-parent=\"13\" data-semantic-owns=\"0 8 1\" data-semantic-level-number=\"2\" data-speech-node=\"true\"><mi data-omniya-nemeth-cells=\"⠽\" data-omniya-=\"\" id=\"omniya-source-omniya-00fe573f-cc14-4163-9083-882e2e5dd7b7\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:4\" data-semantic-id=\"0\" data-semantic-parent=\"9\" data-semantic-level-number=\"3\" data-speech-node=\"true\">y</mi><mo data-semantic-type=\"operator\" data-semantic-role=\"multiplication\" data-semantic-annotation=\"depth:4\" data-semantic-=\"\" data-semantic-parent=\"9\" data-semantic-added=\"true\" data-semantic-operator=\"infixop,⁢\" data-semantic-level-number=\"3\" data-speech-node=\"true\">⁢</mo><mspace width=\"1em\" data-omniya-nemeth-intent=\"explicit-space\" data-omniya-=\"\" id=\"omniya-source-omniya-54fccc10-dcb6-48a7-a4b0-010b29c7cb3d\" data-semantic-type=\"text\" data-semantic-role=\"space\" data-semantic-annotation=\"factor:relation;clearspeak:unit;depth:4\" data-semantic-id=\"1\" data-semantic-parent=\"9\" data-semantic-level-number=\"3\" data-speech-node=\"true\"></mspace></mrow><mo data-omniya-nemeth-cells=\"⠨⠅\" data-omniya-=\"\" id=\"omniya-source-omniya-f86df25e-321f-4dea-9cfe-352ecada36c1\" data-semantic-type=\"relation\" data-semantic-role=\"equality\" data-semantic-annotation=\"nemeth:number;depth:3\" data-semantic-id=\"2\" data-semantic-parent=\"13\" data-semantic-operator=\"relseq,=\" data-semantic-level-number=\"2\" data-speech-node=\"true\">=</mo><mrow data-semantic-added=\"true\" data-semantic-type=\"infixop\" data-semantic-role=\"implicit\" data-semantic-annotation=\"clearspeak:unit;depth:3\" data-semantic-=\"\" data-semantic-children=\"3,4,5\" data-semantic-content=\"10,11\" data-semantic-parent=\"13\" data-semantic-owns=\"3 10 4 11 5\" data-semantic-level-number=\"2\" data-speech-node=\"true\"><mspace width=\"1em\" data-omniya-nemeth-intent=\"explicit-space\" data-omniya-=\"\" id=\"omniya-source-omniya-beee9023-9471-4d2a-9f87-05eb14d7d5a4\" data-semantic-type=\"text\" data-semantic-role=\"space\" data-semantic-annotation=\"factor:relation;clearspeak:unit;nemeth:number;depth:4\" data-semantic-id=\"3\" data-semantic-parent=\"12\" data-semantic-level-number=\"3\" data-speech-node=\"true\"></mspace><mo data-semantic-type=\"operator\" data-semantic-role=\"multiplication\" data-semantic-annotation=\"depth:4\" data-semantic-=\"\" data-semantic-parent=\"12\" data-semantic-added=\"true\" data-semantic-operator=\"infixop,⁢\" data-semantic-level-number=\"3\" data-speech-node=\"true\">⁢</mo><mn data-omniya-nemeth-intent=\"numeric-start\" data-omniya-=\"\" id=\"omniya-source-omniya-a8aa224a-76a9-43da-9744-5fa67ad62e56\" data-semantic-type=\"number\" data-semantic-role=\"integer\" data-semantic-font=\"normal\" data-semantic-annotation=\"clearspeak:simple;depth:4\" data-semantic-id=\"4\" data-semantic-parent=\"12\" data-semantic-level-number=\"3\" data-speech-node=\"true\">2</mn><mo data-semantic-type=\"operator\" data-semantic-role=\"multiplication\" data-semantic-annotation=\"depth:4\" data-semantic-=\"\" data-semantic-parent=\"12\" data-semantic-added=\"true\" data-semantic-operator=\"infixop,⁢\" data-semantic-level-number=\"3\" data-speech-node=\"true\">⁢</mo><mi data-omniya-nemeth-intent=\"function-name\" data-omniya-nemeth-cells=\"⠎⠊⠝\" data-omniya-=\"\" id=\"omniya-source-omniya-6b3f0b66-03ea-48d0-931e-153bb85e9f8c\" data-semantic-type=\"function\" data-semantic-role=\"prefix function\" data-semantic-font=\"normal\" data-semantic-annotation=\"depth:4\" data-semantic-id=\"5\" data-semantic-parent=\"12\" data-semantic-level-number=\"3\" data-speech-node=\"true\">sin</mi></mrow></mrow><mspace width=\"1em\" data-omniya-nemeth-intent=\"explicit-space\" data-omniya-=\"\" id=\"omniya-source-omniya-876091e0-1f7d-4f04-9550-9bd855554907\" data-semantic-type=\"text\" data-semantic-role=\"space\" data-semantic-annotation=\"clearspeak:unit;nemeth:number;depth:2\" data-semantic-id=\"6\" data-semantic-parent=\"16\" data-semantic-level-number=\"1\" data-speech-node=\"true\"></mspace><mi data-omniya-nemeth-cells=\"⠭\" data-omniya-=\"\" id=\"omniya-source-omniya-288be472-52a2-477d-aa23-aa18fbbfcf16\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:2\" data-semantic-id=\"7\" data-semantic-parent=\"16\" data-semantic-level-number=\"1\" data-speech-node=\"true\">x</mi></math>",
+      "visualCreation": {
+        "phase": "committed",
+        "geometry": {
+          "mathJaxContainers": 1,
+          "sourceMathRoots": 1,
+          "sourceElementChildren": 3,
+          "visualSpaces": [
+            {
+              "width": 0,
+              "computedWidth": "0px"
+            },
+            {
+              "width": 0,
+              "computedWidth": "0px"
+            },
+            {
+              "width": 0,
+              "computedWidth": "0px"
+            }
+          ],
+          "containerWidth": 84.921875,
+          "containerHeight": 22.5
+        },
+        "claim": "Committed whole expression is rendered as one source MathML tree with no visible source blanks."
+      },
+      "expectedPersistedBraille": "⠵",
+      "replacementWholeBraille": "⠵",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-7a5f29bc-94a2-46c7-af88-d16fb6b5b90d\" data-semantic-structure=\"0\"><mi data-omniya-nemeth-cells=\"⠵\" data-omniya-=\"\" id=\"omniya-source-omniya-bf9b11d6-9047-4319-9d6a-bb0f493b6127\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">z</mi></math>",
+      "visualEditing": {
+        "phase": "editing",
+        "geometry": {
+          "mathJaxContainers": 1,
+          "sourceMathRoots": 1,
+          "sourceElementChildren": 1,
+          "visualSpaces": [],
+          "containerWidth": 8.890625,
+          "containerHeight": 22.5
+        },
+        "claim": "The exact replacement is rendered while the surrounding expression remains present."
+      },
+      "visualFocused": null
+    }
+  ]
+}

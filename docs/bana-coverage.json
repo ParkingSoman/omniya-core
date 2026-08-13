@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 34,
     "mappedRows": 997,
-    "electronCreationRows": 34,
-    "electronEditingRows": 32,
+    "electronCreationRows": 53,
+    "electronEditingRows": 51,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -885,9 +885,18 @@
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-2",
+        "electron:bana-2022:example-3-3"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-2",
+        "electron:bana-2022:example-3-3"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-2",
+        "electron:bana-2022:example-3-3"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
@@ -921,20 +930,26 @@
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-2"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-2"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-2"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -971,20 +986,26 @@
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-3"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-3"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-3"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1021,9 +1042,15 @@
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-4"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-4"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-4"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
@@ -1057,20 +1084,26 @@
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-4"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-4"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-4"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1112,13 +1145,31 @@
         "registry:omission.decimal-long-dash"
       ],
       "electronCreationCaseIds": [
-        "bana-e2e:rule3-decimals"
+        "bana-e2e:rule3-decimals",
+        "electron:bana-2022:example-3-5",
+        "electron:bana-2022:example-3-6",
+        "electron:bana-2022:example-3-7",
+        "electron:bana-2022:example-3-8",
+        "electron:bana-2022:example-3-9",
+        "electron:bana-2022:example-3-10"
       ],
       "electronEditingCaseIds": [
-        "bana-e2e:rule3-decimals"
+        "bana-e2e:rule3-decimals",
+        "electron:bana-2022:example-3-5",
+        "electron:bana-2022:example-3-6",
+        "electron:bana-2022:example-3-7",
+        "electron:bana-2022:example-3-8",
+        "electron:bana-2022:example-3-9",
+        "electron:bana-2022:example-3-10"
       ],
       "navigationCaseIds": [
-        "bana-e2e:rule3-decimals"
+        "bana-e2e:rule3-decimals",
+        "electron:bana-2022:example-3-5",
+        "electron:bana-2022:example-3-6",
+        "electron:bana-2022:example-3-7",
+        "electron:bana-2022:example-3-8",
+        "electron:bana-2022:example-3-9",
+        "electron:bana-2022:example-3-10"
       ],
       "errataRefs": [],
       "verified": {
@@ -1129,8 +1180,8 @@
         "navigation": true,
         "wholeBraille": true,
         "focusedBraille": true,
-        "undoRedo": false,
-        "persistence": false,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1157,20 +1208,26 @@
       "unitCaseIds": [
         "registry:omission.decimal-long-dash"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-5"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-5"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-5"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1211,20 +1268,26 @@
       "unitCaseIds": [
         "registry:omission.decimal-long-dash"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-6"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-6"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-6"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1265,20 +1328,26 @@
       "unitCaseIds": [
         "registry:omission.decimal-long-dash"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-7"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-7"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-7"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1319,20 +1388,26 @@
       "unitCaseIds": [
         "registry:omission.decimal-long-dash"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-8"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-8"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-8"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1373,20 +1448,26 @@
       "unitCaseIds": [
         "registry:omission.decimal-long-dash"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-9"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-9"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-9"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1427,20 +1508,26 @@
       "unitCaseIds": [
         "registry:omission.decimal-long-dash"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-10"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-10"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-10"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1517,20 +1604,44 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-11",
+        "electron:bana-2022:example-3-12",
+        "electron:bana-2022:example-3-13",
+        "electron:bana-2022:example-3-14",
+        "electron:bana-2022:example-3-15",
+        "electron:bana-2022:example-3-16",
+        "electron:bana-2022:example-3-17"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-11",
+        "electron:bana-2022:example-3-12",
+        "electron:bana-2022:example-3-13",
+        "electron:bana-2022:example-3-14",
+        "electron:bana-2022:example-3-15",
+        "electron:bana-2022:example-3-16",
+        "electron:bana-2022:example-3-17"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-11",
+        "electron:bana-2022:example-3-12",
+        "electron:bana-2022:example-3-13",
+        "electron:bana-2022:example-3-14",
+        "electron:bana-2022:example-3-15",
+        "electron:bana-2022:example-3-16",
+        "electron:bana-2022:example-3-17"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1556,20 +1667,26 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-11"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-11"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-11"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1609,20 +1726,26 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-12"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-12"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-12"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1662,20 +1785,26 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-13"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-13"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-13"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1715,20 +1844,26 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-14"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-14"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-14"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1768,20 +1903,26 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-15"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-15"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-15"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1821,20 +1962,26 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-16"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-16"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-16"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
@@ -1875,20 +2022,26 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-17"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-17"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-17"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
         "visualEvidence": false
       },
