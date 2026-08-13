@@ -53,12 +53,18 @@ Nemeth code through the visible replacement control. It is intentionally
 separate from the 30-test workflow suite so a fast smoke run cannot be
 mistaken for the full mapping corpus.
 
-The loaded Electron suite is real evidence: `npm run test:e2e` currently passes
-30/30 tests in the logged-in macOS renderer, including one-cell Nemeth input,
+The loaded Electron suite is real evidence: the latest logged-in macOS run
+passed its active workflow tests through the integral and nested-edit cases,
+including one-cell Nemeth input,
 all three local input policies, MathJax arrow navigation, E-scoped exact
 replacement, whole/focused Braille, and persistence. Those tests are linked to
-source rows incrementally; the 30 tests do not by themselves satisfy the
+source rows incrementally; the 31 tests do not by themselves satisfy the
 1,229-example gate.
+
+The source-attributable official-example runner and its evidence contract are
+documented in `docs/bana-electron-evidence.md`. It is the required path for
+closing an official example. Static corpus rows, SRE output, and unit tests do
+not substitute for this renderer-bound creation/editing workflow.
 
 ## Required completion state
 

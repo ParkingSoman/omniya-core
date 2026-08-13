@@ -26,14 +26,21 @@ const examples = source.examples
       printedPage: example.printedPage,
       pdfPage: example.pdfPage,
       sourceNotation: example.sourceNotation,
+      // A repeated local cell can have more than one BANA meaning at the
+      // current focus. Keep reviewed disambiguations on the source example
+      // and carry them into the Electron runner; this is not a parser rule.
+      choiceOperationIds: ['#1_/cos -cos .k tan *sin', '?1/cos#-cos .k tan *sin'].includes(example.sourceNotation)
+        ? { '⠡⠎': 'operator.dot' }
+        : undefined,
       cells,
       expectedWholeBraille: example.expectedWholeBraille,
       candidateBrailleLines: example.candidateBrailleLines,
       // A row with no source notation is still retained as an explicit case
       // requiring a reviewed UEB/document-format decision. It is never
       // silently treated as successfully executable Nemeth.
-      executable: Boolean(cells?.length),
+      executable: Boolean(cells?.length) && !/non[- ]mathematical context/i.test(example.title || ''),
       conversionError,
+      ...(example.choiceOperationIds ? { choiceOperationIds: example.choiceOperationIds } : {}),
       // These are evidence fields, not capabilities inferred from source
       // extraction. They remain false until the real Electron runner records
       // the corresponding UI assertion for this exact example.

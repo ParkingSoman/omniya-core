@@ -16,8 +16,8 @@ const missing = rows.filter((row) => {
 const incompleteEvidence = rows.filter((row) => {
   if (approvedExclusions.has(row.disposition)) return false;
   if (row.disposition !== 'implemented-operation' && row.disposition !== 'implemented-context-policy') return false;
-  if (row.disposition === 'implemented-context-policy') return row.verified?.source !== true || row.verified?.implementation !== true || row.verified?.contextPolicy !== true;
-  return evidenceFields.some((field) => row.verified?.[field] !== true);
+  if (row.evidenceScope === 'source-policy' || row.disposition === 'implemented-context-policy') return row.verified?.source !== true || row.verified?.implementation !== true || row.verified?.contextPolicy !== true;
+  return ['visualEvidence', ...evidenceFields].some((field) => row.verified?.[field] !== true);
 });
 const badExclusions = rows.filter((row) => row.disposition.startsWith('excluded-') && !approvedExclusions.has(row.disposition));
 const pendingReview = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.transcriberReview !== 'reviewed');

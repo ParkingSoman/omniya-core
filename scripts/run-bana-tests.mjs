@@ -18,5 +18,10 @@ const [command, commandArgs] = commands[kind];
 // The current test files are data-driven and use the shard variable to skip
 // unrelated rule cases. Keep the filtering contract explicit even before all
 // per-rule Electron corpus files are split out.
-const child = spawn(command, [...commandArgs, ...filtered], { stdio: 'inherit', shell: true, env: { ...process.env, ...(rule ? { BANA_RULE: rule } : {}) } });
+const environment = {
+  ...process.env,
+  ...(rule ? { BANA_RULE: rule } : {}),
+  ...(kind === 'electron' ? { BANA_ELECTRON_OFFICIAL: process.env.BANA_ELECTRON_OFFICIAL ?? '1' } : {})
+};
+const child = spawn(command, [...commandArgs, ...filtered], { stdio: 'inherit', shell: true, env: environment });
 child.on('exit', (code, signal) => process.exitCode = signal ? 1 : (code ?? 1));

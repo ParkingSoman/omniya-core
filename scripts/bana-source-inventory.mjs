@@ -97,9 +97,15 @@ for (let index = bodyStart; index >= 0 && index < (bodyEnd > 0 ? bodyEnd : sourc
   match = line.match(/^Example\s+(\d{1,2}-\d+)(?::\s*(.*))?/i);
   if (match) {
     const rule = match[1].split('-')[0];
+    const title = match[2] || `Example ${match[1]}`;
+    // A literary/non-mathematical example demonstrates passage-level
+    // transcription, not an equation-tree construction. Keep it in the
+    // sequential ledger, but classify it under the approved document-format
+    // exclusion instead of manufacturing an Electron equation case.
+    const nonMathematicalContext = /non[- ]mathematical context/i.test(title);
     add({ id: `bana-2022:example-${match[1]}`, kind: 'example', parentId: currentProvision ? `bana-2022:${currentProvision}` : `bana-2022:rule-${rule}`,
-      title: match[2] || `Example ${match[1]}`, pdfPage: pageStarts[index], printedPage: printedPages[index] ?? null,
-      disposition: Number(rule) >= 26 ? 'excluded-document-format' : Number(rule) === 25 ? 'excluded-spatial' : 'unclassified' });
+      title, pdfPage: pageStarts[index], printedPage: printedPages[index] ?? null,
+      disposition: nonMathematicalContext || Number(rule) >= 26 ? 'excluded-document-format' : Number(rule) === 25 ? 'excluded-spatial' : 'unclassified' });
   }
 }
 

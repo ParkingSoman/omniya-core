@@ -83,6 +83,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .item-content math { font-size: 1.15rem; }
 .item-content math:focus { outline: 0.18rem solid var(--accent); outline-offset: 0.2rem; }
 .item-content mjx-container { font-size: 1.15rem; }
+/* Nemeth blanks are retained as explicit source <mspace> nodes so the
+   accessibility projection can reproduce the authored blank cell. MathJax
+   otherwise gives each one a full-em visual width, which makes a single
+   equation look like several separated trees. Keep the source node and its
+   Braille semantics, but suppress only its visual advance. Mathematical
+   operator spacing is still supplied by MathJax normally. */
+.item-content mjx-container mjx-mspace { width: 0 !important; }
 .item-content mjx-container:focus, .item-content mjx-focus:focus { outline: 0.18rem solid var(--accent); outline-offset: 0.2rem; }
 .nemeth-inline-editor { background: #fffdf8; border: 2px solid var(--accent); border-radius: 0.35rem; display: block; font-family: 'Braille', sans-serif; font-size: 1.25rem; margin-top: 0.6rem; max-width: 30rem; padding: 0.5rem; width: 100%; }
 .item-text { margin: 0; white-space: pre-wrap; }

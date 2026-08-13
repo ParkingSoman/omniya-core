@@ -43,7 +43,7 @@ const extracted = headings.map((heading, index) => {
     if (text && !/^[-—]+$/.test(text)) payloads.push(text);
   }
   const sourceBraille = payloads[0] ?? null;
-  const sourceNotation = sourceBraille && !/[A-Z]/.test(sourceBraille) && !/[·•]/.test(sourceBraille) ? sourceBraille : null;
+  const sourceNotation = sourceBraille && !/[·•]/.test(sourceBraille) ? sourceBraille : null;
   return {
     id: `bana-2022:example-${heading.number}`,
     kind: 'example',

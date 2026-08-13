@@ -7,7 +7,8 @@ import {
   applyNemethChoice,
   commitNemethLocalCode,
   createEmptyDraftMathDocument,
-  operationRegistry
+  operationRegistry,
+  sourceNotationToCells
 } from '../../src/domain/guided-nemeth/index.js';
 
 function focusOf(document) {
@@ -34,6 +35,26 @@ test('sequential Nemeth cells build a plain MathML row one token at a time', () 
   ]);
 });
 
+test('a function code terminates numeric mode without merging into the number', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = focusOf(document);
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠼', '⠆', '⠎', '⠊', '⠝']) {
+    const result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const local = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(local.status, 'applied', local.announcement);
+  ({ document, focus, inputState } = local);
+  const tree = parseMathML(document.mathml);
+  assert.deepEqual(tree.children.map((node) => [node.name, node.children[0]?.text]), [
+    ['mn', '2'],
+    ['mi', 'sin']
+  ]);
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-intent'], 'function-name');
+});
+
 test('fraction cells create and traverse structural slots without parsing a passage', () => {
   let document = createEmptyDraftMathDocument();
   let focus = focusOf(document);
@@ -58,6 +79,97 @@ test('fraction cells create and traverse structural slots without parsing a pass
   assert.equal(tree.children[0].name, 'mfrac');
   assert.equal(tree.children[0].children[0].children[0].text, 'a');
   assert.equal(tree.children[0].children[1].children[0].text, 'b');
+});
+
+test('Rule 19.1.2 keeps a closing bar subscript at one current script level', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = focusOf(document);
+  let inputState = { prefix: '', mode: null };
+  const cells = ['⠹', '⠙', '⠵', '⠌', '⠙', '⠞', '⠼', '⠳', '⠰', '⠞', ' ', '⠰', '⠨', '⠅', ' ', '⠼', '⠴'];
+  for (const value of cells) {
+    let result = cell(document, focus, inputState, value);
+    if (result.status === 'choice') {
+      const operationId = result.choices.some((choice) => choice.operationId === 'group.vertical-bar')
+        ? 'group.vertical-bar'
+        : result.choices.some((choice) => choice.operationId === 'script.subscript')
+          ? 'script.subscript'
+          : 'operator.equals';
+      result = applyNemethChoice({ document: result.document, focus: result.focus,
+        inputState: result.inputState, operationId });
+    }
+    assert.notEqual(result.status, 'rejected', `${value}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  const bar = tree.children.find((node) => node.name === 'msub');
+  assert.ok(bar, 'closing vertical bar should own one subscript');
+  assert.equal(bar.children[0].children[0].text, '|');
+  assert.deepEqual(bar.children[1].children.filter((node) => node.name !== 'mspace').map((node) => node.name), ['mi', 'mo', 'mn']);
+  assert.equal(bar.children[1].children.filter((node) => node.name !== 'mspace')[0].children[0].text, 't');
+  assert.equal(bar.children[1].children.filter((node) => node.name !== 'mspace')[1].children[0].text, '=');
+  assert.equal(bar.children[1].children.filter((node) => node.name !== 'mspace')[2].children[0].text, '0');
+  assert.equal(bar.children[1].children.some((node) => node.name === 'msub'), false, 'current-level indicator must not create a nested subscript');
+});
+
+test('a diagonal fraction boundary keeps the following expression in the same root row', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  const choices = new Map([
+    ['operator.equals', 'operator.equals'],
+    ['modifier.dot', 'operator.dot']
+  ]);
+  for (const value of sourceNotationToCells('#1_/cos -cos .k tan *sin')) {
+    let result = cell(document, focus, inputState, value);
+    if (result.status === 'choice') {
+      const choice = result.choices.find((candidate) => choices.has(candidate.operationId));
+      assert.ok(choice, `unexpected local choice for ${value}`);
+      result = applyNemethChoice({
+        document,
+        focus,
+        inputState: result.inputState,
+        operationId: choices.get(choice.operationId)
+      });
+    }
+    if (result.status === 'rejected') {
+      assert.fail(result.announcement);
+    }
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.name, 'math');
+  assert.equal(tree.children.filter((node) => node.name).length, 10);
+  const fraction = tree.children[0];
+  assert.equal(fraction.name, 'mfrac');
+  assert.equal(fraction.attrs.bevelled, 'true');
+  assert.equal(fraction.children[0].children[0].text, '1');
+  assert.equal(fraction.children[1].name, 'mi');
+  assert.equal(fraction.children[1].children[0].text, 'cos');
+  assert.equal(tree.children[2].children[0].text, '−');
+  assert.equal(tree.children[3].children[0].text, 'cos');
+  assert.equal(tree.children[5].children[0].text, '=');
+  assert.equal(tree.children[9].children[0].text, '·');
+});
+
+test('group content remains the insertion row after a nested structure closes', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = focusOf(document);
+  let inputState = { prefix: '', mode: null };
+  for (const value of ['⠷', '⠹', '⠁', '⠌', '⠃', '⠼', '⠾', '⠉']) {
+    let result = cell(document, focus, inputState, value);
+    if (result.status === 'choice') {
+      result = applyNemethChoice({ document, focus, inputState: result.inputState, operationId: result.choices.find((choice) => choice.operationId === 'group.round')?.operationId ?? result.choices[0].operationId });
+    }
+    if (result.status === 'pending') result = commitNemethLocalCode({ document, focus, inputState: result.inputState });
+    assert.equal(result.status, 'applied', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  const group = tree.children.find((node) => node.name === 'mrow' && node.attrs['data-omniya-group'] === 'round');
+  assert.ok(group);
+  const content = group.children.find((node) => node.name === 'mrow' && !node.attrs['data-omniya-role']);
+  assert.equal(content.name, 'mrow');
+  assert.deepEqual(content.children.filter((node) => node.name).map((node) => node.name), ['mfrac', 'mi']);
 });
 
 test('complex and hypercomplex fraction indicators keep their BANA distinction locally', () => {
@@ -189,6 +301,56 @@ test('Rule 11.1.2 omission long dash is a bounded local construction', () => {
   });
   assert.equal(omission.status, 'applied', omission.announcement);
   assert.match(omission.document.mathml, /data-omniya-nemeth-intent="omission-long-dash"/);
+});
+
+test('Rule 3.2.3 decimal-return long dash is one bounded local construction', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠨', '⠂', '⠬', '⠨', '⠆', ' ', '⠨', '⠅', ' ']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    if (result.status === 'choice') {
+      const selected = applyNemethChoice({ document: result.document, focus: result.focus, inputState: result.inputState, operationId: 'operator.equals' });
+      assert.equal(selected.status, 'applied', selected.announcement);
+      ({ document, focus, inputState } = selected);
+    } else {
+      ({ document, focus, inputState } = result);
+    }
+  }
+  for (const cell of ['⠨', '⠐', '⠤', '⠤', '⠤', '⠤']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  assert.equal(inputState.prefix, '⠨⠐⠤⠤⠤⠤');
+  const committed = commitNemethLocalCode({ document, focus, inputState });
+  assert.equal(committed.status, 'applied', committed.announcement);
+  assert.match(committed.document.mathml, /omission-decimal-long-dash/);
+});
+
+test('BANA numeric mode resumes after a baseline arithmetic operator', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠂', '⠨', '⠆', '⠬', '⠂', '⠨', '⠲']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  assert.match(document.mathml, />1\.2<\/mn>[\s\S]*>\+<\/mo>[\s\S]*>1\.4<\/mn>/);
+});
+
+test('BANA signed numeric construction accepts a local digit after plus', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠬', '⠒']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  assert.match(document.mathml, />\+<\/mo>[\s\S]*>3<\/mn>/);
 });
 
 test('Rule 8.4 plural and possessive endings append to the focused local expression', () => {
@@ -393,7 +555,8 @@ test('computer-Braille and Unicode blanks create the same explicit MathML space'
     const document = createEmptyDraftMathDocument();
     const result = cell(document, document.focus, { prefix: '', mode: null }, blank);
     assert.equal(result.status, 'applied');
-    assert.match(result.document.mathml, /<mspace width="0\.3em"/);
+  assert.match(result.document.mathml, /<mspace width="1em"/);
+  assert.match(result.document.mathml, /data-omniya-source-space="true"/);
   }
 });
 
@@ -446,6 +609,21 @@ test('typeform scope terminators reject outside a marked scope without mutation'
   const close = applyNemethCell({ document, focus: document.focus, inputState: next.inputState, cell: '⠄' });
   assert.equal(close.status, 'rejected');
   assert.equal(close.document.mathml, document.mathml);
+});
+
+test('Rule 19.1.2 local decimal-to-Greek and script boundaries remain compositional', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const currentCell of ['⠼', '⠆', '⠨', '⠹', '⠘', '⠨', '⠏']) {
+    const result = applyNemethCell({ document, focus, inputState, cell: currentCell });
+    assert.notEqual(result.status, 'rejected', `${currentCell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[1].name, 'msup');
+  assert.equal(tree.children[1].children[0].children[0].text, 'θ');
+  assert.equal(tree.children[1].children[1].children[0].text, 'π');
 });
 
 test('numeric and capital indicators are local modes, not passage parsing', () => {

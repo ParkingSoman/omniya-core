@@ -1713,7 +1713,7 @@ test('each registry policy has a complete local-code contract', () => {
       'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'insert-modifier',
       'open-modifier', 'move-binomial-lower', 'close-binomial', 'append-possessive',
       'append-plural', 'append-ordinal', 'insert-contracted-script-comma', 'set-mode', 'open-binomial',
-      'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
+      'open-typeform-scope', 'close-typeform-scope', 'open-structure'].includes(entry.action), entry.id);
   }
 });
 

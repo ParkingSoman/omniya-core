@@ -73,16 +73,22 @@ function targetForCanonicalIds(sourceRoot, ids) {
   // the ancestor is the exact target and is preferable to a range below it.
   const selected = nodes.filter((node) => !nodes.some((other) => other !== node && other.contains(node)));
   if (selected.length === 1) return { kind: 'node', nodeId: canonicalId(selected[0]) };
-
-  let parent = selected[0].parentElement;
-  while (parent && !selected.every((node) => parent.contains(node))) parent = parent.parentElement;
-  if (!parent) return null;
-  const direct = selected.map((node) => {
+  // Semantic virtual groups often sit inside MathJax-generated, noncanonical
+  // mrow wrappers. Walk each selected source node to its nearest canonical
+  // ancestor first, then resolve the exact contiguous range among that
+  // ancestor's canonical children. The old DOM-parent walk could find no
+  // canonical siblings in this situation and silently fell back to the
+  // equation root, which made a valid focused edit replace the whole equation.
+  const boundary = (node) => {
     let current = node;
-    while (current.parentElement && current.parentElement !== parent) current = current.parentElement;
+    while (current && !canonicalId(current)) current = current.parentElement;
     return current;
-  });
+  };
+  const direct = selected.map(boundary).filter(Boolean);
   const unique = [...new Set(direct)];
+  if (!unique.length) return null;
+  const parent = unique[0].parentElement;
+  if (!parent || !unique.every((node) => node.parentElement === parent)) return null;
   const canonicalChildren = [...parent.children].filter((child) => Boolean(canonicalId(child)));
   const positions = unique.map((node) => canonicalChildren.indexOf(node)).sort((a, b) => a - b);
   if (positions.some((position) => position < 0) || positions.at(-1) - positions[0] + 1 !== positions.length) return null;
@@ -192,11 +198,26 @@ export function captureExplorerFocus(article) {
 
 export async function restoreExplorerFocus(article, address, explorerFocus = null) {
   const id = address?.kind === 'node' ? address.nodeId : address?.firstNodeId;
-  const node = [...article.querySelectorAll('[data-omniya-id]')].find((candidate) => candidate.getAttribute('data-omniya-id') === id);
+  // MathJax may sanitize the source attribute to `data-omniya-` while keeping
+  // the verified canonical identity in the runtime source element ID. Resolve
+  // both representations so exact replacement focus is restored after every
+  // rerender, including multi-token local replacements.
+  const node = [...article.querySelectorAll('[data-omniya-id], [id^="omniya-source-"]')]
+    .find((candidate) => canonicalId(candidate) === id);
   if (!node) return false;
   node.focus?.();
   const explorer = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech;
   const semanticId = node.getAttribute('data-semantic-id') || explorerFocus?.semanticId;
-  if (explorer?.setNode && semanticId) explorer.setNode(semanticId);
+  // KeyExplorer exposes setCurrent as a protected TypeScript method, but it is
+  // present on the runtime object. Calling it preserves the same speech and
+  // Braille channel used by MathJax's arrow navigation. The fallback uses the
+  // documented restart selector when a future build hides that method.
+  if (explorer?.setCurrent) {
+    explorer.setCurrent(node);
+  } else if (explorer && semanticId) {
+    explorer.restarted = `#${CSS.escape(node.id || `omniya-source-${id}`)}`;
+    explorer.refocus = node;
+    await explorer.Start?.();
+  }
   return true;
 }

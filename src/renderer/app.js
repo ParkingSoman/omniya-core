@@ -7,9 +7,9 @@ import {
   switchNapkin,
   updateItem
 } from '../domain/model.js';
+import { applyNemethSourceIntentToBraille } from './nemeth-braille-projection.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { createSixKeyInput } from './braille-input.js';
-import { applyNemethSourceIntentToBraille } from './nemeth-braille-projection.js';
 import { createEmptyDraftMathDocument } from '../domain/guided-nemeth/index.js';
 import {
   applyNemethCell,
@@ -152,17 +152,75 @@ async function renderEquation(container, item, version) {
     // runtime-only identity token on the source element so the bridge can
     // recover the application node from any semantic focus, including virtual
     // SRE groupings. This never enters persisted MathML.
+    const intentById = new Map([...source.querySelectorAll('[data-omniya-id][data-omniya-nemeth-intent]')]
+      .map((node) => [node.getAttribute('data-omniya-id'), node.getAttribute('data-omniya-nemeth-intent')]));
     for (const node of source.querySelectorAll('[data-omniya-id]')) {
       node.id = `omniya-source-${node.getAttribute('data-omniya-id')}`;
     }
+    const authoredSourceMath = persistedMathML
+      ? (() => {
+        const holder = document.createElement('div');
+        holder.innerHTML = persistedMathML;
+        return holder.querySelector('math');
+      })()
+      : null;
     container.replaceChildren(source);
     await globalThis.MathJax.typesetPromise([container]);
+    // MathJax/SRE remains the independent projection. The guided writer may
+    // retain a small, source-linked BANA distinction that MathML alone cannot
+    // express, so apply it only to the already-rendered ARIA Braille labels.
+    // This is not a serializer and never changes the canonical tree.
+    const renderedMath = container.querySelector('math');
+    if (renderedMath) {
+      // Some literal MathML shapes (for example BANA's dotted/shaded
+      // circles) are intentionally represented as <mtext>. MathJax still
+      // creates the speech node, but it does not attach an aria-braillelabel
+      // attribute to that non-mathematical token. Include every speech node
+      // here so the bounded source-intent projection can supply the reviewed
+      // local cells instead of making the Electron workflow appear blank.
+      container.querySelectorAll('mjx-speech').forEach((node) => {
+        const braille = node.getAttribute('aria-braillelabel');
+        const projected = applyNemethSourceIntentToBraille(braille, authoredSourceMath || renderedMath);
+        if (projected) node.setAttribute('aria-braillelabel', projected);
+      });
+    }
     stampCanonicalIds(container);
-    const speech = container.querySelector('mjx-speech[aria-braillelabel]');
-    const sourceMath = container.querySelector('mjx-assistive-mml math');
+    // MathJax sanitizes application attributes on its assistive clone. Copy
+    // the small set of source-intent markers onto the matching runtime nodes
+    // by stable ID so Braille projection can remain exact without a parser.
+    for (const [nodeId, intent] of intentById) {
+      container.querySelector(`#omniya-source-${CSS.escape(nodeId)}`)?.setAttribute('data-omniya-nemeth-intent', intent);
+    }
+    const speech = container.querySelector('mjx-speech');
+    // Prefer the untouched application-owned MathML source for Nemeth intent
+    // projection. MathJax's assistive clone intentionally sanitizes unknown
+    // data attributes, which would erase function boundaries and other BANA
+    // distinctions needed for exact Braille. The clone remains the fallback
+    // for renderers that move the source node.
+    const sourceMath = authoredSourceMath || container.querySelector('mjx-assistive-mml math');
     if (speech && sourceMath) {
       const braille = speech.getAttribute('aria-braillelabel');
-      speech.setAttribute('aria-braillelabel', applyNemethSourceIntentToBraille(braille, sourceMath));
+      speech.setAttribute('aria-braillelabel', applyNemethSourceIntentToBraille(braille, authoredSourceMath || container));
+      // SRE can finish replacing the speech node one microtask after
+      // `typesetPromise` resolves. Reapply the same source-grounded correction
+      // to that final node so undo/redo and relaunch cannot expose a transient
+      // generic Braille projection.
+      const refreshBrailleProjection = () => {
+        const latest = container.querySelector('mjx-speech');
+        if (!latest) return;
+        const projected = applyNemethSourceIntentToBraille(
+          latest.getAttribute('aria-braillelabel') || undefined, authoredSourceMath || container
+        );
+        if (projected) latest.setAttribute('aria-braillelabel', projected);
+      };
+      // SRE may replace the speech node more than once while explorer
+      // enrichment settles. Reapply the source-scoped projection at the two
+      // renderer boundaries without retaining an observer or touching the
+      // canonical tree.
+      setTimeout(refreshBrailleProjection, 0);
+      setTimeout(refreshBrailleProjection, 80);
+      setTimeout(refreshBrailleProjection, 250);
+      setTimeout(refreshBrailleProjection, 500);
     }
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
@@ -589,9 +647,16 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
   const chooseOperation = async (event) => {
     const button = event.target.closest?.('.replacement-choice');
     if (!button || !replacementSession) return;
+    const previousDraftMathML = replacementSession.draft.mathml;
+    const previousInputState = structuredClone(replacementSession.nemethState);
     const result = applyNemethChoice(replacementSession, button.dataset.operationId);
     replacementSession = result.session;
-    if (result.status !== 'applied') {
+    const committedChoice = result.status === 'applied' ||
+      (result.status === 'pending' && (
+        result.document?.mathml !== previousDraftMathML ||
+        JSON.stringify(result.inputState) !== JSON.stringify(previousInputState)
+      ));
+    if (!committedChoice) {
       elements['replacement-status'].textContent = result.announcement;
       return;
     }
@@ -600,7 +665,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     // The selected operation consumes the entire bounded local prefix. Clear
     // the visible one-cell proxy before the next physical key can arrive; a
     // stale prefix here would be re-fed and duplicate the next local code.
-    editor.value = '';
+    editor.value = result.status === 'pending' ? (replacementSession.nemethState.prefix || '') : '';
     elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
     await renderDraftPreview();
     editor.focus();
@@ -624,7 +689,15 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       replacementSession = setLatexSource(replacementSession, editor.value);
       return;
     }
-    const cells = [...editor.value];
+    // The visible control mirrors a pending bounded prefix so a display user
+    // can review it.  When the next physical cell arrives, the browser input
+    // event therefore contains `prefix + newCell`; feed only the new suffix
+    // to the transition engine.  Re-consuming the mirrored prefix would
+    // duplicate scripts/fractions while making a real Electron workflow look
+    // like a parser bug.
+    const visible = editor.value;
+    const pending = replacementSession.nemethState.prefix ?? '';
+    const cells = [...(pending && visible.startsWith(pending) ? visible.slice(pending.length) : visible)];
     editor.value = '';
     inputProcessing = inputProcessing.then(async () => {
       for (const cell of cells) await consumeCell(cell);

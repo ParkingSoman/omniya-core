@@ -1014,7 +1014,7 @@
         "_:"
       ],
       "expectedWholeBraille": ",?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,?3333333333333333333333333333333,,# #1+(?2X/1-X#)^2",
-      "sourceNotation": null,
+      "sourceNotation": ",?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,?3333333333333333333333333333333,,# #1+(?2X/1-X#)^2",
       "inputPolicy": null,
       "sourceRows": [
         "3.3.1"
@@ -3223,7 +3223,7 @@
         "_% -#1, -I, -#2, -j _:"
       ],
       "expectedWholeBraille": "-#1, -I, -#2, -j",
-      "sourceNotation": null,
+      "sourceNotation": "-#1, -I, -#2, -j",
       "inputPolicy": null,
       "sourceRows": [
         "3.5.3"
@@ -3604,7 +3604,7 @@
         "_% (,I, ,,ii, ,,iii, ,,iv, ,v) _:"
       ],
       "expectedWholeBraille": "(,I, ,,ii, ,,iii, ,,iv, ,v)",
-      "sourceNotation": null,
+      "sourceNotation": "(,I, ,,ii, ,,iii, ,,iv, ,v)",
       "inputPolicy": null,
       "sourceRows": [
         "3.11.1"
@@ -3642,7 +3642,7 @@
         "_% ,,vii+,v .K ,,xii _:"
       ],
       "expectedWholeBraille": ",,vii+,v .K ,,xii",
-      "sourceNotation": null,
+      "sourceNotation": ",,vii+,v .K ,,xii",
       "inputPolicy": null,
       "sourceRows": [
         "3.11.1"
@@ -3680,7 +3680,7 @@
         "_% (,i+,,ii)+,v .K ,i+(,,ii+,v) _:"
       ],
       "expectedWholeBraille": "(,i+,,ii)+,v .K ,i+(,,ii+,v)",
-      "sourceNotation": null,
+      "sourceNotation": "(,i+,,ii)+,v .K ,i+(,,ii+,v)",
       "inputPolicy": null,
       "sourceRows": [
         "3.11.1"
@@ -3911,7 +3911,7 @@
         "_% `(I, II, III, IV, V`) _:"
       ],
       "expectedWholeBraille": "`(I, II, III, IV, V`)",
-      "sourceNotation": null,
+      "sourceNotation": "`(I, II, III, IV, V`)",
       "inputPolicy": null,
       "sourceRows": [
         "3.11.1"
@@ -3987,7 +3987,7 @@
         "_% I .k #1, v .k #5, ,'& x .k #10 _:4"
       ],
       "expectedWholeBraille": "I .k #1, v .k #5, ,'& x .k #10",
-      "sourceNotation": null,
+      "sourceNotation": "I .k #1, v .k #5, ,'& x .k #10",
       "inputPolicy": null,
       "sourceRows": [
         "3.11.1"
@@ -4328,7 +4328,7 @@
         "SILv}1 _% ,ag _:2 & = BROM9E1 _% ,BR _:4"
       ],
       "expectedWholeBraille": ",C",
-      "sourceNotation": null,
+      "sourceNotation": ",C",
       "inputPolicy": null,
       "sourceRows": [
         "4.4.2"
@@ -4714,7 +4714,7 @@
         "_% #149 597 870 700 ;M _:4"
       ],
       "expectedWholeBraille": "#149 597 870 700 ;M",
-      "sourceNotation": null,
+      "sourceNotation": "#149 597 870 700 ;M",
       "inputPolicy": null,
       "sourceRows": [
         "4.4.8"
@@ -5932,7 +5932,7 @@
         "_% ,SINE .? .K ?OPPOSITE/HYPOTENUSE# _:"
       ],
       "expectedWholeBraille": ",SINE .? .K ?OPPOSITE/HYPOTENUSE#",
-      "sourceNotation": null,
+      "sourceNotation": ",SINE .? .K ?OPPOSITE/HYPOTENUSE#",
       "inputPolicy": null,
       "sourceRows": [
         "4.6.8"
@@ -6319,7 +6319,7 @@
         "_% #3X-7 .K #21 _: >E CALL$ OP5 S5T;ES4"
       ],
       "expectedWholeBraille": "#3X-7 .K #21",
-      "sourceNotation": null,
+      "sourceNotation": "#3X-7 .K #21",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.2"
@@ -6359,7 +6359,7 @@
         "_:4"
       ],
       "expectedWholeBraille": "\\,P,Q\\ .K >(1-2)^2\"+(-3+1)^2\"+(5-7)^2\"]",
-      "sourceNotation": null,
+      "sourceNotation": "\\,P,Q\\ .K >(1-2)^2\"+(-3+1)^2\"+(5-7)^2\"]",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.2"
@@ -6397,7 +6397,7 @@
         ",%[ T _% ,A .K @,(#1 #2@,) _: IS A"
       ],
       "expectedWholeBraille": ",A .K @,(#1 #2@,)",
-      "sourceNotation": null,
+      "sourceNotation": ",A .K @,(#1 #2@,)",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.2"
@@ -6436,7 +6436,7 @@
         "_% V .K ?H+16T^2\"/T# _:"
       ],
       "expectedWholeBraille": "V .K ?H+16T^2\"/T#",
-      "sourceNotation": null,
+      "sourceNotation": "V .K ?H+16T^2\"/T#",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.3"
@@ -6554,7 +6554,7 @@
         "_:"
       ],
       "expectedWholeBraille": "X+3Y .K #6 #2X+8Y .K -#12",
-      "sourceNotation": null,
+      "sourceNotation": "X+3Y .K #6 #2X+8Y .K -#12",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.5"
@@ -6632,7 +6632,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@,(#0 -#1@,)*@,(-#1 #2 #5@,) @,(#1 #0 @,) @,(-#2 -#4 #3@,) .K @,(#2 #4 -#3@,) @,(-#1 #2 #5 @,)",
-      "sourceNotation": null,
+      "sourceNotation": "@,(#0 -#1@,)*@,(-#1 #2 #5@,) @,(#1 #0 @,) @,(-#2 -#4 #3@,) .K @,(#2 #4 -#3@,) @,(-#1 #2 #5 @,)",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.5"
@@ -6796,7 +6796,7 @@
         "_:"
       ],
       "expectedWholeBraille": "ACTINIUM ,AC \"\"\" #89 \"\"\" #227.027 8 ALUMINUM ,AL \"\"\" #13 \"\"\" #26.981 54 ANTIMONY ,SB \"\"\" #51 \"\"\" #121.75 ARGON \"\" ,AR \"\"\" #18 \"\"\" #39.948 ARSENIC ,AS \"\"\" #33 \"\"\" #74.921 6",
-      "sourceNotation": null,
+      "sourceNotation": "ACTINIUM ,AC \"\"\" #89 \"\"\" #227.027 8 ALUMINUM ,AL \"\"\" #13 \"\"\" #26.981 54 ANTIMONY ,SB \"\"\" #51 \"\"\" #121.75 ARGON \"\" ,AR \"\"\" #18 \"\"\" #39.948 ARSENIC ,AS \"\"\" #33 \"\"\" #74.921 6",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.10"
@@ -6839,7 +6839,7 @@
         "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG _:"
       ],
       "expectedWholeBraille": "RD .? ,RADIANS_/,DEGREES SIN sin (.?) .K Y COS cos (.?) .K X tAN TAN (.?) .K ?Y/X#' X /.K #0",
-      "sourceNotation": null,
+      "sourceNotation": "RD .? ,RADIANS_/,DEGREES SIN sin (.?) .K Y COS cos (.?) .K X tAN TAN (.?) .K ?Y/X#' X /.K #0",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.10"
@@ -6878,7 +6878,7 @@
         "F(X) .K -X^2 _: FOLL[S ! SAME PROCESS4"
       ],
       "expectedWholeBraille": "F(X) .K #2X_4 7777777777777777777777777777777777777777 ;X F(X) .K #2X \"33 \"3333333333 -#2 -#4 -#1 -#2 #0 #0 #1 #2 #2 #4 GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG F(X) .K -X^2",
-      "sourceNotation": null,
+      "sourceNotation": "F(X) .K #2X_4 7777777777777777777777777777777777777777 ;X F(X) .K #2X \"33 \"3333333333 -#2 -#4 -#1 -#2 #0 #0 #1 #2 #2 #4 GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG F(X) .K -X^2",
       "inputPolicy": null,
       "sourceRows": [
         "4.8.10"
@@ -8227,7 +8227,7 @@
         "_% I .k #1, #2, ''', ;n _:"
       ],
       "expectedWholeBraille": "I .k #1, #2, ''', ;n",
-      "sourceNotation": null,
+      "sourceNotation": "I .k #1, #2, ''', ;n",
       "inputPolicy": null,
       "sourceRows": [
         "6.4.7"
@@ -8876,7 +8876,7 @@
         "_% ,R@);a^b _:"
       ],
       "expectedWholeBraille": ",R@);a^b",
-      "sourceNotation": null,
+      "sourceNotation": ",R@);a^b",
       "inputPolicy": null,
       "sourceRows": [
         "6.4.9"
@@ -10303,7 +10303,7 @@
         "_% ,I+,,ii .k ,,iii_4 ''' _:"
       ],
       "expectedWholeBraille": ",I+,,ii .k ,,iii_4 '''",
-      "sourceNotation": null,
+      "sourceNotation": ",I+,,ii .k ,,iii_4 '''",
       "inputPolicy": null,
       "sourceRows": [
         "8.2.3"
@@ -12961,7 +12961,7 @@
         "sense to include the following items:"
       ],
       "expectedWholeBraille": "`$p #75_4 x~4\"-y~2 `$P #76_4 x~2\"+5y-112",
-      "sourceNotation": null,
+      "sourceNotation": "`$p #75_4 x~4\"-y~2 `$P #76_4 x~2\"+5y-112",
       "inputPolicy": null,
       "sourceRows": [
         "9.4"
@@ -14137,7 +14137,7 @@
         "_% $T;REG4 ;POLYGON _:4"
       ],
       "expectedWholeBraille": "$T;REG4 ;POLYGON",
-      "sourceNotation": null,
+      "sourceNotation": "$T;REG4 ;POLYGON",
       "inputPolicy": null,
       "sourceRows": [
         "10.4"
@@ -17615,7 +17615,7 @@
         "_:"
       ],
       "expectedWholeBraille": ",?(1-X)?D/DX#(2X) -#2X?D/DX#(1-X) ,/(1-X)^2\",# ,,?33333333333333333,,# #1+(?2X/1-X#)^2",
-      "sourceNotation": null,
+      "sourceNotation": ",?(1-X)?D/DX#(2X) -#2X?D/DX#(1-X) ,/(1-X)^2\",# ,,?33333333333333333,,# #1+(?2X/1-X#)^2",
       "inputPolicy": null,
       "sourceRows": [
         "13.8.1"
@@ -17654,7 +17654,7 @@
         "_:"
       ],
       "expectedWholeBraille": ";D ;D (1-X)?33#(2X)-2X?33#(1-X) DX DX ,?3333333333333333333333333,# (1-X)^2 ,,?33333333333333333333333333333,,# #2X #1+(?3333#)^2 #1-X",
-      "sourceNotation": null,
+      "sourceNotation": ";D ;D (1-X)?33#(2X)-2X?33#(1-X) DX DX ,?3333333333333333333333333,# (1-X)^2 ,,?33333333333333333333333333333,,# #2X #1+(?3333#)^2 #1-X",
       "inputPolicy": null,
       "sourceRows": [
         "13.8.1"
@@ -17693,7 +17693,7 @@
         ",,/1+(?2X/1-X#)^2\",,# _:"
       ],
       "expectedWholeBraille": ",,?,?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,/1+(?2X/1-X#)^2\",,#",
-      "sourceNotation": null,
+      "sourceNotation": ",,?,?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,/1+(?2X/1-X#)^2\",,#",
       "inputPolicy": null,
       "sourceRows": [
         "13.8.1"
@@ -17732,7 +17732,7 @@
         "_:"
       ],
       "expectedWholeBraille": "#1 >2] .K #1+3333333333333333 #1 #2+3333333333333 #1 #2+3333333333 #1 #2+3333333 #2+ '''",
-      "sourceNotation": null,
+      "sourceNotation": "#1 >2] .K #1+3333333333333333 #1 #2+3333333333333 #1 #2+3333333333 #1 #2+3333333 #2+ '''",
       "inputPolicy": null,
       "sourceRows": [
         "13.9"
@@ -17810,7 +17810,7 @@
         "_:"
       ],
       "expectedWholeBraille": ";X ?33# ;Y",
-      "sourceNotation": null,
+      "sourceNotation": ";X ?33# ;Y",
       "inputPolicy": null,
       "sourceRows": [
         "13.10.2"
@@ -17849,7 +17849,7 @@
         "_:"
       ],
       "expectedWholeBraille": "DISTANCE RATE .K ?33333333# TIME",
-      "sourceNotation": null,
+      "sourceNotation": "DISTANCE RATE .K ?33333333# TIME",
       "inputPolicy": null,
       "sourceRows": [
         "13.10.2"
@@ -17889,7 +17889,7 @@
         "Note: An expression which occupies a position directly over"
       ],
       "expectedWholeBraille": "#5280 FT #60 MI #1 HR #1 MIN ?33333333#?333333#?3333333#?3333333# #1 MI #1 HR #60 MIN #60 SEC #88 FT .K ?333333# .K #88 FT_/SEC #1 SEC",
-      "sourceNotation": null,
+      "sourceNotation": "#5280 FT #60 MI #1 HR #1 MIN ?33333333#?333333#?3333333#?3333333# #1 MI #1 HR #60 MIN #60 SEC #88 FT .K ?333333# .K #88 FT_/SEC #1 SEC",
       "inputPolicy": null,
       "sourceRows": [
         "13.10.2"
@@ -19412,7 +19412,7 @@
         "_% x;I;;1 _:"
       ],
       "expectedWholeBraille": "x;I;;1",
-      "sourceNotation": null,
+      "sourceNotation": "x;I;;1",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -19755,7 +19755,7 @@
         "_% X;1_/2 _:"
       ],
       "expectedWholeBraille": "X;1_/2",
-      "sourceNotation": null,
+      "sourceNotation": "X;1_/2",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -19793,7 +19793,7 @@
         "_% ;3\"X1 _:"
       ],
       "expectedWholeBraille": ";3\"X1",
-      "sourceNotation": null,
+      "sourceNotation": ";3\"X1",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -19831,7 +19831,7 @@
         "_% A;X1 _:"
       ],
       "expectedWholeBraille": "A;X1",
-      "sourceNotation": null,
+      "sourceNotation": "A;X1",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -19869,7 +19869,7 @@
         "_% X10,000 _:"
       ],
       "expectedWholeBraille": "X10,000",
-      "sourceNotation": null,
+      "sourceNotation": "X10,000",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -19907,7 +19907,7 @@
         "_% X1.2 _:"
       ],
       "expectedWholeBraille": "X1.2",
-      "sourceNotation": null,
+      "sourceNotation": "X1.2",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -19945,7 +19945,7 @@
         "_% X.6 _:"
       ],
       "expectedWholeBraille": "X.6",
-      "sourceNotation": null,
+      "sourceNotation": "X.6",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -19983,7 +19983,7 @@
         "_% .,S0~N\"A;K _:"
       ],
       "expectedWholeBraille": ".,S0~N\"A;K",
-      "sourceNotation": null,
+      "sourceNotation": ".,S0~N\"A;K",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -20021,7 +20021,7 @@
         "_% #3AF;16 _:"
       ],
       "expectedWholeBraille": "#3AF;16",
-      "sourceNotation": null,
+      "sourceNotation": "#3AF;16",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -20059,7 +20059,7 @@
         "_% !;0~>1-X~~2~]\"F(X)DX _:"
       ],
       "expectedWholeBraille": "!;0~>1-X~~2~]\"F(X)DX",
-      "sourceNotation": null,
+      "sourceNotation": "!;0~>1-X~~2~]\"F(X)DX",
       "inputPolicy": null,
       "sourceRows": [
         "14.6"
@@ -22038,7 +22038,7 @@
         ".K !!;SURFACE ;,S\"(.$@*_;,F)_;D_;,S _:"
       ],
       "expectedWholeBraille": "!;PATH ;,C\"_;F(X, Y, Z)*_;D_;,L .K !!;SURFACE ;,S\"(.$@*_;,F)_;D_;,S",
-      "sourceNotation": null,
+      "sourceNotation": "!;PATH ;,C\"_;F(X, Y, Z)*_;D_;,L .K !!;SURFACE ;,S\"(.$@*_;,F)_;D_;,S",
       "inputPolicy": null,
       "sourceRows": [
         "14.9.3"
@@ -22421,7 +22421,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@,(-#2TE^T (3T+2)E^T -(T+1)E^T@,) @,(\"+e~2t \"-2E^2T \"+2E^2T @,) @,( @,) @,(-#2(T+1)E^T (3T+5)E^T -(T+2)E^T@,) @,(\"+2E^2T \"-4E^2T \"+2E^2T @,)",
-      "sourceNotation": null,
+      "sourceNotation": "@,(-#2TE^T (3T+2)E^T -(T+1)E^T@,) @,(\"+e~2t \"-2E^2T \"+2E^2T @,) @,( @,) @,(-#2(T+1)E^T (3T+5)E^T -(T+2)E^T@,) @,(\"+2E^2T \"-4E^2T \"+2E^2T @,)",
       "inputPolicy": null,
       "sourceRows": [
         "14.10.2"
@@ -24178,7 +24178,7 @@
         "_% X%: _:"
       ],
       "expectedWholeBraille": "X%:",
-      "sourceNotation": null,
+      "sourceNotation": "X%:",
       "inputPolicy": null,
       "sourceRows": [
         "15.2.3"
@@ -24216,7 +24216,7 @@
         "_% X%:+y%: _:"
       ],
       "expectedWholeBraille": "X%:+y%:",
-      "sourceNotation": null,
+      "sourceNotation": "X%:+y%:",
       "inputPolicy": null,
       "sourceRows": [
         "15.2.3"
@@ -24254,7 +24254,7 @@
         "_% X%:y _:"
       ],
       "expectedWholeBraille": "X%:y",
-      "sourceNotation": null,
+      "sourceNotation": "X%:y",
       "inputPolicy": null,
       "sourceRows": [
         "15.2.3"
@@ -24292,7 +24292,7 @@
         "_% Xy%:z _:"
       ],
       "expectedWholeBraille": "Xy%:z",
-      "sourceNotation": null,
+      "sourceNotation": "Xy%:z",
       "inputPolicy": null,
       "sourceRows": [
         "15.2.3"
@@ -24330,7 +24330,7 @@
         "_% X%:^2 _:"
       ],
       "expectedWholeBraille": "X%:^2",
-      "sourceNotation": null,
+      "sourceNotation": "X%:^2",
       "inputPolicy": null,
       "sourceRows": [
         "15.2.3"
@@ -24368,7 +24368,7 @@
         "_% X%:' _:"
       ],
       "expectedWholeBraille": "X%:'",
-      "sourceNotation": null,
+      "sourceNotation": "X%:'",
       "inputPolicy": null,
       "sourceRows": [
         "15.2.3"
@@ -24406,7 +24406,7 @@
         "_% X%:;1 _:"
       ],
       "expectedWholeBraille": "X%:;1",
-      "sourceNotation": null,
+      "sourceNotation": "X%:;1",
       "inputPolicy": null,
       "sourceRows": [
         "15.2.3"
@@ -24444,7 +24444,7 @@
         "_% X%:;n _:"
       ],
       "expectedWholeBraille": "X%:;n",
-      "sourceNotation": null,
+      "sourceNotation": "X%:;n",
       "inputPolicy": null,
       "sourceRows": [
         "15.2.3"
@@ -25210,7 +25210,7 @@
         "_% _\"K`.K] _:"
       ],
       "expectedWholeBraille": ".K`_\"K]",
-      "sourceNotation": null,
+      "sourceNotation": ".K`_\"K]",
       "inputPolicy": null,
       "sourceRows": [
         "15.9"
@@ -25249,7 +25249,7 @@
         "_% $a`$[] _:"
       ],
       "expectedWholeBraille": "$[`$A]",
-      "sourceNotation": null,
+      "sourceNotation": "$[`$A]",
       "inputPolicy": null,
       "sourceRows": [
         "15.9"
@@ -27385,7 +27385,7 @@
         "_% X^$4 _:"
       ],
       "expectedWholeBraille": "X^$4",
-      "sourceNotation": null,
+      "sourceNotation": "X^$4",
       "inputPolicy": null,
       "sourceRows": [
         "17.1"
@@ -29098,7 +29098,7 @@
         "_% X$4y .k y$4x _:"
       ],
       "expectedWholeBraille": "X$4y .k y$4x",
-      "sourceNotation": null,
+      "sourceNotation": "X$4y .k y$4x",
       "inputPolicy": null,
       "sourceRows": [
         "17.10.2"
@@ -29212,7 +29212,7 @@
         "_% F $o g _:"
       ],
       "expectedWholeBraille": "F $o g",
-      "sourceNotation": null,
+      "sourceNotation": "F $o g",
       "inputPolicy": null,
       "sourceRows": [
         "17.10.3"
@@ -29364,7 +29364,7 @@
         "_% X$c_$+]y _:"
       ],
       "expectedWholeBraille": "X$c_$+]y",
-      "sourceNotation": null,
+      "sourceNotation": "X$c_$+]y",
       "inputPolicy": null,
       "sourceRows": [
         "17.10.3"
@@ -29402,7 +29402,7 @@
         "_% X$_4y _:"
       ],
       "expectedWholeBraille": "X$_4y",
-      "sourceNotation": null,
+      "sourceNotation": "X$_4y",
       "inputPolicy": null,
       "sourceRows": [
         "17.10.3"
@@ -30625,7 +30625,7 @@
         ".K (DIVIDenD) _:"
       ],
       "expectedWholeBraille": "(DIVISOR)(partIAL QUOTIenT) +(REMAinDer) .K (DIVIDenD)",
-      "sourceNotation": null,
+      "sourceNotation": "(DIVISOR)(partIAL QUOTIenT) +(REMAinDer) .K (DIVIDenD)",
       "inputPolicy": null,
       "sourceRows": [
         "19.1.1"
@@ -30929,7 +30929,7 @@
         "_% X+y _:"
       ],
       "expectedWholeBraille": "X+y",
-      "sourceNotation": null,
+      "sourceNotation": "X+y",
       "inputPolicy": null,
       "sourceRows": [
         "19.2"
@@ -31234,7 +31234,7 @@
         "_% ,a;n@^)I _:"
       ],
       "expectedWholeBraille": ",a;n@^)I",
-      "sourceNotation": null,
+      "sourceNotation": ",a;n@^)I",
       "inputPolicy": null,
       "sourceRows": [
         "19.4"
@@ -31621,7 +31621,7 @@
         "_:"
       ],
       "expectedWholeBraille": "Y .k @,(x, if x \"k.k #0_4 @,(0, if x .1 #0",
-      "sourceNotation": null,
+      "sourceNotation": "Y .k @,(x, if x \"k.k #0_4 @,(0, if x .1 #0",
       "inputPolicy": null,
       "sourceRows": [
         "19.6"
@@ -31928,7 +31928,7 @@
         "_:"
       ],
       "expectedWholeBraille": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
-      "sourceNotation": null,
+      "sourceNotation": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
       "inputPolicy": null,
       "sourceRows": [
         "19.8"
@@ -31967,7 +31967,7 @@
         "_:"
       ],
       "expectedWholeBraille": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
-      "sourceNotation": null,
+      "sourceNotation": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
       "inputPolicy": null,
       "sourceRows": [
         "19.8"
@@ -32006,7 +32006,7 @@
         "_:"
       ],
       "expectedWholeBraille": ".,(12X+ Y .K #9.,) .,( 2X-3Y .K #11.,)",
-      "sourceNotation": null,
+      "sourceNotation": ".,(12X+ Y .K #9.,) .,( 2X-3Y .K #11.,)",
       "inputPolicy": null,
       "sourceRows": [
         "19.9.1"
@@ -37927,7 +37927,7 @@
         "_:"
       ],
       "expectedWholeBraille": "1000 AT @S1.86 PER #100 .K @S18.60 250 ,' ,' ,' ,' .K 4.65 25 ,' ,' ,' ,' .K .465 3 ,' ,' ,' ,' .K .056 3333333333333333333333333 3333333333 1278 AT @S1.86 PER #100 .K @S23.77",
-      "sourceNotation": null,
+      "sourceNotation": "1000 AT @S1.86 PER #100 .K @S18.60 250 ,' ,' ,' ,' .K 4.65 25 ,' ,' ,' ,' .K .465 3 ,' ,' ,' ,' .K .056 3333333333333333333333333 3333333333 1278 AT @S1.86 PER #100 .K @S23.77",
       "inputPolicy": null,
       "sourceRows": [
         "23.6"
@@ -38044,7 +38044,7 @@
         "WE M/ H _% B-C .K #0 _:4 @$QED"
       ],
       "expectedWholeBraille": "AB .K AC",
-      "sourceNotation": null,
+      "sourceNotation": "AB .K AC",
       "inputPolicy": null,
       "sourceRows": [
         "23.8"
@@ -39872,7 +39872,7 @@
         "_% X\"5 _:"
       ],
       "expectedWholeBraille": "X\"5",
-      "sourceNotation": null,
+      "sourceNotation": "X\"5",
       "inputPolicy": null,
       "sourceRows": [
         "24.1"
@@ -39910,7 +39910,7 @@
         "_% X\".6 _:"
       ],
       "expectedWholeBraille": "X\".6",
-      "sourceNotation": null,
+      "sourceNotation": "X\".6",
       "inputPolicy": null,
       "sourceRows": [
         "24.1"
@@ -40024,7 +40024,7 @@
         "_% C0\"10^2\"+c1\"10+c2 _:"
       ],
       "expectedWholeBraille": "C0\"10^2\"+c1\"10+c2",
-      "sourceNotation": null,
+      "sourceNotation": "C0\"10^2\"+c1\"10+c2",
       "inputPolicy": null,
       "sourceRows": [
         "24.1"
@@ -40787,7 +40787,7 @@
         "(varying in length)                        %77"
       ],
       "expectedWholeBraille": "@:\"@:,T",
-      "sourceNotation": null,
+      "sourceNotation": "@:\"@:,T",
       "inputPolicy": null,
       "sourceRows": [
         "24.1"
@@ -41060,7 +41060,7 @@
         "_:"
       ],
       "expectedWholeBraille": "3 LB4 12 OZ4 +1 LB4 8 OZ4 333333333333333 4 LB4 20 OZ4 .K #5 LB4 #4 OZ4",
-      "sourceNotation": null,
+      "sourceNotation": "3 LB4 12 OZ4 +1 LB4 8 OZ4 333333333333333 4 LB4 20 OZ4 .K #5 LB4 #4 OZ4",
       "inputPolicy": null,
       "sourceRows": [
         "25.3.4"
@@ -41099,7 +41099,7 @@
         "_:"
       ],
       "expectedWholeBraille": "4X+14Y- 3Z 17X- 9Y+20Z - 6X - 2Z 33333333333333 15X+ 5Y+15Z",
-      "sourceNotation": null,
+      "sourceNotation": "4X+14Y- 3Z 17X- 9Y+20Z - 6X - 2Z 33333333333333 15X+ 5Y+15Z",
       "inputPolicy": null,
       "sourceRows": [
         "25.3.4"
@@ -41138,7 +41138,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@S9.00 1.00 333333333 @S10.00",
-      "sourceNotation": null,
+      "sourceNotation": "@S9.00 1.00 333333333 @S10.00",
       "inputPolicy": null,
       "sourceRows": [
         "25.3.4"
@@ -41177,7 +41177,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@S 7.45 10.92 +84.00 3333333333 @S102.37",
-      "sourceNotation": null,
+      "sourceNotation": "@S 7.45 10.92 +84.00 3333333333 @S102.37",
       "inputPolicy": null,
       "sourceRows": [
         "25.3.4"
@@ -41216,7 +41216,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@S10,000 - 9,000 3333333333 @S 1,000",
-      "sourceNotation": null,
+      "sourceNotation": "@S10,000 - 9,000 3333333333 @S 1,000",
       "inputPolicy": null,
       "sourceRows": [
         "25.3.4"
@@ -41490,7 +41490,7 @@
         "_:"
       ],
       "expectedWholeBraille": "10_?2/3_# + 4_?1/3_# 333333333333 14_?3/3_# .K #15",
-      "sourceNotation": null,
+      "sourceNotation": "10_?2/3_# + 4_?1/3_# 333333333333 14_?3/3_# .K #15",
       "inputPolicy": null,
       "sourceRows": [
         "25.3.9"
@@ -41529,7 +41529,7 @@
         "_:"
       ],
       "expectedWholeBraille": "2X^3\"- X^2\"+ X+ 1 3X^3\"+4X^2\"-10X+ 7 5X^2\" +12 -2X^3\" - 6X 333333333333333333333 3X^3\"+8X^2\"-15X+20",
-      "sourceNotation": null,
+      "sourceNotation": "2X^3\"- X^2\"+ X+ 1 3X^3\"+4X^2\"-10X+ 7 5X^2\" +12 -2X^3\" - 6X 333333333333333333333 3X^3\"+8X^2\"-15X+20",
       "inputPolicy": null,
       "sourceRows": [
         "25.3.10"
@@ -41685,7 +41685,7 @@
         "_:"
       ],
       "expectedWholeBraille": "2 GAL 3 QT @*2 333333333333 4 GAL 6 QT",
-      "sourceNotation": null,
+      "sourceNotation": "2 GAL 3 QT @*2 333333333333 4 GAL 6 QT",
       "inputPolicy": null,
       "sourceRows": [
         "25.4.5"
@@ -41802,7 +41802,7 @@
         "_:"
       ],
       "expectedWholeBraille": "34;SEVEN @*12;SEVEN 333333333333 101;SEVEN 34 ;SEVEN 333333333333 441;SEVEN",
-      "sourceNotation": null,
+      "sourceNotation": "34;SEVEN @*12;SEVEN 333333333333 101;SEVEN 34 ;SEVEN 333333333333 441;SEVEN",
       "inputPolicy": null,
       "sourceRows": [
         "25.4.6"
@@ -41880,7 +41880,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@S18.24 @*65 333333333333 91 20 1 094 4 333333333333 @S1,185.60",
-      "sourceNotation": null,
+      "sourceNotation": "@S18.24 @*65 333333333333 91 20 1 094 4 333333333333 @S1,185.60",
       "inputPolicy": null,
       "sourceRows": [
         "25.4.7"
@@ -42190,7 +42190,7 @@
         "_:"
       ],
       "expectedWholeBraille": "3333333333333 6O1 FT4 6 IN4",
-      "sourceNotation": null,
+      "sourceNotation": "3333333333333 6O1 FT4 6 IN4",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.1"
@@ -42229,7 +42229,7 @@
         "_:"
       ],
       "expectedWholeBraille": "8 3333 6O48",
-      "sourceNotation": null,
+      "sourceNotation": "8 3333 6O48",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.4"
@@ -42268,7 +42268,7 @@
         "_:"
       ],
       "expectedWholeBraille": "3333 6O48[8",
-      "sourceNotation": null,
+      "sourceNotation": "3333 6O48[8",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.4"
@@ -42307,7 +42307,7 @@
         "_:"
       ],
       "expectedWholeBraille": "6O636 33333 106",
-      "sourceNotation": null,
+      "sourceNotation": "6O636 33333 106",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.4"
@@ -42385,7 +42385,7 @@
         "_:"
       ],
       "expectedWholeBraille": "644 333333 4O2576 24 333333 17 16 333333 16 16 333333",
-      "sourceNotation": null,
+      "sourceNotation": "644 333333 4O2576 24 333333 17 16 333333 16 16 333333",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.4"
@@ -42424,7 +42424,7 @@
         "_:"
       ],
       "expectedWholeBraille": "X+ 6 3333333333333 X+5_X^2\"+11X+30 X^2\"+ 5X 3333333333333 6X+30 6X+30 3333333333333",
-      "sourceNotation": null,
+      "sourceNotation": "X+ 6 3333333333333 X+5_X^2\"+11X+30 X^2\"+ 5X 3333333333333 6X+30 6X+30 3333333333333",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.4"
@@ -42463,7 +42463,7 @@
         "_:"
       ],
       "expectedWholeBraille": "X+8 3333333333333 X+4_X^2\"+12X+32 X^2\"+ 4X 3333333333333 8X+32 8X+32 3333333333333",
-      "sourceNotation": null,
+      "sourceNotation": "X+8 3333333333333 X+4_X^2\"+12X+32 X^2\"+ 4X 3333333333333 8X+32 8X+32 3333333333333",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.4"
@@ -42502,7 +42502,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@S 5.00 333333333 5O@S25.00",
-      "sourceNotation": null,
+      "sourceNotation": "@S 5.00 333333333 5O@S25.00",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.5"
@@ -42541,7 +42541,7 @@
         "_:"
       ],
       "expectedWholeBraille": "5,080.09 33333333333 18O91,441.62 90 33333333333 1 44 1 44 33333333333 1 62 1 62 33333333333",
-      "sourceNotation": null,
+      "sourceNotation": "5,080.09 33333333333 18O91,441.62 90 33333333333 1 44 1 44 33333333333 1 62 1 62 33333333333",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.5"
@@ -42581,7 +42581,7 @@
         "problem is placed as follows: On the first line below the"
       ],
       "expectedWholeBraille": "1 2 .5 333333333 6.3_<O78.7_<5 63 333333333 15 7 12 6 333333333 3 1 5 3 1 5 333333333",
-      "sourceNotation": null,
+      "sourceNotation": "1 2 .5 333333333 6.3_<O78.7_<5 63 333333333 15 7 12 6 333333333 3 1 5 3 1 5 333333333",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.5"
@@ -42659,7 +42659,7 @@
         "_:"
       ],
       "expectedWholeBraille": "181 ,R\"4 33333333333 25O4529 25 33333333333 202 200 33333333333 29 25 33333333333 4",
-      "sourceNotation": null,
+      "sourceNotation": "181 ,R\"4 33333333333 25O4529 25 33333333333 202 200 33333333333 29 25 33333333333 4",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.7"
@@ -42698,7 +42698,7 @@
         "_:"
       ],
       "expectedWholeBraille": "3333333333 6O414 _ 60 _ 10 33333_ 354 _ 120 _ 20 33333_ 234 _ 180 _ 30 33333_ 54 _ 54 _ 9 33333_3333 _ 69",
-      "sourceNotation": null,
+      "sourceNotation": "3333333333 6O414 _ 60 _ 10 33333_ 354 _ 120 _ 20 33333_ 234 _ 180 _ 30 33333_ 54 _ 54 _ 9 33333_3333 _ 69",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.8"
@@ -42737,7 +42737,7 @@
         "_:"
       ],
       "expectedWholeBraille": "33333 6O78 _ 30 _ 5 3333_ 48 _ 24 _ 4 3333_ 24 _ 24 _ 4 3333_3333 0 _ 13",
-      "sourceNotation": null,
+      "sourceNotation": "33333 6O78 _ 30 _ 5 3333_ 48 _ 24 _ 4 3333_ 24 _ 24 _ 4 3333_3333 0 _ 13",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.8"
@@ -42777,7 +42777,7 @@
         "_:"
       ],
       "expectedWholeBraille": "2 4 33333 3O7 2 %77777 1",
-      "sourceNotation": null,
+      "sourceNotation": "2 4 33333 3O7 2 %77777 1",
       "inputPolicy": null,
       "sourceRows": [
         "25.5.9"
@@ -43169,7 +43169,7 @@
         "_:"
       ],
       "expectedWholeBraille": ",(?1/,A# #0 #0 ,) ,(#0 ?1/,A -?COS .B/,A ,) ,( SIN^2 .B# SIN^2 .B# ,) ,(#0 -?COS .B/,A ?1/,C# ,) ,( SIN^2 .B# +?COS^2 .B ,) ,( /,ASIN^2 .b#,)",
-      "sourceNotation": null,
+      "sourceNotation": ",(?1/,A# #0 #0 ,) ,(#0 ?1/,A -?COS .B/,A ,) ,( SIN^2 .B# SIN^2 .B# ,) ,(#0 -?COS .B/,A ?1/,C# ,) ,( SIN^2 .B# +?COS^2 .B ,) ,( /,ASIN^2 .b#,)",
       "inputPolicy": null,
       "sourceRows": [
         "25.8.2"
@@ -43208,7 +43208,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@,(COS A SIN A #0@,) @,(-SIN A COS A #0@,) @,(#0 #0 #1@,)",
-      "sourceNotation": null,
+      "sourceNotation": "@,(COS A SIN A #0@,) @,(-SIN A COS A #0@,) @,(#0 #0 #1@,)",
       "inputPolicy": null,
       "sourceRows": [
         "25.8.2"
@@ -43247,7 +43247,7 @@
         "_:"
       ],
       "expectedWholeBraille": ",\\,B'11- ,B'12 ,B'13 ,\\ ,B'14 ,\\(,E- ,\\ ,\\,E1^0\") ,\\ ,\\ ,\\ ,\\,B'21 ,B'22- ,B'23 ,B'24 ,\\ ,\\ (,E- ,\\ ,\\ ,E2^0\") ,\\ ,\\ ,\\ ,\\,B'31 ,B'32 ,B'33- ,B'34 ,\\ ,\\ (,E- ,\\ ,\\ ,E3^0\") ,\\ ,\\ ,\\ ,\\,B'41 ,B'42 ,B'43 ,B'44- ,\\ ,\\ (,E-,E4^0\"),\\",
-      "sourceNotation": null,
+      "sourceNotation": ",\\,B'11- ,B'12 ,B'13 ,\\ ,B'14 ,\\(,E- ,\\ ,\\,E1^0\") ,\\ ,\\ ,\\ ,\\,B'21 ,B'22- ,B'23 ,B'24 ,\\ ,\\ (,E- ,\\ ,\\ ,E2^0\") ,\\ ,\\ ,\\ ,\\,B'31 ,B'32 ,B'33- ,B'34 ,\\ ,\\ (,E- ,\\ ,\\ ,E3^0\") ,\\ ,\\ ,\\ ,\\,B'41 ,B'42 ,B'43 ,B'44- ,\\ ,\\ (,E-,E4^0\"),\\",
       "inputPolicy": null,
       "sourceRows": [
         "25.8.2"
@@ -43287,7 +43287,7 @@
         "Sample transcriber's note:"
       ],
       "expectedWholeBraille": ",( #1 #0 #0 ,) ,(?33# ,) ,( ,A ,) ,( ,) ,(#0 #1 COS .B ,) ,( ?3333333333# ?3333333333#,) ,( ,ASIN^2 .B ,ASIN^2 .B ,) ,( ,) ,(#0 COS .B COS^2 .B ,) ,( ?3333333333# ?3333333333#,) ,( ,ASIN^2 .B ,ASIN^2 .B ,)",
-      "sourceNotation": null,
+      "sourceNotation": ",( #1 #0 #0 ,) ,(?33# ,) ,( ,A ,) ,( ,) ,(#0 #1 COS .B ,) ,( ?3333333333# ?3333333333#,) ,( ,ASIN^2 .B ,ASIN^2 .B ,) ,( ,) ,(#0 COS .B COS^2 .B ,) ,( ?3333333333# ?3333333333#,) ,( ,ASIN^2 .B ,ASIN^2 .B ,)",
       "inputPolicy": null,
       "sourceRows": [
         "25.8.2"
@@ -43326,7 +43326,7 @@
         "_:"
       ],
       "expectedWholeBraille": ",\\A11 A12 ''' A;1N\",\\ ,\\A21 A22 ''' A;2N\",\\ ,\\* * ''' * ,\\ ,\\A;N1 A;N2 ''' A;NN\",\\",
-      "sourceNotation": null,
+      "sourceNotation": ",\\A11 A12 ''' A;1N\",\\ ,\\A21 A22 ''' A;2N\",\\ ,\\* * ''' * ,\\ ,\\A;N1 A;N2 ''' A;NN\",\\",
       "inputPolicy": null,
       "sourceRows": [
         "25.8.3"
@@ -43365,7 +43365,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@,(A11 A12 ''' A;1N\"@,) @,(A21 A22 ''' A;2N\"@,) @,('''''''''''''''''''@,) @,(A;N1 A;N2 ''' A;NN\"@,)",
-      "sourceNotation": null,
+      "sourceNotation": "@,(A11 A12 ''' A;1N\"@,) @,(A21 A22 ''' A;2N\"@,) @,('''''''''''''''''''@,) @,(A;N1 A;N2 ''' A;NN\"@,)",
       "inputPolicy": null,
       "sourceRows": [
         "25.8.3"
@@ -43405,7 +43405,7 @@
         "_:"
       ],
       "expectedWholeBraille": ",\\A11 A12 ''' A;1N\",\\ ,\\A21 A22 ''' A;2N\",\\ ,\\%'' -- -- %'' ,| ,|A;M1 A;M2 ''' A;MN\",\\",
-      "sourceNotation": null,
+      "sourceNotation": ",\\A11 A12 ''' A;1N\",\\ ,\\A21 A22 ''' A;2N\",\\ ,\\%'' -- -- %'' ,| ,|A;M1 A;M2 ''' A;MN\",\\",
       "inputPolicy": null,
       "sourceRows": [
         "25.8.3"
@@ -43485,7 +43485,7 @@
         "_:"
       ],
       "expectedWholeBraille": "@,(A #0 ''' #0 @,) @,(#0 #1 ''' #0 @,) @,(%'' %'' ;'' %''`,) @,(#0 #0 ''' #1 @,)",
-      "sourceNotation": null,
+      "sourceNotation": "@,(A #0 ''' #0 @,) @,(#0 #1 ''' #0 @,) @,(%'' %'' ;'' %''`,) @,(#0 #0 ''' #1 @,)",
       "inputPolicy": null,
       "sourceRows": [
         "25.8.3"
@@ -43759,7 +43759,7 @@
         "_:"
       ],
       "expectedWholeBraille": ".,(4X-Y .K #3.,) .,(3X-Y .K #1.,)",
-      "sourceNotation": null,
+      "sourceNotation": ".,(4X-Y .K #3.,) .,(3X-Y .K #1.,)",
       "inputPolicy": null,
       "sourceRows": [
         "25.10"
@@ -43798,7 +43798,7 @@
         "_:"
       ],
       "expectedWholeBraille": ".,(3X+15Y-2Z .K #64.,) .,( X+12Y+ Z .K #51.,) .,(7X- 8Y+2Z .K -#16.,)",
-      "sourceNotation": null,
+      "sourceNotation": ".,(3X+15Y-2Z .K #64.,) .,( X+12Y+ Z .K #51.,) .,(7X- 8Y+2Z .K -#16.,)",
       "inputPolicy": null,
       "sourceRows": [
         "25.10"
@@ -43915,7 +43915,7 @@
         "_:"
       ],
       "expectedWholeBraille": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
-      "sourceNotation": null,
+      "sourceNotation": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
       "inputPolicy": null,
       "sourceRows": [
         "25.10.1"
@@ -43954,7 +43954,7 @@
         "_:"
       ],
       "expectedWholeBraille": "#12X-4 .K #12X-4,') ,ALL TRUE #12X .K #12X ,') statements4 #0 .K #0 ,')",
-      "sourceNotation": null,
+      "sourceNotation": "#12X-4 .K #12X-4,') ,ALL TRUE #12X .K #12X ,') statements4 #0 .K #0 ,')",
       "inputPolicy": null,
       "sourceRows": [
         "25.10.1"
@@ -43995,7 +43995,7 @@
         "_:"
       ],
       "expectedWholeBraille": ".,(X .1: #0,') ;X, Y .,(Y .1: #0,') .K NONNEGATIVE ,') VARIABLES",
-      "sourceNotation": null,
+      "sourceNotation": ".,(X .1: #0,') ;X, Y .,(Y .1: #0,') .K NONNEGATIVE ,') VARIABLES",
       "inputPolicy": null,
       "sourceRows": [
         "25.10.1"
@@ -44037,7 +44037,7 @@
         "_% #5@*3 .k #15 _:4"
       ],
       "expectedWholeBraille": "X+2 ,'& x+5",
-      "sourceNotation": null,
+      "sourceNotation": "X+2 ,'& x+5",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.1"
@@ -44077,7 +44077,7 @@
         "F'(X) .K ?2/3<3>X]# _:"
       ],
       "expectedWholeBraille": "F(X) .K X^2_/3",
-      "sourceNotation": null,
+      "sourceNotation": "F(X) .K X^2_/3",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.1"
@@ -44204,7 +44204,7 @@
         "(9X^2\"-3X)-(6X-2) _:4"
       ],
       "expectedWholeBraille": ";A_4 ,',ADD3 (X^2\"-4X)+(4X-16)_4 ;B_4 ,',SUBTRACT3 (X^2\"-4X)-(4X-16)",
-      "sourceNotation": null,
+      "sourceNotation": ";A_4 ,',ADD3 (X^2\"-4X)+(4X-16)_4 ;B_4 ,',SUBTRACT3 (X^2\"-4X)-(4X-16)",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.2"
@@ -44243,7 +44243,7 @@
         "#c4 ,9 FACTOR+ _% AB+C^2\"+AC+BC _:3"
       ],
       "expectedWholeBraille": "AB+C^2\"+AC+BC",
-      "sourceNotation": null,
+      "sourceNotation": "AB+C^2\"+AC+BC",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.2"
@@ -44282,7 +44282,7 @@
         ";B_4 #3@*(5@*2) .K (3@*5)@*,N _:"
       ],
       "expectedWholeBraille": ";A_4 (3@*5)@*2 .K #3@*(,N@*2) ;B_4 #3@*(5@*2) .K (3@*5)@*,N",
-      "sourceNotation": null,
+      "sourceNotation": ";A_4 (3@*5)@*2 .K #3@*(,N@*2) ;B_4 #3@*(5@*2) .K (3@*5)@*,N",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.2"
@@ -44321,7 +44321,7 @@
         ";C_4 #146+192 _:"
       ],
       "expectedWholeBraille": ";A_4 #118+37+66 ;B_4 #123+159+92 ;C_4 #146+192",
-      "sourceNotation": null,
+      "sourceNotation": ";A_4 #118+37+66 ;B_4 #123+159+92 ;C_4 #146+192",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.2"
@@ -44361,7 +44361,7 @@
         "with runovers in cell 5. NOTE: This does not apply to"
       ],
       "expectedWholeBraille": ";a_4 X(A+1)-Y(A+1) ;b_4 X^2\"-2X+1-4A^2\"-12a-9",
-      "sourceNotation": null,
+      "sourceNotation": ";a_4 X(A+1)-Y(A+1) ;b_4 X^2\"-2X+1-4A^2\"-12a-9",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.2"
@@ -44520,7 +44520,7 @@
         "_:"
       ],
       "expectedWholeBraille": ";A) ,z(x, y) .K X^2\"+3y^2\"-3xy ;B) ,w(x, y, z) .K #29-(x^2\"+y^2\"+z^2\")",
-      "sourceNotation": null,
+      "sourceNotation": ";A) ,z(x, y) .K X^2\"+3y^2\"-3xy ;B) ,w(x, y, z) .K #29-(x^2\"+y^2\"+z^2\")",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.4"
@@ -44559,7 +44559,7 @@
         "_:"
       ],
       "expectedWholeBraille": "#1_4 X+Y .K #3 X-Y .K #1 #2_4 X+Y .K #2 X-Y .K #4",
-      "sourceNotation": null,
+      "sourceNotation": "#1_4 X+Y .K #3 X-Y .K #1 #2_4 X+Y .K #2 X-Y .K #4",
       "inputPolicy": null,
       "sourceRows": [
         "26.1.4"
@@ -44598,7 +44598,7 @@
         "_:"
       ],
       "expectedWholeBraille": ";A ;B #1_4 #1745-431 .K ,N ,N .K -#5+2 #2_4 ,N .K #18+(-9) -#7+14 .K ,N",
-      "sourceNotation": null,
+      "sourceNotation": ";A ;B #1_4 #1745-431 .K ,N ,N .K -#5+2 #2_4 ,N .K #18+(-9) -#7+14 .K ,N",
       "inputPolicy": null,
       "sourceRows": [
         "26.6.3.c"
@@ -44637,7 +44637,7 @@
         "_:"
       ],
       "expectedWholeBraille": ";A ;B ;C #1_4 4396 6010 73.01 + 873 - 809 @*.62 3333333 3333333 3333333 #2_4 37,285 48,063 69.35 + 9,476 - 1,741 @*.04 333333333 333333333 3333333",
-      "sourceNotation": null,
+      "sourceNotation": ";A ;B ;C #1_4 4396 6010 73.01 + 873 - 809 @*.62 3333333 3333333 3333333 #2_4 37,285 48,063 69.35 + 9,476 - 1,741 @*.04 333333333 333333333 3333333",
       "inputPolicy": null,
       "sourceRows": [
         "26.6.3.c"
@@ -44677,7 +44677,7 @@
         ";B       #4AB+4X^2\"-A^2\"-4B^2 _:"
       ],
       "expectedWholeBraille": "#1_4 ;A (X-Y)^2\"-(A+B)^2 ;B M(P-Q)-N(Q-P) #2_4 ;A #1-(X+1)^2 ;B #4AB+4X^2\"-A^2\"-4B^2",
-      "sourceNotation": null,
+      "sourceNotation": "#1_4 ;A (X-Y)^2\"-(A+B)^2 ;B M(P-Q)-N(Q-P) #2_4 ;A #1-(X+1)^2 ;B #4AB+4X^2\"-A^2\"-4B^2",
       "inputPolicy": null,
       "sourceRows": [
         "26.6.3.c"
@@ -44717,7 +44717,7 @@
         "c. Before a mathematical unit such as:"
       ],
       "expectedWholeBraille": "#1_4 ;A 7238 ;B 4231 + 457 +1389 3333333 3333333 ;C 2643 ;D 75,011 + 52 + 96 3333333 333333333",
-      "sourceNotation": null,
+      "sourceNotation": "#1_4 ;A 7238 ;B 4231 + 457 +1389 3333333 3333333 ;C 2643 ;D 75,011 + 52 + 96 3333333 333333333",
       "inputPolicy": null,
       "sourceRows": [
         "26.6.3.c"
@@ -44794,7 +44794,7 @@
         ".p`(f(x;I\")`)~2\".,dx _:4"
       ],
       "expectedWholeBraille": ",v .k \"lim%.,dx $o #0} \".,s%i .k #1<n} .p`(f(x;I\")`)~2\".,dx",
-      "sourceNotation": null,
+      "sourceNotation": ",v .k \"lim%.,dx $o #0} \".,s%i .k #1<n} .p`(f(x;I\")`)~2\".,dx",
       "inputPolicy": null,
       "sourceRows": [
         "26.2"
@@ -45029,7 +45029,7 @@
         "\"+(A1B2-A2B1)^2 _:1 444"
       ],
       "expectedWholeBraille": "\\A@*B\\^2 .K (A2B3-A3B2)^2\"+(A3B1-A1B3)^2 \"+(A1B2-A2B1)^2",
-      "sourceNotation": null,
+      "sourceNotation": "\\A@*B\\^2 .K (A2B3-A3B2)^2\"+(A3B1-A1B3)^2 \"+(A1B2-A2B1)^2",
       "inputPolicy": null,
       "sourceRows": [
         "26.3.4"
@@ -45145,7 +45145,7 @@
         "_% #2.5 HRs _:1 HAS 9GE/$ F\\R #AB-OZ"
       ],
       "expectedWholeBraille": "#2.5 HRs",
-      "sourceNotation": null,
+      "sourceNotation": "#2.5 HRs",
       "inputPolicy": null,
       "sourceRows": [
         "26.3.5"
@@ -45219,7 +45219,7 @@
         "xy-plane        _% Xy-plane _:"
       ],
       "expectedWholeBraille": "Xy-plane",
-      "sourceNotation": null,
+      "sourceNotation": "Xy-plane",
       "inputPolicy": null,
       "sourceRows": [
         "26.3.6"
@@ -45258,7 +45258,7 @@
         "_% ,A' _: TO PO9T _% ,B' _:1 ! =CE IS"
       ],
       "expectedWholeBraille": ",w\"3 .K ,W\"2",
-      "sourceNotation": null,
+      "sourceNotation": ",w\"3 .K ,W\"2",
       "inputPolicy": null,
       "sourceRows": [
         "26.4.2"
@@ -45297,7 +45297,7 @@
         ",'IF X .K #3 _:1 H[ L;G IS ! HYPOT5USE8"
       ],
       "expectedWholeBraille": "(X+2)^2 .K (X+1)^2\"+X^2, ,'IF X .K #3",
-      "sourceNotation": null,
+      "sourceNotation": "(X+2)^2 .K (X+1)^2\"+X^2, ,'IF X .K #3",
       "inputPolicy": null,
       "sourceRows": [
         "26.4.3"
@@ -45581,7 +45581,7 @@
         ".1,answ}3 #ED IS _% #112.5@0 _: ( #DH4"
       ],
       "expectedWholeBraille": "N*48 .K #54",
-      "sourceNotation": null,
+      "sourceNotation": "N*48 .K #54",
       "inputPolicy": null,
       "sourceRows": [
         "26.4.5"
@@ -45738,7 +45738,7 @@
         "_% F(Z, W) _: describes 444"
       ],
       "expectedWholeBraille": "W .K F(Z, W) .K Z^3\"+(A1Z+A2Z^2\")F(Z, W) +(A3+A4Z)F(Z, W)^2\"+A6F(Z, W)^3 .K ''' .K Z^3\"(1+,A1Z+,A2Z^2\"+ ''')",
-      "sourceNotation": null,
+      "sourceNotation": "W .K F(Z, W) .K Z^3\"+(A1Z+A2Z^2\")F(Z, W) +(A3+A4Z)F(Z, W)^2\"+A6F(Z, W)^3 .K ''' .K Z^3\"(1+,A1Z+,A2Z^2\"+ ''')",
       "inputPolicy": null,
       "sourceRows": [
         "26.5.2"
@@ -45818,7 +45818,7 @@
         ".K -?1/3# _:"
       ],
       "expectedWholeBraille": "\"LIM%X $O #0] ?COS X/SIN X-3#_4 \"LIM%X $O #0] ?COS X/SIN X-3# .K -?1/3#",
-      "sourceNotation": null,
+      "sourceNotation": "\"LIM%X $O #0] ?COS X/SIN X-3#_4 \"LIM%X $O #0] ?COS X/SIN X-3# .K -?1/3#",
       "inputPolicy": null,
       "sourceRows": [
         "26.5.3"
@@ -45898,7 +45898,7 @@
         ".k = _:"
       ],
       "expectedWholeBraille": "E .K #1+?1/1#+?1/1*2#+?1/1*2*3# +?1/1*2*3*4#+ ''' .k =",
-      "sourceNotation": null,
+      "sourceNotation": "E .K #1+?1/1#+?1/1*2#+?1/1*2*3# +?1/1*2*3*4#+ ''' .k =",
       "inputPolicy": null,
       "sourceRows": [
         "26.5.3"
@@ -46097,7 +46097,7 @@
         ".K Y^9 _:"
       ],
       "expectedWholeBraille": "#97_4 (?Y^2\"Y^5\"/Y^4\"#)^3 .K (?Y^2+5\"/Y^4\"#)^3 .K (?Y^7\"/Y^4\"#)^3 .K (Y^7-4\")^3 .K (Y^3\")^3 .K Y^3*3 .K Y^9",
-      "sourceNotation": null,
+      "sourceNotation": "#97_4 (?Y^2\"Y^5\"/Y^4\"#)^3 .K (?Y^2+5\"/Y^4\"#)^3 .K (?Y^7\"/Y^4\"#)^3 .K (Y^7-4\")^3 .K (Y^3\")^3 .K Y^3*3 .K Y^9",
       "inputPolicy": null,
       "sourceRows": [
         "26.5.4"
@@ -46790,7 +46790,7 @@
         "#3_4 ,M12, ,A12 _:"
       ],
       "expectedWholeBraille": ",A .K @,(#1 #0 ?1/2#@,) @,(-#3 #5 #2 @,) @,(#0 #0 #4 @,) #1_4 ,M11, ,A11 #2_4 ,M33, ,A33 #3_4 ,M12, ,A12",
-      "sourceNotation": null,
+      "sourceNotation": ",A .K @,(#1 #0 ?1/2#@,) @,(-#3 #5 #2 @,) @,(#0 #0 #4 @,) #1_4 ,M11, ,A11 #2_4 ,M33, ,A33 #3_4 ,M12, ,A12",
       "inputPolicy": null,
       "sourceRows": [
         "26.6.5"
@@ -46835,7 +46835,7 @@
         "Sample transcriber's note:"
       ],
       "expectedWholeBraille": ",A,B ,'& ,C,D",
-      "sourceNotation": null,
+      "sourceNotation": ",A,B ,'& ,C,D",
       "inputPolicy": null,
       "sourceRows": [
         "26.7.1"
@@ -46877,7 +46877,7 @@
         "#e,S4 _% m$[ X .K m$[ A _:4"
       ],
       "expectedWholeBraille": ",D,E ,'BISECTS $[ ,A,C,B_4 #1,R_4 ,',GIV54 #2,S_4 m$[ A .K m$[ B",
-      "sourceNotation": null,
+      "sourceNotation": ",D,E ,'BISECTS $[ ,A,C,B_4 #1,R_4 ,',GIV54 #2,S_4 m$[ A .K m$[ B",
       "inputPolicy": null,
       "sourceRows": [
         "26.7.2"
@@ -46917,7 +46917,7 @@
         "WE M/ H _% B-C .K #0 _:4 `$QED"
       ],
       "expectedWholeBraille": "AB .K AC",
-      "sourceNotation": null,
+      "sourceNotation": "AB .K AC",
       "inputPolicy": null,
       "sourceRows": [
         "26.7.3"
@@ -46960,7 +46960,7 @@
         "in the body of the plot:"
       ],
       "expectedWholeBraille": "VTA \"\"\"\" V .K V0+AT \"\"\"\"\"\"\"\"\"\"\" #2-7 IFV \"\"\"\" V;AV .K ?1/2#(V0+V) \"\" #2-9 PTV \"\"\"\" X .K X0+?1/2#(V0+V)T #2-10 PTA \"\"\"\" X .K X0+V0T+?1/2#AT^2 #2-11 VPA \"\"\"\" V^2 .K V0\"^2\"+2A(X-X0) #2-12 .K V0\"^2\"+2A.,DX",
-      "sourceNotation": null,
+      "sourceNotation": "VTA \"\"\"\" V .K V0+AT \"\"\"\"\"\"\"\"\"\"\" #2-7 IFV \"\"\"\" V;AV .K ?1/2#(V0+V) \"\" #2-9 PTV \"\"\"\" X .K X0+?1/2#(V0+V)T #2-10 PTA \"\"\"\" X .K X0+V0T+?1/2#AT^2 #2-11 VPA \"\"\"\" V^2 .K V0\"^2\"+2A(X-X0) #2-12 .K V0\"^2\"+2A.,DX",
       "inputPolicy": null,
       "sourceRows": [
         "26.9.3"
@@ -46999,7 +46999,7 @@
         "_:"
       ],
       "expectedWholeBraille": "1 _ 2 .K #12 ,stEM _ ,LeaF \"3333 _ \"33333333333333333333333 1 _ 222344555556677778899999 2 _ 01112668 3 _ 0",
-      "sourceNotation": null,
+      "sourceNotation": "1 _ 2 .K #12 ,stEM _ ,LeaF \"3333 _ \"33333333333333333333333 1 _ 222344555556677778899999 2 _ 01112668 3 _ 0",
       "inputPolicy": null,
       "sourceRows": [
         "26.10.3"
@@ -47080,7 +47080,7 @@
         "_:"
       ],
       "expectedWholeBraille": "5 _ 8.3 .K #58.3 ,stEM _ ,LeaF \"3333 _ \"33333333333333333333333333 5 _ 8.3 6 _ 4.3 5.1 5.5 6.7 7.0 8.7 9.3 7 _ 0.0 2.8 3.2 5.8 7.4 7.4",
-      "sourceNotation": null,
+      "sourceNotation": "5 _ 8.3 .K #58.3 ,stEM _ ,LeaF \"3333 _ \"33333333333333333333333333 5 _ 8.3 6 _ 4.3 5.1 5.5 6.7 7.0 8.7 9.3 7 _ 0.0 2.8 3.2 5.8 7.4 7.4",
       "inputPolicy": null,
       "sourceRows": [
         "26.10.3"
@@ -47161,7 +47161,7 @@
         "_:"
       ],
       "expectedWholeBraille": "95 _ ,M 96 _ 97 _ ,M 98 _ ,M 99 _ ,M,M,A,M",
-      "sourceNotation": null,
+      "sourceNotation": "95 _ ,M 96 _ 97 _ ,M 98 _ ,M 99 _ ,M,M,A,M",
       "inputPolicy": null,
       "sourceRows": [
         "26.10.4"

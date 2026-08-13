@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-19-4",
+      "sourceRows": ["example-19-4", "19.1.1"],
+      "rule": "19",
+      "example": "19-4",
+      "artifact": "electron-evidence/example-19-4.json",
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-19-4/electron_bana-2022_example-19-4-input.png", "claim": "The complete local Nemeth code is visible before commit while the source remains unchanged." },
+        { "phase": "committed", "path": "electron-screenshots/rule-19-4/electron_bana-2022_example-19-4-creation.png", "claim": "The grouped superscript and following arithmetic are rendered as one source MathML tree." },
+        { "phase": "focused", "path": "electron-screenshots/rule-19-4/electron_bana-2022_example-19-4-focused.png", "claim": "MathJax Explorer selection is visible immediately before exact replacement." },
+        { "phase": "editing", "path": "electron-screenshots/rule-19-4/electron_bana-2022_example-19-4-editing.png", "claim": "The exact focused subtree is replaced while its surrounding expression remains intact." }
+      ] }
+    },
+    {
+      "sourceRows": [
+        "example-19-2",
+        "19.1.1"
+      ],
+      "rule": "19",
+      "example": "19-2",
+      "creationScreenshot": "electron-screenshots/rule-19-2-creation.png",
+      "editingScreenshot": "electron-screenshots/rule-19-2-editing.png",
+      "evidenceSet": {
+        "screenshots": [
+          { "phase": "committed", "path": "electron-screenshots/rule-19-2-creation.png", "claim": "Legacy committed rendering artifact retained for review; input and focused phases still need regeneration." },
+          { "phase": "editing", "path": "electron-screenshots/rule-19-2-editing.png", "claim": "Legacy exact-edit artifact retained for review; it does not by itself prove the pre-E focus or authored input." }
+        ]
+      },
+      "artifact": "/tmp/bana-19-2-visual2.json",
+      "note": "Real Electron creation and exact focused replacement; one source root and hidden source blanks verified."
+    },
+    {
+      "id": "electron:bana-2022:example-19-6",
+      "sourceRows": [
+        "example-19-6",
+        "19.1.1"
+      ],
+      "rule": "19",
+      "example": "19-6",
+      "creationScreenshot": "electron-screenshots/rule-19-6-creation.png",
+      "editingScreenshot": "electron-screenshots/rule-19-6-editing.png",
+      "evidenceSet": {
+        "screenshots": [
+          { "phase": "committed", "path": "electron-screenshots/rule-19-6-creation.png", "claim": "Legacy committed rendering artifact retained for review; input and focused phases still need regeneration." },
+          { "phase": "editing", "path": "electron-screenshots/rule-19-6-editing.png", "claim": "Legacy exact-edit artifact retained for review; it does not by itself prove the pre-E focus or authored input." }
+        ]
+      },
+      "artifact": "real Electron run /tmp/bana-19-6-visual.json"
+    },
+    {
+      "id": "electron:bana-2022:example-19-7",
+      "sourceRows": [
+        "example-19-7",
+        "19.1.1"
+      ],
+      "rule": "19",
+      "example": "19-7",
+      "artifact": "electron-evidence/example-19-7.json",
+      "evidenceSet": {
+        "screenshots": [
+          {
+            "phase": "input",
+            "path": "electron-screenshots/rule-19-7/electron_bana-2022_example-19-7-input.png",
+            "claim": "Nemeth cells and the bounded local choice are visible before submission while the original expression remains unchanged."
+          },
+          {
+            "phase": "committed",
+            "path": "electron-screenshots/rule-19-7/electron_bana-2022_example-19-7-creation.png",
+            "claim": "The complete mixed-capital grouping example is rendered as one MathML expression."
+          },
+          {
+            "phase": "focused",
+            "path": "electron-screenshots/rule-19-7/electron_bana-2022_example-19-7-focused.png",
+            "claim": "MathJax Explorer has selected the exact scope immediately before E."
+          },
+          {
+            "phase": "editing",
+            "path": "electron-screenshots/rule-19-7/electron_bana-2022_example-19-7-editing.png",
+            "claim": "The exact replacement is rendered while the surrounding grouping structure remains present."
+          }
+        ]
+      }
+    },
+    {
+      "id": "electron:bana-2022:example-19-13",
+      "sourceRows": ["example-19-13", "19.1.2"],
+      "rule": "19",
+      "example": "19-13",
+      "artifact": "electron-evidence/example-19-13.json",
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-19-13/electron_bana-2022_example-19-13-input.png", "claim": "The bounded Nemeth cells are visible in the replacement control while the official equation remains unchanged." },
+        { "phase": "committed", "path": "electron-screenshots/rule-19-13/electron_bana-2022_example-19-13-creation.png", "claim": "The complete 15/4, sine, 2-theta, and scripted bracket expression is rendered as one canonical MathML tree." },
+        { "phase": "focused", "path": "electron-screenshots/rule-19-13/electron_bana-2022_example-19-13-focused.png", "claim": "MathJax Explorer visibly selects the nested expression before E opens exact replacement." },
+        { "phase": "editing", "path": "electron-screenshots/rule-19-13/electron_bana-2022_example-19-13-editing.png", "claim": "The replacement is rendered after the transaction; the artifact retains the complete pre-edit Braille and MathML separately." }
+      ] }
+    }
+  ]
+}

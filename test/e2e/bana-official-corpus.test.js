@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -14,14 +14,14 @@ function selectedCases() {
   return corpus.cases;
 }
 
-async function launch() {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-bana-official-'));
+async function launch(existingDataDirectory = null) {
+  const dataDirectory = existingDataDirectory ?? await mkdtemp(path.join(os.tmpdir(), 'omniya-bana-official-'));
   const app = await electron.launch({ args: ['.'], cwd: projectRoot, env: { ...process.env, OMNIYA_TEST_USER_DATA_DIR: dataDirectory } });
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
   await page.locator('#app-shell[aria-busy="false"]').waitFor();
   await app.context().setOffline(true);
-  return app;
+  return { app, dataDirectory };
 }
 
 async function createDraft(page) {
@@ -32,39 +32,277 @@ async function createDraft(page) {
   return page.getByLabel('Replacement input', { exact: true });
 }
 
-async function feedLocalCode(page, input, cells) {
-  for (const cell of cells) {
-    await input.fill(cell);
-    await page.waitForTimeout(18);
-    const choices = page.locator('#replacement-choices .replacement-choice');
-    if (await choices.count()) {
-      // Official source rows are reviewed fixtures. When a local BANA code is
-      // intentionally ambiguous, the corpus records the first published
-      // meaning unless a future case adds an explicit choice field.
-      await choices.first().click();
-      await page.waitForTimeout(18);
-      await input.fill('');
+/**
+ * Visual evidence is deliberately collected at the Electron boundary. The
+ * MathML/Braille assertions can pass while a source blank becomes a visible
+ * full-em gap or while MathJax accidentally renders two equation containers.
+ * Geometry checks run for every case; PNGs are enabled for review runs with
+ * BANA_ELECTRON_SCREENSHOTS=1 (normally one rule shard at a time).
+ */
+async function visualEvidence(page, article, entry, phase, dataDirectory) {
+  const geometry = await article.evaluate((node) => {
+    const container = node.querySelector('.item-content mjx-container');
+    const source = node.querySelector('.item-content mjx-assistive-mml math');
+    const visualSpaces = [...node.querySelectorAll('.item-content mjx-container mjx-mspace')]
+      .map((space) => ({ width: space.getBoundingClientRect().width, computedWidth: getComputedStyle(space).width }));
+    return {
+      mathJaxContainers: node.querySelectorAll('.item-content mjx-container').length,
+      sourceMathRoots: node.querySelectorAll('.item-content mjx-assistive-mml math').length,
+      sourceElementChildren: source ? [...source.children].length : 0,
+      visualSpaces,
+      containerWidth: container?.getBoundingClientRect().width ?? 0,
+      containerHeight: container?.getBoundingClientRect().height ?? 0
+    };
+  });
+  assert.equal(geometry.mathJaxContainers, 1, `${entry.exampleNumber} rendered more than one MathJax equation container`);
+  assert.equal(geometry.sourceMathRoots, 1, `${entry.exampleNumber} lost its single source MathML root`);
+  assert.ok(geometry.containerWidth > 0 && geometry.containerHeight > 0, `${entry.exampleNumber} rendered blank math`);
+  for (const space of geometry.visualSpaces) {
+    assert.ok(space.width < 1, `${entry.exampleNumber} source blank became a visible layout gap (${space.width}px)`);
+  }
+  const evidence = {
+    phase,
+    geometry,
+    claim: phase === 'creation' || phase === 'committed'
+      ? 'Committed whole expression is rendered as one source MathML tree with no visible source blanks.'
+      : phase === 'editing'
+        ? 'The exact replacement is rendered while the surrounding expression remains present.'
+        : 'Renderer geometry and source-tree invariants hold.'
+  };
+  if (process.env.BANA_ELECTRON_SCREENSHOTS === '1') {
+    const screenshotDirectory = process.env.BANA_ELECTRON_SCREENSHOT_DIR || path.join(dataDirectory, 'screenshots');
+    await mkdir(screenshotDirectory, { recursive: true });
+    const safeId = entry.id.replace(/[^a-z0-9_-]+/gi, '_');
+    const screenshotPath = path.join(screenshotDirectory, `${safeId}-${phase}.png`);
+    // Use the viewport for review artifacts. It includes the expression,
+    // editor status, and the surrounding application context, so a reviewer
+    // can tell what was authored rather than seeing an isolated `y` glyph.
+    await page.screenshot({ path: screenshotPath });
+    evidence.screenshotPath = screenshotPath;
+  }
+  return evidence;
+}
+
+async function captureInteractionScreenshot(page, entry, phase, dataDirectory, claim) {
+  if (process.env.BANA_ELECTRON_SCREENSHOTS !== '1') return null;
+  const screenshotDirectory = process.env.BANA_ELECTRON_SCREENSHOT_DIR || path.join(dataDirectory, 'screenshots');
+  await mkdir(screenshotDirectory, { recursive: true });
+  const safeId = entry.id.replace(/[^a-z0-9_-]+/gi, '_');
+  const screenshotPath = path.join(screenshotDirectory, `${safeId}-${phase}.png`);
+  await page.screenshot({ path: screenshotPath });
+  return { phase, screenshotPath, claim };
+}
+
+async function feedLocalCode(page, input, cells, choiceOperationIds = {}, options = {}) {
+  const resolveChoices = async (nextCell = null) => {
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const choices = page.locator('#replacement-choices .replacement-choice');
+      if (!(await choices.count())) return;
+      const prefix = (await input.inputValue()).trimEnd();
+      const requested = choiceOperationIds[prefix];
+      const contextChoice = !requested && nextCell && [...'⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵'].includes(nextCell)
+        ? page.locator('#replacement-choices .replacement-choice[data-operation-id="indicator.capital"]')
+        : null;
+      const selected = requested
+        ? page.locator(`#replacement-choices .replacement-choice[data-operation-id="${requested}"]`)
+        : contextChoice || choices.first();
+      const selectedCount = await selected.count();
+      if (requested && !selectedCount) {
+        const available = await choices.evaluateAll((nodes) => nodes.map((node) => ({ id: node.dataset.operationId, text: node.textContent })));
+        throw new Error(`requested local choice ${requested} is not present; prefix=${prefix}; available=${JSON.stringify(available)}`);
+      }
+      await (selectedCount ? selected.first() : choices.first()).click();
+      await page.waitForTimeout(80);
+      if (requested && await page.locator('#replacement-choices .replacement-choice').count()) {
+        throw new Error(`requested local choice ${requested} remained after click; prefix=${prefix}; status=${await page.locator('#replacement-status').textContent()}`);
+      }
+      // A selected shorter meaning may leave a second choice for a different
+      // local prefix in the same bounded construction. The next loop reads
+      // that fresh prefix and resolves it without treating the entire draft
+      // as a parser buffer.
+    }
+    assert.equal(await page.locator('#replacement-choices .replacement-choice').count(), 0,
+      `bounded local choice did not resolve after six explicit selections; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
+  };
+  for (const [cellIndex, cell] of cells.entries()) {
+    const existingPrefix = await input.inputValue();
+    await input.fill(`${existingPrefix}${cell}`);
+    if (cellIndex === cells.length - 1 && options.captureInputEvidence) {
+      await options.captureInputEvidence();
+    }
+    // Immediate structural codes trigger an asynchronous MathJax draft
+    // preview. Give that preview a turn before routing the next physical
+    // cell; bounded prefixes intentionally remain visible in the proxy.
+    await page.waitForTimeout(80);
+    if (await page.locator('#replacement-choices .replacement-choice').count()) {
+      await resolveChoices(cells[cellIndex + 1] ?? null);
     }
     const status = await page.locator('#replacement-status').textContent();
-    assert.doesNotMatch(status ?? '', /That Nemeth cell is not valid at this draft focus/i, `cell ${cell} rejected: ${status}`);
+    assert.doesNotMatch(status ?? '', /That Nemeth cell is not valid at this draft focus/i, `cell ${cellIndex} ${cell} rejected: ${status}; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
   }
   // Enter commits only a still-pending bounded local code. A second Enter is
   // the ordinary replacement transaction, never a passage-sized parse.
   if (await input.inputValue()) await input.press('Enter');
   await page.waitForTimeout(40);
-  const choices = page.locator('#replacement-choices .replacement-choice');
-  if (await choices.count()) {
+  if (await page.locator('#replacement-choices .replacement-choice').count()) {
+    const choices = page.locator('#replacement-choices .replacement-choice');
     const omission = choices.filter({ hasText: 'omission.long-dash' });
     await (await omission.count() ? omission.first() : choices.first()).click();
     await page.waitForTimeout(40);
+    await resolveChoices();
+  }
+  // A structural group close is a local follow-up and can leave focus on the
+  // group's content row even after its closing cell was consumed. Give that
+  // completed boundary one final local commit opportunity before submitting;
+  // this is still a UI Enter for the bounded code, not passage parsing.
+  if ((await page.locator('#replacement-status').textContent() ?? '').includes('incomplete at content') && cells.at(-1) === '⠾') {
+    await input.press('Enter');
+    await page.waitForTimeout(80);
+  }
+  if (options.allowIncompleteDraft && options.completionCells?.length) {
+    // The opener is intentionally an incomplete source example. Continue in
+    // the same replacement session before the generic submit path can reject
+    // its required radicand hole.
+    return feedLocalCode(page, input, options.completionCells, choiceOperationIds, { ...options, allowIncompleteDraft: false, completionCells: null });
+  }
+  if (options.allowIncompleteDraft && (await page.locator('#replacement-status').textContent() ?? '').includes('incomplete at radicand')) {
+    throw new Error(`official incomplete draft has no completion fixture: ${cells.join('')}`);
   }
   if (await page.locator('#replacement-dock').isVisible()) {
+    // A final alphabetic prefix can be a valid bounded word fragment whose
+    // next source cell is a structural closer. Pressing Enter here is the
+    // local-code disambiguator, never a passage-sized submission.
+    if (await input.inputValue()) {
+      await input.press('Enter');
+      await page.waitForTimeout(80);
+    }
     const submit = page.getByRole('button', { name: 'Replace' });
     await submit.waitFor();
     await page.waitForFunction(() => !document.querySelector('#replacement-submit')?.disabled);
     await submit.click();
   }
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  if (options.allowIncompleteDraft && (await page.locator('#replacement-status').textContent() ?? '').includes('incomplete at radicand')) {
+    throw new Error(`official incomplete draft remained after local completion: ${cells.join('')}`);
+  }
+  try {
+    await page.locator('#replacement-dock').waitFor({ state: 'hidden', timeout: 5000 });
+  } catch (error) {
+      const diagnostic = await page.evaluate(() => ({
+      status: document.querySelector('#replacement-status')?.textContent,
+      input: document.querySelector('#replacement-input')?.value,
+      choices: [...document.querySelectorAll('#replacement-choices .replacement-choice')].map((node) => node.textContent),
+      submitDisabled: document.querySelector('#replacement-submit')?.disabled,
+      math: document.querySelector('article.napkin-article:last-of-type math')?.outerHTML
+    }));
+    throw new Error(`${error.message}; replacement diagnostic=${JSON.stringify(diagnostic)}`);
+  }
+  const article = page.locator('article.napkin-article').last();
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  await page.waitForTimeout(500);
+  return {
+    article,
+    wholeBraille: await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel'),
+    mathml: await article.locator('math').evaluate((node) => node.outerHTML)
+  };
+}
+
+async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
+  const article = page.locator('article.napkin-article').last();
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(60);
+  const focusedEvidence = options.captureFocusedEvidence
+    ? await options.captureFocusedEvidence()
+    : null;
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  const targetId = await page.locator('#replacement-scope').getAttribute('data-target-id');
+  assert.ok(targetId, 'official edit must freeze a canonical MathJax descendant or range');
+  const input = page.getByLabel('Replacement input', { exact: true });
+  await feedLocalCode(page, input, cells);
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  await page.waitForTimeout(500);
+  // Submission restores the explorer to the replacement's inherited stable
+  // Omniya ID. Do not re-enter Explorer here: restarting it would intentionally
+  // reset focus to the equation root and would invalidate this assertion.
+  await page.waitForTimeout(120);
+  await page.evaluate((canonicalId) => {
+    const node = [...document.querySelectorAll('[data-omniya-id]')]
+      .find((candidate) => candidate.getAttribute('data-omniya-id') === canonicalId);
+    const semanticId = node?.getAttribute('data-semantic-id');
+    globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.setNode?.(semanticId);
+  }, targetId);
+  await page.waitForTimeout(80);
+  const focusedBraille = await page.evaluate(() => {
+    const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+    const semanticId = current?.getAttribute('data-semantic-id');
+    const semanticSpeech = semanticId && [...document.querySelectorAll('mjx-speech[aria-braillelabel]')]
+      .find((node) => node.getAttribute('data-semantic-id') === semanticId);
+    const descendant = current?.querySelector?.('[data-semantic-braille], [aria-braillelabel]');
+    return current?.getAttribute('data-braille')
+      || current?.getAttribute('data-semantic-braille')
+      || current?.getAttribute('aria-braillelabel')
+      || descendant?.getAttribute('data-braille')
+      || descendant?.getAttribute('data-semantic-braille')
+      || descendant?.getAttribute('aria-braillelabel')
+      || semanticSpeech?.getAttribute('aria-braillelabel')
+      || '';
+  });
+  if (!focusedBraille) {
+    const diagnostic = await page.evaluate(() => {
+      const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+      return {
+        current: current?.outerHTML || null,
+        speech: [...document.querySelectorAll('mjx-speech[aria-braillelabel]')].map((node) => node.outerHTML),
+        semantic: [...document.querySelectorAll('[data-semantic-id]')].slice(0, 20).map((node) => ({ id: node.getAttribute('data-semantic-id'), html: node.outerHTML.slice(0, 400) }))
+      };
+    });
+    throw new Error(`focused Braille unavailable: ${JSON.stringify(diagnostic)}`);
+  }
+  if (focusedBraille !== cells.join('')) {
+    const focusDiagnostic = await page.evaluate(() => {
+      const explorer = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech;
+      const current = explorer?.current;
+      return {
+        current: current?.outerHTML || null,
+        currentSemanticId: current?.getAttribute('data-semantic-id') || null,
+        sourceIds: [...document.querySelectorAll('[id^="omniya-source-"]')].map((node) => ({ id: node.id, semanticId: node.getAttribute('data-semantic-id'), text: node.textContent })),
+        speech: [...document.querySelectorAll('mjx-speech[aria-braillelabel]')].map((node) => ({ id: node.getAttribute('data-semantic-id'), braille: node.getAttribute('aria-braillelabel') }))
+      };
+    });
+    throw new Error(`focused Braille mismatch: expected=${cells.join('')} actual=${focusedBraille} diagnostic=${JSON.stringify(focusDiagnostic)}`);
+  }
+  await page.keyboard.press('Escape');
+  return {
+    wholeBraille: await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel'),
+    focusedBraille,
+    targetId,
+    mathml: await article.locator('math').evaluate((node) => node.outerHTML),
+    focusedEvidence
+  };
+}
+
+async function undoRedo(page, originalBraille, replacementBraille) {
+  const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+  const article = page.locator('article.napkin-article').last();
+  const wholeSpeech = article.locator('mjx-speech[aria-braillelabel]').last();
+  const readWhole = async () => article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel');
+  // Undo is an explorer command in the application, so re-enter MathJax
+  // exploration after the replacement helper's Escape has returned focus to
+  // the article. This also proves the persisted transaction is reachable from
+  // the same reading workflow a user would use.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
+  await page.keyboard.press(`${modifier}+z`);
+  await wholeSpeech.waitFor();
+  const afterUndo = await readWhole();
+  await page.keyboard.press(`${modifier}+Shift+z`);
+  await wholeSpeech.waitFor();
+  const afterRedo = await readWhole();
+  return { ok: afterUndo === originalBraille && afterRedo === replacementBraille, afterUndo, afterRedo, originalBraille, replacementBraille };
 }
 
 test('official BANA examples execute through the real Nemeth replacement renderer', { timeout: 900_000 }, async (t) => {
@@ -74,25 +312,179 @@ test('official BANA examples execute through the real Nemeth replacement rendere
   }
   const cases = selectedCases();
   assert.ok(cases.length, 'official corpus selection is empty');
-  const app = await launch();
-  t.after(() => app.close().catch(() => {}));
-  const page = await app.firstWindow();
-  for (const entry of cases) {
+  let { app, dataDirectory } = await launch();
+  const restartDataDirectory = process.env.BANA_ELECTRON_ISOLATE_CASES === '1';
+  const results = {
+    schemaVersion: 1,
+    runKind: 'official-electron-corpus',
+    startedAt: new Date().toISOString(),
+    filter: { rule: process.env.BANA_RULE ?? null, example: process.env.BANA_ELECTRON_EXAMPLE ?? null },
+    dataDirectory,
+    cases: []
+  };
+  const resultPath = process.env.BANA_ELECTRON_RESULTS;
+  const persistResults = async () => {
+    if (resultPath) await writeFile(resultPath, `${JSON.stringify(results, null, 2)}\n`, 'utf8');
+  };
+  t.after(async () => {
+    await persistResults();
+    await app.close().catch(() => {});
+  });
+  let page = await app.firstWindow();
+  const restartEvery = Math.max(1, Number(process.env.BANA_ELECTRON_RESTART_EVERY ?? 8));
+  for (const [caseIndex, entry] of cases.entries()) {
+    if (process.env.BANA_ELECTRON_TRACE === '1') console.error(`[bana-electron] begin ${entry.exampleNumber}`);
     if (!entry.executable) {
       // Source rows whose printed example is UEB, spatial, prose, or whose
       // extracted PDF block does not contain a complete Nemeth local code are
       // retained in the corpus but are not executable equation cases. The
       // coverage ledger keeps them open for source classification rather than
       // pretending the renderer can author document-format material.
+      results.cases.push({ id: entry.id, sourceRows: entry.sourceRows, creation: false, editing: false, navigation: false, wholeBraille: false, focusedBraille: false, undoRedo: false, persistence: false, error: 'non-executable source case' });
       continue;
+    }
+    const evidence = { id: entry.id, sourceRows: entry.sourceRows, creation: false, editing: false, navigation: false, wholeBraille: false, focusedBraille: false, undoRedo: false, persistence: false };
+    try {
+      const input = await createDraft(page);
+      const created = await feedLocalCode(page, input, entry.cells, entry.choiceOperationIds ?? {}, {
+        allowIncompleteDraft: entry.allowIncompleteDraft,
+        completionCells: entry.completionCells,
+        captureInputEvidence: async () => {
+          evidence.visualInput = await captureInteractionScreenshot(
+            page,
+            entry,
+            'input',
+            dataDirectory,
+            'The final Nemeth cell is visible in the bounded replacement control before the replacement is submitted; the original equation is still unchanged.'
+          );
+        }
+      });
+      if (process.env.BANA_ELECTRON_TRACE === '1') console.error(`[bana-electron] created ${entry.exampleNumber}`);
+      const actual = created.wholeBraille;
+      if (entry.allowIncompleteDraft && !entry.completionCells) {
+        evidence.creation = true;
+        evidence.wholeBraille = true;
+        evidence.incompleteDraft = true;
+        evidence.editing = false;
+        evidence.navigation = true;
+        results.cases.push(evidence);
+        await persistResults();
+        continue;
+      }
+      assert.ok(actual, `${entry.exampleNumber} produced no Nemeth output`);
+      const expectedCreationCells = entry.completionCells
+        ? [...entry.cells, ...entry.completionCells]
+        : entry.cells;
+      assert.equal(actual, expectedCreationCells.join(''), `${entry.exampleNumber} whole-expression Braille differs from the authored BANA cells; math=${created.mathml}; source=${await page.locator('article.napkin-article').last().evaluate((node) => node.querySelector('span math')?.outerHTML || '')}`);
+      evidence.creation = true;
+      evidence.wholeBraille = true;
+      // Keep the pre-edit evidence alongside the replacement evidence. A
+      // final post-edit screenshot/MathML blob must never be mistaken for the
+      // official expression that was authored. Reviewers need to see the
+      // exact cells and one-tree rendering before E as well as after it.
+      evidence.creationWholeBraille = actual;
+      evidence.creationMathml = created.mathml;
+      evidence.visualCreation = await visualEvidence(page, created.article, entry, 'committed', dataDirectory);
+      // Always replace the focused first descendant with a visibly different
+      // identifier so undo/redo proves a real structural transaction rather
+      // than accidentally exercising a no-op replacement.
+      const replacementCells = actual.startsWith('⠽') ? ['⠵'] : ['⠽'];
+      const edited = await replaceFocusedEquationWithNemeth(page, replacementCells, {
+        captureFocusedEvidence: async () => captureInteractionScreenshot(
+          page,
+          entry,
+          'focused',
+          dataDirectory,
+          'MathJax Explorer has selected the exact scope immediately before E; this image is the navigation-to-edit handoff.'
+        )
+      });
+      if (process.env.BANA_ELECTRON_TRACE === '1') console.error(`[bana-electron] edited ${entry.exampleNumber}`);
+      assert.equal(edited.focusedBraille, replacementCells.join(''), `${entry.exampleNumber} focused replacement Braille was not exposed after rerender; math=${edited.mathml}`);
+      const expectedReplacementBraille = edited.wholeBraille;
+      evidence.editing = true;
+      evidence.navigation = true;
+      evidence.focusedBraille = true;
+      const history = await undoRedo(page, actual, expectedReplacementBraille);
+      if (process.env.BANA_ELECTRON_TRACE === '1') console.error(`[bana-electron] history ${entry.exampleNumber}`);
+      evidence.undoRedo = history.ok;
+      assert.equal(history.ok, true, `${entry.exampleNumber} undo/redo did not restore the replacement: ${JSON.stringify(history)}`);
+      evidence.expectedPersistedBraille = expectedReplacementBraille;
+      evidence.replacementWholeBraille = expectedReplacementBraille;
+      evidence.mathml = edited.mathml;
+      evidence.visualEditing = await visualEvidence(page, page.locator('article.napkin-article').last(), entry, 'editing', dataDirectory);
+      evidence.visualFocused = edited.focusedEvidence;
+    } catch (error) {
+      evidence.error = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally {
+      results.cases.push(evidence);
+      await persistResults();
+      if (process.env.BANA_ELECTRON_TRACE === '1') console.error(`[bana-electron] end ${entry.exampleNumber}`);
+    }
+    // MathJax's explorer/enrichment state is intentionally ephemeral. Large
+    // official expressions can leave a renderer process busy after several
+    // complete create/edit/undo cycles even though the persisted model is
+    // healthy. Relaunching against the same test data directory keeps every
+    // case in the real Electron boundary and exercises persistence, while
+    // preventing a stale renderer from silently truncating a shard.
+    if (restartDataDirectory && caseIndex + 1 < cases.length) {
+      // Isolated review runs deliberately use one fresh napkin per case. A
+      // same-directory relaunch proves persistence for this exact expression,
+      // then the next case gets a clean renderer and clean data set.
+      await app.close();
+      ({ app } = await launch(dataDirectory));
+      page = await app.firstWindow();
+      const persisted = page.locator('article.napkin-article');
+      const saved = results.cases.at(-1);
+      if (saved?.creation && !saved.incompleteDraft) {
+        const braille = await persisted.first().locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+        assert.equal(braille, saved.expectedPersistedBraille, `${saved.id} isolated relaunch changed persisted Braille`);
+        saved.persistence = true;
+        await persistResults();
+      }
+      await app.close();
+      if (caseIndex + 1 < cases.length) {
+        ({ app, dataDirectory } = await launch());
+        page = await app.firstWindow();
+      }
+    } else if ((caseIndex + 1) % restartEvery === 0 && caseIndex + 1 < cases.length) {
+      if (process.env.BANA_ELECTRON_TRACE === '1') console.error(`[bana-electron] restart after ${entry.exampleNumber}`);
+      await app.close();
+      ({ app, dataDirectory } = await launch(dataDirectory));
+      page = await app.firstWindow();
+    }
   }
-  const input = await createDraft(page);
-    await feedLocalCode(page, input, entry.cells);
-    const article = page.locator('article.napkin-article').last();
-    await article.locator('mjx-speech[aria-braillelabel]').waitFor();
-    const actual = await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
-    assert.ok(actual, `${entry.exampleNumber} produced no Nemeth output`);
-    if (actual !== entry.cells.join('')) console.error(JSON.stringify({example: entry.exampleNumber, cells: entry.cells.join(''), actual, mathml: await article.locator('math').evaluate((node) => node.outerHTML)}));
-    assert.equal(actual, entry.cells.join(''), `${entry.exampleNumber} whole-expression Braille differs from the authored BANA cells`);
+  // Persistence is verified against the same committed state after a real
+  // Electron relaunch. Every executable case in this shard gets an article;
+  // source-review cases never enter this application-level assertion.
+  if (restartDataDirectory) {
+    // The final case has not had a following-case boundary, so perform its
+    // same persistence check before ending the isolated shard.
+    await app.close();
+    ({ app } = await launch(dataDirectory));
+    const persisted = app.firstWindow ? await app.firstWindow() : page;
+    const saved = results.cases.at(-1);
+    if (saved?.creation && !saved.incompleteDraft) {
+      const braille = await persisted.locator('article.napkin-article').first().locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+      assert.equal(braille, saved.expectedPersistedBraille, `${saved.id} isolated relaunch changed persisted Braille`);
+      saved.persistence = true;
+      await persistResults();
+    }
+    await app.close();
+    // Each case was already relaunched and checked above. Do not reopen the
+    // final fresh session and compare it against every isolated case.
+    return;
   }
+  await app.close();
+  ({ app, dataDirectory } = await launch(dataDirectory));
+  page = await app.firstWindow();
+  const persistedArticles = page.locator('article.napkin-article');
+  const executableResults = results.cases.filter((entry) => entry.creation === true && !entry.incompleteDraft);
+  assert.equal(await persistedArticles.count(), executableResults.length, 'relaunch did not restore every committed official equation');
+  for (const [index, evidence] of executableResults.entries()) {
+    const actual = await persistedArticles.nth(index).locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+    assert.equal(actual, evidence.expectedPersistedBraille, `${evidence.id} persisted Braille differs after relaunch`);
+    evidence.persistence = true;
+  }
+  await persistResults();
 });

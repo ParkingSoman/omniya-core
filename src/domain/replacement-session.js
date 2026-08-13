@@ -73,7 +73,18 @@ export function applyNemethCell(session, cell) {
   // that first mutation in `result.document` while reporting `pending` for the
   // new local prefix.  Do not drop the mutation merely because the next code
   // is not complete yet.
-  if (result.status === 'applied' || (result.status === 'pending' && result.document?.mathml !== session.draft.mathml)) {
+  // A local cell can finish one immediate code and then expose a choice for
+  // the next cell in the same event (for example a letter immediately before
+  // a shared closing indicator). Preserve that first mutation even while the
+  // second bounded code waits for the user's explicit choice. Dropping the
+  // changed document here makes the UI appear to accept the letter while the
+  // eventual choice silently edits an older draft.
+  // Structural follow-ups can move the draft focus without changing the
+  // serialized MathML (for example `>` moving from an indexed radical's
+  // index slot to its radicand). Preserve that focus exactly like a content
+  // mutation; otherwise the next physical cell is routed back to the stale
+  // slot at the renderer boundary.
+  if (result.status === 'applied' || result.document?.mathml !== session.draft.mathml) {
     next.draft = result.document;
     next.draftFocus = result.focus;
   }
@@ -90,7 +101,12 @@ export function applyNemethChoice(session, operationId) {
   });
   const next = cloneSession(session);
   next.nemethState = result.inputState;
-  if (result.status === 'applied') {
+  // Selecting a shorter meaning can commit that operation and leave the
+  // unmatched suffix as the next bounded local prefix. Preserve the committed
+  // draft even while the suffix remains pending, exactly as one-cell input
+  // does; otherwise the renderer drops the comma/indicator mutation and
+  // repeatedly reopens the same choice.
+  if (result.status === 'applied' || (result.status === 'pending' && result.document?.mathml !== session.draft.mathml)) {
     next.draft = result.document;
     next.draftFocus = result.focus;
   }
