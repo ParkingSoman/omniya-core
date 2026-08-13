@@ -3115,6 +3115,17 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     ['msup', 'msub', 'msubsup', 'mmultiscripts']));
   const inSimpleSubscript = Boolean(hasAncestor(context.tree, context.node, 'msub')) &&
     !Boolean(hasAncestor(context.tree, context.node, ['msubsup', 'mmultiscripts']));
+  if (state.mode === null && state.prefix === '⠰' && normalized === '⠠' &&
+    (context.node.name === 'math' || context.node.name === 'mspace' || isHole(context.node))) {
+    return { status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠰⠠', mode: 'english-letter' },
+      announcement: 'English-letter capital continuation pending.' };
+  }
+  if (state.mode?.startsWith?.('english-letter') && state.prefix === '⠰⠠' && LETTERS.has(normalized)) {
+    return applyMapping(document, focus,
+      { ...state, prefix: '', mode: 'english-letter:capital' },
+      letterMapping(normalized, { ...state, prefix: '', mode: 'english-letter:capital' }));
+  }
   // Dot 6 is held for one cell so an immediately following alphabetic cell
   // can form a bounded capital identifier. An explicit space proves the dot
   // 6 was punctuation instead; commit that local atom and then route the

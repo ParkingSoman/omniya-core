@@ -4,6 +4,15 @@ import { DOMParser } from '@xmldom/xmldom';
 
 import { applyNemethSourceIntentToBraille } from '../../src/renderer/nemeth-braille-projection.js';
 
+test('Rule 10.13 replaces each authored blood-type token span without consuming explicit spaces', () => {
+  const sourceMath = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠰⠠⠁">A</mi><mo data-omniya-nemeth-cells="⠠">,</mo><mspace/><mi data-omniya-nemeth-cells="⠰⠠⠃">B</mi><mo data-omniya-nemeth-cells="⠠">,</mo><mspace/><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mi data-omniya-nemeth-cells="⠠⠃">B</mi><mo data-omniya-nemeth-cells="⠠">,</mo><mspace/><mtext data-omniya-nemeth-cells="⠠⠄⠯">and</mtext><mspace/><mi data-omniya-nemeth-cells="⠰⠠⠕">O</mi></math>', 'text/xml');
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠁⠠⠠⠃⠠⠰⠠⠰⠠⠰⠠⠰⠠⠰⠠⠰⠠⠀⠁⠰⠠⠃⠠⠰⠠⠠⠄⠯⠀⠰⠠⠕', sourceMath),
+    '⠰⠠⠁⠠⠀⠰⠠⠃⠠⠀⠠⠁⠠⠃⠠⠀⠠⠄⠯⠀⠰⠠⠕'
+  );
+});
+
 test('decimal nonnumeric intent restores BANA dot-5 in whole-expression Braille', () => {
   const sourceMath = {
     querySelectorAll(selector) {

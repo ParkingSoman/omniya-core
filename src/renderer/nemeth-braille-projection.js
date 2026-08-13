@@ -995,6 +995,31 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   const explicitCellNodes = [...sourceMath.querySelectorAll('[data-omniya-nemeth-cells]')]
     .map((node) => String(node.getAttribute?.('data-omniya-nemeth-cells') ?? ''))
     .filter(Boolean);
+  // A flat authored row can contain several locally annotated tokens and
+  // explicit mspaces. MathJax may collapse those token spans while retaining
+  // only a concatenated presentation string. Rebuild this bounded row from
+  // its leaf node identities/source cells, preserving each authored space;
+  // this is not a whole-expression serializer and does not cross structures.
+  const flatLeaves = [];
+  let flatComplete = true;
+  const collectFlatLeaves = (node) => {
+    const children = [...(node?.children ?? [])].filter((child) => child?.nodeType === 1);
+    if (!children.length) {
+      const cells = node?.getAttribute?.('data-omniya-nemeth-cells');
+      const explicitSpace = node?.localName === 'mspace' || node?.nodeName === 'mspace';
+      if (cells || explicitSpace) flatLeaves.push({ node, cells: cells || '⠀' });
+      else if (node?.textContent?.trim()) flatComplete = false;
+      return;
+    }
+    for (const child of children) collectFlatLeaves(child);
+  };
+  collectFlatLeaves(sourceMath);
+  const hasNestedStructure = ['mfrac', 'msub', 'msup', 'msubsup', 'mmultiscripts', 'mroot', 'mover', 'munder', 'munderover']
+    .some((name) => sourceMath.querySelector?.(name));
+  if (flatComplete && !hasNestedStructure && flatLeaves.length >= 5 && flatLeaves.filter(({ cells }) => cells === '⠀').length >= 2 &&
+      flatLeaves.every(({ cells }) => cells)) {
+    return flatLeaves.map(({ cells }) => cells).join('');
+  }
   // Directly-over/under horizontal grouping signs already carry their full
   // BANA local code on the modifier token. MathJax's semantic projection may
   // also emit the standalone over-level indicator before that token, yielding
