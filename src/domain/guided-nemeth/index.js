@@ -1194,7 +1194,10 @@ const MAPPINGS = [
   ...[...LETTERS].map(([cells, value]) => token(`letter.${value}`, [cells], ['6.3', '6.4'], value, 'mi',
     { ...(FUNCTION_INITIAL_CELLS.has(cells) ? { preferLonger: true } : {}), sourceNotation: value })),
   token('operator.plus', ['⠬'], ['20.1'], '+', 'mo', { preferLonger: true, sourceNotation: '+' }),
-  token('space', [' '], ['2.4'], '', 'mspace', { sourceNotation: ' ', sourceKind: 'context-policy' }),
+  // Rule 2's indicator table is printed on the symbol page rather than as a
+  // numbered 2.4 provision. Keep the source row explicit so coverage tooling
+  // can attribute this context-policy operation without inventing a rule.
+  token('space', [' '], ['2.1'], '', 'mspace', { sourceNotation: ' ', sourceKind: 'context-policy' }),
   // Rule 8's mathematical punctuation cells are literal local symbols. The
   // punctuation indicator is a separate contextual operation used after a
   // preceding indicator; it must not be baked into every punctuation token.

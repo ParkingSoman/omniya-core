@@ -11,6 +11,10 @@
     "test:e2e": "node --test --test-concurrency=1 'test/e2e/*.test.js'",
     "test:accuracy": "node --test test/unit/nemeth-braille-accuracy.test.js",
     "test:nemeth-electron-links": "node scripts/verify-nemeth-electron-coverage.mjs",
+    "bana:inventory": "node scripts/bana-source-inventory.mjs docs/bana-source-inventory.json",
+    "bana:audit": "node scripts/bana-coverage-gate.mjs docs/bana-source-inventory.json",
+    "bana:registry-coverage": "node scripts/bana-registry-coverage.mjs docs/bana-source-inventory.json",
+    "bana:report": "node scripts/bana-source-inventory.mjs docs/bana-source-inventory.json && node scripts/bana-coverage-gate.mjs docs/bana-source-inventory.json",
     "test:all": "npm test && npm run test:e2e",
     "nemeth:report": "node scripts/guided-nemeth-report.mjs docs/guided-nemeth-conformance.json",
     "test:inspect": "node test/inspect.mjs"
