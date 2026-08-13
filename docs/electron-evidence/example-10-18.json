@@ -1,23 +1,28 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "filter": { "example": "10-18" },
-  "cases": [{
-    "id": "electron:bana-2022:example-10-18",
-    "sourceRows": ["example-10-18", "10.3"],
-    "creation": false,
-    "editing": false,
-    "navigation": false,
-    "wholeBraille": false,
-    "focusedBraille": false,
-    "undoRedo": false,
-    "persistence": false,
-    "diagnostic": {
-      "replacementStatus": "Draft updated: letter.g",
-      "replacementInput": "",
-      "speechNodes": [],
-      "rendererError": "The local MathJax runtime could not render an equation. Run npm install and restart the app.",
-      "timeout": "locator.waitFor: Timeout 30000ms exceeded waiting for article.napkin-article mjx-speech[aria-braillelabel]"
+  "startedAt": "2026-08-13T23:41:28.418Z",
+  "filter": {
+    "rule": null,
+    "example": "10-18"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-b2qHk5",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-10-18",
+      "sourceRows": [
+        "example-10-18",
+        "10.3"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": null,
+      "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('article.napkin-article').last().locator('mjx-speech[aria-braillelabel]') to be visible\u001b[22m\n; speech diagnostic={\"replacementStatus\":\"Draft updated: letter.g\",\"replacementInput\":\"\",\"speechNodes\":[],\"rendererError\":\"The local MathJax runtime could not render an equation. Run npm install and restart the app.\"}"
     }
-  }]
+  ]
 }
