@@ -3898,6 +3898,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
     if (DIGITS.has(normalized)) {
       const digit = digitMapping(normalized);
+      // Numeric mode already records the local number indicator (or a script
+      // level that permits a lower-cell digit). Preserve that bounded intent
+      // on every consumed digit so projection never synthesizes a duplicate
+      // number sign after a script opener.
+      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
       // A number sign remains active across a baseline operator, but BANA's
       // following one-cell number is lower-cell. Preserve that distinction in
       // the source intent so MathJax cannot reintroduce a second number sign.
