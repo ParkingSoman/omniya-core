@@ -2060,3 +2060,22 @@ test('BANA Rule 24.1.j polygon numeral transition remains local', () => {
   const tree = parseMathML(document.mathml);
   assert.deepEqual(tree.children.map((node) => node.children[0].text), ['□', '14']);
 });
+
+test('BANA Rule 10.21 retains a local order prefix on an open group', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = applyNemethCell({ document, focus, inputState, cell: '⠷' });
+  assert.equal(result.status, 'choice');
+  result = applyNemethChoice({ document: result.document, focus: result.focus,
+    inputState: result.inputState, operationId: 'group.round' });
+  ({ document, focus, inputState } = result);
+  for (const cell of ['⠨', '⠢']) {
+    result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].attrs['data-omniya-radical-order'], '1');
+  assert.equal(inputState.mode, 'radical-order:1');
+});

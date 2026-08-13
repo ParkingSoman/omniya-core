@@ -566,6 +566,21 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       }
     }
   }
+  // A local Rule 16.3 order indicator may follow an authored grouping fence.
+  // The semantic projection does not retain that prefix on the group, but
+  // the guided source marker does. Restore the bounded prefix at the first
+  // local fence boundary, keyed by node identity rather than expression text.
+  for (const group of explicitGroups) {
+    const order = group.getAttribute?.('data-omniya-radical-order');
+    if (!order || !['1', '2', '3'].includes(order)) continue;
+    const open = [...group.children].find((node) => node.getAttribute?.('data-omniya-role') === 'open-fence');
+    const openCells = open?.getAttribute?.('data-omniya-nemeth-cells') || '⠷';
+    const prefix = `${'⠨'.repeat(Number(order))}⠢`;
+    const localStart = braille.indexOf(openCells);
+    if (localStart >= 0 && !braille.slice(localStart, localStart + openCells.length + prefix.length).includes(prefix)) {
+      braille = `${braille.slice(0, localStart + openCells.length)}${prefix}${braille.slice(localStart + openCells.length)}`;
+    }
+  }
   // Some compound fence nodes carry their enlarged prefix on the inner
   // punctuation child rather than the outer mrow fence. In that case the
   // prefix is still a source-local part of the enclosing grouping sign.

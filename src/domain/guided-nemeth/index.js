@@ -2856,6 +2856,22 @@ const TREE_OPERATIONS = Object.freeze({
     return focusRole(tree, focus, args.element, args.role);
   },
   'set-mode': ({ tree, focus, node, inputState, args, document }) => {
+    // Rule 16.3 order indicators can be authored immediately after an
+    // already-open grouping fence (for example `(.5`).  The indicator is a
+    // bounded source prefix for that local group; retain it on the group so
+    // projection can restore the authored cells without changing MathML
+    // structure or inferring an operand.
+    if (args.mode?.startsWith?.('radical-order:')) {
+      let owner = node;
+      while (owner) {
+        if (owner.name === 'mrow' && owner.attrs?.['data-omniya-group'] === 'round') {
+          owner.attrs['data-omniya-radical-order'] = args.mode.slice('radical-order:'.length);
+          document.mathml = serializeMathML(tree);
+          break;
+        }
+        owner = isElement(owner) ? findMathParent(tree, owner.attrs?.['data-omniya-id']) : null;
+      }
+    }
     if (args.mode === 'baseline') {
       const multiscript = ancestor(tree, node, ['mmultiscripts']);
       if (multiscript && multiscript.children?.[0]?.attrs?.['data-omniya-hole'] === 'true') {
@@ -2910,6 +2926,17 @@ function applyMapping(document, focus, inputState, mapping) {
     result = operation({ document, tree, node, focus, inputState, args, mapping });
   } catch (error) {
     return { status: 'rejected', document, focus, inputState, announcement: error.message };
+  }
+  if (result.status === 'pending' && mapping.action === 'set-mode' && args.mode?.startsWith?.('radical-order:')) {
+    let owner = currentNode(result.tree, result.focus);
+    while (owner) {
+      if (owner.name === 'mrow' && owner.attrs?.['data-omniya-group'] === 'round') {
+        owner.attrs['data-omniya-radical-order'] = args.mode.slice('radical-order:'.length);
+        result.document = { ...document, mathml: serializeMathML(result.tree) };
+        break;
+      }
+      owner = isElement(owner) ? findMathParent(result.tree, owner.attrs?.['data-omniya-id']) : null;
+    }
   }
   if (result.status === 'pending') return result;
   const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token'].includes(mapping.action);
