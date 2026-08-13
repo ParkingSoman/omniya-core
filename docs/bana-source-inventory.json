@@ -12,7 +12,7 @@
   "counts": {
     "numberedRows": 509,
     "planBaselineNumberedRows": 516,
-    "numberedRowCountNote": "The PDF contains 509 actual numbered provision labels. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them and retains 4.6.8.c because the errata explicitly targets it.",
+    "numberedRowCountNote": "The PDF contains 508 actual numbered provision labels plus the 4.6.8.c provision explicitly targeted by the errata, for 509 source provision rows. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them.",
     "examples": 1229,
     "errata": 42,
     "errataInScope": 34

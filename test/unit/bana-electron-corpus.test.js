@@ -17,3 +17,8 @@ test('BANA Electron corpus names real Nemeth creation and editing tests', async 
     if (entry.editing) assert.equal(entry.navigation, true, `${entry.id} editing must navigate MathJax`);
   }
 });
+
+test('the corpus never credits an official example from a family-level source row', async () => {
+  const corpus = JSON.parse(await readFile(new URL('../../docs/bana-electron-corpus.json', import.meta.url), 'utf8'));
+  assert.ok(corpus.cases.every((entry) => entry.sourceRows.every((row) => !row.startsWith('example-'))));
+});

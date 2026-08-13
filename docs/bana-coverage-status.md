@@ -8,11 +8,12 @@ unimplemented or unevidenced.
 
 The inventory is generated from the rendered-text extraction of the exact
 source PDFs whose SHA-256 hashes are stored in
-`docs/bana-source-inventory.json`. The BANA PDF contains 509 actual numbered
-provision labels after numeric example lines and cross-reference text are
-removed. The earlier planning baseline of 516 included seven numeric example
-lines and is retained in the inventory as `planBaselineNumberedRows` only to
-make the discrepancy auditable. The inventory also contains 1,229 official
+`docs/bana-source-inventory.json`. The BANA PDF contains 508 actual numbered
+provision labels plus the 4.6.8.c provision explicitly targeted by the errata,
+for 509 source provision rows after numeric example lines and cross-reference
+text are removed. The earlier planning baseline of 516 included seven numeric
+example lines and is retained in the inventory as `planBaselineNumberedRows`
+only to make the discrepancy auditable. The inventory also contains 1,229 official
 worked-example headings and 42 effective October 2025 errata anchors. Of the
 errata anchors, 34 are equation-applicable, five are Rule 25 spatial, and
 three are Rule 26 document-format anchors.
@@ -40,6 +41,13 @@ implementation, creation, editing, navigation, whole-expression Braille,
 focused Braille, undo/redo, persistence, and qualified transcriber-review
 evidence. It must remain red until those rows are actually implemented and
 exercised through Electron.
+
+For the longer renderer-bound mapping pass, run
+`npm run test:bana:electron-mappings`. It sets `BANA_ELECTRON_REGISTRY=1`,
+launches one loaded Electron session, and feeds every distinct declarative
+Nemeth code through the visible replacement control. It is intentionally
+separate from the 30-test workflow suite so a fast smoke run cannot be
+mistaken for the full mapping corpus.
 
 The loaded Electron suite is real evidence: `npm run test:e2e` currently passes
 30/30 tests in the logged-in macOS renderer, including one-cell Nemeth input,

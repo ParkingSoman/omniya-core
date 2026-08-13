@@ -21,11 +21,19 @@ const rows = inventory.rows.map((row) => {
   const matched = cases.filter((entry) => entry.sourceRows?.includes(ref));
   const verified = { ...row.verified };
   verified.implementation = mappingIds.length > 0;
+  const mappings = registry.filter((mapping) => mappingIds.includes(mapping.id));
+  const policies = [...new Set(mappings.map((mapping) => mapping.commitPolicy))];
+  const disposition = row.disposition === 'unclassified' && !isExample && mappingIds.length > 0
+    ? (mappings.some((mapping) => mapping.args?.sourceKind === 'context-policy') ? 'implemented-context-policy' : 'implemented-operation')
+    : row.disposition;
   for (const field of ['creation', 'editing', 'navigation', 'wholeBraille', 'focusedBraille', 'undoRedo', 'persistence']) {
     verified[field] = matched.some((entry) => entry[field] === true);
   }
   return {
     ...row,
+    disposition,
+    ...(policies.length === 1 ? { inputPolicy: policies[0] } : {}),
+    ...(isExample && example ? { exampleParentId: example.parentId } : {}),
     ...(example ? { officialSource: { sourceLines: example.sourceLines, printAndBraille: example.printAndBraille, candidateBrailleLines: example.candidateBrailleLines } } : {}),
     mappingIds,
     unitCaseIds: mappingIds.map((id) => `registry:${id}`),

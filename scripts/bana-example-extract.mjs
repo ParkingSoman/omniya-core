@@ -16,7 +16,10 @@ let currentRule = null;
 let currentProvision = null;
 for (let i = bodyStart; i >= 0 && i < (bodyEnd > 0 ? bodyEnd : lines.length); i += 1) {
   const ruleMatch = lines[i].trim().match(/^Rule\s+(\d+)\s*$/i);
-  if (ruleMatch) currentRule = ruleMatch[1];
+  if (ruleMatch) {
+    currentRule = ruleMatch[1];
+    currentProvision = null;
+  }
   const provisionMatch = lines[i].trim().match(/^(\d{1,2}(?:\.\d+){1,3}(?:\.[a-z])?)\s+(?!\d)(.+)/i);
   if (provisionMatch && currentRule && (Number(provisionMatch[1].split('.')[0]) === Number(currentRule) || provisionMatch[1] === '4.6.8.c') && !/^\d+\.\d+\s+/.test(lines[i].trim().slice(provisionMatch[0].length - provisionMatch[2].length)) && (!/\bfor rules regarding\b/i.test(provisionMatch[2]) || provisionMatch[1] === '4.6.8.c')) currentProvision = provisionMatch[1];
   const match = lines[i].trim().match(/^Example\s+(\d{1,2}-\d+):?\s*(.*)$/i);

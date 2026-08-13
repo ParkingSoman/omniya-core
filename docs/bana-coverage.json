@@ -12,7 +12,7 @@
   "counts": {
     "numberedRows": 509,
     "planBaselineNumberedRows": 516,
-    "numberedRowCountNote": "The PDF contains 509 actual numbered provision labels. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them and retains 4.6.8.c because the errata explicitly targets it.",
+    "numberedRowCountNote": "The PDF contains 508 actual numbered provision labels plus the 4.6.8.c provision explicitly targeted by the errata, for 509 source provision rows. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them.",
     "examples": 1229,
     "errata": 42,
     "errataInScope": 34,
@@ -523,8 +523,8 @@
       "printedPage": "2-5",
       "pdfPage": 27,
       "auditOrder": 17,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-context-policy",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "space"
       ],
@@ -556,8 +556,8 @@
       "printedPage": "3-1",
       "pdfPage": 28,
       "auditOrder": 18,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
       ],
@@ -1165,8 +1165,8 @@
       "printedPage": "3-3",
       "pdfPage": 30,
       "auditOrder": 35,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
       ],
@@ -5201,8 +5201,8 @@
       "printedPage": "3-21",
       "pdfPage": 48,
       "auditOrder": 142,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "ordinal.st",
         "ordinal.nd",
@@ -5241,7 +5241,7 @@
       "pdfPage": 48,
       "auditOrder": 143,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "ordinal.st",
         "ordinal.nd",
@@ -5406,8 +5406,8 @@
       "printedPage": "3-22",
       "pdfPage": 49,
       "auditOrder": 148,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5440,7 +5440,7 @@
       "pdfPage": 49,
       "auditOrder": 149,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5484,7 +5484,7 @@
       "pdfPage": 49,
       "auditOrder": 150,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5528,7 +5528,7 @@
       "pdfPage": 49,
       "auditOrder": 151,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5572,7 +5572,7 @@
       "pdfPage": 49,
       "auditOrder": 152,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5616,7 +5616,7 @@
       "pdfPage": 50,
       "auditOrder": 153,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5660,7 +5660,7 @@
       "pdfPage": 50,
       "auditOrder": 154,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5704,7 +5704,7 @@
       "pdfPage": 50,
       "auditOrder": 155,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5749,7 +5749,7 @@
       "pdfPage": 50,
       "auditOrder": 156,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5795,7 +5795,7 @@
       "pdfPage": 51,
       "auditOrder": 157,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5838,7 +5838,7 @@
       "pdfPage": 51,
       "auditOrder": 158,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -5882,7 +5882,7 @@
       "pdfPage": 51,
       "auditOrder": 159,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -10308,8 +10308,8 @@
       "printedPage": "5-1",
       "pdfPage": 84,
       "auditOrder": 281,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.capital"
       ],
@@ -10341,7 +10341,7 @@
       "printedPage": "5-1",
       "pdfPage": 84,
       "auditOrder": 282,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "german.capital-a",
@@ -11104,8 +11104,8 @@
       "printedPage": "6-1",
       "pdfPage": 86,
       "auditOrder": 295,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.capital"
       ],
@@ -11137,8 +11137,8 @@
       "printedPage": "6-1",
       "pdfPage": 86,
       "auditOrder": 296,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "german.a",
         "german.capital-a",
@@ -11272,8 +11272,8 @@
       "printedPage": "6-2",
       "pdfPage": 87,
       "auditOrder": 297,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "hebrew.aleph"
       ],
@@ -11305,8 +11305,8 @@
       "printedPage": "6-2",
       "pdfPage": 87,
       "auditOrder": 298,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "russian.ell",
         "russian.capital-ell",
@@ -11344,8 +11344,8 @@
       "printedPage": "6-2",
       "pdfPage": 87,
       "auditOrder": 299,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.sum",
         "greek.α",
@@ -11473,8 +11473,8 @@
       "printedPage": "6-3",
       "pdfPage": 88,
       "auditOrder": 300,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "greek.variant-ϐ",
         "greek.variant-ϑ",
@@ -11512,8 +11512,8 @@
       "printedPage": "6-4",
       "pdfPage": 89,
       "auditOrder": 301,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.sum",
         "indicator.english-letter"
@@ -11547,7 +11547,7 @@
       "printedPage": "6-4",
       "pdfPage": 89,
       "auditOrder": 302,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "german.a",
@@ -12800,8 +12800,8 @@
       "printedPage": "6-5",
       "pdfPage": 90,
       "auditOrder": 307,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "greek.variant-ϐ",
         "greek.variant-ϑ",
@@ -12840,7 +12840,7 @@
       "pdfPage": 90,
       "auditOrder": 308,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "greek.variant-ϐ",
         "greek.variant-ϑ",
@@ -13000,8 +13000,8 @@
       "printedPage": "6-5",
       "pdfPage": 90,
       "auditOrder": 312,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
         "letter.b",
@@ -13461,8 +13461,8 @@
       "printedPage": "6-8",
       "pdfPage": 93,
       "auditOrder": 323,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
         "letter.b",
@@ -15500,8 +15500,8 @@
       "printedPage": "6-16",
       "pdfPage": 101,
       "auditOrder": 376,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
       ],
@@ -15591,8 +15591,8 @@
       "printedPage": "7-2",
       "pdfPage": 104,
       "auditOrder": 379,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.bold",
         "typeform.italic",
@@ -15644,8 +15644,8 @@
       "printedPage": "7-2",
       "pdfPage": 104,
       "auditOrder": 380,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.bold",
         "typeform.italic",
@@ -16240,8 +16240,8 @@
       "printedPage": "7-4",
       "pdfPage": 106,
       "auditOrder": 395,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.terminate"
       ],
@@ -16561,8 +16561,8 @@
       "printedPage": "7-6",
       "pdfPage": 108,
       "auditOrder": 404,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "typeform.scope.bold.open",
         "typeform.scope.bold.close",
@@ -16607,7 +16607,7 @@
       "pdfPage": 108,
       "auditOrder": 405,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "typeform.scope.bold.open",
         "typeform.scope.bold.close",
@@ -16657,8 +16657,8 @@
       "printedPage": "7-6",
       "pdfPage": 108,
       "auditOrder": 406,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "typeform.scope.bold.open",
         "typeform.scope.bold.close",
@@ -16703,7 +16703,7 @@
       "pdfPage": 108,
       "auditOrder": 407,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "typeform.scope.bold.open",
         "typeform.scope.bold.close",
@@ -17191,7 +17191,7 @@
       "printedPage": "8-2",
       "pdfPage": 113,
       "auditOrder": 421,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "punctuation.comma",
@@ -17242,7 +17242,7 @@
       "printedPage": "8-2",
       "pdfPage": 113,
       "auditOrder": 422,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "punctuation.comma",
@@ -19425,7 +19425,7 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 482,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "script.possessive",
@@ -19783,8 +19783,8 @@
       "printedPage": "8-11",
       "pdfPage": 122,
       "auditOrder": 490,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.colon"
       ],
@@ -19817,7 +19817,7 @@
       "pdfPage": 122,
       "auditOrder": 491,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.colon"
       ],
@@ -19862,7 +19862,7 @@
       "pdfPage": 123,
       "auditOrder": 492,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.colon"
       ],
@@ -19907,7 +19907,7 @@
       "pdfPage": 123,
       "auditOrder": 493,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.colon"
       ],
@@ -19952,7 +19952,7 @@
       "pdfPage": 123,
       "auditOrder": 494,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.colon"
       ],
@@ -19997,8 +19997,8 @@
       "printedPage": "8-12",
       "pdfPage": 123,
       "auditOrder": 495,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.semicolon"
       ],
@@ -20249,8 +20249,8 @@
       "printedPage": "8-13",
       "pdfPage": 124,
       "auditOrder": 502,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.short-dash"
       ],
@@ -20282,8 +20282,8 @@
       "printedPage": "8-13",
       "pdfPage": 124,
       "auditOrder": 503,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.long-dash",
         "punctuation.ellipsis"
@@ -20978,7 +20978,7 @@
       "printedPage": "9-1",
       "pdfPage": 128,
       "auditOrder": 521,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "reference.asterisk",
@@ -21017,8 +21017,8 @@
       "printedPage": "9-1",
       "pdfPage": 128,
       "auditOrder": 522,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "reference.general"
       ],
@@ -21051,7 +21051,7 @@
       "pdfPage": 129,
       "auditOrder": 523,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "reference.general"
       ],
@@ -21098,7 +21098,7 @@
       "pdfPage": 129,
       "auditOrder": 524,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "reference.general"
       ],
@@ -22321,8 +22321,8 @@
       "printedPage": "10-3",
       "pdfPage": 134,
       "auditOrder": 557,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22400,7 +22400,7 @@
       "pdfPage": 135,
       "auditOrder": 559,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22444,7 +22444,7 @@
       "pdfPage": 135,
       "auditOrder": 560,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22488,7 +22488,7 @@
       "pdfPage": 135,
       "auditOrder": 561,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22532,7 +22532,7 @@
       "pdfPage": 135,
       "auditOrder": 562,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22576,7 +22576,7 @@
       "pdfPage": 135,
       "auditOrder": 563,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22620,7 +22620,7 @@
       "pdfPage": 135,
       "auditOrder": 564,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22664,7 +22664,7 @@
       "pdfPage": 136,
       "auditOrder": 565,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22708,7 +22708,7 @@
       "pdfPage": 136,
       "auditOrder": 566,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22752,7 +22752,7 @@
       "pdfPage": 136,
       "auditOrder": 567,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22796,7 +22796,7 @@
       "pdfPage": 136,
       "auditOrder": 568,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -22840,7 +22840,7 @@
       "pdfPage": 136,
       "auditOrder": 569,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.english-letter"
       ],
@@ -24220,8 +24220,8 @@
       "printedPage": "11-1",
       "pdfPage": 143,
       "auditOrder": 605,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24254,7 +24254,7 @@
       "pdfPage": 143,
       "auditOrder": 606,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24298,7 +24298,7 @@
       "pdfPage": 143,
       "auditOrder": 607,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24342,7 +24342,7 @@
       "pdfPage": 143,
       "auditOrder": 608,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24386,7 +24386,7 @@
       "pdfPage": 143,
       "auditOrder": 609,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24430,7 +24430,7 @@
       "pdfPage": 143,
       "auditOrder": 610,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24474,7 +24474,7 @@
       "pdfPage": 143,
       "auditOrder": 611,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24518,7 +24518,7 @@
       "pdfPage": 144,
       "auditOrder": 612,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24562,7 +24562,7 @@
       "pdfPage": 144,
       "auditOrder": 613,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "omission.general"
       ],
@@ -24606,8 +24606,8 @@
       "printedPage": "11-2",
       "pdfPage": 144,
       "auditOrder": 614,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "omission.long-dash"
       ],
@@ -24640,7 +24640,7 @@
       "pdfPage": 144,
       "auditOrder": 615,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "omission.long-dash"
       ],
@@ -24684,7 +24684,7 @@
       "pdfPage": 144,
       "auditOrder": 616,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "omission.long-dash"
       ],
@@ -25509,7 +25509,7 @@
       "printedPage": "12-1",
       "pdfPage": 151,
       "auditOrder": 638,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "cancellation.start",
@@ -25858,8 +25858,8 @@
       "printedPage": "13-2",
       "pdfPage": 156,
       "auditOrder": 646,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "fraction.start.simple"
       ],
@@ -25891,7 +25891,7 @@
       "printedPage": "13-2",
       "pdfPage": 156,
       "auditOrder": 647,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.simple",
@@ -25938,8 +25938,8 @@
       "printedPage": "13-2",
       "pdfPage": 156,
       "auditOrder": 648,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "fraction.end.simple"
       ],
@@ -25972,7 +25972,7 @@
       "pdfPage": 156,
       "auditOrder": 649,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "fraction.end.simple"
       ],
@@ -26016,7 +26016,7 @@
       "pdfPage": 156,
       "auditOrder": 650,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "fraction.end.simple"
       ],
@@ -26060,7 +26060,7 @@
       "pdfPage": 156,
       "auditOrder": 651,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "fraction.end.simple"
       ],
@@ -26104,7 +26104,7 @@
       "pdfPage": 156,
       "auditOrder": 652,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "fraction.end.simple"
       ],
@@ -26148,7 +26148,7 @@
       "pdfPage": 157,
       "auditOrder": 653,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "fraction.end.simple"
       ],
@@ -26814,7 +26814,7 @@
       "printedPage": "13-6",
       "pdfPage": 160,
       "auditOrder": 671,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.mixed",
@@ -27103,7 +27103,7 @@
       "printedPage": "13-7",
       "pdfPage": 161,
       "auditOrder": 677,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.complex",
@@ -27140,7 +27140,7 @@
       "printedPage": "13-7",
       "pdfPage": 161,
       "auditOrder": 678,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.complex",
@@ -27580,7 +27580,7 @@
       "printedPage": "13-8",
       "pdfPage": 162,
       "auditOrder": 687,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.hypercomplex",
@@ -27665,7 +27665,7 @@
       "printedPage": "13-9",
       "pdfPage": 163,
       "auditOrder": 689,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.hypercomplex",
@@ -27897,7 +27897,7 @@
       "printedPage": "13-11",
       "pdfPage": 165,
       "auditOrder": 695,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.hypercomplex.order3",
@@ -28483,8 +28483,8 @@
       "printedPage": "14-2",
       "pdfPage": 171,
       "auditOrder": 712,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.superscript",
         "script.baseline"
@@ -28527,8 +28527,8 @@
       "printedPage": "14-2",
       "pdfPage": 171,
       "auditOrder": 713,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.superscript"
       ],
@@ -28843,7 +28843,7 @@
       "printedPage": "14-3",
       "pdfPage": 172,
       "auditOrder": 721,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "script.sup-sub",
@@ -29183,8 +29183,8 @@
       "printedPage": "14-4",
       "pdfPage": 173,
       "auditOrder": 726,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29235,7 +29235,7 @@
       "pdfPage": 173,
       "auditOrder": 727,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29297,7 +29297,7 @@
       "pdfPage": 174,
       "auditOrder": 728,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29359,7 +29359,7 @@
       "pdfPage": 174,
       "auditOrder": 729,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29421,7 +29421,7 @@
       "pdfPage": 174,
       "auditOrder": 730,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29483,7 +29483,7 @@
       "pdfPage": 174,
       "auditOrder": 731,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29545,7 +29545,7 @@
       "pdfPage": 174,
       "auditOrder": 732,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29607,7 +29607,7 @@
       "pdfPage": 175,
       "auditOrder": 733,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29669,7 +29669,7 @@
       "pdfPage": 175,
       "auditOrder": 734,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup",
         "script.sup-sub-sup",
@@ -29730,8 +29730,8 @@
       "printedPage": "14-6",
       "pdfPage": 175,
       "auditOrder": 735,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup-sup-sup",
         "script.sup-sup-sup-sub",
@@ -29794,7 +29794,7 @@
       "pdfPage": 175,
       "auditOrder": 736,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup-sup-sup",
         "script.sup-sup-sup-sub",
@@ -29868,7 +29868,7 @@
       "pdfPage": 175,
       "auditOrder": 737,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.sup-sup-sup-sup",
         "script.sup-sup-sup-sub",
@@ -29970,8 +29970,8 @@
       "printedPage": "14-7",
       "pdfPage": 176,
       "auditOrder": 739,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30010,7 +30010,7 @@
       "pdfPage": 176,
       "auditOrder": 740,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30054,7 +30054,7 @@
       "pdfPage": 176,
       "auditOrder": 741,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30098,7 +30098,7 @@
       "pdfPage": 176,
       "auditOrder": 742,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30142,7 +30142,7 @@
       "pdfPage": 177,
       "auditOrder": 743,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30186,7 +30186,7 @@
       "pdfPage": 177,
       "auditOrder": 744,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30230,7 +30230,7 @@
       "pdfPage": 177,
       "auditOrder": 745,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30274,7 +30274,7 @@
       "pdfPage": 177,
       "auditOrder": 746,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30318,7 +30318,7 @@
       "pdfPage": 177,
       "auditOrder": 747,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30362,7 +30362,7 @@
       "pdfPage": 177,
       "auditOrder": 748,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30406,7 +30406,7 @@
       "pdfPage": 178,
       "auditOrder": 749,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -30450,7 +30450,7 @@
       "pdfPage": 178,
       "auditOrder": 750,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
       ],
@@ -31513,8 +31513,8 @@
       "printedPage": "14-14",
       "pdfPage": 183,
       "auditOrder": 777,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "script.contracted-comma"
       ],
@@ -31547,7 +31547,7 @@
       "pdfPage": 183,
       "auditOrder": 778,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "script.contracted-comma"
       ],
@@ -31591,7 +31591,7 @@
       "pdfPage": 184,
       "auditOrder": 779,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "script.contracted-comma"
       ],
@@ -31635,7 +31635,7 @@
       "pdfPage": 184,
       "auditOrder": 780,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "script.contracted-comma"
       ],
@@ -31679,7 +31679,7 @@
       "pdfPage": 184,
       "auditOrder": 781,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "script.contracted-comma"
       ],
@@ -31723,7 +31723,7 @@
       "pdfPage": 184,
       "auditOrder": 782,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "script.contracted-comma"
       ],
@@ -31767,7 +31767,7 @@
       "pdfPage": 184,
       "auditOrder": 783,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "script.contracted-comma"
       ],
@@ -31810,8 +31810,8 @@
       "printedPage": "14-15",
       "pdfPage": 184,
       "auditOrder": 784,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
         "script.baseline"
@@ -35577,8 +35577,8 @@
       "printedPage": "14-33",
       "pdfPage": 202,
       "auditOrder": 885,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.possessive"
       ],
@@ -35611,7 +35611,7 @@
       "pdfPage": 202,
       "auditOrder": 886,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.possessive"
       ],
@@ -35655,7 +35655,7 @@
       "pdfPage": 202,
       "auditOrder": 887,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.possessive"
       ],
@@ -35699,7 +35699,7 @@
       "pdfPage": 202,
       "auditOrder": 888,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "script.possessive"
       ],
@@ -35750,8 +35750,8 @@
       "printedPage": "15-2",
       "pdfPage": 204,
       "auditOrder": 889,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over",
         "modifier.directly-under",
@@ -35787,8 +35787,8 @@
       "printedPage": "15-2",
       "pdfPage": 204,
       "auditOrder": 890,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over",
         "modifier.directly-under",
@@ -35834,8 +35834,8 @@
       "printedPage": "15-3",
       "pdfPage": 205,
       "auditOrder": 891,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -35874,7 +35874,7 @@
       "pdfPage": 205,
       "auditOrder": 892,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -35924,7 +35924,7 @@
       "pdfPage": 205,
       "auditOrder": 893,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -35974,7 +35974,7 @@
       "pdfPage": 205,
       "auditOrder": 894,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -36024,7 +36024,7 @@
       "pdfPage": 205,
       "auditOrder": 895,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -36074,7 +36074,7 @@
       "pdfPage": 205,
       "auditOrder": 896,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -36124,7 +36124,7 @@
       "pdfPage": 206,
       "auditOrder": 897,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -36174,7 +36174,7 @@
       "pdfPage": 206,
       "auditOrder": 898,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -36224,7 +36224,7 @@
       "pdfPage": 206,
       "auditOrder": 899,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -37335,8 +37335,8 @@
       "printedPage": "15-8",
       "pdfPage": 210,
       "auditOrder": 927,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over.higher",
         "modifier.directly-under.higher"
@@ -37537,8 +37537,8 @@
       "printedPage": "15-9",
       "pdfPage": 211,
       "auditOrder": 933,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.simultaneous.over",
         "modifier.simultaneous.under",
@@ -37575,7 +37575,7 @@
       "pdfPage": 211,
       "auditOrder": 934,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.simultaneous.over",
         "modifier.simultaneous.under",
@@ -37623,7 +37623,7 @@
       "pdfPage": 211,
       "auditOrder": 935,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.simultaneous.over",
         "modifier.simultaneous.under",
@@ -37671,7 +37671,7 @@
       "pdfPage": 212,
       "auditOrder": 936,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.simultaneous.over",
         "modifier.simultaneous.under",
@@ -37907,8 +37907,8 @@
       "printedPage": "15-11",
       "pdfPage": 213,
       "auditOrder": 942,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "binomial.open",
         "binomial.lower",
@@ -37945,7 +37945,7 @@
       "pdfPage": 213,
       "auditOrder": 943,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "binomial.open",
         "binomial.lower",
@@ -37993,7 +37993,7 @@
       "pdfPage": 213,
       "auditOrder": 944,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "binomial.open",
         "binomial.lower",
@@ -38219,7 +38219,7 @@
       "printedPage": "15-12",
       "pdfPage": 214,
       "auditOrder": 950,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "integral.superpose.circle",
@@ -38702,8 +38702,8 @@
       "printedPage": "15-14",
       "pdfPage": 216,
       "auditOrder": 956,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.triangle"
       ],
@@ -38735,8 +38735,8 @@
       "printedPage": "15-14",
       "pdfPage": 216,
       "auditOrder": 957,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.arc.down",
         "modifier.arc.up"
@@ -38771,7 +38771,7 @@
       "pdfPage": 216,
       "auditOrder": 958,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.arc.down",
         "modifier.arc.up"
@@ -38817,7 +38817,7 @@
       "pdfPage": 216,
       "auditOrder": 959,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.arc.down",
         "modifier.arc.up"
@@ -38863,7 +38863,7 @@
       "pdfPage": 216,
       "auditOrder": 960,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.arc.down",
         "modifier.arc.up"
@@ -38909,7 +38909,7 @@
       "pdfPage": 216,
       "auditOrder": 961,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.arc.down",
         "modifier.arc.up"
@@ -38954,8 +38954,8 @@
       "printedPage": "15-14",
       "pdfPage": 216,
       "auditOrder": 962,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39014,7 +39014,7 @@
       "pdfPage": 217,
       "auditOrder": 963,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39084,7 +39084,7 @@
       "pdfPage": 217,
       "auditOrder": 964,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39154,7 +39154,7 @@
       "pdfPage": 217,
       "auditOrder": 965,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39224,7 +39224,7 @@
       "pdfPage": 217,
       "auditOrder": 966,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39294,7 +39294,7 @@
       "pdfPage": 217,
       "auditOrder": 967,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39364,7 +39364,7 @@
       "pdfPage": 217,
       "auditOrder": 968,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39434,7 +39434,7 @@
       "pdfPage": 218,
       "auditOrder": 969,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39504,7 +39504,7 @@
       "pdfPage": 218,
       "auditOrder": 970,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39574,7 +39574,7 @@
       "pdfPage": 218,
       "auditOrder": 971,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39644,7 +39644,7 @@
       "pdfPage": 218,
       "auditOrder": 972,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "modifier.arrow.barbed-both",
         "modifier.arrow.barbed-left",
@@ -39713,8 +39713,8 @@
       "printedPage": "15-16",
       "pdfPage": 218,
       "auditOrder": 973,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.bar-over"
       ],
@@ -39982,8 +39982,8 @@
       "printedPage": "15-17",
       "pdfPage": 219,
       "auditOrder": 981,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.caret.over",
         "modifier.caret.inverted",
@@ -40022,7 +40022,7 @@
       "pdfPage": 219,
       "auditOrder": 982,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.caret.over",
         "modifier.caret.inverted",
@@ -40072,7 +40072,7 @@
       "pdfPage": 219,
       "auditOrder": 983,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.caret.over",
         "modifier.caret.inverted",
@@ -40122,7 +40122,7 @@
       "pdfPage": 219,
       "auditOrder": 984,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.caret.over",
         "modifier.caret.inverted",
@@ -40172,7 +40172,7 @@
       "pdfPage": 219,
       "auditOrder": 985,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.caret.over",
         "modifier.caret.inverted",
@@ -40222,7 +40222,7 @@
       "pdfPage": 220,
       "auditOrder": 986,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.caret.over",
         "modifier.caret.inverted",
@@ -40271,8 +40271,8 @@
       "printedPage": "15-18",
       "pdfPage": 220,
       "auditOrder": 987,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.dot"
       ],
@@ -40642,7 +40642,7 @@
       "printedPage": "15-19",
       "pdfPage": 221,
       "auditOrder": 997,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "modifier.hollow-dot",
@@ -40723,8 +40723,8 @@
       "printedPage": "15-19",
       "pdfPage": 221,
       "auditOrder": 999,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.question"
       ],
@@ -40757,7 +40757,7 @@
       "pdfPage": 221,
       "auditOrder": 1000,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.question"
       ],
@@ -40801,7 +40801,7 @@
       "pdfPage": 221,
       "auditOrder": 1001,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.question"
       ],
@@ -40845,8 +40845,8 @@
       "printedPage": "15-19",
       "pdfPage": 221,
       "auditOrder": 1002,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.tilde.extended",
         "modifier.tilde.simple"
@@ -40880,8 +40880,8 @@
       "printedPage": "16-1",
       "pdfPage": 222,
       "auditOrder": 1003,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "radical.square"
       ],
@@ -40923,8 +40923,8 @@
       "printedPage": "16-1",
       "pdfPage": 222,
       "auditOrder": 1004,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "radical.end"
       ],
@@ -40957,7 +40957,7 @@
       "pdfPage": 222,
       "auditOrder": 1005,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "radical.end"
       ],
@@ -41001,7 +41001,7 @@
       "pdfPage": 222,
       "auditOrder": 1006,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "radical.end"
       ],
@@ -41045,7 +41045,7 @@
       "pdfPage": 222,
       "auditOrder": 1007,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "radical.end"
       ],
@@ -41089,7 +41089,7 @@
       "pdfPage": 223,
       "auditOrder": 1008,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "radical.end"
       ],
@@ -41133,7 +41133,7 @@
       "pdfPage": 223,
       "auditOrder": 1009,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "radical.end"
       ],
@@ -41177,7 +41177,7 @@
       "pdfPage": 223,
       "auditOrder": 1010,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "radical.end"
       ],
@@ -41221,7 +41221,7 @@
       "pdfPage": 223,
       "auditOrder": 1011,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "radical.end"
       ],
@@ -41374,7 +41374,7 @@
       "printedPage": "16-3",
       "pdfPage": 224,
       "auditOrder": 1015,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "radical.square",
@@ -41633,7 +41633,7 @@
       "printedPage": "16-3",
       "pdfPage": 224,
       "auditOrder": 1020,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "radical.indexed",
@@ -41925,7 +41925,7 @@
       "printedPage": "17-5",
       "pdfPage": 231,
       "auditOrder": 1025,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "misc.angle",
@@ -42587,7 +42587,7 @@
       "printedPage": "17-7",
       "pdfPage": 233,
       "auditOrder": 1034,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "misc.parallel",
@@ -42632,8 +42632,8 @@
       "printedPage": "17-7",
       "pdfPage": 233,
       "auditOrder": 1035,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.filled-circle",
         "shape.filled-square",
@@ -42672,7 +42672,7 @@
       "pdfPage": 233,
       "auditOrder": 1036,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.filled-circle",
         "shape.filled-square",
@@ -42722,7 +42722,7 @@
       "pdfPage": 234,
       "auditOrder": 1037,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.filled-circle",
         "shape.filled-square",
@@ -42771,8 +42771,8 @@
       "printedPage": "17-8",
       "pdfPage": 234,
       "auditOrder": 1038,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.irregular-octagon",
         "shape.regular-octagon",
@@ -42809,7 +42809,7 @@
       "pdfPage": 234,
       "auditOrder": 1039,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.irregular-octagon",
         "shape.regular-octagon",
@@ -42857,7 +42857,7 @@
       "pdfPage": 234,
       "auditOrder": 1040,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.irregular-octagon",
         "shape.regular-octagon",
@@ -42905,7 +42905,7 @@
       "pdfPage": 234,
       "auditOrder": 1041,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.irregular-octagon",
         "shape.regular-octagon",
@@ -42953,7 +42953,7 @@
       "pdfPage": 234,
       "auditOrder": 1042,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.irregular-octagon",
         "shape.regular-octagon",
@@ -43000,8 +43000,8 @@
       "printedPage": "17-9",
       "pdfPage": 235,
       "auditOrder": 1043,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.triangle.isosceles",
         "shape.triangle.acute",
@@ -43066,7 +43066,7 @@
       "pdfPage": 235,
       "auditOrder": 1044,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.triangle.isosceles",
         "shape.triangle.acute",
@@ -43142,7 +43142,7 @@
       "pdfPage": 235,
       "auditOrder": 1045,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.triangle.isosceles",
         "shape.triangle.acute",
@@ -43252,8 +43252,8 @@
       "printedPage": "17-10",
       "pdfPage": 236,
       "auditOrder": 1047,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-plus",
         "shape.angle.interior-arc",
@@ -43310,7 +43310,7 @@
       "pdfPage": 236,
       "auditOrder": 1048,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-plus",
         "shape.angle.interior-arc",
@@ -43378,7 +43378,7 @@
       "pdfPage": 236,
       "auditOrder": 1049,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-plus",
         "shape.angle.interior-arc",
@@ -43446,7 +43446,7 @@
       "pdfPage": 236,
       "auditOrder": 1050,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-plus",
         "shape.angle.interior-arc",
@@ -43514,7 +43514,7 @@
       "pdfPage": 236,
       "auditOrder": 1051,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-plus",
         "shape.angle.interior-arc",
@@ -43582,7 +43582,7 @@
       "pdfPage": 237,
       "auditOrder": 1052,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-plus",
         "shape.angle.interior-arc",
@@ -43649,8 +43649,8 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1053,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-arrows-horizontal"
       ],
@@ -43683,7 +43683,7 @@
       "pdfPage": 237,
       "auditOrder": 1054,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-arrows-horizontal"
       ],
@@ -43726,8 +43726,8 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1055,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-arrows-vertical"
       ],
@@ -43760,7 +43760,7 @@
       "pdfPage": 237,
       "auditOrder": 1056,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-arrows-vertical"
       ],
@@ -44193,8 +44193,8 @@
       "printedPage": "17-14",
       "pdfPage": 240,
       "auditOrder": 1067,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.superposed-bar"
       ],
@@ -44227,7 +44227,7 @@
       "pdfPage": 240,
       "auditOrder": 1068,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.superposed-bar"
       ],
@@ -44271,7 +44271,7 @@
       "pdfPage": 240,
       "auditOrder": 1069,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.superposed-bar"
       ],
@@ -44343,8 +44343,8 @@
       "printedPage": "17-14",
       "pdfPage": 240,
       "auditOrder": 1071,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.triangle.plural"
       ],
@@ -44377,7 +44377,7 @@
       "pdfPage": 241,
       "auditOrder": 1072,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.triangle.plural"
       ],
@@ -45716,7 +45716,7 @@
       "printedPage": "18-2",
       "pdfPage": 247,
       "auditOrder": 1107,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "function.amp",
@@ -46213,8 +46213,8 @@
       "printedPage": "18-3",
       "pdfPage": 248,
       "auditOrder": 1112,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.limit.upper",
         "function.limit.lower"
@@ -46255,7 +46255,7 @@
       "pdfPage": 248,
       "auditOrder": 1113,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.limit.upper",
         "function.limit.lower"
@@ -46301,7 +46301,7 @@
       "pdfPage": 248,
       "auditOrder": 1114,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.limit.upper",
         "function.limit.lower"
@@ -46347,7 +46347,7 @@
       "pdfPage": 248,
       "auditOrder": 1115,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.limit.upper",
         "function.limit.lower"
@@ -46392,8 +46392,8 @@
       "printedPage": "18-4",
       "pdfPage": 249,
       "auditOrder": 1116,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.amp",
         "function.antilog",
@@ -47257,7 +47257,7 @@
       "printedPage": "19-2",
       "pdfPage": 254,
       "auditOrder": 1137,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "group.round",
@@ -47959,8 +47959,8 @@
       "printedPage": "19-4",
       "pdfPage": 256,
       "auditOrder": 1154,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -47999,7 +47999,7 @@
       "pdfPage": 256,
       "auditOrder": 1155,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -48049,7 +48049,7 @@
       "pdfPage": 257,
       "auditOrder": 1156,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -48099,7 +48099,7 @@
       "pdfPage": 257,
       "auditOrder": 1157,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -48149,7 +48149,7 @@
       "pdfPage": 257,
       "auditOrder": 1158,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -48199,7 +48199,7 @@
       "pdfPage": 257,
       "auditOrder": 1159,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -48249,7 +48249,7 @@
       "pdfPage": 257,
       "auditOrder": 1160,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.horizontal-brace-over",
         "modifier.horizontal-brace-under",
@@ -48298,8 +48298,8 @@
       "printedPage": "19-5",
       "pdfPage": 257,
       "auditOrder": 1161,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.bold-bracket-open",
         "group.bold-bracket-close"
@@ -48334,7 +48334,7 @@
       "pdfPage": 257,
       "auditOrder": 1162,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.bold-bracket-open",
         "group.bold-bracket-close"
@@ -48379,8 +48379,8 @@
       "printedPage": "19-6",
       "pdfPage": 258,
       "auditOrder": 1163,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.upper-half-open",
         "group.upper-half-close",
@@ -48427,7 +48427,7 @@
       "pdfPage": 258,
       "auditOrder": 1164,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.upper-half-open",
         "group.upper-half-close",
@@ -48486,7 +48486,7 @@
       "pdfPage": 258,
       "auditOrder": 1165,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.upper-half-open",
         "group.upper-half-close",
@@ -48544,7 +48544,7 @@
       "pdfPage": 258,
       "auditOrder": 1166,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.upper-half-open",
         "group.upper-half-close",
@@ -48601,7 +48601,7 @@
       "printedPage": "19-6",
       "pdfPage": 258,
       "auditOrder": 1167,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "group.round",
@@ -48905,8 +48905,8 @@
       "printedPage": "19-7",
       "pdfPage": 259,
       "auditOrder": 1175,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.round-enlarged-open",
         "group.round-enlarged-close",
@@ -48973,7 +48973,7 @@
       "pdfPage": 260,
       "auditOrder": 1176,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.round-enlarged-open",
         "group.round-enlarged-close",
@@ -49054,7 +49054,7 @@
       "pdfPage": 260,
       "auditOrder": 1177,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.round-enlarged-open",
         "group.round-enlarged-close",
@@ -49133,7 +49133,7 @@
       "pdfPage": 260,
       "auditOrder": 1178,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.round-enlarged-open",
         "group.round-enlarged-close",
@@ -49212,7 +49212,7 @@
       "pdfPage": 261,
       "auditOrder": 1179,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.round-enlarged-open",
         "group.round-enlarged-close",
@@ -49291,7 +49291,7 @@
       "pdfPage": 261,
       "auditOrder": 1180,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.round-enlarged-open",
         "group.round-enlarged-close",
@@ -49370,7 +49370,7 @@
       "pdfPage": 262,
       "auditOrder": 1181,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "group.round-enlarged-open",
         "group.round-enlarged-close",
@@ -50001,8 +50001,8 @@
       "printedPage": "20-3",
       "pdfPage": 268,
       "auditOrder": 1197,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.plus",
         "operator.backslash",
@@ -50874,8 +50874,8 @@
       "printedPage": "20-6",
       "pdfPage": 271,
       "auditOrder": 1219,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.ampersand"
       ],
@@ -50908,7 +50908,7 @@
       "pdfPage": 271,
       "auditOrder": 1220,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.ampersand"
       ],
@@ -50952,7 +50952,7 @@
       "pdfPage": 271,
       "auditOrder": 1221,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.ampersand"
       ],
@@ -50995,8 +50995,8 @@
       "printedPage": "20-6",
       "pdfPage": 271,
       "auditOrder": 1222,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51039,7 +51039,7 @@
       "pdfPage": 271,
       "auditOrder": 1223,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51093,7 +51093,7 @@
       "pdfPage": 271,
       "auditOrder": 1224,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51147,7 +51147,7 @@
       "pdfPage": 271,
       "auditOrder": 1225,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51201,7 +51201,7 @@
       "pdfPage": 272,
       "auditOrder": 1226,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51255,7 +51255,7 @@
       "pdfPage": 272,
       "auditOrder": 1227,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51309,7 +51309,7 @@
       "pdfPage": 272,
       "auditOrder": 1228,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51363,7 +51363,7 @@
       "pdfPage": 272,
       "auditOrder": 1229,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51417,7 +51417,7 @@
       "pdfPage": 272,
       "auditOrder": 1230,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51471,7 +51471,7 @@
       "pdfPage": 272,
       "auditOrder": 1231,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.number-sign",
         "operator.paragraph",
@@ -51524,8 +51524,8 @@
       "printedPage": "20-7",
       "pdfPage": 272,
       "auditOrder": 1232,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.union",
         "operator.intersection"
@@ -51560,7 +51560,7 @@
       "pdfPage": 273,
       "auditOrder": 1233,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.union",
         "operator.intersection"
@@ -51606,7 +51606,7 @@
       "pdfPage": 273,
       "auditOrder": 1234,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.union",
         "operator.intersection"
@@ -51652,7 +51652,7 @@
       "pdfPage": 273,
       "auditOrder": 1235,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.union",
         "operator.intersection"
@@ -51697,8 +51697,8 @@
       "printedPage": "20-8",
       "pdfPage": 273,
       "auditOrder": 1236,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.logical-and",
         "operator.logical-or"
@@ -51733,7 +51733,7 @@
       "pdfPage": 273,
       "auditOrder": 1237,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.logical-and",
         "operator.logical-or"
@@ -51779,7 +51779,7 @@
       "pdfPage": 273,
       "auditOrder": 1238,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.logical-and",
         "operator.logical-or"
@@ -51824,8 +51824,8 @@
       "printedPage": "20-8",
       "pdfPage": 273,
       "auditOrder": 1239,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.minus",
         "operator.plus-minus",
@@ -51884,7 +51884,7 @@
       "pdfPage": 274,
       "auditOrder": 1240,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.minus",
         "operator.plus-minus",
@@ -51954,7 +51954,7 @@
       "pdfPage": 274,
       "auditOrder": 1241,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.minus",
         "operator.plus-minus",
@@ -52024,7 +52024,7 @@
       "pdfPage": 274,
       "auditOrder": 1242,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.minus",
         "operator.plus-minus",
@@ -52094,7 +52094,7 @@
       "pdfPage": 274,
       "auditOrder": 1243,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.minus",
         "operator.plus-minus",
@@ -52164,7 +52164,7 @@
       "pdfPage": 274,
       "auditOrder": 1244,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.minus",
         "operator.plus-minus",
@@ -52233,8 +52233,8 @@
       "printedPage": "20-9",
       "pdfPage": 274,
       "auditOrder": 1245,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.multiply",
         "operator.dot"
@@ -52269,7 +52269,7 @@
       "pdfPage": 274,
       "auditOrder": 1246,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.multiply",
         "operator.dot"
@@ -52315,7 +52315,7 @@
       "pdfPage": 274,
       "auditOrder": 1247,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.multiply",
         "operator.dot"
@@ -52361,7 +52361,7 @@
       "pdfPage": 275,
       "auditOrder": 1248,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.multiply",
         "operator.dot"
@@ -52407,7 +52407,7 @@
       "pdfPage": 275,
       "auditOrder": 1249,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.multiply",
         "operator.dot"
@@ -52452,8 +52452,8 @@
       "printedPage": "20-10",
       "pdfPage": 275,
       "auditOrder": 1250,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.divide",
         "operator.backslash",
@@ -52492,7 +52492,7 @@
       "pdfPage": 275,
       "auditOrder": 1251,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.divide",
         "operator.backslash",
@@ -52542,7 +52542,7 @@
       "pdfPage": 275,
       "auditOrder": 1252,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.divide",
         "operator.backslash",
@@ -52592,7 +52592,7 @@
       "pdfPage": 275,
       "auditOrder": 1253,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.divide",
         "operator.backslash",
@@ -52642,7 +52642,7 @@
       "pdfPage": 275,
       "auditOrder": 1254,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.divide",
         "operator.backslash",
@@ -52692,7 +52692,7 @@
       "pdfPage": 275,
       "auditOrder": 1255,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.divide",
         "operator.backslash",
@@ -52740,8 +52740,8 @@
       "printedPage": "20-11",
       "pdfPage": 276,
       "auditOrder": 1256,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.tilde"
       ],
@@ -52774,7 +52774,7 @@
       "pdfPage": 276,
       "auditOrder": 1257,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.tilde"
       ],
@@ -52818,7 +52818,7 @@
       "pdfPage": 276,
       "auditOrder": 1258,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.tilde"
       ],
@@ -52862,7 +52862,7 @@
       "pdfPage": 276,
       "auditOrder": 1259,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.tilde"
       ],
@@ -52960,8 +52960,8 @@
       "printedPage": "21-9",
       "pdfPage": 285,
       "auditOrder": 1260,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.equals",
         "comparison.not-equal"
@@ -52996,7 +52996,7 @@
       "pdfPage": 286,
       "auditOrder": 1261,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.equals",
         "comparison.not-equal"
@@ -53042,7 +53042,7 @@
       "pdfPage": 286,
       "auditOrder": 1262,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.equals",
         "comparison.not-equal"
@@ -53088,7 +53088,7 @@
       "pdfPage": 286,
       "auditOrder": 1263,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.equals",
         "comparison.not-equal"
@@ -53134,7 +53134,7 @@
       "pdfPage": 286,
       "auditOrder": 1264,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.equals",
         "comparison.not-equal"
@@ -53180,7 +53180,7 @@
       "pdfPage": 286,
       "auditOrder": 1265,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.equals",
         "comparison.not-equal"
@@ -53226,7 +53226,7 @@
       "pdfPage": 286,
       "auditOrder": 1266,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "operator.equals",
         "comparison.not-equal"
@@ -53271,8 +53271,8 @@
       "printedPage": "21-10",
       "pdfPage": 286,
       "auditOrder": 1267,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.perpendicular",
         "misc.parallel",
@@ -53309,7 +53309,7 @@
       "pdfPage": 287,
       "auditOrder": 1268,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.perpendicular",
         "misc.parallel",
@@ -53357,7 +53357,7 @@
       "pdfPage": 287,
       "auditOrder": 1269,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.perpendicular",
         "misc.parallel",
@@ -53405,7 +53405,7 @@
       "pdfPage": 287,
       "auditOrder": 1270,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.perpendicular",
         "misc.parallel",
@@ -53453,7 +53453,7 @@
       "pdfPage": 287,
       "auditOrder": 1271,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.perpendicular",
         "misc.parallel",
@@ -53500,8 +53500,8 @@
       "printedPage": "21-11",
       "pdfPage": 287,
       "auditOrder": 1272,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.not-identical",
         "comparison.identical"
@@ -53536,7 +53536,7 @@
       "pdfPage": 287,
       "auditOrder": 1273,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.not-identical",
         "comparison.identical"
@@ -53582,7 +53582,7 @@
       "pdfPage": 287,
       "auditOrder": 1274,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.not-identical",
         "comparison.identical"
@@ -53627,8 +53627,8 @@
       "printedPage": "21-12",
       "pdfPage": 288,
       "auditOrder": 1275,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.member",
         "comparison.not-member",
@@ -53669,7 +53669,7 @@
       "pdfPage": 288,
       "auditOrder": 1276,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.member",
         "comparison.not-member",
@@ -53720,8 +53720,8 @@
       "printedPage": "21-12",
       "pdfPage": 288,
       "auditOrder": 1277,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.less",
         "comparison.greater",
@@ -53786,7 +53786,7 @@
       "pdfPage": 288,
       "auditOrder": 1278,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.less",
         "comparison.greater",
@@ -53856,7 +53856,7 @@
       "pdfPage": 288,
       "auditOrder": 1279,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.less",
         "comparison.greater",
@@ -53925,8 +53925,8 @@
       "printedPage": "21-12",
       "pdfPage": 288,
       "auditOrder": 1280,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.approximately",
         "comparison.similar",
@@ -53965,7 +53965,7 @@
       "pdfPage": 288,
       "auditOrder": 1281,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.approximately",
         "comparison.similar",
@@ -54015,7 +54015,7 @@
       "pdfPage": 289,
       "auditOrder": 1282,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.approximately",
         "comparison.similar",
@@ -54064,8 +54064,8 @@
       "printedPage": "21-13",
       "pdfPage": 289,
       "auditOrder": 1283,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.vertical-bar"
       ],
@@ -54098,7 +54098,7 @@
       "pdfPage": 289,
       "auditOrder": 1284,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.vertical-bar"
       ],
@@ -54142,7 +54142,7 @@
       "pdfPage": 289,
       "auditOrder": 1285,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.vertical-bar"
       ],
@@ -54186,7 +54186,7 @@
       "pdfPage": 289,
       "auditOrder": 1286,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.vertical-bar"
       ],
@@ -54229,8 +54229,8 @@
       "printedPage": "21-13",
       "pdfPage": 289,
       "auditOrder": 1287,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.not-equal",
         "comparison.not-less",
@@ -54267,7 +54267,7 @@
       "pdfPage": 290,
       "auditOrder": 1288,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "comparison.not-equal",
         "comparison.not-less",
@@ -54314,8 +54314,8 @@
       "printedPage": "21-14",
       "pdfPage": 290,
       "auditOrder": 1289,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "comparison.equivalence",
         "comparison.equals.caret-over",
@@ -54464,7 +54464,7 @@
       "pdfPage": 290,
       "auditOrder": 1290,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "comparison.equivalence",
         "comparison.equals.caret-over",
@@ -54692,8 +54692,8 @@
       "printedPage": "21-14",
       "pdfPage": 290,
       "auditOrder": 1293,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "comparison.equivalence",
         "comparison.greater-less",
@@ -54733,8 +54733,8 @@
       "printedPage": "21-14",
       "pdfPage": 290,
       "auditOrder": 1294,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "superposition.comparison",
         "comparison.superposed.dot-equals",
@@ -54793,7 +54793,7 @@
       "pdfPage": 291,
       "auditOrder": 1295,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "superposition.comparison",
         "comparison.superposed.dot-equals",
@@ -55577,7 +55577,7 @@
       "printedPage": "22-2",
       "pdfPage": 295,
       "auditOrder": 1314,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "arrow.right",
@@ -55641,8 +55641,8 @@
       "printedPage": "22-3",
       "pdfPage": 296,
       "auditOrder": 1316,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.bold.vertical-both",
         "arrow.spear.northwest-blunted",
@@ -55681,7 +55681,7 @@
       "pdfPage": 296,
       "auditOrder": 1317,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.bold.vertical-both",
         "arrow.spear.northwest-blunted",
@@ -55729,7 +55729,7 @@
       "pdfPage": 296,
       "auditOrder": 1318,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.bold.vertical-both",
         "arrow.spear.northwest-blunted",
@@ -55777,7 +55777,7 @@
       "pdfPage": 297,
       "auditOrder": 1319,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.bold.vertical-both",
         "arrow.spear.northwest-blunted",
@@ -55824,7 +55824,7 @@
       "printedPage": "22-4",
       "pdfPage": 297,
       "auditOrder": 1320,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "arrow.up",
@@ -56207,8 +56207,8 @@
       "printedPage": "22-5",
       "pdfPage": 298,
       "auditOrder": 1330,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.northwest",
         "arrow.northeast",
@@ -56247,7 +56247,7 @@
       "pdfPage": 298,
       "auditOrder": 1331,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.northwest",
         "arrow.northeast",
@@ -56297,7 +56297,7 @@
       "pdfPage": 298,
       "auditOrder": 1332,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.northwest",
         "arrow.northeast",
@@ -56347,7 +56347,7 @@
       "pdfPage": 298,
       "auditOrder": 1333,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.northwest",
         "arrow.northeast",
@@ -56397,7 +56397,7 @@
       "pdfPage": 299,
       "auditOrder": 1334,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.northwest",
         "arrow.northeast",
@@ -56447,7 +56447,7 @@
       "pdfPage": 299,
       "auditOrder": 1335,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.northwest",
         "arrow.northeast",
@@ -56497,7 +56497,7 @@
       "pdfPage": 299,
       "auditOrder": 1336,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.northwest",
         "arrow.northeast",
@@ -56546,8 +56546,8 @@
       "printedPage": "22-6",
       "pdfPage": 299,
       "auditOrder": 1337,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.up",
         "arrow.down",
@@ -56591,8 +56591,8 @@
       "printedPage": "22-6",
       "pdfPage": 299,
       "auditOrder": 1338,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.counterclockwise",
         "arrow.clockwise"
@@ -56627,7 +56627,7 @@
       "pdfPage": 299,
       "auditOrder": 1339,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.counterclockwise",
         "arrow.clockwise"
@@ -56673,7 +56673,7 @@
       "pdfPage": 299,
       "auditOrder": 1340,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.counterclockwise",
         "arrow.clockwise"
@@ -56718,8 +56718,8 @@
       "printedPage": "22-6",
       "pdfPage": 299,
       "auditOrder": 1341,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.spear.right",
         "arrow.spear.left",
@@ -56756,7 +56756,7 @@
       "pdfPage": 300,
       "auditOrder": 1342,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.spear.right",
         "arrow.spear.left",
@@ -56804,7 +56804,7 @@
       "pdfPage": 300,
       "auditOrder": 1343,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.spear.right",
         "arrow.spear.left",
@@ -56852,7 +56852,7 @@
       "pdfPage": 300,
       "auditOrder": 1344,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.spear.right",
         "arrow.spear.left",
@@ -56899,8 +56899,8 @@
       "printedPage": "22-7",
       "pdfPage": 300,
       "auditOrder": 1345,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.right.short",
         "arrow.left.short",
@@ -56939,7 +56939,7 @@
       "pdfPage": 300,
       "auditOrder": 1346,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.right.short",
         "arrow.left.short",
@@ -56989,7 +56989,7 @@
       "pdfPage": 300,
       "auditOrder": 1347,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.right.short",
         "arrow.left.short",
@@ -57039,7 +57039,7 @@
       "pdfPage": 300,
       "auditOrder": 1348,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.right.short",
         "arrow.left.short",
@@ -57089,7 +57089,7 @@
       "pdfPage": 300,
       "auditOrder": 1349,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.right.short",
         "arrow.left.short",
@@ -57139,7 +57139,7 @@
       "pdfPage": 301,
       "auditOrder": 1350,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.right.short",
         "arrow.left.short",
@@ -57189,7 +57189,7 @@
       "pdfPage": 301,
       "auditOrder": 1351,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.right.short",
         "arrow.left.short",
@@ -57238,8 +57238,8 @@
       "printedPage": "22-8",
       "pdfPage": 301,
       "auditOrder": 1352,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.bold.right",
         "arrow.bold.left",
@@ -57276,7 +57276,7 @@
       "pdfPage": 301,
       "auditOrder": 1353,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.bold.right",
         "arrow.bold.left",
@@ -57324,7 +57324,7 @@
       "pdfPage": 301,
       "auditOrder": 1354,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.bold.right",
         "arrow.bold.left",
@@ -57372,7 +57372,7 @@
       "pdfPage": 301,
       "auditOrder": 1355,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.bold.right",
         "arrow.bold.left",
@@ -57448,8 +57448,8 @@
       "printedPage": "22-9",
       "pdfPage": 302,
       "auditOrder": 1357,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57498,7 +57498,7 @@
       "pdfPage": 302,
       "auditOrder": 1358,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57558,7 +57558,7 @@
       "pdfPage": 302,
       "auditOrder": 1359,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57618,7 +57618,7 @@
       "pdfPage": 302,
       "auditOrder": 1360,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57678,7 +57678,7 @@
       "pdfPage": 302,
       "auditOrder": 1361,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57738,7 +57738,7 @@
       "pdfPage": 302,
       "auditOrder": 1362,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57798,7 +57798,7 @@
       "pdfPage": 302,
       "auditOrder": 1363,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57858,7 +57858,7 @@
       "pdfPage": 302,
       "auditOrder": 1364,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57918,7 +57918,7 @@
       "pdfPage": 303,
       "auditOrder": 1365,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -57978,7 +57978,7 @@
       "pdfPage": 303,
       "auditOrder": 1366,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
         "arrow.blunted.left",
@@ -58037,8 +58037,8 @@
       "printedPage": "22-10",
       "pdfPage": 303,
       "auditOrder": 1367,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58093,7 +58093,7 @@
       "pdfPage": 303,
       "auditOrder": 1368,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58159,7 +58159,7 @@
       "pdfPage": 303,
       "auditOrder": 1369,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58225,7 +58225,7 @@
       "pdfPage": 303,
       "auditOrder": 1370,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58291,7 +58291,7 @@
       "pdfPage": 303,
       "auditOrder": 1371,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58357,7 +58357,7 @@
       "pdfPage": 303,
       "auditOrder": 1372,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58423,7 +58423,7 @@
       "pdfPage": 304,
       "auditOrder": 1373,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58489,7 +58489,7 @@
       "pdfPage": 304,
       "auditOrder": 1374,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58555,7 +58555,7 @@
       "pdfPage": 304,
       "auditOrder": 1375,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58621,7 +58621,7 @@
       "pdfPage": 304,
       "auditOrder": 1376,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58687,7 +58687,7 @@
       "pdfPage": 304,
       "auditOrder": 1377,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58753,7 +58753,7 @@
       "pdfPage": 304,
       "auditOrder": 1378,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58819,7 +58819,7 @@
       "pdfPage": 304,
       "auditOrder": 1379,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58885,7 +58885,7 @@
       "pdfPage": 304,
       "auditOrder": 1380,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
         "arrow.lower-left",
@@ -58952,8 +58952,8 @@
       "printedPage": "23-2",
       "pdfPage": 307,
       "auditOrder": 1381,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.angstrom"
       ],
@@ -58986,7 +58986,7 @@
       "pdfPage": 308,
       "auditOrder": 1382,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.angstrom"
       ],
@@ -59029,8 +59029,8 @@
       "printedPage": "23-3",
       "pdfPage": 308,
       "auditOrder": 1383,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.at"
       ],
@@ -59063,7 +59063,7 @@
       "pdfPage": 308,
       "auditOrder": 1384,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.at"
       ],
@@ -59106,8 +59106,8 @@
       "printedPage": "23-3",
       "pdfPage": 308,
       "auditOrder": 1385,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.caret"
       ],
@@ -59140,7 +59140,7 @@
       "pdfPage": 308,
       "auditOrder": 1386,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.caret"
       ],
@@ -59183,8 +59183,8 @@
       "printedPage": "23-3",
       "pdfPage": 308,
       "auditOrder": 1387,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.crossed-d",
         "misc.crossed-h",
@@ -59223,7 +59223,7 @@
       "pdfPage": 308,
       "auditOrder": 1388,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.crossed-d",
         "misc.crossed-h",
@@ -59273,7 +59273,7 @@
       "pdfPage": 308,
       "auditOrder": 1389,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.crossed-d",
         "misc.crossed-h",
@@ -59322,8 +59322,8 @@
       "printedPage": "23-4",
       "pdfPage": 309,
       "auditOrder": 1390,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.nabla",
         "misc.del-inverted"
@@ -59358,7 +59358,7 @@
       "pdfPage": 309,
       "auditOrder": 1391,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.nabla",
         "misc.del-inverted"
@@ -59403,8 +59403,8 @@
       "printedPage": "23-4",
       "pdfPage": 309,
       "auditOrder": 1392,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.ditto"
       ],
@@ -59437,7 +59437,7 @@
       "pdfPage": 309,
       "auditOrder": 1393,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.ditto"
       ],
@@ -59481,8 +59481,8 @@
       "printedPage": "23-5",
       "pdfPage": 310,
       "auditOrder": 1394,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.empty-set"
       ],
@@ -59515,7 +59515,7 @@
       "pdfPage": 310,
       "auditOrder": 1395,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.empty-set"
       ],
@@ -59559,7 +59559,7 @@
       "pdfPage": 310,
       "auditOrder": 1396,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.empty-set"
       ],
@@ -59603,8 +59603,8 @@
       "printedPage": "23-6",
       "pdfPage": 311,
       "auditOrder": 1397,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.end-proof"
       ],
@@ -59637,7 +59637,7 @@
       "pdfPage": 311,
       "auditOrder": 1398,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.end-proof"
       ],
@@ -59682,8 +59682,8 @@
       "printedPage": "23-6",
       "pdfPage": 311,
       "auditOrder": 1399,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.factorial"
       ],
@@ -59716,7 +59716,7 @@
       "pdfPage": 311,
       "auditOrder": 1400,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.factorial"
       ],
@@ -59760,7 +59760,7 @@
       "pdfPage": 311,
       "auditOrder": 1401,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.factorial"
       ],
@@ -59803,7 +59803,7 @@
       "printedPage": "23-6",
       "pdfPage": 311,
       "auditOrder": 1402,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "misc.hollow-dot",
@@ -59890,7 +59890,7 @@
       "printedPage": "23-7",
       "pdfPage": 312,
       "auditOrder": 1404,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "integral.superpose.infinity",
@@ -60017,7 +60017,7 @@
       "printedPage": "23-7",
       "pdfPage": 312,
       "auditOrder": 1407,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "operator.integral",
@@ -60480,8 +60480,8 @@
       "printedPage": "23-8",
       "pdfPage": 313,
       "auditOrder": 1415,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.cent",
         "misc.dollar",
@@ -60528,7 +60528,7 @@
       "pdfPage": 314,
       "auditOrder": 1416,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.cent",
         "misc.dollar",
@@ -60586,7 +60586,7 @@
       "pdfPage": 314,
       "auditOrder": 1417,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.cent",
         "misc.dollar",
@@ -60644,7 +60644,7 @@
       "pdfPage": 314,
       "auditOrder": 1418,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.cent",
         "misc.dollar",
@@ -60702,7 +60702,7 @@
       "pdfPage": 314,
       "auditOrder": 1419,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.cent",
         "misc.dollar",
@@ -60760,7 +60760,7 @@
       "pdfPage": 314,
       "auditOrder": 1420,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.cent",
         "misc.dollar",
@@ -60818,7 +60818,7 @@
       "pdfPage": 314,
       "auditOrder": 1421,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.cent",
         "misc.dollar",
@@ -60876,7 +60876,7 @@
       "pdfPage": 314,
       "auditOrder": 1422,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.cent",
         "misc.dollar",
@@ -60933,8 +60933,8 @@
       "printedPage": "23-9",
       "pdfPage": 314,
       "auditOrder": 1423,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.partial"
       ],
@@ -60967,7 +60967,7 @@
       "pdfPage": 315,
       "auditOrder": 1424,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.partial"
       ],
@@ -61010,8 +61010,8 @@
       "printedPage": "23-10",
       "pdfPage": 315,
       "auditOrder": 1425,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.per-mille",
         "misc.percent"
@@ -61046,7 +61046,7 @@
       "pdfPage": 315,
       "auditOrder": 1426,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.per-mille",
         "misc.percent"
@@ -61093,7 +61093,7 @@
       "pdfPage": 315,
       "auditOrder": 1427,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.per-mille",
         "misc.percent"
@@ -61140,7 +61140,7 @@
       "pdfPage": 315,
       "auditOrder": 1428,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.per-mille",
         "misc.percent"
@@ -61185,8 +61185,8 @@
       "printedPage": "23-10",
       "pdfPage": 315,
       "auditOrder": 1429,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61223,7 +61223,7 @@
       "pdfPage": 315,
       "auditOrder": 1430,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61271,7 +61271,7 @@
       "pdfPage": 316,
       "auditOrder": 1431,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61319,7 +61319,7 @@
       "pdfPage": 316,
       "auditOrder": 1432,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61367,7 +61367,7 @@
       "pdfPage": 316,
       "auditOrder": 1433,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61415,7 +61415,7 @@
       "pdfPage": 316,
       "auditOrder": 1434,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61463,7 +61463,7 @@
       "pdfPage": 316,
       "auditOrder": 1435,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61511,7 +61511,7 @@
       "pdfPage": 316,
       "auditOrder": 1436,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61559,7 +61559,7 @@
       "pdfPage": 316,
       "auditOrder": 1437,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61607,7 +61607,7 @@
       "pdfPage": 316,
       "auditOrder": 1438,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61654,7 +61654,7 @@
       "pdfPage": 317,
       "auditOrder": 1439,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.prime",
         "misc.double-prime",
@@ -61701,7 +61701,7 @@
       "printedPage": "23-12",
       "pdfPage": 317,
       "auditOrder": 1440,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
       "mappingIds": [
         "quantifier.forall",
@@ -61990,8 +61990,8 @@
       "printedPage": "23-13",
       "pdfPage": 318,
       "auditOrder": 1446,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.therefore",
         "misc.not-therefore",
@@ -62028,7 +62028,7 @@
       "pdfPage": 318,
       "auditOrder": 1447,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.therefore",
         "misc.not-therefore",
@@ -62076,7 +62076,7 @@
       "pdfPage": 318,
       "auditOrder": 1448,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.therefore",
         "misc.not-therefore",
@@ -62123,8 +62123,8 @@
       "printedPage": "23-13",
       "pdfPage": 318,
       "auditOrder": 1449,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.tally"
       ],
@@ -62157,7 +62157,7 @@
       "pdfPage": 318,
       "auditOrder": 1450,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.tally"
       ],
@@ -62201,7 +62201,7 @@
       "pdfPage": 318,
       "auditOrder": 1451,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.tally"
       ],
@@ -62245,7 +62245,7 @@
       "pdfPage": 319,
       "auditOrder": 1452,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.tally"
       ],
@@ -62289,7 +62289,7 @@
       "pdfPage": 319,
       "auditOrder": 1453,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.tally"
       ],
@@ -62332,8 +62332,8 @@
       "printedPage": "23-14",
       "pdfPage": 319,
       "auditOrder": 1454,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.vertical-bar",
         "misc.does-not-divide"
@@ -62368,7 +62368,7 @@
       "pdfPage": 319,
       "auditOrder": 1455,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.vertical-bar",
         "misc.does-not-divide"
@@ -62415,7 +62415,7 @@
       "pdfPage": 319,
       "auditOrder": 1456,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.vertical-bar",
         "misc.does-not-divide"
@@ -62461,7 +62461,7 @@
       "pdfPage": 319,
       "auditOrder": 1457,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "misc.vertical-bar",
         "misc.does-not-divide"
@@ -62507,8 +62507,8 @@
       "printedPage": "24-1",
       "pdfPage": 320,
       "auditOrder": 1458,
-      "disposition": "unclassified",
-      "inputPolicy": null,
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62541,7 +62541,7 @@
       "pdfPage": 320,
       "auditOrder": 1459,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62585,7 +62585,7 @@
       "pdfPage": 320,
       "auditOrder": 1460,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62629,7 +62629,7 @@
       "pdfPage": 320,
       "auditOrder": 1461,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62673,7 +62673,7 @@
       "pdfPage": 320,
       "auditOrder": 1462,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62717,7 +62717,7 @@
       "pdfPage": 321,
       "auditOrder": 1463,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62761,7 +62761,7 @@
       "pdfPage": 321,
       "auditOrder": 1464,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62805,7 +62805,7 @@
       "pdfPage": 321,
       "auditOrder": 1465,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62849,7 +62849,7 @@
       "pdfPage": 321,
       "auditOrder": 1466,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62893,7 +62893,7 @@
       "pdfPage": 321,
       "auditOrder": 1467,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62937,7 +62937,7 @@
       "pdfPage": 322,
       "auditOrder": 1468,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -62981,7 +62981,7 @@
       "pdfPage": 322,
       "auditOrder": 1469,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63026,7 +63026,7 @@
       "pdfPage": 322,
       "auditOrder": 1470,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63070,7 +63070,7 @@
       "pdfPage": 322,
       "auditOrder": 1471,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63114,7 +63114,7 @@
       "pdfPage": 322,
       "auditOrder": 1472,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63158,7 +63158,7 @@
       "pdfPage": 323,
       "auditOrder": 1473,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63202,7 +63202,7 @@
       "pdfPage": 323,
       "auditOrder": 1474,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63246,7 +63246,7 @@
       "pdfPage": 323,
       "auditOrder": 1475,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63290,7 +63290,7 @@
       "pdfPage": 323,
       "auditOrder": 1476,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63334,7 +63334,7 @@
       "pdfPage": 323,
       "auditOrder": 1477,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63378,7 +63378,7 @@
       "pdfPage": 324,
       "auditOrder": 1478,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63422,7 +63422,7 @@
       "pdfPage": 324,
       "auditOrder": 1479,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63466,7 +63466,7 @@
       "pdfPage": 324,
       "auditOrder": 1480,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63510,7 +63510,7 @@
       "pdfPage": 324,
       "auditOrder": 1481,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63554,7 +63554,7 @@
       "pdfPage": 324,
       "auditOrder": 1482,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],
@@ -63598,7 +63598,7 @@
       "pdfPage": 324,
       "auditOrder": 1483,
       "disposition": "unclassified",
-      "inputPolicy": null,
+      "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.multipurpose"
       ],

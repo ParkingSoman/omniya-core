@@ -74,6 +74,7 @@ for (let index = bodyStart; index >= 0 && index < (bodyEnd > 0 ? bodyEnd : sourc
   let match = line.match(/^Rule\s+(\d+)\s*$/i);
   if (match) {
     currentRule = match[1];
+    currentProvision = null;
     continue;
   }
   match = line.match(/^(\d{1,2}(?:\.\d+){1,3}(?:\.[a-z])?)\s+(?!\d)(.+)/i);
@@ -140,7 +141,7 @@ const result = {
   counts: {
     numberedRows: rows.filter((row) => row.kind === 'provision').length,
     planBaselineNumberedRows: 516,
-    numberedRowCountNote: 'The PDF contains 509 actual numbered provision labels. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them and retains 4.6.8.c because the errata explicitly targets it.',
+    numberedRowCountNote: 'The PDF contains 508 actual numbered provision labels plus the 4.6.8.c provision explicitly targeted by the errata, for 509 source provision rows. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them.',
     examples: rows.filter((row) => row.kind === 'example').length,
     errata: rows.filter((row) => row.kind === 'erratum').length,
     errataInScope: rows.filter((row) => row.kind === 'erratum' && row.disposition === 'unclassified').length

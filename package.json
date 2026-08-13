@@ -19,6 +19,7 @@
     "bana:report": "node scripts/bana-source-inventory.mjs docs/bana-source-inventory.json && node scripts/bana-example-extract.mjs docs/bana-official-examples.json && node scripts/bana-coverage-enrich.mjs docs/bana-source-inventory.json docs/bana-electron-corpus.json docs/bana-coverage.json && node scripts/bana-report.mjs docs/bana-coverage.json docs/bana-coverage-report.md && node scripts/bana-coverage-gate.mjs docs/bana-coverage.json",
     "test:bana:unit": "node scripts/run-bana-tests.mjs unit",
     "test:bana:electron": "node scripts/run-bana-tests.mjs electron",
+    "test:bana:electron-mappings": "BANA_ELECTRON_REGISTRY=1 node --test --test-concurrency=1 test/e2e/bana-registry-mappings.test.js",
     "test:bana:accuracy": "node scripts/run-bana-tests.mjs accuracy",
     "test:bana:all": "npm run bana:report && npm run test:bana:unit && npm run test:bana:accuracy && npm run test:bana:electron",
     "test:all": "npm test && npm run test:e2e",
