@@ -2,6 +2,7 @@
   "standard": "BANA Nemeth Braille Code for Mathematics and Science Notation 2022",
   "source": "Real loaded Electron workflows in test/e2e/inline-editing.test.js",
   "cases": [
+    {"id":"bana-e2e:rule3-decimals","testName":"BANA Rule 3 numeric decimals are authored cell by cell and edited at a MathJax-selected numeral","sourceRows":["3.1.2","3.2.3"],"creation":true,"editing":true,"navigation":true,"wholeBraille":true,"focusedBraille":true,"undoRedo":false,"persistence":false},
     {"id":"bana-e2e:new-equation","testName":"new equations use the same empty Nemeth replacement draft and commit once","sourceRows":["3.1.2","6.3","20.1"],"creation":true,"editing":false,"navigation":false,"wholeBraille":true,"focusedBraille":false,"undoRedo":false,"persistence":false},
     {"id":"bana-e2e:policies","testName":"renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft","sourceRows":["13.2","22.3","22.5","23.12"],"creation":true,"editing":false,"navigation":false,"wholeBraille":true,"focusedBraille":false,"undoRedo":false,"persistence":false},
     {"id":"bana-e2e:integral","testName":"Nemeth integral creation and MathJax sign navigation edit preserve the local follow-up structure","sourceRows":["23.12"],"creation":true,"editing":true,"navigation":true,"wholeBraille":true,"focusedBraille":true,"undoRedo":false,"persistence":false},

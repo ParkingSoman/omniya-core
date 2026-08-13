@@ -2,20 +2,24 @@
 
 Generated from `docs/bana-coverage.json`.
 
-- Source rows: 1780
-- Applicable rows: 1518
-- Fully implemented rows: 146
+- Source rows: 1846
+- Numbered provisions: 509
+- Applicable rows: 1584
+- Fully implemented rows: 308
 - Official examples: 1229
 - Official examples with extracted source blocks: 1229
-- Electron creation-linked rows: 22
-- Electron editing-linked rows: 19
+- Official examples with Electron creation evidence: 0
+- Official examples with Electron editing evidence: 0
+- Appendix rows: 66 (63 Appendix D symbols plus A–C policy rows)
+- Electron creation-linked rows: 23
+- Electron editing-linked rows: 21
 
 | Rule | Total | Applicable | Implemented | Electron creation | Electron editing | Excluded |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | 17 | 17 | 0 | 0 | 0 | 0 |
+| 1 | 17 | 17 | 17 | 0 | 0 | 0 |
 | 2 | 2 | 2 | 1 | 0 | 0 | 0 |
-| 3 | 155 | 155 | 4 | 1 | 0 | 0 |
-| 4 | 116 | 116 | 0 | 0 | 0 | 0 |
+| 3 | 155 | 155 | 40 | 2 | 2 | 0 |
+| 4 | 116 | 116 | 43 | 0 | 0 | 0 |
 | 5 | 14 | 14 | 2 | 0 | 0 | 0 |
 | 6 | 85 | 85 | 12 | 1 | 1 | 0 |
 | 7 | 45 | 45 | 5 | 2 | 2 | 0 |
@@ -40,5 +44,6 @@ Generated from `docs/bana-coverage.json`.
 | 26 | 131 | 0 | 0 | 0 | 0 | 131 |
 | 27 | 1 | 1 | 0 | 0 | 0 | 0 |
 | 32 | 1 | 1 | 0 | 0 | 0 | 0 |
+| other | 66 | 66 | 66 | 0 | 0 | 0 |
 
 Status: **development**. The release gate remains intentionally open until every applicable row has implementation and full Electron/Braille evidence.

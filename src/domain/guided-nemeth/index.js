@@ -998,6 +998,61 @@ export const LOCAL_COMMIT_POLICIES = Object.freeze({
   STRUCTURAL_FOLLOWUP: 'structural-followup'
 });
 
+// Provisions that govern passage/context decisions rather than constructing an
+// equation node are recorded separately from the input registry. They are
+// still normative source coverage, but exposing a fake Nemeth cell for them
+// would misrepresent BANA and create an operation that users cannot actually
+// perform inside an equation draft.
+const CONTEXT_POLICY_REFS = [
+  ...['1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.3', '1.3.1', '1.3.2', '1.4', '1.4.1', '1.4.2', '1.4.3', '1.4.4', '1.4.5', '1.4.6', '1.4.7'],
+  ...['2.1'],
+  ...['3.1.1', '3.2', '3.2.1', '3.2.2', '3.2.3', '3.3.1', '3.3.2', '3.3.3', '3.3.4', '3.3.5', '3.3.6', '3.3.7', '3.3.8', '3.3.9', '3.4', '3.4.1', '3.4.2', '3.4.3', '3.4.4', '3.5', '3.5.1', '3.5.2', '3.5.3', '3.5.4', '3.6', '3.6.1', '3.6.2', '3.6.3', '3.8', '3.9', '3.10', '3.11', '3.11.2', '3.11.3', '3.12'],
+  ...['4.1', '4.2', '4.3', '4.4', '4.4.1', '4.4.2', '4.4.3', '4.4.4', '4.4.5', '4.4.6', '4.4.7', '4.4.8', '4.4.9', '4.4.10', '4.5', '4.5.1', '4.5.2', '4.5.3', '4.6', '4.6.1', '4.6.2', '4.6.3', '4.6.4', '4.6.5', '4.6.6', '4.6.7', '4.6.8', '4.6.8.c', '4.7', '4.7.1', '4.7.2', '4.8', '4.8.1', '4.8.2', '4.8.3', '4.8.4', '4.8.5', '4.8.6', '4.8.7', '4.8.8', '4.8.9', '4.8.10', '4.8.11']
+];
+const APPENDIX_POLICY_REFS = ['appendix-A', 'appendix-B', 'appendix-C'];
+
+// A few local transitions are parameterized over a finite symbol table and
+// therefore do not need one registry row per digit or letter. They remain
+// explicit source-linked operations for the coverage ledger.
+const PARAMETERIZED_OPERATION_REFS = ['3.1.2', '3.2.2', '3.2.3', '3.3', '3.6', '3.11.1', '6.3', '6.4', '10.3'];
+
+export function contextPolicyRegistry() {
+  return [...CONTEXT_POLICY_REFS, ...APPENDIX_POLICY_REFS].map((banaRef) => ({
+    id: `context-policy.${banaRef}`,
+    banaRefs: [banaRef],
+    kind: 'context-policy',
+    title: `BANA ${banaRef} context policy`
+  }));
+}
+
+export function parameterizedOperationRefs() {
+  return [...PARAMETERIZED_OPERATION_REFS];
+}
+
+// Appendix D is an index, not a second input language. These rows link the
+// 63 indexed base symbols to the declarative operation families (or to the
+// explicit context policy where the symbol is a mode/indicator). The ledger
+// can therefore prove that every index entry has an owner without inventing
+// a symbol-specific dispatcher branch.
+const APPENDIX_D_OPERATION_REFS = Object.freeze({
+  1: ['6.3'], 2: ['6.3'], 3: ['6.3'], 4: ['6.3'], 5: ['6.3'], 6: ['6.3'],
+  7: ['6.3'], 8: ['6.3'], 9: ['6.3'], 10: ['6.3'], 11: ['6.3'], 12: ['6.3'],
+  13: ['6.3'], 14: ['6.3'], 15: ['6.3'], 16: ['6.3'], 17: ['6.3'], 18: ['6.3'],
+  19: ['6.3'], 20: ['6.3'], 21: ['6.3'], 22: ['6.3'], 23: ['6.3'], 24: ['6.3'],
+  25: ['6.3'], 26: ['23.4'], 27: ['11.1.1'], 28: ['19.1'], 29: ['23.12'],
+  30: ['19.1'], 31: ['20.7'], 32: ['16.1', '14.3'], 33: ['15.1'], 34: ['13.1'],
+  35: ['15.2'], 36: ['17.1'], 37: ['19.1'], 38: ['19.1'], 39: ['19.1'],
+  40: ['6.3'], 41: ['3.1.2'], 42: ['3.1.2'], 43: ['3.1.2'], 44: ['3.1.2'],
+  45: ['3.1.2'], 46: ['3.1.2'], 47: ['3.1.2'], 48: ['3.1.2'], 49: ['3.1.2'],
+  50: ['3.1.2'], 51: ['20.1'], 52: ['20.1'], 53: ['2.1'], 54: ['16.1'],
+  55: ['8.1'], 56: ['8.1'], 57: ['2.1'], 58: ['2.1', '14.3'], 59: ['2.1', '7.1'],
+  60: ['8.1'], 61: ['8.1'], 62: ['2.1', '14.3'], 63: ['8.1']
+});
+
+export function appendixDSymbolRefs() {
+  return Object.entries(APPENDIX_D_OPERATION_REFS).map(([rank, banaRefs]) => ({ rank: Number(rank), banaRefs }));
+}
+
 const withPolicy = (mapping, commitPolicy) => ({ ...mapping, commitPolicy });
 const token = (id, cells, banaRefs, value, name = 'mo', options = {}) => {
   const { commitPolicy = LOCAL_COMMIT_POLICIES.IMMEDIATE, ...args } = options;

@@ -22,6 +22,10 @@ The source parser records both the printed manual page (for example `14-18`)
 and the extracted PDF page. It does not infer a source row from a registry
 mapping. Every registry row must cite a real numbered source provision, with
 the Rule 2 symbol-page operation attributed to its numbered 2.1 section.
+Appendices A-C are represented as context-policy rows, and Appendix D is
+represented by all 63 entries in its published symbol-order index. Appendix D
+entries link to reusable registry families; they do not create a second parser
+or a symbol-specific dispatch path.
 
 ## Engineering gates
 

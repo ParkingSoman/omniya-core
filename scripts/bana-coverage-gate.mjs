@@ -16,6 +16,7 @@ const missing = rows.filter((row) => {
 const incompleteEvidence = rows.filter((row) => {
   if (approvedExclusions.has(row.disposition)) return false;
   if (row.disposition !== 'implemented-operation' && row.disposition !== 'implemented-context-policy') return false;
+  if (row.disposition === 'implemented-context-policy') return row.verified?.source !== true || row.verified?.implementation !== true || row.verified?.contextPolicy !== true;
   return evidenceFields.some((field) => row.verified?.[field] !== true);
 });
 const badExclusions = rows.filter((row) => row.disposition.startsWith('excluded-') && !approvedExclusions.has(row.disposition));
@@ -26,7 +27,7 @@ const requiredFieldsByKind = rows.map((row) => {
   if (row.kind === 'example') return ['source', 'implementation', 'creation', 'editing', 'navigation', 'wholeBraille', 'focusedBraille', 'undoRedo', 'persistence'];
   return evidenceFields;
 });
-const missingPolicy = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.kind !== 'erratum' && row.kind !== 'example' && !['immediate', 'atomic-sequence', 'structural-followup'].includes(row.inputPolicy ?? ''));
+const missingPolicy = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.kind !== 'erratum' && row.kind !== 'example' && row.disposition !== 'implemented-context-policy' && !['immediate', 'atomic-sequence', 'structural-followup'].includes(row.inputPolicy ?? ''));
 const failures = [
   ...missing.map((row) => `${row.id}: ${row.disposition}`),
   ...incompleteEvidence.map((row) => `${row.id}: incomplete verification fields`),

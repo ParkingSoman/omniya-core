@@ -55,6 +55,45 @@ test('new equations use the same empty Nemeth replacement draft and commit once'
   assert.match(await article.locator('mjx-container').textContent(), /a/);
 });
 
+test('BANA Rule 3 numeric decimals are authored cell by cell and edited at a MathJax-selected numeral', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-rule3-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+
+  // BANA 3.2.3 Examples 3-5/3-6: the numeric indicator, lower-cell digits,
+  // and decimal point are independent local transitions. No expression-sized
+  // Nemeth buffer is used.
+  for (const cell of ['⠼', '⠒', '⠨', '⠂', '⠲']) {
+    await input.fill(cell);
+    await page.waitForTimeout(60);
+  }
+  assert.equal(await article.locator('math > mn').textContent(), '3.14');
+  assert.equal(await input.inputValue(), '');
+  await input.press('Enter');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠼⠒⠨⠂⠲');
+
+  // Navigate the populated equation with the real Explorer, freeze the exact
+  // numeral, and replace only that node with another locally-authored number.
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  const replacementInput = page.getByLabel('Replacement input', { exact: true });
+  for (const cell of ['⠼', '⠶', '⠨', '⠴']) {
+    await replacementInput.fill(cell);
+    await page.waitForTimeout(60);
+  }
+  await page.getByRole('button', { name: 'Replace' }).click();
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.equal(await article.locator('math > mn').textContent(), '7.0');
+  assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠼⠶⠨⠴');
+});
+
 test('renderer applies immediate, structural-followup, and atomic Nemeth codes in one real draft', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-nemeth-policies-');
   t.after(() => app.close().catch(() => {}));

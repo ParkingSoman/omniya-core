@@ -126,6 +126,38 @@ for (const match of errata.matchAll(/Location:\s+P\.\s*([^\n]+?)(?:\s+–|\s+-|\
 }
 for (const row of [...new Map(errataRows.map((row) => [row.id, row])).values()]) add(row);
 
+// Appendices are normative source material too.  The body parser deliberately
+// stops before Appendix A, so inventory them explicitly rather than letting the
+// source ledger silently end at Rule 26.  A-C are policy/change tables; D is
+// the 63-entry symbol index.  The detailed subentries remain represented by
+// their printed index row and are linked to the operation or parameterized
+// mapping during enrichment.
+const appendixStart = bodyEnd;
+const appendixDStart = sourceLines.findIndex((line, index) => index > appendixStart && /^\s*Appendix D\s*$/.test(line));
+if (appendixStart >= 0) {
+  for (const [appendix, title] of [['A', 'Code Changes'], ['B', 'Placement of Code Switch Indicators'], ['C', 'Combinations of Typeform, Alphabetic and Capitalization Indicators']]) {
+    const lineIndex = sourceLines.findIndex((line, index) => index >= appendixStart && new RegExp(`^\\s*Appendix ${appendix}\\s*$`).test(line));
+    add({ id: `bana-2022:appendix-${appendix}`, kind: 'appendix', parentId: null, title: `Appendix ${appendix}: ${title}`, pdfPage: pageStarts[lineIndex], printedPage: printedPages[lineIndex] ?? `${appendix}-1`, disposition: 'unclassified' });
+  }
+}
+if (appendixDStart >= 0) {
+  // The summary table is laid out in five columns in the PDF text, while the
+  // detailed index omits headings for several ranks.  Keep the authoritative
+  // 1–63 order from that table explicitly so no symbol can disappear because
+  // of a text-extraction line wrap.
+  const symbols = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','y','z','&','=','(','!',')','*','<','%','?',':','$',']','\\','[','w','1','2','3','4','5','6','7','8','9','0','/','+','#','>','\'','-','@','^','_','"','.',';',','];
+  const appendixPage = pageStarts[appendixDStart];
+  symbols.forEach((symbol, index) => add({
+    id: `bana-2022:appendix-D-${index + 1}`,
+    kind: 'appendix',
+    parentId: 'bana-2022:appendix-D',
+    title: `Appendix D symbol ${index + 1}: ${symbol}`,
+    pdfPage: appendixPage,
+    printedPage: 'D-1',
+    disposition: 'unclassified'
+  }));
+}
+
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
 const result = {
   schemaVersion: 1,
