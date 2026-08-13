@@ -5,26 +5,26 @@ Generated from `docs/bana-coverage.json`.
 - Source rows: 1846
 - Numbered provisions: 509
 - Applicable rows: 1583
-- Fully implemented rows: 1214
+- Fully implemented rows: 1224
 - Official examples: 1229
 - Official examples with extracted source blocks: 1229
-- Official examples with Electron creation evidence: 25
-- Official examples with Electron editing evidence: 25
+- Official examples with Electron creation evidence: 0
+- Official examples with Electron editing evidence: 0
 - Appendix rows: 66 (63 Appendix D symbols plus A–C policy rows)
-- Electron creation-linked rows: 53
-- Electron editing-linked rows: 51
+- Electron creation-linked rows: 23
+- Electron editing-linked rows: 21
 
 | Rule | Total | Applicable | Implemented | Electron creation | Electron editing | Excluded |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1 | 17 | 17 | 17 | 0 | 0 | 0 |
 | 2 | 2 | 2 | 1 | 0 | 0 | 0 |
-| 3 | 155 | 155 | 151 | 21 | 21 | 0 |
+| 3 | 155 | 155 | 151 | 2 | 2 | 0 |
 | 4 | 116 | 116 | 112 | 0 | 0 | 0 |
 | 5 | 14 | 14 | 6 | 0 | 0 | 0 |
 | 6 | 85 | 85 | 82 | 1 | 1 | 0 |
 | 7 | 45 | 45 | 29 | 2 | 2 | 0 |
 | 8 | 104 | 104 | 83 | 0 | 0 | 0 |
-| 9 | 16 | 16 | 4 | 0 | 0 | 0 |
+| 9 | 16 | 16 | 14 | 0 | 0 | 0 |
 | 10 | 72 | 72 | 23 | 0 | 0 | 0 |
 | 11 | 34 | 34 | 12 | 0 | 0 | 0 |
 | 12 | 9 | 9 | 6 | 1 | 1 | 0 |
@@ -34,7 +34,7 @@ Generated from `docs/bana-coverage.json`.
 | 16 | 22 | 22 | 22 | 2 | 2 | 0 |
 | 17 | 83 | 83 | 36 | 2 | 2 | 0 |
 | 18 | 30 | 29 | 26 | 2 | 2 | 1 |
-| 19 | 60 | 60 | 45 | 11 | 11 | 0 |
+| 19 | 60 | 60 | 45 | 0 | 0 | 0 |
 | 20 | 64 | 64 | 63 | 1 | 1 | 0 |
 | 21 | 54 | 54 | 34 | 1 | 1 | 0 |
 | 22 | 67 | 67 | 65 | 2 | 0 | 0 |

@@ -2,6 +2,22 @@
   "schemaVersion": 1,
   "cases": [
     {
+      "id": "electron:bana-2022:example-9-7",
+      "sourceRows": ["example-9-7", "9.4"],
+      "rule": "9",
+      "example": "9-7",
+      "artifact": "electron-evidence/example-9-7.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted input, focused, and editing screenshots; rejected the blank committed screenshot."
+      },
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-9-7/electron_bana-2022_example-9-7-input.png", "claim": "The real Electron replacement control visibly contains the authored Nemeth draft while the official expression remains present." },
+        { "phase": "focused", "path": "electron-screenshots/rule-9-7/electron_bana-2022_example-9-7-focused.png", "claim": "MathJax Explorer visibly selects the exact subtree immediately before replacement." },
+        { "phase": "editing", "path": "electron-screenshots/rule-9-7/electron_bana-2022_example-9-7-editing.png", "claim": "The exact subtree replacement is visible while the surrounding Rule 9 expression remains intact." }
+      ] }
+    },
+    {
       "id": "electron:bana-2022:example-19-4",
       "sourceRows": ["example-19-4", "19.1.1"],
       "rule": "19",
