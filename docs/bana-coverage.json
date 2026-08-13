@@ -7996,7 +7996,7 @@
         ],
         "expectedWholeBraille": ",op5+ ,neme? ,code 9dicator .=",
         "sourceNotation": ",op5+ ,neme? ,code 9dicator .=",
-        "brailleCells": "⠠⠕⠏⠢⠬⠀⠠⠝⠑⠍⠑⠹⠀⠠⠉⠕⠙⠑⠀⠔⠙⠊⠉⠁⠞⠕⠗⠀⠨⠿"
+        "brailleCells": "⠠⠕⠏⠢⠬⠀⠠⠝⠑⠍⠑⠹⠀⠠⠉⠕⠙⠑⠀⠊⠝⠙⠊⠉⠁⠞⠕⠗⠀⠨⠿"
       },
       "evidenceScope": "equation-workflow"
     },
