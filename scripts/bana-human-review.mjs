@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
 
 const ROLES = Object.freeze({
   'qualified-nemeth-transcriber': 'transcriber',
@@ -10,6 +12,7 @@ const ROLES = Object.freeze({
 const OUTCOMES = new Set(['accepted', 'changes-requested']);
 const SHA256 = /^[a-f0-9]{64}$/;
 const COMMIT = /^[a-f0-9]{40}$/;
+const execFileAsync = promisify(execFile);
 
 const digest = (value) => createHash('sha256').update(value).digest('hex');
 const fail = (record, message) => {
@@ -17,11 +20,37 @@ const fail = (record, message) => {
 };
 const pendingState = () => ({ status: 'pending', reviewIds: [] });
 
-export async function applyHumanReviews(coverage, ledger, { baseDirectory = process.cwd() } = {}) {
+const canonicalize = (value) => {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]));
+  }
+  return value;
+};
+
+export function humanReviewRowFingerprint(row) {
+  const { humanReview: _humanReview, transcriberReview: _transcriberReview, ...auditedRow } = row;
+  return digest(JSON.stringify(canonicalize(auditedRow)));
+}
+
+async function defaultValidateReviewedCommit(commit, { repositoryDirectory }) {
+  try {
+    await execFileAsync('git', ['merge-base', '--is-ancestor', commit, 'HEAD'], { cwd: repositoryDirectory });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function applyHumanReviews(coverage, ledger, {
+  baseDirectory = process.cwd(),
+  repositoryDirectory = process.cwd(),
+  validateReviewedCommit = defaultValidateReviewedCommit
+} = {}) {
   if (ledger?.schemaVersion !== 1 || !Array.isArray(ledger.reviews)) {
     throw new Error('Human review ledger must use schemaVersion 1 and contain a reviews array.');
   }
-  const rowIds = new Set((coverage.rows ?? []).map(({ id }) => id));
+  const rowsById = new Map((coverage.rows ?? []).map((row) => [row.id, row]));
   const recordIds = new Set();
   const decisions = new Map();
 
@@ -32,6 +61,9 @@ export async function applyHumanReviews(coverage, ledger, { baseDirectory = proc
     if (!role) fail(record, `role must be one of ${Object.keys(ROLES).join(', ')}.`);
     if (typeof record.reviewerId !== 'string' || !record.reviewerId.trim()) fail(record, 'reviewerId is required.');
     if (!COMMIT.test(record.reviewedCommit ?? '')) fail(record, 'reviewedCommit must be a full 40-character Git commit.');
+    if (!await validateReviewedCommit(record.reviewedCommit, { repositoryDirectory })) {
+      fail(record, 'reviewedCommit is not in the current repository history.');
+    }
     if (!Number.isFinite(Date.parse(record.reviewedAt)) || new Date(record.reviewedAt).toISOString() !== record.reviewedAt) {
       fail(record, 'reviewedAt must be an exact UTC ISO-8601 timestamp.');
     }
@@ -60,9 +92,13 @@ export async function applyHumanReviews(coverage, ledger, { baseDirectory = proc
     if (!Array.isArray(record.decisions) || record.decisions.length === 0) fail(record, 'at least one row decision is required.');
     const decidedRows = new Set();
     for (const decision of record.decisions) {
-      if (!rowIds.has(decision.rowId)) fail(record, `decision references unknown row ${decision.rowId}.`);
+      const auditedRow = rowsById.get(decision.rowId);
+      if (!auditedRow) fail(record, `decision references unknown row ${decision.rowId}.`);
       if (decidedRows.has(decision.rowId)) fail(record, `contains duplicate decisions for ${decision.rowId}.`);
       decidedRows.add(decision.rowId);
+      if (!SHA256.test(decision.rowSha256 ?? '') || decision.rowSha256 !== humanReviewRowFingerprint(auditedRow)) {
+        fail(record, `decision for ${decision.rowId} rowSha256 does not match the current audited row.`);
+      }
       if (!OUTCOMES.has(decision.outcome)) fail(record, `decision for ${decision.rowId} has invalid outcome ${decision.outcome}.`);
       if (decision.outcome === 'changes-requested' && (typeof decision.notes !== 'string' || !decision.notes.trim())) {
         fail(record, `changes-requested decision for ${decision.rowId} requires notes.`);
@@ -94,8 +130,17 @@ export async function applyHumanReviews(coverage, ledger, { baseDirectory = proc
 
 async function main() {
   const checkOnly = process.argv.includes('--check');
-  const args = process.argv.slice(2).filter((value) => value !== '--check');
+  const fingerprintsOnly = process.argv.includes('--fingerprints');
+  const args = process.argv.slice(2).filter((value) => value !== '--check' && value !== '--fingerprints');
   const coveragePath = args[0] ?? 'docs/bana-coverage.json';
+  if (fingerprintsOnly) {
+    const coverage = JSON.parse(await readFile(coveragePath, 'utf8'));
+    const requested = new Set(args.slice(1));
+    const rows = (coverage.rows ?? []).filter((row) => requested.size === 0 || requested.has(row.id));
+    if (requested.size > 0 && rows.length !== requested.size) throw new Error('One or more requested human-review row IDs are unknown.');
+    for (const row of rows) console.log(`${row.id}\t${humanReviewRowFingerprint(row)}`);
+    return;
+  }
   const ledgerPath = args[1] ?? 'docs/bana-human-reviews.json';
   const outputPath = args[2] ?? coveragePath;
   const coverage = JSON.parse(await readFile(coveragePath, 'utf8'));

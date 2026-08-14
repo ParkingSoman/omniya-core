@@ -95,7 +95,11 @@ its evidence exist.
     }
   ],
   "decisions": [
-    { "rowId": "bana-2022:example-1-1", "outcome": "accepted" }
+    {
+      "rowId": "bana-2022:example-1-1",
+      "outcome": "accepted",
+      "rowSha256": "copy from the fingerprint command below"
+    }
   ]
 }
 ```
@@ -109,12 +113,16 @@ From the repository root:
 
 ```sh
 shasum -a 256 docs/human-review-evidence/<review-id>/*
+node scripts/bana-human-review.mjs --fingerprints docs/bana-coverage.json bana-2022:example-1-1
 npm run bana:review-validate
 npm run bana:report
 npm test
 ```
 
-`bana:review-validate` validates without rewriting coverage. `bana:report`
+The fingerprint binds each decision to the exact canonical row content, so a
+later implementation or evidence change makes the review stale. The reviewed
+commit must also exist in the current branch history. `bana:review-validate`
+validates without rewriting coverage. `bana:report`
 regenerates coverage and applies the validated ledger. The release gate then
 requires both `humanReview.transcriber.status` and
 `humanReview.blindContributor.status` to be `reviewed` for every applicable

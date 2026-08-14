@@ -7,7 +7,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
 
-import { applyHumanReviews } from '../../scripts/bana-human-review.mjs';
+import { applyHumanReviews, humanReviewRowFingerprint } from '../../scripts/bana-human-review.mjs';
 
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
 const execFileAsync = promisify(execFile);
@@ -23,6 +23,7 @@ const coverage = {
     { id: 'bana-2022:1.2', disposition: 'excluded-document-format', transcriberReview: 'pending' }
   ]
 };
+const reviewedRowSha256 = humanReviewRowFingerprint(coverage.rows[0]);
 
 test('an empty canonical ledger leaves both human review roles pending', async () => {
   const result = await applyHumanReviews(coverage, { schemaVersion: 1, reviews: [] }, { baseDirectory: process.cwd() });
@@ -44,14 +45,14 @@ test('accepted source-bound records independently close each human review role',
     reviewedCommit: 'c'.repeat(40),
     sourceHashes: source,
     artifacts: [{ path: 'review.txt', sha256: sha256(artifact) }],
-    decisions: [{ rowId: 'bana-2022:1.1', outcome: 'accepted' }]
+    decisions: [{ rowId: 'bana-2022:1.1', outcome: 'accepted', rowSha256: reviewedRowSha256 }]
   };
   const ledger = { schemaVersion: 1, reviews: [
     { ...common, id: 'transcriber-1', role: 'qualified-nemeth-transcriber', qualificationAttestation: 'Reviewer attests current Nemeth transcription qualification.' },
     { ...common, id: 'blind-1', role: 'blind-contributor', independenceAttestation: true }
   ] };
 
-  const result = await applyHumanReviews(coverage, ledger, { baseDirectory: directory });
+  const result = await applyHumanReviews(coverage, ledger, { baseDirectory: directory, validateReviewedCommit: async () => true });
   assert.equal(result.rows[0].transcriberReview, 'reviewed');
   assert.deepEqual(result.rows[0].humanReview.transcriber, { status: 'reviewed', reviewIds: ['transcriber-1'] });
   assert.deepEqual(result.rows[0].humanReview.blindContributor, { status: 'reviewed', reviewIds: ['blind-1'] });
@@ -70,11 +71,11 @@ test('review validation rejects stale sources, tampered artifacts, and unknown r
     reviewedCommit: 'c'.repeat(40),
     sourceHashes: { ...source, sourcePdfSha256: 'd'.repeat(64) },
     artifacts: [{ path: 'review.txt', sha256: sha256('expected') }],
-    decisions: [{ rowId: 'bana-2022:missing', outcome: 'accepted' }]
+    decisions: [{ rowId: 'bana-2022:missing', outcome: 'accepted', rowSha256: reviewedRowSha256 }]
   };
 
   await assert.rejects(
-    applyHumanReviews(coverage, { schemaVersion: 1, reviews: [record] }, { baseDirectory: directory }),
+    applyHumanReviews(coverage, { schemaVersion: 1, reviews: [record] }, { baseDirectory: directory, validateReviewedCommit: async () => true }),
     /sourcePdfSha256.*does not match|unknown row|digest does not match/
   );
 });
@@ -86,11 +87,40 @@ test('changes-requested records remain visible without marking a row reviewed', 
     id: 'blind-changes', role: 'blind-contributor', reviewerId: 'blind-reviewer',
     independenceAttestation: true, reviewedAt: '2026-08-13T12:00:00.000Z', reviewedCommit: 'd'.repeat(40),
     sourceHashes: source, artifacts: [{ path: 'review.txt', sha256: sha256('notes') }],
-    decisions: [{ rowId: 'bana-2022:1.1', outcome: 'changes-requested', notes: 'Observed result differs.' }]
+    decisions: [{ rowId: 'bana-2022:1.1', outcome: 'changes-requested', notes: 'Observed result differs.', rowSha256: reviewedRowSha256 }]
   }] };
-  const result = await applyHumanReviews(coverage, ledger, { baseDirectory: directory });
+  const result = await applyHumanReviews(coverage, ledger, { baseDirectory: directory, validateReviewedCommit: async () => true });
   assert.deepEqual(result.rows[0].humanReview.blindContributor, { status: 'changes-requested', reviewIds: ['blind-changes'] });
   assert.equal(result.rows[0].transcriberReview, 'pending');
+});
+
+test('review validation rejects stale commits and row decisions after their audited row changes', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'bana-human-review-stale-'));
+  await writeFile(path.join(directory, 'review.txt'), 'notes');
+  const record = {
+    id: 'transcriber-stale', role: 'qualified-nemeth-transcriber', reviewerId: 'reviewer-pseudonym',
+    qualificationAttestation: 'Qualified Nemeth transcriber.', reviewedAt: '2026-08-13T12:00:00.000Z',
+    reviewedCommit: 'e'.repeat(40), sourceHashes: source,
+    artifacts: [{ path: 'review.txt', sha256: sha256('notes') }],
+    decisions: [{ rowId: 'bana-2022:1.1', outcome: 'accepted', rowSha256: reviewedRowSha256 }]
+  };
+
+  await assert.rejects(
+    applyHumanReviews(coverage, { schemaVersion: 1, reviews: [record] }, {
+      baseDirectory: directory,
+      validateReviewedCommit: async () => false
+    }),
+    /reviewedCommit.*current repository history/
+  );
+
+  const changedCoverage = { ...coverage, rows: [{ ...coverage.rows[0], mappingIds: ['changed.operation'] }, coverage.rows[1]] };
+  await assert.rejects(
+    applyHumanReviews(changedCoverage, { schemaVersion: 1, reviews: [record] }, {
+      baseDirectory: directory,
+      validateReviewedCommit: async () => true
+    }),
+    /rowSha256.*current audited row/
+  );
 });
 
 test('the release gate names transcriber and blind-contributor review independently', async () => {
