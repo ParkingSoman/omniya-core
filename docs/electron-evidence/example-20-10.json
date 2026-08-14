@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:16:52.735Z",
+  "filter": {
+    "rule": null,
+    "example": "20-10"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-sOegKH",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-20-10",
+      "sourceRows": [
+        "example-20-10",
+        "20.1.2"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-20-10/electron_bana-2022_example-20-10-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"That local Nemeth code is incomplete or invalid. The draft was not changed.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-ae31d817-864c-4298-ab26-3f6b9c3666f5\\\" data-semantic-structure=\\\"0\\\"><mn data-omniya-nemeth-intent=\\\"numeric-start\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-19b040ca-db54-4cb7-8633-878cef4d33d3\\\" data-semantic-type=\\\"number\\\" data-semantic-role=\\\"integer\\\" data-semantic-font=\\\"normal\\\" data-semantic-annotation=\\\"clearspeak:simple;nemeth:number;depth:1\\\" data-semantic-id=\\\"0\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\">12</mn></math>\"}"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:18:13.648Z",
+  "filter": {
+    "rule": null,
+    "example": "20-19"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Iex8Lg",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-20-19",
+      "sourceRows": [
+        "example-20-19",
+        "20.1.2"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-20-19/electron_bana-2022_example-20-19-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "bounded local choice did not resolve after six explicit selections; prefix=; choices=group.vertical-bar,comparison.vertical-bar,operator.divides,misc.vertical-bar\n\n4 !== 0\n"
+    }
+  ]
+}

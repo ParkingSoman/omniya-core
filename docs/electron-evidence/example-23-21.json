@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:03:27.191Z",
+  "filter": {
+    "rule": null,
+    "example": "23-21"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-bNYKac",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-23-21",
+      "sourceRows": [
+        "example-23-21",
+        "23.12"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-23-21/electron_bana-2022_example-23-21-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    13 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"That local Nemeth code is incomplete or invalid. The draft was not changed.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-fa22e433-b52a-484f-a437-29a27ec7a1a4\\\" data-semantic-structure=\\\"0\\\"><mo data-omniya-nemeth-cells=\\\"⠮\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-c1fefc35-982a-4c6a-970a-e7c6b25ead28\\\" data-semantic-type=\\\"largeop\\\" data-semantic-role=\\\"integral\\\" data-semantic-annotation=\\\"nemeth:number;depth:1\\\" data-semantic-id=\\\"0\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\">∬</mo></math>\"}"
+    }
+  ]
+}

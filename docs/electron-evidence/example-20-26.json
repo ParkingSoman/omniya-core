@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:18:51.901Z",
+  "filter": {
+    "rule": null,
+    "example": "20-26"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-u3Fd08",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-20-26",
+      "sourceRows": [
+        "example-20-26",
+        "20.3"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-20-26/electron_bana-2022_example-20-26-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "20-26 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-ab4de575-d37b-49ce-a7ae-6587db49b64f\" data-semantic-structure=\"0\"><mn data-omniya-nemeth-intent=\"numeric-start\" data-omniya-=\"\" id=\"omniya-source-omniya-a6160852-f7de-4114-af3b-347325b5f4ff\" data-semantic-type=\"number\" data-semantic-role=\"float\" data-semantic-font=\"normal\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">2.3</mn></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-ab4de575-d37b-49ce-a7ae-6587db49b64f\" data-semantic-structure=\"0\"><mn data-omniya-nemeth-intent=\"numeric-start\" data-omniya-=\"\" id=\"omniya-source-omniya-a6160852-f7de-4114-af3b-347325b5f4ff\" data-semantic-type=\"number\" data-semantic-role=\"float\" data-semantic-font=\"normal\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">2.3</mn></math>\n\n'⠼⠆⠨⠒' !== '⠼⠆⠨⠼⠼⠒'\n"
+    }
+  ]
+}
