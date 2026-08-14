@@ -165,6 +165,8 @@ if (appendixDStart >= 0) {
 }
 
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
+const durableDisposition = rows.find((row) => row.id === 'bana-2022:example-7-22');
+if (durableDisposition) durableDisposition.disposition = 'approved-context-policy';
 const result = {
   schemaVersion: 1,
   source: {
