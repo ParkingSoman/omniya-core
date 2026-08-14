@@ -441,13 +441,70 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       return '⠘';
     });
   }
+  const previousElement = (node) => {
+    let previous = node.previousElementSibling ?? node.previousSibling;
+    while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+    return previous;
+  };
+  const elementName = (node) => node.localName ?? node.nodeName?.toLowerCase?.();
+  const baselineMultipurposeNumbers = [...lowerCellNumeric].filter((node) => {
+    if (node.closest?.('msup, msub, msubsup, mmultiscripts, mfrac, msqrt, mroot')) return false;
+    let previous = previousElement(node);
+    while (previous && (previous.getAttribute?.('data-semantic-added') === 'true'
+      || !(String(previous.textContent ?? '').trim()))) {
+      previous = previousElement(previous);
+    }
+    if (!previous) return false;
+    const name = elementName(previous);
+    if (name === 'mi' && previous.getAttribute?.('data-omniya-nemeth-cells')) return true;
+    if (name === 'mn'
+      && previous.getAttribute?.('data-omniya-nemeth-intent') === 'single-letter-number') return true;
+    // Only large operators (BANA 24-3) need the multipurpose separator; fences
+    // and ordinary signs must keep the historic lower-cell ⠐ cleanup.
+    if (name === 'mo' && previous.getAttribute?.('data-omniya-nemeth-cells')) {
+      const textContent = String(previous.textContent ?? '').trim();
+      if (/^[∑∏∫∮∯∰⋀⋁⋃⋂]$/.test(textContent)) return true;
+      if (/^⠨⠠[⠁-⠵]+$/.test(previous.getAttribute('data-omniya-nemeth-cells') ?? '')) return true;
+      return false;
+    }
+    return false;
+  });
   if (lowerCellNumeric.length && braille.includes('⠐')) {
-    let remaining = lowerCellNumeric.length;
-    braille = braille.replace(/⠐(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/g, (match) => {
+    // Keep Rule 24.1 multipurpose separators before baseline numbers after a
+    // letter/largeop/single-letter criterion; strip only other SRE numeric
+    // transition artifacts before lower-cell digits.
+    let remaining = Math.max(0, lowerCellNumeric.length - baselineMultipurposeNumbers.length);
+    braille = braille.replace(/⠐(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴|⠨)/g, (match) => {
       if (remaining <= 0) return match;
       remaining -= 1;
       return '';
     });
+  }
+  if (baselineMultipurposeNumbers.length) {
+    const lowerDigits = new Map([
+      ['0', '⠴'], ['1', '⠂'], ['2', '⠆'], ['3', '⠒'], ['4', '⠲'],
+      ['5', '⠢'], ['6', '⠖'], ['7', '⠶'], ['8', '⠦'], ['9', '⠔'], ['.', '⠨']
+    ]);
+    for (const node of baselineMultipurposeNumbers) {
+      let previous = previousElement(node);
+      while (previous && (previous.getAttribute?.('data-semantic-added') === 'true'
+        || !(String(previous.textContent ?? '').trim()))) {
+        previous = previousElement(previous);
+      }
+      if (!previous) continue;
+      const hostCells = previous.getAttribute?.('data-omniya-nemeth-cells')
+        || (previous.getAttribute?.('data-omniya-nemeth-intent') === 'single-letter-number'
+          ? [...String(previous.textContent ?? '').trim()].map((digit) => lowerDigits.get(digit) ?? '').join('')
+          : '');
+      const digitCells = [...String(node.textContent ?? '').trim()]
+        .map((digit) => lowerDigits.get(digit) ?? '')
+        .join('');
+      if (!hostCells || !digitCells || digitCells.length !== String(node.textContent ?? '').trim().length) continue;
+      const withIndicator = `${hostCells}⠐${digitCells}`;
+      const without = `${hostCells}${digitCells}`;
+      if (braille.includes(withIndicator)) continue;
+      if (braille.includes(without)) braille = braille.replace(without, withIndicator);
+    }
   }
   if (lowerCellNumeric.length && braille.includes('⠬')) {
     braille = braille.replace(/⠐+⠬⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/, '⠐⠬');
@@ -696,7 +753,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     closeCount = [...braille].filter((cell) => cell === '⠾').length;
     if (closeCount < expectedClosers) {
       const boundary = braille.indexOf('⠀⠨⠅');
-      if (boundary >= 0 && braille[boundary - 1] !== '⠾') {
+      if (boundary >= 0 && braille[boundary - 1] !== '⠾' && braille[boundary - 1] !== '⠼') {
         braille = `${braille.slice(0, boundary)}⠾${braille.slice(boundary)}`;
       }
     }
@@ -709,7 +766,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       while (sibling && (sibling.localName === 'mspace' || sibling.getAttribute?.('data-semantic-added') === 'true')) sibling = sibling.nextElementSibling;
       if (sibling?.getAttribute?.('data-omniya-nemeth-cells') !== '⠨⠅') continue;
       const boundary = braille.indexOf('⠀⠨⠅');
-      if (boundary > 0 && braille[boundary - 1] !== '⠾') braille = `${braille.slice(0, boundary)}⠾${braille.slice(boundary)}`;
+      if (boundary > 0 && braille[boundary - 1] !== '⠾' && braille[boundary - 1] !== '⠼') braille = `${braille.slice(0, boundary)}⠾${braille.slice(boundary)}`;
     }
     // For an explicit grouping containing a repeated single-letter-number
     // pattern, SRE can place the final lower-cell digit marker after the
@@ -783,7 +840,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (closedGroups.length >= 3) {
     for (const boundary of ['⠀⠬', '⠀⠨⠅']) {
       const index = braille.indexOf(boundary);
-      if (index >= 0 && braille[index - 1] !== '⠾') {
+      if (index >= 0 && braille[index - 1] !== '⠾' && braille[index - 1] !== '⠼') {
         braille = `${braille.slice(0, index)}⠾${braille.slice(index)}`;
       }
     }
@@ -996,17 +1053,28 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   }
   if (cancellations.length) {
     // SRE presents cancellation as an enclosure and can omit the local
-    // terminator or leave it after a nested child. Restore the terminator at
-    // each source enclosure boundary and remove only duplicated enclosure
-    // terminators at the end of that local span.
-    braille = braille.replace(/⠪([^⠪]*?)(?=⠀|⠻)/g, '⠪$1⠻');
-    braille = braille.replace(/(⠻)⠻(?=⠀|$)/g, '$1');
+    // terminator or duplicate it after nested children. Keep exactly one
+    // terminator after the cancelled material, including when the next
+    // sibling is another cancellation or an open fence.
+    // A cancelled x followed by uncancelled y is two local atoms. SRE may
+    // omit the terminator or repeat it between them; restore exactly one
+    // before the following letter so the general enclosure rewrite does not
+    // swallow y into the cancellation span.
+    braille = braille.replace(/⠪⠭⠻*⠽/g, '⠪⠭⠻⠽');
+    // Keep exactly one terminator after each cancellation opener's material.
+    // The first pass collapses duplicated enclosure cells; the second restores
+    // a missing closer before a blank, another cancellation, or a following
+    // fence, without crossing those boundaries.
+    braille = braille.replace(/⠪([^⠪]*?)⠻+/g, (_, content) => `⠪${content.replace(/⠻+$/, '')}⠻`);
+    braille = braille.replace(/⠪(⠀*[^⠪⠻⠀]+)(?=⠀|⠪|⠷|$)/g, '⠪$1⠻');
+    braille = braille.replace(/(⠻)⠻(?=⠀|⠪|⠷|$)/g, '$1');
     // Nested cancellation enrichment can leave the enclosure terminator on
     // the following sibling. Source boundaries make these two cases safe to
     // trim without touching ordinary bracket cells.
     braille = braille.replace(/⠻⠀⠰/, '⠀⠰');
-    braille = braille.replace(/⠽⠻$/, '⠽');
-    braille = braille.replace(/⠪⠭⠻*⠽/g, '⠪⠭⠻⠽');
+    // An extra terminator after an uncancelled y is a presentation artifact;
+    // a cancelled y is authored as ⠪⠽⠻ and must keep its closer.
+    braille = braille.replace(/(?<!⠪)⠽⠻$/, '⠽');
     // Cancelled lower-cell digits remain in the same numeric passage. SRE
     // prefixes isolated <mn> nodes with a fresh number indicator; strip only
     // that indicator immediately inside the cancellation opener.

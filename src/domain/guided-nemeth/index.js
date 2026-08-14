@@ -404,6 +404,12 @@ function insertContractedScriptComma(tree, focus) {
 function insertNumeric(tree, focus, value, { replace = false, mathvariant = null, dataAttributes = {} } = {}) {
   const current = currentNode(tree, focus);
   if (!replace && current.name === 'mn' && current.children?.length === 1) {
+    // BANA 24.1 baseline numbers after a single-letter criterion are a new
+    // atom (C0"10), not an extension of that one-digit criterion number.
+    if (current.attrs?.['data-omniya-nemeth-intent'] === 'single-letter-number'
+      && dataAttributes?.['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
+      return insertToken(tree, focus, 'mn', value, { replace, dataAttributes });
+    }
     current.children[0].text += value;
     if (mathvariant) current.attrs.mathvariant = mathvariant;
     const nextAttributes = { ...dataAttributes };
@@ -2796,6 +2802,18 @@ function mappingApplies(mapping, context) {
     }
     return false;
   }
+  if (mapping.id === 'comparison.ratio') {
+    // BANA 24.1 reuses the same "1 cells for a multipurpose indicator plus a
+    // baseline digit after a letter or single-letter numeric criterion. Ratio
+    // remains available after ordinary numeric/operator foci.
+    if (context.node.name === 'mi') return false;
+    if (context.node.name === 'mn'
+      && context.node.attrs?.['data-omniya-nemeth-intent'] === 'single-letter-number') return false;
+    if (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-cells']
+      && !['∶', ':', '<', '>', '=', '≤', '≥', '≠', '≡', '⊂', '⊃'].includes(context.node.children?.[0]?.text)) {
+      return false;
+    }
+  }
   if (mapping.id === 'indicator.multipurpose') {
     // Inside a script the same cell is the Rule 14 baseline indicator.
     return !Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']));
@@ -3831,6 +3849,33 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
   }
 
+  // BANA 24.1: letter/largeop/single-letter-number followed by multipurpose
+  // then a decimal point is a baseline number (X".6), not radical order.
+  if (state.mode === null && state.prefix === '⠐' && normalized === '⠨'
+    && !hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])
+    && (context.node.name === 'mi'
+      || (context.node.name === 'mn'
+        && context.node.attrs?.['data-omniya-nemeth-intent'] === 'single-letter-number')
+      || (context.node.name === 'mo'
+        && context.node.attrs?.['data-omniya-nemeth-cells']
+        && !['<', '>', '=', '≤', '≥', '≠', '≡', '⊂', '⊃', '∶'].includes(context.node.children?.[0]?.text)))) {
+    const indicator = PREFIXES.get('⠐')?.mappings?.find((mapping) => mapping.id === 'indicator.multipurpose');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
+    if (activated.status !== 'rejected') {
+      const decimal = numericPunctuationMapping('⠨', '.', '3.2.3');
+      const next = applyMapping(activated.document, activated.focus, { ...activated.inputState, mode: 'multipurpose' }, {
+        ...decimal,
+        args: {
+          ...decimal.args,
+          dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' }
+        }
+      });
+      if (next.status !== 'rejected') {
+        return { ...next, announcement: `${activated.announcement}; ${next.announcement}` };
+      }
+    }
+  }
+
   // BANA 16.3 repeats the order indicator before an inner radical and its
   // matching terminator. The value is carried as a bounded mode for this one
   // radical operation, never as a general nesting stack.
@@ -4568,6 +4613,18 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       args: { ...mapping.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } }
     });
   }
+  // BANA 24.1: after multipurpose, a decimal point begins a baseline number
+  // such as X".6. Do not hold dot-4 as a radical-order or comparison prefix.
+  if (state.mode === 'multipurpose' && !state.prefix && normalized === '⠨') {
+    const decimal = numericPunctuationMapping('⠨', '.', '3.2.3');
+    return applyMapping(document, focus, { ...state, mode: 'multipurpose' }, {
+      ...decimal,
+      args: {
+        ...decimal.args,
+        dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' }
+      }
+    });
+  }
   // Rule 15.2.1: after a directly-over/under indicator, the next ordinary
   // symbol is the modifier itself. It is still one local structural edit,
   // not a second operand parser. Reuse the generic modifier insertion for
@@ -4955,6 +5012,24 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     !hasAncestor(context.tree, context.node, 'msup') &&
     !hasAncestor(context.tree, context.node, 'msub') &&
     !hasAncestor(context.tree, context.node, 'msubsup')) {
+    const indicator = PREFIXES.get('⠐')?.mappings?.find((mapping) => mapping.id === 'indicator.multipurpose');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
+    if (activated.status !== 'rejected') {
+      const next = applyNemethCell({ document: activated.document, focus: activated.focus, inputState: activated.inputState, cell: normalized });
+      if (next.status !== 'rejected') return { ...next, announcement: `${activated.announcement}; ${next.announcement}` };
+    }
+  }
+  // Same Rule 24.1 activation when the multipurpose indicator is followed by
+  // a baseline digit after a letter, single-letter number, or large operator.
+  // comparison.ratio shares the "1 cells, so this path must win locally.
+  if (state.mode === null && state.prefix === '⠐' && !match && DIGITS.has(normalized) &&
+    !hasAncestor(context.tree, context.node, 'msup') &&
+    !hasAncestor(context.tree, context.node, 'msub') &&
+    !hasAncestor(context.tree, context.node, 'msubsup') &&
+    (context.node.name === 'mi'
+      || (context.node.name === 'mn'
+        && context.node.attrs?.['data-omniya-nemeth-intent'] === 'single-letter-number')
+      || (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-cells']))) {
     const indicator = PREFIXES.get('⠐')?.mappings?.find((mapping) => mapping.id === 'indicator.multipurpose');
     const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
     if (activated.status !== 'rejected') {

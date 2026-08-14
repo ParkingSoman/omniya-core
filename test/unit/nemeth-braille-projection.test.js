@@ -568,3 +568,24 @@ test('Rule 23.1 diagonal thousand-comma keeps the authored comma and no extra nu
     '⠼⠂⠸⠌⠂⠴⠠⠴⠴⠴⠀⠨⠍⠀⠨⠅⠀⠼⠂⠀⠈⠠⠁'
   );
 });
+
+test('Rule 24.1 letter or largeop followed by a baseline number keeps the multipurpose indicator', () => {
+  const letter = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠠⠭">X</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">5</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠭⠢', letter), '⠠⠭⠐⠢');
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠭⠐⠢', letter), '⠠⠭⠐⠢');
+
+  const sigma = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠨⠠⠎">∑</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠨⠠⠎⠆', sigma), '⠨⠠⠎⠐⠆');
+
+  const decimal = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠠⠭">X</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">.6</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠭⠨⠖', decimal), '⠠⠭⠐⠨⠖');
+});
