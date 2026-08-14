@@ -4,7 +4,7 @@ Normative source: [BANA Nemeth Code 2022](https://www.brailleauthority.org/sites
 
 This is the contributor-facing source of truth. It is generated from the sequential ledger, not hand-written. Every row is one provision, official example, symbol-table entry, appendix item, or erratum. `open` means engineering or evidence is still required; it is not an unsupported claim.
 
-Total ledger rows: **1846**. Applicable rows: **1568**. Implemented disposition: **1505**.
+Total ledger rows: **1846**. Applicable rows: **1568**. Implemented disposition: **1508**.
 
 ## Rule index and totals
 
@@ -18,7 +18,7 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | [Rule 4](#rule-4) | Fractions and numeric context | 116 | 116 | 110 | 9 | 5 | 0 | 0 | 0 | 44 |
 | [Rule 5](#rule-5) | Letters and capitalization | 14 | 14 | 14 | 4 | 6 | 10 | 10 | 10 | 10 |
 | [Rule 6](#rule-6) | Alphabets and special letterforms | 85 | 85 | 84 | 81 | 82 | 13 | 13 | 13 | 5 |
-| [Rule 7](#rule-7) | Typeforms | 45 | 45 | 41 | 33 | 29 | 2 | 2 | 2 | 11 |
+| [Rule 7](#rule-7) | Typeforms | 45 | 45 | 44 | 30 | 29 | 2 | 2 | 2 | 11 |
 | [Rule 8](#rule-8) | Punctuation | 104 | 104 | 100 | 86 | 83 | 0 | 0 | 0 | 9 |
 | [Rule 9](#rule-9) | Reference symbols | 16 | 16 | 14 | 8 | 6 | 11 | 11 | 11 | 6 |
 | [Rule 10](#rule-10) | Abbreviations | 72 | 72 | 66 | 26 | 23 | 12 | 12 | 12 | 15 |
@@ -1796,9 +1796,9 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | 1744 | Rule 4: Fractions and numeric context | errata-2025:4.6.8.c-4-16 | 4.6.8.c at 4-16 | 4-16 | — | — | unclassified | —  | — | — | — | — | — | open |
 | 1745 | Rule 4: Fractions and numeric context | errata-2025:4.8.2-4-19 | 4.8.2 at 4-19 | 4-19 | — | — | unclassified | —  | — | — | — | — | — | open |
 | 1746 | Rule 6: Alphabets and special letterforms | errata-2025:6.4.2-6-9 | 6.4.2 at 6-9 | 6-9 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 1747 | Rule 7: Typeforms | errata-2025:7.2.1-7-2 | 7.2.1 at 7-2 | 7-2 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 1748 | Rule 7: Typeforms | errata-2025:7.3.3-7-5 | 7.3.3 at 7-5 | 7-5 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 1749 | Rule 7: Typeforms | errata-2025:7.3.5-7-6 | 7.3.5 at 7-6 | 7-6 | — | — | unclassified | —  | — | — | — | — | — | open |
+| 1747 | Rule 7: Typeforms | errata-2025:7.2.1-7-2 | 7.2.1 at 7-2 | 7-2 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 1748 | Rule 7: Typeforms | errata-2025:7.3.3-7-5 | 7.3.3 at 7-5 | 7-5 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 1749 | Rule 7: Typeforms | errata-2025:7.3.5-7-6 | 7.3.5 at 7-6 | 7-6 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
 | 1750 | Rule 8: Punctuation | errata-2025:8.2.4-8-3 | 8.2.4 at 8-3 | 8-3 | — | — | unclassified | —  | — | — | — | — | — | open |
 | 1751 | Rule 8: Punctuation | errata-2025:8.2.13-8-7 | 8.2.13 at 8-7 | 8-7 | — | — | unclassified | —  | — | — | — | — | — | open |
 | 1752 | Rule 8: Punctuation | errata-2025:8.2.16-8-8 | 8.2.16 at 8-8 | 8-8 | — | — | unclassified | —  | — | — | — | — | — | open |
