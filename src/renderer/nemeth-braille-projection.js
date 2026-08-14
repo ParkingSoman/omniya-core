@@ -574,6 +574,23 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (sourceMath.querySelector?.('msup') && braille.includes('⠘⠆⠬')) {
     braille = braille.replace(/⠘⠆⠬/, '⠘⠆⠐⠬');
   }
+  // Rule 14.11 non-simultaneous scripts keep an authored multipurpose separator
+  // between the two level indicators. SRE/MathJax collapses that to a plain
+  // msubsup reading; restore only the source-marked compound scripts.
+  const nonSimultaneous = [...sourceMath.getElementsByTagName?.('msubsup') ?? []]
+    .filter((node) => String(node.getAttribute?.('data-omniya-nemeth-intent') ?? '')
+      .startsWith('non-simultaneous-scripts'));
+  for (const node of nonSimultaneous) {
+    const intent = node.getAttribute?.('data-omniya-nemeth-intent') || '';
+    const first = intent.endsWith(':sup-sub') ? '⠘' : '⠰';
+    const second = first === '⠰' ? '⠘' : '⠰';
+    const missing = new RegExp(`${first}([^⠘⠰⠐]+)${second}`);
+    const present = new RegExp(`${first}([^⠘⠰⠐]+)⠐${second}`);
+    if (present.test(braille)) continue;
+    if (missing.test(braille)) {
+      braille = braille.replace(missing, `${first}$1⠐${second}`);
+    }
+  }
   // An explicit mathematical blank already returns to the baseline. SRE may
   // still announce a script-return cell before the following plus.
   if (sourceMath.querySelector?.('msup') && sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')) {
@@ -795,6 +812,27 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       if (nextOpen > 0 && braille[nextOpen - 1] !== '⠾') {
         braille = `${braille.slice(0, nextOpen)}⠾${braille.slice(nextOpen)}`;
       }
+    }
+    // Rule 23 writes `f(x)dx` unspaced. SRE may keep the differential inside
+    // the fence or park the authored close on the semantic wrapper. A closed
+    // source group whose next sibling is `d` is the local boundary; move only
+    // that one close in front of the differential.
+    const nextAuthoredElement = (node) => {
+      let sibling = node?.nextElementSibling ?? node?.nextSibling;
+      while (sibling && (sibling.nodeType !== 1
+        || sibling.localName === 'mspace' || sibling.nodeName === 'mspace'
+        || sibling.getAttribute?.('data-semantic-added') === 'true')) {
+        sibling = sibling.nextElementSibling ?? sibling.nextSibling;
+      }
+      return sibling;
+    };
+    const followedByDifferential = closedGroups.some((group) => {
+      const next = nextAuthoredElement(group);
+      const name = (next?.localName || next?.nodeName || '').toLowerCase();
+      return name === 'mi' && String(next.textContent ?? '').trim() === 'd';
+    });
+    if (followedByDifferential && !/⠷[^⠷⠾]*⠾⠙/.test(braille)) {
+      braille = braille.replace(/⠷([^⠷⠾]*)⠙([⠁-⠿])((?:(?!⠾).)*)⠾/, '⠷$1⠾⠙$2$3');
     }
     // If enrichment dropped a close entirely, a source-authored explicit
     // blank before a relation is the next local boundary. Restore one close
@@ -1439,6 +1477,25 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // indicator and leave all other script-level indicators untouched.
   if (sourceMath.querySelector?.('[data-omniya-nemeth-intent="horizontal-brace-over"], [data-omniya-nemeth-intent="horizontal-bracket-over"]')) {
     braille = braille.replace(/⠣⠣(?=⠨⠷|⠈⠷)/, '⠣');
+  }
+  // Rule 15.4 simultaneous bars are one munderover with a single terminator.
+  // SRE projects that tree as two nested five-step modifiers (`" "...:] <:]`).
+  // Collapse only when both sides are bar slots, so higher-order nested
+  // movers keep their inner terminator.
+  const barModifierSlot = (slot) => {
+    if (!slot) return false;
+    if (slot.localName === 'mo' && String(slot.textContent ?? '').trim() === '¯') return true;
+    if (slot.localName !== 'mrow') return false;
+    const kids = [...(slot.children ?? [])].filter((node) => node.nodeType === 1);
+    return kids.length > 0 && kids.every((kid) => kid.localName === 'mo' && String(kid.textContent ?? '').trim() === '¯');
+  };
+  const simultaneousBarModifiers = [...(sourceMath.querySelectorAll?.('munderover') ?? [])].filter((node) => {
+    const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+    return kids.length === 3 && barModifierSlot(kids[1]) && barModifierSlot(kids[2]);
+  });
+  if (simultaneousBarModifiers.length) {
+    braille = braille.replace(/^⠐⠐/, '⠐');
+    braille = braille.replace(/⠻(?=[⠣⠩])/g, '');
   }
   for (const node of sourceNodes('[data-omniya-nemeth-intent="horizontal-bracket-over"]')) {
     const cells = node.getAttribute?.('data-omniya-nemeth-cells');

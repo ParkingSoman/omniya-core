@@ -646,6 +646,19 @@ test('Rule 14.11 degree returns to baseline before a following hyphen', () => {
   assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠖⠴⠘⠨⠡⠤⠊', source), '⠼⠒⠖⠴⠘⠨⠡⠐⠤⠊');
 });
 
+test('Rule 14.11 non-simultaneous scripts restore the multipurpose separator', () => {
+  const subThenSup = new DOMParser().parseFromString(
+    '<math><msubsup data-omniya-nemeth-intent="non-simultaneous-scripts:sub-sup"><mi>a</mi><mi>m</mi><mi>n</mi></msubsup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠁⠰⠍⠘⠝', subThenSup), '⠁⠰⠍⠐⠘⠝');
+  const primed = new DOMParser().parseFromString(
+    '<math><msubsup data-omniya-nemeth-intent="non-simultaneous-scripts:sub-sup"><mrow><mi>x</mi><mo>′</mo></mrow><mi>a</mi><mi>b</mi></msubsup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠄⠰⠁⠘⠃', primed), '⠭⠄⠰⠁⠐⠘⠃');
+});
+
 test('Rule 8 simple fractions drop interior number signs and keep indicated periods', () => {
   const source = new DOMParser().parseFromString(
     `<math>
@@ -741,5 +754,49 @@ test('Rule 8 quotes restore indicated openers, or-words, and quoted decimals', (
   assert.equal(
     applyNemethSourceIntentToBraille('⠷⠿⠨⠼⠦⠸⠴⠾⠸⠲⠀⠄⠄⠄', decimal),
     '⠷⠸⠦⠼⠨⠦⠸⠴⠾⠸⠲⠀⠄⠄⠄'
+  );
+});
+
+test('Rule 15.4 munderover drops SRE nested terminators and the extra multipurpose', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><munderover><mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow><mo data-omniya-role="underscript">¯</mo><mo data-omniya-role="overscript">¯</mo></munderover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠐⠐⠭⠬⠽⠩⠱⠻⠣⠱⠻', source),
+    '⠐⠭⠬⠽⠩⠱⠣⠱⠻'
+  );
+});
+
+test('Rule 15.5 simultaneous parallel bars keep one terminator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><munderover><mi>x</mi><mrow><mo data-omniya-role="underscript">¯</mo><mo data-omniya-role="underscript">¯</mo></mrow><mrow><mo data-omniya-role="overscript">¯</mo><mo data-omniya-role="overscript">¯</mo></mrow></munderover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠐⠐⠭⠩⠱⠱⠻⠣⠱⠱⠻', source),
+    '⠐⠭⠩⠱⠱⠣⠱⠱⠻'
+  );
+});
+
+test('Rule 23 restores the authored close before an unspaced differential', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi>f</mi><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mi>x</mi><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><mi>d</mi><mi>x</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠋⠷⠭⠙⠭⠾', source),
+    '⠋⠷⠭⠾⠙⠭'
+  );
+});
+
+test('Rule 23 restores a displaced integral close before dx and a following equality', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msubsup><mo>∫</mo><mi>a</mi><mi>b</mi></msubsup><mi>f</mi><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mi>x</mi><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><mi>d</mi><mi>x</mi><mspace/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mn data-omniya-nemeth-intent="numeric-start">0</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠣⠮⠰⠁⠘⠃⠐⠋⠷⠭⠙⠭⠀⠨⠅⠀⠼⠴⠾', source),
+    '⠣⠮⠰⠁⠘⠃⠐⠋⠷⠭⠾⠙⠭⠀⠨⠅⠀⠼⠴'
   );
 });

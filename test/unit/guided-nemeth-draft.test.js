@@ -59,6 +59,69 @@ test('Rule 14.4 absolute ~~ after a first-level superscript fills one nested hol
   assert.equal(tree.children[0].children[1].children[1].children[0].text, 'y');
 });
 
+test('Rule 14.4 absolute ~~; after nested superscripts opens the level-2 subscript', () => {
+  const { document } = replayCells(sourceNotationToCells('x~y~~z~~;a'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const y = tree.children[0].children[1];
+  assert.equal(y.children[0].children[0].text, 'y');
+  const z = y.children[1];
+  assert.equal(z.name, 'msub');
+  assert.equal(z.children[0].children[0].text, 'z');
+  assert.equal(z.children[1].children[0].text, 'a');
+});
+
+test('Rule 14.4 absolute ~;~ after a superscripted subscript continues as one nested chain', () => {
+  const { document } = replayCells(sourceNotationToCells('x~y~;a~;~n'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const y = tree.children[0].children[1];
+  assert.equal(y.name, 'msub');
+  assert.equal(y.children[0].children[0].text, 'y');
+  const a = y.children[1];
+  assert.equal(a.name, 'msup');
+  assert.equal(a.children[0].children[0].text, 'a');
+  assert.equal(a.children[1].children[0].text, 'n');
+});
+
+test('Rule 14.11 multipurpose then opposite script completes non-simultaneous scripts', () => {
+  const { document } = replayCells(sourceNotationToCells('a;m"~n'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msubsup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'a');
+  assert.equal(tree.children[0].children[1].children[0].text, 'm');
+  assert.equal(tree.children[0].children[2].children[0].text, 'n');
+  assert.equal(tree.children[0].attrs?.['data-omniya-nemeth-intent'], 'non-simultaneous-scripts:sub-sup');
+});
+
+test('Rule 14.11 prime then non-simultaneous scripts keeps one complete base', () => {
+  const { document } = replayCells(sourceNotationToCells('x\';a"~b'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.ok(['msubsup', 'msup'].includes(tree.children[0].name));
+  assert.equal(report.holes.length, 0);
+});
+
+test('Rule 14.4.3 nested ;~~ after a filled msubsup continues on the superscript item', () => {
+  const { document } = replayCells(sourceNotationToCells('x;a;~r;~~n'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const names = [];
+  const visit = (node) => {
+    if (node?.name) names.push(node.name);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(tree);
+  assert.ok(names.includes('msup') || names.includes('msubsup'));
+  assert.match(document.mathml, />n</);
+});
+
 test('Rule 14.9 grouped ~~n~ returns to the enclosing superscript instead of wrapping a hole', () => {
   const { document } = replayCells(sourceNotationToCells('x~(m~~n~)'));
   const tree = parseMathML(document.mathml);
@@ -664,7 +727,7 @@ test('a diagonal fraction boundary keeps the following expression in the same ro
   assert.equal(tree.children[9].children[0].text, '·');
 });
 
-test('group content remains the insertion row after a nested structure closes', () => {
+test('a letter after a nested fraction and group close stays outside the parentheses', () => {
   let document = createEmptyDraftMathDocument();
   let focus = focusOf(document);
   let inputState = { prefix: '', mode: null };
@@ -680,9 +743,44 @@ test('group content remains the insertion row after a nested structure closes', 
   const tree = parseMathML(document.mathml);
   const group = tree.children.find((node) => node.name === 'mrow' && node.attrs['data-omniya-group'] === 'round');
   assert.ok(group);
-  const content = group.children.find((node) => node.name === 'mrow' && !node.attrs['data-omniya-role']);
+  assert.equal(group.attrs['data-omniya-role'], 'closed-group');
+  const content = group.children.find((node) => node.name === 'mrow' && !['open-fence', 'close-fence', 'closed-group'].includes(node.attrs?.['data-omniya-role']));
   assert.equal(content.name, 'mrow');
-  assert.deepEqual(content.children.filter((node) => node.name).map((node) => node.name), ['mfrac', 'mi']);
+  assert.deepEqual(content.children.filter((node) => node.name).map((node) => node.name), ['mfrac']);
+  assert.equal(tree.children.some((node) => node.name === 'mi' && node.children[0].text === 'c'), true);
+});
+
+test('Rule 23 unspaced dx after a closed group stays outside the parentheses', () => {
+  const { document } = replayCells(sourceNotationToCells('f(x)dx'));
+  const tree = parseMathML(document.mathml);
+  const group = tree.children.find((node) => node.name === 'mrow' && node.attrs?.['data-omniya-group'] === 'round');
+  assert.ok(group);
+  assert.equal(group.attrs['data-omniya-role'], 'closed-group');
+  const identifiers = [];
+  const visit = (node) => {
+    if (node?.name === 'mi') identifiers.push(node.children?.[0]?.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(group);
+  assert.deepEqual(identifiers, ['x']);
+  const siblings = tree.children.filter((node) => node.name === 'mi').map((node) => node.children[0].text);
+  assert.deepEqual(siblings, ['f', 'd', 'x']);
+});
+
+test('Rule 23 integral dx stays outside f(x) after baseline return from bounds', () => {
+  const { document } = replayCells(sourceNotationToCells('!;0~,="f(x)dx'));
+  const tree = parseMathML(document.mathml);
+  const group = tree.children.find((node) => node.name === 'mrow' && node.attrs?.['data-omniya-group'] === 'round');
+  assert.ok(group);
+  const identifiers = [];
+  const visit = (node) => {
+    if (node?.name === 'mi') identifiers.push(node.children?.[0]?.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(group);
+  assert.deepEqual(identifiers, ['x']);
+  const afterGroup = tree.children.slice(tree.children.indexOf(group) + 1).map((node) => node.children?.[0]?.text);
+  assert.deepEqual(afterGroup, ['d', 'x']);
 });
 
 test('complex and hypercomplex fraction indicators keep their BANA distinction locally', () => {
