@@ -453,6 +453,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (sourceMath.querySelector?.('msup') && braille.includes('⠘⠆⠬')) {
     braille = braille.replace(/⠘⠆⠬/, '⠘⠆⠐⠬');
   }
+  // An explicit mathematical blank already returns to the baseline. SRE may
+  // still announce a script-return cell before the following plus.
+  if (sourceMath.querySelector?.('msup') && sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')) {
+    braille = braille.replace(/⠘⠆⠀⠐⠬/g, '⠘⠆⠀⠬');
+  }
   // The equality relation inside a superscript is a normal baseline relation;
   // SRE may expose the baseline-return cell before it. The authored Rule 11
   // local sequence has already supplied the script transition, so remove only

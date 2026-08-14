@@ -240,6 +240,17 @@ test('repeated capital enlarged fences restore every remaining unprefixed pair',
   );
 });
 
+test('an explicit blank after a superscript drops SRE\'s extra baseline return before plus', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">3</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠋">f</mi><msup><mi data-omniya-nemeth-cells="⠞">t</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠬">+</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠒⠀⠋⠞⠘⠆⠀⠐⠬⠒', source),
+    '⠼⠒⠀⠋⠞⠘⠆⠀⠬⠼⠒'
+  );
+});
+
 test('BANA punctuation comma intent binds directly to the following atom', () => {
   const comma = { nextElementSibling: { localName: 'mi' } };
   const sourceMath = {
