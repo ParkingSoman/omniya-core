@@ -24175,6 +24175,9 @@
       "printedPage": null,
       "pdfPage": 190,
       "sourceNotation": "#10~3+ ---- .k #10~5",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠼",
         "⠂",
@@ -24221,6 +24224,9 @@
       "printedPage": null,
       "pdfPage": 190,
       "sourceNotation": "x~2 ,,, ,'& y~2",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -24262,6 +24268,10 @@
       "printedPage": null,
       "pdfPage": 190,
       "sourceNotation": "w~2\"+x~2\"+y~2\"+z~12 .k z~12\"+y~2\"+x~2\"+w~2",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠺",
         "⠘",
@@ -24331,6 +24341,10 @@
       "printedPage": null,
       "pdfPage": 191,
       "sourceNotation": "#2~x \"k #3~x",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠼",
         "⠆",
@@ -24369,6 +24383,9 @@
       "printedPage": null,
       "pdfPage": 191,
       "sourceNotation": "q~log~;q a .k a",
+      "operationIds": [
+        "script.sup-sup-sub"
+      ],
       "cells": [
         "⠟",
         "⠘",
@@ -24410,6 +24427,9 @@
       "printedPage": null,
       "pdfPage": 191,
       "sourceNotation": "!;u ;.k a",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠮",
         "⠰",
@@ -24445,6 +24465,10 @@
       "printedPage": null,
       "pdfPage": 192,
       "sourceNotation": ">x~2\"+y~2\"]",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠜",
         "⠭",
@@ -24482,6 +24506,9 @@
       "printedPage": null,
       "pdfPage": 192,
       "sourceNotation": "e~>x~~2~+y~~2~]",
+      "operationIds": [
+        "script.sup-sup-sup"
+      ],
       "cells": [
         "⠑",
         "⠘",
@@ -24523,6 +24550,11 @@
       "printedPage": null,
       "pdfPage": 192,
       "sourceNotation": "?1/x~2\"#",
+      "operationIds": [
+        "fraction.start.simple",
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠹",
         "⠂",
@@ -24557,6 +24589,11 @@
       "printedPage": null,
       "pdfPage": 192,
       "sourceNotation": ",?d(?x/y#),/1+(?x/y#)~2\",#",
+      "operationIds": [
+        "fraction.start.complex",
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠠",
         "⠹",
@@ -24609,6 +24646,10 @@
       "printedPage": null,
       "pdfPage": 192,
       "sourceNotation": "\"x~2\"<:]",
+      "operationIds": [
+        "script.superscript",
+        "modifier.directly-over"
+      ],
       "cells": [
         "⠐",
         "⠭",

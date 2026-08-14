@@ -56,7 +56,13 @@ const reviewedOperationIds = new Map(Object.entries({
   '14-82': ['script.sup-sup'], '14-83': ['script.sup-sup-sub'],
   '14-84': ['script.subscript', 'script.contracted-comma'], '14-85': ['script.superscript'],
   '14-86': ['script.superscript', 'fraction.start.diagonal'], '14-87': ['script.subscript'],
-  '14-88': ['script.superscript']
+  '14-88': ['script.superscript'], '14-89': ['script.superscript'], '14-90': ['script.superscript'],
+  '14-91': ['script.superscript', 'script.baseline'], '14-92': ['script.superscript', 'script.baseline'],
+  '14-93': ['script.sup-sup-sub'], '14-94': ['script.subscript'],
+  '14-95': ['script.superscript', 'script.baseline'], '14-96': ['script.sup-sup-sup'],
+  '14-97': ['fraction.start.simple', 'script.superscript', 'script.baseline'],
+  '14-98': ['fraction.start.complex', 'script.superscript', 'script.baseline'],
+  '14-99': ['script.superscript', 'modifier.directly-over']
 }));
 const reviewedChoicePrefixes = new Map([
   ['14-34', ['⠘⠉', 'script.left-superscript']],
