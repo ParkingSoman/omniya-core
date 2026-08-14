@@ -15,8 +15,8 @@
     "numberedRowCountNote": "The PDF contains 508 actual numbered provision labels plus the 4.6.8.c provision explicitly targeted by the errata, for 509 source provision rows. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them.",
     "examples": 1229,
     "errata": 42,
-    "errataInScope": 34,
-    "mappedRows": 1115,
+    "errataInScope": 30,
+    "mappedRows": 1118,
     "electronCreationRows": 178,
     "electronEditingRows": 176,
     "officialExamplesLinked": 1229
@@ -96813,29 +96813,33 @@
       "printedPage": "23-1",
       "pdfPage": null,
       "auditOrder": 1764,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "misc.crossed-d"
+      ],
+      "unitCaseIds": [
+        "registry:misc.crossed-d"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "implementation": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
-      "evidenceScope": "source-policy"
+      "evidenceScope": "equation-workflow"
     },
     {
       "id": "errata-2025:23.4-23-3",
@@ -96845,29 +96849,33 @@
       "printedPage": "23-3",
       "pdfPage": null,
       "auditOrder": 1765,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "misc.crossed-d"
+      ],
+      "unitCaseIds": [
+        "registry:misc.crossed-d"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "implementation": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
-      "evidenceScope": "source-policy"
+      "evidenceScope": "equation-workflow"
     },
     {
       "id": "errata-2025:23.13-23-9",
@@ -96877,7 +96885,7 @@
       "printedPage": "23-9",
       "pdfPage": null,
       "auditOrder": 1766,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -96887,7 +96895,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": true,
         "editing": true,
         "navigation": true,
@@ -96895,10 +96903,13 @@
         "focusedBraille": true,
         "undoRedo": true,
         "persistence": true,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.errata-2025:23.13-23-9"
+      ],
       "evidenceScope": "source-policy"
     },
     {
@@ -96909,29 +96920,35 @@
       "printedPage": "23-13",
       "pdfPage": null,
       "auditOrder": 1767,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "mappingIds": [
+        "quantifier.exists-unique",
+        "typeform.barred"
+      ],
+      "unitCaseIds": [
+        "registry:quantifier.exists-unique",
+        "registry:typeform.barred"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "implementation": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
-      "evidenceScope": "source-policy"
+      "evidenceScope": "equation-workflow"
     },
     {
       "id": "errata-2025:24.1.e-24-2",

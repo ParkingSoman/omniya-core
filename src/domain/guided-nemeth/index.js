@@ -1248,6 +1248,7 @@ const CONTEXT_POLICY_REFS = [
   ...['22.2', '22.7'],
   ...['21.10', '21.13'],
   ...['18.2', '18.5'],
+  'errata-2025:23.13-23-9',
   'errata-2025:17.1-Special-Considerations-c-17-6'
 ];
 const APPENDIX_POLICY_REFS = ['appendix-A', 'appendix-B', 'appendix-C'];

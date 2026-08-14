@@ -15,7 +15,7 @@
     "numberedRowCountNote": "The PDF contains 508 actual numbered provision labels plus the 4.6.8.c provision explicitly targeted by the errata, for 509 source provision rows. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them.",
     "examples": 1229,
     "errata": 42,
-    "errataInScope": 34
+    "errataInScope": 30
   },
   "rows": [
     {
@@ -51570,9 +51570,11 @@
       "printedPage": "23-1",
       "pdfPage": null,
       "auditOrder": 1764,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "misc.crossed-d"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -51599,9 +51601,11 @@
       "printedPage": "23-3",
       "pdfPage": null,
       "auditOrder": 1765,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "misc.crossed-d"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -51628,7 +51632,7 @@
       "printedPage": "23-9",
       "pdfPage": null,
       "auditOrder": 1766,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -51657,9 +51661,12 @@
       "printedPage": "23-13",
       "pdfPage": null,
       "auditOrder": 1767,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "quantifier.exists-unique",
+        "typeform.barred"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],

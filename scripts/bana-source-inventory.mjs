@@ -167,6 +167,24 @@ if (appendixDStart >= 0) {
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
 const durableDisposition = rows.find((row) => row.id === 'bana-2022:example-7-22');
 if (durableDisposition) durableDisposition.disposition = 'approved-context-policy';
+// The Rule 23 errata restores crossed d in the symbol list and section 23.4,
+// adds a spatial-layout exception to monetary spacing, and corrects Example
+// 23-48 with the barred-letter indicator. Link each correction to only the
+// exact existing operations or context decision it changes.
+const rule23ErrataMappings = Object.freeze({
+  'errata-2025:symbol-list-23-1': ['misc.crossed-d'],
+  'errata-2025:23.4-23-3': ['misc.crossed-d'],
+  'errata-2025:23.17-23-13': ['quantifier.exists-unique', 'typeform.barred']
+});
+for (const [id, mappingIds] of Object.entries(rule23ErrataMappings)) {
+  const row = rows.find((candidate) => candidate.id === id);
+  if (row) {
+    row.disposition = 'implemented-operation';
+    row.mappingIds = mappingIds;
+  }
+}
+const rule23MonetaryErratum = rows.find((row) => row.id === 'errata-2025:23.13-23-9');
+if (rule23MonetaryErratum) rule23MonetaryErratum.disposition = 'implemented-context-policy';
 // Rule 18.2 delegates numeric function subscripts to the existing Rule 14.6
 // context, while 18.5 selects mathematical versus literary punctuation. They
 // define context rather than new input cells. Example 18-22's reviewed math
