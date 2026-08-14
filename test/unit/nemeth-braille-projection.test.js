@@ -1295,3 +1295,79 @@ test('Rule 24.5 adjacent vertical-bar groups keep multipurpose separators', () =
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠳⠳⠳⠭⠳⠳⠳', mixed), '⠳⠳⠐⠳⠭⠳⠐⠳⠳');
 });
+
+test('Rule 8-16 quoted radical restores radical and indicated closer', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-intent="punctuation-left-double-quote" data-omniya-nemeth-cells="⠦">“</mo><mo data-omniya-nemeth-intent="radical-sign" data-omniya-nemeth-cells="⠜">√</mo><mo data-omniya-nemeth-intent="punctuation-right-double-quote" data-omniya-nemeth-cells="⠸⠴">”</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠦⠴', source), '⠦⠜⠸⠴');
+});
+
+test('Rule 8-8 apostrophe-capital does not keep a duplicated capital', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠠⠄⠠⠚">J</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠠⠄⠠⠚⠀⠼⠢', source), '⠠⠄⠠⠚⠀⠼⠢');
+});
+
+test('Rule 7.3.2 hyphenated typeform numbers drop multipurpose and letter indicators', () => {
+  const italic = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="typeform-italic-number" data-omniya-nemeth-cells="⠨⠼⠲⠨⠢">4.5</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mi>o</mi><mi>h</mi><mi>m</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠨⠼⠲⠨⠢⠤⠕⠐⠓⠍', italic), '⠨⠼⠲⠨⠢⠤⠕⠓⠍');
+
+  const bold = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="typeform-bold-number" data-omniya-nemeth-cells="⠸⠼⠲⠨⠢">4.5</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mi>f</mi><mi>t</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠸⠼⠲⠨⠢⠤⠸⠰⠋⠞', bold), '⠸⠼⠲⠨⠢⠤⠋⠞');
+});
+
+test('Rule 7.3.5 bold typeform scope restores open and close indicators', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mstyle mathvariant="bold" data-omniya-nemeth-intent="typeform-scope" data-omniya-nemeth-cells="⠠⠄⠸|⠸⠠⠄" data-omniya-typeform-close-cells="⠸⠠⠄"><mrow><mspace/><mn data-omniya-nemeth-intent="numeric-start">59</mn><mo data-omniya-nemeth-cells="⠈⠴">%</mo><mspace/></mrow></mstyle></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠀⠼⠢⠔⠈⠴', source), '⠠⠄⠸⠀⠼⠢⠔⠈⠴⠀⠸⠠⠄');
+});
+
+test('Rule 13 bevelled simple fractions keep terminator; scripted ones drop opener', () => {
+  const simple = new DOMParser().parseFromString(
+    '<math><mfrac data-omniya-fraction-kind="simple" bevelled="true"><mrow><mi>a</mi><mo>+</mo><mi>b</mi></mrow><mrow><mi>c</mi><mo>+</mo><mi>d</mi></mrow></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠹⠁⠬⠃⠸⠌⠉⠬⠙', simple), '⠹⠁⠬⠃⠸⠌⠉⠬⠙⠼');
+
+  const scripted = new DOMParser().parseFromString(
+    '<math><msup><mi>x</mi><mfrac data-omniya-fraction-kind="simple" bevelled="true"><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></mfrac></msup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠘⠹⠂⠸⠌⠆', scripted), '⠭⠘⠂⠸⠌⠆');
+});
+
+test('Rule 13-19 bevelled mixed fraction restores diagonal indicator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">4</mn><mfrac data-omniya-fraction-kind="mixed" bevelled="true"><mn>3</mn><mn>8</mn></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠲⠸⠹⠒⠌⠦⠸⠼', source), '⠼⠲⠸⠹⠒⠸⠌⠦⠸⠼');
+});
+
+test('Rule 3.9 shape interior number restores the number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-shape-kind="square" data-omniya-shape-modification="interior-number-5" data-omniya-nemeth-cells="⠫⠲⠸⠫⠼⠢⠻">➄</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠫⠲⠸⠫⠢⠻', source), '⠫⠲⠸⠫⠼⠢⠻');
+});
+
+test('Rule 8-52 mathematical comma stays ⠠ after a lower-cell digit', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo>(</mo><mo>−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><mo>)</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠷⠤⠒⠂⠀⠆⠾', source), '⠷⠤⠒⠠⠀⠆⠾');
+});

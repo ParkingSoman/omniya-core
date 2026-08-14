@@ -1532,11 +1532,27 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // bevelled/simple construction.
     if ([...simpleFractions].some((node) => node.getAttribute('bevelled') === 'true')) {
       braille = braille.replace(/⠹(?=⠨|⠼)/, '');
-      // Only remove a terminal number sign when the fraction itself ends the
-      // source expression. A following local minus is outside the fraction;
-      // its number sign belongs to the ordinary operator boundary and must
-      // not be removed by this fraction cleanup.
-      if (braille.endsWith('⠼')) braille = braille.slice(0, -1);
+      // A scripted bevelled fraction (`x~1_/2`) does not carry the ordinary
+      // simple-fraction opener inside the superscript (13-11).
+      braille = braille.replace(/([⠘⠰])⠹(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1');
+      // Diagonal-only fractions (`#1_/3`) omit the ordinary terminator.
+      // A `?…#` simple fraction that is later bevelled keeps both ⠹ and ⠼;
+      // restore a missing closer when the opener is still present.
+      const openedSimple = [...simpleFractions].some((node) =>
+        node.getAttribute('bevelled') === 'true') && /⠹(?!⠲)/.test(braille);
+      if (openedSimple) {
+        // Keep/restore the terminator for a real `?…#` opener. A literary
+        // period misread as `⠹⠲` is not an opener (8-29).
+        if (/⠹(?!⠲)/.test(braille) && /⠸⠌|⠌/.test(braille) && !/(⠼|⠠⠼)$/.test(braille)) {
+          braille = `${braille}⠼`;
+        }
+      } else if (braille.endsWith('⠼')) {
+        // Only remove a terminal number sign when the fraction itself ends the
+        // source expression. A following local minus is outside the fraction;
+        // its number sign belongs to the ordinary operator boundary and must
+        // not be removed by this fraction cleanup.
+        braille = braille.slice(0, -1);
+      }
       // The whole-expression form uses an ordinary numerator fraction opener
       // here, so do not remove a number sign before a later minus merely
       // because a simple fraction exists elsewhere in the source.
@@ -2582,6 +2598,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       if (closings < mixedFractions.length && value.endsWith('⠼')) {
         value = `${value.slice(0, -1)}⠸⠼`;
       }
+      // Bevelled mixed fractions keep the diagonal line indicator (13-19).
+      if ([...mixedFractions].some((node) => node.getAttribute('bevelled') === 'true')) {
+        value = value.replace(/(⠸⠹(?:⠼)?[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]+)(?!⠸)⠌/g, '$1⠸⠌');
+      }
     }
     if (shapeSubscriptCount) {
       value = value.replace(/⠰⠀⠰(?=⠫)/g, '⠰');
@@ -2649,6 +2669,82 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   for (const sequence of apostropheCapitals) {
     braille = braille.replace(new RegExp(`${sequence}⠠(?=⠀)`), sequence);
   }
+  // SRE may also duplicate the leading capital before the apostrophe pair
+  // (`⠠⠠⠄⠠⠚` → `⠠⠄⠠⠚`) when a preceding period ends numeric mode (8-8).
+  if (apostropheCapitals.length) {
+    braille = braille.replace(/⠠⠠⠄⠠(?=[⠁-⠵])/g, '⠠⠄⠠');
+  }
+  // Rule 7.3.2–7.3.5: hyphenated typeform numbers keep the typeform through
+  // the hyphen without a fresh letter indicator or multipurpose return.
+  const typeformNumbers = [
+    ...sourceNodes('[data-omniya-nemeth-intent="typeform-italic-number"]'),
+    ...sourceNodes('[data-omniya-nemeth-intent="typeform-bold-number"]'),
+    ...sourceNodes('[data-omniya-nemeth-intent="typeform-script-number"]')
+  ];
+  if (typeformNumbers.length) {
+    braille = braille.replace(/⠤⠸⠰(?=[⠁-⠵])/g, '⠤');
+    braille = braille.replace(/⠤⠨⠰(?=[⠁-⠵])/g, '⠤');
+    braille = braille.replace(/⠤⠈⠰(?=[⠁-⠵])/g, '⠤');
+    braille = braille.replace(/⠤⠐(?=[⠁-⠵])/g, '⠤');
+    // Multipurpose may also land between letters of the hyphenated unit
+    // (7-14 `⠤⠕⠐⠓⠍` → `⠤⠕⠓⠍`).
+    braille = braille.replace(/(⠤[⠁-⠵]+)⠐(?=[⠁-⠵])/g, '$1');
+  }
+  // Rule 7.3.4–7.3.5 mathematical typeform scopes keep their open/close
+  // indicators even when SRE projects only the interior expression (7-19).
+  for (const scope of sourceNodes('[data-omniya-nemeth-intent="typeform-scope"]')) {
+    const stamped = scope.getAttribute('data-omniya-nemeth-cells') || '';
+    const open = stamped.split('|')[0]
+      || (scope.getAttribute('mathvariant') === 'italic' ? '⠠⠄⠨' : '⠠⠄⠸');
+    const close = scope.getAttribute('data-omniya-typeform-close-cells')
+      || stamped.split('|')[1]
+      || (scope.getAttribute('mathvariant') === 'italic' ? '⠨⠠⠄' : '⠸⠠⠄');
+    if (open && !braille.includes(open)) {
+      braille = braille.startsWith('⠀') ? `${open}${braille}` : `${open}⠀${braille}`;
+    }
+    if (close && !braille.includes(close)) {
+      braille = braille.endsWith('⠀') ? `${braille}${close}` : `${braille}⠀${close}`;
+    }
+  }
+  // Rule 3.9 interior numbers keep the number sign after the interior-shape
+  // indicator (`⠸⠫⠼⠢`). SRE may emit the bare lower-cell digit.
+  if (shapeCells.some((cells) => /⠸⠫⠼/.test(cells))) {
+    for (const sequence of shapeCells) {
+      if (!/⠸⠫⠼/.test(sequence)) continue;
+      const withoutNumber = sequence.replace(/⠸⠫⠼/, '⠸⠫');
+      if (braille.includes(withoutNumber) && !braille.includes(sequence)) {
+        braille = braille.replace(withoutNumber, sequence);
+      }
+      if (braille.startsWith(sequence.slice(0, 2)) && !braille.includes('⠼') && sequence.includes('⠼')) {
+        braille = sequence;
+      }
+    }
+  }
+  // Rule 3.11 hyphen between a word and a fresh numeric item restores the
+  // number sign (`guanosine-#5`). Only count mi−mn(numeric-start) boundaries;
+  // algebraic letter−digit runs keep bare lower-cell digits.
+  const wordNumberHyphens = [...(sourceMath.getElementsByTagName?.('mo') ?? [])].filter((node) => {
+    const text = String(node.textContent ?? '').trim();
+    if (text !== '−' && text !== '-') return false;
+    const previous = node.previousElementSibling ?? node.previousSibling;
+    const next = node.nextElementSibling ?? node.nextSibling;
+    const prevName = previous?.localName ?? previous?.nodeName?.toLowerCase?.();
+    return prevName === 'mi' &&
+      next?.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start';
+  }).length;
+  if (wordNumberHyphens) {
+    let remaining = wordNumberHyphens;
+    braille = braille.replace(/([⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵])⠤(?!⠼)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, (match, letter) => {
+      if (remaining <= 0) return match;
+      remaining -= 1;
+      return `${letter}⠤⠼`;
+    });
+  }
+  // A source-marked mathematical comma after a lower-cell digit must remain
+  // `⠠`, not digit one (`⠂`) — e.g. Rule 8-52 `(-3, 2)`.
+  if (boundCommas && !braille.includes('⠠⠀') && /[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]⠂⠀/.test(braille)) {
+    braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠂(?=⠀)/, '$1⠠');
+  }
   // Bevelled fractions that carry literary periods keep the diagonal line
   // indicator. SRE can emit a plain slash after the period cell.
   if (literaryPeriods.length &&
@@ -2692,12 +2788,21 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   }
   // A radical sign inside quotes is the standalone `⠜` cell, not a square-
   // root enclosure. Restore the authored cells when SRE emits a different
-  // radical form around the same quote pair.
+  // radical form around the same quote pair — including the bare `⠦⠴`
+  // collapse that drops both the radical and the indicated closer (8-16).
   if (radicalSigns.length && leftDoubleQuotes.length && rightDoubleQuotes.length) {
     for (const sign of radicalSigns) {
       const cells = sign.getAttribute('data-omniya-nemeth-cells') || '⠜';
+      const rightCells = rightDoubleQuotes[0]?.getAttribute?.('data-omniya-nemeth-cells') || '⠸⠴';
+      if (cells && braille === `⠦⠴`) {
+        braille = `⠦${cells}${rightCells}`;
+        continue;
+      }
       if (cells && !braille.includes(cells) && /⠦.*⠸⠴/.test(braille)) {
         braille = braille.replace(/⠦([^⠦⠸]*)⠸⠴/, `⠦${cells}⠸⠴`);
+      }
+      if (cells && !braille.includes(cells) && /⠦[^⠜]*⠴/.test(braille) && rightCells === '⠸⠴') {
+        braille = braille.replace(/⠦([^⠦]*)⠴/, `⠦${cells}⠸⠴`);
       }
     }
   }

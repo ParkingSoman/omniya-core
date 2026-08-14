@@ -1239,9 +1239,11 @@ function openModifier(tree, focus, elementName, initialSlot) {
 // lexical scope is kept outside the tree.
 function openTypeformScope(tree, focus, mathvariant) {
   const current = currentNode(tree, focus);
+  const openCells = mathvariant === 'italic' ? '⠠⠄⠨' : '⠠⠄⠸';
   const wrapper = element('mstyle', [], {
     mathvariant,
-    'data-omniya-nemeth-intent': 'typeform-scope'
+    'data-omniya-nemeth-intent': 'typeform-scope',
+    'data-omniya-nemeth-cells': openCells
   });
   if (current.name === 'math' || isHole(current)) {
     const slot = hole(wrapper, 'expression');
@@ -1266,6 +1268,10 @@ function closeTypeformScope(tree, focus) {
   if (!content || isHole(content)) {
     throw new RangeError('A typeform scope must contain an expression before it can close.');
   }
+  const closeCells = wrapper.attrs?.mathvariant === 'italic' ? '⠨⠠⠄' : '⠸⠠⠄';
+  const openCells = wrapper.attrs?.['data-omniya-nemeth-cells'] || (wrapper.attrs?.mathvariant === 'italic' ? '⠠⠄⠨' : '⠠⠄⠸');
+  wrapper.attrs['data-omniya-nemeth-cells'] = `${openCells}|${closeCells}`;
+  wrapper.attrs['data-omniya-typeform-close-cells'] = closeCells;
   const parent = findMathParent(tree, wrapper.attrs['data-omniya-id']);
   return { tree, focus: focusNode(parent ?? wrapper) };
 }
@@ -2996,6 +3002,10 @@ const MAPPINGS = [
   // examples are intentionally bounded; a letter, operation, or arrow inside
   // a shape is represented by a separate named operation in a later editor
   // step rather than by buffering an arbitrary passage.
+  // Rule 3.9 numbers-within-shapes reuse the same interior indicator with a
+  // numeric item (`$c_$#5]`, `$4_$#5]`).
+  shapeModificationToken('shape.circle.interior-number-5', sourceCells('$c_$#5]'), ['3.9', '17.6.1'], '⑤', 'circle', 'interior-number-5', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$#5]' }),
+  shapeModificationToken('shape.square.interior-number-5', sourceCells('$4_$#5]'), ['3.9', '17.6.1'], '➄', 'square', 'interior-number-5', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$4_$#5]' }),
   shapeModificationToken('shape.circle.interior-plus', ['⠫', '⠉', '⠸', '⠫', '⠬', '⠻'], ['17.6.1'], '⨁', 'circle', 'interior-plus', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$+]' }),
   shapeModificationToken('shape.circle.interior-letter-a', sourceCells('$c_$,a]'), ['17.6.1'], 'Ⓐ', 'circle', 'interior-letter-a', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$c_$,a]' }),
   shapeModificationToken('shape.angle.interior-degree', sourceCells('$[_$#30^.*"]'), ['17.6.1'], '∠°', 'angle', 'interior-degree', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$[_$#30^.*"]' }),
@@ -4803,6 +4813,21 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       }
     }
   }
+  // After a numeric item, a pending comma (`⠠`) may continue into barred
+  // typeform (`⠠⠸…`). When the next cell completes indicated right quote
+  // (`⠸⠴` / `_0`), commit the list comma first and then the quote — as in
+  // Rule 8-25 `#3y,_0 '''`.
+  if (state.mode === null && state.prefix === '⠠⠸' && normalized === '⠴') {
+    const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.comma');
+    const quote = MAPPINGS.find((mapping) => mapping.id === 'punctuation.right-double-quote.indicated');
+    if (punctuation && quote) {
+      const comma = applyMapping(document, focus, { ...state, prefix: '' }, punctuation);
+      if (comma.status !== 'rejected') {
+        return applyMapping(document, comma.focus, { ...comma.inputState, prefix: '', mode: null }, quote);
+      }
+    }
+  }
+
   // Rule 23.17's double-struck capital (`,_,n`) uses the capital indicator
   // in place of the English-letter cell. Keep the barred typeform mode and
   // advance directly into the typeform capital state so the following letter

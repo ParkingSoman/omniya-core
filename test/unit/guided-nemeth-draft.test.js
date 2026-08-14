@@ -2106,6 +2106,39 @@ test('Rule 8.3 apostrophe-capital English letter is one identifier', () => {
   assert.equal(english.attrs['data-omniya-nemeth-cells'], '⠠⠄⠠⠚');
 });
 
+test('Rule 8-25 comma then indicated right quote after a numeric letter completes', () => {
+  const { document } = replayCells(sourceNotationToCells("#3y,_0 '''"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const quote = findFirst(tree, (node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-right-double-quote');
+  assert.ok(quote);
+  assert.equal(quote.attrs['data-omniya-nemeth-cells'], '⠸⠴');
+});
+
+test('Rule 3.9 numbers within circle and square complete as interior shapes', () => {
+  for (const source of ['$c_$#5]', '$4_$#5]']) {
+    const { document } = replayCells(sourceNotationToCells(source));
+    const tree = parseMathML(document.mathml);
+    const report = completionReport(tree);
+    assert.equal(report.complete, true, `${source} holes=${report.holes.map((hole) => hole.role).join(',')}`);
+    const shape = tree.children[0];
+    assert.equal(shape.attrs?.['data-omniya-shape-modification'], 'interior-number-5');
+    assert.match(shape.attrs?.['data-omniya-nemeth-cells'] ?? '', /⠼⠢/);
+  }
+});
+
+test('Rule 7.3.5 bold typeform scope stamps open and close cells', () => {
+  const { document } = replayCells(sourceNotationToCells(",'_ #59`0 _,'"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const scope = findFirst(tree, (node) => node.attrs?.['data-omniya-nemeth-intent'] === 'typeform-scope');
+  assert.ok(scope);
+  assert.equal(scope.attrs.mathvariant, 'bold');
+  assert.equal(scope.attrs['data-omniya-nemeth-cells'], '⠠⠄⠸|⠸⠠⠄');
+});
+
 function countNodes(node, name) {
   let count = node?.name === name ? 1 : 0;
   for (const child of node?.children ?? []) count += countNodes(child, name);
