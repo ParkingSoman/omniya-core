@@ -40,7 +40,7 @@ const elements = Object.fromEntries([
   'mode-panel', 'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions', 'open-add-button',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
-  'composer-form', 'composer-heading', 'composer-back',
+  'composer-form', 'composer-heading', 'composer-command', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
   'composer-help', 'composer-error', 'editing-indicator', 'composer-submit',
   'composer-discard', 'composer-cancel', 'replacement-dock', 'replacement-heading',
@@ -1225,14 +1225,6 @@ function handleComposerCommandKey(event) {
   const result = applyCommandKey(commandState, key);
   commandState = result.state;
   if (result.action === 'help') openContextualHelp();
-  if (result.action === 'cancel') {
-    if (replacementSession) {
-      void cancelReplacementEditor(findReplacementArticle());
-      return true;
-    }
-    returnToRead();
-    return true;
-  }
   if (result.action === 'submit') {
     if (replacementSession) {
       void replacementEditor?._replacementSubmitHandler?.();
@@ -1412,6 +1404,12 @@ elements['replacement-method'].addEventListener('change', () => {
     elements['replacement-method'].querySelectorAll('input').forEach((input) => { input.checked = input.value === replacementSession.method; });
     elements['replacement-status'].textContent = error.message;
   }
+});
+elements['composer-command'].addEventListener('click', () => {
+  if (mode !== 'add' && mode !== 'edit' && !replacementSession) return;
+  syncCommandContentEmpty();
+  commandState = enterCommand(commandState);
+  syncModePanel(commandState);
 });
 elements['composer-back'].addEventListener('click', () => returnToRead());
 elements['composer-discard'].addEventListener('click', () => returnToRead());
