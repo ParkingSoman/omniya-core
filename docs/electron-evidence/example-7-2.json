@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T20:05:27.175Z",
+  "startedAt": "2026-08-14T20:18:38.565Z",
   "filter": {
     "rule": null,
     "example": "7-2"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-dekwo6",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-qjbYzv",
   "cases": [
     {
       "id": "electron:bana-2022:example-7-2",
@@ -26,7 +26,7 @@
         "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-7-2/electron_bana-2022_example-7-2-input.png",
         "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
       },
-      "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('article.napkin-article').last().locator('mjx-speech[aria-braillelabel]') to be visible\n"
+      "error": "7-2 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-ccbeaa0b-41f8-4e32-b02b-5a4040ef5cb1\" data-semantic-structure=\"0\"><mi mathvariant=\"double-struck\" data-omniya-nemeth-intent=\"typeform-double-struck\" data-omniya-nemeth-cells=\"⠠⠸⠰⠠⠗\" data-omniya-=\"\" id=\"omniya-source-omniya-8a7f66e6-de96-4e13-b163-eaa3494cc4db\" data-semantic-type=\"identifier\" data-semantic-role=\"numbersetletter\" data-semantic-font=\"double-struck\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">R</mi></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-ccbeaa0b-41f8-4e32-b02b-5a4040ef5cb1\" data-semantic-structure=\"0\"><mi mathvariant=\"double-struck\" data-omniya-nemeth-intent=\"typeform-double-struck\" data-omniya-nemeth-cells=\"⠠⠸⠰⠠⠗\" data-omniya-=\"\" id=\"omniya-source-omniya-8a7f66e6-de96-4e13-b163-eaa3494cc4db\" data-semantic-type=\"identifier\" data-semantic-role=\"numbersetletter\" data-semantic-font=\"double-struck\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">R</mi></math>\n\n'⠈⠰⠠⠸⠰⠠⠗' !== '⠠⠸⠰⠠⠗'\n"
     }
   ]
 }
