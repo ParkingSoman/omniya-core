@@ -35,6 +35,23 @@ test('sequential Nemeth cells build a plain MathML row one token at a time', () 
   ]);
 });
 
+test('choice-only registry rows stay out of automatic matching but remain explicitly applicable', () => {
+  const entry = operationRegistry().find((candidate) => candidate.id === 'script.left-superscript');
+  assert.ok(entry, 'left-superscript choice row should be registered');
+  assert.equal(entry.choiceOnly, true);
+
+  let document = createEmptyDraftMathDocument();
+  let focus = focusOf(document);
+  const automatic = cell(document, focus, { prefix: '', mode: null }, entry.cells[0]);
+  assert.notEqual(automatic.status, 'choice', 'choice-only row must not create an automatic choice');
+  const contextual = cell(document, focus, automatic.inputState, '⠁');
+  assert.equal(contextual.status, 'choice');
+  assert.ok(contextual.choices.some((choice) => choice.operationId === entry.id));
+  const explicit = applyNemethChoice({ document, focus, inputState: contextual.inputState, operationId: entry.id });
+  assert.equal(explicit.status, 'applied');
+  assert.match(explicit.document.mathml, /mmultiscripts/);
+});
+
 test('a function code terminates numeric mode without merging into the number', () => {
   let document = createEmptyDraftMathDocument();
   let focus = focusOf(document);

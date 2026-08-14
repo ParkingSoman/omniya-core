@@ -1694,6 +1694,14 @@ const MAPPINGS = [
     commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
     args: { direction: 'sub', sourceNotation: ';' }
   },
+  {
+    id: 'script.left-superscript', cells: ['⠘'], banaRefs: ['14.5.2'], action: 'open-left-script',
+    // Rule 14.5.2 shares the ordinary superscript indicator. It is available
+    // only when the author explicitly chooses the prescript interpretation.
+    choiceOnly: true,
+    commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+    args: { direction: 'sup', sourceNotation: '~', preferLonger: true }
+  },
   sourceOpen('script.sup-sub', ['⠘', '⠰'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'superscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, '~;'),
   sourceOpen('script.sub-sup', ['⠰', '⠘'], ['14.4.2'], 'msubsup', ['base', 'subscript', 'superscript'], {}, 'subscript', true, LOCAL_COMMIT_POLICIES.IMMEDIATE, ';~'),
   // Rules 14.4.2–14.4.3 are represented as bounded local chains. Each row
@@ -2388,16 +2396,20 @@ const MAPPINGS = [
 // lookahead so the longer BANA row can be completed before any tree mutation.
 // Enter can still commit the short sign. This is bounded registry dispatch,
 // never an expression parser or an unrestricted input buffer.
-for (const mapping of MAPPINGS) {
+// Choice-only rows remain in the declarative registry for operation lookup and
+// explicit application, but never participate in automatic dispatch.
+const MATCHABLE_MAPPINGS = MAPPINGS.filter((mapping) => !mapping.choiceOnly);
+
+for (const mapping of MATCHABLE_MAPPINGS) {
   if (mapping.commitPolicy !== LOCAL_COMMIT_POLICIES.IMMEDIATE) continue;
   // `$o` is complete even though the same cells can be used by the separate
   // Rule 15.12 modifier construction. Context filtering resolves that
   // structural alternative; do not hold the ordinary arrow itself.
-  const hasSameCodeAtomic = MAPPINGS.some((candidate) =>
+  const hasSameCodeAtomic = MATCHABLE_MAPPINGS.some((candidate) =>
     candidate.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     candidate.cells.length === mapping.cells.length &&
     candidate.cells.every((cell, index) => cell === mapping.cells[index]));
-  const hasAtomicContinuation = MAPPINGS.some((candidate) =>
+  const hasAtomicContinuation = MATCHABLE_MAPPINGS.some((candidate) =>
     candidate.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     candidate.cells.length > mapping.cells.length &&
     mapping.cells.every((cell, index) => cell === candidate.cells[index]));
@@ -2407,7 +2419,7 @@ for (const mapping of MAPPINGS) {
 }
 
 const PREFIXES = new Map();
-for (const mapping of MAPPINGS) {
+for (const mapping of MATCHABLE_MAPPINGS) {
   const sequence = mapping.cells.join('');
   for (let length = 1; length <= sequence.length; length += 1) {
     const prefix = sequence.slice(0, length);
@@ -2454,12 +2466,13 @@ export function inputRegistry() {
  */
 export function registryDiagnostics() {
   const entries = operationRegistry();
+  const matchableEntries = entries.filter((entry) => !entry.choiceOnly);
   const policies = new Set(Object.values(LOCAL_COMMIT_POLICIES));
-  const immediate = entries.filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE);
-  const hasLonger = (entry) => entries.some((candidate) => candidate.cells.length > entry.cells.length &&
+  const immediate = matchableEntries.filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE);
+  const hasLonger = (entry) => matchableEntries.some((candidate) => candidate.cells.length > entry.cells.length &&
     entry.cells.every((cell, index) => cell === candidate.cells[index]));
   const shadowedAtomic = entries
-    .filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE)
+    .filter((entry) => entry.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE && !entry.choiceOnly)
     .flatMap((entry) => immediate
       .filter((prefix) => entry.cells.length > prefix.cells.length &&
         prefix.cells.every((cell, index) => cell === entry.cells[index]))
@@ -2701,7 +2714,7 @@ function resolveModifierAmbiguity(mappings, modeValue) {
 
 function hasAtomicContinuation(prefix, nextCell, context) {
   const candidatePrefix = `${prefix}${nextCell}`;
-  return MAPPINGS.some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
+  return MATCHABLE_MAPPINGS.some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     mapping.cells.length > candidatePrefix.length &&
     mapping.cells.slice(0, candidatePrefix.length).join('') === candidatePrefix &&
     mappingApplies(mapping, context));
@@ -2709,7 +2722,7 @@ function hasAtomicContinuation(prefix, nextCell, context) {
 
 function hasApplicableContinuation(prefix, nextCell, context) {
   const candidatePrefix = `${prefix}${nextCell}`;
-  return MAPPINGS.some((mapping) => mapping.cells.length > candidatePrefix.length &&
+  return MATCHABLE_MAPPINGS.some((mapping) => mapping.cells.length > candidatePrefix.length &&
     mapping.cells.slice(0, candidatePrefix.length).join('') === candidatePrefix &&
     mappingApplies(mapping, context));
 }
@@ -3056,6 +3069,15 @@ export function applyNemethChoice({ document, focus, inputState = { prefix: '', 
     }
     return next;
   }
+  if (mapping.id === 'script.left-superscript' && prefix.startsWith(mappingPrefix) && prefix.length > mappingPrefix.length) {
+    const suffix = [...prefix.slice(mappingPrefix.length)];
+    let next = applyMapping(document, focus, { ...inputState, prefix: '' }, mapping);
+    for (const suffixCell of suffix) {
+      next = applyNemethCell({ document: next.document, focus: next.focus, inputState: next.inputState, cell: suffixCell });
+      if (next.status !== 'applied' && next.status !== 'pending') break;
+    }
+    return next;
+  }
   const applied = applyMapping(document, focus, { ...inputState, prefix: '' }, mapping);
   if (applied.status === 'rejected') return applied;
   // Rules 24.1.i and 24.1.k keep a one-symbol follow-up active after the
@@ -3152,6 +3174,18 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+  if (state.mode === null && state.prefix === '⠘' && LETTERS.has(normalized) &&
+    (context.node.name === 'math' || isHole(context.node))) {
+    const superscript = MATCHABLE_MAPPINGS.find((mapping) => mapping.id === 'script.superscript');
+    const leftSuperscript = MAPPINGS.find((mapping) => mapping.id === 'script.left-superscript');
+    return {
+      status: 'choice',
+      choices: [superscript, leftSuperscript].filter(Boolean).map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+      document, focus,
+      inputState: { ...state, prefix: sequence },
+      announcement: 'This local Nemeth prefix can begin a superscript or a left-superscript construction. Choose its meaning.'
+    };
+  }
   const inScript = Boolean(hasAncestor(context.tree, context.node,
     ['msup', 'msub', 'msubsup', 'mmultiscripts']));
   const inSimpleSubscript = Boolean(hasAncestor(context.tree, context.node, 'msub')) &&
@@ -3206,7 +3240,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const localSequence = `${state.prefix}${normalized}`;
     const localCandidates = (PREFIXES.get(localSequence)?.mappings ?? [])
       .filter((mapping) => mappingApplies(mapping, context));
-    const localContinues = [...MAPPINGS].some((mapping) =>
+    const localContinues = MATCHABLE_MAPPINGS.some((mapping) =>
       mapping.cells.join('').startsWith(localSequence) && mapping.cells.length > localSequence.length &&
       mappingApplies(mapping, context));
     // Once the next cell cannot extend the held code, commit the completed
@@ -3695,7 +3729,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const exactImmediate = (PREFIXES.get(sequence)?.mappings ?? [])
     .some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE &&
       !mapping.args?.deferForAtomicContinuation && mappingApplies(mapping, context));
-  const atomicContinuation = state.mode === null && !existingComparison && !exactImmediate && MAPPINGS.some((mapping) =>
+  const atomicContinuation = state.mode === null && !existingComparison && !exactImmediate && MATCHABLE_MAPPINGS.some((mapping) =>
     mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     mapping.cells.length > sequence.length &&
     mapping.cells.slice(0, sequence.length).join('') === sequence &&
@@ -4066,7 +4100,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     // (`#1_4`). It shares its first cell with the tally symbol, so hold the
     // bounded punctuation prefix before the generic registry can commit the
     // tally meaning. This is one local code, never a passage parser.
-    if (normalized === '⠸' && MAPPINGS.some((mapping) => mapping.id === 'punctuation.period' && mappingApplies(mapping, context))) {
+    if (normalized === '⠸' && MATCHABLE_MAPPINGS.some((mapping) => mapping.id === 'punctuation.period' && mappingApplies(mapping, context))) {
       return { status: 'pending', document, focus, inputState: { ...state, prefix: '⠸' }, announcement: 'Nemeth punctuation period pending.' };
     }
     if (FUNCTION_INITIAL_CELLS.has(normalized) && BANA_FUNCTION_MAPPINGS.some((mapping) =>
@@ -4106,7 +4140,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       };
     }
     if (normalized === '⠨') {
-      const nonnumericContinuation = MAPPINGS.some((mapping) =>
+      const nonnumericContinuation = MATCHABLE_MAPPINGS.some((mapping) =>
         mapping.cells.length > 1 && mapping.cells[0] === '⠨' &&
         mapping.id.startsWith('greek.') &&
         mappingApplies(mapping, context));
@@ -4356,7 +4390,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       { ...state, mode: null, modifierScope: null }, apostrophe);
   }
   if (state.mode === 'numeric' && !state.prefix && normalized === '⠣' && context.node.name === 'mn') {
-    const cubePrefix = MAPPINGS.some((candidate) => candidate.id === 'radical.cube');
+    const cubePrefix = MATCHABLE_MAPPINGS.some((candidate) => candidate.id === 'radical.cube');
     if (cubePrefix) return { status: 'pending', document, focus,
       inputState: { ...state, prefix: '⠣', mode: null }, announcement: 'Indexed radical code pending.' };
     const bar = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');
