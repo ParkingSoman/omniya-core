@@ -914,6 +914,35 @@ test('Rule 14.8.7 subscript equals after a blank restores the level indicator', 
   assert.equal(applyNemethSourceIntentToBraille('⠮⠰⠥⠀⠨⠅⠀⠁', source), '⠮⠰⠥⠀⠰⠨⠅⠀⠁');
 });
 
+test('Rule 14.9.5 levelled comparisons keep stamped sub/sup equals beside baseline equals', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mi data-omniya-nemeth-cells="⠞">t</mi>
+      <msub>
+        <mo data-omniya-nemeth-cells="⠈⠾">]</mo>
+        <mrow>
+          <mi>t</mi>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mo data-omniya-nemeth-intent="level-preserved-equals" data-omniya-nemeth-cells="⠰⠨⠅">=</mo>
+          <msup><mi>a</mi><mi>t</mi></msup>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mo data-omniya-nemeth-intent="level-preserved-equals" data-omniya-nemeth-cells="⠘⠨⠅">=</mo>
+          <mi>b</mi>
+        </mrow>
+      </msub>
+      <mo data-omniya-nemeth-cells="⠨⠅">=</mo>
+      <mi>b</mi>
+      <mo>−</mo>
+      <mi>a</mi>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠞⠈⠾⠰⠞⠀⠰⠨⠅⠀⠁⠘⠞⠀⠘⠨⠅⠀⠃⠀⠨⠅⠀⠃⠤⠁', source),
+    '⠞⠈⠾⠰⠞⠀⠰⠨⠅⠀⠁⠘⠞⠀⠘⠨⠅⠀⠃⠀⠨⠅⠀⠃⠤⠁'
+  );
+});
+
 test('Rule 14.8 English-letter after a subscript blank restores the indicator', () => {
   const source = new DOMParser().parseFromString(
     '<math><msub><mo data-omniya-shape-kind="triangle" data-omniya-nemeth-cells="⠫⠞">△</mo><mrow><mi>regular</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠏">p</mi><mi>olygon</mi></mrow></msub></math>',

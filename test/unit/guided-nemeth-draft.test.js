@@ -564,7 +564,9 @@ test('Rule 14.9.5 levelled comparisons keep sub/sup equals then baseline equals'
   assert.equal(tree.children[0].children[0].text, 't');
   assert.equal(tree.children[1].name, 'msub');
   const subSlot = tree.children[1].children[1];
-  const slotChildren = subSlot.name === 'mrow' ? subSlot.children : [subSlot];
+  const slotChildren = subSlot.name === 'mrow' ? subSlot.children.flatMap((node) => (
+    node.name === 'mrow' ? node.children : [node]
+  )) : [subSlot];
   const subEquals = slotChildren.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'level-preserved-equals'
     && node.attrs?.['data-omniya-nemeth-cells'] === '⠰⠨⠅');
   assert.ok(subEquals, 'subscript-level equals stays inside the bracket subscript');

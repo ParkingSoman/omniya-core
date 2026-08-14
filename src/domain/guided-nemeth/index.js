@@ -5061,9 +5061,13 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     };
   }
   // Same rule with the superscript indicator: after a blank that left a
-  // completed msup (`a~t ~.k`), preserve superscript level for the comparison
-  // instead of opening a fresh left/right superscript.
+  // completed msup inside an outer subscript (`a~t ~.k` in 14-112), preserve
+  // superscript level for the comparison instead of opening a fresh
+  // left/right superscript. Require the outer subscript so baseline
+  // constructions such as Rule 24.7 right-then-left scripts still open
+  // `mmultiscripts`.
   if (state.mode === null && !state.prefix && normalized === '⠘'
+    && inSimpleSubscript
     && priorCompletedScriptSibling(context.tree, context.node, 'msup')) {
     return {
       status: 'pending', document, focus,

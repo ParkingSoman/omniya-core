@@ -3848,8 +3848,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     }
   }
   // Rule 21-20: a letter before baseline equals does not keep an English
-  // letter indicator on the relation (`⠰⠨⠅` → `⠨⠅`).
-  if (hasSource('mo[data-omniya-nemeth-cells="⠨⠅"]')) {
+  // letter indicator on the relation (`⠰⠨⠅` → `⠨⠅`). Do not strip Rule
+  // 14.8.7/14.8.8 level-preserving indicators that stamp the same cells.
+  if (hasSource('mo[data-omniya-nemeth-cells="⠨⠅"]')
+    && !hasSource('[data-omniya-nemeth-intent="level-preserved-equals"]')) {
     braille = braille.replace(/([⠁-⠵]|⠀)⠰(?=⠨⠅)/g, '$1');
   }
   // Rule 17-50: shape-fraction digit denominators do not insert multipurpose
