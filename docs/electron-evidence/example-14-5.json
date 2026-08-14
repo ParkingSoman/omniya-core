@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T15:26:14.340Z",
+  "filter": {
+    "rule": null,
+    "example": "14-5"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-xw11Mv",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-14-5",
+      "sourceRows": [
+        "example-14-5",
+        "14.4.1"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-14-5/electron_bana-2022_example-14-5-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Replacement draft is incomplete at superscript.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-cc11eb87-254b-4393-b5f3-0200220167aa\\\" data-semantic-structure=\\\"0\\\"><msup data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-b4d1b80d-fec4-436f-b09d-1ed698c197da\\\"><mi data-omniya-nemeth-cells=\\\"⠭\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-1a9260cc-0348-4890-bc45-9e3224093343\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"empty:MSUP;clearspeak:simple;nemeth:number;depth:1\\\" data-semantic-id=\\\"0\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\">x</mi><mrow data-omniya-=\\\"\\\" data-omniya-hole=\\\"true\\\" data-omniya-owner=\\\"omniya-b4d1b80d-fec4-436f-b09d-1ed698c197da\\\" data-omniya-role=\\\"superscript\\\" id=\\\"omniya-source-omniya-cc387de3-5ea3-40a7-b216-34fb79ac3900\\\"><mspace width=\\\"1em\\\"></mspace></mrow></msup></math>\"}"
+    }
+  ]
+}
