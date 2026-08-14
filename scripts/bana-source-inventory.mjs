@@ -173,6 +173,23 @@ if (durableDisposition) durableDisposition.disposition = 'approved-context-polic
 // prose-aware corpus workflow.
 const rule14Example1 = rows.find((row) => row.id === 'bana-2022:example-14-1');
 if (rule14Example1) rule14Example1.disposition = 'approved-context-policy';
+const rule14Batch = {
+  'example-14-3': ['script.superscript'],
+  'example-14-4': ['script.superscript'],
+  'example-14-5': ['script.superscript'],
+  'example-14-6': ['script.superscript'],
+  'example-14-7': ['script.subscript'],
+  'example-14-8': ['script.subscript'],
+  'example-14-9': ['script.superscript'],
+  'example-14-10': ['script.sup-sub'],
+  'example-14-11': ['script.sub-sup']
+};
+for (const [suffix, mappingIds] of Object.entries(rule14Batch)) {
+  const row = rows.find((entry) => entry.id === `bana-2022:${suffix}`);
+  if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
+}
+const rule14Example2 = rows.find((row) => row.id === 'bana-2022:example-14-2');
+if (rule14Example2) rule14Example2.disposition = 'approved-context-policy';
 const result = {
   schemaVersion: 1,
   source: {
