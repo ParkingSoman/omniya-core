@@ -1734,6 +1734,9 @@ const MAPPINGS = [
   mode('typeform.script.number', ['⠈', '⠼'], ['7.1', '7.2'], 'numeric:script', true, '`#'),
   mode('typeform.barred.number', ['⠠', '⠸', '⠼'], ['7.1', '7.2'], 'numeric:double-struck', true, ',_#'),
   mode('typeform.terminate', ['⠠', '⠄'], ['7.1', '7.3'], 'typeform-end', false, ",'"),
+  mode('switch.ueb-passage.open', sourceCells('_%'), ['4.1', '4.2'], 'ueb-passage', true, '_%'),
+  mode('switch.ueb-passage.close', sourceCells('_:'), ['4.1', '4.2'], 'typeform-end', false, '_:'),
+  mode('switch.ueb-word', sourceCells(",'") , ['4.1', '4.2'], 'ueb-word', true, ",'"),
   // BANA 7.3.4–7.3.5: multi-word or mathematical-expression typeforms use
   // explicit opening/closing indicators. These are bounded scope operations,
   // not phrase parsing. The October 2025 erratum corrects the bold Example
