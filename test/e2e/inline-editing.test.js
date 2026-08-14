@@ -40,6 +40,42 @@ async function commitDraft(page, source, method = 'latex') {
   return article;
 }
 
+test('Replace button and Enter share one guarded submit transaction', { timeout: 60_000 }, async (t) => {
+  const run = async (mode) => {
+    const { app, page } = await launch(`omniya-submit-parity-${mode}-`);
+    const article = await addBlankEquation(page);
+    await chooseMethod(page, 'Nemeth');
+    const input = page.getByLabel('Replacement input', { exact: true });
+    await input.fill('⠭');
+    if (mode === 'enter') await input.press('Enter');
+    else await page.getByRole('button', { name: 'Replace' }).click();
+    await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+    const snapshot = await page.evaluate(() => ({
+      dockHidden: document.querySelector('#replacement-dock').hidden,
+      mathml: document.querySelector('article.napkin-article:last-of-type math')?.outerHTML,
+    }));
+    await app.close();
+    return { snapshot };
+  };
+  t.after(() => {});
+  const enter = await run('enter');
+  const button = await run('button');
+  assert.equal(enter.snapshot.dockHidden, true);
+  assert.equal(button.snapshot.dockHidden, true);
+  assert.equal(enter.snapshot.mathml, button.snapshot.mathml);
+});
+
+test('invalid replacement remains open and does not mutate the source', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-submit-invalid-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const before = await article.locator('math').evaluate((node) => node.outerHTML);
+  await page.getByRole('button', { name: 'Replace' }).click();
+  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
+  assert.match(await page.locator('#replacement-status').textContent(), /empty|incomplete/i);
+  assert.equal(await article.locator('math').evaluate((node) => node.outerHTML), before);
+});
+
 test('new equations use the same empty Nemeth replacement draft and commit once', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch();
   t.after(() => app.close().catch(() => {}));
