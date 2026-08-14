@@ -16,9 +16,9 @@
     "examples": 1229,
     "errata": 42,
     "errataInScope": 5,
-    "mappedRows": 1117,
-    "electronCreationRows": 619,
-    "electronEditingRows": 614,
+    "mappedRows": 1134,
+    "electronCreationRows": 636,
+    "electronEditingRows": 631,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -27002,7 +27002,8 @@
         "letter.x",
         "letter.y",
         "letter.z",
-        "misc.and"
+        "misc.and",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:letter.a",
@@ -27031,7 +27032,8 @@
         "registry:letter.x",
         "registry:letter.y",
         "registry:letter.z",
-        "registry:misc.and"
+        "registry:misc.and",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-6-26",
@@ -27151,7 +27153,8 @@
         "letter.x",
         "letter.y",
         "letter.z",
-        "misc.and"
+        "misc.and",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:letter.a",
@@ -27180,7 +27183,8 @@
         "registry:letter.x",
         "registry:letter.y",
         "registry:letter.z",
-        "registry:misc.and"
+        "registry:misc.and",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-6-26"
@@ -27311,7 +27315,8 @@
         "letter.x",
         "letter.y",
         "letter.z",
-        "misc.and"
+        "misc.and",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:letter.a",
@@ -27340,7 +27345,8 @@
         "registry:letter.x",
         "registry:letter.y",
         "registry:letter.z",
-        "registry:misc.and"
+        "registry:misc.and",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-6-27"
@@ -33935,7 +33941,10 @@
         "punctuation.left-single-quote",
         "punctuation.right-single-quote",
         "punctuation.left-double-quote",
-        "punctuation.right-double-quote"
+        "punctuation.right-double-quote",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "punctuation.literary-period"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -33947,7 +33956,10 @@
         "registry:punctuation.left-single-quote",
         "registry:punctuation.right-single-quote",
         "registry:punctuation.left-double-quote",
-        "registry:punctuation.right-double-quote"
+        "registry:punctuation.right-double-quote",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:punctuation.literary-period"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -33998,7 +34010,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34006,7 +34021,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -34057,7 +34075,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34065,7 +34086,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-2",
@@ -34163,7 +34187,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34171,7 +34198,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -34236,7 +34266,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34244,7 +34277,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-2"
@@ -34354,7 +34390,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34362,7 +34401,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-3"
@@ -34471,7 +34513,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34479,7 +34524,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-4",
@@ -34577,7 +34625,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34585,7 +34636,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-4"
@@ -34694,7 +34748,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34702,7 +34759,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-5"
@@ -34811,7 +34871,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34819,7 +34882,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-6"
@@ -34914,7 +34980,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -34922,7 +34991,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-6"
@@ -35031,7 +35103,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35039,7 +35114,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-7"
@@ -35134,7 +35212,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35142,7 +35223,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-7"
@@ -35251,7 +35335,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35259,7 +35346,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -35325,7 +35415,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35333,7 +35426,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-9"
@@ -35428,7 +35524,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35436,7 +35535,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-9"
@@ -35550,7 +35652,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35558,7 +35663,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-10"
@@ -35653,7 +35761,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35661,7 +35772,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-10"
@@ -35770,7 +35884,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35778,7 +35895,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-11",
@@ -35876,7 +35996,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -35884,7 +36007,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-11"
@@ -35993,7 +36119,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36001,7 +36130,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-12"
@@ -36110,7 +36242,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36118,7 +36253,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-13"
@@ -36213,7 +36351,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36221,7 +36362,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-13"
@@ -36330,7 +36474,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36338,7 +36485,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-14"
@@ -36433,7 +36583,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36441,7 +36594,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-14"
@@ -36550,7 +36706,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36558,7 +36717,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -36609,7 +36771,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36617,7 +36782,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -36682,7 +36850,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36690,7 +36861,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -36741,7 +36915,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36749,7 +36926,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -36814,7 +36994,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36822,7 +37005,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-17",
@@ -36920,7 +37106,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -36928,7 +37117,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-17"
@@ -37037,7 +37229,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37045,7 +37240,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-18"
@@ -37154,7 +37352,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37162,7 +37363,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -37228,7 +37432,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37236,7 +37443,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-21"
@@ -37331,7 +37541,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37339,7 +37552,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -37404,7 +37620,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37412,7 +37631,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-21"
@@ -37521,7 +37743,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37529,7 +37754,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-22"
@@ -37624,7 +37852,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37632,7 +37863,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-22"
@@ -37741,7 +37975,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37749,7 +37986,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-23"
@@ -37844,7 +38084,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37852,7 +38095,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-23"
@@ -37962,7 +38208,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -37970,7 +38219,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -38036,7 +38288,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -38044,7 +38299,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-25"
@@ -38139,7 +38397,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -38147,7 +38408,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-25"
@@ -38256,7 +38520,10 @@
         "punctuation.colon",
         "punctuation.semicolon",
         "punctuation.question",
-        "punctuation.exclamation"
+        "punctuation.exclamation",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "misc.or"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -38264,7 +38531,10 @@
         "registry:punctuation.colon",
         "registry:punctuation.semicolon",
         "registry:punctuation.question",
-        "registry:punctuation.exclamation"
+        "registry:punctuation.exclamation",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:misc.or"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -38321,10 +38591,14 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 465,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -38366,10 +38640,14 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 466,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-27"
       ],
@@ -38456,10 +38734,14 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 467,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-27"
       ],
@@ -38560,10 +38842,14 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 468,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-28",
         "electron:bana-2022:example-8-30"
@@ -38653,10 +38939,14 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 469,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-28"
       ],
@@ -38757,10 +39047,14 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 470,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -38817,10 +39111,14 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 471,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-8-30"
       ],
@@ -38921,10 +39219,14 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 472,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -38981,10 +39283,14 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 473,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -39041,10 +39347,14 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 474,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -39101,10 +39411,14 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 475,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -39147,10 +39461,14 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 476,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -39207,10 +39525,14 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 477,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -39267,10 +39589,14 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 478,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -39327,10 +39653,14 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 479,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -39387,10 +39717,14 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 480,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -39433,10 +39767,14 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 481,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "punctuation.literary-period"
+      ],
+      "unitCaseIds": [
+        "registry:punctuation.literary-period"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -105972,13 +106310,16 @@
         "registry:comparison.identical"
       ],
       "electronCreationCaseIds": [
-        "electron:bana-2022:example-21-11"
+        "electron:bana-2022:example-21-11",
+        "electron:bana-2022:example-21-12"
       ],
       "electronEditingCaseIds": [
-        "electron:bana-2022:example-21-11"
+        "electron:bana-2022:example-21-11",
+        "electron:bana-2022:example-21-12"
       ],
       "navigationCaseIds": [
-        "electron:bana-2022:example-21-11"
+        "electron:bana-2022:example-21-11",
+        "electron:bana-2022:example-21-12"
       ],
       "errataRefs": [],
       "verified": {
@@ -106169,22 +106510,28 @@
         "registry:misc.not-identical",
         "registry:comparison.identical"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-21-12"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-21-12"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-21-12"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:21.3",
@@ -106200,6 +106547,43 @@
         "expectedWholeBraille": "#2 _l #5(mod #3)",
         "sourceNotation": "#2 _l #5(mod #3)",
         "brailleCells": "⠼⠆⠀⠸⠇⠀⠼⠢⠷⠍⠕⠙⠀⠼⠒⠾"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-21-12",
+        "sourceRows": [
+          "example-21-12"
+        ],
+        "rule": "21",
+        "example": "21-12",
+        "artifact": "electron-evidence/example-21-12.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 21-12; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-21-12/input.png",
+              "claim": "The complete Nemeth draft for example 21-12 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-21-12/committed.png",
+              "claim": "The committed expression for example 21-12 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-21-12/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 21-12."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-21-12/editing.png",
+              "claim": "The exact-node replacement for example 21-12 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -122117,13 +122501,31 @@
         "registry:misc.triple-prime"
       ],
       "electronCreationCaseIds": [
-        "electron:bana-2022:example-23-34"
+        "electron:bana-2022:example-23-34",
+        "electron:bana-2022:example-23-35",
+        "electron:bana-2022:example-23-36",
+        "electron:bana-2022:example-23-37",
+        "electron:bana-2022:example-23-38",
+        "electron:bana-2022:example-23-40",
+        "electron:bana-2022:example-23-42"
       ],
       "electronEditingCaseIds": [
-        "electron:bana-2022:example-23-34"
+        "electron:bana-2022:example-23-34",
+        "electron:bana-2022:example-23-35",
+        "electron:bana-2022:example-23-36",
+        "electron:bana-2022:example-23-37",
+        "electron:bana-2022:example-23-38",
+        "electron:bana-2022:example-23-40",
+        "electron:bana-2022:example-23-42"
       ],
       "navigationCaseIds": [
-        "electron:bana-2022:example-23-34"
+        "electron:bana-2022:example-23-34",
+        "electron:bana-2022:example-23-35",
+        "electron:bana-2022:example-23-36",
+        "electron:bana-2022:example-23-37",
+        "electron:bana-2022:example-23-38",
+        "electron:bana-2022:example-23-40",
+        "electron:bana-2022:example-23-42"
       ],
       "errataRefs": [],
       "verified": {
@@ -122141,39 +122543,39 @@
       },
       "transcriberReview": "pending",
       "visualEvidence": {
-        "id": "electron:bana-2022:example-23-34",
+        "id": "electron:bana-2022:example-23-42",
         "sourceRows": [
-          "example-23-34",
+          "example-23-42",
           "23.16"
         ],
         "rule": "23",
-        "example": "23-34",
-        "artifact": "electron-evidence/example-23-34.json",
+        "example": "23-42",
+        "artifact": "electron-evidence/example-23-42.json",
         "review": {
           "reviewer": "evidence-steward",
-          "conclusion": "Accepted all four real Electron phases for example 23-34; geometry contract passed in-runner and screenshots are non-empty."
+          "conclusion": "Accepted all four real Electron phases for example 23-42; geometry contract passed in-runner and screenshots are non-empty."
         },
         "evidenceSet": {
           "screenshots": [
             {
               "phase": "input",
-              "path": "electron-screenshots/rule-23-34/input.png",
-              "claim": "The complete Nemeth draft for example 23-34 is visible before submission."
+              "path": "electron-screenshots/rule-23-42/input.png",
+              "claim": "The complete Nemeth draft for example 23-42 is visible before submission."
             },
             {
               "phase": "committed",
-              "path": "electron-screenshots/rule-23-34/committed.png",
-              "claim": "The committed expression for example 23-34 is visibly rendered as one canonical MathML tree."
+              "path": "electron-screenshots/rule-23-42/committed.png",
+              "claim": "The committed expression for example 23-42 is visibly rendered as one canonical MathML tree."
             },
             {
               "phase": "focused",
-              "path": "electron-screenshots/rule-23-34/focused.png",
-              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-34."
+              "path": "electron-screenshots/rule-23-42/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-42."
             },
             {
               "phase": "editing",
-              "path": "electron-screenshots/rule-23-34/editing.png",
-              "claim": "The exact-node replacement for example 23-34 remains visibly integrated with the surrounding expression."
+              "path": "electron-screenshots/rule-23-42/editing.png",
+              "claim": "The exact-node replacement for example 23-42 remains visibly integrated with the surrounding expression."
             }
           ]
         }
@@ -122318,22 +122720,28 @@
         "registry:misc.double-prime",
         "registry:misc.triple-prime"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-35"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-35"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-35"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.16",
@@ -122349,6 +122757,44 @@
         "expectedWholeBraille": "x''",
         "sourceNotation": "x''",
         "brailleCells": "⠭⠄⠄"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-35",
+        "sourceRows": [
+          "example-23-35",
+          "23.16"
+        ],
+        "rule": "23",
+        "example": "23-35",
+        "artifact": "electron-evidence/example-23-35.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-35; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-35/input.png",
+              "claim": "The complete Nemeth draft for example 23-35 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-35/committed.png",
+              "claim": "The committed expression for example 23-35 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-35/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-35."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-35/editing.png",
+              "claim": "The exact-node replacement for example 23-35 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -122382,22 +122828,28 @@
         "registry:misc.double-prime",
         "registry:misc.triple-prime"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-36"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-36"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-36"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.16",
@@ -122413,6 +122865,44 @@
         "expectedWholeBraille": "x'''",
         "sourceNotation": "x'''",
         "brailleCells": "⠭⠄⠄⠄"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-36",
+        "sourceRows": [
+          "example-23-36",
+          "23.16"
+        ],
+        "rule": "23",
+        "example": "23-36",
+        "artifact": "electron-evidence/example-23-36.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-36; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-36/input.png",
+              "claim": "The complete Nemeth draft for example 23-36 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-36/committed.png",
+              "claim": "The committed expression for example 23-36 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-36/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-36."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-36/editing.png",
+              "claim": "The exact-node replacement for example 23-36 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -122446,22 +122936,28 @@
         "registry:misc.double-prime",
         "registry:misc.triple-prime"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-37"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-37"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-37"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.16",
@@ -122477,6 +122973,44 @@
         "expectedWholeBraille": "x'~2",
         "sourceNotation": "x'~2",
         "brailleCells": "⠭⠄⠘⠆"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-37",
+        "sourceRows": [
+          "example-23-37",
+          "23.16"
+        ],
+        "rule": "23",
+        "example": "23-37",
+        "artifact": "electron-evidence/example-23-37.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-37; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-37/input.png",
+              "claim": "The complete Nemeth draft for example 23-37 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-37/committed.png",
+              "claim": "The committed expression for example 23-37 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-37/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-37."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-37/editing.png",
+              "claim": "The exact-node replacement for example 23-37 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -122510,22 +123044,28 @@
         "registry:misc.double-prime",
         "registry:misc.triple-prime"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-38"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-38"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-38"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.16",
@@ -122541,6 +123081,44 @@
         "expectedWholeBraille": "x';i",
         "sourceNotation": "x';i",
         "brailleCells": "⠭⠄⠰⠊"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-38",
+        "sourceRows": [
+          "example-23-38",
+          "23.16"
+        ],
+        "rule": "23",
+        "example": "23-38",
+        "artifact": "electron-evidence/example-23-38.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-38; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-38/input.png",
+              "claim": "The complete Nemeth draft for example 23-38 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-38/committed.png",
+              "claim": "The committed expression for example 23-38 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-38/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-38."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-38/editing.png",
+              "claim": "The exact-node replacement for example 23-38 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -122638,22 +123216,28 @@
         "registry:misc.double-prime",
         "registry:misc.triple-prime"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-40"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-40"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-40"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.16",
@@ -122669,6 +123253,44 @@
         "expectedWholeBraille": "(u+v)' .k u'+v'",
         "sourceNotation": "(u+v)' .k u'+v'",
         "brailleCells": "⠷⠥⠬⠧⠾⠄⠀⠨⠅⠀⠥⠄⠬⠧⠄"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-40",
+        "sourceRows": [
+          "example-23-40",
+          "23.16"
+        ],
+        "rule": "23",
+        "example": "23-40",
+        "artifact": "electron-evidence/example-23-40.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-40; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-40/input.png",
+              "claim": "The complete Nemeth draft for example 23-40 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-40/committed.png",
+              "claim": "The committed expression for example 23-40 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-40/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-40."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-40/editing.png",
+              "claim": "The exact-node replacement for example 23-40 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -122766,22 +123388,28 @@
         "registry:misc.double-prime",
         "registry:misc.triple-prime"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-42"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-42"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-42"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.16",
@@ -122797,6 +123425,44 @@
         "expectedWholeBraille": "#5'8''",
         "sourceNotation": "#5'8''",
         "brailleCells": "⠼⠢⠄⠦⠄⠄"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-42",
+        "sourceRows": [
+          "example-23-42",
+          "23.16"
+        ],
+        "rule": "23",
+        "example": "23-42",
+        "artifact": "electron-evidence/example-23-42.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-42; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-42/input.png",
+              "claim": "The complete Nemeth draft for example 23-42 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-42/committed.png",
+              "claim": "The committed expression for example 23-42 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-42/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-42."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-42/editing.png",
+              "claim": "The exact-node replacement for example 23-42 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -122896,24 +123562,74 @@
         "registry:quantifier.exists-unique",
         "registry:quantifier.not-exists"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-44",
+        "electron:bana-2022:example-23-46",
+        "electron:bana-2022:example-23-47"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-44",
+        "electron:bana-2022:example-23-46",
+        "electron:bana-2022:example-23-47"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-44",
+        "electron:bana-2022:example-23-46",
+        "electron:bana-2022:example-23-47"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-47",
+        "sourceRows": [
+          "example-23-47",
+          "23.17"
+        ],
+        "rule": "23",
+        "example": "23-47",
+        "artifact": "electron-evidence/example-23-47.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-47; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-47/input.png",
+              "claim": "The complete Nemeth draft for example 23-47 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-47/committed.png",
+              "claim": "The committed expression for example 23-47 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-47/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-47."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-47/editing.png",
+              "claim": "The exact-node replacement for example 23-47 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
+      },
       "evidenceScope": "equation-workflow",
       "humanReview": {
         "transcriber": {
@@ -122948,22 +123664,28 @@
         "registry:quantifier.exists-unique",
         "registry:quantifier.not-exists"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-44"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-44"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-44"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.17",
@@ -122979,6 +123701,44 @@
         "expectedWholeBraille": "`=x, x \"k ?1/n#",
         "sourceNotation": "`=x, x \"k ?1/n#",
         "brailleCells": "⠈⠿⠭⠠⠀⠭⠀⠐⠅⠀⠹⠂⠌⠝⠼"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-44",
+        "sourceRows": [
+          "example-23-44",
+          "23.17"
+        ],
+        "rule": "23",
+        "example": "23-44",
+        "artifact": "electron-evidence/example-23-44.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-44; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-44/input.png",
+              "claim": "The complete Nemeth draft for example 23-44 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-44/committed.png",
+              "claim": "The committed expression for example 23-44 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-44/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-44."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-44/editing.png",
+              "claim": "The exact-node replacement for example 23-44 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -123080,22 +123840,28 @@
         "registry:quantifier.exists-unique",
         "registry:quantifier.not-exists"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-46"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-46"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-46"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.17",
@@ -123111,6 +123877,44 @@
         "expectedWholeBraille": "`&x `e ,a",
         "sourceNotation": "`&x `e ,a",
         "brailleCells": "⠈⠯⠭⠀⠈⠑⠀⠠⠁"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-46",
+        "sourceRows": [
+          "example-23-46",
+          "23.17"
+        ],
+        "rule": "23",
+        "example": "23-46",
+        "artifact": "electron-evidence/example-23-46.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-46; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-46/input.png",
+              "claim": "The complete Nemeth draft for example 23-46 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-46/committed.png",
+              "claim": "The committed expression for example 23-46 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-46/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-46."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-46/editing.png",
+              "claim": "The exact-node replacement for example 23-46 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -123146,22 +123950,28 @@
         "registry:quantifier.exists-unique",
         "registry:quantifier.not-exists"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-47"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-47"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-47"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.17",
@@ -123177,6 +123987,44 @@
         "expectedWholeBraille": "`&;x\"`&;y\"-?y-x/x+y# .k ?x-y/x+y#",
         "sourceNotation": "`&;x\"`&;y\"-?y-x/x+y# .k ?x-y/x+y#",
         "brailleCells": "⠈⠯⠰⠭⠐⠈⠯⠰⠽⠐⠤⠹⠽⠤⠭⠌⠭⠬⠽⠼⠀⠨⠅⠀⠹⠭⠤⠽⠌⠭⠬⠽⠼"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-47",
+        "sourceRows": [
+          "example-23-47",
+          "23.17"
+        ],
+        "rule": "23",
+        "example": "23-47",
+        "artifact": "electron-evidence/example-23-47.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-47; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-47/input.png",
+              "claim": "The complete Nemeth draft for example 23-47 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-47/committed.png",
+              "claim": "The committed expression for example 23-47 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-47/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-47."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-47/editing.png",
+              "claim": "The exact-node replacement for example 23-47 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -123276,24 +124124,71 @@
         "registry:misc.not-therefore",
         "registry:misc.since"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-49",
+        "electron:bana-2022:example-23-50"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-49",
+        "electron:bana-2022:example-23-50"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-49",
+        "electron:bana-2022:example-23-50"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-50",
+        "sourceRows": [
+          "example-23-50",
+          "23.18"
+        ],
+        "rule": "23",
+        "example": "23-50",
+        "artifact": "electron-evidence/example-23-50.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-50; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-50/input.png",
+              "claim": "The complete Nemeth draft for example 23-50 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-50/committed.png",
+              "claim": "The committed expression for example 23-50 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-50/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-50."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-50/editing.png",
+              "claim": "The exact-node replacement for example 23-50 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
+      },
       "evidenceScope": "equation-workflow",
       "humanReview": {
         "transcriber": {
@@ -123326,22 +124221,28 @@
         "registry:misc.not-therefore",
         "registry:misc.since"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-49"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-49"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-49"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.18",
@@ -123357,6 +124258,44 @@
         "expectedWholeBraille": "`/ ,a,b .k ,a,c",
         "sourceNotation": "`/ ,a,b .k ,a,c",
         "brailleCells": "⠈⠌⠀⠠⠁⠠⠃⠀⠨⠅⠀⠠⠁⠠⠉"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-49",
+        "sourceRows": [
+          "example-23-49",
+          "23.18"
+        ],
+        "rule": "23",
+        "example": "23-49",
+        "artifact": "electron-evidence/example-23-49.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-49; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-49/input.png",
+              "claim": "The complete Nemeth draft for example 23-49 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-49/committed.png",
+              "claim": "The committed expression for example 23-49 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-49/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-49."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-49/editing.png",
+              "claim": "The exact-node replacement for example 23-49 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -123390,22 +124329,28 @@
         "registry:misc.not-therefore",
         "registry:misc.since"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-50"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-50"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-50"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.18",
@@ -123421,6 +124366,44 @@
         "expectedWholeBraille": ",* ,a,b .k ,a,c",
         "sourceNotation": ",* ,a,b .k ,a,c",
         "brailleCells": "⠠⠡⠀⠠⠁⠠⠃⠀⠨⠅⠀⠠⠁⠠⠉"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-50",
+        "sourceRows": [
+          "example-23-50",
+          "23.18"
+        ],
+        "rule": "23",
+        "example": "23-50",
+        "artifact": "electron-evidence/example-23-50.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-50; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-50/input.png",
+              "claim": "The complete Nemeth draft for example 23-50 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-50/committed.png",
+              "claim": "The committed expression for example 23-50 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-50/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-50."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-50/editing.png",
+              "claim": "The exact-node replacement for example 23-50 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -123738,24 +124721,71 @@
         "registry:misc.vertical-bar",
         "registry:misc.does-not-divide"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-56",
+        "electron:bana-2022:example-23-57"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-56",
+        "electron:bana-2022:example-23-57"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-56",
+        "electron:bana-2022:example-23-57"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-57",
+        "sourceRows": [
+          "example-23-57",
+          "23.20"
+        ],
+        "rule": "23",
+        "example": "23-57",
+        "artifact": "electron-evidence/example-23-57.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-57; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-57/input.png",
+              "claim": "The complete Nemeth draft for example 23-57 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-57/committed.png",
+              "claim": "The committed expression for example 23-57 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-57/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-57."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-57/editing.png",
+              "claim": "The exact-node replacement for example 23-57 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
+      },
       "evidenceScope": "equation-workflow",
       "humanReview": {
         "transcriber": {
@@ -123849,22 +124879,28 @@
         "registry:misc.vertical-bar",
         "registry:misc.does-not-divide"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-56"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-56"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-56"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.20",
@@ -123880,6 +124916,44 @@
         "expectedWholeBraille": "a|b",
         "sourceNotation": "a|b",
         "brailleCells": "⠁⠳⠃"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-56",
+        "sourceRows": [
+          "example-23-56",
+          "23.20"
+        ],
+        "rule": "23",
+        "example": "23-56",
+        "artifact": "electron-evidence/example-23-56.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-56; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-56/input.png",
+              "claim": "The complete Nemeth draft for example 23-56 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-56/committed.png",
+              "claim": "The committed expression for example 23-56 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-56/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-56."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-56/editing.png",
+              "claim": "The exact-node replacement for example 23-56 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -123911,22 +124985,28 @@
         "registry:misc.vertical-bar",
         "registry:misc.does-not-divide"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-23-57"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-23-57"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-23-57"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:23.20",
@@ -123943,6 +125023,44 @@
         "expectedWholeBraille": ",p(purple|yellow)",
         "sourceNotation": ",p(purple|yellow)",
         "brailleCells": "⠠⠏⠷⠏⠥⠗⠏⠇⠑⠳⠽⠑⠇⠇⠕⠺⠾"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-23-57",
+        "sourceRows": [
+          "example-23-57",
+          "23.20"
+        ],
+        "rule": "23",
+        "example": "23-57",
+        "artifact": "electron-evidence/example-23-57.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 23-57; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-23-57/input.png",
+              "claim": "The complete Nemeth draft for example 23-57 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-23-57/committed.png",
+              "claim": "The committed expression for example 23-57 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-23-57/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 23-57."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-23-57/editing.png",
+              "claim": "The exact-node replacement for example 23-57 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -145293,7 +146411,10 @@
         "punctuation.left-single-quote",
         "punctuation.right-single-quote",
         "punctuation.left-double-quote",
-        "punctuation.right-double-quote"
+        "punctuation.right-double-quote",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "punctuation.literary-period"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -145305,7 +146426,10 @@
         "registry:punctuation.left-single-quote",
         "registry:punctuation.right-single-quote",
         "registry:punctuation.left-double-quote",
-        "registry:punctuation.right-double-quote"
+        "registry:punctuation.right-double-quote",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:punctuation.literary-period"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -145360,7 +146484,10 @@
         "punctuation.left-single-quote",
         "punctuation.right-single-quote",
         "punctuation.left-double-quote",
-        "punctuation.right-double-quote"
+        "punctuation.right-double-quote",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "punctuation.literary-period"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -145372,7 +146499,10 @@
         "registry:punctuation.left-single-quote",
         "registry:punctuation.right-single-quote",
         "registry:punctuation.left-double-quote",
-        "registry:punctuation.right-double-quote"
+        "registry:punctuation.right-double-quote",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:punctuation.literary-period"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -145602,7 +146732,10 @@
         "punctuation.left-single-quote",
         "punctuation.right-single-quote",
         "punctuation.left-double-quote",
-        "punctuation.right-double-quote"
+        "punctuation.right-double-quote",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "punctuation.literary-period"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -145614,7 +146747,10 @@
         "registry:punctuation.left-single-quote",
         "registry:punctuation.right-single-quote",
         "registry:punctuation.left-double-quote",
-        "registry:punctuation.right-double-quote"
+        "registry:punctuation.right-double-quote",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:punctuation.literary-period"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -145669,7 +146805,10 @@
         "punctuation.left-single-quote",
         "punctuation.right-single-quote",
         "punctuation.left-double-quote",
-        "punctuation.right-double-quote"
+        "punctuation.right-double-quote",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "punctuation.literary-period"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -145681,7 +146820,10 @@
         "registry:punctuation.left-single-quote",
         "registry:punctuation.right-single-quote",
         "registry:punctuation.left-double-quote",
-        "registry:punctuation.right-double-quote"
+        "registry:punctuation.right-double-quote",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:punctuation.literary-period"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -145790,7 +146932,10 @@
         "punctuation.left-single-quote",
         "punctuation.right-single-quote",
         "punctuation.left-double-quote",
-        "punctuation.right-double-quote"
+        "punctuation.right-double-quote",
+        "punctuation.left-double-quote.indicated",
+        "punctuation.right-double-quote.indicated",
+        "punctuation.literary-period"
       ],
       "unitCaseIds": [
         "registry:punctuation.comma",
@@ -145802,7 +146947,10 @@
         "registry:punctuation.left-single-quote",
         "registry:punctuation.right-single-quote",
         "registry:punctuation.left-double-quote",
-        "registry:punctuation.right-double-quote"
+        "registry:punctuation.right-double-quote",
+        "registry:punctuation.left-double-quote.indicated",
+        "registry:punctuation.right-double-quote.indicated",
+        "registry:punctuation.literary-period"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
