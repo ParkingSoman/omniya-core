@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T20:26:17.520Z",
+  "startedAt": "2026-08-14T20:59:28.950Z",
   "filter": {
     "rule": null,
     "example": "8-39"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-IgesD8",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Qjznyr",
   "cases": [
     {
       "id": "electron:bana-2022:example-8-39",
@@ -26,7 +26,7 @@
         "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-8-39/electron_bana-2022_example-8-39-input.png",
         "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
       },
-      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Choose the meaning for this local Nemeth code.\",\"input\":\"\",\"choices\":[\"letter.s\",\"plural.s\"],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-dce24611-b99b-4146-b9fa-1685d9272a2d\\\" data-semantic-structure=\\\"(2 0 1)\\\"><mover data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-6489e8dd-1cee-4bb1-9246-438e95c564b2\\\" data-semantic-type=\\\"overscore\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"2\\\" data-semantic-children=\\\"0,1\\\" data-semantic-owns=\\\"0 1\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\"><mi data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-e460879f-95cf-46f4-9fea-401a3f7952d3\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;nemeth:number;depth:2\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">x</mi><mo data-omniya-role=\\\"overscript\\\" data-omniya-nemeth-cells=\\\"⠈⠱\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-d3b227fc-e9ab-4e0c-bd05-a300568476ea\\\" data-semantic-type=\\\"relation\\\" data-semantic-role=\\\"overaccent\\\" data-semantic-annotation=\\\"accent:tilde;depth:2\\\" data-semantic-id=\\\"1\\\" data-semantic-parent=\\\"2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">~</mo></mover></math>\"}"
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Choose the meaning for this local Nemeth code.\",\"input\":\"\",\"choices\":[\"letter.s\",\"plural.s\"],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-638ec20b-16d7-4161-b7cd-9b9287b21fa0\\\" data-semantic-structure=\\\"(2 0 1)\\\"><mover data-omniya-=\\\"\\\" data-omniya-nemeth-intent=\\\"five-step-modifier\\\" id=\\\"omniya-source-omniya-8ab80e24-92df-4756-9cd0-dee33d3db1d9\\\" data-semantic-type=\\\"overscore\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"2\\\" data-semantic-children=\\\"0,1\\\" data-semantic-owns=\\\"0 1\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\"><mi data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-20ec9baa-b5f5-4fe6-b0d3-15ffdc97deda\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;nemeth:number;depth:2\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">x</mi><mo data-omniya-role=\\\"overscript\\\" data-omniya-nemeth-cells=\\\"⠈⠱\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-fdb5ec75-4d17-43f7-abea-2ae0dfaf0ba9\\\" data-semantic-type=\\\"relation\\\" data-semantic-role=\\\"overaccent\\\" data-semantic-annotation=\\\"accent:tilde;depth:2\\\" data-semantic-id=\\\"1\\\" data-semantic-parent=\\\"2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">~</mo></mover></math>\"}"
     }
   ]
 }
