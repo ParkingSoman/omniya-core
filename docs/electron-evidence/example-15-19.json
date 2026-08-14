@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T17:40:29.217Z",
+  "startedAt": "2026-08-14T19:20:15.974Z",
   "filter": {
     "rule": null,
     "example": "15-19"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-ql621A",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Q9hlF1",
   "cases": [
     {
       "id": "electron:bana-2022:example-15-19",
@@ -21,7 +21,12 @@
       "focusedBraille": false,
       "undoRedo": false,
       "persistence": false,
-      "error": "cell 7 ⠁ rejected: That Nemeth cell is not valid at this draft focus.; prefix=; choices="
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-15-19/electron_bana-2022_example-15-19-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"That local Nemeth code is incomplete or invalid. The draft was not changed.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-98f96df4-c3d9-44a3-8526-351a9058ae29\\\" data-semantic-structure=\\\"(5 0 (3 1 2) 4)\\\"><mrow data-omniya-group=\\\"round\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-c9d32861-e40f-49ae-981a-c2397330e11f\\\" data-semantic-type=\\\"fenced\\\" data-semantic-role=\\\"leftright\\\" data-semantic-annotation=\\\"fences:paren;depth:1\\\" data-semantic-id=\\\"5\\\" data-semantic-children=\\\"3\\\" data-semantic-content=\\\"0,4\\\" data-semantic-owns=\\\"0 3 4\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\"><mo data-omniya-role=\\\"open-fence\\\" data-omniya-nemeth-cells=\\\"⠷\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-d8e20dcb-9cd8-4f70-b851-7b9085f09d98\\\" data-semantic-type=\\\"fence\\\" data-semantic-role=\\\"open\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"5\\\" data-semantic-operator=\\\"fenced\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">(</mo><mover data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-2ca14551-1f73-412b-aed1-5b40e12ed902\\\" data-semantic-type=\\\"overscore\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-id=\\\"3\\\" data-semantic-children=\\\"1,2\\\" data-semantic-parent=\\\"5\\\" data-semantic-owns=\\\"1 2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\"><mrow data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-5f49cd50-2aaa-488a-a7b6-7e57c3c05121\\\"><mi data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-f11fa1cf-5cdd-46f7-8a40-33982d2570f5\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:3\\\" data-semantic-id=\\\"1\\\" data-semantic-parent=\\\"3\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\">a</mi></mrow><mo data-omniya-role=\\\"overscript\\\" data-omniya-nemeth-cells=\\\"⠱\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-9e4de779-5056-4566-8f6f-cc4beb4acd1b\\\" data-semantic-type=\\\"operator\\\" data-semantic-role=\\\"overaccent\\\" data-semantic-annotation=\\\"accent:bar;depth:3\\\" data-semantic-id=\\\"2\\\" data-semantic-parent=\\\"3\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\">¯</mo></mover><mo data-omniya-role=\\\"close-fence\\\" data-omniya-nemeth-cells=\\\"⠾\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-38419053-5459-4912-9f08-8ee84fc1198f\\\" data-semantic-type=\\\"fence\\\" data-semantic-role=\\\"close\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-id=\\\"4\\\" data-semantic-parent=\\\"5\\\" data-semantic-operator=\\\"fenced\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">)</mo></mrow></math>\"}"
     }
   ]
 }
