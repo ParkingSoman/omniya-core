@@ -167,6 +167,19 @@ if (appendixDStart >= 0) {
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
 const durableDisposition = rows.find((row) => row.id === 'bana-2022:example-7-22');
 if (durableDisposition) durableDisposition.disposition = 'approved-context-policy';
+// Rule 18.2 delegates numeric function subscripts to the existing Rule 14.6
+// context, while 18.5 selects mathematical versus literary punctuation. They
+// define context rather than new input cells. Example 18-22's reviewed math
+// segment uses exactly the three abbreviated functions named in the source.
+for (const ref of ['18.2', '18.5']) {
+  const row = rows.find((candidate) => candidate.id === `bana-2022:${ref}`);
+  if (row) row.disposition = 'implemented-context-policy';
+}
+const rule18Example22 = rows.find((row) => row.id === 'bana-2022:example-18-22');
+if (rule18Example22) {
+  rule18Example22.disposition = 'implemented-operation';
+  rule18Example22.mappingIds = ['function.sin', 'function.cos', 'function.tan'];
+}
 // Rule 21.10 decides when the four set/logical symbols are operations versus
 // comparisons, and 21.13 governs spaces around comparison symbols. They are
 // context policies rather than new cells. Their examples, however, exercise
