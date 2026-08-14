@@ -80,3 +80,41 @@ test('example 17-26 restores mixed calculator-program keystroke cells', () => {
     '⠝⠫⠅⠈⠡⠻⠠⠏⠫⠅⠈⠡⠻⠫⠅⠷⠻⠫⠅⠷⠻⠂⠫⠅⠤⠻⠂⠫⠅⠷⠻⠫⠅⠬⠻⠊⠀⠫⠅⠈⠴⠻⠫⠅⠾⠻⠫⠅⠽⠘⠭⠐⠻⠝⠫⠅⠬⠸⠌⠤⠻⠫⠅⠾⠻⠫⠅⠨⠌⠻⠊⠀⠫⠅⠈⠴⠻⠫⠅⠾⠻⠫⠅⠽⠘⠭⠐⠻⠂⠫⠅⠬⠸⠌⠤⠻⠫⠅⠤⠻⠠⠏⠫⠅⠨⠅⠻'
   );
 });
+
+test('example 17-25 restores keystroke wrappers when MathJax dropped projection-cells', () => {
+  const source = parse(`<math>
+    <mrow>
+      <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="open-paren" data-omniya-nemeth-cells="⠫⠅⠷⠻">(</mo>
+      <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="dot" data-omniya-nemeth-cells="⠫⠅⠈⠡⠻">·</mo>
+      <mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn>
+      <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="plus" data-omniya-nemeth-cells="⠫⠅⠬⠻">+</mo>
+      <mn data-omniya-nemeth-intent="lower-cell-numeric">4</mn>
+      <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="close-paren" data-omniya-nemeth-cells="⠫⠅⠾⠻">)</mo>
+    </mrow>
+    <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="dot" data-omniya-nemeth-cells="⠫⠅⠈⠡⠻">·</mo>
+    <mn data-omniya-nemeth-intent="lower-cell-numeric">5</mn>
+    <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="equals" data-omniya-nemeth-cells="⠫⠅⠨⠅⠻">=</mo>
+  </math>`);
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠷⠆⠡⠒⠬⠲⠾⠡⠢⠀⠨⠅', source),
+    '⠫⠅⠷⠻⠆⠫⠅⠈⠡⠻⠒⠫⠅⠬⠻⠲⠫⠅⠾⠻⠫⠅⠈⠡⠻⠢⠫⠅⠨⠅⠻'
+  );
+});
+
+test('example 17-27 restores decimal and power keystrokes from shape-modification alone', () => {
+  const source = parse(`<math>
+    <mn data-omniya-nemeth-intent="numeric-start">2</mn>
+    <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="decimal" data-omniya-nemeth-cells="⠫⠅⠨⠻">.</mo>
+    <mn data-omniya-nemeth-intent="lower-cell-numeric">75</mn>
+    <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="power" data-omniya-nemeth-cells="⠫⠅⠽⠘⠭⠐⠻">yˣ</mo>
+    <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="decimal" data-omniya-nemeth-cells="⠫⠅⠨⠻">.</mo>
+    <mn data-omniya-nemeth-intent="lower-cell-numeric">34</mn>
+    <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="plus-minus" data-omniya-nemeth-cells="⠫⠅⠬⠸⠌⠤⠻">±</mo>
+    <mo data-omniya-shape-kind="keystroke" data-omniya-shape-modification="equals" data-omniya-nemeth-cells="⠫⠅⠨⠅⠻">=</mo>
+  </math>`);
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠆⠨⠐⠼⠶⠢⠽ˣ⠨⠐⠼⠒⠲⠬⠤⠀⠨⠅', source),
+    '⠼⠆⠫⠅⠨⠻⠶⠢⠫⠅⠽⠘⠭⠐⠻⠫⠅⠨⠻⠒⠲⠫⠅⠬⠸⠌⠤⠻⠫⠅⠨⠅⠻'
+  );
+});

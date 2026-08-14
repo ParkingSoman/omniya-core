@@ -7,6 +7,34 @@
  * is otherwise ambiguous. This module only restores cells for those explicit
  * source intents; it is not a serializer or an expression parser.
  */
+
+// MathJax/HTML can drop `data-omniya-projection-cells` while keeping the
+// keystroke modification name. Map that surviving name onto the SRE glyph
+// cells the projector must replace. Longer numeric-decimal forms come first
+// so `⠨⠐` is not mistaken for a lone `⠨`. Inner BANA cells are never derived
+// by stripping `$k` wrappers; only this explicit local map is used.
+const KEYSTROKE_SRE_CELLS = {
+  'open-paren': ['⠷'],
+  'close-paren': ['⠾'],
+  'plus': ['⠬'],
+  'dot': ['⠡'],
+  'minus': ['⠤'],
+  'decimal': ['⠨⠐', '⠨'],
+  'equals': ['⠨⠅'],
+  'plus-minus': ['⠬⠤'],
+  'divide': ['⠨⠌'],
+  'at-zero': ['⠼⠴'],
+  'power': ['⠽ˣ']
+};
+
+function projectedCellsForShape(node) {
+  const explicit = node.getAttribute?.('data-omniya-projection-cells');
+  if (explicit) return [explicit];
+  if (node.getAttribute?.('data-omniya-shape-kind') !== 'keystroke') return [];
+  const modification = node.getAttribute?.('data-omniya-shape-modification');
+  return KEYSTROKE_SRE_CELLS[modification] ?? [];
+}
+
 export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (!sourceMath) return braille;
   const nativeQuerySelectorAll = typeof sourceMath.querySelectorAll === 'function'
@@ -546,14 +574,38 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       ['0', '⠴'], ['1', '⠂'], ['2', '⠆'], ['3', '⠒'], ['4', '⠲'],
       ['5', '⠢'], ['6', '⠖'], ['7', '⠶'], ['8', '⠦'], ['9', '⠔']
     ]);
+    let restoreCursor = 0;
     for (const node of numericStarts) {
       if (operatorFollowedNumbers.includes(node)) continue;
       const value = String(node.textContent ?? '').trim();
       if (!/^\d+$/.test(value)) continue;
       const cells = [...value].map((digit) => digits.get(digit) ?? '').join('');
       if (!cells) continue;
-      const pattern = new RegExp(`(?<!⠼)${cells}`);
-      if (pattern.test(braille)) braille = braille.replace(pattern, `⠼${cells}`);
+      const prefixed = `⠼${cells}`;
+      const prefixedIndex = braille.indexOf(prefixed, restoreCursor);
+      let bareIndex = -1;
+      let search = restoreCursor;
+      while (search <= braille.length - cells.length) {
+        const found = braille.indexOf(cells, search);
+        if (found < 0) break;
+        if (braille.slice(found - 1, found) !== '⠼') {
+          bareIndex = found;
+          break;
+        }
+        search = found + 1;
+      }
+      if (prefixedIndex >= 0 && (bareIndex < 0 || prefixedIndex <= bareIndex)) {
+        restoreCursor = prefixedIndex + prefixed.length;
+        continue;
+      }
+      if (bareIndex < 0) continue;
+      const previous = braille[bareIndex - 1];
+      if (previous === '⠬' || previous === '⠤') {
+        restoreCursor = bareIndex + cells.length;
+        continue;
+      }
+      braille = `${braille.slice(0, bareIndex)}${prefixed}${braille.slice(bareIndex + cells.length)}`;
+      restoreCursor = bareIndex + prefixed.length;
     }
   }
   // A plus keeps Nemeth numeric mode. The isolated-number restore above can
@@ -841,20 +893,29 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // serializing the containing calculator sequence.
     let projectionCursor = 0;
     const projectedShapes = [...sourceMath.querySelectorAll('[data-omniya-shape-kind]')]
-      .filter((node) => node.getAttribute?.('data-omniya-projection-cells'));
+      .filter((node) => projectedCellsForShape(node).length);
     const keystrokeCells = new Set([...sourceMath.querySelectorAll('[data-omniya-shape-kind="keystroke"]')]
       .map((node) => node.getAttribute('data-omniya-nemeth-cells')).filter(Boolean));
     for (const node of projectedShapes) {
-      const projected = node.getAttribute('data-omniya-projection-cells');
       const authored = node.getAttribute('data-omniya-nemeth-cells');
-      if (!projected || !authored) continue;
+      if (!authored) continue;
       const authoredIndex = braille.indexOf(authored, projectionCursor);
-      const index = braille.indexOf(projected, projectionCursor);
+      const candidates = projectedCellsForShape(node);
+      let index = -1;
+      let projected = '';
+      for (const candidate of candidates) {
+        const found = braille.indexOf(candidate, projectionCursor);
+        if (found < 0) continue;
+        if (index < 0 || found < index || (found === index && candidate.length > projected.length)) {
+          index = found;
+          projected = candidate;
+        }
+      }
       if (authoredIndex >= 0 && (index < 0 || authoredIndex <= index)) {
         projectionCursor = authoredIndex + authored.length;
         continue;
       }
-      if (index == null || index < 0) continue;
+      if (index < 0) continue;
       braille = `${braille.slice(0, index)}${authored}${braille.slice(index + projected.length)}`;
       projectionCursor = index + authored.length;
     }
@@ -1534,6 +1595,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     const tailAdjacent = leftTail && right ? `${leftTail}${right}` : '';
     if (tailAdjacent && braille.includes(tailAdjacent)) {
       braille = braille.replace(tailAdjacent, `${leftTail}${mid}${right}`);
+      continue;
+    }
+    // An omitted transcriber close can sit inside a script row whose previous
+    // sibling has no authored cells. Restore it immediately before the next
+    // authored letter SRE did project. This is adjacency restoration, not
+    // delimiter parsing.
+    if (right && /[⠾]$/.test(mid) && braille.includes(right)) {
+      const leftIndex = left ? braille.indexOf(left) : -1;
+      const rightIndex = braille.indexOf(right);
+      if (rightIndex >= 0 && (leftIndex < 0 || leftIndex < rightIndex)) {
+        braille = `${braille.slice(0, rightIndex)}${mid}${braille.slice(rightIndex)}`;
+      }
     }
   }
   // When SRE omits a transcriber close entirely, reinsert it against the

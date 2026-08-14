@@ -659,6 +659,54 @@ test('omission and cancellation indicators become local MathML constructs', () =
   assert.equal(tree.children[0].children[0].children[0].text, 'x');
 });
 
+function applyDraftCells(cells) {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const value of cells) {
+    let result = cell(document, focus, inputState, value);
+    while (result.status === 'choice') {
+      const operationId = result.choices.find((choice) => choice.operationId === 'group.round')?.operationId
+        ?? result.choices[0].operationId;
+      result = applyNemethChoice({
+        document: result.document,
+        focus: result.focus,
+        inputState: result.inputState,
+        operationId
+      });
+    }
+    assert.notEqual(result.status, 'rejected', `${value}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  return parseMathML(document.mathml);
+}
+
+test('adjacent cancellations remain sibling enclosures, not a replacement of the whole draft', () => {
+  const tree = applyDraftCells(['⠪', '⠭', '⠻', '⠪', '⠽', '⠻']);
+  const cancellations = tree.children.filter((node) => node.name === 'menclose');
+  assert.equal(cancellations.length, 2);
+  assert.equal(cancellations[0].children[0].children[0].text, 'x');
+  assert.equal(cancellations[1].children[0].children[0].text, 'y');
+});
+
+test('a cancellation may contain an authored blank before a lower-cell digit', () => {
+  const tree = applyDraftCells(['⠪', '⠀', '⠆', '⠻']);
+  const cancellation = tree.children[0];
+  assert.equal(cancellation.name, 'menclose');
+  const inner = cancellation.children[0].name === 'mrow' ? cancellation.children[0].children : cancellation.children;
+  assert.equal(inner[0].name, 'mspace');
+  assert.equal(inner[1].name, 'mn');
+  assert.equal(inner[1].children[0].text, '2');
+  assert.equal(inner[1].attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+});
+
+test('Rule 12 adjacent cancellations keep later uncancelled letters as siblings', () => {
+  const tree = applyDraftCells(['⠪', '⠭', '⠻', '⠪', '⠽', '⠻', '⠵']);
+  assert.equal(tree.children.filter((node) => node.name === 'menclose').length, 2);
+  assert.equal(tree.children.at(-1).name, 'mi');
+  assert.equal(tree.children.at(-1).children[0].text, 'z');
+});
+
 test('Rule 8.7 short dash waits for its complete local code', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
@@ -1009,7 +1057,10 @@ test('a round group close still applies when that group is open', () => {
     operationId: 'group.round'
   });
   assert.equal(opened.status, 'applied');
-  const letter = cell(opened.document, opened.focus, opened.inputState, '⠁');
+  let letter = cell(opened.document, opened.focus, opened.inputState, '⠁');
+  if (letter.status === 'pending') {
+    letter = commitNemethLocalCode({ document: letter.document, focus: letter.focus, inputState: letter.inputState });
+  }
   assert.equal(letter.status, 'applied', letter.announcement);
   const close = cell(letter.document, letter.focus, letter.inputState, '⠾');
   const resolved = close.status === 'choice'

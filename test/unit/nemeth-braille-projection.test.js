@@ -313,6 +313,44 @@ test('signed numeric source intent restores the BANA number indicator', () => {
   assert.equal(applyNemethSourceIntentToBraille('⠤⠒⠷', sourceMath), '⠤⠼⠒⠷');
 });
 
+test('Rule 20.1.1 does not move the first number sign onto a plus continuation', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mn data-omniya-nemeth-intent="numeric-start">3</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠋">f</mi>
+      <msup>
+        <mi data-omniya-nemeth-cells="⠞">t</mi>
+        <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      </msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠬">+</mo>
+      <mn data-omniya-nemeth-intent="numeric-start">3</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠋">f</mi>
+      <msup>
+        <mi data-omniya-nemeth-cells="⠞">t</mi>
+        <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      </msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠨⠅">=</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-start">6</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠋">f</mi>
+      <msup>
+        <mi data-omniya-nemeth-cells="⠞">t</mi>
+        <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      </msup>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠒⠀⠋⠞⠘⠆⠀⠬⠼⠒⠀⠋⠞⠘⠆⠀⠨⠅⠀⠼⠖⠀⠋⠞⠘⠆', source),
+    '⠼⠒⠀⠋⠞⠘⠆⠀⠬⠒⠀⠋⠞⠘⠆⠀⠨⠅⠀⠼⠖⠀⠋⠞⠘⠆'
+  );
+});
+
 test('Rule 17.10.2 restores a numeric indicator after a new shape and explicit-space boundary', () => {
   const source = new DOMParser().parseFromString(
     '<math><mo data-omniya-nemeth-cells="⠫⠪">∠</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">1</mn><mo data-omniya-nemeth-cells="⠬">+</mo><mn data-omniya-nemeth-intent="numeric-start">2</mn><mo data-omniya-nemeth-cells="⠫⠪">∠</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">3</mn></math>',
@@ -473,6 +511,47 @@ test('Rule 22 does not replace a larger expression with a single arrow node\'s c
     'text/xml'
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠭⠫⠒⠒⠕⠽', source), '⠭⠫⠒⠒⠕⠽');
+});
+
+const cancelledGroup = (inner) =>
+  `<menclose notation="updiagonalstrike" data-omniya-nemeth-cells="⠪⠻"><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mrow>${inner}</mrow><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow></menclose>`;
+const roundGroup = (inner) =>
+  `<mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mrow>${inner}</mrow><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow>`;
+
+test('cancelled grouped factors do not grow a fence before a following fraction terminator', () => {
+  const xy = '<mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-cells="⠬">+</mo><mi data-omniya-nemeth-cells="⠽">y</mi>';
+  const yz = '<mi data-omniya-nemeth-cells="⠽">y</mi><mo data-omniya-nemeth-cells="⠬">+</mo><mi data-omniya-nemeth-cells="⠵">z</mi>';
+  const source = new DOMParser().parseFromString(
+    `<math>${cancelledGroup(xy)}<mspace data-omniya-nemeth-intent="explicit-space"/><mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="lower-cell-numeric">333333333333</mn><mrow><mspace width="1em"/></mrow></mfrac><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="numeric-start">1</mn><mrow>${yz}</mrow></mfrac><mspace data-omniya-nemeth-intent="explicit-space"/>${cancelledGroup(xy)}${roundGroup(yz)}</math>`,
+    'text/xml'
+  ).documentElement;
+  const expected = '⠪⠷⠭⠬⠽⠾⠻⠀⠹⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠼⠀⠨⠅⠀⠹⠂⠌⠽⠬⠵⠼⠀⠪⠷⠭⠬⠽⠾⠻⠷⠽⠬⠵⠾';
+  assert.equal(applyNemethSourceIntentToBraille(expected, source), expected);
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠪⠷⠭⠬⠽⠾⠀⠹⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠼⠀⠨⠅⠀⠹⠂⠌⠽⠬⠵⠼⠀⠪⠷⠭⠬⠽⠾⠻⠻⠻⠷⠽⠬⠵⠾',
+      source
+    ),
+    expected
+  );
+});
+
+test('adjacent letter cancellations keep one terminator each', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><menclose notation="updiagonalstrike" data-omniya-nemeth-cells="⠪⠻"><mi data-omniya-nemeth-cells="⠭">x</mi></menclose><menclose notation="updiagonalstrike" data-omniya-nemeth-cells="⠪⠻"><mi data-omniya-nemeth-cells="⠽">y</mi></menclose></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠪⠭⠻⠪⠽⠻', source), '⠪⠭⠻⠪⠽⠻');
+  assert.equal(applyNemethSourceIntentToBraille('⠪⠭⠻⠻⠻⠪⠽⠻⠻', source), '⠪⠭⠻⠪⠽⠻');
+});
+
+test('a cancelled letter followed by an uncancelled letter keeps a single terminator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><menclose notation="updiagonalstrike" data-omniya-nemeth-cells="⠪⠻"><mi data-omniya-nemeth-cells="⠭">x</mi></menclose><mi data-omniya-nemeth-cells="⠽">y</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠪⠭⠻⠽', source), '⠪⠭⠻⠽');
+  assert.equal(applyNemethSourceIntentToBraille('⠪⠭⠻⠻⠻⠽', source), '⠪⠭⠻⠽');
 });
 
 test('Rule 23.1 diagonal thousand-comma keeps the authored comma and no extra number sign', () => {
