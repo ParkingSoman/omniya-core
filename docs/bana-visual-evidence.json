@@ -29027,6 +29027,120 @@
           }
         ]
       }
+    },
+    {
+      "id": "electron:bana-2022:example-21-6",
+      "sourceRows": [
+        "example-21-6",
+        "21.1"
+      ],
+      "rule": "21",
+      "example": "21-6",
+      "artifact": "electron-evidence/example-21-6.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases for example 21-6; geometry contract passed in-runner and screenshots are non-empty."
+      },
+      "evidenceSet": {
+        "screenshots": [
+          {
+            "phase": "input",
+            "path": "electron-screenshots/rule-21-6/input.png",
+            "claim": "The complete Nemeth draft for example 21-6 is visible before submission."
+          },
+          {
+            "phase": "committed",
+            "path": "electron-screenshots/rule-21-6/committed.png",
+            "claim": "The committed expression for example 21-6 is visibly rendered as one canonical MathML tree."
+          },
+          {
+            "phase": "focused",
+            "path": "electron-screenshots/rule-21-6/focused.png",
+            "claim": "MathJax Explorer visibly selects the exact replacement scope for example 21-6."
+          },
+          {
+            "phase": "editing",
+            "path": "electron-screenshots/rule-21-6/editing.png",
+            "claim": "The exact-node replacement for example 21-6 remains visibly integrated with the surrounding expression."
+          }
+        ]
+      }
+    },
+    {
+      "id": "electron:bana-2022:example-21-27",
+      "sourceRows": [
+        "example-21-27",
+        "21.13"
+      ],
+      "rule": "21",
+      "example": "21-27",
+      "artifact": "electron-evidence/example-21-27.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases for example 21-27; geometry contract passed in-runner and screenshots are non-empty."
+      },
+      "evidenceSet": {
+        "screenshots": [
+          {
+            "phase": "input",
+            "path": "electron-screenshots/rule-21-27/input.png",
+            "claim": "The complete Nemeth draft for example 21-27 is visible before submission."
+          },
+          {
+            "phase": "committed",
+            "path": "electron-screenshots/rule-21-27/committed.png",
+            "claim": "The committed expression for example 21-27 is visibly rendered as one canonical MathML tree."
+          },
+          {
+            "phase": "focused",
+            "path": "electron-screenshots/rule-21-27/focused.png",
+            "claim": "MathJax Explorer visibly selects the exact replacement scope for example 21-27."
+          },
+          {
+            "phase": "editing",
+            "path": "electron-screenshots/rule-21-27/editing.png",
+            "claim": "The exact-node replacement for example 21-27 remains visibly integrated with the surrounding expression."
+          }
+        ]
+      }
+    },
+    {
+      "id": "electron:bana-2022:example-21-32",
+      "sourceRows": [
+        "example-21-32",
+        "21.13"
+      ],
+      "rule": "21",
+      "example": "21-32",
+      "artifact": "electron-evidence/example-21-32.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases for example 21-32; geometry contract passed in-runner and screenshots are non-empty."
+      },
+      "evidenceSet": {
+        "screenshots": [
+          {
+            "phase": "input",
+            "path": "electron-screenshots/rule-21-32/input.png",
+            "claim": "The complete Nemeth draft for example 21-32 is visible before submission."
+          },
+          {
+            "phase": "committed",
+            "path": "electron-screenshots/rule-21-32/committed.png",
+            "claim": "The committed expression for example 21-32 is visibly rendered as one canonical MathML tree."
+          },
+          {
+            "phase": "focused",
+            "path": "electron-screenshots/rule-21-32/focused.png",
+            "claim": "MathJax Explorer visibly selects the exact replacement scope for example 21-32."
+          },
+          {
+            "phase": "editing",
+            "path": "electron-screenshots/rule-21-32/editing.png",
+            "claim": "The exact-node replacement for example 21-32 remains visibly integrated with the surrounding expression."
+          }
+        ]
+      }
     }
   ]
 }
