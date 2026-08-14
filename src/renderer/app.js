@@ -22,7 +22,12 @@ import {
   startReplacementSession,
   submitReplacement
 } from '../domain/replacement-session.js';
-import { createCommandState, formatStatus } from '../domain/command-mode.js';
+import {
+  applyCommandKey,
+  createCommandState,
+  enterCommand,
+  formatStatus
+} from '../domain/command-mode.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -345,7 +350,7 @@ function renderMode() {
   elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
     ? 'Up and Down arrows move between items. Enter explores an equation; E replaces the exact focus.'
-    : 'Reading remains available above. Escape returns without saving.';
+    : 'Reading remains available above. Escape enters Command mode · q cancels.';
 }
 
 function renderComposer() {
@@ -378,10 +383,10 @@ function renderComposer() {
     elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
   }
   elements['composer-help'].textContent = editing
-    ? 'Save changes commits the item · Escape cancels'
+    ? 'Save changes commits the item · Escape enters Command mode · q cancels'
     : values.type === 'equation'
-      ? 'Enter creates an empty equation and opens the replacement writer · Escape cancels'
-      : 'Enter adds · Shift+Enter makes a new line · Escape cancels';
+      ? 'Enter creates an empty equation and opens the replacement writer · Escape enters Command mode · q cancels'
+      : 'Enter adds · Shift+Enter makes a new line · Escape enters Command mode · q cancels';
   elements['composer-source'].hidden = !editing && values.type === 'equation';
   elements['composer-source'].required = editing || values.type !== 'equation';
   setFieldError(elements['composer-source'], elements['composer-error']);
@@ -850,6 +855,7 @@ function returnToRead({ discardDraft = true } = {}) {
   if (discardDraft) resetDraft();
   mode = 'read';
   editingItemId = null;
+  commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
   renderAll();
   focusSelectedArticle();
 }
@@ -859,7 +865,13 @@ function openAddMode() {
   mode = 'add';
   editingItemId = null;
   resetDraft();
+  commandState = createCommandState({
+    itemKind: draft.type,
+    contentEmpty: true,
+    equationMethod: preferredAuthoringMethod
+  });
   renderAll();
+  applyCommandStateToChrome(commandState);
   elements['composer-source'].focus();
 }
 
@@ -871,7 +883,14 @@ function openEditMode(itemId) {
   state = selectItem(state, itemId);
   mode = 'edit';
   editingItemId = itemId;
+  const item = napkin.items.find(({ id }) => id === itemId);
+  commandState = createCommandState({
+    itemKind: item?.type === 'equation' ? 'equation' : 'text',
+    contentEmpty: !(item?.source ?? '').trim(),
+    equationMethod: preferredAuthoringMethod
+  });
   renderAll();
+  applyCommandStateToChrome(commandState);
   elements['composer-source'].focus();
 }
 
@@ -928,6 +947,83 @@ function applyCommandStateToChrome(nextState) {
   }
 }
 
+function announce(message) {
+  elements['save-status'].textContent = message;
+}
+
+function syncCommandContentEmpty() {
+  const src = elements['composer-source']?.value ?? '';
+  commandState = { ...commandState, contentEmpty: src.trim().length === 0 };
+}
+
+function openContextualHelp() {
+  const box = elements['keyboard-help'];
+  const el = box.querySelector('[data-command-help]');
+  if (el) {
+    el.replaceChildren();
+    const status = document.createElement('p');
+    status.textContent = formatStatus(commandState);
+    const tHelp = document.createElement('p');
+    tHelp.append(document.createElement('kbd'));
+    tHelp.firstChild.textContent = 't';
+    tHelp.append(` — ${commandState.itemKind === 'text' ? 'toggle UEB grade / G1 passage' : 'make Text (UEB)'}`);
+    const eHelp = document.createElement('p');
+    eHelp.append(document.createElement('kbd'));
+    eHelp.firstChild.textContent = 'e';
+    eHelp.append(` — ${commandState.itemKind === 'equation' && commandState.contentEmpty ? 'cycle Nemeth/LaTeX' : 'make Equation (Nemeth)'}`);
+    const shortcuts = document.createElement('p');
+    shortcuts.append(document.createElement('kbd'));
+    shortcuts.children[0].textContent = 'n';
+    shortcuts.append(' submit · ');
+    shortcuts.append(document.createElement('kbd'));
+    shortcuts.children[1].textContent = 'q';
+    shortcuts.append(' cancel · ');
+    shortcuts.append(document.createElement('kbd'));
+    shortcuts.children[2].textContent = 'i';
+    shortcuts.append(' insert');
+    el.append(status, tHelp, eHelp, shortcuts);
+  }
+  if (typeof box.showModal === 'function') box.showModal();
+  else box.hidden = false;
+}
+
+function handleComposerCommandKey(event) {
+  if (mode !== 'add' && mode !== 'edit') return false;
+  if (event.key === 'Escape' && commandState.interaction === 'insert') {
+    event.preventDefault();
+    event.stopPropagation();
+    syncCommandContentEmpty();
+    commandState = enterCommand(commandState);
+    announce('Command mode');
+    return true;
+  }
+  if (commandState.interaction !== 'command') return false;
+  const key = event.key;
+  const commandKeys = new Set(['i', 't', 'e', 'n', 'q', '?', 'Enter']);
+  if (!commandKeys.has(key)) {
+    if (key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      return true;
+    }
+    return false;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  syncCommandContentEmpty();
+  const result = applyCommandKey(commandState, key);
+  commandState = result.state;
+  announce(result.announcement);
+  if (result.action === 'help') openContextualHelp();
+  if (result.action === 'cancel') returnToRead();
+  if (result.action === 'submit') void submitComposer();
+  if (result.action === 'set-type' || result.action === 'set-method' || result.action === 'set-grade') {
+    applyCommandStateToChrome(commandState);
+    if (mode === 'add' || mode === 'edit') renderComposer();
+  }
+  return true;
+}
+
 async function submitComposer() {
   if (mode !== 'add' && mode !== 'edit') return;
   if (!activeNapkin()) returnToRead();
@@ -944,6 +1040,8 @@ async function submitComposer() {
     const item = activeItem();
     resetDraft();
     mode = 'read';
+    editingItemId = null;
+    commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
     renderAll();
     await saveState().catch(() => {});
     const article = item && elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`);
@@ -965,6 +1063,7 @@ async function submitComposer() {
   resetDraft();
   mode = 'read';
   editingItemId = null;
+  commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
   renderAll();
   focusSelectedArticle();
   elements['save-status'].textContent = editing ? 'Saved item' : 'Added item';
@@ -1094,6 +1193,7 @@ if (NOTES_UI_ENABLED) {
 
 elements['composer-source'].addEventListener('input', () => {
   draft.source = elements['composer-source'].value;
+  syncCommandContentEmpty();
 });
 elements['mode-switch'].addEventListener('change', () => {
   draft.type = selectedType();
@@ -1106,6 +1206,7 @@ elements['mode-switch'].addEventListener('change', () => {
 });
 
 elements['composer-source'].addEventListener('keydown', (event) => {
+  if (commandState.interaction === 'command') return;
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
     event.preventDefault();
     void submitComposer();
@@ -1117,12 +1218,9 @@ elements['composer-form'].addEventListener('submit', (event) => {
   void submitComposer();
 });
 
-elements['composer-form'].addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && (mode === 'add' || mode === 'edit')) {
-    event.preventDefault();
-    returnToRead();
-  }
-});
+elements['composer-dock'].addEventListener('keydown', (event) => {
+  handleComposerCommandKey(event);
+}, true);
 
 elements['transcript'].addEventListener('click', (event) => {
   const article = event.target.closest('.napkin-article');

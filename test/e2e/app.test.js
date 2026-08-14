@@ -160,6 +160,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.getByRole('button', { name: 'Add item' }).click();
   await source.fill('unfinished draft');
   await source.press('Escape');
+  await source.press('q');
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   assert.equal(await articles.count(), 2);
 
