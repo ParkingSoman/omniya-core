@@ -13,6 +13,16 @@ Generated from `docs/bana-coverage.json`.
 - Appendix rows: 66 (63 Appendix D symbols plus A–C policy rows)
 - Electron creation-linked rows: 178
 - Electron editing-linked rows: 176
+- Missing Electron creation evidence: 1184
+- Missing Electron editing evidence: 1186
+- Missing navigation evidence: 1186
+- Missing whole-expression Braille evidence: 1184
+- Missing focused-node Braille evidence: 1186
+- Missing undo/redo evidence: 1200
+- Missing persistence evidence: 1204
+- Missing visual evidence: 1336
+- Pending independent transcriber review: 1546
+- Pending blind-contributor review: 1546
 
 | Rule | Total | Applicable | Implemented | Electron creation | Electron editing | Excluded |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -46,7 +56,7 @@ Generated from `docs/bana-coverage.json`.
 | 32 | 1 | 0 | 0 | 0 | 0 | 1 |
 | other | 66 | 66 | 66 | 0 | 0 | 0 |
 
-Status: **automated-complete** (subject to transcriber and blind-contributor review).
+Status: **implementation-complete; evidence-incomplete**. The release gate remains open until every applicable row has full evidence and both independent reviews.
 
 ## Visual evidence
 
