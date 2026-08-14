@@ -1368,20 +1368,37 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     }
     // Prefixed grouping fences can lose a bold, capital, or enlarged modifier
     // while keeping the remaining fence cells. Replace the longest present
-    // modifier-stripped variant with the authored sequence.
+    // modifier-stripped variant with the authored sequence, once per source
+    // node, so later identical fences are not skipped after the first restore.
     const fenceModifiers = new Set(['⠈', '⠠', '⠸', '⠨', '⠘', '⠰']);
+    const fenceNeeded = new Map();
     for (const sequence of explicitCellNodes) {
-      if (!/[⠷⠾]/.test(sequence) || braille.includes(sequence)) continue;
+      if (!/[⠷⠾]/.test(sequence)) continue;
+      fenceNeeded.set(sequence, (fenceNeeded.get(sequence) ?? 0) + 1);
+    }
+    for (const [sequence, needed] of fenceNeeded) {
       const variants = [];
       for (let index = 0; index < sequence.length - 1; index += 1) {
         if (!fenceModifiers.has(sequence[index])) continue;
         variants.push(`${sequence.slice(0, index)}${sequence.slice(index + 1)}`);
       }
       variants.sort((left, right) => right.length - left.length);
-      for (const variant of variants) {
-        if (!variant || !braille.includes(variant)) continue;
-        braille = braille.replace(variant, sequence);
-        break;
+      let have = [...braille.matchAll(new RegExp(escape(sequence), 'g'))].length;
+      while (have < needed) {
+        let replaced = false;
+        for (const variant of variants) {
+          if (!variant || variant === sequence || !braille.includes(variant)) continue;
+          const prefix = sequence.endsWith(variant) ? sequence.slice(0, sequence.length - variant.length) : '';
+          const pattern = prefix
+            ? new RegExp(`(?<!${escape(prefix)})${escape(variant)}`)
+            : new RegExp(escape(variant));
+          if (!pattern.test(braille)) continue;
+          braille = braille.replace(pattern, sequence);
+          replaced = true;
+          have += 1;
+          break;
+        }
+        if (!replaced) break;
       }
     }
     // SRE can preserve uppercase glyphs while dropping a dot-6 capital cell
@@ -1473,6 +1490,22 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     const needle = `${wordCells}⠀${innerCells}`;
     if (braille.includes(needle)) {
       braille = braille.replace(needle, `${wordCells}⠀${openCells}${innerCells}${closeCells}`);
+    }
+  }
+  // A missing transcriber fence between two present authored sequences is
+  // restored at that local adjacency. Semantic reparenting can hide the
+  // previous-sibling relationship used below.
+  const authoredSequences = sourceNodes('[data-omniya-nemeth-cells]')
+    .map((node) => node.getAttribute('data-omniya-nemeth-cells'))
+    .filter(Boolean);
+  for (let index = 1; index < authoredSequences.length - 1; index += 1) {
+    const left = authoredSequences[index - 1];
+    const mid = authoredSequences[index];
+    const right = authoredSequences[index + 1];
+    if (!mid || !/[⠷⠾]/.test(mid) || braille.includes(mid)) continue;
+    const adjacent = `${left}${right}`;
+    if (left && right && braille.includes(adjacent)) {
+      braille = braille.replace(adjacent, `${left}${mid}${right}`);
     }
   }
   // When SRE omits a transcriber close entirely, reinsert it against the
@@ -1638,6 +1671,15 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     if (hasSource('mo[data-omniya-nemeth-cells="⠈⠷"]')) {
       braille = braille.replace('⠷⠤⠆', '⠷⠲⠤⠆');
     }
+    // Nested inner round close plus enlarged close can both be projected as
+    // enlarged. Restore the authored inner bare close immediately before the
+    // enlarged terminator.
+    if (hasSource('mo[data-omniya-nemeth-cells="⠾"]')) {
+      braille = braille.replace(/⠈⠾⠈⠾/, '⠾⠈⠾');
+    }
+  }
+  if (hasSource('mo[data-omniya-nemeth-cells="⠈⠠⠷"]')) {
+    braille = braille.replace(/⠈⠠⠷⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠈⠠⠷');
   }
   // Rule 19.1.2's closing bracket may carry both a subscript and a
   // superscript. SRE exposes the baseline return after that embellished

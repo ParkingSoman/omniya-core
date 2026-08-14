@@ -218,6 +218,28 @@ test('less-than-or-equal restores the two authored comparison cells SRE collapse
   );
 });
 
+test('Rule 19.10 restores the inner round close when SRE duplicates the enlarged terminator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="lower-cell-numeric">4</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mo data-omniya-nemeth-cells="⠈⠷">[</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">4</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">6</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><mo data-omniya-nemeth-cells="⠈⠾">]</mo><mo data-omniya-nemeth-cells="⠨⠌">÷</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠲⠤⠒⠈⠷⠲⠤⠆⠷⠖⠤⠒⠈⠾⠈⠾⠨⠌⠒', source),
+    '⠼⠲⠤⠒⠈⠷⠲⠤⠆⠷⠖⠤⠒⠾⠈⠾⠨⠌⠒'
+  );
+});
+
+test('repeated capital enlarged fences restore every remaining unprefixed pair', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠈⠠⠷">{</mo><mi>c</mi><mo data-omniya-nemeth-cells="⠈⠠⠾">}</mo><mo data-omniya-nemeth-cells="⠈⠠⠷">{</mo><mi>s</mi><mo data-omniya-nemeth-cells="⠈⠠⠾">}</mo><mo data-omniya-nemeth-cells="⠈⠠⠷">{</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">0</mn><mo data-omniya-nemeth-cells="⠈⠠⠾">}</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠈⠠⠷⠉⠈⠠⠾⠀⠈⠷⠎⠈⠾⠀⠈⠷⠼⠴⠈⠾', source),
+    '⠈⠠⠷⠉⠈⠠⠾⠈⠠⠷⠎⠈⠠⠾⠈⠠⠷⠴⠈⠠⠾'
+  );
+});
+
 test('BANA punctuation comma intent binds directly to the following atom', () => {
   const comma = { nextElementSibling: { localName: 'mi' } };
   const sourceMath = {
