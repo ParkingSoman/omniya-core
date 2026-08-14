@@ -592,12 +592,19 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // indicator; remove it only for the source-marked exponent.
   if (lowerCellNumeric.length) {
     if (sourceMath.querySelector?.('[data-omniya-nemeth-cells="⠨⠅"]') && sourceMath.querySelector?.('[data-omniya-nemeth-intent="lower-cell-numeric"]')) braille = braille.replace(/(⠨⠅⠀)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/, '$1⠼');
+    braille = braille.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
     const scriptedLower = [...lowerCellNumeric].filter((node) =>
       node.closest?.('msup, msub, msubsup, mmultiscripts'));
     for (const node of scriptedLower) {
       const value = String(node.textContent ?? '').trim();
       const digit = new Map([['0','⠴'],['1','⠂'],['2','⠆'],['3','⠒'],['4','⠲'],['5','⠢'],['6','⠖'],['7','⠶'],['8','⠦'],['9','⠔']]).get(value);
-      if (digit) braille = braille.replace(`⠘⠼${digit}`, `⠘${digit}`);
+      if (digit) {
+        braille = braille.replace(`⠘⠼${digit}`, `⠘${digit}`);
+        braille = braille.replace(`⠰⠼${digit}`, `⠰${digit}`);
+      }
+    }
+    if (scriptedLower.length) {
+      braille = braille.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
     }
   }
   if (lowerCellNumeric.length > 1) {
@@ -628,6 +635,28 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     if (missing.test(braille)) {
       braille = braille.replace(missing, `${first}$1⠐${second}`);
     }
+  }
+  // Rule 14.4.2 sequential sub-then-sup keeps the subscript indicator in
+  // force before the later superscript indicator. SRE/MathJax flatten the
+  // nested construction to a plain msubsup reading; restore only identifier
+  // or source-marked sequential scripts, never integral/evaluation bars.
+  const sequentialScripts = [...sourceMath.getElementsByTagName?.('msubsup') ?? []]
+    .filter((node) => {
+      const intent = String(node.getAttribute?.('data-omniya-nemeth-intent') ?? '');
+      if (intent.startsWith('non-simultaneous-scripts')) return false;
+      if (intent.startsWith('sequential-scripts')) return true;
+      const base = [...(node.children ?? [])].find((child) => child.nodeType === 1);
+      return Boolean(base && ['mi', 'mn'].includes(base.localName));
+    });
+  if (sequentialScripts.length) {
+    braille = braille.replace(/⠰([^⠘⠰⠐]+)(?!⠰)⠘/g, '⠰$1⠰⠘');
+    braille = braille.replace(/⠰⠘([^⠘⠰⠐]+)(?!⠰)⠘/g, '⠰⠘$1⠰⠘');
+  }
+  // Rule 14.7 contracted script comma is dots 2-4-6. SRE may spell the same
+  // comma as literary comma plus a blank; restore only source-marked commas.
+  const scriptCommas = sourceNodes('[data-omniya-script-comma="true"]');
+  if (scriptCommas.length && !braille.includes('⠪')) {
+    braille = braille.replace(/([⠁-⠵⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠠⠀/g, '$1⠪');
   }
   // An explicit mathematical blank already returns to the baseline. SRE may
   // still announce a script-return cell before the following plus.
@@ -1585,15 +1614,21 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // complete local code on the overscript/underscript atom. SRE projects the
   // Unicode glyph instead; restore only that authored slot between the
   // directly-over/under indicator and the terminator.
+  const modifierGlyphCells = new Map([
+    ['⁀', '⠫⠁'],
+    ['‿', '⠫⠄']
+  ]);
   const authoredModifierSlots = sourceNodes('mo').filter((node) => {
     const role = node.getAttribute?.('data-omniya-role');
-    const cells = node.getAttribute?.('data-omniya-nemeth-cells');
+    const cells = node.getAttribute?.('data-omniya-nemeth-cells')
+      || modifierGlyphCells.get(String(node.textContent ?? '').trim());
     const intent = node.getAttribute?.('data-omniya-nemeth-intent') || '';
     return Boolean(cells) && (role === 'overscript' || role === 'underscript' || intent.startsWith('modifier-arrow'));
   });
   const restoredModifierParents = new Set();
   for (const node of authoredModifierSlots) {
-    const cells = node.getAttribute?.('data-omniya-nemeth-cells');
+    const cells = node.getAttribute?.('data-omniya-nemeth-cells')
+      || modifierGlyphCells.get(String(node.textContent ?? '').trim());
     if (!cells) continue;
     const role = node.getAttribute?.('data-omniya-role') ||
       ((node.parentElement ?? node.parentNode)?.localName === 'munder' ? 'underscript' : 'overscript');

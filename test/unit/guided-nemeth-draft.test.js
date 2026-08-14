@@ -260,6 +260,56 @@ test('Rule 14.4.2 ~; at an unscripted item still opens one msubsup', () => {
   assert.equal(tree.children[0].children[0].children[0].text, 'x');
 });
 
+test('Rule 14.8.4 letters in a superscript stay one nested cosine power', () => {
+  const { document } = replayCells(sourceNotationToCells('e~cos~~2 x'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'e');
+  const power = tree.children[0].children[1];
+  const nested = power.name === 'msup' ? power
+    : power.children?.find((child) => child.name === 'msup');
+  assert.ok(nested, 'cos^2 must remain nested inside e\'s superscript');
+  const texts = [];
+  const visit = (node) => {
+    if (node?.text) texts.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(nested.children[0]);
+  assert.deepEqual(texts.join('').replaceAll(' ', ''), 'cos');
+  assert.equal(nested.children[1].children[0].text, '2');
+  assert.equal(report.holes.length, 0);
+});
+
+test('Rule 14.7 contracted comma then a digit stays in the same subscript', () => {
+  const { document } = replayCells(sourceNotationToCells('x;1[2'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  const slot = tree.children[0].children[1];
+  const texts = [];
+  const visit = (node) => {
+    if (node?.text) texts.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(slot);
+  assert.deepEqual(texts, ['1', ',', '2']);
+});
+
+test('Rule 15.7 a five-step tilde stays inside the subscript slot', () => {
+  const { document } = replayCells(sourceNotationToCells(',a;"x<`:]'), { '⠈⠱': 'modifier.tilde.simple' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[0].children[0].text, 'A');
+  const modified = tree.children[0].children[1];
+  assert.ok(['mover', 'munder'].includes(modified.name), `expected mover/munder in subscript, got ${modified.name}`);
+  assert.equal(modified.children[0].children[0].text, 'x');
+});
+
 test('Rule 15 five-step modifier keeps scope across a superscript and baseline return', () => {
   const { document } = replayCells(sourceNotationToCells('"x~2"<:]'));
   const tree = parseMathML(document.mathml);

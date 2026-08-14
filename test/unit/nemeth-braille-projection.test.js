@@ -646,6 +646,49 @@ test('Rule 14.11 degree returns to baseline before a following hyphen', () => {
   assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠖⠴⠘⠨⠡⠤⠊', source), '⠼⠒⠖⠴⠘⠨⠡⠐⠤⠊');
 });
 
+test('Rule 14.4.2 sequential sub-then-sup restores the extra subscript indicator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msubsup><mi data-omniya-nemeth-cells="⠭">x</mi><mi>n</mi><mi>a</mi></msubsup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠰⠝⠘⠁', source), '⠭⠰⠝⠰⠘⠁');
+});
+
+test('Rule 14 lower-cell numerals in a subscript omit the number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mi data-omniya-nemeth-cells="⠭">x</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠰⠼⠆', source), '⠭⠰⠆');
+});
+
+test('Rule 14.7 contracted script comma restores the dots-2-4-6 cell', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mi data-omniya-nemeth-cells="⠭">x</mi><mrow><mi>i</mi><mo data-omniya-script-comma="true" data-omniya-nemeth-cells="⠪">,</mo><mi>j</mi></mrow></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠰⠊⠠⠀⠚', source), '⠭⠰⠊⠪⠚');
+});
+
+test('Rule 14.8 English-letter after a subscript blank restores the indicator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mo data-omniya-shape-kind="triangle" data-omniya-nemeth-cells="⠫⠞">△</mo><mrow><mi>regular</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠏">p</mi><mi>olygon</mi></mrow></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠫⠞⠰⠗⠑⠛⠥⠇⠁⠗⠀⠏⠕⠇⠽⠛⠕⠝', source),
+    '⠫⠞⠰⠗⠑⠛⠥⠇⠁⠗⠀⠰⠏⠕⠇⠽⠛⠕⠝'
+  );
+});
+
+test('Rule 15.11 arc underscript restores the shape modifier cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><munder><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mo data-omniya-role="underscript">⁀</mo></munder></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠐⠠⠁⠩⠻', source), '⠐⠠⠁⠩⠫⠁⠻');
+});
+
 test('Rule 14.11 non-simultaneous scripts restore the multipurpose separator', () => {
   const subThenSup = new DOMParser().parseFromString(
     '<math><msubsup data-omniya-nemeth-intent="non-simultaneous-scripts:sub-sup"><mi>a</mi><mi>m</mi><mi>n</mi></msubsup></math>',

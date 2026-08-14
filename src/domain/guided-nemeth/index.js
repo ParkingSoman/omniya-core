@@ -375,7 +375,10 @@ function insertContractedScriptComma(tree, focus) {
   if (!script || current.name === 'math' || isHole(current)) {
     throw new RangeError('A contracted comma is only valid inside a script slot.');
   }
-  const comma = atom('mo', ',', { 'data-omniya-script-comma': 'true' });
+  const comma = atom('mo', ',', {
+    'data-omniya-script-comma': 'true',
+    'data-omniya-nemeth-cells': '⠪'
+  });
   // MathML/SRE supplies the presentation spacing for a comma in a script;
   // persisting an mspace here would double that spacing in the Braille
   // projection.  The source-linked attribute preserves that this was the
@@ -534,8 +537,34 @@ function insertStructuredToken(tree, focus, elementName, parts, attrs = {}) {
   return { tree, focus: focusNode(inserted) };
 }
 
+function isLatinLetterMi(node) {
+  const text = String(node?.children?.[0]?.text ?? '');
+  return node?.name === 'mi' && /^[A-Za-z]+$/.test(text)
+    && node.attrs?.['data-omniya-nemeth-intent'] !== 'function-name'
+    && node.attrs?.['data-omniya-nemeth-intent'] !== 'plural-suffix';
+}
+
+function absorbTrailingLetterRun(tree, current) {
+  if (!isLatinLetterMi(current)) return current;
+  const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+  if (!parent || !['math', 'mrow'].includes(parent.name)) return current;
+  const index = parent.children.indexOf(current);
+  if (index < 0) return current;
+  let start = index;
+  while (start > 0 && isLatinLetterMi(parent.children[start - 1])) start -= 1;
+  if (start === index) return current;
+  const run = parent.children.slice(start, index + 1);
+  const group = element('mrow', run);
+  parent.children.splice(start, run.length, group);
+  return group;
+}
+
 function wrapCurrent(tree, focus, elementName, roles, attrs = {}, initialSlot = roles[0]) {
-  const current = currentNode(tree, focus);
+  let current = currentNode(tree, focus);
+  if (current.name !== 'math' && !isHole(current)) {
+    current = absorbTrailingLetterRun(tree, current);
+    focus = focusNode(current);
+  }
   const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
   const wrapper = element(elementName, [], { ...attrs, ...(inheritedId ? { 'data-omniya-id': inheritedId } : {}) });
   if (current.name !== 'math' && !isHole(current)) {
@@ -1035,9 +1064,19 @@ function openScriptChain(tree, focus, directions) {
   if (!Array.isArray(directions) || directions.length < 2) {
     throw new RangeError('A script chain needs at least two registered levels.');
   }
-  const current = currentNode(tree, focus);
+  let current = currentNode(tree, focus);
+  if (current.name !== 'math' && !isHole(current)) {
+    current = absorbTrailingLetterRun(tree, current);
+    focus = focusNode(current);
+  }
   const same = directions.every((direction) => direction === directions[0]);
   let chain = directions;
+  if (same && scriptDepth(tree, current, directions[0]) === 0
+    && current.attrs?.['data-omniya-nemeth-intent'] === 'function-name') {
+    const direction = directions[0];
+    const role = direction === 'sub' ? 'subscript' : 'superscript';
+    return wrapCurrent(tree, focus, direction === 'sub' ? 'msub' : 'msup', ['base', role], {}, role);
+  }
   if (same) {
     const direction = directions[0];
     const currentDepth = scriptDepth(tree, current, direction);
@@ -3168,8 +3207,11 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.id === 'script.left-subscript') return context.node.name === 'math' || isHole(context.node);
   if (mapping.id === 'cancellation.end') return Boolean(hasAncestor(context.tree, context.node, 'menclose'));
-  if (mapping.id === 'script.baseline') return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts', 'mover', 'munder', 'munderover']) ||
-    (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-cells'] === '⠘⠨⠡'));
+  if (mapping.id === 'script.baseline') {
+    if (isHole(context.node)) return false;
+    return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts', 'mover', 'munder', 'munderover']) ||
+      (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-cells'] === '⠘⠨⠡'));
+  }
   if (mapping.action === 'simultaneous-modifier') {
     const container = hasAncestor(context.tree, context.node, ['mover', 'munder']);
     if (!container || container.name === 'munderover') return false;
@@ -3224,7 +3266,10 @@ function mappingApplies(mapping, context) {
     }
   }
   if (mapping.id === 'indicator.multipurpose') {
-    // Inside a script the same cell is the Rule 14 baseline indicator.
+    // A hole in a script still starts five-step modifier scope. Baseline
+    // return is not meaningful until the slot has an item to leave.
+    if (isHole(context.node)) return true;
+    // Inside a filled script the same cell is the Rule 14 baseline indicator.
     return !Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']));
   }
   if (mapping.id === 'indicator.number' && fraction) {
@@ -4315,6 +4360,13 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // open another script. This context rule is shared by every script
   // construction, not a notation-specific exception.
   if (!state.prefix && state.mode === null && normalized === '⠎' && inScript) {
+    const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+    const index = parent?.children?.indexOf(context.node) ?? -1;
+    const previous = index > 0 ? parent.children[index - 1] : null;
+    const sameSlot = parent && !['msup', 'msub', 'msubsup', 'mmultiscripts', 'mover', 'munder', 'munderover'].includes(parent.name);
+    if (sameSlot && isLatinLetterMi(context.node) && isLatinLetterMi(previous)) {
+      return applyMapping(document, focus, state, letterMapping(normalized, state));
+    }
     const plural = MAPPINGS.find((mapping) => mapping.id === 'plural.s');
     if (plural && mappingApplies(plural, context)) return applyMapping(document, focus, state, plural);
   }
@@ -5349,7 +5401,10 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // it for the source-intent Braille projection; no surrounding operands are
   // inferred.
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
-    context.node.name === 'mo' && POST_OPERATOR_LOWER_CELL.includes(context.node.children?.[0]?.text)) {
+    context.node.name === 'mo' &&
+    (POST_OPERATOR_LOWER_CELL.includes(context.node.children?.[0]?.text)
+      || context.node.attrs?.['data-omniya-script-comma'] === 'true'
+      || (inScript && context.node.children?.[0]?.text === ','))) {
     const digit = digitMapping(normalized);
     digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
@@ -6275,6 +6330,17 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // one-cell prefix is known, so shared dot-5 meanings elsewhere remain
   // untouched.
   if (state.mode === null && state.prefix === '⠐' && LETTERS.has(normalized) &&
+    isHole(context.node) &&
+    hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+    const indicator = PREFIXES.get('⠐')?.mappings?.find((mapping) => mapping.id === 'indicator.multipurpose');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
+    if (activated.status !== 'rejected') {
+      const next = applyNemethCell({ document: activated.document, focus: activated.focus, inputState: activated.inputState, cell: normalized });
+      if (next.status !== 'rejected') return { ...next, announcement: `${activated.announcement}; ${next.announcement}` };
+    }
+  }
+  if (state.mode === null && state.prefix === '⠐' && LETTERS.has(normalized) &&
+    !isHole(context.node) &&
     hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
     const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
     const activated = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
@@ -6303,6 +6369,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // the returned focus.  This is still one bounded structural follow-up,
   // never a passage buffer or expression parser.
   if (state.prefix === '⠐' && DIGITS.has(normalized) &&
+    !isHole(context.node) &&
     hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
     const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
     if (baseline) {
@@ -6318,6 +6385,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
   }
   if (state.prefix === '⠐' &&
+    !isHole(context.node) &&
     hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
     !LETTERS.has(normalized) && !DIGITS.has(normalized) && normalized !== '⠼') {
     const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
