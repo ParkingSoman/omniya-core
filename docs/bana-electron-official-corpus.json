@@ -26010,6 +26010,9 @@
       "printedPage": null,
       "pdfPage": 199,
       "sourceNotation": ";a~n\"x",
+      "operationIds": [
+        "script.sub-sup"
+      ],
       "cells": [
         "⠰",
         "⠁",
@@ -26042,6 +26045,9 @@
       "printedPage": null,
       "pdfPage": 199,
       "sourceNotation": "x1~2",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠭",
         "⠂",
@@ -26072,6 +26078,9 @@
       "printedPage": null,
       "pdfPage": 199,
       "sourceNotation": "a~n\";m",
+      "operationIds": [
+        "script.sup-sub"
+      ],
       "cells": [
         "⠁",
         "⠘",
@@ -26104,6 +26113,9 @@
       "printedPage": null,
       "pdfPage": 199,
       "sourceNotation": "a;m\"~n",
+      "operationIds": [
+        "script.sub-sup"
+      ],
       "cells": [
         "⠁",
         "⠰",
@@ -26136,6 +26148,9 @@
       "printedPage": null,
       "pdfPage": 200,
       "sourceNotation": "~a\";b\"x",
+      "operationIds": [
+        "script.sup-sub"
+      ],
       "cells": [
         "⠘",
         "⠁",
@@ -26169,6 +26184,9 @@
       "printedPage": null,
       "pdfPage": 200,
       "sourceNotation": ";b\"~a\"x",
+      "operationIds": [
+        "script.sub-sup"
+      ],
       "cells": [
         "⠰",
         "⠃",
@@ -26202,6 +26220,10 @@
       "printedPage": null,
       "pdfPage": 200,
       "sourceNotation": "x1\"~2",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠭",
         "⠂",
@@ -26233,6 +26255,10 @@
       "printedPage": null,
       "pdfPage": 200,
       "sourceNotation": "x';a\"~b",
+      "operationIds": [
+        "misc.prime",
+        "script.sub-sup"
+      ],
       "cells": [
         "⠭",
         "⠄",
@@ -26266,6 +26292,9 @@
       "printedPage": null,
       "pdfPage": 200,
       "sourceNotation": "x'",
+      "operationIds": [
+        "misc.prime"
+      ],
       "cells": [
         "⠭",
         "⠄"
@@ -26294,6 +26323,10 @@
       "printedPage": null,
       "pdfPage": 201,
       "sourceNotation": "x';a",
+      "operationIds": [
+        "misc.prime",
+        "script.subscript"
+      ],
       "cells": [
         "⠭",
         "⠄",
@@ -26324,6 +26357,10 @@
       "printedPage": null,
       "pdfPage": 201,
       "sourceNotation": "x'~2",
+      "operationIds": [
+        "misc.prime",
+        "script.superscript"
+      ],
       "cells": [
         "⠭",
         "⠄",
@@ -26354,6 +26391,10 @@
       "printedPage": null,
       "pdfPage": 201,
       "sourceNotation": "x';a~b",
+      "operationIds": [
+        "misc.prime",
+        "script.sub-sup"
+      ],
       "cells": [
         "⠭",
         "⠄",
@@ -26386,6 +26427,10 @@
       "printedPage": null,
       "pdfPage": 201,
       "sourceNotation": "x''1~3",
+      "operationIds": [
+        "misc.prime",
+        "script.superscript"
+      ],
       "cells": [
         "⠭",
         "⠄",
@@ -26418,6 +26463,10 @@
       "printedPage": null,
       "pdfPage": 201,
       "sourceNotation": "x'~`#",
+      "operationIds": [
+        "misc.prime",
+        "script.superscript"
+      ],
       "cells": [
         "⠭",
         "⠄",
@@ -26449,6 +26498,10 @@
       "printedPage": null,
       "pdfPage": 201,
       "sourceNotation": "x~`#'",
+      "operationIds": [
+        "script.superscript",
+        "misc.prime"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -26480,6 +26533,10 @@
       "printedPage": null,
       "pdfPage": 201,
       "sourceNotation": ",a;ue~`#'",
+      "operationIds": [
+        "script.sub-sup",
+        "misc.prime"
+      ],
       "cells": [
         "⠠",
         "⠁",
@@ -26515,6 +26572,10 @@
       "printedPage": null,
       "pdfPage": 201,
       "sourceNotation": ",a';ue~`#",
+      "operationIds": [
+        "misc.prime",
+        "script.sub-sup"
+      ],
       "cells": [
         "⠠",
         "⠁",
@@ -26550,6 +26611,10 @@
       "printedPage": null,
       "pdfPage": 202,
       "sourceNotation": "x^2_'s",
+      "operationIds": [
+        "script.superscript",
+        "script.possessive"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -26582,6 +26647,10 @@
       "printedPage": null,
       "pdfPage": 202,
       "sourceNotation": "c;i_'s",
+      "operationIds": [
+        "script.subscript",
+        "script.possessive"
+      ],
       "cells": [
         "⠉",
         "⠰",
@@ -26614,6 +26683,10 @@
       "printedPage": null,
       "pdfPage": 202,
       "sourceNotation": "c1_'s, c2_'s, ''', c;n_'s",
+      "operationIds": [
+        "script.subscript",
+        "script.possessive"
+      ],
       "cells": [
         "⠉",
         "⠂",

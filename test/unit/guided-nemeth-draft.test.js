@@ -176,6 +176,54 @@ test('Rule 14 corpus cases 14-111 through 14-121 retain exact comparison and scr
   }
 });
 
+test('Rule 14 corpus cases 14-122 through 14-141 retain exact prime and script operations', () => {
+  const expected = new Map(Object.entries({
+    '14-122': ['script.sub-sup'], '14-123': ['script.superscript'],
+    '14-124': ['script.sup-sub'], '14-125': ['script.sub-sup'],
+    '14-126': ['script.sup-sub'], '14-127': ['script.sub-sup'],
+    '14-128': ['script.superscript', 'script.baseline'],
+    '14-129': ['misc.prime', 'script.sub-sup'], '14-130': ['misc.prime'],
+    '14-131': ['misc.prime', 'script.subscript'],
+    '14-132': ['misc.prime', 'script.superscript'],
+    '14-133': ['misc.prime', 'script.sub-sup'],
+    '14-134': ['misc.prime', 'script.superscript'],
+    '14-135': ['misc.prime', 'script.superscript'],
+    '14-136': ['script.superscript', 'misc.prime'],
+    '14-137': ['script.sub-sup', 'misc.prime'],
+    '14-138': ['misc.prime', 'script.sub-sup'],
+    '14-139': ['script.superscript', 'script.possessive'],
+    '14-140': ['script.subscript', 'script.possessive'],
+    '14-141': ['script.subscript', 'script.possessive']
+  }));
+  const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
+  const generator = fs.readFileSync(new URL('../../scripts/bana-example-corpus-generate.mjs', import.meta.url), 'utf8');
+  for (const [exampleNumber, operationIds] of expected) {
+    const entry = corpus.cases.find((candidate) => candidate.exampleNumber === exampleNumber);
+    assert.ok(entry?.executable, `${exampleNumber} must be executable`);
+    assert.deepEqual(entry.operationIds, operationIds, `${exampleNumber} needs exact reviewed operation ownership`);
+    assert.deepEqual(entry.cells, sourceNotationToCells(entry.sourceNotation));
+    assert.match(generator, new RegExp(`['"]${exampleNumber}['"]\\s*:`), `${exampleNumber} must remain generator-owned`);
+    let document = createEmptyDraftMathDocument();
+    let focus = focusOf(document);
+    let inputState = { prefix: '', mode: null };
+    for (const authoredCell of entry.cells) {
+      let result = cell(document, focus, inputState, authoredCell);
+      if (result.status === 'choice') {
+        const reviewed = result.choices.find((choice) => operationIds.includes(choice.operationId));
+        result = applyNemethChoice({
+          document: result.document,
+          focus: result.focus,
+          inputState: result.inputState,
+          operationId: reviewed?.operationId ?? result.choices[0].operationId
+        });
+      }
+      assert.notEqual(result.status, 'rejected', `${exampleNumber} rejects authored cell ${authoredCell}`);
+      ({ document, focus, inputState } = result);
+    }
+    assert.notEqual(document.mathml, createEmptyDraftMathDocument().mathml, `${exampleNumber} must build a canonical draft`);
+  }
+});
+
 test('Rule 14 Electron corpus cases 14-12 through 14-22 replay authored cells', () => {
   const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
   for (let number = 12; number <= 22; number += 1) {
