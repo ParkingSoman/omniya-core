@@ -12,6 +12,13 @@ for (let i = 0; i < lines.length; i += 1) {
   if (lines[i].includes('\f')) page += 1;
 }
 const headings = [];
+// Reviewed BRF lines that are mathematical but do not use the `_ % ... _:`
+// passage wrapper recognized by the general PDF-text extractor. These exact
+// strings come from the corresponding printed example blocks below.
+const reviewedSourceNotation = new Map([
+  ['15-8', ';"x<`:]",a1'],
+  ['20-49', '#g_/#d_/#gf']
+]);
 let currentRule = null;
 let currentProvision = null;
 for (let i = bodyStart; i >= 0 && i < (bodyEnd > 0 ? bodyEnd : lines.length); i += 1) {
@@ -42,7 +49,7 @@ const extracted = headings.map((heading, index) => {
     text = text.split('_:')[0].replace(/\s+/g, ' ').trim();
     if (text && !/^[-—]+$/.test(text)) payloads.push(text);
   }
-  const sourceBraille = payloads[0] ?? null;
+  const sourceBraille = payloads[0] ?? reviewedSourceNotation.get(heading.number) ?? null;
   const sourceNotation = sourceBraille && !/[·•]/.test(sourceBraille) ? sourceBraille : null;
   return {
     id: `bana-2022:example-${heading.number}`,

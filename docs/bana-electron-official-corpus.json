@@ -3,8 +3,8 @@
   "source": "docs/bana-official-examples.json",
   "counts": {
     "total": 1066,
-    "executable": 1022,
-    "nonExecutable": 44
+    "executable": 1024,
+    "nonExecutable": 42
   },
   "cases": [
     {
@@ -26988,13 +26988,25 @@
       "exampleNumber": "15-8",
       "printedPage": null,
       "pdfPage": 206,
-      "sourceNotation": null,
-      "cells": null,
-      "expectedWholeBraille": null,
+      "sourceNotation": ";\"x<`:]\",a1",
+      "cells": [
+        "⠰",
+        "⠐",
+        "⠭",
+        "⠣",
+        "⠈",
+        "⠱",
+        "⠻",
+        "⠐",
+        "⠠",
+        "⠁",
+        "⠂"
+      ],
+      "expectedWholeBraille": ";\"x<`:]\",a1",
       "candidateBrailleLines": [
         ";\"x<`:]\",a1"
       ],
-      "executable": false,
+      "executable": true,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -37527,11 +37539,23 @@
       "exampleNumber": "20-49",
       "printedPage": null,
       "pdfPage": 275,
-      "sourceNotation": null,
-      "cells": null,
-      "expectedWholeBraille": null,
+      "sourceNotation": "#g_/#d_/#gf",
+      "cells": [
+        "⠼",
+        "⠛",
+        "⠸",
+        "⠌",
+        "⠼",
+        "⠙",
+        "⠸",
+        "⠌",
+        "⠼",
+        "⠛",
+        "⠋"
+      ],
+      "expectedWholeBraille": "#g_/#d_/#gf",
       "candidateBrailleLines": [],
-      "executable": false,
+      "executable": true,
       "conversionError": null,
       "creation": false,
       "editing": false,

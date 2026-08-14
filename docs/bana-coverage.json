@@ -49820,9 +49820,9 @@
         "candidateBrailleLines": [
           ";\"x<`:]\",a1"
         ],
-        "expectedWholeBraille": null,
-        "sourceNotation": null,
-        "brailleCells": null
+        "expectedWholeBraille": ";\"x<`:]\",a1",
+        "sourceNotation": ";\"x<`:]\",a1",
+        "brailleCells": "⠰⠐⠭⠣⠈⠱⠻⠐⠠⠁⠂"
       },
       "evidenceScope": "equation-workflow"
     },
@@ -72776,9 +72776,9 @@
         ],
         "printAndBraille": "Example 20-49: The Slash is Not a Fraction Line\n\n        7/4/76\n        #g_/#d_/#gf\n        (the slash does not mean over, per, or divided by)\n\n20.9   Tilde\n       This sign of operation is used predominantly in logic with the\n       meaning of not.",
         "candidateBrailleLines": [],
-        "expectedWholeBraille": null,
-        "sourceNotation": null,
-        "brailleCells": null
+        "expectedWholeBraille": "#g_/#d_/#gf",
+        "sourceNotation": "#g_/#d_/#gf",
+        "brailleCells": "⠼⠛⠸⠌⠼⠙⠸⠌⠼⠛⠋"
       },
       "evidenceScope": "equation-workflow"
     },
