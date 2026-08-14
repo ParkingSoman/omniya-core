@@ -504,12 +504,13 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const without = `${hostCells}${digitCells}`;
       if (braille.includes(withIndicator)) continue;
       if (braille.includes(without)) braille = braille.replace(without, withIndicator);
-      // A lower-cell decimal after multipurpose is not a numeric passage, so
-      // drop an SRE number indicator between the decimal point and digits.
-      if (String(node.textContent ?? '').trim().startsWith('.')) {
-        braille = braille.replace(/⠐⠨⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/, '⠐⠨');
-      }
     }
+  }
+  // Lower-cell decimals after a multipurpose indicator are not a numeric
+  // passage. SRE may still emit a number sign between the decimal point and
+  // digits (X".6 -> ⠐⠨⠼⠖); drop only that local artifact.
+  if ([...lowerCellNumeric].some((node) => String(node.textContent ?? '').trim().startsWith('.'))) {
+    braille = braille.replace(/⠐⠨⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/g, '⠐⠨');
   }
   if (lowerCellNumeric.length && braille.includes('⠬')) {
     braille = braille.replace(/⠐+⠬⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/, '⠐⠬');
@@ -1966,7 +1967,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (numericDecimal.length && !decimalNonnumeric.length) {
     // BANA 3.2.3 uses dot 4 for a decimal point in a numeric item. SRE's
     // generic number projection chooses the ordinary punctuation cell.
-    const withNumber = braille.includes('⠼')
+    // Lower-cell decimals (including Rule 24.1 X".6) are not a numeric
+    // passage and must not gain a fresh number indicator.
+    const lowerCellOnly = numericDecimal.every((node) =>
+      node.getAttribute?.('data-omniya-nemeth-intent') === 'lower-cell-numeric');
+    const withNumber = braille.includes('⠼') || lowerCellOnly
       ? braille
       : braille.replace(/(⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/, '⠼$1');
     let projected = restorePunctuationPeriods(withNumber.replace(/(⠼[^⠨⠐]*)(⠲)/, '$1⠨'), punctuationPeriods.length, explicitGroups.length);
