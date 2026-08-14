@@ -167,6 +167,11 @@ if (appendixDStart >= 0) {
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
 const durableDisposition = rows.find((row) => row.id === 'bana-2022:example-7-22');
 if (durableDisposition) durableDisposition.disposition = 'approved-context-policy';
+// The 2025 Rule 20.6 erratum changes only the heading of Example 20-36 from
+// "Plus and Minus" to "Minus and Plus." Its print expression and BRF are
+// unchanged, so it owns no executable operation or context-policy behavior.
+const rule20HeadingErratum = rows.find((row) => row.id === 'errata-2025:20.6-20-9');
+if (rule20HeadingErratum) rule20HeadingErratum.disposition = 'excluded-document-format';
 // The Rule 23 errata restores crossed d in the symbol list and section 23.4,
 // adds a spatial-layout exception to monetary spacing, and corrects Example
 // 23-48 with the barred-letter indicator. Link each correction to only the
