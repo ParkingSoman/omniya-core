@@ -128,9 +128,14 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
       const inferredReferenceAsterisk = !requested && prefix.includes('⠈⠼')
         ? page.locator('#replacement-choices .replacement-choice[data-operation-id="reference.asterisk"]')
         : null;
+      const letterOverPlural = !requested
+        && (await page.locator('#replacement-choices .replacement-choice[data-operation-id="letter.s"]').count())
+        && (await page.locator('#replacement-choices .replacement-choice[data-operation-id="plural.s"]').count())
+        ? page.locator('#replacement-choices .replacement-choice[data-operation-id="letter.s"]')
+        : null;
       const selected = requested
         ? page.locator(`#replacement-choices .replacement-choice[data-operation-id="${requested}"]`)
-        : inferredReferenceAsterisk || contextChoice || choices.first();
+        : inferredReferenceAsterisk || contextChoice || letterOverPlural || choices.first();
       const selectedCount = await selected.count();
       if (requested && !selectedCount) {
         const available = await choices.evaluateAll((nodes) => nodes.map((node) => ({ id: node.dataset.operationId, text: node.textContent })));
@@ -177,7 +182,16 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   if (await page.locator('#replacement-choices .replacement-choice').count()) {
     const choices = page.locator('#replacement-choices .replacement-choice');
     const omission = choices.filter({ hasText: 'omission.long-dash' });
-    await (await omission.count() ? omission.first() : choices.first()).click();
+    const possessive = page.locator('#replacement-choices .replacement-choice[data-operation-id="script.possessive"]');
+    const letterS = page.locator('#replacement-choices .replacement-choice[data-operation-id="letter.s"]');
+    // Literary labels and unfinished apostrophe-s drafts often leave an empty
+    // proxy with letter.s/plural.s (or script.possessive). Prefer the exact
+    // local meaning before falling back to the first button.
+    const preferred = (await omission.count()) ? omission.first()
+      : (await possessive.count()) ? possessive.first()
+      : (await letterS.count()) ? letterS.first()
+      : choices.first();
+    await preferred.click();
     await page.waitForTimeout(40);
     await resolveChoices();
   }
@@ -236,6 +250,42 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   };
 }
 
+/**
+ * Official focused edits must freeze an exact MathJax speech atom. Token
+ * leaves (mi/mn/mo) qualify, and so do SRE speech-atomic function mrows
+ * (lim/sin/…) whose letter children have no semantic ids of their own.
+ * Empty mspaces are never edit targets.
+ */
+function isOfficialAtomicCanonicalTarget(target) {
+  if (!target?.nodeName || !target.text) return false;
+  const name = String(target.nodeName).replace(/^mjx-/, '');
+  if (/^m[ino]$/.test(name)) return true;
+  if (name === 'mrow' && (
+    target.semanticType === 'function'
+    || /limit function|simple function/i.test(target.semanticRole || '')
+    || target.intent === 'function-name'
+  )) return true;
+  return false;
+}
+
+async function readOfficialEditTarget(page) {
+  return page.evaluate(() => {
+    const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+    const semanticId = current?.getAttribute('data-semantic-id');
+    const source = semanticId && [...document.querySelectorAll('[id^="omniya-source-"][data-semantic-id]')]
+      .find((node) => node.getAttribute('data-semantic-id') === semanticId);
+    return {
+      semanticId,
+      text: source?.textContent?.trim() ?? '',
+      nodeName: source?.localName ?? '',
+      childElements: source?.children?.length ?? -1,
+      semanticType: source?.getAttribute('data-semantic-type') || current?.getAttribute('data-semantic-type') || '',
+      semanticRole: source?.getAttribute('data-semantic-role') || current?.getAttribute('data-semantic-role') || '',
+      intent: source?.getAttribute('data-omniya-nemeth-intent') || ''
+    };
+  });
+}
+
 async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   const article = page.locator('article.napkin-article').last();
   await article.focus();
@@ -244,19 +294,22 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   await page.keyboard.press('ArrowDown');
   await page.waitForTimeout(60);
   let selectedTarget = null;
-  for (let depth = 0; depth < 12; depth += 1) {
-    selectedTarget = await page.evaluate(() => {
-      const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
-      const semanticId = current?.getAttribute('data-semantic-id');
-      const source = semanticId && [...document.querySelectorAll('[id^="omniya-source-"][data-semantic-id]')]
-        .find((node) => node.getAttribute('data-semantic-id') === semanticId);
-      return { semanticId, text: source?.textContent?.trim() ?? '', nodeName: source?.localName ?? '', childElements: source?.children?.length ?? -1 };
-    });
-    if (/^(?:mjx-)?m[ino]$/.test(selectedTarget.nodeName) && selectedTarget.text) break;
-    await page.keyboard.press('ArrowDown');
+  let previousId = null;
+  for (let depth = 0; depth < 24; depth += 1) {
+    selectedTarget = await readOfficialEditTarget(page);
+    if (isOfficialAtomicCanonicalTarget(selectedTarget)) break;
+    // Empty mspaces and other non-atoms often cannot deepen. Prefer a sibling
+    // step when focus did not move or landed on mspace; otherwise keep
+    // descending. Never invent an ancestor range — only move MathJax focus.
+    const stuck = !selectedTarget.semanticId || selectedTarget.semanticId === previousId;
+    const onSpace = /mspace$/i.test(selectedTarget.nodeName || '');
+    const key = stuck || onSpace || !selectedTarget.text ? 'ArrowRight' : 'ArrowDown';
+    previousId = selectedTarget.semanticId;
+    await page.keyboard.press(key);
     await page.waitForTimeout(60);
   }
-  assert.match(selectedTarget.nodeName, /^(?:mjx-)?m[ino]$/, `official edit must select an atomic canonical target: ${JSON.stringify(selectedTarget)}`);
+  assert.ok(isOfficialAtomicCanonicalTarget(selectedTarget),
+    `official edit must select an atomic canonical target: ${JSON.stringify(selectedTarget)}`);
   const focusedEvidence = options.captureFocusedEvidence
     ? await options.captureFocusedEvidence()
     : null;

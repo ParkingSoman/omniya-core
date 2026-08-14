@@ -807,6 +807,14 @@ function closeStructure(tree, focus, elementName) {
   if (elementName === 'menclose') {
     return { tree, focus: focusNode(container) };
   }
+  // A completed five-step or contracted modifier is itself the next local
+  // operand. Returning the mover/munder/munderover (rather than its parent
+  // math root) lets a following possessive `_'s`, plural, or sibling token
+  // attach beside that exact construction. Leaving focus on the math root
+  // made `_'s` fall through to tally+prime and left the dock on a choice.
+  if (elementName === 'mover' || elementName === 'munder' || elementName === 'munderover') {
+    return { tree, focus: focusNode(container) };
+  }
   return { tree, focus: focusNode(parent ?? tree) };
 }
 

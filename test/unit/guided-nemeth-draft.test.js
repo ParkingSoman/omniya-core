@@ -1437,6 +1437,18 @@ test('Rule 8.4 plural and possessive endings append to the focused local express
   assert.equal(tree.children.at(-2).name, 'msup');
 });
 
+test('Rule 8.4 apostrophe-s attaches after a completed five-step modifier', () => {
+  // Example 8-39: `"x<@:]_'s`. Terminating the five-step tilde must leave
+  // focus on the mover so `_'s` remains one atomic possessive sequence.
+  const { document } = replayCells(sourceNotationToCells(`"x<@:]_'s`));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(tree.children[1].attrs?.['data-omniya-nemeth-intent'], 'possessive-apostrophe');
+  assert.equal(tree.children[2].attrs?.['data-omniya-nemeth-intent'], 'possessive-s');
+  assert.equal(tree.children[2].children[0].text, 's');
+});
+
 test('Rule 16.3 nested radical order builds and closes a local inner radical', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
