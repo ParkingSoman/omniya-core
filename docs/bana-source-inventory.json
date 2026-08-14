@@ -24014,9 +24014,12 @@
       "printedPage": "14-22",
       "pdfPage": 191,
       "auditOrder": 820,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24043,9 +24046,11 @@
       "printedPage": "14-22",
       "pdfPage": 191,
       "auditOrder": 821,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.sup-sup-sub"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24072,9 +24077,11 @@
       "printedPage": "14-22",
       "pdfPage": 191,
       "auditOrder": 822,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24188,9 +24195,12 @@
       "printedPage": "14-23",
       "pdfPage": 192,
       "auditOrder": 826,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24217,9 +24227,11 @@
       "printedPage": "14-23",
       "pdfPage": 192,
       "auditOrder": 827,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.sup-sup-sup"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24246,9 +24258,13 @@
       "printedPage": "14-23",
       "pdfPage": 192,
       "auditOrder": 828,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "fraction.start.simple",
+        "script.superscript",
+        "script.baseline"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24275,9 +24291,13 @@
       "printedPage": "14-23",
       "pdfPage": 192,
       "auditOrder": 829,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "fraction.start.complex",
+        "script.superscript",
+        "script.baseline"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24304,9 +24324,12 @@
       "printedPage": "14-23",
       "pdfPage": 192,
       "auditOrder": 830,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "modifier.directly-over"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24333,9 +24356,12 @@
       "printedPage": "14-24",
       "pdfPage": 193,
       "auditOrder": 831,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "modifier.terminate.over"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24362,9 +24388,12 @@
       "printedPage": "14-24",
       "pdfPage": 193,
       "auditOrder": 832,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "group.round"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
