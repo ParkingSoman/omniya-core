@@ -889,6 +889,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠻⠀⠰/, '⠀⠰');
     braille = braille.replace(/⠽⠻$/, '⠽');
     braille = braille.replace(/⠪⠭⠻*⠽/g, '⠪⠭⠻⠽');
+    // Cancelled lower-cell digits remain in the same numeric passage. SRE
+    // prefixes isolated <mn> nodes with a fresh number indicator; strip only
+    // that indicator immediately inside the cancellation opener.
+    braille = braille.replace(/⠪⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠪');
   }
   if (diagonalFractions.length) {
     // A diagonal fraction entered after a numeric item does not carry the
