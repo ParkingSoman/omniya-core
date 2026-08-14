@@ -175,6 +175,29 @@ test('a visible blank commits a complete local code and inserts a structural spa
   assert.match(result.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
 });
 
+test('a boundary held behind an equality choice is inserted after equality before question mark', () => {
+  let session = replacementSession();
+  for (const cell of ['⠨', '⠅']) session = applyNemethCell(session, cell).session;
+
+  const boundary = applyNemethBoundary(session, 'space');
+  assert.equal(boundary.status, 'choice');
+  const equality = boundary.choices.find(({ operationId }) => operationId === 'operator.equals');
+  assert.ok(equality, `expected equality choice, received ${JSON.stringify(boundary.choices)}`);
+
+  const chosen = applyNemethChoice(boundary.session, equality.operationId);
+  assert.equal(chosen.status, 'applied');
+  const question = applyNemethCell(chosen.session, '⠿');
+  assert.equal(question.status, 'applied');
+  assert.deepEqual(parseMathML(question.session.draft.mathml).children.map(({ name, children }) => ({
+    name,
+    text: children?.[0]?.text ?? null
+  })), [
+    { name: 'mo', text: '=' },
+    { name: 'mspace', text: null },
+    { name: 'mo', text: '?' }
+  ]);
+});
+
 test('a dot-6 punctuation prefix resolves as punctuation at a visible blank', () => {
   let session = replacementSession();
   session = applyNemethCell(session, '⠠').session;

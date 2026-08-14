@@ -106,6 +106,9 @@ export function applyNemethBoundary(session, boundary = 'space') {
       if (punctuation.status !== 'applied') return punctuation;
       current = punctuation.session;
     } else {
+      if (committed.status === 'choice') {
+        return { ...committed, session: { ...committed.session, pendingNemethBoundary: boundary } };
+      }
       if (committed.status !== 'applied') return committed;
       current = committed.session;
     }
@@ -134,6 +137,10 @@ export function applyNemethChoice(session, operationId) {
   ))) {
     next.draft = result.document;
     next.draftFocus = result.focus;
+  }
+  if (result.status === 'applied' && session.pendingNemethBoundary === 'space') {
+    delete next.pendingNemethBoundary;
+    return applyNemethCell(next, ' ');
   }
   return { ...result, session: next };
 }
