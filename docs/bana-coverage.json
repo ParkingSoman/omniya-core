@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 5,
     "mappedRows": 1135,
-    "electronCreationRows": 995,
-    "electronEditingRows": 988,
+    "electronCreationRows": 998,
+    "electronEditingRows": 991,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -67928,13 +67928,16 @@
         "registry:script.left-superscript"
       ],
       "electronCreationCaseIds": [
-        "electron:bana-2022:example-14-34"
+        "electron:bana-2022:example-14-34",
+        "electron:bana-2022:example-14-35"
       ],
       "electronEditingCaseIds": [
-        "electron:bana-2022:example-14-34"
+        "electron:bana-2022:example-14-34",
+        "electron:bana-2022:example-14-35"
       ],
       "navigationCaseIds": [
-        "electron:bana-2022:example-14-34"
+        "electron:bana-2022:example-14-34",
+        "electron:bana-2022:example-14-35"
       ],
       "errataRefs": [],
       "verified": {
@@ -67955,39 +67958,39 @@
         "context-policy.14.5"
       ],
       "visualEvidence": {
-        "id": "electron:bana-2022:example-14-34",
+        "id": "electron:bana-2022:example-14-35",
         "sourceRows": [
-          "example-14-34",
+          "example-14-35",
           "14.5.2"
         ],
         "rule": "14",
-        "example": "14-34",
-        "artifact": "electron-evidence/example-14-34.json",
+        "example": "14-35",
+        "artifact": "electron-evidence/example-14-35.json",
         "review": {
           "reviewer": "evidence-steward",
-          "conclusion": "Accepted all four real Electron phases for example 14-34; geometry contract passed in-runner and screenshots are non-empty."
+          "conclusion": "Accepted all four real Electron phases for example 14-35; geometry contract passed in-runner and screenshots are non-empty."
         },
         "evidenceSet": {
           "screenshots": [
             {
               "phase": "input",
-              "path": "electron-screenshots/rule-14-34/input.png",
-              "claim": "The complete Nemeth draft for example 14-34 is visible before submission."
+              "path": "electron-screenshots/rule-14-35/input.png",
+              "claim": "The complete Nemeth draft for example 14-35 is visible before submission."
             },
             {
               "phase": "committed",
-              "path": "electron-screenshots/rule-14-34/committed.png",
-              "claim": "The committed expression for example 14-34 is visibly rendered as one canonical MathML tree."
+              "path": "electron-screenshots/rule-14-35/committed.png",
+              "claim": "The committed expression for example 14-35 is visibly rendered as one canonical MathML tree."
             },
             {
               "phase": "focused",
-              "path": "electron-screenshots/rule-14-34/focused.png",
-              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 14-34."
+              "path": "electron-screenshots/rule-14-35/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 14-35."
             },
             {
               "phase": "editing",
-              "path": "electron-screenshots/rule-14-34/editing.png",
-              "claim": "The exact-node replacement for example 14-34 remains visibly integrated with the surrounding expression."
+              "path": "electron-screenshots/rule-14-35/editing.png",
+              "claim": "The exact-node replacement for example 14-35 remains visibly integrated with the surrounding expression."
             }
           ]
         }
@@ -68127,22 +68130,28 @@
       "unitCaseIds": [
         "registry:script.left-superscript"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-14-35"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-14-35"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-14-35"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -68162,6 +68171,44 @@
         "expectedWholeBraille": "p~b\";c\"x",
         "sourceNotation": "p~b\";c\"x",
         "brailleCells": "⠏⠘⠃⠐⠰⠉⠐⠭"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-14-35",
+        "sourceRows": [
+          "example-14-35",
+          "14.5.2"
+        ],
+        "rule": "14",
+        "example": "14-35",
+        "artifact": "electron-evidence/example-14-35.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 14-35; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-14-35/input.png",
+              "claim": "The complete Nemeth draft for example 14-35 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-14-35/committed.png",
+              "claim": "The committed expression for example 14-35 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-14-35/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 14-35."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-14-35/editing.png",
+              "claim": "The exact-node replacement for example 14-35 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -75754,9 +75801,15 @@
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-14-104"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-14-104"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-14-104"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
@@ -75872,18 +75925,24 @@
         "registry:script.subscript",
         "registry:script.left-subscript"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-14-104"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-14-104"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-14-104"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
         "undoRedo": false,
         "persistence": false,
         "contextPolicy": true,
@@ -86691,6 +86750,7 @@
         "integral.superpose.infinity",
         "integral.superpose.rectangle",
         "integral.superpose.square",
+        "shape.superpose.capital-a",
         "superposition.bar-shape",
         "superposition.operation-equals",
         "superposition.comparison",
@@ -86713,6 +86773,7 @@
         "registry:integral.superpose.infinity",
         "registry:integral.superpose.rectangle",
         "registry:integral.superpose.square",
+        "registry:shape.superpose.capital-a",
         "registry:superposition.bar-shape",
         "registry:superposition.operation-equals",
         "registry:superposition.comparison",
@@ -86825,6 +86886,7 @@
         "integral.superpose.infinity",
         "integral.superpose.rectangle",
         "integral.superpose.square",
+        "shape.superpose.capital-a",
         "superposition.bar-shape",
         "superposition.operation-equals",
         "superposition.comparison",
@@ -86847,6 +86909,7 @@
         "registry:integral.superpose.infinity",
         "registry:integral.superpose.rectangle",
         "registry:integral.superpose.square",
+        "registry:shape.superpose.capital-a",
         "registry:superposition.bar-shape",
         "registry:superposition.operation-equals",
         "registry:superposition.comparison",
@@ -86923,6 +86986,7 @@
         "integral.superpose.infinity",
         "integral.superpose.rectangle",
         "integral.superpose.square",
+        "shape.superpose.capital-a",
         "superposition.bar-shape",
         "superposition.operation-equals",
         "superposition.comparison",
@@ -86945,6 +87009,7 @@
         "registry:integral.superpose.infinity",
         "registry:integral.superpose.rectangle",
         "registry:integral.superpose.square",
+        "registry:shape.superpose.capital-a",
         "registry:superposition.bar-shape",
         "registry:superposition.operation-equals",
         "registry:superposition.comparison",
@@ -87065,6 +87130,7 @@
         "integral.superpose.infinity",
         "integral.superpose.rectangle",
         "integral.superpose.square",
+        "shape.superpose.capital-a",
         "superposition.bar-shape",
         "superposition.operation-equals",
         "superposition.comparison",
@@ -87087,6 +87153,7 @@
         "registry:integral.superpose.infinity",
         "registry:integral.superpose.rectangle",
         "registry:integral.superpose.square",
+        "registry:shape.superpose.capital-a",
         "registry:superposition.bar-shape",
         "registry:superposition.operation-equals",
         "registry:superposition.comparison",
@@ -87207,6 +87274,7 @@
         "integral.superpose.infinity",
         "integral.superpose.rectangle",
         "integral.superpose.square",
+        "shape.superpose.capital-a",
         "superposition.bar-shape",
         "superposition.operation-equals",
         "superposition.comparison",
@@ -87229,6 +87297,7 @@
         "registry:integral.superpose.infinity",
         "registry:integral.superpose.rectangle",
         "registry:integral.superpose.square",
+        "registry:shape.superpose.capital-a",
         "registry:superposition.bar-shape",
         "registry:superposition.operation-equals",
         "registry:superposition.comparison",
@@ -87350,6 +87419,7 @@
         "integral.superpose.infinity",
         "integral.superpose.rectangle",
         "integral.superpose.square",
+        "shape.superpose.capital-a",
         "superposition.bar-shape",
         "superposition.operation-equals",
         "superposition.comparison",
@@ -87372,6 +87442,7 @@
         "registry:integral.superpose.infinity",
         "registry:integral.superpose.rectangle",
         "registry:integral.superpose.square",
+        "registry:shape.superpose.capital-a",
         "registry:superposition.bar-shape",
         "registry:superposition.operation-equals",
         "registry:superposition.comparison",
