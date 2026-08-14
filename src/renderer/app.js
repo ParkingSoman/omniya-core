@@ -27,7 +27,8 @@ import {
   applyCommandKey,
   createCommandState,
   enterCommand,
-  formatStatus
+  formatStatus,
+  gradeForUebBackTranslate
 } from '../domain/command-mode.js';
 import { createUebCellBuffer, pushUebCell } from '../domain/ueb-cell-buffer.js';
 
@@ -1002,7 +1003,7 @@ async function handleComposerUebCell(cell) {
     announce(`UEB cells: ${uebBuffer.pending}`);
     return;
   }
-  const grade = commandState.uebGrade === 'g1' ? 'g1' : 'g2';
+  const grade = gradeForUebBackTranslate(commandState);
   const trailingSpace = cell === ' ' || cell === '\u2800';
   try {
     const translated = await window.omniya.backTranslateUeb(result.flush, grade);

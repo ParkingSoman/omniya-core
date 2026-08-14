@@ -5,7 +5,8 @@ import {
   applyCommandKey,
   formatStatus,
   enterCommand,
-  enterInsert
+  enterInsert,
+  gradeForUebBackTranslate
 } from '../../src/domain/command-mode.js';
 
 test('Escape enters command; i returns to insert', () => {
@@ -63,4 +64,27 @@ test('question mark requests contextual help', () => {
   const r = applyCommandKey(s, '?');
   assert.equal(r.action, 'help');
   assert.match(r.announcement, /Command/i);
+});
+
+test('gradeForUebBackTranslate uses g1 for whole-item g1 or G1 passage', () => {
+  assert.equal(
+    gradeForUebBackTranslate(createCommandState({ contentEmpty: true, uebGrade: 'g1' })),
+    'g1'
+  );
+  assert.equal(
+    gradeForUebBackTranslate(createCommandState({ contentEmpty: true, uebGrade: 'g2' })),
+    'g2'
+  );
+  assert.equal(
+    gradeForUebBackTranslate(createCommandState({
+      contentEmpty: false, uebGrade: 'g2', g1Passage: true
+    })),
+    'g1'
+  );
+  assert.equal(
+    gradeForUebBackTranslate(createCommandState({
+      contentEmpty: false, uebGrade: 'g1', g1Passage: false
+    })),
+    'g2'
+  );
 });

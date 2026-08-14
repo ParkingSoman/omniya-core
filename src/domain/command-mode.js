@@ -32,6 +32,12 @@ export function formatStatus(state) {
   return `${mode} · (choosing)`;
 }
 
+/** Grade for liblouis backTranslate of a flushed UEB cell word. */
+export function gradeForUebBackTranslate(state) {
+  if ((state.contentEmpty && state.uebGrade === 'g1') || state.g1Passage) return 'g1';
+  return 'g2';
+}
+
 /**
  * @returns {{ state, announcement: string, action?: string }}
  * action hints for app.js: 'submit' | 'cancel' | 'help' | 'set-type' | 'set-method' | none
