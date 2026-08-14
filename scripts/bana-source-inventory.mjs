@@ -204,9 +204,15 @@ for (let number = 12; number <= 22; number += 1) {
   row.disposition = 'implemented-operation';
   row.mappingIds = [`script.${directions.join('-')}`];
 }
-for (let number = 23; number <= 31; number += 1) {
+for (const [number, mappingIds] of Object.entries({
+  23: ['script.left-superscript'], 24: ['script.left-superscript'],
+  27: ['script.superscript', 'script.left-superscript'],
+  28: ['script.left-superscript', 'script.subscript'],
+  29: ['script.left-superscript', 'script.left-subscript'],
+  31: ['script.left-subscript', 'script.left-superscript']
+})) {
   const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
-  if (row) row.disposition = 'approved-context-policy';
+  if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
 }
 for (const [number, mappingIds] of Object.entries({
   25: ['script.left-subscript'], 26: ['script.left-subscript', 'script.subscript'],

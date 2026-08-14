@@ -75,7 +75,12 @@ const rows = inventory.rows.map((row) => {
     : null;
   const appendixRefs = row.kind === 'appendix' ? (appendixDRefs.get(ref) ?? []) : [];
   const sourceRefs = sourceRefsFor(row, example);
-  const mappingIds = registry.filter((mapping) => [...sourceRefs].some((sourceRef) => mapping.banaRefs?.includes(sourceRef)) || appendixRefs.some((sourceRef) => mapping.banaRefs?.includes(sourceRef))).map((mapping) => mapping.id);
+  // Preserve explicit authoritative overlays from the source inventory (for
+  // context-sensitive examples whose BANA provision is shared by multiple
+  // operations); otherwise derive mappings from source references as usual.
+  const mappingIds = row.mappingIds?.length
+    ? [...row.mappingIds]
+    : registry.filter((mapping) => [...sourceRefs].some((sourceRef) => mapping.banaRefs?.includes(sourceRef)) || appendixRefs.some((sourceRef) => mapping.banaRefs?.includes(sourceRef))).map((mapping) => mapping.id);
   const contextRefs = [...sourceRefs, policyRef];
   const contextPolicyIds = contextPolicies.filter((policy) => contextRefs.some((sourceRef) => policy.banaRefs.includes(sourceRef))).map((policy) => policy.id);
   // An official example is not credited merely because its parent provision
