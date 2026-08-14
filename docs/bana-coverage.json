@@ -74970,7 +74970,7 @@
         ],
         "expectedWholeBraille": "!;PATH ;,C\"_;F(X, Y, Z)*_;D_;,L .K !!;SURFACE ;,S\"(.$@*_;,F)_;D_;,S",
         "sourceNotation": "!;PATH ;,C\"_;F(X, Y, Z)*_;D_;,L .K !!;SURFACE ;,S\"(.$@*_;,F)_;D_;,S",
-        "brailleCells": "⠮⠰⠠⠏⠠⠁⠠⠞⠠⠓⠀⠰⠠⠠⠉⠐⠸⠰⠠⠋⠷⠠⠭⠠⠀⠠⠽⠠⠀⠠⠵⠾⠡⠸⠰⠠⠙⠸⠰⠠⠠⠇⠀⠨⠅⠀⠮⠮⠰⠠⠎⠠⠥⠠⠗⠠⠋⠠⠁⠠⠉⠠⠑⠀⠰⠠⠠⠎⠐⠷⠨⠫⠈⠡⠸⠰⠠⠠⠋⠾⠸⠰⠠⠙⠸⠰⠠⠠⠎"
+        "brailleCells": "⠮⠰⠠⠏⠠⠁⠠⠞⠠⠓⠀⠰⠠⠉⠐⠸⠰⠠⠋⠷⠠⠭⠠⠀⠠⠽⠠⠀⠠⠵⠾⠡⠸⠰⠠⠙⠸⠰⠠⠇⠀⠨⠅⠀⠮⠮⠰⠠⠎⠠⠥⠠⠗⠠⠋⠠⠁⠠⠉⠠⠑⠀⠰⠠⠎⠐⠷⠨⠫⠈⠡⠸⠰⠠⠋⠾⠸⠰⠠⠙⠸⠰⠠⠎"
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {

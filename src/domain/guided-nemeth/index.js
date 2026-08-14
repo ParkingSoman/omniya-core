@@ -132,29 +132,40 @@ export function normalizeCellInput(cell) { return normalizeCell(cell); }
 // transition engine. This is intentionally one-code translation only. It
 // never scans a passage, infers operands, or maintains expression state.
 function sourceCells(notation) {
-  return [...notation].flatMap((character) => {
-    if (character === '`') return '⠈';
+  // Walk character-by-character so a printed capital after an explicit comma
+  // capital-indicator (`,S` / `.,S`) does not emit a second dot-6. BANA's
+  // mnemonic often writes the letter uppercase even though `,` already
+  // supplied capitalization.
+  const out = [];
+  for (let index = 0; index < notation.length; index += 1) {
+    let character = notation[index];
+    if (character === '`') { out.push('⠈'); continue; }
     // BANA's printed source notation uses a few typographic aliases that do
     // not have a direct Braille-ASCII code point.  Keep these as explicit
     // source-notation aliases, rather than teaching the transition engine a
     // second encoding or inferring them from surrounding cells.
-    if (character === '~') return '⠘'; // arrow direction: elevate nearer head
-    if (character === ';') return '⠰'; // arrow direction: depress nearer head
-    if (character === '|') return '⠳'; // BANA vertical bar cell
-    if (character === '{') return '⠪'; // printed angle-shape alias for the dots-2-4-6 cell
-    if (character === '}') return '⠻'; // local shape/modifier terminator
+    if (character === '~') { out.push('⠘'); continue; } // arrow direction: elevate nearer head
+    if (character === ';') { out.push('⠰'); continue; } // arrow direction: depress nearer head
+    if (character === '|') { out.push('⠳'); continue; } // BANA vertical bar cell
+    if (character === '{') { out.push('⠪'); continue; } // printed angle-shape alias for the dots-2-4-6 cell
+    if (character === '}') { out.push('⠻'); continue; } // local shape/modifier terminator
     if (character === 'K') character = 'k'; // BANA's printed capital K is the same dot-3 k cell
     if (/^[A-Z]$/.test(character)) {
       const lower = character.toLowerCase();
       const letterCell = [...LETTERS.entries()].find(([, value]) => value === lower)?.[0];
-      if (letterCell) return ['⠠', letterCell];
+      if (letterCell) {
+        if (notation[index - 1] === ',' && out.at(-1) === '⠠') out.push(letterCell);
+        else out.push('⠠', letterCell);
+        continue;
+      }
     }
     const letterCell = [...LETTERS.entries()].find(([, value]) => value === character)?.[0];
-    if (letterCell) return letterCell;
+    if (letterCell) { out.push(letterCell); continue; }
     const cell = ASCII_TO_UNICODE.get(character);
-    if (cell) return cell;
+    if (cell) { out.push(cell); continue; }
     throw new TypeError(`Unsupported BANA source notation character: ${character}`);
-  });
+  }
+  return out;
 }
 
 // Test and conformance tooling may translate one printed BANA local code into
@@ -4240,6 +4251,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       );
     }
   }
+  // Rule 14.6 numeric limits on a large operator (`.,S0`) use a bare lower-cell
+  // digit. Prefer that over the shared right-quote meaning of ⠴. Integrals keep
+  // five-step limit constructions (`%!` / `<n]`), so leave ∫ alone here.
+  if (!state.prefix && DIGITS.has(normalized) && context.node.name === 'mo' &&
+    state.mode === null &&
+    /^[∑∏]$/.test(context.node.children?.[0]?.text ?? '')) {
+    const digit = digitMapping(normalized);
+    digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
+  }
   // Rule 15 contracted bar after an ordinary letter/number (example 8-15).
   // Keep following operators/punctuation on the surrounding row: only the
   // bar itself uses the parallel-modifier continuation, and arithmetic or
@@ -5117,9 +5138,24 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const decimalBlankAnchor = decimalBlank ? previousNonSpaceSibling(context.tree, decimalBlank) : null;
   const decimalAfterBlank = Boolean(decimalBlank && decimalBlankAnchor &&
     (decimalBlankAnchor.name === 'mn' || decimalBlankAnchor.name === 'mo'));
+  // Rule 14.6 numeric subscript to a letter may begin with a leading decimal
+  // (X.6). Resolve that two-cell local decimal before radical-order claims the
+  // bare dot-4 prefix.
+  const decimalAfterLetter = context.node.name === 'mi' &&
+    /^[A-Za-z]$/.test(context.node.children?.[0]?.text ?? '');
   if (state.mode === null && state.prefix === '⠨' && DIGITS.has(normalized) &&
-    (decimalAfterBlank || decimalAfterOperator)) {
-    const decimal = applyMapping(document, focus, { ...state, prefix: '' }, numericPunctuationMapping('⠨', '.', '3.2.3'));
+    (decimalAfterBlank || decimalAfterOperator || decimalAfterLetter)) {
+    const decimal = applyMapping(document, focus, { ...state, prefix: '' }, {
+      ...numericPunctuationMapping('⠨', '.', '3.2.3'),
+      args: {
+        value: '.',
+        dataAttributes: {
+          // Rule 14.6 leading-decimal numeric subscript (X.6) is not the
+          // Rule 24.1 baseline multipurpose form (X".6).
+          'data-omniya-nemeth-intent': decimalAfterLetter ? 'numeric-subscript' : 'numeric-decimal'
+        }
+      }
+    });
     if (decimal.status !== 'rejected') {
       return applyNemethCell({
         document: decimal.document,
@@ -5715,7 +5751,8 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     context.node.name === 'mo' &&
     (POST_OPERATOR_LOWER_CELL.includes(context.node.children?.[0]?.text)
       || context.node.attrs?.['data-omniya-script-comma'] === 'true'
-      || (inScript && context.node.children?.[0]?.text === ','))) {
+      || (inScript && context.node.children?.[0]?.text === ',')
+      || /^[∑∏∫∮]$/.test(context.node.children?.[0]?.text ?? ''))) {
     const digit = digitMapping(normalized);
     digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);

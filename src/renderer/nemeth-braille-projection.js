@@ -657,21 +657,150 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.replace(missing, `${first}$1⠐${second}`);
     }
   }
+  // Rule 14.5 left scripts keep a multipurpose separator before the base.
+  // SRE often concatenates the left-script content with the base letter.
+  const leftScriptTensors = [...(sourceMath.getElementsByTagName?.('mmultiscripts') ?? [])]
+    .filter((node) => [...(node.children ?? [])].some((child) =>
+      (child.localName || child.nodeName || '').toLowerCase() === 'mprescripts'));
+  if (leftScriptTensors.length) {
+    const hasNestedLeft = leftScriptTensors.some((tensor) =>
+      [...(tensor.getElementsByTagName?.('mmultiscripts') ?? [])].some((inner) => inner !== tensor))
+      || [...(sourceMath.getElementsByTagName?.('msup') ?? [])].some((host) =>
+        [...(host.getElementsByTagName?.('mmultiscripts') ?? [])].length > 0)
+      || [...(sourceMath.getElementsByTagName?.('msub') ?? [])].some((host) =>
+        [...(host.getElementsByTagName?.('mmultiscripts') ?? [])].length > 0);
+    // Nested left scripts inside another left script or a right script get one
+    // extra SRE level indicator; drop only that local surplus first.
+    if (hasNestedLeft) {
+      braille = braille.replace(/⠘{3,}(?![⠘])/g, (run) => '⠘'.repeat(run.length - 1));
+      braille = braille.replace(/⠘{2,}(?=⠰)/g, (run) => '⠘'.repeat(Math.max(1, run.length - 1)));
+      braille = braille.replace(/⠰{2,}(?=⠘)/g, (run) => '⠰'.repeat(Math.max(1, run.length - 1)));
+      // Nested left-subscripts (`;;y;x"n`) keep two indicators; SRE emits three.
+      // Match any following non-indicator cell — letter class ranges miss ⠽/⠺.
+      braille = braille.replace(/⠰{3,}(?![⠰⠘⠐])/g, (run) => '⠰'.repeat(run.length - 1));
+    }
+    // Opposite left scripts on one tensor keep multipurpose between the two
+    // level runs (`;b"~a"x`). Nested same-side scripts do not.
+    const oppositeLeft = leftScriptTensors.some((tensor) => {
+      const kids = [...(tensor.children ?? [])].filter((child) => child.nodeType === 1);
+      const marker = kids.findIndex((child) =>
+        (child.localName || child.nodeName || '').toLowerCase() === 'mprescripts');
+      if (marker < 0) return false;
+      const leftSub = kids[marker + 1];
+      const leftSup = kids[marker + 2];
+      const filled = (node) => node && (node.localName || node.nodeName || '').toLowerCase() !== 'none'
+        && node.getAttribute?.('data-omniya-hole') !== 'true';
+      return filled(leftSub) && filled(leftSup);
+    });
+    if (oppositeLeft) {
+      braille = braille.replace(/([⠰⠘])([⠁-⠵⠠]+)(?!⠐)(?=[⠰⠘])/g, '$1$2⠐');
+    }
+    // Insert multipurpose only between the last left-script letter run and the
+    // following base letter (optionally followed by a right script indicator).
+    braille = braille.replace(/(?<![⠁-⠵])([⠰⠘]+[⠁-⠵⠠]+)(?!⠐)([⠁-⠵])(?=(?:⠰|⠘|⠐|$))/g, '$1⠐$2');
+    braille = braille.replace(/⠐{2,}(?=[⠁-⠵])/g, '⠐');
+    // Nested left-sup of a minus keeps no multipurpose before the inner
+    // superscript digit (`#10~~-~4`).
+    if (hasNestedLeft) {
+      braille = braille.replace(/⠤⠐⠘/g, '⠤⠘');
+    }
+  }
+  // Rule 14.11 `x1"~2`: single-letter numeric base of an msup keeps multipurpose
+  // before the superscript indicator.
+  const singleLetterSupBases = [...singleLetterNumbers].filter((node) => {
+    const host = node.parentElement ?? node.parentNode;
+    return (host?.localName || host?.nodeName || '').toLowerCase() === 'msup';
+  });
+  if (singleLetterSupBases.length) {
+    braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])(?!⠐)(?=⠘)/g, '$1⠐');
+  }
+  // Rule 14.6 numeric subscript to a letter is an adjacent mn with no msub.
+  // SRE may insert a multipurpose separator; remove only that local artifact.
+  const adjacentLetterNumbers = [...(sourceMath.getElementsByTagName?.('mn') ?? [])]
+    .filter((node) => {
+      const intent = node.getAttribute?.('data-omniya-nemeth-intent');
+      // Rule 14.6 numeric subscripts omit multipurpose. Rule 24.1 baseline
+      // numbers after a letter keep it — those stay lower-cell-numeric.
+      if (!(intent === 'numeric-start' || intent === 'numeric-subscript')) return false;
+      if (node.closest?.('msub, msup, msubsup, mmultiscripts')) return false;
+      let previous = node.previousElementSibling ?? node.previousSibling;
+      while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+      return previous && (previous.localName === 'mi' || previous.nodeName === 'mi');
+    });
+  for (const node of adjacentLetterNumbers) {
+    let previous = node.previousElementSibling ?? node.previousSibling;
+    while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+    const hostCells = previous?.getAttribute?.('data-omniya-nemeth-cells');
+    if (!hostCells) continue;
+    braille = braille.replace(new RegExp(`${hostCells}⠐(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴|⠨)`), hostCells);
+  }
+  // Leading-decimal numeric subscripts also omit a multipurpose that baseline
+  // Rule 24.1 restoration may have inserted before ⠨.
+  if ([...(sourceMath.getElementsByTagName?.('mn') ?? [])]
+    .some((node) => node.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-subscript')) {
+    braille = braille.replace(/((?:⠠)?[⠁-⠵])⠐(?=⠨)/g, '$1');
+  }
+  // Numeric subscript after a prime omits the number sign (`x'1`).
+  const primes = sourceNodes('mo').filter((node) => {
+    const cells = node.getAttribute?.('data-omniya-nemeth-cells') ?? '';
+    const text = String(node.textContent ?? '').trim();
+    return cells === '⠄' || cells === '⠄⠄' || text === '′' || text === '″';
+  });
+  if (primes.length && lowerCellNumeric.length) {
+    braille = braille.replace(/⠄⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠄');
+    braille = braille.replace(/⠄⠄⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠄⠄');
+  }
+  // Contracted script commas keep the following digit without a number sign.
+  if (sourceNodes('[data-omniya-script-comma="true"]').length
+    || sourceNodes('mo[data-omniya-nemeth-cells="⠪"]').length) {
+    braille = braille.replace(/⠪⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠪');
+  }
   // Rule 14.4.2 sequential sub-then-sup keeps the subscript indicator in
   // force before the later superscript indicator. SRE/MathJax flatten the
-  // nested construction to a plain msubsup reading; restore only identifier
-  // or source-marked sequential scripts, never integral/evaluation bars.
+  // nested construction to a plain msubsup reading; restore only source-
+  // marked sequential scripts, never ordinary simultaneous msubsup.
   const sequentialScripts = [...sourceMath.getElementsByTagName?.('msubsup') ?? []]
-    .filter((node) => {
+    .filter((node) => String(node.getAttribute?.('data-omniya-nemeth-intent') ?? '')
+      .startsWith('sequential-scripts'));
+  // Also treat bare msubsup opened by `;~` / script.sub-sup as sequential when
+  // the subscript is numeric and the superscript is a letter (14-46).
+  const inferredSequential = sequentialScripts.length ? sequentialScripts
+    : [...sourceMath.getElementsByTagName?.('msubsup') ?? []].filter((node) => {
       const intent = String(node.getAttribute?.('data-omniya-nemeth-intent') ?? '');
       if (intent.startsWith('non-simultaneous-scripts')) return false;
-      if (intent.startsWith('sequential-scripts')) return true;
-      const base = [...(node.children ?? [])].find((child) => child.nodeType === 1);
-      return Boolean(base && ['mi', 'mn'].includes(base.localName));
+      const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+      return kids[1]?.localName === 'mn' && kids[2]?.localName === 'mi';
     });
-  if (sequentialScripts.length) {
+  // Simultaneous scripts omit the extra subscript indicator before the
+  // superscript indicator. SRE often emits ⠰⠘ for an ordinary msubsup.
+  const simultaneousScripts = [...sourceMath.getElementsByTagName?.('msubsup') ?? []]
+    .filter((node) => {
+      const intent = String(node.getAttribute?.('data-omniya-nemeth-intent') ?? '');
+      return !intent.startsWith('non-simultaneous-scripts') && !intent.startsWith('sequential-scripts');
+    });
+  const nestedSimultaneous = [...sourceNodes('msub')].some((node) =>
+    [...(node.children ?? [])].some((child) => {
+      const name = (child.localName || child.nodeName || '').toLowerCase();
+      if (name === 'msup' || name === 'msubsup') return true;
+      if (name !== 'mrow') return false;
+      return [...(child.children ?? [])].some((grand) =>
+        ['msup', 'msubsup'].includes((grand.localName || grand.nodeName || '').toLowerCase()));
+    }));
+  if ((simultaneousScripts.length || nestedSimultaneous) && !inferredSequential.length) {
+    braille = braille.replace(/⠰([⠁-⠵]+)⠰⠘/g, '⠰$1⠘');
+  }
+  if (inferredSequential.length) {
+    braille = braille.replace(/([⠁-⠵])⠼([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠘/g, '$1⠰$2⠰⠘');
     braille = braille.replace(/⠰([^⠘⠰⠐]+)(?!⠰)⠘/g, '⠰$1⠰⠘');
     braille = braille.replace(/⠰⠘([^⠘⠰⠐]+)(?!⠰)⠘/g, '⠰⠘$1⠰⠘');
+  }
+  // Nested right subscripts restore the deeper level indicator before a digit.
+  const nestedRightSubscripts = [...sourceNodes('msub')].filter((node) =>
+    [...(node.children ?? [])].some((child) =>
+      (child.localName || child.nodeName || '').toLowerCase() === 'msub'));
+  if (nestedRightSubscripts.length) {
+    braille = braille.replace(/⠰(⠠?[⠁-⠵])(?!⠰)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠰$1⠰⠰');
+    braille = braille.replace(/(⠰⠠?[⠁-⠵])⠐(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
   }
   // Rule 14.7 contracted script comma is dots 2-4-6. SRE may spell the same
   // comma as literary comma plus a blank; restore only source-marked commas.

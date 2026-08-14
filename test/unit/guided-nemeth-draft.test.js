@@ -183,6 +183,34 @@ test('Rule 14.11.2 left-subscript then left-superscript then base stays one tens
   assert.equal(tree.children[0].children[marker + 2].children[0].text, 'a');
 });
 
+test('Rule 14-54 leading decimal numeric subscript after a letter completes', () => {
+  const { document } = replayCells(sourceNotationToCells('X.6'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].children[0].text, 'X');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '.6');
+  assert.match(tree.children[1].attrs?.['data-omniya-nemeth-intent'] ?? '', /numeric|subscript|decimal/);
+});
+
+test('Rule 14-55 sigma numeric limit and scripts complete without an open hole', () => {
+  const { document } = replayCells(sourceNotationToCells('.,S0~N"A;K'), { '⠨⠠⠎': 'operator.sum' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mo');
+  assert.equal(tree.children[0].children[0].text, '∑');
+  assert.match(document.mathml, /<msup[\s\S]*?>0<\/mn>[\s\S]*?>N<\/mi>/);
+  assert.match(document.mathml, /<msub[\s\S]*?>A<\/mi>[\s\S]*?>k<\/mi>/);
+});
+
+test('sourceNotationToCells does not double-capitalize after an explicit comma', () => {
+  assert.deepEqual(sourceNotationToCells('.,S'), ['⠨', '⠠', '⠎']);
+  assert.deepEqual(sourceNotationToCells(',A'), ['⠠', '⠁']);
+});
+
 test('Rule 14-27 raised left superscript sits inside the right superscript', () => {
   const { document } = replayCells(sourceNotationToCells('#10~~-~4'));
   const tree = parseMathML(document.mathml);
@@ -544,7 +572,10 @@ test('Rule 14 corpus cases 14-45 through 14-66 retain source-grounded script ope
       const empty = createEmptyDraftMathDocument();
       const chosen = applyNemethChoice({ document: empty, focus: focusOf(empty), inputState: { prefix, mode: null }, operationId });
       assert.equal(chosen.status, 'applied', `14-${number} ${operationId} choice must apply`);
-      assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+      // Left-script choices open mmultiscripts; base operators (e.g. 14-55 sum) do not.
+      if (operationId.startsWith('script.')) {
+        assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+      }
     }
   }
 });
@@ -639,7 +670,10 @@ test('Rule 14 corpus cases 14-100 through 14-110 retain exact boundary and left-
       const empty = createEmptyDraftMathDocument();
       const chosen = applyNemethChoice({ document: empty, focus: focusOf(empty), inputState: { prefix, mode: null }, operationId });
       assert.equal(chosen.status, 'applied', `14-${number} ${operationId} choice must apply`);
-      assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+      // Left-script choices open mmultiscripts; base operators (e.g. 14-55 sum) do not.
+      if (operationId.startsWith('script.')) {
+        assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+      }
     }
   }
 });

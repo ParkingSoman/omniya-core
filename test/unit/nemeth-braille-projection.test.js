@@ -648,10 +648,61 @@ test('Rule 14.11 degree returns to baseline before a following hyphen', () => {
 
 test('Rule 14.4.2 sequential sub-then-sup restores the extra subscript indicator', () => {
   const source = new DOMParser().parseFromString(
-    '<math><msubsup><mi data-omniya-nemeth-cells="⠭">x</mi><mi>n</mi><mi>a</mi></msubsup></math>',
+    '<math><msubsup data-omniya-nemeth-intent="sequential-scripts"><mi data-omniya-nemeth-cells="⠭">x</mi><mi>n</mi><mi>a</mi></msubsup></math>',
     'text/xml'
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠭⠰⠝⠘⠁', source), '⠭⠰⠝⠰⠘⠁');
+});
+
+test('Rule 14.5 left scripts restore multipurpose before the base', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mmultiscripts><mi>n</mi><none/><none/><mprescripts/><mi>x</mi><none/></mmultiscripts></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠰⠭⠝', source), '⠰⠭⠐⠝');
+});
+
+test('Rule 14.5 nested left scripts drop the extra SRE level indicator', () => {
+  const nested = new DOMParser().parseFromString(
+    `<math><mmultiscripts>
+      <mi>x</mi><none/><none/><mprescripts/><none/>
+      <mmultiscripts><mi>n</mi><none/><none/><mprescripts/><mi>a</mi><none/></mmultiscripts>
+    </mmultiscripts></math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠘⠘⠰⠁⠘⠝⠐⠭', nested), '⠘⠰⠁⠘⠝⠐⠭');
+});
+
+test('Rule 14.6 numeric subscript after a letter drops the multipurpose separator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠠⠭">X</mi><mn data-omniya-nemeth-intent="numeric-start">10,000</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠭⠐⠂⠴⠠⠴⠴⠴', source), '⠠⠭⠂⠴⠠⠴⠴⠴');
+});
+
+test('Rule 14 numeric subscript after a prime omits the number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-cells="⠄">′</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠄⠼⠂', source), '⠭⠄⠂');
+});
+
+test('Rule 14 simultaneous scripts omit the extra subscript indicator before superscript', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msubsup><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mrow><mi>u</mi><mi>e</mi></mrow><mo data-omniya-nemeth-cells="⠈⠼">#</mo></msubsup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠁⠰⠥⠑⠰⠘⠈⠼', source), '⠠⠁⠰⠥⠑⠘⠈⠼');
+});
+
+test('Rule 14.4.2 numeric sequential sub-sup restores script indicators', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msubsup><mi data-omniya-nemeth-cells="⠭">x</mi><mn data-omniya-nemeth-intent="numeric-start">2</mn><mi>n</mi></msubsup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠼⠆⠘⠝', source), '⠭⠰⠆⠰⠘⠝');
 });
 
 test('Rule 14 lower-cell numerals in a subscript omit the number sign', () => {
