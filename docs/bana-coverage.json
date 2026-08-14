@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 34,
     "mappedRows": 1096,
-    "electronCreationRows": 168,
-    "electronEditingRows": 166,
+    "electronCreationRows": 169,
+    "electronEditingRows": 167,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -13416,13 +13416,16 @@
         "registry:letter.capital-z"
       ],
       "electronCreationCaseIds": [
-        "electron:bana-2022:example-5-1"
+        "electron:bana-2022:example-5-1",
+        "electron:bana-2022:example-5-2"
       ],
       "electronEditingCaseIds": [
-        "electron:bana-2022:example-5-1"
+        "electron:bana-2022:example-5-1",
+        "electron:bana-2022:example-5-2"
       ],
       "navigationCaseIds": [
-        "electron:bana-2022:example-5-1"
+        "electron:bana-2022:example-5-1",
+        "electron:bana-2022:example-5-2"
       ],
       "errataRefs": [],
       "verified": {
@@ -13436,9 +13439,47 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-5-2",
+        "sourceRows": [
+          "example-5-2",
+          "5.1.1"
+        ],
+        "rule": "5",
+        "example": "5-2",
+        "artifact": "electron-evidence/example-5-2.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases; committed Gamma and edited y each have one source root, one MathJax container, non-zero in-viewport geometry, and no visible source blanks."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-5-2/input.png",
+              "claim": "The completed cell-by-cell Greek-capital Nemeth draft is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-5-2/committed.png",
+              "claim": "The committed capital Gamma is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-5-2/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact Gamma node before replacement."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-5-2/editing.png",
+              "claim": "The exact node replacement is visibly rendered as y after the transaction."
+            }
+          ]
+        }
+      },
       "evidenceScope": "equation-workflow"
     },
     {
@@ -13825,22 +13866,28 @@
         "registry:letter.capital-y",
         "registry:letter.capital-z"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-5-2"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-5-2"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-5-2"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:5.1.1",
@@ -13856,6 +13903,44 @@
         "expectedWholeBraille": ".,g",
         "sourceNotation": ".,g",
         "brailleCells": "⠨⠠⠛"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-5-2",
+        "sourceRows": [
+          "example-5-2",
+          "5.1.1"
+        ],
+        "rule": "5",
+        "example": "5-2",
+        "artifact": "electron-evidence/example-5-2.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases; committed Gamma and edited y each have one source root, one MathJax container, non-zero in-viewport geometry, and no visible source blanks."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-5-2/input.png",
+              "claim": "The completed cell-by-cell Greek-capital Nemeth draft is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-5-2/committed.png",
+              "claim": "The committed capital Gamma is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-5-2/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact Gamma node before replacement."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-5-2/editing.png",
+              "claim": "The exact node replacement is visibly rendered as y after the transaction."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow"
     },
