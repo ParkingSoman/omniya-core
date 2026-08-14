@@ -625,6 +625,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     } else if (result.status === 'choice') {
       editor.value = '';
       elements['replacement-status'].textContent = result.announcement;
+      elements['replacement-choices'].dataset.prefix = result.inputState?.prefix ?? '';
       elements['replacement-choices'].replaceChildren(...result.choices.map((choice) => {
         const button = document.createElement('button');
         button.type = 'button';
@@ -662,6 +663,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     }
     elements['replacement-choices'].replaceChildren();
     elements['replacement-choices'].hidden = true;
+    delete elements['replacement-choices'].dataset.prefix;
     // The selected operation consumes the entire bounded local prefix. Clear
     // the visible one-cell proxy before the next physical key can arrive; a
     // stale prefix here would be re-fed and duplicate the next local code.

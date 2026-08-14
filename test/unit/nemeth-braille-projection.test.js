@@ -812,6 +812,76 @@ test('Rule 14.11 non-simultaneous scripts restore the multipurpose separator', (
   assert.equal(applyNemethSourceIntentToBraille('⠭⠄⠰⠁⠘⠃', primed), '⠭⠄⠰⠁⠐⠘⠃');
 });
 
+test('Rule 14.9.2 right-sup then left-sup restores multipurpose between scripts', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mi data-omniya-nemeth-cells="⠏">p</mi><mi>b</mi></msup><mmultiscripts data-omniya-nemeth-intent="left-scripts:sup-first"><mi>q</mi><none/><none/><mprescripts/><none/><mi>c</mi></mmultiscripts></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠏⠘⠃⠘⠉⠐⠟', source), '⠏⠘⠃⠐⠘⠉⠐⠟');
+});
+
+test('Rule 14-105 single-letter number then left-sub restores multipurpose', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠠⠏">P</mi><mn data-omniya-nemeth-intent="single-letter-number">1</mn><mmultiscripts data-omniya-nemeth-intent="left-scripts:sub-first"><mi data-omniya-nemeth-cells="⠠⠟">Q</mi><none/><none/><mprescripts/><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><none/></mmultiscripts></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠏⠂⠰⠆⠐⠠⠟', source), '⠠⠏⠂⠐⠰⠆⠐⠠⠟');
+});
+
+test('Rule 14 raised radical nested digit restores second-order indicators', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mi data-omniya-nemeth-cells="⠑">e</mi><msqrt><mrow><msup><mi>x</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup><mo data-omniya-nemeth-cells="⠬">+</mo><msup><mi>y</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup></mrow></msqrt></msup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠑⠘⠜⠭⠘⠆⠐⠬⠽⠘⠆⠐⠻', source), '⠑⠘⠜⠭⠘⠘⠆⠘⠬⠽⠘⠘⠆⠘⠻');
+});
+
+test('Rule 14 raised function power restores second-order digit indicators', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mi data-omniya-nemeth-cells="⠑">e</mi><mrow><msup><mrow><mi>s</mi><mi>i</mi><mi>n</mi></mrow><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup></mrow></msup><mspace data-omniya-nemeth-intent="explicit-space"/><mi>x</mi><mo data-omniya-nemeth-cells="⠬">+</mo><msup><mi data-omniya-nemeth-intent="function-name" data-omniya-nemeth-cells="⠎⠊⠝">sin</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup><mspace data-omniya-nemeth-intent="explicit-space"/><mi>y</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠑⠘⠎⠊⠝⠘⠆⠀⠭⠬⠎⠊⠝⠘⠆⠀⠽', source), '⠑⠘⠎⠊⠝⠘⠘⠆⠀⠭⠬⠎⠊⠝⠘⠘⠆⠀⠽');
+});
+
+test('Rule 14 four-deep subscript ellipsis keeps four level indicators', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mi data-omniya-nemeth-cells="⠝">n</mi><msub><mi>x</mi><msub><mi>y</mi><msub><mi>z</mi><mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo></msub></msub></msub></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠝⠰⠭⠰⠰⠽⠰⠰⠰⠵⠰⠰⠰⠰⠰⠰⠰⠰⠰⠰⠄⠄⠄', source),
+    '⠝⠰⠭⠰⠰⠽⠰⠰⠰⠵⠰⠰⠰⠰⠄⠄⠄'
+  );
+});
+
+test('Rule 14 raised ellipsis continues superscript level for following words', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mi data-omniya-nemeth-cells="⠁">a</mi><mrow><mi>n</mi><mo>+</mo><mi>n</mi><mo>+</mo><mi>n</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi>t</mi><mi>o</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mi>m</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mi>n</mi><mo data-omniya-nemeth-intent="possessive-apostrophe" data-omniya-nemeth-cells="⠸⠄">\'</mo><mi data-omniya-nemeth-intent="possessive-s">s</mi></mrow></msup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠁⠘⠝⠬⠝⠬⠝⠀⠄⠄⠄⠀⠞⠕⠀⠍⠀⠝⠸⠄⠎', source),
+    '⠁⠘⠝⠬⠝⠬⠝⠀⠄⠄⠄⠀⠘⠞⠕⠀⠘⠍⠀⠘⠝⠘⠸⠄⠎'
+  );
+});
+
+test('Rule 14.8 punctuation indicator after numeric superscript restores ⠸⠲', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mi data-omniya-nemeth-cells="⠭">x</mi><mrow><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo></mrow></msup><mspace data-omniya-nemeth-intent="explicit-space"/><msup><mi>y</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠘⠆⠲⠀⠽⠘⠆', source), '⠭⠘⠆⠸⠲⠀⠽⠘⠆');
+});
+
+test('Rule 14.6 German letter numeric subscript keeps the digit cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-intent="german-fraktur" data-omniya-nemeth-cells="⠸⠠⠁">𝔄</mi><mn data-omniya-nemeth-intent="numeric-subscript">1</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠸⠠⠁', source), '⠸⠠⠁⠂');
+});
+
 test('Rule 8 simple fractions drop interior number signs and keep indicated periods', () => {
   const source = new DOMParser().parseFromString(
     `<math>

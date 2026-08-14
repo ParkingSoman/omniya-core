@@ -327,6 +327,42 @@ test('Rule 14-32 left subscript with right subscript stays one tensor', () => {
   assert.equal(leftSub.children[1].children[0].text, 'y');
 });
 
+test('Rule 14 empty-root left-script choices prefer left-script over English-letter', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = focusOf(document);
+  let inputState = { prefix: '', mode: null };
+  let result = cell(document, focus, inputState, '⠰');
+  result = cell(result.document, result.focus, result.inputState, '⠭');
+  assert.equal(result.status, 'choice');
+  assert.equal(result.choices[0].operationId, 'script.left-subscript');
+  result = applyNemethChoice({
+    document: result.document, focus: result.focus, inputState: result.inputState, operationId: result.choices[0].operationId
+  });
+  assert.equal(result.status, 'applied');
+  assert.match(result.document.mathml, /mmultiscripts/);
+});
+
+test('Rule 14-38 German capital with numeric subscript keeps the digit sibling', () => {
+  const { document } = replayCells(sourceNotationToCells('_,a1'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].attrs?.['data-omniya-nemeth-intent'], 'german-fraktur');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '1');
+  assert.equal(tree.children[1].attrs?.['data-omniya-nemeth-intent'], 'numeric-subscript');
+});
+
+test('Rule 14-127 first-choice left-subscript builds opposite left scripts', () => {
+  const { document } = replayCells(sourceNotationToCells(';b"~a"x'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+});
+
 test('Rule 14-33 nested left subscript inside left subscript completes', () => {
   const { document } = replayCells(sourceNotationToCells(';;y;x"n'), { '⠰⠰': 'script.left-subscript' });
   const tree = parseMathML(document.mathml);
@@ -734,7 +770,7 @@ test('Rule 14 corpus cases 14-122 through 14-141 retain exact prime and script o
   const expected = new Map(Object.entries({
     '14-122': ['script.sub-sup'], '14-123': ['script.superscript'],
     '14-124': ['script.sup-sub'], '14-125': ['script.sub-sup'],
-    '14-126': ['script.sup-sub'], '14-127': ['script.sub-sup'],
+    '14-126': ['script.sup-sub'], '14-127': ['script.left-subscript', 'script.left-superscript'],
     '14-128': ['script.superscript', 'script.baseline'],
     '14-129': ['misc.prime', 'script.sub-sup'], '14-130': ['misc.prime'],
     '14-131': ['misc.prime', 'script.subscript'],

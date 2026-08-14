@@ -117,7 +117,10 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
     for (let attempt = 0; attempt < 6; attempt += 1) {
       const choices = page.locator('#replacement-choices .replacement-choice');
       if (!(await choices.count())) return;
-      const prefix = (await input.inputValue()).trimEnd();
+      // The textarea is a one-cell proxy; the bounded Nemeth prefix lives in
+      // NemethState and is mirrored on the choices container for harness lookup.
+      const prefix = (await page.locator('#replacement-choices').getAttribute('data-prefix'))?.trimEnd?.()
+        ?? (await input.inputValue()).trimEnd();
       const requested = choiceOperationIds[`${prefix}${nextCell ?? ''}`]
         ?? choiceOperationIds[prefix]
         ?? Object.entries(choiceOperationIds).find(([localPrefix]) => prefix.endsWith(localPrefix))?.[1]
@@ -133,9 +136,31 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
         && (await page.locator('#replacement-choices .replacement-choice[data-operation-id="plural.s"]').count())
         ? page.locator('#replacement-choices .replacement-choice[data-operation-id="letter.s"]')
         : null;
+      // Rule 14.5: when the next authored cell is multipurpose (base promotion),
+      // prefer left-script over English-letter / ordinary script at empty root.
+      const leftScriptPreferred = !requested && nextCell === '⠐'
+        ? (
+          (await page.locator('#replacement-choices .replacement-choice[data-operation-id="script.left-subscript"]').count())
+            ? page.locator('#replacement-choices .replacement-choice[data-operation-id="script.left-subscript"]')
+            : (await page.locator('#replacement-choices .replacement-choice[data-operation-id="script.left-superscript"]').count())
+              ? page.locator('#replacement-choices .replacement-choice[data-operation-id="script.left-superscript"]')
+              : null
+        )
+        : null;
+      // Literary `;letter` lists (8-63) and set-builder `;x` (8-46) need the
+      // English-letter indicator when the following cell is comma/space/colon.
+      const englishOverScript = !requested && !leftScriptPreferred
+        && (await page.locator('#replacement-choices .replacement-choice[data-operation-id="indicator.english-letter"]').count())
+        && (
+          (await page.locator('#replacement-choices .replacement-choice[data-operation-id="script.left-subscript"]').count())
+          || (await page.locator('#replacement-choices .replacement-choice[data-operation-id="script.subscript"]').count())
+        )
+        && (nextCell === '⠠' || nextCell === '⠀' || nextCell === '⠸' || nextCell === '⠨')
+        ? page.locator('#replacement-choices .replacement-choice[data-operation-id="indicator.english-letter"]')
+        : null;
       const selected = requested
         ? page.locator(`#replacement-choices .replacement-choice[data-operation-id="${requested}"]`)
-        : inferredReferenceAsterisk || contextChoice || letterOverPlural || choices.first();
+        : inferredReferenceAsterisk || leftScriptPreferred || englishOverScript || contextChoice || letterOverPlural || choices.first();
       const selectedCount = await selected.count();
       if (requested && !selectedCount) {
         const available = await choices.evaluateAll((nodes) => nodes.map((node) => ({ id: node.dataset.operationId, text: node.textContent })));

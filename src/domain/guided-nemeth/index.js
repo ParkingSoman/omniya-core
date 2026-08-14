@@ -2162,7 +2162,8 @@ const NON_ENGLISH_MAPPINGS = [
     return [
       token(`german.${letter}`, ['⠸', base], ['6.1.1', '6.2.1'], lower, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: `_${letter}`,
         dataAttributes: { 'data-omniya-nemeth-intent': 'german-fraktur' } }),
-      token(`german.capital-${letter}`, ['⠸', '⠠', base], ['5.1.1', '6.1.1', '6.2.1'], upper, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: `_,${letter}` })
+      token(`german.capital-${letter}`, ['⠸', '⠠', base], ['5.1.1', '6.1.1', '6.2.1'], upper, 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: `_,${letter}`,
+        dataAttributes: { 'data-omniya-nemeth-intent': 'german-fraktur' } })
     ];
   }),
   token('hebrew.aleph', ['⠠', '⠠', '⠁'], ['6.1.2', '6.2.1'], 'א', 'mi', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',,a', dataAttributes: { 'data-omniya-nemeth-intent': 'hebrew-letter', 'data-omniya-hebrew-zero': 'true' } }),
@@ -2279,6 +2280,15 @@ const MAPPINGS = [
   sourceToken('omission.decimal-long-dash', '."----', ['3.2.3', '24.1'], '―', 'mo', {
     commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
     dataAttributes: { 'data-omniya-nemeth-intent': 'omission-decimal-long-dash' }
+  }),
+  // Rule 24.1.g / 24-14: a general omission after a numeric decimal keeps the
+  // dot-4 + multipurpose return with the equals-shaped omission cell.
+  sourceToken('omission.decimal-general', '."=', ['3.2.3', '24.1', '11.1.1'], '?', 'mo', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    dataAttributes: {
+      'data-omniya-nemeth-intent': 'omission-decimal-general',
+      'data-omniya-nemeth-cells': '⠨⠐⠿'
+    }
   }),
   token('punctuation.ellipsis', ['⠄', '⠄', '⠄'], ['8.8'], '…', 'mo', { sourceNotation: "'''" }),
   token('punctuation.left-single-quote', ['⠠', '⠦'], ['8.1'], '‘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',8' }),
@@ -4330,7 +4340,8 @@ export function applyNemethChoice({ document, focus, inputState = { prefix: '', 
     }
     return next;
   }
-  if (mapping.id === 'script.left-superscript' && prefix.startsWith(mappingPrefix) && prefix.length > mappingPrefix.length) {
+  if ((mapping.id === 'script.left-superscript' || mapping.id === 'script.left-subscript')
+    && prefix.startsWith(mappingPrefix) && prefix.length > mappingPrefix.length) {
     const suffix = [...prefix.slice(mappingPrefix.length)];
     let next = applyMapping(document, focus, { ...inputState, prefix: '' }, mapping);
     for (const suffixCell of suffix) {
@@ -4686,9 +4697,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         operationId: leftSuperscript.id
       });
     }
+    // Prefer left-superscript first so one-cell Electron choice resolution and
+    // first-choice corpus replay keep Rule 14.5 constructions at an empty root.
     return {
       status: 'choice',
-      choices: [superscript, leftSuperscript].filter(Boolean).map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+      choices: [leftSuperscript, superscript].filter(Boolean).map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
       document, focus,
       inputState: { ...state, prefix: sequence },
       announcement: 'This local Nemeth prefix can begin a superscript or a left-superscript construction. Choose its meaning.'
@@ -6123,11 +6136,22 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
   }
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
-    context.node.name === 'mi' && /^[A-Za-z]$/.test(context.node.children?.[0]?.text ?? '')) {
+    context.node.name === 'mi' && (
+      /^[A-Za-z]$/.test(context.node.children?.[0]?.text ?? '')
+      || context.node.attrs?.['data-omniya-nemeth-intent'] === 'german-fraktur'
+      || String(context.node.attrs?.['data-omniya-nemeth-cells'] ?? '').startsWith('⠸')
+    )) {
     const digit = digitMapping(normalized);
+    // Rule 14.6 numeric subscript to a letter/German letter omits the
+    // subscript indicator (`_,a1`). Mark those digits distinctly from the
+    // Rule 24.1 single-letter baseline number so projection can keep them.
+    const intent = (context.node.attrs?.['data-omniya-nemeth-intent'] === 'german-fraktur'
+      || String(context.node.attrs?.['data-omniya-nemeth-cells'] ?? '').startsWith('⠸'))
+      ? 'numeric-subscript'
+      : 'single-letter-number';
     const result = applyMapping(document, focus, { ...state, mode: 'numeric' }, {
       ...digit,
-      args: { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'single-letter-number' } }
+      args: { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': intent } }
     });
     // Keep numeric mode so a spatial multi-digit run after a letter (`6o864`)
     // can continue in the same lower-cell <mn>. A following non-digit still
@@ -6157,7 +6181,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // same numeric atom (`o864` after `6`).
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     context.node.name === 'mn' &&
-    ['single-letter-number', 'lower-cell-numeric', 'decimal-nonnumeric'].includes(context.node.attrs?.['data-omniya-nemeth-intent'])) {
+    ['single-letter-number', 'lower-cell-numeric', 'decimal-nonnumeric', 'numeric-subscript'].includes(context.node.attrs?.['data-omniya-nemeth-intent'])) {
     const digit = digitMapping(normalized);
     digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': context.node.attrs['data-omniya-nemeth-intent'] } };
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
@@ -7123,17 +7147,32 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         operationId: 'script.left-subscript'
       });
     }
+    // Prefer left-subscript first so one-cell Electron choice resolution and
+    // first-choice corpus replay keep Rule 14.5 constructions at an empty root.
     return {
       status: 'choice',
       choices: [
-        { operationId: 'indicator.english-letter', label: 'English-letter indicator', banaRefs: ['6.3', '10.3'] },
-        { operationId: 'script.left-subscript', label: 'Begin left-subscript construction', banaRefs: ['14.5.1'] }
+        { operationId: 'script.left-subscript', label: 'Begin left-subscript construction', banaRefs: ['14.5.1'] },
+        { operationId: 'indicator.english-letter', label: 'English-letter indicator', banaRefs: ['6.3', '10.3'] }
       ],
       document,
       focus,
       inputState: { ...state, prefix: `${state.prefix}${normalized}` },
       announcement: 'This local Nemeth prefix can begin an English-letter indicator or a left-subscript construction. Choose its meaning.'
     };
+  }
+  // After an open grouping fence, `;letter` is the English-letter indicator
+  // (set-builder `;x`, Rule 8.6/6.3). A subscript would require the fence
+  // itself to be a script base, which these openings are not.
+  if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized) &&
+    context.node.attrs?.['data-omniya-role'] === 'open-fence') {
+    const indicator = MAPPINGS.find((candidate) => candidate.id === 'indicator.english-letter');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
+    if (activated.status !== 'rejected') {
+      return applyNemethCell({
+        document: activated.document, focus: activated.focus, inputState: activated.inputState, cell: normalized
+      });
+    }
   }
   // After an explicit mathematical blank, dot-6 plus a letter is the
   // ordinary English-letter indicator. It is not a left-subscript opener:
@@ -7352,6 +7391,28 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
             cell: normalized
           });
         }
+      }
+    }
+    // Rule 14.6: a ready German-letter atomic code followed by a digit commits
+    // the letter, then inserts the numeric subscript as a sibling.
+    const readyGerman = (PREFIXES.get(state.prefix)?.mappings ?? [])
+      .filter((mapping) => mappingApplies(mapping, context))
+      .find((mapping) => mapping.id?.startsWith?.('german.')
+        && mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE
+        && mapping.cells.join('') === state.prefix);
+    if (readyGerman && DIGITS.has(normalized)) {
+      const committed = applyMapping(document, focus, { ...state, prefix: '' }, readyGerman);
+      if (committed.status !== 'rejected') {
+        const next = applyNemethCell({
+          document: committed.document,
+          focus: committed.focus,
+          inputState: committed.inputState,
+          cell: normalized
+        });
+        if (next.status !== 'rejected') {
+          return { ...next, announcement: `${committed.announcement}; ${next.announcement}` };
+        }
+        return committed;
       }
     }
     const previous = PREFIXES.get(state.prefix);

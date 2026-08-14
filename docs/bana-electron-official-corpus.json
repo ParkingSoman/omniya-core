@@ -26187,7 +26187,8 @@
       "pdfPage": 200,
       "sourceNotation": ";b\"~a\"x",
       "operationIds": [
-        "script.sub-sup"
+        "script.left-subscript",
+        "script.left-superscript"
       ],
       "cells": [
         "⠰",
@@ -26210,7 +26211,10 @@
       "wholeBraille": false,
       "focusedBraille": false,
       "undoRedo": false,
-      "persistence": false
+      "persistence": false,
+      "choiceOperationIds": {
+        "⠰⠃": "script.left-subscript"
+      }
     },
     {
       "id": "electron:bana-2022:example-14-128",

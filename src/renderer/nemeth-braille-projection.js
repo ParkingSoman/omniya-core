@@ -472,7 +472,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     .map((node) => {
       const digits = new Map([['0', '⠴'], ['1', '⠂'], ['2', '⠆'], ['3', '⠒'], ['4', '⠲'], ['5', '⠢'], ['6', '⠖'], ['7', '⠶'], ['8', '⠦'], ['9', '⠔'], [',', '⠠']]);
       const denominator = String(node.children?.[1]?.textContent ?? '').trim();
-      return `${node.getAttribute('data-omniya-nemeth-cells')}${[...denominator].map((d) => digits.get(d) ?? '').join('')}`;
+      const stamped = node.getAttribute('data-omniya-nemeth-cells');
+      // Require a real stamped diagonal sequence. An empty attribute plus a
+      // denominator digit must not activate the global `⠹→⠼` rewrite that
+      // destroys complex openers (13-25).
+      if (!stamped) return '';
+      return `${stamped}${[...denominator].map((d) => digits.get(d) ?? '').join('')}`;
     })
     .filter(Boolean);
   const simpleFractions = sourceNodes('mfrac[data-omniya-fraction-kind="simple"]')
@@ -697,7 +702,8 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // SRE can announce a baseline return before a right superscript when a
     // multiscript is nested in a larger fraction. The authored BANA local
     // code already supplied the script direction, so this presentation-only
-    // return is not part of the source cells.
+    // return is not part of the source cells. Rule 14.9 sibling left-scripts
+    // restore authored multipurpose later when a right script precedes them.
     let remaining = multiscriptCount;
     braille = braille.replace(/⠐⠘/g, (match) => {
       if (remaining <= 0) return match;
@@ -826,7 +832,8 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   }
   if (lowerCellNumeric.length > 1) {
     braille = braille.replace(/⠘⠆⠬/g, '⠘⠆⠐⠬');
-    braille = braille.replace(/⠘⠘⠆⠘/g, '⠘⠆⠐');
+    // Do not collapse nested second-order digits (`~~2~]`) into multipurpose
+    // form; Rule 14 raised radicals/functions keep ⠘⠘⠆⠘.
     braille = braille.replace(/(⠘⠆⠐)(?:⠐)?⠻$/, '$1⠻');
     braille = braille.replace(/(⠘⠆)(?!⠐⠻)(?=⠻$)/, '$1⠐');
   }
@@ -918,6 +925,22 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // left-subscript indicator is the authored multipurpose separator.
     if ([...singleLetterNumbers].length) {
       braille = braille.replace(new RegExp(`(${BRAILLE_DIGIT})⠀(?=⠰)`, 'g'), '$1⠐');
+      braille = braille.replace(new RegExp(`(${BRAILLE_DIGIT})(?!⠐)(?=⠰)`, 'g'), '$1⠐');
+    }
+    // Rule 14.9.2 / 14-103: a completed right script followed by a sibling
+    // left-script tensor keeps multipurpose before the left-script indicator.
+    const siblingLeftAfterRight = leftScriptTensors.some((tensor) => {
+      let previous = tensor.previousElementSibling ?? tensor.previousSibling;
+      while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+      const name = (previous?.localName || previous?.nodeName || '').toLowerCase();
+      return ['msup', 'msub', 'msubsup', 'mi', 'mn'].includes(name);
+    });
+    if (siblingLeftAfterRight) {
+      braille = braille.replace(
+        new RegExp(`([⠰⠘](?:⠠)?${BRAILLE_LETTER}+|[⠰⠘]${BRAILLE_DIGIT})(?!⠐)(?=[⠰⠘])`, 'g'),
+        '$1⠐'
+      );
+      braille = braille.replace(/⠐{2,}(?=[⠰⠘])/g, '⠐');
     }
   }
   // Rule 14.11 `x1"~2`: single-letter numeric base of an msup keeps multipurpose
@@ -1052,7 +1075,96 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       return depth >= 4;
     });
     if (deepEllipsis) {
-      braille = braille.replace(/⠰{3}(?=⠄⠄⠄)/g, '⠰⠰⠰⠰');
+      // Four-deep nested subscripts keep exactly four level indicators before
+      // the ellipsis. SRE may under- or over-emit; normalize both directions.
+      braille = braille.replace(/⠰{3,}(?=⠄⠄⠄)/g, '⠰⠰⠰⠰');
+    }
+  }
+  // Nested msup inside an outer msup/msubsup (raised radical / raised function
+  // power) needs second-order indicators before digits and before same-level
+  // operators/terminators (`e~>x~~2~+y~~2~]`, `e~sin~~2 x`).
+  const nestedRaisedSup = [...sourceNodes('msup')].filter((node) => {
+    let current = node.parentElement ?? node.parentNode;
+    while (current) {
+      const name = (current.localName || current.nodeName || '').toLowerCase();
+      if (name === 'msup' || name === 'msubsup') return true;
+      if (name === 'math') break;
+      current = current.parentElement ?? current.parentNode;
+    }
+    return false;
+  });
+  if (nestedRaisedSup.length || (
+    sourceMath.querySelector?.('msup')
+    && sourceMath.querySelector?.('[data-omniya-nemeth-intent="function-name"]')
+    && sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')
+  )) {
+    braille = braille.replace(
+      new RegExp(`⠘((?:⠠)?${BRAILLE_LETTER}+)⠘(?!⠘)(?=${BRAILLE_DIGIT})`, 'g'),
+      '⠘$1⠘⠘'
+    );
+    braille = braille.replace(
+      /((?:⠎⠊⠝|⠉⠕⠎|⠞⠁⠝|⠇⠕⠛|⠇⠝)+)⠘(?!⠘)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g,
+      '$1⠘⠘'
+    );
+    braille = braille.replace(
+      new RegExp(`(?<!⠘)⠘(${BRAILLE_DIGIT})⠐(?=[⠬⠻])`, 'g'),
+      '⠘⠘$1⠘'
+    );
+    braille = braille.replace(
+      new RegExp(`(⠘⠘${BRAILLE_DIGIT})⠐(?=[⠬⠻])`, 'g'),
+      '$1⠘'
+    );
+  }
+  // Raised ellipsis keeps following word tokens at the same superscript level
+  // (`a~n+n+n ''' ~to ~m ~n~_'s`).
+  const raisedEllipsis = ellipsisNodes.some((node) => {
+    let current = node.parentElement ?? node.parentNode;
+    while (current) {
+      const name = (current.localName || current.nodeName || '').toLowerCase();
+      if (name === 'msup') return true;
+      if (name === 'math') break;
+      current = current.parentElement ?? current.parentNode;
+    }
+    return false;
+  });
+  if (raisedEllipsis) {
+    braille = braille.replace(/⠄⠄⠄⠀(?![⠘⠰⠐])/g, '⠄⠄⠄⠀⠘');
+    braille = braille.replace(/⠄⠄⠄⠀⠘([^⠀⠨]+?)⠀(?![⠘⠰⠐])/g, '⠄⠄⠄⠀⠘$1⠀⠘');
+    braille = braille.replace(/⠄⠄⠄⠀⠘([^⠀]+?)⠀⠘([^⠀]+?)⠀(?![⠘⠰⠐])/g, '⠄⠄⠄⠀⠘$1⠀⠘$2⠀⠘');
+    braille = braille.replace(/⠘([⠁-⠵])(?!⠘)(?=⠸⠄)/g, '⠘$1⠘');
+  }
+  // Levelled ellipsis inside a first-order subscript keeps the subscript
+  // indicator before the ellipsis (`Ps;;1 ;''' s;;n`).
+  const nestedSubsPresent = [...sourceNodes('msub')].some((node) =>
+    [...(node.getElementsByTagName?.('msub') ?? [])].length > 0);
+  if (nestedSubsPresent && ellipsisNodes.length) {
+    braille = braille.replace(
+      new RegExp(`(⠰${BRAILLE_LETTER})(?!⠰)(?=${BRAILLE_DIGIT})`, 'g'),
+      '$1⠰⠰'
+    );
+    braille = braille.replace(/⠀(?=⠄⠄⠄)/g, '⠀⠰');
+    braille = braille.replace(/⠀⠰⠰⠄⠄⠄/g, '⠀⠰⠄⠄⠄');
+  }
+  // Rule 14.8 punctuation indicator after a numeric superscript restores the
+  // baseline period cells (`x~2_4 y~2`).
+  if (punctuationPeriods.length && sourceMath.querySelector?.('msup')) {
+    braille = braille.replace(new RegExp(`(${BRAILLE_DIGIT})(?!⠸)(?=⠲)`, 'g'), '$1⠸');
+  }
+  // Rule 14.6 German letter with adjacent numeric subscript keeps the digit.
+  if (frakturCount && [...sourceMath.querySelectorAll?.('[data-omniya-nemeth-intent="numeric-subscript"]') ?? []].length) {
+    for (const node of sourceMath.querySelectorAll?.('[data-omniya-nemeth-intent="german-fraktur"]') ?? []) {
+      const cells = node.getAttribute?.('data-omniya-nemeth-cells') || '';
+      let next = node.nextElementSibling ?? node.nextSibling;
+      while (next && next.nodeType !== 1) next = next.nextSibling;
+      if (!cells || next?.getAttribute?.('data-omniya-nemeth-intent') !== 'numeric-subscript') continue;
+      const digits = String(next.textContent ?? '').replace(/\D/g, '');
+      const digitCells = [...digits].map((d) => ({
+        0: '⠴', 1: '⠂', 2: '⠆', 3: '⠒', 4: '⠲', 5: '⠢', 6: '⠖', 7: '⠶', 8: '⠦', 9: '⠔'
+      }[d])).join('');
+      if (!digitCells) continue;
+      if (!braille.includes(`${cells}${digitCells}`)) {
+        braille = braille.replace(cells, `${cells}${digitCells}`);
+      }
     }
   }
   // Nested right subscripts of depth ≥ 3 restore the missing absolute level
@@ -3301,7 +3413,14 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       }
     }
   }
-  if (!decimalNonnumeric.length && !numericDecimal.length) return finalize(normalizeFractionSubtraction(restorePunctuationPeriods(braille, punctuationPeriods.length, explicitGroups.length).replace(/⠀{2,}/g, '⠀')));
+  if (!decimalNonnumeric.length && !numericDecimal.length) {
+    // Capitalized identifiers before an authored blank+equals can keep a
+    // capital indicator where the blank belongs (`⠠⠧⠠⠨⠅` → `⠠⠧⠀⠨⠅`).
+    if (hasSource('mo[data-omniya-nemeth-cells="⠨⠅"]') && explicitSpaces) {
+      braille = braille.replace(/([⠠][⠁-⠵]|[⠁-⠵])⠠(?=⠨⠅)/g, '$1⠀');
+    }
+    return finalize(normalizeFractionSubtraction(restorePunctuationPeriods(braille, punctuationPeriods.length, explicitGroups.length).replace(/⠀{2,}/g, '⠀')));
+  }
   if (numericDecimal.length && !decimalNonnumeric.length) {
     // BANA 3.2.3 uses dot 4 for a decimal point in a numeric item. SRE's
     // generic number projection chooses the ordinary punctuation cell.
