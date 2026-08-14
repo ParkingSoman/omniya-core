@@ -617,6 +617,12 @@ function closeStructure(tree, focus, elementName) {
   if (elementName === 'msqrt' || elementName === 'mroot') {
     return { tree, focus: focusNode(container) };
   }
+  // A completed cancellation is itself the next local operand. Leave focus
+  // on the enclosure so a following opener becomes a sibling rather than
+  // wrapping or replacing the surrounding math root.
+  if (elementName === 'menclose') {
+    return { tree, focus: focusNode(container) };
+  }
   return { tree, focus: focusNode(parent ?? tree) };
 }
 
@@ -2674,7 +2680,8 @@ function mappingApplies(mapping, context) {
   // At an empty replacement root the same BANA cells may begin a shape code;
   // do not expose a spurious modifier choice or mutate an empty draft.
   if (mapping.action === 'insert-modifier' &&
-    (context.node.name === 'math' || (isHole(context.node) && findMathParent(context.tree, context.node.attrs?.['data-omniya-id'])?.name !== 'munderover'))) return false;
+    ((context.node.name === 'math' && !(context.node.children?.length > 0)) ||
+      (isHole(context.node) && findMathParent(context.tree, context.node.attrs?.['data-omniya-id'])?.name !== 'munderover'))) return false;
   // The English-letter indicator is a local abbreviation mode, not a
   // structural navigation command.  In a script slot the same cell is a
   // Rule 14 return/move indicator, so leave that structural follow-up as the
@@ -2789,7 +2796,10 @@ function mappingApplies(mapping, context) {
     }
     return false;
   }
-  if (mapping.id === 'indicator.multipurpose') return true;
+  if (mapping.id === 'indicator.multipurpose') {
+    // Inside a script the same cell is the Rule 14 baseline indicator.
+    return !Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']));
+  }
   if (mapping.id === 'indicator.number' && fraction) {
     if (!contains(context.tree, fraction.children[1], context.node)) return true;
     const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
@@ -2948,6 +2958,17 @@ const TREE_OPERATIONS = Object.freeze({
       const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === args.initialSlot);
       return { tree, focus: focusNode(first ?? inserted) };
     }
+    if (args.element === 'menclose' && args.attrs?.notation === 'updiagonalstrike') {
+      // Cancellation is an opener-first enclosure. Wrapping the current node
+      // (or replacing the whole math root) would consume already-authored
+      // siblings; insert a fresh content hole after the local focus instead.
+      const wrapper = element(args.element, [], args.attrs ?? {});
+      for (const role of args.slots ?? ['content']) wrapper.children.push(hole(wrapper, role));
+      const inserted = insertAfter(tree, focus, wrapper);
+      const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === args.initialSlot)
+        ?? wrapper.children[0];
+      return { tree, focus: focusNode(first ?? inserted) };
+    }
     if (node.name === 'mspace' || (args.element === 'mfrac' && node.name === 'mo')) {
       const wrapper = element(args.element, [], args.attrs ?? {});
       for (const role of args.slots ?? []) wrapper.children.push(hole(wrapper, role));
@@ -2966,6 +2987,26 @@ const TREE_OPERATIONS = Object.freeze({
       const direction = args.element === 'msub' || args.initialSlot === 'subscript' ? 'sub' : 'sup';
       const absolute = applyAbsoluteScriptLevel(tree, focus, direction, 1);
       if (absolute) return absolute;
+    }
+    // BANA 14.4/14.8: `~;` and `;~` are absolute from the item being
+    // modified. When that item is already at the first named level, the
+    // remaining indicator opens the opposite script of the current item
+    // instead of wrapping a fresh msubsup with an empty hole.
+    if (args.element === 'msubsup') {
+      const firstDirection = args.initialSlot === 'subscript' ? 'sub' : 'sup';
+      const depth = scriptDepth(tree, node, firstDirection);
+      if (depth > 0 && node.name !== 'math' && !isHole(node)) {
+        const opposite = firstDirection === 'sup' ? 'sub' : 'sup';
+        let targetFocus = focus;
+        const parent = findMathParent(tree, node.attrs?.['data-omniya-id']);
+        const grand = parent ? findMathParent(tree, parent.attrs?.['data-omniya-id']) : null;
+        if (parent?.name === 'mrow' && grand && scriptSlot(grand, firstDirection) === parent) {
+          targetFocus = focusNode(parent);
+        }
+        const oppositeRole = opposite === 'sub' ? 'subscript' : 'superscript';
+        return wrapCurrent(tree, targetFocus, opposite === 'sub' ? 'msub' : 'msup',
+          ['base', oppositeRole], {}, oppositeRole);
+      }
     }
     if (!primeWrapped && ['msup', 'msub'].includes(args.element) && !(node.name === 'math' || isHole(node))) {
       const result = openScriptSlot(tree, focus, args.element, args.initialSlot);
@@ -3089,12 +3130,21 @@ function applyMapping(document, focus, inputState, mapping) {
     }
   }
   if (result.status === 'pending') return result;
-  const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token'].includes(mapping.action);
+  const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-script-chain', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token', 'open-left-script'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' ||
     (inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel');
   const nextModifierScope = collectingModifierScope && insertedAction
     ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
     : inputState.modifierScope;
+  // Five-step Rule 15 keeps collecting the modified expression across local
+  // scripts, groups, and the baseline return that leaves those scripts.
+  const retainCollectedModifierMode = collectingModifierScope && (
+    ['open-structure', 'open-script-chain', 'open-fixed-root',
+      'open-function-limit', 'open-left-script'].includes(mapping.action)
+    || (mapping.action === 'close-structure'
+      && !['mover', 'munder', 'munderover'].includes(args.element))
+    || (mapping.action === 'set-mode' && args.mode === 'baseline')
+  );
   // BANA numeric mode remains active across a baseline arithmetic operator.
   // This is the local rule that permits `#1.2+1.4` and `#1.4709`*10` without
   // a second number sign. It is not a passage parser: only the immediately
@@ -3130,6 +3180,8 @@ function applyMapping(document, focus, inputState, mapping) {
       ? inputState.mode
     : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'multipurpose'
         ? 'multipurpose'
+    : retainCollectedModifierMode
+      ? inputState.mode
     : (['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'ueb-word'
       ? null
       : null));
@@ -4732,6 +4784,30 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       cell: normalized
     });
     if (replay.status !== 'rejected') return { ...replay, announcement: `Stayed at the current script level; ${replay.announcement}` };
+  }
+  // BANA 14.8.7: `~;` after a populated superscript is the subscript of that
+  // superscripted item, not a conversion of the outer msup into msubsup.
+  if (state.mode === null && state.prefix === '⠘' && normalized === '⠰' &&
+    hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
+    context.node.name !== 'math' && !isHole(context.node)) {
+    const depth = scriptDepth(context.tree, context.node, 'sup');
+    if (depth > 0) {
+      let targetFocus = focus;
+      const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+      const grand = parent ? findMathParent(context.tree, parent.attrs?.['data-omniya-id']) : null;
+      if (parent?.name === 'mrow' && grand && scriptSlot(grand, 'sup') === parent) {
+        targetFocus = focusNode(parent);
+      }
+      const wrapped = wrapCurrent(context.tree, targetFocus, 'msub', ['base', 'subscript'], {}, 'subscript');
+      return {
+        status: 'applied',
+        localCommitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+        document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(wrapped.tree), focus: wrapped.focus },
+        focus: wrapped.focus,
+        inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
+        announcement: 'script.subscript'
+      };
+    }
   }
   // BANA 14.4: a single superscript indicator names absolute level 1. After
   // a nested (level 2+) script, `~` followed by a non-level cell returns to

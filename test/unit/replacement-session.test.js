@@ -268,3 +268,19 @@ test('a nested second-order superscript submits without an unfilled hole', async
   assert.match(committed.document.mathml, /<msup[\s\S]*<mi[^>]*>n<\/mi>[\s\S]*<msup[\s\S]*<mi[^>]*>x<\/mi>[\s\S]*<mi[^>]*>y<\/mi>/);
   assert.equal(committed.document.mathml.includes('data-omniya-hole'), false);
 });
+
+test('a five-step modifier over a superscript submits without an unfilled hole', async () => {
+  let session = replacementSession();
+  for (const value of ['⠐', '⠭', '⠘', '⠆', '⠐', '⠣', '⠱', '⠻']) {
+    const result = applyNemethCell(session, value);
+    if (result.status === 'choice') {
+      session = applyNemethChoice(result.session, 'script.baseline').session;
+    } else {
+      assert.notEqual(result.status, 'rejected', result.announcement);
+      session = result.session;
+    }
+  }
+  const committed = await submitReplacement(session);
+  assert.match(committed.document.mathml, /<mover[\s\S]*<msup[\s\S]*<mi[^>]*>x<\/mi>[\s\S]*<mn[^>]*>2<\/mn>/);
+  assert.equal(committed.document.mathml.includes('data-omniya-hole'), false);
+});

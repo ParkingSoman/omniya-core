@@ -100,6 +100,39 @@ test('Rule 14.9 level-1 ~ after a nested radical superscript continues the radic
   assert.ok(names.includes('mo'));
 });
 
+test('Rule 14.8.7 ~; after a superscripted item opens its subscript without an empty hole', () => {
+  const { document } = replayCells(sourceNotationToCells('q~log~;q'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  const superscript = tree.children[0].children[1];
+  const nested = superscript.name === 'msub' ? superscript
+    : superscript.children?.find((child) => child.name === 'msub');
+  assert.ok(nested, 'superscripted log should carry a subscript');
+  assert.equal(nested.children[1].children[0].text, 'q');
+  assert.equal(nested.children[1].attrs?.['data-omniya-hole'], undefined);
+});
+
+test('Rule 14.4.2 ~; at an unscripted item still opens one msubsup', () => {
+  const { document } = replayCells(sourceNotationToCells('x~;'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msubsup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+});
+
+test('Rule 15 five-step modifier keeps scope across a superscript and baseline return', () => {
+  const { document } = replayCells(sourceNotationToCells('"x~2"<:]'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].children[0].text, 'x');
+  assert.equal(tree.children[0].children[0].children[1].children[0].text, '2');
+  assert.equal(tree.children[0].children[1].children[0].text, '¯');
+});
+
 test('Rule 14 corpus operation IDs remain declared in the authoritative generator', () => {
   const generator = fs.readFileSync(new URL('../../scripts/bana-example-corpus-generate.mjs', import.meta.url), 'utf8');
   for (const number of [...Array.from({ length: 11 }, (_, index) => index + 12), ...Array.from({ length: 88 }, (_, index) => index + 34)]) {
