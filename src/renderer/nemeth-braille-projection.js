@@ -42,8 +42,27 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // so expose that local code directly rather than leaving the accessibility
   // channel empty. This is not a serializer: only an unambiguous one-node
   // source intent can take this path.
-  const standaloneShape = sourceMath.querySelector?.('[data-omniya-shape-kind][data-omniya-nemeth-cells]') ?? null;
-  if (standaloneShape && sourceMath.children?.length === 1 && standaloneShape.parentElement === sourceMath) {
+  const mathChildren = sourceMath.children && sourceMath.children.length != null
+    ? [...sourceMath.children]
+    : [...(sourceMath.childNodes ?? [])].filter((node) => node.nodeType === 1);
+  const standaloneAuthored = mathChildren.length === 1 ? mathChildren[0] : null;
+  const standaloneCells = standaloneAuthored?.getAttribute?.('data-omniya-nemeth-cells') || null;
+  const standaloneName = (standaloneAuthored?.localName || standaloneAuthored?.nodeName || '').toLowerCase();
+  const standaloneIntent = standaloneAuthored?.getAttribute?.('data-omniya-nemeth-intent') || '';
+  const standaloneShape = standaloneAuthored?.getAttribute?.('data-omniya-shape-kind')
+    ? standaloneAuthored
+    : (sourceMath.querySelector?.('[data-omniya-shape-kind][data-omniya-nemeth-cells]') ?? null);
+  // Complete one-node constructions keep BANA distinctions Unicode/SRE cannot
+  // reconstruct from the printed glyph. Rule 22 arrows and Rule 17 shapes are
+  // both authored as a single local sequence on that node.
+  if (standaloneCells && (
+    standaloneAuthored.getAttribute?.('data-omniya-shape-kind') ||
+    standaloneIntent.startsWith('arrow-') ||
+    (standaloneName === 'mo' && standaloneCells.startsWith('⠫'))
+  )) {
+    return standaloneCells;
+  }
+  if (standaloneShape && mathChildren.length === 1 && (standaloneShape.parentElement ?? standaloneShape.parentNode) === sourceMath) {
     return standaloneShape.getAttribute('data-omniya-nemeth-cells') || braille;
   }
   if (typeof braille !== 'string') {
@@ -62,7 +81,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // The decimal marker can introduce either ordinary digits or letters used
   // as digits in a non-decimal base (Rule 3.6). The source intent, not a
   // decimal-only text regex, is authoritative for this bounded numeric item.
-  const numericDecimal = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="numeric-decimal"]')]
+  // A leading/embedded decimal in a lower-cell numeric item is the same BANA
+  // distinction as an explicit numeric-decimal intent: SRE often emits the
+  // ordinary period cell (⠲) where the authored construction needs dot-4 (⠨).
+  const numericDecimal = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="numeric-decimal"], [data-omniya-nemeth-intent="lower-cell-numeric"]')]
     .filter((node) => /^\.?[0-9A-Za-z]+(?:\.[0-9A-Za-z]*)?$/.test(String(node.textContent ?? '').trim()) && String(node.textContent ?? '').trim().includes('.'));
   const decimalLongDash = sourceMath.querySelector?.('[data-omniya-nemeth-intent="omission-decimal-long-dash"]');
   const functionNames = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="function-name"]')]
@@ -1079,6 +1101,34 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const variant = node.getAttribute('data-omniya-nemeth-intent')?.slice('typeform-'.length);
       const prefix = variant === 'bold' ? '⠸⠰' : variant === 'script' ? '⠈⠰' : variant === 'italic' ? '⠨⠰' : variant === 'double-struck' ? '⠠⠸⠰' : '';
       if (cell && prefix) braille = braille.replace(new RegExp(`(?<!${prefix})(?=⠠?${cell})`), `${prefix}⠠`);
+    }
+  }
+  // Rule 9.2 records the general reference indicator on the footnote atom.
+  // MathJax/SRE sees only the letter or numeral, so restore that one local
+  // authored sequence at a blank or start boundary.
+  const generalReferences = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="general-reference"]')]
+    .map((node) => String(node.getAttribute?.('data-omniya-nemeth-cells') ?? ''))
+    .filter((cells) => cells.startsWith('⠈⠻'));
+  for (const sequence of generalReferences) {
+    if (braille.includes(sequence)) continue;
+    const glyph = sequence.at(-1);
+    if (!glyph) continue;
+    const candidates = [...new Set([
+      sequence.startsWith('⠈⠻⠼') ? `⠼${glyph}` : null,
+      sequence.includes('⠰') ? `⠰${glyph}` : null,
+      glyph
+    ].filter(Boolean))].sort((left, right) => right.length - left.length);
+    for (const candidate of candidates) {
+      const escaped = candidate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const boundary = new RegExp(`⠀${escaped}(?!.*⠀${escaped})`);
+      if (boundary.test(braille)) {
+        braille = braille.replace(boundary, `⠀${sequence}`);
+        break;
+      }
+      if (braille.endsWith(candidate)) {
+        braille = `${braille.slice(0, braille.length - candidate.length)}${sequence}`;
+        break;
+      }
     }
   }
   // Some BANA typeform choices are not recoverable from MathML's

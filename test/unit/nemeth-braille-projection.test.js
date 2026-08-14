@@ -244,3 +244,57 @@ test('numeric decimal intent does not rewrite an ordinary decimal after digits',
   const sourceMath = { querySelectorAll: (selector) => selector.includes('numeric-decimal') ? [{ textContent: '1,478.00' }] : [] };
   assert.equal(applyNemethSourceIntentToBraille('⠼⠂⠠⠲⠶⠦⠨⠴⠴', sourceMath), '⠼⠂⠠⠲⠶⠦⠨⠴⠴');
 });
+
+test('lower-cell numeric with leading decimal restores BANA dot-4 cell', () => {
+  const sourceMath = { querySelectorAll: (selector) => selector.includes('lower-cell-numeric') ? [{ textContent: '.2a1a2a3' }] : [] };
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠲⠆⠁⠂⠁⠆⠁⠒', sourceMath),
+    '⠼⠨⠆⠁⠂⠁⠆⠁⠒'
+  );
+});
+
+test('general-reference source cells restore the indicator and letter prefix', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠈⠎">$</mo><mn data-omniya-nemeth-intent="ueb-numeric">4</mn><mo>,</mo><mn data-omniya-nemeth-intent="ueb-numeric">265</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-intent="general-reference" data-omniya-nemeth-cells="⠈⠻⠰⠙">d</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠈⠎⠲⠠⠆⠖⠢⠀⠙', source),
+    '⠈⠎⠲⠠⠆⠖⠢⠀⠈⠻⠰⠙'
+  );
+});
+
+test('general-reference source cells restore the indicator before a numbered footnote', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="general-reference" data-omniya-nemeth-cells="⠈⠻⠼⠂">1</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠀⠼⠂', source),
+    '⠀⠈⠻⠼⠂'
+  );
+});
+
+test('Rule 22 standalone arrows keep authored cells instead of the SRE glyph spelling', () => {
+  const fixtures = [
+    ['arrow-two-way-vertical-bold-barbed', '⠫⠣⠸⠪⠒⠒⠕', '↕', '⠫⠣⠩⠪⠒⠒⠕'],
+    [null, '⠫⠯⠒⠒⠽', '⇝', '⠫⠢⠤⠔⠒⠢⠕'],
+    ['arrow-northwest-blunted-double-shaft', '⠫⠘⠿⠶⠶', '↖', '⠫⠘⠪⠒⠒']
+  ];
+  for (const [intent, cells, glyph, sre] of fixtures) {
+    const intentAttr = intent ? ` data-omniya-nemeth-intent="${intent}"` : '';
+    const source = new DOMParser().parseFromString(
+      `<math><mo${intentAttr} data-omniya-nemeth-cells="${cells}">${glyph}</mo></math>`,
+      'text/xml'
+    ).documentElement;
+    assert.equal(applyNemethSourceIntentToBraille(sre, source), cells, cells);
+  }
+});
+
+test('Rule 22 does not replace a larger expression with a single arrow node\'s cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi>x</mi><mo data-omniya-nemeth-intent="arrow-right" data-omniya-nemeth-cells="⠫⠒⠒⠕">→</mo><mi>y</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠫⠒⠒⠕⠽', source), '⠭⠫⠒⠒⠕⠽');
+});

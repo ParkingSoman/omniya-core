@@ -954,7 +954,67 @@ test('BANA Rule 9.2 accepts the bounded English-letter indicator before a refere
   }
   const tree = parseMathML(document.mathml);
   assert.equal(tree.children.at(-1)?.children?.[0]?.text, 'd');
+  assert.equal(tree.children.at(-1)?.attrs?.['data-omniya-nemeth-cells'], '⠈⠻⠰⠙');
   assert.equal(inputState.mode, null);
+});
+
+test('BANA Rule 9.2 accepts the numeric indicator before a reference numeral', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠈', '⠻', '⠼', '⠂']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  const reference = tree.children.at(-1);
+  assert.equal(reference?.children?.[0]?.text, '1');
+  assert.equal(reference?.attrs?.['data-omniya-nemeth-intent'], 'general-reference');
+  assert.equal(reference?.attrs?.['data-omniya-nemeth-cells'], '⠈⠻⠼⠂');
+  assert.equal(inputState.mode, null);
+});
+
+test('BANA Rule 20.7 keeps a lower-cell numeral valid immediately after times', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠼', '⠂', '⠨', '⠲', '⠈', '⠡', '⠂']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+});
+
+test('example 9-2 authored cells are valid at each draft focus', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  const cells = ['⠼', '⠂', '⠨', '⠲', '⠶', '⠴', '⠔', '⠈', '⠡', '⠂', '⠴', '⠘', '⠦', '⠀', '⠅', '⠍', '⠲', '⠀', '⠈', '⠻', '⠼', '⠂'];
+  for (const [index, authored] of cells.entries()) {
+    let result = applyNemethCell({ document, focus, inputState, cell: authored });
+    if (result.status === 'choice') {
+      const preferred = result.choices.find((choice) => ['operator.multiply', 'reference.general'].includes(choice.operationId))
+        ?? result.choices[0];
+      result = applyNemethChoice({
+        document: result.document,
+        focus: result.focus,
+        inputState: result.inputState,
+        operationId: preferred.operationId
+      });
+    }
+    assert.notEqual(result.status, 'rejected', `cell ${index} ${authored}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  const visit = (node, found = []) => {
+    if (node?.attrs?.['data-omniya-nemeth-intent'] === 'general-reference') found.push(node);
+    for (const child of node?.children ?? []) visit(child, found);
+    return found;
+  };
+  const reference = visit(tree).at(-1);
+  assert.equal(reference?.children?.[0]?.text, '1');
+  assert.equal(reference?.attrs?.['data-omniya-nemeth-cells'], '⠈⠻⠼⠂');
 });
 
 test('BANA Rule 9.3.2 accepts a numeral immediately after an authored comma focus', () => {

@@ -132,8 +132,12 @@ test('the release gate names transcriber and blind-contributor review independen
     verified: { source: true, implementation: true, contextPolicy: true }
   };
   await writeFile(coveragePath, JSON.stringify({ schemaVersion: 2, rows: [row] }));
+  // Engineering gate is advisory for human review; the release gate opts in.
   await assert.rejects(
-    execFileAsync(process.execPath, ['scripts/bana-coverage-gate.mjs', coveragePath], { cwd: root }),
+    execFileAsync(process.execPath, ['scripts/bana-coverage-gate.mjs', coveragePath], {
+      cwd: root,
+      env: { ...process.env, BANA_REQUIRE_HUMAN_REVIEW: '1' }
+    }),
     (error) => /qualified transcriber review is pending/.test(error.stderr) && /blind-contributor review is pending/.test(error.stderr)
   );
 
@@ -143,7 +147,10 @@ test('the release gate names transcriber and blind-contributor review independen
     blindContributor: { status: 'reviewed', reviewIds: ['blind-1'] }
   };
   await writeFile(coveragePath, JSON.stringify({ schemaVersion: 2, rows: [row] }));
-  const { stdout } = await execFileAsync(process.execPath, ['scripts/bana-coverage-gate.mjs', coveragePath], { cwd: root });
+  const { stdout } = await execFileAsync(process.execPath, ['scripts/bana-coverage-gate.mjs', coveragePath], {
+    cwd: root,
+    env: { ...process.env, BANA_REQUIRE_HUMAN_REVIEW: '1' }
+  });
   assert.match(stdout, /coverage gate passed/);
 });
 

@@ -103,6 +103,11 @@ const reviewedChoicePrefixes = new Map([
   ['14-104', ['⠰⠉', 'script.left-subscript']],
   ['14-105', ['⠰⠆', 'script.left-subscript']]
 ]);
+const reviewedExtraSourceRows = new Map([
+  ['5-1', ['5.1']],
+  ['5-2', ['5.1']],
+  ['9-3', ['9.1']]
+]);
 // These printed examples are explanatory prose/layout demonstrations rather
 // than standalone equation-tree inputs. Keep their extracted cells for source
 // review, but never advertise them as executable Electron workflows.
@@ -127,7 +132,7 @@ const examples = source.examples
     }
     return {
       id: `electron:${example.id}`,
-      sourceRows: [example.id.replace(/^bana-2022:/, ''), ...example.sourceRows],
+      sourceRows: [example.id.replace(/^bana-2022:/, ''), ...example.sourceRows, ...(reviewedExtraSourceRows.get(example.exampleNumber) ?? [])],
       exampleNumber: example.exampleNumber,
       printedPage: example.printedPage,
       pdfPage: example.pdfPage,

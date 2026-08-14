@@ -23,7 +23,7 @@ async function enrich(inventory, evidence = null) {
 }
 
 const exampleRow = {
-  id: 'bana-2022:example-3-2',
+  id: 'bana-2022:example-3-99-test-only',
   kind: 'example',
   disposition: 'unclassified',
   inputPolicy: null,
@@ -50,12 +50,12 @@ test('coverage enrichment applies the empty canonical human-review ledger withou
 test('coverage enrichment overlays only explicit real Electron case results', async () => {
   const result = await enrich(
     { schemaVersion: 1, rows: [exampleRow], counts: {} },
-    { cases: [{ id: 'electron:bana-2022:example-3-2', sourceRows: ['example-3-2', '3.2.1'], creation: true, editing: true, navigation: true, wholeBraille: true, focusedBraille: true, undoRedo: true, persistence: true }] }
+    { cases: [{ id: 'electron:bana-2022:example-3-99-test-only', sourceRows: ['example-3-99-test-only', '3.2.1'], creation: true, editing: true, navigation: true, wholeBraille: true, focusedBraille: true, undoRedo: true, persistence: true }] }
   );
   const row = result.rows[0];
   assert.equal(row.verified.creation, true);
   assert.equal(row.verified.focusedBraille, true);
-  assert.deepEqual(row.electronEditingCaseIds, ['electron:bana-2022:example-3-2']);
+  assert.deepEqual(row.electronEditingCaseIds, ['electron:bana-2022:example-3-99-test-only']);
 });
 
 test('coverage enrichment accepts cumulative Electron shard artifacts', async () => {
@@ -67,8 +67,8 @@ test('coverage enrichment accepts cumulative Electron shard artifacts', async ()
   const second = path.join(directory, 'two.json');
   await writeFile(inventoryPath, JSON.stringify({ schemaVersion: 1, rows: [exampleRow], counts: {} }));
   await writeFile(corpusPath, JSON.stringify({ schemaVersion: 1, cases: [] }));
-  await writeFile(first, JSON.stringify({ cases: [{ id: 'electron:bana-2022:example-3-2', sourceRows: ['example-3-2'], creation: true }] }));
-  await writeFile(second, JSON.stringify({ cases: [{ id: 'electron:bana-2022:example-3-2', sourceRows: ['example-3-2'], editing: true, navigation: true, wholeBraille: true, focusedBraille: true, undoRedo: true, persistence: true }] }));
+  await writeFile(first, JSON.stringify({ cases: [{ id: 'electron:bana-2022:example-3-99-test-only', sourceRows: ['example-3-99-test-only'], creation: true }] }));
+  await writeFile(second, JSON.stringify({ cases: [{ id: 'electron:bana-2022:example-3-99-test-only', sourceRows: ['example-3-99-test-only'], editing: true, navigation: true, wholeBraille: true, focusedBraille: true, undoRedo: true, persistence: true }] }));
   await execFileAsync(process.execPath, ['scripts/bana-coverage-enrich.mjs', inventoryPath, corpusPath, outputPath, `${first},${second}`], { cwd: root });
   const row = JSON.parse(await readFile(outputPath, 'utf8')).rows[0];
   assert.equal(row.verified.creation, true);
@@ -79,8 +79,8 @@ test('coverage enrichment accepts cumulative Electron shard artifacts', async ()
 test('visual evidence requires authored input and a named committed phase', async () => {
   const evidence = {
     cases: [{
-      id: 'electron:bana-2022:example-3-2',
-      sourceRows: ['example-3-2'],
+      id: 'electron:bana-2022:example-3-99-test-only',
+      sourceRows: ['example-3-99-test-only'],
       creation: true, editing: true, navigation: true,
       wholeBraille: true, focusedBraille: true, undoRedo: true, persistence: true
     }]

@@ -333,7 +333,13 @@ for (const row of rows.filter((candidate) => /^bana-2022:(?:19\.7|19\.8|19\.9(?:
 }
 // Rule 4.1 and Example 4-1 are the Special Symbols Page/documentary
 // description of switch indicators, not executable mathematical content.
-for (const id of ['bana-2022:4.1', 'bana-2022:example-4-1']) {
+// 4.2 is the same switch-scope policy; 9.1 states that Nemeth (not UEB)
+// reference signs are used inside switches; 5.1.2 and 5.1.3 are cross
+// references to Roman-numeral and abbreviation capitalization rules.
+for (const id of [
+  'bana-2022:4.1', 'bana-2022:example-4-1',
+  'bana-2022:4.2', 'bana-2022:9.1', 'bana-2022:5.1.2', 'bana-2022:5.1.3'
+]) {
   const row = rows.find((candidate) => candidate.id === id);
   if (row) row.disposition = 'implemented-context-policy';
 }
