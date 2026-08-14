@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T16:16:23.239Z",
+  "startedAt": "2026-08-14T18:56:28.294Z",
   "filter": {
     "rule": null,
     "example": "16-8"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-ynWPEw",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-sV4DDu",
   "cases": [
     {
       "id": "electron:bana-2022:example-16-8",
@@ -26,7 +26,7 @@
         "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-8/electron_bana-2022_example-16-8-input.png",
         "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
       },
-      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Replacement draft is incomplete at radicand.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-c638bf1d-c740-442c-a09f-1ded25cbd36f\\\" data-semantic-structure=\\\"(1 0)\\\"><msqrt data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-59f7cdca-fedb-4ed3-8c92-fe3f3171748c\\\" data-semantic-type=\\\"sqrt\\\" data-semantic-role=\\\"unknown\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"1\\\" data-semantic-children=\\\"0\\\" data-semantic-owns=\\\"0\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\"><mrow data-omniya-=\\\"\\\" data-omniya-hole=\\\"true\\\" data-omniya-owner=\\\"omniya-59f7cdca-fedb-4ed3-8c92-fe3f3171748c\\\" data-omniya-role=\\\"radicand\\\" id=\\\"omniya-source-omniya-632aca7a-c736-48a6-93a4-61ee6ec9fe22\\\"><mspace width=\\\"1em\\\" data-semantic-type=\\\"text\\\" data-semantic-role=\\\"space\\\" data-semantic-annotation=\\\"clearspeak:unit;nemeth:number;depth:2\\\" data-semantic-=\\\"\\\" data-semantic-parent=\\\"1\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\"></mspace></mrow></msqrt></math>\"}"
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Replacement draft is incomplete at radicand.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-1f40f08e-77ed-4949-ae5e-920a64ab588c\\\" data-semantic-structure=\\\"(1 0)\\\"><msqrt data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-4b78472e-0218-440b-988a-89ed6de04469\\\" data-semantic-type=\\\"sqrt\\\" data-semantic-role=\\\"unknown\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"1\\\" data-semantic-children=\\\"0\\\" data-semantic-owns=\\\"0\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\"><mrow data-omniya-=\\\"\\\" data-omniya-hole=\\\"true\\\" data-omniya-owner=\\\"omniya-4b78472e-0218-440b-988a-89ed6de04469\\\" data-omniya-role=\\\"radicand\\\" id=\\\"omniya-source-omniya-cd1ded33-8b52-44fe-80d9-fb79d47918d5\\\"><mspace width=\\\"1em\\\" data-semantic-type=\\\"text\\\" data-semantic-role=\\\"space\\\" data-semantic-annotation=\\\"clearspeak:unit;nemeth:number;depth:2\\\" data-semantic-=\\\"\\\" data-semantic-parent=\\\"1\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\"></mspace></mrow></msqrt></math>\"}"
     }
   ]
 }
