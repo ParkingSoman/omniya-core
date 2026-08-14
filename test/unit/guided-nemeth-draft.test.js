@@ -68,6 +68,16 @@ test('Rule 14 left-script Electron corpus cases 14-23 through 14-33 carry review
     visit(parseMathML(document.mathml));
     assert.ok(names.some((name) => ['msup', 'msub', 'msubsup', 'mmultiscripts'].includes(name)) || entry.operationIds.some((id) => id.includes('left-')),
       `14-${number} lacks canonical script metadata`);
+    for (const leftOperationId of entry.operationIds.filter((id) => id === 'script.left-superscript' || id === 'script.left-subscript')) {
+      // Use a valid continuation cell so the explicit choice exercises the
+      // complete left-script construction independent of the source example's
+      // preceding numeric/sign indicators.
+      const choicePrefix = leftOperationId === 'script.left-superscript' ? '⠘⠭' : '⠰⠭';
+      const empty = createEmptyDraftMathDocument();
+      const chosen = applyNemethChoice({ document: empty, focus: focusOf(empty), inputState: { prefix: choicePrefix, mode: null }, operationId: leftOperationId });
+      assert.equal(chosen.status, 'applied', `14-${number} ${leftOperationId} choice must apply`);
+      assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+    }
   }
 });
 
