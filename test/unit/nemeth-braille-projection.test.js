@@ -1017,3 +1017,38 @@ test('Rule 23.20 such-that bar keeps the authored blank before the bar', () => {
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠨⠷⠭⠳', source), '⠨⠷⠭⠀⠳');
 });
+
+test('Rule 10.4 capital letter-shape restores the shape plus capital cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-shape-kind="letter" data-omniya-nemeth-cells="⠫⠠⠞">T</mo><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠠⠗">R</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠞⠰⠠⠗', source), '⠫⠠⠞⠰⠠⠗');
+});
+
+test('Rule 10.4 literary comma after literary period stays a lower-cell comma', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠛⠁⠇">gal</mi><mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo><mo data-omniya-nemeth-intent="punctuation-literary-comma" data-omniya-nemeth-cells="⠂">,</mo><mn data-omniya-nemeth-intent="numeric-start">2</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠛⠁⠇⠲⠠⠼⠆', source), '⠛⠁⠇⠲⠂⠼⠆');
+});
+
+test('Rule 11.1.2 omission comma restores the mathematical comma before digits', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">35</mn><mo data-omniya-nemeth-intent="omission-general" data-omniya-nemeth-cells="⠿">?</mo><mo data-omniya-nemeth-intent="omission-comma" data-omniya-nemeth-cells="⠠">,</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">862</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠢⠿⠦⠖⠆', source), '⠼⠒⠢⠿⠠⠦⠖⠆');
+});
+
+test('Rule 24.1 decimal-nonnumeric greek digits keep the authored dot-5 transition', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start" data-omniya-nemeth-intent-decimal="true">0.</mn><mi data-omniya-nemeth-intent="decimal-nonnumeric" data-omniya-nemeth-cells="⠨⠁">α1</mi><mi data-omniya-nemeth-intent="decimal-nonnumeric" data-omniya-nemeth-cells="⠨⠁">α2</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠴⠨⠁⠂⠨⠁⠆', source),
+    '⠼⠴⠨⠐⠨⠁⠂⠨⠁⠆'
+  );
+});

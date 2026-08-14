@@ -2808,7 +2808,10 @@ const MAPPINGS = [
   shapeModificationToken('shape.keystroke.ee-arrow', sourceCells('$k,,ee$%33o]'), ['17.6.4', '17.10.5'], 'EE↓', 'keystroke', 'ee-arrow', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$k,,ee$%33o]' }),
   // Rule 11.1.1: the general omission sign is the equals-shaped cell ⠿.
   // Its MathML placeholder is a question mark; it is not ordinary equals.
-  token('omission.general', ['⠿'], ['11.1.1'], '?', 'mo', { sourceNotation: '=' }),
+  token('omission.general', ['⠿'], ['11.1.1'], '?', 'mo', {
+    sourceNotation: '=',
+    dataAttributes: { 'data-omniya-nemeth-intent': 'omission-general' }
+  }),
   open('cancellation.start', ['⠪'], ['12.1.1'], 'menclose', ['content'], { notation: 'updiagonalstrike', 'data-omniya-nemeth-cells': '⠪⠻' }, 'content', false, LOCAL_COMMIT_POLICIES.IMMEDIATE, { sourceNotation: '[' }),
   sourceClose('cancellation.end', ['⠻'], ['12.1.1'], 'menclose', ']'),
   token('arrow.right', ['⠫', '⠕'], ['22.1', '22.4'], '→', 'mo', {
@@ -3023,6 +3026,11 @@ function mappingApplies(mapping, context) {
   if (mapping.action === 'insert-modifier' &&
     ((context.node.name === 'math' && !(context.node.children?.length > 0)) ||
       (isHole(context.node) && !['mover', 'munder', 'munderover'].includes(findMathParent(context.tree, context.node.attrs?.['data-omniya-id'])?.name)))) return false;
+  // Rule 10.4 labels a letter-shape with an English-letter abbreviation
+  // (`;REG4`). The same cell is also the ordinary subscript indicator, but a
+  // shape atom is the labeled drawing rather than a script base.
+  if ((mapping.id === 'script.subscript' || mapping.id === 'script.superscript') &&
+    context.node.attrs?.['data-omniya-shape-kind']) return false;
   // The English-letter indicator is a local abbreviation mode, not a
   // structural navigation command.  In a script slot the same cell is a
   // Rule 14 return/move indicator, so leave that structural follow-up as the
@@ -3061,7 +3069,20 @@ function mappingApplies(mapping, context) {
     return context.node.name === 'mo' && ['∫', '∬', '∭'].includes(context.node.children?.[0]?.text);
   }
   if (mapping.action === 'superpose-token') return context.node.name === 'mo';
-  const fraction = fractionAtFocus(context.tree, context.node);
+  const nearestFraction = fractionAtFocus(context.tree, context.node);
+  const fractionOfKind = (kind) => {
+    let fraction = nearestFraction;
+    if (fraction && (fraction.attrs?.['data-omniya-fraction-kind'] ?? 'simple') === kind) return fraction;
+    let owner = fraction ? findMathParent(context.tree, fraction.attrs?.['data-omniya-id']) : context.node;
+    while (owner) {
+      const candidate = ancestor(context.tree, owner, 'mfrac');
+      if (!candidate) break;
+      if ((candidate.attrs?.['data-omniya-fraction-kind'] ?? 'simple') === kind) return candidate;
+      owner = findMathParent(context.tree, candidate.attrs?.['data-omniya-id']);
+    }
+    return null;
+  };
+  const fraction = nearestFraction;
   const fractionKind = fraction?.attrs?.['data-omniya-fraction-kind'] ?? 'simple';
   const numeratorFocus = Boolean(fraction && (contains(context.tree, fraction.children[0], context.node) ||
     (context.node === fraction && isHole(fraction.children[1]))));
@@ -3069,9 +3090,12 @@ function mappingApplies(mapping, context) {
     (context.node === fraction && !isHole(fraction.children[1]))));
   if (mapping.id.startsWith('fraction.next.denominator')) {
     const kind = mapping.args?.fractionKind ?? (mapping.id === 'fraction.next.denominator' ? 'simple' : mapping.id.split('.').at(-1));
-    return Boolean(fraction && fractionKind === kind && (numeratorFocus ||
-      (context.node === fraction && isHole(fraction.children?.[0]))) &&
-      (!mapping.id.includes('order3') || fraction.attrs?.['data-omniya-fraction-order'] === '3'));
+    const matched = fractionOfKind(kind);
+    const matchedNumeratorFocus = Boolean(matched && (contains(context.tree, matched.children[0], context.node) ||
+      (context.node === matched && isHole(matched.children[1]))));
+    return Boolean(matched && (matchedNumeratorFocus ||
+      (context.node === matched && isHole(matched.children?.[0]))) &&
+      (!mapping.id.includes('order3') || matched.attrs?.['data-omniya-fraction-order'] === '3'));
   }
   // Inside an open stacked fraction, `_/` is the local denominator transition.
   // Starting a second diagonal fraction would nest a sibling bevelled fraction
@@ -3092,8 +3116,11 @@ function mappingApplies(mapping, context) {
     const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
     const trailingBlank = context.node.name === 'mspace' && parent?.name === 'mrow' && parent.children?.at(-1) === context.node;
     if (denominatorBoundary || trailingBlank) return false;
-    return Boolean(fraction && fractionKind === kind && denominatorFocus &&
-      (!mapping.id.includes('order3') || fraction.attrs?.['data-omniya-fraction-order'] === '3'));
+    const matched = fractionOfKind(kind);
+    const matchedDenominatorFocus = Boolean(matched && (contains(context.tree, matched.children[1], context.node) ||
+      (context.node === matched && !isHole(matched.children[1]))));
+    return Boolean(matched && matchedDenominatorFocus &&
+      (!mapping.id.includes('order3') || matched.attrs?.['data-omniya-fraction-order'] === '3'));
   }
   if (mapping.id === 'radical.next.radicand') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
   if (mapping.id === 'radical.end') return Boolean(hasAncestor(context.tree, context.node, 'msqrt'));
@@ -3452,6 +3479,21 @@ const TREE_OPERATIONS = Object.freeze({
     if (args.element === 'mfrac' && (args.attrs?.bevelled === true || args.attrs?.bevelled === 'true')) {
       const punctuated = wrapDiagonalFractionAfterPunctuatedItem(tree, focus, args.attrs ?? {}, args.initialSlot ?? 'denominator');
       if (punctuated) return punctuated;
+      // After a script baseline return, focus is often the surrounding math
+      // root. Wrap only the completed baseline item as the diagonal numerator
+      // instead of replacing the whole expression with empty holes.
+      if (node.name === 'math' && node.children?.length > 0) {
+        const last = node.children.at(-1);
+        if (last && !isHole(last)) {
+          const wrapper = element(args.element, [], args.attrs ?? {});
+          const base = structuredClone(last);
+          base.attrs['data-omniya-id'] = id();
+          wrapper.children.push(base, hole(wrapper, 'denominator'));
+          node.children[node.children.length - 1] = wrapper;
+          const slot = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === (args.initialSlot ?? 'denominator'));
+          return { tree, focus: focusNode(slot ?? wrapper.children[1]) };
+        }
+      }
     }
     if (args.element === 'mfrac' && node.name !== 'math' && !isHole(node) &&
       args.attrs?.bevelled !== true && args.attrs?.bevelled !== 'true' &&
@@ -3551,9 +3593,22 @@ const TREE_OPERATIONS = Object.freeze({
   'close-structure': ({ tree, focus, args }) => closeStructure(tree, focus, args.element),
   'extend-integral': ({ tree, focus, args }) => extendIntegral(tree, focus, args.values),
   'move-slot': ({ tree, focus, node, args }) => {
-    if (args.element === 'mfrac' && Object.hasOwn(args, 'bevelled')) {
-      const fraction = fractionAtFocus(tree, node);
-      if (fraction) fraction.attrs.bevelled = args.bevelled ? 'true' : 'false';
+    if (args.element === 'mfrac') {
+      let fraction = fractionAtFocus(tree, node);
+      if (args.fractionKind) {
+        while (fraction && (fraction.attrs?.['data-omniya-fraction-kind'] ?? 'simple') !== args.fractionKind) {
+          const parent = findMathParent(tree, fraction.attrs?.['data-omniya-id']);
+          fraction = parent ? ancestor(tree, parent, 'mfrac') : null;
+        }
+      }
+      if (fraction && Object.hasOwn(args, 'bevelled')) {
+        fraction.attrs.bevelled = args.bevelled ? 'true' : 'false';
+      }
+      if (fraction) {
+        const child = fraction.children.find((candidate) => candidate.attrs?.['data-omniya-role'] === args.role)
+          ?? (args.role === 'denominator' ? fraction.children[1] : args.role === 'numerator' ? fraction.children[0] : null);
+        if (child) return { tree, focus: focusNode(child) };
+      }
     }
     return focusRole(tree, focus, args.element, args.role);
   },
@@ -4635,10 +4690,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // Rule 13.2 diagonal fraction notation can follow a completed numerator
   // without an explicit opener. The two cells are one structural follow-up
   // over the focused numerator, not a slash token followed by a stray digit.
+  // The same wrap applies inside a complex/hypercomplex numerator slot whose
+  // parent is the outer mfrac rather than a free-standing math/mrow. When the
+  // focused digit already sits in an open simple/mixed numerator, `_/` is that
+  // fraction's own diagonal line instead of a nested wrap.
   if (state.mode === 'numeric' && state.prefix === '⠸' && normalized === '⠌' && context.node.name === 'mn') {
+    const openFraction = fractionAtFocus(context.tree, context.node);
+    const openKind = openFraction?.attrs?.['data-omniya-fraction-kind'] ?? 'simple';
+    const openNumeratorLine = Boolean(openFraction && isHole(openFraction.children?.[1]) &&
+      contains(context.tree, openFraction.children[0], context.node) &&
+      ['simple', 'mixed'].includes(openKind));
     const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
-    if (parent && ['math', 'mrow'].includes(parent.name)) {
-      const fraction = element('mfrac', [], { 'data-omniya-fraction-kind': 'simple', bevelled: 'true', 'data-omniya-nemeth-cells': '⠼⠂⠸⠌' });
+    if (!openNumeratorLine && parent && ['math', 'mrow', 'mfrac'].includes(parent.name)) {
+      const fraction = element('mfrac', [], { 'data-omniya-fraction-kind': 'simple', bevelled: 'true' });
       const numerator = structuredClone(context.node);
       numerator.attrs['data-omniya-id'] = id();
       fraction.children.push(numerator, hole(fraction, 'denominator'));
@@ -4838,6 +4902,72 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     return applyNemethCell({ document, focus, inputState: { ...state, mode: null }, cell: normalized });
   }
 
+  // Rule 10.4 / 17.1: a capital letter after the shape indicator is a drawn
+  // letter-shape (`$T`). Keep that complete three-cell code local so the
+  // capital indicator cannot be mistaken for an unfinished shape prefix.
+  if (state.prefix === '⠫⠠' && LETTERS.has(normalized)) {
+    const letter = LETTERS.get(normalized).toUpperCase();
+    return applyMapping(document, focus, { ...state, prefix: '' }, {
+      id: `shape.letter-capital-${LETTERS.get(normalized)}`,
+      cells: ['⠫', '⠠', normalized],
+      banaRefs: ['10.4', '17.1'],
+      action: 'insert-token',
+      commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+      args: {
+        name: 'mo',
+        value: letter,
+        dataAttributes: {
+          'data-omniya-shape-kind': 'letter',
+          'data-omniya-nemeth-cells': `⠫⠠${normalized}`
+        }
+      }
+    });
+  }
+
+  // Rule 11.1.2's omission comma is authored as ⠠⠦ after the general omission
+  // sign. The same cells are a left quote elsewhere; only the immediately
+  // focused omission atom selects the numeric-comma meaning. Re-enter numeric
+  // mode for the following lower-cell run without retaining a passage buffer.
+  if (state.prefix === '⠠' && normalized === '⠦' &&
+      (context.node.attrs?.['data-omniya-nemeth-intent'] === 'omission-general' ||
+       (context.node.name === 'mo' && context.node.children?.[0]?.text === '?'))) {
+    const comma = applyMapping(document, focus, { ...state, prefix: '' }, {
+      id: 'omission.comma', cells: ['⠠'], banaRefs: ['11.1.2'], action: 'insert-token',
+      commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+      args: { name: 'mo', value: ',', dataAttributes: { 'data-omniya-nemeth-intent': 'omission-comma' } }
+    });
+    if (comma.status !== 'rejected') {
+      return applyNemethCell({
+        document: comma.document,
+        focus: comma.focus,
+        inputState: { ...comma.inputState, mode: 'numeric' },
+        cell: normalized
+      });
+    }
+  }
+
+  // Rule 8.3 / 10.4: after a literary period in an abbreviation, the lower-cell
+  // comma is literary punctuation, not a stray digit one.
+  if (state.mode === null && !state.prefix && normalized === '⠂' &&
+      context.node.name === 'mo' &&
+      context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-literary-period') {
+    return applyMapping(document, focus, state, {
+      id: 'punctuation.literary-comma',
+      cells: ['⠂'],
+      banaRefs: ['8.3', '10.4'],
+      action: 'insert-token',
+      commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: {
+        name: 'mo',
+        value: ',',
+        dataAttributes: {
+          'data-omniya-nemeth-intent': 'punctuation-literary-comma',
+          'data-omniya-nemeth-cells': '⠂'
+        }
+      }
+    });
+  }
+
   // Give a registered atomic construction priority over a structural
   // follow-up when the cells seen so far are still a prefix of that one
   // construction. This matters for compound comparisons and similar BANA
@@ -5009,6 +5139,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       const parent = findMathParent(context.tree, fraction.attrs['data-omniya-id']);
       const materialized = { ...document, mathml: serializeMathML(context.tree) };
       return { status: 'applied', document: materialized, focus: focusNode(parent ?? fraction), inputState: { ...state, mode: null, prefix: '' }, announcement: 'fraction.end.simple' };
+    }
+    // A complex fraction may finish in its denominator after a nested simple
+    // fraction. In that authored shape the ordinary number sign closes the
+    // containing complex fraction; it is not a fresh numeric indicator.
+    if (fraction?.attrs?.['data-omniya-fraction-kind'] === 'complex' &&
+        denominator && contains(context.tree, denominator, context.node)) {
+      const parent = findMathParent(context.tree, fraction.attrs['data-omniya-id']);
+      return { status: 'applied', document, focus: focusNode(parent ?? fraction),
+        inputState: { ...state, mode: null, prefix: '' }, announcement: 'fraction.end.complex' };
     }
   }
   // The same fraction terminator is a local close when the denominator is an
@@ -5240,13 +5379,49 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       ...digit,
       args: { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'single-letter-number' } }
     });
-    // This is the one-cell lower numeral in a single-letter criterion, not a
-    // continuing numeric passage. Clear the temporary mode immediately so a
-    // following punctuation indicator is interpreted as punctuation rather
-    // than as a numeric comma/decimal transition.
-    return result.status === 'applied'
-      ? { ...result, inputState: { ...result.inputState, mode: null } }
-      : result;
+    // Keep numeric mode so a spatial multi-digit run after a letter (`6o864`)
+    // can continue in the same lower-cell <mn>. A following non-digit still
+    // clears through the ordinary mode boundaries below.
+    return result;
+  }
+  // Greek letters in a decimal-nonnumeric run also accept the next lower-cell
+  // digit as a local sibling (Rule 24.1.g `.a1.a2`), matching Latin single-
+  // letter criteria without inventing a numeric passage.
+  if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
+    context.node.name === 'mi' &&
+    (context.node.attrs?.['data-omniya-nemeth-intent'] === 'decimal-nonnumeric' ||
+      /^[α-ωΑ-Ω]$/u.test(context.node.children?.[0]?.text ?? ''))) {
+    return applyMapping(document, focus, { ...state, mode: null }, {
+      id: `decimal-nonnumeric.${DIGITS.get(normalized)}`,
+      cells: [normalized],
+      banaRefs: ['3.2.3', '24.1.g'],
+      action: 'insert-decimal-nonnumeric',
+      commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: {
+        value: DIGITS.get(normalized),
+        dataAttributes: { 'data-omniya-nemeth-intent': 'decimal-nonnumeric' }
+      }
+    });
+  }
+  // Consecutive lower-cell digits after a single-letter criterion stay in the
+  // same numeric atom (`o864` after `6`).
+  if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
+    context.node.name === 'mn' &&
+    ['single-letter-number', 'lower-cell-numeric', 'decimal-nonnumeric'].includes(context.node.attrs?.['data-omniya-nemeth-intent'])) {
+    const digit = digitMapping(normalized);
+    digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': context.node.attrs['data-omniya-nemeth-intent'] } };
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
+  }
+  // Repeated general omission signs are followed by an authored lower-cell
+  // digit in Rule 11.1.5/11.1.7. Treat only the next digit as numeric
+  // continuation of that omission atom.
+  if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
+      context.node.name === 'mo' &&
+      (context.node.attrs?.['data-omniya-nemeth-intent'] === 'omission-general' ||
+        context.node.children?.[0]?.text === '?')) {
+    const digit = digitMapping(normalized);
+    digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
   }
   if (state.mode === 'comparison-horizontal' && state.prefix === '⠐' && normalized === '⠨') {
     return {
@@ -5322,6 +5497,26 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     // tally meaning. This is one local code, never a passage parser.
     if (normalized === '⠸' && MATCHABLE_MAPPINGS.some((mapping) => mapping.id === 'punctuation.period' && mappingApplies(mapping, context))) {
       return { status: 'pending', document, focus, inputState: { ...state, prefix: '⠸' }, announcement: 'Nemeth punctuation period pending.' };
+    }
+    // Inside a complex/hypercomplex fraction, a following `,/` or `,#` is the
+    // outer fraction's local structural follow-up. Hold the capital/comma cell
+    // before numeric-comma punctuation can claim it.
+    if (normalized === '⠠') {
+      let owner = context.node;
+      while (owner) {
+        const fraction = ancestor(context.tree, owner, 'mfrac');
+        if (!fraction) break;
+        if (['complex', 'hypercomplex'].includes(fraction.attrs?.['data-omniya-fraction-kind']) &&
+            (contains(context.tree, fraction.children?.[0], context.node) ||
+              contains(context.tree, fraction.children?.[1], context.node))) {
+          return {
+            status: 'pending', document, focus,
+            inputState: { ...state, prefix: '⠠', mode: null },
+            announcement: 'Nemeth complex fraction follow-up pending.'
+          };
+        }
+        owner = findMathParent(context.tree, fraction.attrs?.['data-omniya-id']);
+      }
     }
     if (FUNCTION_INITIAL_CELLS.has(normalized) && BANA_FUNCTION_MAPPINGS.some((mapping) =>
       mapping.cells[0] === normalized && mappingApplies(mapping, context))) {

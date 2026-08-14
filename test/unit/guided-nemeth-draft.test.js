@@ -2260,3 +2260,96 @@ test('Rule 23.6 a leading decimal after equals is a number, not radical order', 
   const texts = tree.children.filter((node) => node.name !== 'mspace').map((node) => node.children[0].text);
   assert.deepEqual(texts, ['1', '=', '.465']);
 });
+
+test('Rule 10.4 literary comma follows a literary period in abbreviations', () => {
+  const { document } = replayCells(sourceNotationToCells('gal41 #2'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const texts = [];
+  const visit = (node) => {
+    if (node?.text) texts.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(tree);
+  assert.equal(texts.join(''), 'gal.,2');
+});
+
+test('Rule 10.4 capital shape letter keeps the following English label', () => {
+  const { document } = replayCells(sourceNotationToCells('$T;REG4'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].children[0].text, 'T');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠫⠠⠞');
+  assert.equal(tree.children[0].attrs['data-omniya-shape-kind'], 'letter');
+});
+
+test('Rule 11.1.2 omission comma keeps the following lower-cell digits', () => {
+  const { document } = replayCells(sourceNotationToCells('#35=,862'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const texts = tree.children.filter((node) => node.name !== 'mspace').map((node) => node.children[0].text);
+  assert.deepEqual(texts, ['35', '?', ',', '862']);
+});
+
+test('Rule 11.1.7 lower-cell digits continue after general omission signs', () => {
+  const afterTriple = replayCells(sourceNotationToCells('===2'));
+  const tripleTree = parseMathML(afterTriple.document.mathml);
+  assert.equal(completionReport(tripleTree).complete, true);
+  assert.equal(tripleTree.children.at(-1).children[0].text, '2');
+
+  const afterComma = replayCells(sourceNotationToCells('#2,==7'));
+  const commaTree = parseMathML(afterComma.document.mathml);
+  assert.equal(completionReport(commaTree).complete, true);
+  assert.equal(commaTree.children.at(-1).children[0].text, '7');
+});
+
+test('Rule 11.1.5 spatial letter-digit runs keep consecutive lower-cell digits', () => {
+  const { document } = replayCells(sourceNotationToCells('6o864'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.deepEqual(tree.children.map((node) => node.children[0].text), ['6', 'o', '864']);
+});
+
+test('Rule 13.3.2 baseline diagonal fraction wraps the completed scripted item', () => {
+  const stacked = replayCells(sourceNotationToCells('x~?1/2#"_/2'), { '⠸⠌': 'fraction.start.diagonal' });
+  const stackedTree = parseMathML(stacked.document.mathml);
+  assert.equal(completionReport(stackedTree).complete, true, `holes=${completionReport(stackedTree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(stackedTree.children[0].name, 'mfrac');
+  assert.equal(stackedTree.children[0].attrs.bevelled, 'true');
+  assert.equal(stackedTree.children[0].children[0].name, 'msup');
+  assert.equal(stackedTree.children[0].children[1].children[0].text, '2');
+
+  const diagonal = replayCells(sourceNotationToCells('x~1_/2"_/7'), { '⠸⠌': 'fraction.start.diagonal' });
+  const diagonalTree = parseMathML(diagonal.document.mathml);
+  assert.equal(completionReport(diagonalTree).complete, true, `holes=${completionReport(diagonalTree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(diagonalTree.children[0].name, 'mfrac');
+  assert.equal(diagonalTree.children[0].attrs.bevelled, 'true');
+  assert.equal(diagonalTree.children[0].children[0].name, 'msup');
+  assert.equal(diagonalTree.children[0].children[1].children[0].text, '7');
+});
+
+test('Rule 13.6 complex fraction closes after a nested simple denominator', () => {
+  const { document } = replayCells(sourceNotationToCells(',??3/8#,/5,#'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mfrac');
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'complex');
+  assert.equal(tree.children[0].children[1].children[0].text, '5');
+});
+
+test('Rule 13.6 complex diagonal numerators keep the complex denominator transition', () => {
+  const { document } = replayCells(sourceNotationToCells(',?2_/3,/3_/2,#'), { '⠸⠌': 'fraction.start.diagonal' });
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'complex');
+  assert.equal(countNodes(tree, 'mfrac'), 3);
+});
+
+test('Rule 24.1 decimal-nonnumeric greek digits keep consecutive lower cells', () => {
+  const { document } = replayCells(sourceNotationToCells('#0.".a1.a2'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const texts = tree.children.filter((node) => node.name !== 'mspace').map((node) => node.children?.[0]?.text ?? node.children?.[0]?.children?.[0]?.text);
+  assert.ok(texts.join('').includes('α1'));
+  assert.ok(texts.join('').includes('α2') || texts.join('').endsWith('2'));
+});

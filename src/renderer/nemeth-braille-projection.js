@@ -1153,6 +1153,15 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       if (seenShapeSequences.has(sequence)) continue;
       seenShapeSequences.add(sequence);
       if (braille.includes(sequence)) continue;
+      // Capital letter-shapes keep the shape indicator before the capital
+      // letter cells (`⠫⠠⠞`). Replace the capital letter projection in place.
+      if (sequence.startsWith('⠫⠠') && sequence.length >= 3) {
+        const capitalLetter = sequence.slice(1);
+        if (capitalLetter && braille.includes(capitalLetter)) {
+          braille = braille.replace(capitalLetter, sequence);
+          continue;
+        }
+      }
       const base = sequence === '⠫⠞⠎' ? '⧌' : sequence.slice(-1);
       const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const pattern = new RegExp(`(?<![⠫⠸])${escaped}`);
@@ -2333,6 +2342,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.replace(/⠲⠀(?!⠰)(?=[⠁-⠵])/g, '⠲⠀⠰');
     }
   }
+  // Rule 10.4 literary commas after literary periods are lower-cell ⠂.
+  // SRE/math projection may emit the mathematical comma cell instead.
+  const literaryCommas = sourceNodes('[data-omniya-nemeth-intent="punctuation-literary-comma"]');
+  if (literaryCommas.length) {
+    braille = braille.replace(/⠲⠠(?=⠼|⠀|[⠁-⠵])/g, '⠲⠂');
+  }
+  // Rule 11.1.2 omission commas keep the mathematical comma before the
+  // following lower-cell digits when SRE drops that local cell.
+  const omissionCommas = sourceNodes('[data-omniya-nemeth-intent="omission-comma"]');
+  if (omissionCommas.length) {
+    braille = braille.replace(/⠿(?!⠠)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠿⠠');
+  }
   // Rule 8.3's English capital with literary apostrophe (`⠠⠄⠠⠚`) must not
   // keep a following capital-punctuation indicator that SRE inserts before
   // the next blank.
@@ -2413,9 +2434,22 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (braille.includes('⠐')) return finalize(normalizeFractionSubtraction(braille.replace(/⠀{2,}/g, '⠀')));
   // BANA 24.1.g places dot 5 after a decimal point before a nonnumeric
   // symbol. SRE emits the decimal point and the following symbol, but does
-  // not see Omniya's source intent. The first local occurrence is the only
-  // one this bounded writer can create for a focused draft.
-  return finalize(normalizeFractionSubtraction(restorePunctuationPeriods(braille.replace(/(⠼[^⠐]*⠨)(?!⠐)/, '$1⠐'), punctuationPeriods.length, explicitGroups.length)
+  // not see Omniya's source intent. Insert the multipurpose return after the
+  // first authored decimal point only; a greedy scan would latch onto a later
+  // Greek alphabet indicator instead.
+  let withDecimalReturn = braille.replace(/(⠼[^⠨⠐]*⠨)(?!⠐)/, '$1⠐');
+  // When SRE drops the Greek alphabet indicator after the multipurpose return,
+  // restore it from the first decimal-nonnumeric letter cell.
+  if (withDecimalReturn.includes('⠐') && !withDecimalReturn.includes('⠐⠨')) {
+    const greekLetter = [...decimalNonnumeric]
+      .map((node) => node.getAttribute?.('data-omniya-nemeth-cells') || '')
+      .find((cells) => /^⠨[⠁-⠵]$/.test(cells));
+    if (greekLetter) {
+      const letter = greekLetter.slice(-1);
+      withDecimalReturn = withDecimalReturn.replace(`⠐${letter}`, `⠐${greekLetter}`);
+    }
+  }
+  return finalize(normalizeFractionSubtraction(restorePunctuationPeriods(withDecimalReturn, punctuationPeriods.length, explicitGroups.length)
     .replace(/⠀{2,}/g, '⠀')));
 }
 
