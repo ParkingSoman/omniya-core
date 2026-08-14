@@ -46,73 +46,61 @@ This file records **product/engine friction discovered while using the app as th
 
 **Why it hurts:** Exact subtree replace is the product’s editing model. If upper/lower bound focus is unreliable, bound specialization fails silently from the user’s point of view (they edit the wrong slot or give up).
 
-**Workaround used in demo:** Search until speech role is explicitly `underscript` / `overscript` (reject radicand/radical foci), then confirm `#replacement-scope` before typing.
+**Workaround used in demo:** Specialize bounds **before** nesting a radical integrand (while the tree is still `\int_a^b x`), using the e2e path `Enter → ArrowDown → ArrowRight` (lower) / one more Right (upper). Document that post-nesting bound edits are much harder.
 
 **Likely fix:** Stable focus restore + documented bound navigation; optionally announce script role more consistently; consider bound-specific commands later.
 
 ---
 
-## F8 — E without navigating to the integrand replaces the integral (Major — usage footgun; engine OK)
+## F8 — Pressing E at root focus replaces the whole equation (by design; demo usage mistake)
 
 ### Verdict
 
-**Not a splice/editing-engine bug** when the target really is the integrand leaf.  
-**Yes, a usage / focus-bridge footgun** when E is pressed while Explorer still owns the *whole* expression (or the integral `msubsup`, or a range covering both).
+**Not an editing-engine bug.** Exact replacement replaces whatever Explorer currently owns.  
+**Not a “root start” UX bug either:** Enter is supposed to land on the **root equation**; authors then navigate downward to the edit site and only then press E.
 
-### Evidence (domain, 2026-08-14)
+Wiping \(\int_a^b\) when submitting a radical is what happens if **E is pressed while focus is still the root** (speech like “the integral from a to b of x”). That was a **demo/agent usage error**, not the app starting in the wrong place.
 
-Starting document: `\int_a^b x` as sibling `msubsup` + `mi`.
+### Evidence (domain)
 
-| Replacement target | After submitting radical \(\sqrt{1-x^2}\) | Integral kept? |
-|--------------------|--------------------------------------------|----------------|
-| Leaf `mi` (`x`) | `\int_a^b \sqrt{1-x^2}` | **Yes** |
-| `msubsup` (integral structure) | `\sqrt{...}` left, orphan `x` | **No** |
-| Math root | Only `\sqrt{...}` | **No** |
-| Range covering integral + `x` | Only `\sqrt{...}` | **No** |
+| Replacement target | Radical submit keeps \(\int_a^b\)? |
+|--------------------|-----------------------------------|
+| Leaf integrand `x` | **Yes** |
+| Math root / whole-expression range / integral `msubsup` | **No** |
 
-So `replaceMathTarget` / `submitReplacement` preserve the integral **if and only if** the session target is the integrand node.
+### Correct workflow
 
-### Evidence (Electron focus)
+1. Enter → Explorer on **root**  
+2. Arrow to the integrand leaf (Braille `⠭`, not `⠮⠰…⠭`)  
+3. E → replace only that leaf  
 
-After authoring `\int_a^b x` and pressing Enter (no further arrows), speech/Braille are still the **whole** utterance:
+### Remaining real friction (narrower)
 
-- speech: `the integral from a to b of x, math, ...`
-- braille: `⠮⠰⠁⠘⠃⠐⠭`
-- `#replacement-scope` after **E**: `Selected: the integral from a to b of x...` with a single `data-target-id`
-
-That is the wipe path (root / whole-expression target), not the leaf-`x` path. It feels like “the app deleted my integral,” but the editor replaced exactly the scope Explorer had selected.
-
-### Why it hurts
-
-Exact replacement is the product model. Authors (and demos) naturally think “I’m editing the integrand” while focus is still the full integral phrase. One **E** then destroys bounds + operator.
-
-### Related code that amplifies the footgun
-
-- `openReplacementEditor` falls back to the **canonical equation root** when explorer capture fails (`src/renderer/app.js`) — another whole-equation replace that looks like data loss.
-- Bridge comments already note historical “silently fell back to the equation root” risk (`math-explorer-bridge.js`).
+- Reaching the integrand sibling under a definite integral can take non-obvious arrow sequences (see F9).  
+- Scope chrome could still say more plainly “whole equation” vs “integrand x” so mistakes are obvious sooner.  
+- Capture-failure fallback to root should stay rare and announced.
 
 ### Demo handling
 
-Refuse to press E unless focus is bare integrand (`⠭`, scope must not say integral); after submit assert `msubsup` still present with `msqrt`.
-
-### Likely product fixes
-
-1. Stronger scope copy: “Replacing whole equation” vs “Replacing integrand x”.  
-2. Block or warn when replacing a node that would drop sibling structure the user just authored (optional).  
-3. First-class integrand navigation / hole so leaf focus is the default after writing `\int_a^b …`.  
-4. Never silently widen a failed descendant capture to root without saying so in the dock.
+Refuse E until focus is bare integrand; assert `msubsup` survives after replace.
 
 ---
 
-## F9 — Reaching the integrand leaf from whole-expression focus is non-obvious (Major)
+## F9 — Arrow recipes depend on tree shape (Major learning cost)
 
-**Observed:** After submitting `\int_a^b x`, Explorer speech is often the full phrase `the integral from a to b of x` with Braille `⠮⠰⠁⠘⠃⠐⠭`. Repeated **ArrowDown alone never leaves that whole-expression focus**, so a careful “don’t E on the integral” policy still cannot find the leaf `x` without mixing Right/Down (and guessing).
+**Observed:** For bare `\int_a^b`, existing e2e uses `Down → Right` for underscript. For `\int_a^b x` (integrand sibling), that same recipe lands on the integrand or the integral *group*, not the bound:
 
-**Why it hurts:** Exact replacement requires leaf focus. If the walk to the integrand is obscure, authors either E on the whole integral (F8) or abandon structural edit.
+| Goal | Path that works for `\int_a^b x` |
+|------|----------------------------------|
+| Root (after Enter) | — |
+| Integrand `x` | Down, Right, Right |
+| Lower `a` | Down, Down, Right, Up |
+| Upper `b` | Down, Down, Right, Right |
 
-**Demo handling:** Mixed arrow choreography until Braille is exactly `⠭` (reject any braille that still contains `⠮`).
+**Why it matters:** This is not “broken navigation”; authors must learn the tree. Demos/tests that copy recipes from a different shape will “fail” and look like product bugs. Auditing usage means re-mapping paths when the expression changes.
 
-**Likely fix:** Clearer tree walk (e.g. Down enters children left-to-right including siblings after `msubsup`); announce “integrand” as a first-class role; or Tab between top-level siblings.
+**Demo handling:** Hard-code the measured paths above; specialize bounds before nesting a radical when possible.
+
 ## F4 — `OMNIYA_HEADLESS=0` was ignored whenever test userData was set (Blocker for demos) — fixed on this branch
 
 **Observed:** `src/main.js` treated any `OMNIYA_TEST_USER_DATA_DIR` as headless (`show: false`), so headed demos stayed invisible even with `OMNIYA_HEADLESS=0`.
@@ -146,6 +134,14 @@ Refuse to press E unless focus is bare integrand (`⠭`, scope must not say inte
 **Observed:** Immediate codes update the draft MathML as soon as a cell is accepted. For a *watchable* demo we must insert long pauses; the app itself has no “demo tempo.”
 
 **Not a bug** — but without pauses, observers cannot see braille cells land.
+
+---
+
+## F10 — Pending bounded prefixes were cleared from the input (Minor for braille review) — fixed on this branch
+
+**Observed:** After each cell the replacement textarea cleared, even while NemethState still held an incomplete atomic sequence (e.g. arrow `⠫⠒⠒⠕`). Immediate commits correctly clear; bounded codes should stay feelable on a braille display until Enter commits them.
+
+**Fix shipped:** Mirror `nemethState.prefix` while status is pending/choice; feed only the new suffix on the next input so engine behavior stays cell-by-cell.
 
 ---
 

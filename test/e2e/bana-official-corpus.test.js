@@ -150,11 +150,12 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
       `bounded local choice did not resolve after six explicit selections; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
   };
   for (const [cellIndex, cell] of cells.entries()) {
-    // The textarea is a one-cell native proxy. Pending bounded prefixes live
-    // in NemethState and must never be concatenated into the next fill.
-    // Exercise the renderer's visible boundary transaction exactly as a user
-    // does: an ordinary Space key produces a DOM space input event, while a
-    // six-key/Unicode blank is the literal Braille blank cell.
+    // Pending bounded prefixes are mirrored in the textarea for braille
+    // review, but each fill still supplies only the next physical cell; the
+    // renderer feeds that as a suffix against NemethState. Exercise the
+    // visible boundary transaction as a user does: Space produces a DOM
+    // space input event, while a six-key/Unicode blank is the literal
+    // Braille blank cell.
     if (cell === ' ') await input.press('Space');
     else await input.fill(cell);
     if (cellIndex === cells.length - 1 && options.captureInputEvidence) {

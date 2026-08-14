@@ -202,8 +202,11 @@ test('renderer applies immediate, structural-followup, and atomic Nemeth codes i
   // the replacement transaction.
   const arrowInput = page.getByLabel('Replacement input', { exact: true });
   await arrowInput.fill('⠫⠒⠒⠕');
-  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '' &&
-    document.querySelector('#replacement-status')?.textContent?.includes('Press Enter'));
+  // Boundedly held: longer arrows share this prefix, so status may say the
+  // sequence can continue; Enter still commits the exact uncontracted arrow.
+  // The input mirrors the pending cells for braille review until that commit.
+  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠒⠒⠕');
+  assert.match(await page.locator('#replacement-status').textContent(), /may continue|Press Enter/i);
   assert.equal(await fractionArticle.locator('mfrac mo').count(), 0);
   await arrowInput.press('Enter');
   await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Local code committed'));
