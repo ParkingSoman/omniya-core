@@ -130,3 +130,31 @@ test('mode panel is quiet and command ? help lists x and s', { timeout: 60_000 }
   assert.match(help ?? '', /\bs\b/i);
   assert.doesNotMatch(help ?? '', /make Equation \(Nemeth\).*e\b/i);
 });
+
+test('replacement Escape enters Command; q cancels; lowercase a rejected in Nemeth', { timeout: 90_000 }, async (t) => {
+  const { app, page } = await launch('omniya-ueb-repl-escape-');
+  t.after(() => app.close().catch(() => {}));
+
+  await openComposer(page);
+  await enterCommand(page);
+  await page.keyboard.type('x'); // Equation Nemeth
+  await page.keyboard.type('n'); // Command submit empty equation → opens replacement dock
+  await page.locator('#replacement-dock:not([hidden])').waitFor();
+  await page.locator('#replacement-input').waitFor();
+  await page.locator('#replacement-input').focus();
+
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
+
+  await page.keyboard.type('i');
+  await page.waitForFunction(() => /Insert/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+
+  await page.keyboard.type('a'); // lowercase — not an ASCII braille cell
+  assert.equal(await page.locator('#replacement-input').inputValue(), '');
+  assert.match(await page.locator('#replacement-status').textContent(), /braille cells only|LaTeX|Command x/i);
+
+  await page.keyboard.press('Escape');
+  await page.keyboard.type('q');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+});

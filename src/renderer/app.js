@@ -32,6 +32,7 @@ import {
   gradeForUebBackTranslate
 } from '../domain/command-mode.js';
 import { createUebCellBuffer, pushUebCell } from '../domain/ueb-cell-buffer.js';
+import { isAllowedNemethCellInput } from '../domain/nemeth-cell-input.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -61,6 +62,7 @@ let mathJaxReady;
 let exploringEquationItemId = null;
 let replacementSession = null;
 let replacementEditor = null;
+let replacementHasContent = false;
 let preferredAuthoringMethod = 'nemeth';
 let commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
 let uebBuffer = createUebCellBuffer();
@@ -493,6 +495,7 @@ function closeReplacementEditor() {
   }
   replacementEditor = null;
   replacementSession = null;
+  replacementHasContent = false;
   elements['replacement-choices'].replaceChildren();
   elements['replacement-choices'].hidden = true;
   elements['replacement-dock'].hidden = true;
@@ -618,6 +621,14 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
   explorerFocusCache.delete(article.dataset.itemId);
   const editor = elements['replacement-input'];
   replacementEditor = editor;
+  replacementHasContent = false;
+  commandState = createCommandState({
+    itemKind: 'equation',
+    equationMethod: preferredAuthoringMethod,
+    contentEmpty: true,
+    interaction: 'insert'
+  });
+  syncModePanel(commandState);
   editor.className = preferredAuthoringMethod === 'nemeth' ? 'nemeth-inline-editor' : 'latex-inline-editor';
   editor.value = '';
   elements['replacement-dock'].hidden = false;
@@ -648,6 +659,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       : applyNemethCell(replacementSession, cell);
     replacementSession = result.session;
     if (result.status === 'applied') {
+      replacementHasContent = true;
       editor.value = '';
       elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
       await renderDraftPreview();
@@ -701,6 +713,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     // The selected operation consumes the entire bounded local prefix. Clear
     // the visible one-cell proxy before the next physical key can arrive; a
     // stale prefix here would be re-fed and duplicate the next local code.
+    if (result.status === 'applied') replacementHasContent = true;
     editor.value = result.status === 'pending' ? (replacementSession.nemethState.prefix || '') : '';
     elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
     await renderDraftPreview();
@@ -827,8 +840,36 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
-      await cancelReplacementEditor(article);
+      if (commandState.interaction === 'insert') {
+        commandState = enterCommand(createCommandState({
+          itemKind: 'equation',
+          equationMethod: replacementSession?.method ?? preferredAuthoringMethod,
+          contentEmpty: replacementDraftIsEmpty()
+        }));
+        syncModePanel(commandState);
+      }
       return;
+    }
+    if (commandState.interaction === 'command') {
+      event.preventDefault();
+      event.stopPropagation();
+      handleComposerCommandKey(event);
+      return;
+    }
+    if (
+      replacementSession?.method === 'nemeth' &&
+      event.key.length === 1 &&
+      !event.metaKey && !event.ctrlKey && !event.altKey
+    ) {
+      if (!isAllowedNemethCellInput(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+        editor.setAttribute('aria-invalid', 'true');
+        elements['replacement-status'].textContent =
+          'Nemeth mode accepts braille cells only. Switch to LaTeX with Command x while the draft is empty, or enter cells.';
+        return;
+      }
+      editor.removeAttribute('aria-invalid');
     }
     if (event.key === 'Backspace' && replacementSession?.method === 'nemeth') {
       event.preventDefault();
@@ -1048,8 +1089,49 @@ async function handleComposerUebCell(cell) {
 }
 
 function syncCommandContentEmpty() {
+  if (replacementSession) {
+    commandState = { ...commandState, contentEmpty: replacementDraftIsEmpty() };
+    return;
+  }
   const src = elements['composer-source']?.value ?? '';
   commandState = { ...commandState, contentEmpty: src.trim().length === 0 };
+}
+
+function replacementDraftIsEmpty() {
+  if (!replacementSession) return true;
+  if (replacementHasContent) return false;
+  if (replacementSession.method === 'latex') {
+    return !String(replacementSession.latexSource ?? '').trim();
+  }
+  const prefix = replacementSession.nemethState?.prefix ?? '';
+  if (prefix) return false;
+  return !(replacementEditor?.value ?? '').trim();
+}
+
+function findReplacementArticle() {
+  const itemId = activeItem()?.id;
+  if (!itemId) return null;
+  return elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(itemId)}"]`);
+}
+
+function applyReplacementMethodFromCommand(method) {
+  if (!replacementSession) return;
+  try {
+    replacementSession = setReplacementMethod(replacementSession, method);
+    preferredAuthoringMethod = method;
+    if (replacementEditor) {
+      replacementEditor.className = method === 'nemeth' ? 'nemeth-inline-editor' : 'latex-inline-editor';
+      replacementEditor.value = '';
+    }
+    elements['replacement-status'].textContent = method === 'nemeth'
+      ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
+      : 'Enter LaTeX for the replacement expression.';
+  } catch (error) {
+    elements['replacement-method'].querySelectorAll('input').forEach((input) => {
+      input.checked = input.value === replacementSession.method;
+    });
+    elements['replacement-status'].textContent = error.message;
+  }
 }
 
 function openContextualHelp() {
@@ -1088,8 +1170,9 @@ function openContextualHelp() {
 }
 
 function handleComposerCommandKey(event) {
-  if (mode !== 'add' && mode !== 'edit') return false;
-  if (event.key === 'Escape' && commandState.interaction === 'insert') {
+  const inReplacement = Boolean(replacementSession);
+  if (!inReplacement && mode !== 'add' && mode !== 'edit') return false;
+  if (!inReplacement && event.key === 'Escape' && commandState.interaction === 'insert') {
     event.preventDefault();
     event.stopPropagation();
     syncCommandContentEmpty();
@@ -1115,16 +1198,27 @@ function handleComposerCommandKey(event) {
   commandState = result.state;
   if (result.action === 'help') openContextualHelp();
   if (result.action === 'cancel') {
+    if (replacementSession) {
+      void cancelReplacementEditor(findReplacementArticle());
+      return true;
+    }
     returnToRead();
     return true;
   }
   if (result.action === 'submit') {
+    if (replacementSession) {
+      void replacementEditor?._replacementSubmitHandler?.();
+      return true;
+    }
     void submitComposer();
     return true;
   }
   if (result.action === 'set-type' || result.action === 'set-method' || result.action === 'set-grade') {
     applyCommandStateToChrome(commandState);
-    if (mode === 'add' || mode === 'edit') renderComposer();
+    if (result.action === 'set-method' && replacementSession) {
+      applyReplacementMethodFromCommand(commandState.equationMethod);
+    }
+    if (!inReplacement && (mode === 'add' || mode === 'edit')) renderComposer();
   } else if (key === 'i' || key === 'Enter' || result.action === 'focus-status' || result.action === 'help') {
     syncModePanel(commandState);
   } else if (elements['mode-panel'] && result.announcement) {
