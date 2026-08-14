@@ -107,6 +107,82 @@ test('Rule 14.11 prime then non-simultaneous scripts keeps one complete base', (
   assert.equal(report.holes.length, 0);
 });
 
+test('Rule 14.9.2 left-subscript after a completed right subscript stays a sibling', () => {
+  const { document } = replayCells(sourceNotationToCells(',p;b";c",q'), { '⠰⠉': 'script.left-subscript' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[0].children[0].text, 'P');
+  assert.equal(tree.children[0].children[1].children[0].text, 'b');
+  const tensor = tree.children.find((node) => node.name === 'mmultiscripts');
+  assert.ok(tensor, 'left-subscript after multipurpose must open a sibling mmultiscripts');
+  assert.equal(tensor.children[0].children[0].text, 'Q');
+  const marker = tensor.children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tensor.children[marker + 1].children[0].text, 'c');
+});
+
+test('Rule 14.9.3 raised ellipsis and possessive stay inside one superscript', () => {
+  const { document } = replayCells(sourceNotationToCells("a~n+n+n ''' ~to ~m ~n~_'s"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'a');
+  const texts = [];
+  const visit = (node) => {
+    if (node?.text) texts.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(tree.children[0].children[1]);
+  assert.ok(texts.includes('n') && texts.includes('+') && texts.includes('…'));
+  assert.ok(texts.includes('t') && texts.includes('o') && texts.includes('m'));
+  assert.ok(texts.includes('′') && texts.includes('s'));
+  assert.equal(tree.children.some((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'possessive-s'), false,
+    'raised possessive must remain in the superscript slot');
+});
+
+test('Rule 14.9.5 a levelled ellipsis continues the preceding first-order subscript', () => {
+  const { document } = replayCells(sourceNotationToCells(",p;s;;1 ;''' s;;n"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[0].children[0].text, 'P');
+  const texts = [];
+  const visit = (node) => {
+    if (node?.text) texts.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(tree.children[0].children[1]);
+  assert.ok(texts.includes('s') && texts.includes('1') && texts.includes('…') && texts.includes('n'));
+  assert.equal(report.holes.length, 0);
+});
+
+test('Rule 14.11.2 empty-base opposite scripts promote to complete left scripts', () => {
+  const { document } = replayCells(sourceNotationToCells('~a";b"x'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tree.children[0].children[marker + 1].children[0].text, 'b');
+  assert.equal(tree.children[0].children[marker + 2].children[0].text, 'a');
+});
+
+test('Rule 14.11.2 left-subscript then left-superscript then base stays one tensor', () => {
+  const { document } = replayCells(sourceNotationToCells(';b"~a"x'), { '⠰⠃': 'script.left-subscript' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tree.children[0].children[marker + 1].children[0].text, 'b');
+  assert.equal(tree.children[0].children[marker + 2].children[0].text, 'a');
+});
+
 test('Rule 14.4.3 nested ;~~ after a filled msubsup continues on the superscript item', () => {
   const { document } = replayCells(sourceNotationToCells('x;a;~r;~~n'));
   const tree = parseMathML(document.mathml);
