@@ -175,18 +175,16 @@ test('a visible blank commits a complete local code and inserts a structural spa
   assert.match(result.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
 });
 
-test('a boundary held behind an equality choice is inserted after equality before question mark', () => {
+test('a boundary held behind an equality code commits equals then inserts the blank', () => {
   let session = replacementSession();
   for (const cell of ['⠨', '⠅']) session = applyNemethCell(session, cell).session;
 
   const boundary = applyNemethBoundary(session, 'space');
-  assert.equal(boundary.status, 'choice');
-  const equality = boundary.choices.find(({ operationId }) => operationId === 'operator.equals');
-  assert.ok(equality, `expected equality choice, received ${JSON.stringify(boundary.choices)}`);
+  assert.equal(boundary.status, 'applied', boundary.announcement);
+  assert.match(boundary.session.draft.mathml, /<mo[^>]*>=<\/mo>/);
+  assert.match(boundary.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
 
-  const chosen = applyNemethChoice(boundary.session, equality.operationId);
-  assert.equal(chosen.status, 'applied');
-  const question = applyNemethCell(chosen.session, '⠿');
+  const question = applyNemethCell(boundary.session, '⠿');
   assert.equal(question.status, 'applied');
   assert.deepEqual(parseMathML(question.session.draft.mathml).children.map(({ name, children }) => ({
     name,
@@ -283,4 +281,16 @@ test('a five-step modifier over a superscript submits without an unfilled hole',
   const committed = await submitReplacement(session);
   assert.match(committed.document.mathml, /<mover[\s\S]*<msup[\s\S]*<mi[^>]*>x<\/mi>[\s\S]*<mn[^>]*>2<\/mn>/);
   assert.equal(committed.document.mathml.includes('data-omniya-hole'), false);
+});
+
+test('Rule 16-8 lone radical submits as radical-sign without a radicand hole', async () => {
+  let session = replacementSession();
+  const opened = applyNemethCell(session, '⠜');
+  assert.equal(opened.status, 'applied', opened.announcement);
+  session = opened.session;
+  assert.match(session.draft.mathml, /<msqrt/);
+  const committed = await submitReplacement(session);
+  assert.match(committed.document.mathml, /data-omniya-nemeth-intent="radical-sign"/);
+  assert.equal(committed.document.mathml.includes('data-omniya-hole'), false);
+  assert.equal(committed.document.mathml.includes('<msqrt'), false);
 });

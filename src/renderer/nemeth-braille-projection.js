@@ -3478,6 +3478,14 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     if (scriptedNumericStart.length) {
       value = value.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
     }
+    // Keep Rule 21-40 / 17-50 restores after any decimal early-return path.
+    if (hasSource('[data-omniya-nemeth-intent="punctuation-comma"]')) {
+      value = value.replace(/(?<=⠠⠀)⠼(?=⠨[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '');
+      value = value.replace(/(?<=⠠⠀⠨)⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '');
+    }
+    if (hasSource('mo[data-omniya-nemeth-cells="⠫⠞"]') || hasSource('[data-omniya-shape-kind]')) {
+      value = value.replace(/(⠫[⠁-⠵]+)⠌⠐+(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1⠌');
+    }
     const degreeWithFollowingNumber = sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠘⠨⠡"]') &&
       [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="lower-cell-numeric"]')].some((node) =>
         String(node.textContent ?? '').trim() === '20' && node.parentElement?.localName !== 'msup');
@@ -3855,61 +3863,67 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/([⠁-⠵]|⠀)⠰(?=⠨⠅)/g, '$1');
   }
   // Rule 17-50: shape-fraction digit denominators do not insert multipurpose
-  // padding before the lower-cell numeral.
-  if (hasSource('[data-omniya-shape-kind], mo[data-omniya-nemeth-cells="⠫⠞"]')) {
+  // padding before the lower-cell numeral. (xmldom sourceNodes cannot parse
+  // comma-combined selectors, so keep exact attribute matches.)
+  if (hasSource('mo[data-omniya-nemeth-cells="⠫⠞"]') ||
+    hasSource('[data-omniya-shape-kind]')) {
     braille = braille.replace(/(⠫[⠁-⠵]+)⠌⠐+(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1⠌');
   }
   // Rule 20-49: nested bevelled letter-numerals keep numeric-mode diagonals
   // (`#g_/#d_/#gf`), not complex openers/closers around letter digits.
-  const letterNumeralBevelled = [...simpleFractions].filter((node) => {
+  const letterDigitCells = (value) => [...String(value ?? '').toLowerCase()]
+    .map((ch) => ({
+      a: '⠁', b: '⠃', c: '⠉', d: '⠙', e: '⠑', f: '⠋', g: '⠛', h: '⠓', i: '⠊', j: '⠚',
+      k: '⠅', l: '⠇', m: '⠍', n: '⠝', o: '⠕', p: '⠏', q: '⠟', r: '⠗', s: '⠎', t: '⠞',
+      u: '⠥', v: '⠧', w: '⠺', x: '⠭', y: '⠽', z: '⠵'
+    }[ch] ?? ''))
+    .join('');
+  const bevelChildren = (node) => [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+  const letterNumeralBevelledRoots = [...simpleFractions].filter((node) => {
     if (node.getAttribute('bevelled') !== 'true') return false;
-    const nums = [...(node.querySelectorAll?.('mn[data-omniya-nemeth-intent="numeric-start"]') ?? [])];
-    return nums.some((mn) => /^[a-z]+$/i.test(String(mn.textContent ?? '').trim()));
+    const parentName = (node.parentElement?.localName || node.parentElement?.nodeName || '').toLowerCase();
+    if (parentName === 'mfrac' && node.parentElement?.getAttribute?.('bevelled') === 'true') return false;
+    const stack = [...bevelChildren(node)];
+    while (stack.length) {
+      const current = stack.pop();
+      const name = (current.localName || current.nodeName || '').toLowerCase();
+      if (name === 'mn' &&
+        current.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start' &&
+        /^[a-z]+$/i.test(String(current.textContent ?? '').trim())) {
+        return true;
+      }
+      stack.push(...bevelChildren(current));
+    }
+    return false;
   });
-  if (letterNumeralBevelled.length) {
-    const letterDigit = (value) => [...String(value ?? '').toLowerCase()]
-      .map((ch) => ({
-        a: '⠁', b: '⠃', c: '⠉', d: '⠙', e: '⠑', f: '⠋', g: '⠛', h: '⠓', i: '⠊', j: '⠚',
-        k: '⠅', l: '⠇', m: '⠍', n: '⠝', o: '⠕', p: '⠏', q: '⠟', r: '⠗', s: '⠎', t: '⠞',
-        u: '⠥', v: '⠧', w: '⠺', x: '⠭', y: '⠽', z: '⠵'
-      }[ch] ?? ''))
-      .join('');
-    const parts = [];
-    const walk = (node) => {
+  if (letterNumeralBevelledRoots.length) {
+    const collectParts = (node, parts) => {
       if ((node.localName || node.nodeName || '').toLowerCase() !== 'mfrac') return;
       if (node.getAttribute?.('bevelled') !== 'true') return;
-      const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+      const kids = bevelChildren(node);
       const numerator = kids[0];
       const denominator = kids[1];
       if (!numerator || !denominator) return;
-      if ((numerator.localName || numerator.nodeName || '').toLowerCase() === 'mn') {
-        parts.push(letterDigit(numerator.textContent));
-      } else {
-        walk(numerator);
-      }
-      if ((denominator.localName || denominator.nodeName || '').toLowerCase() === 'mfrac') {
-        walk(denominator);
-      } else if ((denominator.localName || denominator.nodeName || '').toLowerCase() === 'mn') {
-        parts.push(letterDigit(denominator.textContent));
-      }
+      const numeratorName = (numerator.localName || numerator.nodeName || '').toLowerCase();
+      const denominatorName = (denominator.localName || denominator.nodeName || '').toLowerCase();
+      if (numeratorName === 'mn') parts.push(letterDigitCells(numerator.textContent));
+      else collectParts(numerator, parts);
+      if (denominatorName === 'mfrac') collectParts(denominator, parts);
+      else if (denominatorName === 'mn') parts.push(letterDigitCells(denominator.textContent));
     };
-    for (const root of letterNumeralBevelled) {
-      if (root.parentElement && (root.parentElement.localName || root.parentElement.nodeName || '').toLowerCase() === 'mfrac'
-        && root.parentElement.getAttribute?.('bevelled') === 'true') continue;
-      parts.length = 0;
-      walk(root);
+    for (const root of letterNumeralBevelledRoots) {
+      const parts = [];
+      collectParts(root, parts);
       if (parts.length >= 2 && parts.every(Boolean)) {
         braille = parts.map((part) => `⠼${part}`).join('⠸⠌');
       }
     }
   }
   // Rule 21-40: after an authored list comma, a leading decimal is bare `.1`
-  // without a fresh number sign (`⠼⠨⠂` → `⠨⠂`).
-  if (hasSource('[data-omniya-nemeth-intent="punctuation-comma"]') &&
-    [...numericDecimal].some((node) => /^\./.test(String(node.textContent ?? '').trim()) ||
-      String(node.textContent ?? '').trim() === '')) {
-    braille = braille.replace(/⠠⠀⠼(?=⠨[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠠⠀⠨');
-    braille = braille.replace(/⠨⠅⠠⠀⠼(?=⠨)/g, '⠨⠅⠠⠀');
+  // without a fresh number sign (`⠼⠨⠂` / `⠨⠼⠂` → `⠨⠂`).
+  if (hasSource('[data-omniya-nemeth-intent="punctuation-comma"]')) {
+    braille = braille.replace(/(?<=⠠⠀)⠼(?=⠨[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '');
+    braille = braille.replace(/(?<=⠠⠀⠨)⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '');
   }
   if (!decimalNonnumeric.length && !numericDecimal.length) {
     // Capitalized identifiers before an authored blank+equals can keep a

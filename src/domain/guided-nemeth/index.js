@@ -7826,6 +7826,28 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       return first;
     }
     }
+    // Absolute-value bars are the equation-workflow reading of bare `⠳`.
+    // When a following letter proves the short code is complete, prefer the
+    // grouping meaning and continue with that letter (19-26 / 19-27).
+    if (previousMappings.length > 1 && state.prefix === '⠳' && LETTERS.has(normalized) &&
+      !hasApplicableContinuation(state.prefix, normalized, context)) {
+      const grouping = previousMappings.find((mapping) => mapping.id === 'group.vertical-bar');
+      if (grouping) {
+        const first = applyMapping(document, focus, { ...state, prefix: '' }, grouping);
+        if (first.status !== 'rejected') {
+          const second = applyNemethCell({
+            document: first.document,
+            focus: first.focus,
+            inputState: first.inputState,
+            cell: normalized
+          });
+          if (second.status !== 'rejected') {
+            return { ...second, announcement: `${first.announcement}; ${second.announcement}` };
+          }
+          return first;
+        }
+      }
+    }
     if (previousMappings.length > 1 && !hasApplicableContinuation(state.prefix, normalized, context)) {
       return {
         status: 'choice',

@@ -3148,3 +3148,14 @@ test('Rule 13-35 blank after nested complex close stays in hypercomplex numerato
     'blank must remain inside the open hypercomplex numerator'
   );
 });
+
+test('Rule 19-26 absolute-value bars prefer grouping without a mid-letter choice', () => {
+  const { document, status, announcement } = replayCells(['⠳', '⠭', '⠳']);
+  assert.notEqual(status, 'choice', announcement);
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children.map((node) => node.name).join(','), 'mo,mi,mo');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠳');
+  assert.equal(tree.children[1].children[0].text, 'x');
+  assert.equal(tree.children[2].attrs['data-omniya-nemeth-cells'], '⠳');
+});

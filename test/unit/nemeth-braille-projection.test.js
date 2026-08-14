@@ -1987,3 +1987,60 @@ test('Rule 13-33 nested simple inside complex does not rebuild the outer opener 
   assert.equal(got.startsWith('⠠⠹⠷⠂⠤⠠⠭⠾⠹⠠⠙⠌⠠⠙⠠⠭⠼'), true, `got=${got}`);
   assert.equal(got.includes('⠠⠹⠠⠭⠌'), false, `corrupted opener in ${got}`);
 });
+
+test('Rule 21-23 bar-under union restores contracted underbar', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-intent="comparison.union.bar-under" data-omniya-nemeth-cells="⠨⠬⠱">∪</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠨⠬', source), '⠨⠬⠱');
+});
+
+test('Rule 19-35 enlarged double bars restore markers from stamped cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠠⠳⠠⠳">||</mo><mn data-omniya-nemeth-intent="numeric-start">1</mn><mo data-omniya-nemeth-cells="⠠⠳⠠⠳">||</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠳⠳⠼⠂⠳⠳', source), '⠠⠳⠠⠳⠼⠂⠠⠳⠠⠳');
+});
+
+test('Rule 20-49 nested bevelled letter-numerals keep numeric-mode diagonals', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mfrac data-omniya-fraction-kind="simple" bevelled="true"><mn data-omniya-nemeth-intent="numeric-start">g</mn><mfrac data-omniya-fraction-kind="simple" bevelled="true"><mn data-omniya-nemeth-intent="numeric-start">d</mn><mn data-omniya-nemeth-intent="numeric-start">gf</mn></mfrac></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠹⠛⠠⠸⠌⠙⠸⠌⠛⠋⠼⠠', source),
+    '⠼⠛⠸⠌⠼⠙⠸⠌⠼⠛⠋'
+  );
+});
+
+test('Rule 17-50 shape-fraction digit strips multipurpose padding', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">6</mn><mfrac data-omniya-fraction-kind="mixed"><mo data-omniya-nemeth-cells="⠫⠞">△</mo><mn data-omniya-nemeth-intent="numeric-start">3</mn></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠖⠸⠹⠫⠞⠌⠐⠐⠐⠒⠸⠼', source),
+    '⠼⠖⠸⠹⠫⠞⠌⠒⠸⠼'
+  );
+});
+
+test('Rule 21-40 leading decimal after comma drops spurious number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mrow data-omniya-group="round"><mo data-omniya-nemeth-cells="⠷">(</mo><mo data-omniya-nemeth-cells="⠐⠅">&lt;</mo><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-decimal">.1</mn><mo data-omniya-nemeth-cells="⠾">)</mo></mrow></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠷⠐⠅⠠⠀⠨⠅⠠⠀⠼⠨⠂⠾', source),
+    '⠷⠐⠅⠠⠀⠨⠅⠠⠀⠨⠂⠾'
+  );
+});
+
+test('Rule 21-20 letter before equals strips English indicator on relation', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠭">x</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠀⠰⠨⠅', source), '⠭⠀⠨⠅');
+});
