@@ -1225,7 +1225,7 @@ function applyAbsoluteScriptLevel(tree, focus, direction, targetDepth) {
   return null;
 }
 
-function openScriptSlot(tree, focus, elementName, role) {
+function openScriptSlot(tree, focus, elementName, role, attrs = {}) {
   const current = currentNode(tree, focus);
   const multiscripts = ancestor(tree, current, ['mmultiscripts']);
   if (multiscripts && multiscripts.children?.[0] === current) {
@@ -1254,7 +1254,7 @@ function openScriptSlot(tree, focus, elementName, role) {
   // on that content (14-28/30/32). Never reinterpret the sibling left slot as
   // a post-script.
   if (leftScriptOwner(tree, current)) {
-    return wrapCurrent(tree, focus, elementName, ['base', role], {}, role);
+    return wrapCurrent(tree, focus, elementName, ['base', role], attrs, role);
   }
   // Compose the opposite side of an existing one-sided script locally. This
   // is the generic MathML transition used by integral bounds, limits, and
@@ -1270,7 +1270,7 @@ function openScriptSlot(tree, focus, elementName, role) {
         oneSided.children[0],
         existingRole === 'subscript' ? current : element('none'),
         existingRole === 'superscript' ? current : element('none')
-      ], { ...oneSided.attrs });
+      ], { ...oneSided.attrs, ...attrs });
       const missingIndex = role === 'subscript' ? 1 : 2;
       const missing = hole(replacement, role);
       replacement.children[missingIndex] = missing;
@@ -1278,7 +1278,7 @@ function openScriptSlot(tree, focus, elementName, role) {
       return { tree, focus: focusNode(missing) };
     }
   }
-  return wrapCurrent(tree, focus, elementName, ['base', role], {}, role);
+  return wrapCurrent(tree, focus, elementName, ['base', role], attrs, role);
 }
 
 // BANA Rule 14 permits more than one script level in a bounded indicator
@@ -4135,7 +4135,7 @@ const TREE_OPERATIONS = Object.freeze({
       }
     }
     if (!primeWrapped && ['msup', 'msub'].includes(args.element) && !(node.name === 'math' || isHole(node))) {
-      const result = openScriptSlot(tree, focus, args.element, args.initialSlot);
+      const result = openScriptSlot(tree, focus, args.element, args.initialSlot, attrs);
       return result;
     }
     return primeWrapped ?? wrapCurrent(tree, focus, args.element, args.slots, attrs, args.initialSlot);
@@ -4317,6 +4317,37 @@ function applyMapping(document, focus, inputState, mapping) {
       };
     }
   }
+  // Rule 14.11 `x1"~2`: multipurpose before a script keeps that separator on
+  // the opened script so projection can distinguish it from bare `1~` (14-115).
+  if (inputState.mode === 'multipurpose'
+    && (mapping.id === 'script.superscript' || mapping.id === 'script.subscript')
+    && mapping.action === 'open-structure') {
+    const indicator = mapping.id === 'script.superscript' ? '⠘' : '⠰';
+    stampedArgs = {
+      ...stampedArgs,
+      attrs: {
+        ...(stampedArgs.attrs ?? {}),
+        'data-omniya-nemeth-intent': mapping.id === 'script.superscript'
+          ? 'multipurpose-superscript'
+          : 'multipurpose-subscript',
+        'data-omniya-nemeth-cells': `⠐${indicator}`
+      }
+    };
+  }
+  // Rule 14.9.5 / 14-115: `"'''` is multipurpose then baseline ellipsis. Stamp
+  // the authored multipurpose cell onto the ellipsis and leave multipurpose.
+  if (inputState.mode === 'multipurpose'
+    && mapping.id === 'punctuation.ellipsis'
+    && mapping.action === 'insert-token') {
+    stampedArgs = {
+      ...stampedArgs,
+      dataAttributes: {
+        ...(stampedArgs.dataAttributes ?? {}),
+        'data-omniya-nemeth-intent': 'multipurpose-ellipsis',
+        'data-omniya-nemeth-cells': '⠐⠄⠄⠄'
+      }
+    };
+  }
   // Rule 14.9.5 / 14-112: a blank before a comparison (with no level-preserving
   // indicator) places that comparison at the baseline. Exit the surrounding
   // script first, mirroring punctuation-comma baseline return.
@@ -4434,6 +4465,10 @@ function applyMapping(document, focus, inputState, mapping) {
     ? 'signed-numeric'
     : retainNumericAfterOperator
     ? inputState.mode
+    // Rule 14.9.5 `"'''`: multipurpose plus baseline ellipsis completes that
+    // local construction; do not keep collecting five-step scope afterward.
+    : mapping.id === 'punctuation.ellipsis' && inputState.mode === 'multipurpose'
+    ? null
     : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && (inputState.mode?.startsWith?.('numeric') || inputState.mode === 'ueb-numeric') && !(args.name === 'mspace' || args.name === 'mo')
     ? inputState.mode
     : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel'

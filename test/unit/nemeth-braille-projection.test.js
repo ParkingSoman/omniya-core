@@ -943,6 +943,51 @@ test('Rule 14.9.5 levelled comparisons keep stamped sub/sup equals beside baseli
   );
 });
 
+test('Rule 14.9.5 nested scripts restore indicators and multipurpose ellipsis', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mi data-omniya-nemeth-cells="⠠⠏">P</mi>
+      <msup>
+        <mn data-omniya-nemeth-intent="single-letter-number">1</mn>
+        <msub>
+          <mi data-omniya-nemeth-cells="⠨⠁">α</mi>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+        </msub>
+      </msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-intent="multipurpose-ellipsis" data-omniya-nemeth-cells="⠐⠄⠄⠄">…</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <msubsup>
+        <mi data-omniya-nemeth-cells="⠠⠏">P</mi>
+        <mi>r</mi>
+        <msub>
+          <mi data-omniya-nemeth-cells="⠨⠁">α</mi>
+          <mi>r</mi>
+        </msub>
+      </msubsup>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠏⠂⠐⠘⠨⠁⠂⠀⠄⠄⠄⠀⠠⠏⠰⠗⠘⠨⠁⠘⠰⠗', source),
+    '⠠⠏⠂⠘⠨⠁⠘⠰⠂⠀⠐⠄⠄⠄⠀⠠⠏⠰⠗⠘⠨⠁⠘⠰⠗'
+  );
+});
+
+test('Rule 14.11 multipurpose before single-letter superscript restores the separator', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mi data-omniya-nemeth-cells="⠭">x</mi>
+      <msup data-omniya-nemeth-intent="multipurpose-superscript" data-omniya-nemeth-cells="⠐⠘">
+        <mn data-omniya-nemeth-intent="single-letter-number">1</mn>
+        <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      </msup>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠂⠘⠆', source), '⠭⠂⠐⠘⠆');
+});
+
 test('Rule 14.8 English-letter after a subscript blank restores the indicator', () => {
   const source = new DOMParser().parseFromString(
     '<math><msub><mo data-omniya-shape-kind="triangle" data-omniya-nemeth-cells="⠫⠞">△</mo><mrow><mi>regular</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠏">p</mi><mi>olygon</mi></mrow></msub></math>',

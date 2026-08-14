@@ -1027,13 +1027,41 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     }
   }
   // Rule 14.11 `x1"~2`: single-letter numeric base of an msup keeps multipurpose
-  // before the superscript indicator.
+  // before the superscript indicator only when that script was opened after
+  // multipurpose. Bare `1~` (14-115) must not invent `⠐`.
   const singleLetterSupBases = [...singleLetterNumbers].filter((node) => {
     const host = node.parentElement ?? node.parentNode;
     return (host?.localName || host?.nodeName || '').toLowerCase() === 'msup';
   });
   if (singleLetterSupBases.length) {
-    braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])(?!⠐)(?=⠘)/g, '$1⠐');
+    const needsMultipurpose = singleLetterSupBases.some((node) => {
+      const host = node.parentElement ?? node.parentNode;
+      return host?.getAttribute?.('data-omniya-nemeth-intent') === 'multipurpose-superscript';
+    });
+    if (needsMultipurpose) {
+      braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])(?!⠐)(?=⠘)/g, '$1⠐');
+    } else {
+      braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠐(?=⠘)/g, '$1');
+    }
+  }
+  // Rule 14.4.2 nested subscript inside a superscript (`~.a~;1`) restores the
+  // nested level indicators when SRE flattens them to a bare digit/letter.
+  const nestedSupSub = [...(sourceMath.getElementsByTagName?.('msup') ?? [])].filter((node) => {
+    const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+    const slot = kids[1];
+    return slot && (slot.localName === 'msub' || slot.nodeName === 'msub');
+  });
+  if (nestedSupSub.length) {
+    braille = braille.replace(
+      new RegExp(`(⠘(?:⠨)?${BRAILLE_LETTER}+)(?!⠘⠰)(?=${BRAILLE_DIGIT}|${BRAILLE_LETTER})`, 'g'),
+      '$1⠘⠰'
+    );
+  }
+  // Rule 14.9.5 baseline ellipsis after `"'''` restores the authored multipurpose.
+  for (const ellipsis of sourceNodes('[data-omniya-nemeth-intent="multipurpose-ellipsis"]')) {
+    const cells = ellipsis.getAttribute('data-omniya-nemeth-cells') || '⠐⠄⠄⠄';
+    if (!cells || braille.includes(cells)) continue;
+    if (/⠄⠄⠄/.test(braille)) braille = braille.replace(/⠄⠄⠄/, cells);
   }
   // Rule 14.6 numeric subscript to a letter is an adjacent mn with no msub.
   // SRE may insert a multipurpose separator; remove only that local artifact.

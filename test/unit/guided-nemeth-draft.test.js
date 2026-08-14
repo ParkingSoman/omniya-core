@@ -582,6 +582,34 @@ test('Rule 14.9.5 levelled comparisons keep sub/sup equals then baseline equals'
   assert.ok(baselineEquals, 'final blank+.k places equals at the math baseline');
 });
 
+test('Rule 14.9.5 baseline ellipsis after nested scripts keeps multipurpose cells', () => {
+  const { document } = replayCells(sourceNotationToCells(",p1~.a~;1 \"''' ,p;r~.a~;r"), {
+    '⠄⠄⠄': 'punctuation.ellipsis',
+    '⠰⠗': 'script.subscript'
+  });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[1].name, 'msup');
+  assert.equal(tree.children[1].children[0].attrs?.['data-omniya-nemeth-intent'], 'single-letter-number');
+  assert.equal(tree.children[1].children[1].name, 'msub');
+  const ellipsis = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'multipurpose-ellipsis');
+  assert.ok(ellipsis);
+  assert.equal(ellipsis.attrs?.['data-omniya-nemeth-cells'], '⠐⠄⠄⠄');
+});
+
+test('Rule 14.11 multipurpose before superscript stamps the opened msup', () => {
+  const { document } = replayCells(sourceNotationToCells('x1"~2'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const raised = tree.children.find((node) => node.name === 'msup');
+  assert.ok(raised);
+  assert.equal(raised.attrs?.['data-omniya-nemeth-intent'], 'multipurpose-superscript');
+  assert.equal(raised.attrs?.['data-omniya-nemeth-cells'], '⠐⠘');
+});
+
 test('Rule 15.7 a five-step tilde stays inside the subscript slot', () => {
   const { document } = replayCells(sourceNotationToCells(',a;"x<`:]'), { '⠈⠱': 'modifier.tilde.simple' });
   const tree = parseMathML(document.mathml);
