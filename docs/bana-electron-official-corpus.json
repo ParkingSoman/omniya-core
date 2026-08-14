@@ -25328,6 +25328,10 @@
       "printedPage": null,
       "pdfPage": 195,
       "sourceNotation": "#360~.*\"-interval",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠼",
         "⠒",
@@ -25371,6 +25375,11 @@
       "printedPage": null,
       "pdfPage": 196,
       "sourceNotation": "t`);t ;.k a~t ~.k b .k b-a",
+      "operationIds": [
+        "script.subscript",
+        "script.superscript",
+        "comparison.less"
+      ],
       "cells": [
         "⠞",
         "⠈",
@@ -25423,6 +25432,10 @@
       "printedPage": null,
       "pdfPage": 196,
       "sourceNotation": "e~sin x ~.k a .1 y",
+      "operationIds": [
+        "script.superscript",
+        "comparison.less"
+      ],
       "cells": [
         "⠑",
         "⠘",
@@ -25467,6 +25480,9 @@
       "printedPage": null,
       "pdfPage": 196,
       "sourceNotation": ",p;s;;1 ;''' s;;n",
+      "operationIds": [
+        "script.sub-sub"
+      ],
       "cells": [
         "⠠",
         "⠏",
@@ -25510,6 +25526,10 @@
       "printedPage": null,
       "pdfPage": 196,
       "sourceNotation": ",p1~.a~;1 \"''' ,p;r~.a~;r",
+      "operationIds": [
+        "script.superscript",
+        "script.subscript"
+      ],
       "cells": [
         "⠠",
         "⠏",
@@ -25561,6 +25581,9 @@
       "printedPage": null,
       "pdfPage": 197,
       "sourceNotation": "(x1+1)",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠷",
         "⠭",
@@ -25593,6 +25616,9 @@
       "printedPage": null,
       "pdfPage": 197,
       "sourceNotation": "(x1y1+x2y2)",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠷",
         "⠭",
@@ -25630,6 +25656,9 @@
       "printedPage": null,
       "pdfPage": 197,
       "sourceNotation": ".,(u .k x~2 .,) .,(v .k x~2\"+y~2\".,)",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠨",
         "⠠",
@@ -25693,6 +25722,9 @@
       "printedPage": null,
       "pdfPage": 197,
       "sourceNotation": "@,(-#2TE^T (3T+2)E^T -(T+1)E^T@,) @,(\"+e~2t \"-2E^2T \"+2E^2T @,) @,( @,) @,(-#2(T+1)E^T (3T+5)E^T -(T+2)E^T@,) @,(\"+2E^2T \"-4E^2T \"+2E^2T @,)",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠈",
         "⠠",
@@ -25888,6 +25920,9 @@
       "printedPage": null,
       "pdfPage": 198,
       "sourceNotation": "#1 #1 #1 x y z x~2 y~2 z~2",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠼",
         "⠂",
@@ -25941,6 +25976,9 @@
       "printedPage": null,
       "pdfPage": 199,
       "sourceNotation": "x;a~n",
+      "operationIds": [
+        "script.sup-sub"
+      ],
       "cells": [
         "⠭",
         "⠰",
