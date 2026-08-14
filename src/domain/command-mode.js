@@ -40,7 +40,7 @@ export function gradeForUebBackTranslate(state) {
 
 /**
  * @returns {{ state, announcement: string, action?: string }}
- * action hints for app.js: 'submit' | 'cancel' | 'help' | 'set-type' | 'set-method' | none
+ * action hints for app.js: 'submit' | 'cancel' | 'help' | 'set-type' | 'set-method' | 'set-grade' | 'focus-status' | none
  */
 export function applyCommandKey(state, key) {
   if (state.interaction !== 'command') {
