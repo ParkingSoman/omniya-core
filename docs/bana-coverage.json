@@ -16,7 +16,7 @@
     "examples": 1229,
     "errata": 42,
     "errataInScope": 34,
-    "mappedRows": 1046,
+    "mappedRows": 1052,
     "electronCreationRows": 166,
     "electronEditingRows": 164,
     "officialExamplesLinked": 1229
@@ -42431,17 +42431,21 @@
       "printedPage": "14-13",
       "pdfPage": 182,
       "auditOrder": 771,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -42477,17 +42481,21 @@
       "printedPage": "14-13",
       "pdfPage": 182,
       "auditOrder": 772,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -42523,17 +42531,21 @@
       "printedPage": "14-13",
       "pdfPage": 182,
       "auditOrder": 773,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -42569,17 +42581,21 @@
       "printedPage": "14-14",
       "pdfPage": 183,
       "auditOrder": 774,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -42615,17 +42631,21 @@
       "printedPage": "14-14",
       "pdfPage": 183,
       "auditOrder": 775,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -42661,17 +42681,23 @@
       "printedPage": "14-14",
       "pdfPage": 183,
       "auditOrder": 776,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript",
+        "script.superscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript",
+        "registry:script.superscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -42744,11 +42770,13 @@
       "pdfPage": 183,
       "auditOrder": 778,
       "disposition": "implemented-operation",
-      "inputPolicy": "structural-followup",
+      "inputPolicy": null,
       "mappingIds": [
+        "script.subscript",
         "script.contracted-comma"
       ],
       "unitCaseIds": [
+        "registry:script.subscript",
         "registry:script.contracted-comma"
       ],
       "electronCreationCaseIds": [],
@@ -42794,11 +42822,13 @@
       "pdfPage": 184,
       "auditOrder": 779,
       "disposition": "implemented-operation",
-      "inputPolicy": "structural-followup",
+      "inputPolicy": null,
       "mappingIds": [
+        "script.subscript",
         "script.contracted-comma"
       ],
       "unitCaseIds": [
+        "registry:script.subscript",
         "registry:script.contracted-comma"
       ],
       "electronCreationCaseIds": [],
@@ -42844,11 +42874,13 @@
       "pdfPage": 184,
       "auditOrder": 780,
       "disposition": "implemented-operation",
-      "inputPolicy": "structural-followup",
+      "inputPolicy": null,
       "mappingIds": [
+        "script.subscript",
         "script.contracted-comma"
       ],
       "unitCaseIds": [
+        "registry:script.subscript",
         "registry:script.contracted-comma"
       ],
       "electronCreationCaseIds": [],
@@ -42894,11 +42926,13 @@
       "pdfPage": 184,
       "auditOrder": 781,
       "disposition": "implemented-operation",
-      "inputPolicy": "structural-followup",
+      "inputPolicy": null,
       "mappingIds": [
+        "script.subscript",
         "script.contracted-comma"
       ],
       "unitCaseIds": [
+        "registry:script.subscript",
         "registry:script.contracted-comma"
       ],
       "electronCreationCaseIds": [],
@@ -42944,11 +42978,13 @@
       "pdfPage": 184,
       "auditOrder": 782,
       "disposition": "implemented-operation",
-      "inputPolicy": "structural-followup",
+      "inputPolicy": null,
       "mappingIds": [
+        "script.subscript",
         "script.contracted-comma"
       ],
       "unitCaseIds": [
+        "registry:script.subscript",
         "registry:script.contracted-comma"
       ],
       "electronCreationCaseIds": [],
@@ -42994,12 +43030,12 @@
       "pdfPage": 184,
       "auditOrder": 783,
       "disposition": "implemented-operation",
-      "inputPolicy": "structural-followup",
+      "inputPolicy": "immediate",
       "mappingIds": [
-        "script.contracted-comma"
+        "script.subscript"
       ],
       "unitCaseIds": [
-        "registry:script.contracted-comma"
+        "registry:script.subscript"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -43122,11 +43158,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43226,11 +43262,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43316,11 +43352,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43368,11 +43404,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43420,11 +43456,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43472,12 +43508,10 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
-        "script.baseline"
+        "script.superscript"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
-        "registry:script.baseline"
+        "registry:script.superscript"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -43522,14 +43556,14 @@
       "pdfPage": 186,
       "auditOrder": 794,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
         "script.subscript",
-        "script.baseline"
+        "script.contracted-comma"
       ],
       "unitCaseIds": [
         "registry:script.subscript",
-        "registry:script.baseline"
+        "registry:script.contracted-comma"
       ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -43614,11 +43648,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43666,11 +43700,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43718,11 +43752,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43770,11 +43804,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43822,11 +43856,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43912,11 +43946,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -43964,11 +43998,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -44016,11 +44050,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -44068,11 +44102,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],
@@ -44120,11 +44154,11 @@
       "disposition": "implemented-operation",
       "inputPolicy": "immediate",
       "mappingIds": [
-        "script.subscript",
+        "script.superscript",
         "script.baseline"
       ],
       "unitCaseIds": [
-        "registry:script.subscript",
+        "registry:script.superscript",
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [],

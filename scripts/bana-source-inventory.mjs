@@ -215,6 +215,29 @@ for (const [number, mappingIds] of Object.entries({
   if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
 }
 for (const [number, mappingIds] of Object.entries({
+  52: ['script.subscript'], 53: ['script.subscript'], 54: ['script.subscript'],
+  55: ['script.subscript'], 56: ['script.subscript'],
+  57: ['script.subscript', 'script.superscript'],
+  58: ['script.subscript', 'script.contracted-comma'],
+  59: ['script.subscript', 'script.contracted-comma'],
+  60: ['script.subscript', 'script.contracted-comma'],
+  61: ['script.subscript', 'script.contracted-comma'],
+  62: ['script.subscript', 'script.contracted-comma'],
+  63: ['script.subscript'], 64: ['script.superscript', 'script.baseline'],
+  65: ['script.subscript', 'script.baseline'], 66: ['script.superscript', 'script.baseline'],
+  67: ['script.superscript', 'script.baseline'], 68: ['script.superscript', 'script.baseline'],
+  69: ['script.superscript', 'script.baseline'], 70: ['script.superscript'],
+  71: ['script.subscript', 'script.contracted-comma'], 72: ['script.superscript', 'script.baseline'],
+  73: ['script.superscript', 'script.baseline'], 74: ['script.superscript', 'script.baseline'],
+  75: ['script.superscript', 'script.baseline'], 76: ['script.superscript', 'script.baseline'],
+  77: ['script.superscript', 'script.baseline'], 78: ['script.superscript', 'script.baseline'],
+  79: ['script.superscript', 'script.baseline'], 80: ['script.superscript', 'script.baseline'],
+  81: ['script.superscript', 'script.baseline']
+})) {
+  const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
+  if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
+}
+for (const [number, mappingIds] of Object.entries({
   25: ['script.left-subscript'], 26: ['script.left-subscript', 'script.subscript'],
   30: ['script.left-subscript', 'script.superscript'], 32: ['script.left-subscript', 'script.sub-sub'],
   33: ['script.left-subscript', 'script.sub-sub'], 36: ['script.subscript'], 37: ['script.subscript'],
