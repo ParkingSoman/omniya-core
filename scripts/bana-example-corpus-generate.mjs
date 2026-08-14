@@ -103,6 +103,10 @@ const reviewedChoicePrefixes = new Map([
   ['14-104', ['⠰⠉', 'script.left-subscript']],
   ['14-105', ['⠰⠆', 'script.left-subscript']]
 ]);
+// These printed examples are explanatory prose/layout demonstrations rather
+// than standalone equation-tree inputs. Keep their extracted cells for source
+// review, but never advertise them as executable Electron workflows.
+const reviewedDocumentFormatExamples = new Set(['14-1', '14-2']);
 const examples = source.examples
   .filter((example) => Number(example.exampleNumber.split('-')[0]) >= 3 && Number(example.exampleNumber.split('-')[0]) <= 24)
   .map((example) => {
@@ -146,7 +150,9 @@ const examples = source.examples
       // A row with no source notation is still retained as an explicit case
       // requiring a reviewed UEB/document-format decision. It is never
       // silently treated as successfully executable Nemeth.
-      executable: Boolean(cells?.length) && !/non[- ]mathematical context/i.test(example.title || ''),
+      executable: Boolean(cells?.length) &&
+        !reviewedDocumentFormatExamples.has(example.exampleNumber) &&
+        !/non[- ]mathematical context/i.test(example.title || ''),
       conversionError,
       ...(example.choiceOperationIds ? { choiceOperationIds: example.choiceOperationIds } : {}),
       // These are evidence fields, not capabilities inferred from source

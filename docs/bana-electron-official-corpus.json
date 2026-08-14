@@ -3,8 +3,8 @@
   "source": "docs/bana-official-examples.json",
   "counts": {
     "total": 1066,
-    "executable": 1034,
-    "nonExecutable": 32
+    "executable": 1032,
+    "nonExecutable": 34
   },
   "cases": [
     {
@@ -20787,7 +20787,7 @@
       "candidateBrailleLines": [
         ",9 _% x2 _:1 #b `.<pr9t$ 2l !"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -20815,7 +20815,7 @@
       "candidateBrailleLines": [
         ",! sign = .1degree is _% .* _:4"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,

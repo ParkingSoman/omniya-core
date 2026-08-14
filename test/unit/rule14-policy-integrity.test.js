@@ -20,4 +20,9 @@ test('Rule 14 policy rows have exact context ownership or honest document exclus
   for (const number of [1, 2]) {
     assert.equal(rows.get(`bana-2022:example-14-${number}`)?.disposition, 'excluded-document-format', `example 14-${number} exclusion`);
   }
+  const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
+  for (const number of [1, 2]) {
+    const entry = corpus.cases.find((candidate) => candidate.exampleNumber === `14-${number}`);
+    assert.equal(entry?.executable, false, `document-format example 14-${number} must not claim an equation workflow`);
+  }
 });
