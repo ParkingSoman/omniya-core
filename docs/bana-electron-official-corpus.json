@@ -21579,6 +21579,9 @@
       "operationIds": [
         "script.left-superscript"
       ],
+      "choiceOperationIds": {
+        "⠘⠭": "script.left-superscript"
+      },
       "cells": [
         "⠘",
         "⠭",
@@ -21612,6 +21615,9 @@
       "operationIds": [
         "script.left-superscript"
       ],
+      "choiceOperationIds": {
+        "⠘⠤": "script.left-superscript"
+      },
       "cells": [
         "⠘",
         "⠤",
@@ -21645,6 +21651,9 @@
       "operationIds": [
         "script.left-subscript"
       ],
+      "choiceOperationIds": {
+        "⠰⠭": "script.left-subscript"
+      },
       "cells": [
         "⠰",
         "⠭",
@@ -21679,6 +21688,9 @@
         "script.left-subscript",
         "script.subscript"
       ],
+      "choiceOperationIds": {
+        "⠰⠭": "script.left-subscript"
+      },
       "cells": [
         "⠰",
         "⠭",
@@ -21715,6 +21727,9 @@
         "script.superscript",
         "script.left-superscript"
       ],
+      "choiceOperationIds": {
+        "⠼⠂": "script.left-superscript"
+      },
       "cells": [
         "⠼",
         "⠂",
@@ -21753,6 +21768,9 @@
         "script.left-superscript",
         "script.subscript"
       ],
+      "choiceOperationIds": {
+        "⠘⠝": "script.left-superscript"
+      },
       "cells": [
         "⠘",
         "⠝",
@@ -21790,6 +21808,9 @@
         "script.left-superscript",
         "script.left-subscript"
       ],
+      "choiceOperationIds": {
+        "⠘⠰": "script.left-superscript"
+      },
       "cells": [
         "⠘",
         "⠰",
@@ -21827,6 +21848,9 @@
         "script.left-subscript",
         "script.superscript"
       ],
+      "choiceOperationIds": {
+        "⠰⠝": "script.left-subscript"
+      },
       "cells": [
         "⠰",
         "⠝",
@@ -21864,6 +21888,9 @@
         "script.left-subscript",
         "script.left-superscript"
       ],
+      "choiceOperationIds": {
+        "⠰⠘": "script.left-subscript"
+      },
       "cells": [
         "⠰",
         "⠘",
@@ -21901,6 +21928,9 @@
         "script.left-subscript",
         "script.sub-sub"
       ],
+      "choiceOperationIds": {
+        "⠰⠭": "script.left-subscript"
+      },
       "cells": [
         "⠰",
         "⠭",
@@ -21938,6 +21968,9 @@
         "script.left-subscript",
         "script.sub-sub"
       ],
+      "choiceOperationIds": {
+        "⠰⠰": "script.left-subscript"
+      },
       "cells": [
         "⠰",
         "⠰",

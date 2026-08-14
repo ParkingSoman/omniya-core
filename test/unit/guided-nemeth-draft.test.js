@@ -54,6 +54,7 @@ test('Rule 14 left-script Electron corpus cases 14-23 through 14-33 carry review
     const entry = corpus.cases.find((candidate) => candidate.exampleNumber === `14-${number}`);
     assert.ok(entry?.executable, `14-${number} must be executable`);
     assert.ok(entry.operationIds?.length, `14-${number} needs reviewed operation IDs`);
+    assert.ok(entry.operationIds.some((id) => id.includes('left-')) === Boolean(entry.choiceOperationIds), `14-${number} choice metadata must match left-script operations`);
     assert.deepEqual(entry.cells, sourceNotationToCells(entry.sourceNotation));
     let document = createEmptyDraftMathDocument(); let focus = focusOf(document); let inputState = { prefix: '', mode: null };
     for (const authoredCell of entry.cells) {

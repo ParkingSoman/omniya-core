@@ -45,15 +45,18 @@ const examples = source.examples
       ...(reviewedOperationIds.has(example.exampleNumber)
         ? { operationIds: reviewedOperationIds.get(example.exampleNumber) }
         : {}),
+      ...(reviewedOperationIds.has(example.exampleNumber) && reviewedOperationIds.get(example.exampleNumber).some((id) => id.includes('left-'))
+        ? { choiceOperationIds: { [`${cells?.[0] ?? ''}${cells?.[1] ?? ''}`]: reviewedOperationIds.get(example.exampleNumber).find((id) => id.includes('left-')) } }
+        : {}),
       ...(reviewedOperationIds.has(example.exampleNumber)
         ? { operationIds: reviewedOperationIds.get(example.exampleNumber) }
         : {}),
       // A repeated local cell can have more than one BANA meaning at the
       // current focus. Keep reviewed disambiguations on the source example
       // and carry them into the Electron runner; this is not a parser rule.
-      choiceOperationIds: ['#1_/cos -cos .k tan *sin', '?1/cos#-cos .k tan *sin'].includes(example.sourceNotation)
-        ? { '⠡⠎': 'operator.dot' }
-        : undefined,
+      ...(['#1_/cos -cos .k tan *sin', '?1/cos#-cos .k tan *sin'].includes(example.sourceNotation)
+        ? { choiceOperationIds: { '⠡⠎': 'operator.dot' } }
+        : {}),
       cells,
       expectedWholeBraille: example.expectedWholeBraille,
       candidateBrailleLines: example.candidateBrailleLines,
