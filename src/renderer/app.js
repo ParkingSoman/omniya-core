@@ -8,6 +8,7 @@ import {
   updateItem
 } from '../domain/model.js';
 import { applyNemethSourceIntentToBraille } from './nemeth-braille-projection.js';
+import { applyUebBrailleLabel } from './ueb-braille-projection.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { createSixKeyInput } from './braille-input.js';
 import { createEmptyDraftMathDocument } from '../domain/guided-nemeth/index.js';
@@ -28,6 +29,7 @@ import {
   enterCommand,
   formatStatus
 } from '../domain/command-mode.js';
+import { createUebCellBuffer, pushUebCell } from '../domain/ueb-cell-buffer.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -59,6 +61,8 @@ let replacementSession = null;
 let replacementEditor = null;
 let preferredAuthoringMethod = 'nemeth';
 let commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+let uebBuffer = createUebCellBuffer();
+let uebCellChain = Promise.resolve();
 const mathHistory = new Map();
 // MathJax changes the visual and speech nodes in a short asynchronous handoff
 // after an arrow key. Keep the last successfully resolved *exact* address so
@@ -325,6 +329,14 @@ function renderTranscript() {
       text.className = 'item-text';
       text.textContent = item.source;
       content.append(text);
+      if (typeof window.omniya?.translateUeb === 'function') {
+        void applyUebBrailleLabel(
+          text,
+          item.source,
+          'g2',
+          (source, grade) => window.omniya.translateUeb(source, grade)
+        );
+      }
     }
 
     article.append(descriptor, content);
@@ -853,6 +865,8 @@ function resetDraft() {
 
 function returnToRead({ discardDraft = true } = {}) {
   if (discardDraft) resetDraft();
+  if (uebBuffer.pending) announce('Discarded pending UEB cells');
+  uebBuffer = createUebCellBuffer();
   mode = 'read';
   editingItemId = null;
   commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
@@ -865,6 +879,7 @@ function openAddMode() {
   mode = 'add';
   editingItemId = null;
   resetDraft();
+  uebBuffer = createUebCellBuffer();
   commandState = createCommandState({
     itemKind: draft.type,
     contentEmpty: true,
@@ -883,6 +898,7 @@ function openEditMode(itemId) {
   state = selectItem(state, itemId);
   mode = 'edit';
   editingItemId = itemId;
+  uebBuffer = createUebCellBuffer();
   const item = napkin.items.find(({ id }) => id === itemId);
   commandState = createCommandState({
     itemKind: item?.type === 'equation' ? 'equation' : 'text',
@@ -949,6 +965,46 @@ function applyCommandStateToChrome(nextState) {
 
 function announce(message) {
   elements['save-status'].textContent = message;
+}
+
+function composerIsTextInsert() {
+  if (mode !== 'add' && mode !== 'edit') return false;
+  if (commandState.interaction !== 'insert') return false;
+  const kind = commandState.itemKind ?? draft.type;
+  return kind === 'text';
+}
+
+async function appendUebPrint(printText, { trailingSpace = false } = {}) {
+  const area = elements['composer-source'];
+  if (!area) return;
+  const next = `${area.value}${printText ?? ''}${trailingSpace ? ' ' : ''}`;
+  area.value = next;
+  area.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+async function handleComposerUebCell(cell) {
+  if (!composerIsTextInsert()) return;
+  if (cell === '⠿' && uebBuffer.pending === '') {
+    commandState = enterCommand(commandState);
+    announce('Command mode');
+    return;
+  }
+  const result = pushUebCell(uebBuffer, cell);
+  uebBuffer = result.buffer;
+  if (!result.flush) {
+    announce(`UEB cells: ${uebBuffer.pending}`);
+    return;
+  }
+  const grade = commandState.uebGrade === 'g1' ? 'g1' : 'g2';
+  const trailingSpace = cell === ' ' || cell === '\u2800';
+  try {
+    const translated = await window.omniya.backTranslateUeb(result.flush, grade);
+    const text = typeof translated === 'string' ? translated : translated?.text;
+    await appendUebPrint(text ?? '', { trailingSpace });
+    announce(`UEB word: ${text ?? ''}`);
+  } catch (err) {
+    announce(`UEB translate failed: ${err.message}`);
+  }
 }
 
 function syncCommandContentEmpty() {
@@ -1212,6 +1268,33 @@ elements['composer-source'].addEventListener('keydown', (event) => {
     void submitComposer();
   }
 });
+
+{
+  // Composer UEB six-key is scoped to #composer-source only. Nemeth replacement
+  // installs its own createSixKeyInput on the replacement editor, so the two
+  // never share listeners or fight over sdfjkl chords.
+  const composerSixKey = createSixKeyInput({
+    emit: (cell) => {
+      uebCellChain = uebCellChain.then(() => handleComposerUebCell(cell)).catch(() => {});
+    }
+  });
+  elements['composer-source'].addEventListener('keydown', (event) => {
+    if (!globalThis.__omniyaBrailleSimulation) return;
+    if (!composerIsTextInsert()) return;
+    if (event.key === ' ' && uebBuffer.pending) {
+      event.preventDefault();
+      uebCellChain = uebCellChain.then(() => handleComposerUebCell(' ')).catch(() => {});
+      return;
+    }
+    composerSixKey.keydown(event);
+  });
+  elements['composer-source'].addEventListener('keyup', (event) => {
+    if (!globalThis.__omniyaBrailleSimulation) return;
+    if (!composerIsTextInsert()) return;
+    composerSixKey.keyup(event);
+  });
+  elements['composer-source'].addEventListener('blur', () => composerSixKey.blur());
+}
 
 elements['composer-form'].addEventListener('submit', (event) => {
   event.preventDefault();
