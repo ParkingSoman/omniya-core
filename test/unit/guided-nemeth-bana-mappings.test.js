@@ -1062,6 +1062,47 @@ test('BANA Rule 9.4 exposes the pencil as one transcriber-defined icon', () => {
   assert.equal(registry.get('shape.perpendicular')?.banaRefs.includes('9.4'), false);
 });
 
+test('example 9-7 keeps numeric-start on numbers that follow an authored blank after a pencil', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  const cells = ['⠈', '⠫', '⠏', '⠀', '⠼', '⠶', '⠢', '⠸', '⠲', '⠀', '⠭', '⠘', '⠲', '⠐', '⠤', '⠽', '⠘', '⠆', '⠀', '⠈', '⠫', '⠠', '⠏', '⠀', '⠼', '⠶', '⠖', '⠸', '⠲', '⠀', '⠭', '⠘', '⠆', '⠐', '⠬', '⠢', '⠽', '⠤', '⠂', '⠂', '⠆'];
+  for (const [index, authored] of cells.entries()) {
+    let result = applyNemethCell({ document, focus, inputState, cell: authored });
+    if (result.status === 'choice') {
+      const preferred = result.choices.find((choice) => choice.operationId.startsWith('reference.icon.pencil'))
+        ?? result.choices[0];
+      result = applyNemethChoice({
+        document: result.document,
+        focus: result.focus,
+        inputState: result.inputState,
+        operationId: preferred.operationId
+      });
+    }
+    assert.notEqual(result.status, 'rejected', `cell ${index} ${authored}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const intents = [];
+  const visit = (node) => {
+    if (node?.name === 'mn' || node?.attrs?.['data-omniya-nemeth-intent']?.includes?.('pencil')) {
+      intents.push({
+        name: node.name,
+        text: node.children?.[0]?.text,
+        intent: node.attrs?.['data-omniya-nemeth-intent'],
+        cells: node.attrs?.['data-omniya-nemeth-cells']
+      });
+    }
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(parseMathML(document.mathml));
+  const seventyFive = intents.find((node) => node.text === '75');
+  const seventySix = intents.find((node) => node.text === '76');
+  assert.equal(seventyFive?.intent, 'numeric-start');
+  assert.equal(seventySix?.intent, 'numeric-start');
+  assert.equal(intents.find((node) => node.intent === 'transcriber-defined-pencil-icon')?.cells, '⠈⠫⠏');
+  assert.equal(intents.find((node) => node.intent === 'transcriber-defined-pencil-icon-capital')?.cells, '⠈⠫⠠⠏');
+});
+
 test('BANA Rule 9.4 blank after a numeric superscript returns to the surrounding row', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

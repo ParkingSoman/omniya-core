@@ -406,7 +406,12 @@ function insertNumeric(tree, focus, value, { replace = false, mathvariant = null
   if (!replace && current.name === 'mn' && current.children?.length === 1) {
     current.children[0].text += value;
     if (mathvariant) current.attrs.mathvariant = mathvariant;
-    Object.assign(current.attrs, dataAttributes);
+    const nextAttributes = { ...dataAttributes };
+    if (current.attrs['data-omniya-nemeth-intent'] === 'numeric-start' &&
+      nextAttributes['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
+      delete nextAttributes['data-omniya-nemeth-intent'];
+    }
+    Object.assign(current.attrs, nextAttributes);
     if (current.children?.[0]?.text?.startsWith?.('.') && current.attrs['data-omniya-nemeth-intent'] === 'numeric-start') {
       current.attrs['data-omniya-nemeth-intent'] = 'numeric-decimal';
     }
@@ -4173,18 +4178,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
     if (DIGITS.has(normalized)) {
       const digit = digitMapping(normalized);
-      // Numeric mode already records the local number indicator (or a script
-      // level that permits a lower-cell digit). Preserve that bounded intent
-      // on every consumed digit so projection never synthesizes a duplicate
-      // number sign after a script opener.
-      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
       // A number sign remains active across a baseline operator, but BANA's
       // following one-cell number is lower-cell. Preserve that distinction in
       // the source intent so MathJax cannot reintroduce a second number sign.
+      // Digits that continue an already lower-cell atom keep that marker.
+      // A fresh number after ⠼ (for example after a blank following a pencil)
+      // must remain numeric-start so projection can restore the number sign.
       const parent = context.node.name !== 'math' ? findMathParent(context.tree, context.node.attrs?.['data-omniya-id']) : null;
       const preceding = parent?.children?.[Math.max(0, parent.children.indexOf(context.node) - 1)];
-      if ((context.node.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(context.node.children?.[0]?.text)) ||
-          (preceding?.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(preceding.children?.[0]?.text))) {
+      const afterOperator = (context.node.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(context.node.children?.[0]?.text)) ||
+        (preceding?.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(preceding.children?.[0]?.text));
+      const continuingLowerCell = context.node.name === 'mn' &&
+        context.node.attrs?.['data-omniya-nemeth-intent'] === 'lower-cell-numeric';
+      if (afterOperator || continuingLowerCell) {
         digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
       }
       return applyMapping(document, focus, state, digit);

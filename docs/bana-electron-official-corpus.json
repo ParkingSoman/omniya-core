@@ -14536,7 +14536,8 @@
       "id": "electron:bana-2022:example-9-3",
       "sourceRows": [
         "example-9-3",
-        "9.3.1"
+        "9.3.1",
+        "9.1"
       ],
       "exampleNumber": "9-3",
       "printedPage": null,
