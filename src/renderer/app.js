@@ -884,7 +884,14 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       elements['replacement-choices'].hidden = true;
       elements['replacement-status'].textContent = result.announcement;
       editor.toggleAttribute('aria-invalid', result.status === 'rejected');
-      if (result.status === 'undone') await renderDraftPreview();
+      if (result.status === 'undone') {
+        await renderDraftPreview();
+        const draftMathml = replacementSession.draft?.mathml ?? '';
+        const hasDraftContent = ['<mi>', '<mn>', '<mo>'].some((tag) => draftMathml.includes(tag));
+        if (!hasDraftContent && !(replacementSession.nemethState?.prefix ?? '')) {
+          replacementHasContent = false;
+        }
+      }
       return;
     }
     if (event.key !== 'Enter' || event.shiftKey) return;
@@ -1227,6 +1234,12 @@ function handleComposerCommandKey(event) {
   }
   if (result.action === 'focus-status') {
     elements['mode-panel']?.focus();
+  } else if (
+    (key === 'i' || key === 'Enter') &&
+    replacementSession &&
+    !elements['replacement-dock'].hidden
+  ) {
+    elements['replacement-input']?.focus();
   }
   return true;
 }
