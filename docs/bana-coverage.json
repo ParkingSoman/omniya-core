@@ -16,7 +16,7 @@
     "examples": 1229,
     "errata": 42,
     "errataInScope": 5,
-    "mappedRows": 1134,
+    "mappedRows": 1135,
     "electronCreationRows": 964,
     "electronEditingRows": 957,
     "officialExamplesLinked": 1229
@@ -11962,10 +11962,16 @@
       "printedPage": "3-21",
       "pdfPage": 48,
       "auditOrder": 145,
-      "disposition": "implemented-context-policy",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
+      "mappingIds": [
+        "shape.circle.interior-number-5",
+        "shape.square.interior-number-5"
+      ],
+      "unitCaseIds": [
+        "registry:shape.circle.interior-number-5",
+        "registry:shape.square.interior-number-5"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -95398,6 +95404,8 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
+        "shape.circle.interior-number-5",
+        "shape.square.interior-number-5",
         "shape.circle.interior-plus",
         "shape.circle.interior-letter-a",
         "shape.angle.interior-degree",
@@ -95416,6 +95424,8 @@
         "shape.circle.interior-bar"
       ],
       "unitCaseIds": [
+        "registry:shape.circle.interior-number-5",
+        "registry:shape.square.interior-number-5",
         "registry:shape.circle.interior-plus",
         "registry:shape.circle.interior-letter-a",
         "registry:shape.angle.interior-degree",
@@ -95530,6 +95540,8 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
+        "shape.circle.interior-number-5",
+        "shape.square.interior-number-5",
         "shape.circle.interior-plus",
         "shape.circle.interior-letter-a",
         "shape.angle.interior-degree",
@@ -95548,6 +95560,8 @@
         "shape.circle.interior-bar"
       ],
       "unitCaseIds": [
+        "registry:shape.circle.interior-number-5",
+        "registry:shape.square.interior-number-5",
         "registry:shape.circle.interior-plus",
         "registry:shape.circle.interior-letter-a",
         "registry:shape.angle.interior-degree",
@@ -95667,6 +95681,8 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
+        "shape.circle.interior-number-5",
+        "shape.square.interior-number-5",
         "shape.circle.interior-plus",
         "shape.circle.interior-letter-a",
         "shape.angle.interior-degree",
@@ -95685,6 +95701,8 @@
         "shape.circle.interior-bar"
       ],
       "unitCaseIds": [
+        "registry:shape.circle.interior-number-5",
+        "registry:shape.square.interior-number-5",
         "registry:shape.circle.interior-plus",
         "registry:shape.circle.interior-letter-a",
         "registry:shape.angle.interior-degree",
@@ -95804,6 +95822,8 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
+        "shape.circle.interior-number-5",
+        "shape.square.interior-number-5",
         "shape.circle.interior-plus",
         "shape.circle.interior-letter-a",
         "shape.angle.interior-degree",
@@ -95822,6 +95842,8 @@
         "shape.circle.interior-bar"
       ],
       "unitCaseIds": [
+        "registry:shape.circle.interior-number-5",
+        "registry:shape.square.interior-number-5",
         "registry:shape.circle.interior-plus",
         "registry:shape.circle.interior-letter-a",
         "registry:shape.angle.interior-degree",
@@ -95941,6 +95963,8 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
+        "shape.circle.interior-number-5",
+        "shape.square.interior-number-5",
         "shape.circle.interior-plus",
         "shape.circle.interior-letter-a",
         "shape.angle.interior-degree",
@@ -95959,6 +95983,8 @@
         "shape.circle.interior-bar"
       ],
       "unitCaseIds": [
+        "registry:shape.circle.interior-number-5",
+        "registry:shape.square.interior-number-5",
         "registry:shape.circle.interior-plus",
         "registry:shape.circle.interior-letter-a",
         "registry:shape.angle.interior-degree",
