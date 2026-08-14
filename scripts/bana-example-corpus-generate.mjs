@@ -30,11 +30,18 @@ const reviewedOperationIds = new Map(Object.entries({
   '14-36': ['script.subscript'], '14-37': ['script.subscript'],
   '14-38': ['script.subscript'], '14-39': ['script.subscript', 'misc.prime'],
   '14-40': ['script.subscript', 'script.sub-sub'], '14-41': ['script.subscript'],
-  '14-42': ['script.subscript'], '14-43': ['script.subscript'], '14-44': ['script.subscript']
+  '14-42': ['script.subscript'], '14-43': ['script.subscript'], '14-44': ['script.subscript'],
+  '14-45': ['script.subscript'], '14-46': ['script.sub-sup'],
+  '14-47': ['script.subscript'], '14-48': ['script.subscript'],
+  '14-49': ['script.subscript'], '14-50': ['script.left-subscript'],
+  '14-51': ['script.subscript'], '14-52': ['script.subscript'],
+  '14-53': ['script.subscript'], '14-54': ['script.subscript'],
+  '14-55': ['script.sub-sup', 'script.subscript']
 }));
 const reviewedChoicePrefixes = new Map([
   ['14-34', ['⠘⠉', 'script.left-superscript']],
-  ['14-35', ['⠰⠉', 'script.left-subscript']]
+  ['14-35', ['⠰⠉', 'script.left-subscript']],
+  ['14-50', ['⠰⠒', 'script.left-subscript']]
 ]);
 const examples = source.examples
   .filter((example) => Number(example.exampleNumber.split('-')[0]) >= 3 && Number(example.exampleNumber.split('-')[0]) <= 24)
