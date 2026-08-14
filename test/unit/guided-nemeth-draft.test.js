@@ -81,6 +81,38 @@ test('Rule 14 left-script Electron corpus cases 14-23 through 14-33 carry review
   }
 });
 
+test('Rule 14 right-script Electron corpus cases 14-34 through 14-44 retain exact source and replay structure', () => {
+  const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
+  for (let number = 34; number <= 44; number += 1) {
+    const entry = corpus.cases.find((candidate) => candidate.exampleNumber === `14-${number}`);
+    assert.ok(entry?.executable, `14-${number} must be executable`);
+    assert.ok(entry.operationIds?.length, `14-${number} needs reviewed operation IDs`);
+    assert.deepEqual(entry.cells, sourceNotationToCells(entry.sourceNotation));
+    if (entry.choiceOperationIds) {
+      assert.ok(Object.values(entry.choiceOperationIds).every((id) => entry.operationIds.includes(id)), `14-${number} choice IDs must be reviewed operations`);
+    }
+    let document = createEmptyDraftMathDocument(); let focus = focusOf(document); let inputState = { prefix: '', mode: null };
+    for (const authoredCell of entry.cells) {
+      let result = cell(document, focus, inputState, authoredCell);
+      if (result.status === 'choice') result = applyNemethChoice({ document: result.document, focus: result.focus, inputState: result.inputState, operationId: result.choices[0].operationId });
+      if (result.status === 'rejected') break;
+      ({ document, focus, inputState } = result);
+    }
+    const names = [];
+    const visit = (node) => { if (node?.name) names.push(node.name); for (const child of node?.children ?? []) visit(child); };
+    visit(parseMathML(document.mathml));
+    assert.ok(names.some((name) => ['msup', 'msub', 'msubsup', 'mmultiscripts'].includes(name)) || entry.operationIds.some((id) => id.startsWith('script.')),
+      `14-${number} lacks canonical script replay or reviewed script metadata`);
+    for (const leftOperationId of entry.operationIds.filter((id) => id === 'script.left-superscript' || id === 'script.left-subscript')) {
+      const prefix = leftOperationId === 'script.left-superscript' ? '⠘⠉' : '⠰⠉';
+      const empty = createEmptyDraftMathDocument();
+      const chosen = applyNemethChoice({ document: empty, focus: focusOf(empty), inputState: { prefix, mode: null }, operationId: leftOperationId });
+      assert.equal(chosen.status, 'applied', `14-${number} ${leftOperationId} choice must apply`);
+      assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+    }
+  }
+});
+
 test('sequential Nemeth cells build a plain MathML row one token at a time', () => {
   let document = createEmptyDraftMathDocument();
   let focus = focusOf(document);

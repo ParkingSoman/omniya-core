@@ -22004,6 +22004,13 @@
       "printedPage": null,
       "pdfPage": 178,
       "sourceNotation": "p;b\"~c\"x",
+      "operationIds": [
+        "script.subscript",
+        "script.left-superscript"
+      ],
+      "choiceOperationIds": {
+        "⠘⠉": "script.left-superscript"
+      },
       "cells": [
         "⠏",
         "⠰",
@@ -22038,6 +22045,13 @@
       "printedPage": null,
       "pdfPage": 178,
       "sourceNotation": "p~b\";c\"x",
+      "operationIds": [
+        "script.superscript",
+        "script.left-subscript"
+      ],
+      "choiceOperationIds": {
+        "⠰⠉": "script.left-subscript"
+      },
       "cells": [
         "⠏",
         "⠘",
@@ -22073,6 +22087,9 @@
       "printedPage": null,
       "pdfPage": 179,
       "sourceNotation": "x1",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠭",
         "⠂"
@@ -22101,6 +22118,9 @@
       "printedPage": null,
       "pdfPage": 179,
       "sourceNotation": "x11",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠭",
         "⠂",
@@ -22130,6 +22150,9 @@
       "printedPage": null,
       "pdfPage": 179,
       "sourceNotation": "_,a1",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠸",
         "⠠",
@@ -22160,6 +22183,10 @@
       "printedPage": null,
       "pdfPage": 179,
       "sourceNotation": "x'1",
+      "operationIds": [
+        "script.subscript",
+        "misc.prime"
+      ],
       "cells": [
         "⠭",
         "⠄",
@@ -22189,6 +22216,10 @@
       "printedPage": null,
       "pdfPage": 180,
       "sourceNotation": "x;I;;1",
+      "operationIds": [
+        "script.subscript",
+        "script.sub-sub"
+      ],
       "cells": [
         "⠭",
         "⠰",
@@ -22222,6 +22253,9 @@
       "printedPage": null,
       "pdfPage": 180,
       "sourceNotation": "log2 x",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠇",
         "⠕",
@@ -22254,6 +22288,9 @@
       "printedPage": null,
       "pdfPage": 180,
       "sourceNotation": "#12;7",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠼",
         "⠂",
@@ -22285,6 +22322,9 @@
       "printedPage": null,
       "pdfPage": 180,
       "sourceNotation": "(,c,o3);2",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠷",
         "⠠",
@@ -22321,6 +22361,9 @@
       "printedPage": null,
       "pdfPage": 180,
       "sourceNotation": ",na2,c,o3",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠠",
         "⠝",
