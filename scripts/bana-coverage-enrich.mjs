@@ -102,9 +102,7 @@ const rows = inventory.rows.map((row) => {
   // executable examples retain the full renderer evidence contract.
   const documentContextExample = isExample && ['example-10-15', 'example-10-16', 'example-10-17'].includes(ref);
   const requiresEquationEvidence = (isExample && !documentContextExample) || mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy');
-  const disposition = row.disposition === 'unclassified' && documentContextExample
-    ? 'document-context-exclusion'
-    : row.disposition === 'unclassified' && (mappingIds.length > 0 || contextPolicyIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
+  const disposition = row.disposition === 'unclassified' && (mappingIds.length > 0 || contextPolicyIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
       ? (contextPolicyIds.length > 0 && mappingIds.length === 0 || mappings.some((mapping) => mapping.args?.sourceKind === 'context-policy') ? 'implemented-context-policy' : 'implemented-operation')
       : row.disposition;
   for (const field of ['creation', 'editing', 'navigation', 'wholeBraille', 'focusedBraille', 'undoRedo', 'persistence']) {

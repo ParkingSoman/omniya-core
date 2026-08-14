@@ -166,7 +166,7 @@ if (appendixDStart >= 0) {
 
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
 const durableDisposition = rows.find((row) => row.id === 'bana-2022:example-7-22');
-if (durableDisposition) durableDisposition.disposition = 'approved-context-policy';
+if (durableDisposition) durableDisposition.disposition = 'implemented-context-policy';
 // Rules 3-11 errata are classified from the exact 2025 correction text.
 // Only three corrections change executable Nemeth cells; five change
 // normative context rules. The remainder correct headings, commentary, print
@@ -323,7 +323,14 @@ for (const row of rows.filter((candidate) => /^bana-2022:(?:19\.7|19\.8|19\.9(?:
 // description of switch indicators, not executable mathematical content.
 for (const id of ['bana-2022:4.1', 'bana-2022:example-4-1']) {
   const row = rows.find((candidate) => candidate.id === id);
-  if (row) row.disposition = 'approved-context-policy';
+  if (row) row.disposition = 'implemented-context-policy';
+}
+// Examples 10-15 through 10-17 are document-format demonstrations with no
+// standalone equation payload. Keep them as canonical exclusions rather than
+// using a custom disposition that the report cannot classify consistently.
+for (const number of [15, 16, 17]) {
+  const row = rows.find((candidate) => candidate.id === `bana-2022:example-10-${number}`);
+  if (row) row.disposition = 'excluded-document-format';
 }
 const rule14Batch = {
   'example-14-3': ['script.superscript'],
@@ -355,7 +362,7 @@ for (const id of [
   'bana-2022:14.12.3'
 ]) {
   const row = rows.find((candidate) => candidate.id === id);
-  if (row) row.disposition = 'approved-context-policy';
+  if (row) row.disposition = 'implemented-context-policy';
 }
 for (let number = 12; number <= 22; number += 1) {
   const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);

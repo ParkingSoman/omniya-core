@@ -15,7 +15,7 @@ test('Rule 14 policy rows have exact context ownership or honest document exclus
   ];
   for (const ref of provisions) {
     assert.ok(policyRefs.has(ref), `Rule 14 provision ${ref} must have a registered context policy`);
-    assert.equal(rows.get(`bana-2022:${ref}`)?.disposition, 'approved-context-policy', `${ref} disposition`);
+    assert.equal(rows.get(`bana-2022:${ref}`)?.disposition, 'implemented-context-policy', `${ref} disposition`);
   }
   for (const number of [1, 2]) {
     assert.equal(rows.get(`bana-2022:example-14-${number}`)?.disposition, 'excluded-document-format', `example 14-${number} exclusion`);

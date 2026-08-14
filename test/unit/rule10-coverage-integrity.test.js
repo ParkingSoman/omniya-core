@@ -9,7 +9,10 @@ test('every Rule 10 row has exact abbreviation mapping or context ownership', ()
   assert.equal(rows.length, 69);
   for (const row of rows) {
     assert.notEqual(row.disposition, 'unclassified');
-    if (row.disposition === 'document-context-exclusion') continue;
+    if (['example-10-15', 'example-10-16', 'example-10-17'].some((id) => row.id.endsWith(id))) {
+      assert.equal(row.disposition, 'excluded-document-format');
+      continue;
+    }
     assert.equal(row.verified.implementation, true);
     assert.ok((row.mappingIds?.length ?? 0) + (row.contextPolicyIds?.length ?? 0) > 0, `${row.id} lacks exact ownership`);
   }
