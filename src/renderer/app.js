@@ -1301,7 +1301,12 @@ elements['composer-form'].addEventListener('submit', (event) => {
   void submitComposer();
 });
 
-elements['composer-dock'].addEventListener('keydown', (event) => {
+// Command keys must keep working after `e` hides #composer-source (focus
+// leaves the dock). Scope to add/edit and skip foreign chrome.
+document.addEventListener('keydown', (event) => {
+  if (mode !== 'add' && mode !== 'edit') return;
+  if (elements['keyboard-help']?.open) return;
+  if (event.target?.closest?.('#replacement-dock, #new-napkin-form, #napkin-rail, dialog')) return;
   handleComposerCommandKey(event);
 }, true);
 
