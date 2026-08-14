@@ -290,8 +290,30 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       .filter((space) => {
         let previous = space.previousElementSibling ?? space.previousSibling;
         while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
-        return (previous?.localName ?? previous?.nodeName) === 'msup';
+        while (previous?.getAttribute?.('data-semantic-added') === 'true') {
+          previous = previous.previousElementSibling ?? previous.previousSibling;
+          while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+        }
+        const name = previous?.localName ?? previous?.nodeName;
+        if (name === 'msup') return true;
+        // SRE may wrap the authored superscript in a punctuated/factor row
+        // before the blank. Prefer the last authored child of that wrapper.
+        if (name === 'mrow' || name === 'math') {
+          const kids = [...(previous.children ?? previous.childNodes ?? [])]
+            .filter((node) => node.nodeType === 1 && node.getAttribute?.('data-semantic-added') !== 'true');
+          return (kids.at(-1)?.localName ?? kids.at(-1)?.nodeName) === 'msup';
+        }
+        return false;
       }).length;
+    // A degree script that also carries an authored punctuation comma still
+    // owns one presentation baseline return before the following blank. Count
+    // those local degree-comma pairs even when enrichment reparented the space.
+    const degreeCommaReturns = boundCommaNodes.filter((node) => {
+      let previous = node.previousElementSibling ?? node.previousSibling;
+      while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+      return previous?.getAttribute?.('data-omniya-nemeth-cells') === '⠘⠨⠡';
+    }).length;
+    scriptSpaceReturns = Math.max(scriptSpaceReturns, degreeCommaReturns);
     while (scriptSpaceReturns > 0 && braille.includes('⠐⠀')) {
       braille = braille.replace('⠐⠀', '⠀');
       scriptSpaceReturns -= 1;
@@ -522,6 +544,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     for (const node of numericStarts) {
       if (operatorFollowedNumbers.includes(node)) continue;
       const value = String(node.textContent ?? '').trim();
+      if (!/^\d+$/.test(value)) continue;
       const cells = [...value].map((digit) => digits.get(digit) ?? '').join('');
       if (!cells) continue;
       const pattern = new RegExp(`(?<!⠼)${cells}`);
@@ -1102,6 +1125,20 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const prefix = variant === 'bold' ? '⠸⠰' : variant === 'script' ? '⠈⠰' : variant === 'italic' ? '⠨⠰' : variant === 'double-struck' ? '⠠⠸⠰' : '';
       if (cell && prefix) braille = braille.replace(new RegExp(`(?<!${prefix})(?=⠠?${cell})`), `${prefix}⠠`);
     }
+  }
+  // Rule 9.4's transcriber-defined pencil is a Unicode glyph MathJax/SRE
+  // cannot spell in Nemeth. Restore each authored local sequence in source
+  // order, replacing only that one projected glyph.
+  const pencilIcons = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent]')]
+    .filter((node) => {
+      const intent = node.getAttribute?.('data-omniya-nemeth-intent');
+      return intent === 'transcriber-defined-pencil-icon' || intent === 'transcriber-defined-pencil-icon-capital';
+    })
+    .map((node) => String(node.getAttribute?.('data-omniya-nemeth-cells') ?? ''))
+    .filter(Boolean);
+  for (const sequence of pencilIcons) {
+    if (!sequence || braille.includes(sequence)) continue;
+    if (braille.includes('✎')) braille = braille.replace('✎', sequence);
   }
   // Rule 9.2 records the general reference indicator on the footnote atom.
   // MathJax/SRE sees only the letter or numeral, so restore that one local
@@ -1705,6 +1742,14 @@ function restorePunctuationPeriods(braille, count, groups = 0) {
     if (remaining <= 0) return match;
     remaining -= 1;
     return '⠸⠲';
+  });
+  // SRE may treat a punctuation period after an isolated numeral as a
+  // decimal (dot-4) when a blank follows. The source-marked period is the
+  // punctuation indicator, not a numeric decimal.
+  braille = braille.replace(/(⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)⠨(?=⠀)/g, (match, digit) => {
+    if (remaining <= 0) return match;
+    remaining -= 1;
+    return `${digit}⠸⠲`;
   });
   // Explicit guided round groups carry their fence cells in MathML. SRE may
   // suppress the paired grouping indicators when the content is incomplete;

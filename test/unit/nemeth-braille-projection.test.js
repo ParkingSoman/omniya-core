@@ -275,6 +275,17 @@ test('general-reference source cells restore the indicator before a numbered foo
   );
 });
 
+test('Rule 9.4 pencil icons restore authored cells, numeric indicators, and punctuation periods', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-intent="transcriber-defined-pencil-icon" data-omniya-nemeth-cells="⠈⠫⠏">✎</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">75</mn><mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo><mspace data-omniya-nemeth-intent="explicit-space"/><msup><mi data-omniya-nemeth-cells="⠭">x</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">4</mn></msup><mo data-omniya-nemeth-cells="⠤">−</mo><msup><mi data-omniya-nemeth-cells="⠽">y</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-intent="transcriber-defined-pencil-icon-capital" data-omniya-nemeth-cells="⠈⠫⠠⠏">✎</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">76</mn><mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo><mspace data-omniya-nemeth-intent="explicit-space"/><msup><mi data-omniya-nemeth-cells="⠭">x</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup><mo data-omniya-nemeth-cells="⠬">+</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">5</mn><mi data-omniya-nemeth-cells="⠽">y</mi><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">112</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('✎⠀⠶⠢⠨⠀⠭⠘⠲⠐⠤⠽⠘⠆⠀✎⠀⠶⠖⠸⠲⠀⠭⠘⠆⠐⠬⠢⠽⠤⠂⠂⠆', source),
+    '⠈⠫⠏⠀⠼⠶⠢⠸⠲⠀⠭⠘⠲⠐⠤⠽⠘⠆⠀⠈⠫⠠⠏⠀⠼⠶⠖⠸⠲⠀⠭⠘⠆⠐⠬⠢⠽⠤⠂⠂⠆'
+  );
+});
+
 test('Rule 22 standalone arrows keep authored cells instead of the SRE glyph spelling', () => {
   const fixtures = [
     ['arrow-two-way-vertical-bold-barbed', '⠫⠣⠸⠪⠒⠒⠕', '↕', '⠫⠣⠩⠪⠒⠒⠕'],
