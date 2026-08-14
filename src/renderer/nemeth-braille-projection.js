@@ -139,8 +139,182 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       }
     }
   }
+  // Rule 15.16 mid-number five-step modifiers (`#.13"5<*]`, `#.1"3<*]5"6<*]`):
+  // when the whole expression is an unmodified numeric prefix plus one or more
+  // five-step digit movers, rebuild from the authored siblings. SRE often
+  // collapses the run into one mover and misplaces the multipurpose cell.
+  {
+    const digitCells = {
+      '0': '⠴', '1': '⠂', '2': '⠆', '3': '⠒', '4': '⠲',
+      '5': '⠢', '6': '⠖', '7': '⠶', '8': '⠦', '9': '⠔'
+    };
+    const encodeDigits = (text) => [...String(text)].map((ch) => {
+      if (ch === '.') return '⠨';
+      return digitCells[ch] || '';
+    }).join('');
+    const numericIntent = (node) => {
+      const intent = node.getAttribute?.('data-omniya-nemeth-intent') || '';
+      return intent === 'numeric-start' || intent === 'numeric-decimal' || intent === 'lower-cell-numeric';
+    };
+    const fiveStepDigitMover = (node) => {
+      if (!['mover', 'munder'].includes(node.localName)) return null;
+      if (node.getAttribute?.('data-omniya-nemeth-intent') !== 'five-step-modifier') return null;
+      const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+      if (kids.length !== 2 || kids[0].localName !== 'mn') return null;
+      const baseText = String(kids[0].textContent ?? '').trim();
+      const scriptCells = kids[1].getAttribute?.('data-omniya-nemeth-cells') || '';
+      if (!scriptCells || !/^[0-9.]+$/.test(baseText)) return null;
+      return {
+        marker: node.localName === 'munder' ? '⠩' : '⠣',
+        baseText,
+        scriptCells
+      };
+    };
+    const run = mathChildren.map((node) => {
+      if (node.localName === 'mn' && numericIntent(node)) {
+        const text = String(node.textContent ?? '').trim();
+        if (!/^[0-9.]+$/.test(text)) return null;
+        return { kind: 'prefix', text };
+      }
+      const mover = fiveStepDigitMover(node);
+      return mover ? { kind: 'five-step', ...mover } : null;
+    });
+    if (run.length >= 2 && run.every(Boolean) && run.some((part) => part.kind === 'five-step')) {
+      let out = '';
+      let started = false;
+      for (const part of run) {
+        if (part.kind === 'prefix') {
+          const cells = encodeDigits(part.text);
+          if (!cells) {
+            out = '';
+            break;
+          }
+          out += started ? cells : `⠼${cells}`;
+          started = true;
+          continue;
+        }
+        const digits = encodeDigits(part.baseText);
+        if (!digits) {
+          out = '';
+          break;
+        }
+        if (part.baseText.startsWith('.') && !started) {
+          out += `⠼⠨⠐${digits.slice(1)}${part.marker}${part.scriptCells}⠻`;
+        } else {
+          out += `⠐${digits}${part.marker}${part.scriptCells}⠻`;
+        }
+        started = true;
+      }
+      if (out) return out;
+    }
+  }
   if (standaloneShape && mathChildren.length === 1 && (standaloneShape.parentElement ?? standaloneShape.parentNode) === sourceMath) {
     return standaloneShape.getAttribute('data-omniya-nemeth-cells') || braille;
+  }
+  // Rule 15-37: a completed five-step sum may be followed by a sibling fraction.
+  // If SRE only kept the trailing fraction (or an older draft wiped the sum),
+  // rebuild the leading five-step operator from the authored munderover.
+  {
+    const head = mathChildren[0];
+    const headName = (head?.localName || head?.nodeName || '').toLowerCase();
+    if (headName === 'munderover'
+      && head.getAttribute?.('data-omniya-nemeth-intent') === 'five-step-modifier'
+      && mathChildren.length > 1) {
+      const digitCells = {
+        '0': '⠴', '1': '⠂', '2': '⠆', '3': '⠒', '4': '⠲',
+        '5': '⠢', '6': '⠖', '7': '⠶', '8': '⠦', '9': '⠔'
+      };
+      const letterCells = {
+        a: '⠁', b: '⠃', c: '⠉', d: '⠙', e: '⠑', f: '⠋', g: '⠛', h: '⠓', i: '⠊', j: '⠚',
+        k: '⠅', l: '⠇', m: '⠍', n: '⠝', o: '⠕', p: '⠏', q: '⠟', r: '⠗', s: '⠎', t: '⠞',
+        u: '⠥', v: '⠧', w: '⠺', x: '⠭', y: '⠽', z: '⠵'
+      };
+      const elementChildren = (node) => [...(node?.children ?? node?.childNodes ?? [])]
+        .filter((child) => child.nodeType === 1);
+      const kids = elementChildren(head);
+      if (kids.length === 3) {
+        const baseCells = kids[0].getAttribute?.('data-omniya-nemeth-cells') || '';
+        const overCells = kids[2].getAttribute?.('data-omniya-nemeth-cells') || '';
+        const encodeUnder = (node) => {
+          const name = (node.localName || node.nodeName || '').toLowerCase();
+          if (name === 'mrow') return elementChildren(node).map(encodeUnder).join('');
+          if (name === 'mspace') return '⠀';
+          if (name === 'mn') {
+            const text = String(node.textContent ?? '').trim();
+            const digits = [...text].map((ch) => digitCells[ch] || '').join('');
+            if (!digits) return '';
+            return node.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start'
+              || node.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-decimal'
+              ? `⠼${digits}`
+              : digits;
+          }
+          if (name === 'mo') {
+            return node.getAttribute?.('data-omniya-nemeth-cells')
+              || letterCells[String(node.textContent ?? '').trim().toLowerCase()]
+              || '';
+          }
+          return letterCells[String(node.textContent ?? '').trim().toLowerCase()] || '';
+        };
+        const underCells = encodeUnder(kids[1]);
+        if (baseCells && overCells && underCells && !String(braille ?? '').includes(baseCells)) {
+          braille = `⠐${baseCells}⠩${underCells}⠣${overCells}⠻${braille || ''}`;
+        }
+      }
+    }
+  }
+  // Rule 15-44 multipurpose binomial: rebuild `(g_j "% a_j ")` from the
+  // authored two-row table when SRE drops the lower item or doubles the closer.
+  {
+    const binomial = mathChildren.length === 1
+      && mathChildren[0].getAttribute?.('data-omniya-binomial') === 'true'
+      && mathChildren[0].getAttribute?.('data-omniya-nemeth-intent') === 'binomial-multipurpose'
+      ? mathChildren[0]
+      : null;
+    if (binomial) {
+      const letterCells = {
+        a: '⠁', b: '⠃', c: '⠉', d: '⠙', e: '⠑', f: '⠋', g: '⠛', h: '⠓', i: '⠊', j: '⠚',
+        k: '⠅', l: '⠇', m: '⠍', n: '⠝', o: '⠕', p: '⠏', q: '⠟', r: '⠗', s: '⠎', t: '⠞',
+        u: '⠥', v: '⠧', w: '⠺', x: '⠭', y: '⠽', z: '⠵'
+      };
+      const elementChildren = (node) => [...(node?.children ?? node?.childNodes ?? [])]
+        .filter((child) => child.nodeType === 1);
+      const encodeLeaf = (node) => {
+        if (!node || node.nodeType !== 1) return '';
+        const name = (node.localName || node.nodeName || '').toLowerCase();
+        if (name === 'mrow') {
+          const kids = elementChildren(node);
+          return kids.length === 1 ? encodeLeaf(kids[0]) : kids.map(encodeLeaf).join('');
+        }
+        if (name === 'msub' || name === 'msup') {
+          const kids = elementChildren(node);
+          if (kids.length !== 2) return '';
+          const base = String(kids[0].textContent ?? '').trim().toLowerCase();
+          const script = String(kids[1].textContent ?? '').trim().toLowerCase();
+          const baseCell = kids[0].getAttribute?.('data-omniya-nemeth-cells')
+            || letterCells[base] || '';
+          const scriptCell = letterCells[script] || '';
+          if (!baseCell || !scriptCell) return '';
+          return `${baseCell}⠰${scriptCell}`;
+        }
+        return node.getAttribute?.('data-omniya-nemeth-cells')
+          || letterCells[String(node.textContent ?? '').trim().toLowerCase()]
+          || '';
+      };
+      const table = elementChildren(binomial).find((node) =>
+        (node.localName || node.nodeName || '').toLowerCase() === 'mtable');
+      const rows = elementChildren(table).filter((node) =>
+        (node.localName || node.nodeName || '').toLowerCase() === 'mtr');
+      if (rows.length === 2) {
+        const cellOf = (row) => {
+          const mtd = elementChildren(row).find((node) =>
+            (node.localName || node.nodeName || '').toLowerCase() === 'mtd');
+          return encodeLeaf(elementChildren(mtd)[0]);
+        };
+        const upper = cellOf(rows[0]);
+        const lower = cellOf(rows[1]);
+        if (upper && lower) return `⠷${upper}⠐⠩${lower}⠐⠾`;
+      }
+    }
   }
   if (typeof braille !== 'string') {
     if (standaloneShape) {
@@ -1038,6 +1212,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (numericStarts.length) {
     // An isolated number after a word boundary must retain BANA's numeric
     // indicator even when SRE suppresses it in a mixed mathematical row.
+    // Equals with an explicit blank before a numeric-start digit keeps the
+    // number sign (`⠨⠅⠀⠼⠂`), including when an earlier five-step limit
+    // already used the same digit cells.
+    if (sourceMath.querySelector?.('[data-omniya-nemeth-cells="⠨⠅"]')) {
+      braille = braille.replace(/(⠨⠅⠀)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1⠼');
+    }
     const digits = new Map([
       ['0', '⠴'], ['1', '⠂'], ['2', '⠆'], ['3', '⠒'], ['4', '⠲'],
       ['5', '⠢'], ['6', '⠖'], ['7', '⠶'], ['8', '⠦'], ['9', '⠔']
@@ -2070,6 +2250,13 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // without multipurpose or terminator. SRE often emits five-step islands.
   if (contractedBars.some((node) => node.localName === 'munder')) {
     braille = braille.replace(/⠐(⠼[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴⠨⠠]+)⠩⠱⠻/g, '$1⠩⠱');
+    // Continuation digits after the contracted under omit a fresh number sign,
+    // including when SRE places one just before the next numbered list item.
+    braille = braille.replace(/⠩⠱⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠩⠱');
+    braille = braille.replace(/⠼([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])(⠀⠼[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]⠸⠲)/g, '$1$2');
+    // A decimal continuation after the under-bar stays in the same numeric
+    // item (`#94,237%:.1`) with no intervening blank.
+    braille = braille.replace(/⠩⠱⠀⠨/g, '⠩⠱⠨');
   }
   if (contractedBars.length) {
     braille = braille.replace(/^⠐([⠁-⠵])[⠣⠩]⠱⠄⠻$/, '$1⠱⠄');

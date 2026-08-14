@@ -2374,10 +2374,35 @@ test('Rule 15-38 simultaneous then higher over nests after under hierarchy', () 
 });
 
 test('Rule 15-44 binomial with scripted upper converts on multipurpose under', () => {
-  const { document } = replayCells(sourceNotationToCells('(g;j"%a;j")'));
+  const { document } = replayCells(sourceNotationToCells('(g;j"%a;j")'), { '⠷': 'binomial.open' });
   const tree = parseMathML(document.mathml);
   assert.equal(completionReport(tree).complete, true);
   assert.equal(tree.children[0].attrs?.['data-omniya-binomial'], 'true');
+  assert.equal(tree.children[0].attrs?.['data-omniya-nemeth-intent'], 'binomial-multipurpose');
+  const rows = tree.children[0].children.find((node) => node.name === 'mtable').children;
+  assert.equal(rows[0].children[0].children[0].name, 'msub');
+  assert.equal(rows[1].children[0].children[0].name, 'msub');
+  assert.equal(rows[1].children[0].children.length, 1);
+});
+
+test('Rule 15-37 five-step sum keeps the following sibling fraction', () => {
+  const { document } = replayCells(sourceNotationToCells('".,s%n .k #1<,=]?1/2~n"# .k #1'), {
+    '⠨⠠⠎': 'operator.sum',
+    '⠣⠠': 'modifier.simultaneous.over'
+  });
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'munderover');
+  assert.equal(tree.children[0].children[0].children[0].text, '∑');
+  assert.equal(tree.children[1].name, 'mfrac');
+});
+
+test('Rule 15-33 contracted under allows a decimal continuation', () => {
+  const { document } = replayCells(sourceNotationToCells('#94,237%:.1'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '.1');
 });
 
 test('Rule 15-66 arrow overscript keeps f.*g as one expression row', () => {
@@ -2810,6 +2835,26 @@ test('Rule 15-68 five-step decimal bar stamps five-step intent on the mover', ()
   assert.equal(tree.children[0].name, 'mover');
   assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
   assert.equal(tree.children[0].children[0].children[0].text, '.7128');
+});
+
+test('Rule 15-77 mid-number multipurpose splits the unmodified decimal prefix', () => {
+  const { document } = replayCells(sourceNotationToCells('#.13"5<*]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '.13');
+  assert.equal(tree.children[1].name, 'mover');
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(tree.children[1].children[0].children[0].text, '5');
+});
+
+test('Rule 15-78 adjacent mid-number overdots keep separate numeric bases', () => {
+  const { document } = replayCells(sourceNotationToCells('#.1"3<*]5"6<*]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.map((node) => node.name).join(','), 'mn,mover,mn,mover');
+  assert.equal(tree.children[0].children[0].text, '.1');
+  assert.equal(tree.children[1].children[0].children[0].text, '3');
+  assert.equal(tree.children[2].children[0].text, '5');
+  assert.equal(tree.children[3].children[0].children[0].text, '6');
 });
 
 test('Rule 15-48 integral rectangle superposition stamps the full local cells', () => {

@@ -1446,6 +1446,13 @@ function binomialUpperContains(tree, node) {
   return Boolean(upper && (upper === node || contains(tree, upper, node)));
 }
 
+function binomialLowerContains(tree, node) {
+  const table = hasAncestor(tree, node, 'mtable');
+  if (table?.attrs?.['data-omniya-role'] !== 'binomial-table') return false;
+  const lower = table.children?.[1]?.children?.[0]?.children?.[0];
+  return Boolean(lower && (lower === node || contains(tree, lower, node)));
+}
+
 function convertRoundGroupToBinomial(tree, focus) {
   const current = currentNode(tree, focus);
   let group = current;
@@ -1506,13 +1513,16 @@ function moveBinomialLower(tree, focus) {
   return { tree, focus: focusNode(lower) };
 }
 
-function closeBinomial(tree, focus) {
+function closeBinomial(tree, focus, options = {}) {
   const current = currentNode(tree, focus);
   const table = ancestor(tree, current, ['mtable']);
   if (!table || table.attrs?.['data-omniya-role'] !== 'binomial-table') {
     throw new RangeError('A binomial terminator requires the lower cell.');
   }
   const wrapper = ancestor(tree, table, ['mrow']);
+  if (wrapper && options.multipurposeClose) {
+    wrapper.attrs['data-omniya-nemeth-intent'] = 'binomial-multipurpose';
+  }
   const parent = wrapper ? findMathParent(tree, wrapper.attrs?.['data-omniya-id']) : null;
   return { tree, focus: focusNode(parent ?? wrapper ?? tree) };
 }
@@ -3517,9 +3527,7 @@ function mappingApplies(mapping, context) {
     return binomialUpperContains(context.tree, context.node);
   }
   if (mapping.action === 'close-binomial') {
-    const table = hasAncestor(context.tree, context.node, 'mtable');
-    return Boolean(table?.attrs?.['data-omniya-role'] === 'binomial-table' &&
-      table.children?.[1]?.children?.[0]?.children?.[0] === context.node);
+    return binomialLowerContains(context.tree, context.node);
   }
   if (mapping.id === 'modifier.terminate.over') return Boolean(hasAncestor(context.tree, context.node, ['mover', 'munderover']));
   if (mapping.id === 'modifier.terminate.under') return Boolean(hasAncestor(context.tree, context.node, ['munder', 'munderover']));
@@ -3878,6 +3886,17 @@ const TREE_OPERATIONS = Object.freeze({
       const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === args.initialSlot);
       return { tree, focus: focusNode(first ?? inserted) };
     }
+    // After a completed five-step operator (`".,s%n .k #1<,=]`), focus may
+    // rest on the math root. A following simple fraction is a sibling of that
+    // operator, not a replacement of the whole expression (Rule 15-37).
+    if (args.element === 'mfrac' && node.name === 'math' && node.children?.length > 0
+      && args.attrs?.bevelled !== true && args.attrs?.bevelled !== 'true') {
+      const wrapper = element(args.element, [], args.attrs ?? {});
+      for (const role of args.slots ?? []) wrapper.children.push(hole(wrapper, role));
+      insertAfter(tree, focus, wrapper);
+      const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === args.initialSlot);
+      return { tree, focus: focusNode(first ?? wrapper.children[0]) };
+    }
     if (args.element === 'mfrac' && (args.attrs?.bevelled === true || args.attrs?.bevelled === 'true')) {
       const punctuated = wrapDiagonalFractionAfterPunctuatedItem(tree, focus, args.attrs ?? {}, args.initialSlot ?? 'denominator');
       if (punctuated) return punctuated;
@@ -3991,7 +4010,7 @@ const TREE_OPERATIONS = Object.freeze({
   'higher-order-modifier': ({ tree, focus, args }) => addHigherOrderModifier(tree, focus, args.direction),
   'open-binomial': ({ tree, focus }) => openBinomial(tree, focus),
   'move-binomial-lower': ({ tree, focus }) => moveBinomialLower(tree, focus),
-  'close-binomial': ({ tree, focus }) => closeBinomial(tree, focus),
+  'close-binomial': ({ tree, focus, args }) => closeBinomial(tree, focus, args ?? {}),
   'close-structure': ({ tree, focus, args }) => closeStructure(tree, focus, args.element),
   'extend-integral': ({ tree, focus, args }) => extendIntegral(tree, focus, args.values),
   'move-slot': ({ tree, focus, node, args }) => {
@@ -4412,7 +4431,10 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     mode: inputState.mode ?? null,
     modifierScope: inputState.modifierScope ?? null,
     ...(inputState.omitTypeformLetterIndicator ? { omitTypeformLetterIndicator: true } : {}),
-    ...(inputState.capital ? { capital: true } : {})
+    ...(inputState.capital ? { capital: true } : {}),
+    // Mid-number five-step bases (`#.13"5<*]`) keep this across the nested
+    // multipurpose → digit handoff; dropping it here collapses into one <mn>.
+    ...(inputState.multipurposeNumericBase ? { multipurposeNumericBase: true } : {})
   };
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
@@ -6599,6 +6621,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     return applyNemethCell({ document, focus,
       inputState: { ...state, mode: null, modifierScope: null }, cell: normalized });
   }
+  // Rule 15-33: a decimal may continue the same numeric item after a
+  // contracted under-bar (`#94,237%:.1`) without staying in modifier mode.
+  if (state.mode === 'modifier-parallel' && !state.prefix && normalized === '⠨') {
+    return applyNemethCell({ document, focus,
+      inputState: { ...state, mode: 'numeric', modifierScope: null }, cell: normalized });
+  }
   if (state.mode === 'modifier-parallel' && !state.prefix && normalized === '⠄') {
     const apostrophe = MAPPINGS.find((candidate) => candidate.id === 'misc.prime');
     if (apostrophe) return applyMapping(document, focus,
@@ -6761,6 +6789,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         // Fall through to ordinary baseline/under handling.
       }
     }
+  }
+  // Rule 15-44: multipurpose before the binomial closer (`" )`) keeps the
+  // multipurpose cell in the authored close sequence.
+  if (((state.mode === null && state.prefix === '⠐') || (state.mode === 'multipurpose' && !state.prefix) ||
+      state.prefix === '⠐') && normalized === '⠾' && binomialLowerContains(context.tree, context.node)) {
+    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, {
+      id: 'binomial.close',
+      cells: ['⠾'],
+      banaRefs: ['15.6'],
+      action: 'close-binomial',
+      commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+      args: { multipurposeClose: true }
+    });
   }
   if (state.mode === 'modifier-under' && !state.prefix && normalized === '⠱') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');

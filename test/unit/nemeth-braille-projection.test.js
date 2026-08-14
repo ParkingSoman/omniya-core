@@ -1528,6 +1528,25 @@ test('Rule 15-69 five-step bar after a numeric prefix keeps multipurpose before 
   assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠨⠢⠶⠆⠔⠱', source), '⠼⠒⠨⠢⠶⠐⠆⠔⠣⠱⠻');
 });
 
+test('Rule 15-77 mid-number overdot keeps multipurpose before the modified digit', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-decimal">.13</mn><mover data-omniya-nemeth-intent="five-step-modifier"><mn data-omniya-nemeth-intent="lower-cell-numeric">5</mn><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠡">•</mo></mover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠨⠐⠂⠒⠢⠣⠡⠻', source), '⠼⠨⠂⠒⠐⠢⠣⠡⠻');
+});
+
+test('Rule 15-78 adjacent mid-number overdots rebuild both multipurpose cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-decimal">.1</mn><mover data-omniya-nemeth-intent="five-step-modifier"><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠡">•</mo></mover><mn data-omniya-nemeth-intent="numeric-start">5</mn><mover data-omniya-nemeth-intent="five-step-modifier"><mn data-omniya-nemeth-intent="lower-cell-numeric">6</mn><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠡">•</mo></mover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠨⠂⠒⠣⠡⠻⠼⠢⠖⠣⠔⠔⠻⠱', source),
+    '⠼⠨⠂⠐⠒⠣⠡⠻⠢⠐⠖⠣⠡⠻'
+  );
+});
+
 test('Rule 15.9 integral rectangle superposition keeps the full authored cells', () => {
   const source = new DOMParser().parseFromString(
     '<math><mo data-omniya-nemeth-cells="⠮⠈⠫⠗⠻">∯</mo></math>',
@@ -1542,4 +1561,37 @@ test('Rule 15-52 shape superposition restores the authored terminator', () => {
     'text/xml'
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠫⠪⠈⠫⠠⠁', source), '⠫⠪⠈⠫⠠⠁⠻');
+});
+
+test('Rule 15-33 contracted under-bars drop five-step cells and keep continuations', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">1</mn><mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo><mspace data-omniya-nemeth-intent="explicit-space"/><munder><mn data-omniya-nemeth-intent="numeric-start">96</mn><mo data-omniya-role="underscript">¯</mo></munder><mn data-omniya-nemeth-intent="numeric-start">5,132</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">2</mn><mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo><mspace data-omniya-nemeth-intent="explicit-space"/><munder><mn data-omniya-nemeth-intent="numeric-start">3.049</mn><mo data-omniya-role="underscript">¯</mo></munder><mn data-omniya-nemeth-intent="numeric-start">2</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">3</mn><mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo><mspace data-omniya-nemeth-intent="explicit-space"/><munder><mn data-omniya-nemeth-intent="numeric-start">12,7</mn><mo data-omniya-role="underscript">¯</mo></munder><mn data-omniya-nemeth-intent="numeric-start">52</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">4</mn><mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo><mspace data-omniya-nemeth-intent="explicit-space"/><munder><mn data-omniya-nemeth-intent="numeric-start">94,237</mn><mo data-omniya-role="underscript">¯</mo></munder><mn data-omniya-nemeth-intent="numeric-decimal">.1</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠼⠂⠸⠲⠀⠐⠼⠔⠖⠩⠱⠻⠢⠠⠂⠒⠼⠆⠀⠼⠆⠸⠲⠀⠐⠼⠒⠨⠴⠲⠔⠩⠱⠻⠆⠀⠼⠒⠸⠲⠀⠐⠼⠂⠆⠠⠶⠩⠱⠻⠼⠢⠆⠀⠼⠲⠸⠲⠀⠐⠼⠔⠲⠠⠆⠒⠶⠩⠱⠻⠀⠨⠂',
+      source
+    ),
+    '⠼⠂⠸⠲⠀⠼⠔⠖⠩⠱⠢⠠⠂⠒⠆⠀⠼⠆⠸⠲⠀⠼⠒⠨⠴⠲⠔⠩⠱⠆⠀⠼⠒⠸⠲⠀⠼⠂⠆⠠⠶⠩⠱⠢⠆⠀⠼⠲⠸⠲⠀⠼⠔⠲⠠⠆⠒⠶⠩⠱⠨⠂'
+  );
+});
+
+test('Rule 15-37 rebuilds a missing five-step sum before a sibling fraction', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><munderover data-omniya-nemeth-intent="five-step-modifier"><mo data-omniya-nemeth-cells="⠨⠠⠎">∑</mo><mrow><mo data-omniya-role="underscript">n</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">1</mn></mrow><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠠⠿">∞</mo></munderover><mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="numeric-start">1</mn><mrow><msup><mn data-omniya-nemeth-intent="numeric-start">2</mn><mi>n</mi></msup></mrow></mfrac><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">1</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠹⠂⠌⠆⠘⠝⠐⠼⠀⠨⠅⠀⠂', source),
+    '⠐⠨⠠⠎⠩⠝⠀⠨⠅⠀⠼⠂⠣⠠⠿⠻⠹⠂⠌⠆⠘⠝⠐⠼⠀⠨⠅⠀⠼⠂'
+  );
+});
+
+test('Rule 15-44 multipurpose binomial rebuilds both scripted rows', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mrow data-omniya-binomial="true" data-omniya-nemeth-intent="binomial-multipurpose"><mo>(</mo><mtable data-omniya-role="binomial-table"><mtr><mtd><msub><mi data-omniya-nemeth-cells="⠛">g</mi><mi>j</mi></msub></mtd></mtr><mtr><mtd><msub><mi data-omniya-nemeth-cells="⠁">a</mi><mi>j</mi></msub></mtd></mtr></mtable><mo>)</mo></mrow></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠷⠛⠰⠚⠐⠩⠾⠾', source), '⠷⠛⠰⠚⠐⠩⠁⠰⠚⠐⠾');
 });
