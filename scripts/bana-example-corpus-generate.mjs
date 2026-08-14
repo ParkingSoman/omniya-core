@@ -4,6 +4,13 @@ import { sourceNotationToCells } from '../src/domain/guided-nemeth/index.js';
 const sourcePath = process.argv[2] ?? 'docs/bana-official-examples.json';
 const outputPath = process.argv[3] ?? 'docs/bana-electron-official-corpus.json';
 const source = JSON.parse(await readFile(sourcePath, 'utf8'));
+const reviewedOperationIds = new Map(Object.entries({
+  '14-3': ['script.superscript'], '14-4': ['script.superscript'],
+  '14-5': ['script.superscript'], '14-6': ['script.superscript'],
+  '14-7': ['script.subscript'], '14-8': ['script.subscript'],
+  '14-9': ['script.sup-sup'], '14-10': ['script.sup-sup-sub'],
+  '14-11': ['script.sub-sub-sup']
+}));
 const examples = source.examples
   .filter((example) => Number(example.exampleNumber.split('-')[0]) >= 3 && Number(example.exampleNumber.split('-')[0]) <= 24)
   .map((example) => {
@@ -26,6 +33,9 @@ const examples = source.examples
       printedPage: example.printedPage,
       pdfPage: example.pdfPage,
       sourceNotation: example.sourceNotation,
+      ...(reviewedOperationIds.has(example.exampleNumber)
+        ? { operationIds: reviewedOperationIds.get(example.exampleNumber) }
+        : {}),
       // A repeated local cell can have more than one BANA meaning at the
       // current focus. Keep reviewed disambiguations on the source example
       // and carry them into the Electron runner; this is not a parser rule.

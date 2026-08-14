@@ -3,8 +3,8 @@
   "source": "docs/bana-official-examples.json",
   "counts": {
     "total": 1066,
-    "executable": 1028,
-    "nonExecutable": 38
+    "executable": 1034,
+    "nonExecutable": 32
   },
   "cases": [
     {
@@ -4605,7 +4605,7 @@
       "exampleNumber": "4-1",
       "printedPage": null,
       "pdfPage": 54,
-  "sourceNotation": ".=_%·,op5+·,neme?·,code·9dicator / .=_:·,neme?·,code·t]m9ator·\"<,neme? / ··,code·symbol\"> / .=,'·,capitals·t]m9ator / .=,'·,s+le-~w·swit*·9dicator·\"<,neme? / ··,Code·symbol\">",
+      "sourceNotation": ",op5+ ,neme? ,code 9dicator .=",
       "cells": [
         "⠠",
         "⠕",
@@ -4626,8 +4626,7 @@
         "⠙",
         "⠑",
         "⠀",
-    "⠊",
-    "⠝",
+        "⠔",
         "⠙",
         "⠊",
         "⠉",
@@ -4639,9 +4638,9 @@
         "⠨",
         "⠿"
       ],
-      "expectedWholeBraille": ",op5+ ,neme? ,code indicator .=",
+      "expectedWholeBraille": ",op5+ ,neme? ,code 9dicator .=",
       "candidateBrailleLines": [
-        ".=_% ,op5+ ,neme? ,code indicator",
+        ".=_% ,op5+ ,neme? ,code 9dicator",
         ".=_: ,neme? ,code t]m9ator \"<,neme?"
       ],
       "executable": true,
@@ -5746,14 +5745,32 @@
       "printedPage": null,
       "pdfPage": 66,
       "sourceNotation": "${ ,x ,'is #90~.*",
-      "cells": null,
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠀",
+        "⠠",
+        "⠭",
+        "⠀",
+        "⠠",
+        "⠄",
+        "⠊",
+        "⠎",
+        "⠀",
+        "⠼",
+        "⠔",
+        "⠴",
+        "⠘",
+        "⠨",
+        "⠡"
+      ],
       "expectedWholeBraille": "${ ,x ,'is #90~.*",
       "candidateBrailleLines": [
         "_% ${ ,x ,'is #90~.* _:4",
         ",giv5 _% csc ,a _:1 f9d ! hypot5use4"
       ],
-      "executable": false,
-      "conversionError": "Unsupported BANA source notation character: {",
+      "executable": true,
+      "conversionError": null,
       "creation": false,
       "editing": false,
       "navigation": false,
@@ -9122,13 +9139,29 @@
       "printedPage": null,
       "pdfPage": 94,
       "sourceNotation": "${s ;,c ,'& ;,d",
-      "cells": null,
+      "cells": [
+        "⠫",
+        "⠪",
+        "⠎",
+        "⠀",
+        "⠰",
+        "⠠",
+        "⠉",
+        "⠀",
+        "⠠",
+        "⠄",
+        "⠯",
+        "⠀",
+        "⠰",
+        "⠠",
+        "⠙"
+      ],
       "expectedWholeBraille": "${s ;,c ,'& ;,d",
       "candidateBrailleLines": [
         "_% ${s ;,c ,'& ;,d _:"
       ],
-      "executable": false,
-      "conversionError": "Unsupported BANA source notation character: {",
+      "executable": true,
+      "conversionError": null,
       "creation": false,
       "editing": false,
       "navigation": false,
@@ -10476,13 +10509,20 @@
       "printedPage": null,
       "pdfPage": 101,
       "sourceNotation": "m${ ,b",
-      "cells": null,
+      "cells": [
+        "⠍",
+        "⠫",
+        "⠪",
+        "⠀",
+        "⠠",
+        "⠃"
+      ],
       "expectedWholeBraille": "m${ ,b",
       "candidateBrailleLines": [
         "_% m${ ,b _:"
       ],
-      "executable": false,
-      "conversionError": "Unsupported BANA source notation character: {",
+      "executable": true,
+      "conversionError": null,
       "creation": false,
       "editing": false,
       "navigation": false,
@@ -14408,7 +14448,6 @@
       "printedPage": null,
       "pdfPage": 129,
       "sourceNotation": "`s4,265 `};d",
-      "choiceOperationIds": { "⠈": "reference.general" },
       "cells": [
         "⠈",
         "⠎",
@@ -14450,7 +14489,6 @@
       "printedPage": null,
       "pdfPage": 129,
       "sourceNotation": "#1.4709`*10~8 km4 `]#1",
-      "choiceOperationIds": { "⠈": "reference.general" },
       "cells": [
         "⠼",
         "⠂",
@@ -14539,7 +14577,6 @@
       "printedPage": null,
       "pdfPage": 130,
       "sourceNotation": "#1_4 ---- `#: #2_4 ----",
-      "choiceOperationIds": { "⠈⠼": "reference.asterisk", "⠼⠂⠸⠲⠀⠤⠤⠤⠤⠀⠈⠼": "reference.asterisk" },
       "cells": [
         "⠼",
         "⠂",
@@ -14591,7 +14628,6 @@
       "printedPage": null,
       "pdfPage": 130,
       "sourceNotation": "#1_4 ---- #2 @#_4 ----",
-      "choiceOperationIds": { "⠈⠼": "reference.asterisk", "⠈⠼⠱": "reference.asterisk" },
       "cells": [
         "⠼",
         "⠂",
@@ -14641,7 +14677,6 @@
       "printedPage": null,
       "pdfPage": 130,
       "sourceNotation": "#1_4 ---- #2_4 `# ----",
-      "choiceOperationIds": { "⠈⠼": "reference.asterisk", "⠈⠼⠱": "reference.asterisk" },
       "cells": [
         "⠼",
         "⠂",
@@ -14691,7 +14726,6 @@
       "printedPage": null,
       "pdfPage": 131,
       "sourceNotation": "`$p #75_4 x~4\"-y~2 `$P #76_4 x~2\"+5y-112",
-      "choiceOperationIds": { "⠈⠫⠏": "reference.icon.pencil", "⠈⠫⠠": "reference.icon.pencil-capital" },
       "cells": [
         "⠈",
         "⠫",
@@ -16826,15 +16860,48 @@
       "printedPage": null,
       "pdfPage": 140,
       "sourceNotation": "#7888 {in4^3\"] *?33333333333333#",
-      "cells": null,
+      "cells": [
+        "⠼",
+        "⠶",
+        "⠦",
+        "⠦",
+        "⠦",
+        "⠀",
+        "⠪",
+        "⠊",
+        "⠝",
+        "⠲",
+        "⠘",
+        "⠒",
+        "⠐",
+        "⠻",
+        "⠀",
+        "⠡",
+        "⠹",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠼"
+      ],
       "expectedWholeBraille": "#7888 {in4^3\"] *?33333333333333#",
       "candidateBrailleLines": [
         "_% #7888 {in4^3\"] *?33333333333333# _:",
         "_% #7888 [in4~3\"]",
         "*?1 ft~3\"/1728 [in4~3\"]# _:"
       ],
-      "executable": false,
-      "conversionError": "Unsupported BANA source notation character: {",
+      "executable": true,
+      "conversionError": null,
       "creation": false,
       "editing": false,
       "navigation": false,
@@ -18544,15 +18611,48 @@
       "printedPage": null,
       "pdfPage": 153,
       "sourceNotation": "#7888 {in4^3\"] *?33333333333333#",
-      "cells": null,
+      "cells": [
+        "⠼",
+        "⠶",
+        "⠦",
+        "⠦",
+        "⠦",
+        "⠀",
+        "⠪",
+        "⠊",
+        "⠝",
+        "⠲",
+        "⠘",
+        "⠒",
+        "⠐",
+        "⠻",
+        "⠀",
+        "⠡",
+        "⠹",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠒",
+        "⠼"
+      ],
       "expectedWholeBraille": "#7888 {in4^3\"] *?33333333333333#",
       "candidateBrailleLines": [
         "_% #7888 {in4^3\"] *?33333333333333# _:",
         "_%",
         "_:"
       ],
-      "executable": false,
-      "conversionError": "Unsupported BANA source notation character: {",
+      "executable": true,
+      "conversionError": null,
       "creation": false,
       "editing": false,
       "navigation": false,
@@ -20735,6 +20835,9 @@
       "printedPage": null,
       "pdfPage": 172,
       "sourceNotation": "x~2",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -20764,6 +20867,9 @@
       "printedPage": null,
       "pdfPage": 172,
       "sourceNotation": "y~3",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠽",
         "⠘",
@@ -20793,6 +20899,9 @@
       "printedPage": null,
       "pdfPage": 172,
       "sourceNotation": "x~`#",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -20823,6 +20932,9 @@
       "printedPage": null,
       "pdfPage": 172,
       "sourceNotation": "x~-2",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -20853,6 +20965,9 @@
       "printedPage": null,
       "pdfPage": 172,
       "sourceNotation": "x;a",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠭",
         "⠰",
@@ -20882,6 +20997,9 @@
       "printedPage": null,
       "pdfPage": 172,
       "sourceNotation": "x;-2",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠭",
         "⠰",
@@ -20913,6 +21031,9 @@
       "printedPage": null,
       "pdfPage": 173,
       "sourceNotation": "n~x~~y",
+      "operationIds": [
+        "script.sup-sup"
+      ],
       "cells": [
         "⠝",
         "⠘",
@@ -20945,6 +21066,9 @@
       "printedPage": null,
       "pdfPage": 173,
       "sourceNotation": "x~n~;a",
+      "operationIds": [
+        "script.sup-sup-sub"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -20977,6 +21101,9 @@
       "printedPage": null,
       "pdfPage": 173,
       "sourceNotation": "x;n;~a",
+      "operationIds": [
+        "script.sub-sub-sup"
+      ],
       "cells": [
         "⠭",
         "⠰",
@@ -29667,8 +29794,7 @@
       "id": "electron:bana-2022:example-17-1",
       "sourceRows": [
         "example-17-1",
-        "17.1",
-        "17.2"
+        "17.1"
       ],
       "exampleNumber": "17-1",
       "printedPage": null,
@@ -33379,7 +33505,6 @@
       "printedPage": null,
       "pdfPage": 255,
       "sourceNotation": "#4-3`(4-2(6-3)`)./3",
-      "choiceOperationIds": { "⠷": "group.round" },
       "cells": [
         "⠼",
         "⠲",
@@ -33461,7 +33586,6 @@
       "printedPage": null,
       "pdfPage": 255,
       "sourceNotation": "`(a, +,=)",
-      "choiceOperationIds": { "⠾": "group.parenthesis-close" },
       "cells": [
         "⠈",
         "⠷",
