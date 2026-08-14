@@ -2283,12 +2283,11 @@ const MAPPINGS = [
   shapeToken('shape.filled-circle', ['⠫', '⠸', '⠉'], ['17.3'], '●', 'filled-circle', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_c' }),
   shapeToken('shape.filled-ellipse', ['⠫', '⠸', '⠑'], ['17.3'], '◉', 'filled-ellipse', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_e' }),
   shapeToken('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■', 'filled-square', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_4' }),
-  // MathJax/SRE's operator dictionary does not contain the dotted/vertically
-  // shaded Unicode presentation glyphs. Keep them as literal MathML text so
-  // the renderer still exposes speech and an ARIA Braille node; the source
-  // intent supplies the exact BANA cells at the accessibility boundary.
-  shapeToken('shape.shaded-circle', ['⠫', '⠨', '⠉'], ['17.3'], '◍', 'shaded-circle', { mathmlName: 'mtext', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$.c' }),
-  shapeToken('shape.shaded-ellipse', ['⠫', '⠨', '⠑'], ['17.3'], '◌', 'shaded-ellipse', { mathmlName: 'mtext', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$.e' }),
+  // Shaded presentation glyphs are still canonical operator atoms. Braille
+  // comes from data-omniya-nemeth-cells; do not demote them to mtext or the
+  // official editor cannot select an atomic replacement target.
+  shapeToken('shape.shaded-circle', ['⠫', '⠨', '⠉'], ['17.3'], '◍', 'shaded-circle', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$.c' }),
+  shapeToken('shape.shaded-ellipse', ['⠫', '⠨', '⠑'], ['17.3'], '◌', 'shaded-ellipse', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$.e' }),
   token('shape.triangle', ['⠫', '⠞'], ['17.1'], '△', 'mo', { preferLonger: true, sourceNotation: '$t' }),
   token('shape.rectangle', ['⠫', '⠗'], ['17.2'], '▭', 'mo', { preferLonger: true, sourceNotation: '$r' }),
   shapeToken('shape.arc.down', ['⠫', '⠁'], ['17.1'], '⁀', 'arc-down', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$a' }),

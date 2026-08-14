@@ -915,6 +915,17 @@ test('BANA Rules 17 and 18 retain exact published local source notation', () => 
   ]) assert.equal(registry.get(id)?.args?.sourceNotation, sourceNotation, id);
 });
 
+test('shaded BANA shapes remain canonical operator atoms', () => {
+  const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
+  for (const id of ['shape.shaded-circle', 'shape.shaded-ellipse']) {
+    const entry = registry.get(id);
+    assert.ok(entry, id);
+    assert.equal(entry.args.name, 'mo', id);
+    const tree = applyFixture(id, entry.cells);
+    assert.equal(tree.children.at(-1)?.name, 'mo', id);
+  }
+});
+
 test('the registry does not advertise integral superpositions absent from the Rule 23 symbol table', () => {
   const ids = new Set(operationRegistry().map((entry) => entry.id));
   for (const id of [
