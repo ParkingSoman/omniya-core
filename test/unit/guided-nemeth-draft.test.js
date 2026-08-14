@@ -183,6 +183,107 @@ test('Rule 14.11.2 left-subscript then left-superscript then base stays one tens
   assert.equal(tree.children[0].children[marker + 2].children[0].text, 'a');
 });
 
+test('Rule 14-27 raised left superscript sits inside the right superscript', () => {
+  const { document } = replayCells(sourceNotationToCells('#10~~-~4'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, '10');
+  const raised = tree.children[0].children[1];
+  assert.equal(raised.name, 'mmultiscripts');
+  assert.equal(raised.children[0].children[0].text, '4');
+  const marker = raised.children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(raised.children[marker + 2].children[0].text, '−');
+});
+
+test('Rule 14-28 left superscript with right subscript stays one tensor', () => {
+  const { document } = replayCells(sourceNotationToCells('~n~;a"x'), { '⠘⠝': 'script.left-superscript' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
+  const leftSup = tree.children[0].children[marker + 2];
+  assert.equal(leftSup.name, 'msub');
+  assert.equal(leftSup.children[0].children[0].text, 'n');
+  assert.equal(leftSup.children[1].children[0].text, 'a');
+});
+
+test('Rule 14-29 nested left subscript inside left superscript completes', () => {
+  const { document } = replayCells(sourceNotationToCells('~;a~n"x'), { '⠘⠰': 'script.left-superscript' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
+  const nested = tree.children[0].children[marker + 2];
+  assert.equal(nested.name, 'mmultiscripts');
+  assert.equal(nested.children[0].children[0].text, 'n');
+  const nestedMarker = nested.children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(nested.children[nestedMarker + 1].children[0].text, 'a');
+});
+
+test('Rule 14-30 left subscript with right superscript stays one tensor', () => {
+  const { document } = replayCells(sourceNotationToCells(';n;~a"x'), { '⠰⠝': 'script.left-subscript' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
+  const leftSub = tree.children[0].children[marker + 1];
+  assert.equal(leftSub.name, 'msup');
+  assert.equal(leftSub.children[0].children[0].text, 'n');
+  assert.equal(leftSub.children[1].children[0].text, 'a');
+});
+
+test('Rule 14-31 nested left superscript inside left subscript completes', () => {
+  const { document } = replayCells(sourceNotationToCells(';~a;n"x'), { '⠰⠘': 'script.left-subscript' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
+  const nested = tree.children[0].children[marker + 1];
+  assert.equal(nested.name, 'mmultiscripts');
+  assert.equal(nested.children[0].children[0].text, 'n');
+  const nestedMarker = nested.children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(nested.children[nestedMarker + 2].children[0].text, 'a');
+});
+
+test('Rule 14-32 left subscript with right subscript stays one tensor', () => {
+  const { document } = replayCells(sourceNotationToCells(';x;;y"n'), { '⠰⠭': 'script.left-subscript' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'n');
+  const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
+  const leftSub = tree.children[0].children[marker + 1];
+  assert.equal(leftSub.name, 'msub');
+  assert.equal(leftSub.children[0].children[0].text, 'x');
+  assert.equal(leftSub.children[1].children[0].text, 'y');
+});
+
+test('Rule 14-33 nested left subscript inside left subscript completes', () => {
+  const { document } = replayCells(sourceNotationToCells(';;y;x"n'), { '⠰⠰': 'script.left-subscript' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'n');
+  const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
+  const nested = tree.children[0].children[marker + 1];
+  assert.equal(nested.name, 'mmultiscripts');
+  assert.equal(nested.children[0].children[0].text, 'x');
+  const nestedMarker = nested.children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(nested.children[nestedMarker + 1].children[0].text, 'y');
+});
+
 test('Rule 14.4.3 nested ;~~ after a filled msubsup continues on the superscript item', () => {
   const { document } = replayCells(sourceNotationToCells('x;a;~r;~~n'));
   const tree = parseMathML(document.mathml);

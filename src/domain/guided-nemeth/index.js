@@ -565,6 +565,14 @@ function wrapCurrent(tree, focus, elementName, roles, attrs = {}, initialSlot = 
     current = absorbTrailingLetterRun(tree, current);
     focus = focusNode(current);
   }
+  // Rule 14.5 / 14-27: `#10~~-~4` authors a left superscript on the raised
+  // item. After `~~` leaves `msup(msup(base, empty), content)`, wrapping that
+  // content with another superscript promotes into mmultiscripts instead of
+  // nesting `(base^∅)^content^next`.
+  if (elementName === 'msup' && current.name !== 'math' && !isHole(current)) {
+    const promoted = promoteRaisedLeftSuperscript(tree, focus);
+    if (promoted) return promoted;
+  }
   const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
   const wrapper = element(elementName, [], { ...attrs, ...(inheritedId ? { 'data-omniya-id': inheritedId } : {}) });
   if (current.name !== 'math' && !isHole(current)) {
@@ -859,6 +867,78 @@ function isPopulatedScriptSlot(node) {
   return Boolean(node && node.name !== 'none' && !isHole(node));
 }
 
+function leftScriptOwner(tree, node) {
+  let current = node;
+  while (current && current.name !== 'math') {
+    const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+    if (!parent) return null;
+    if (parent.name === 'mmultiscripts') {
+      const slots = leftScriptSlots(parent);
+      if (!slots) return null;
+      if (slots.leftSub === current || isInScriptSlot(tree, slots.leftSub, node)) {
+        return { multiscripts: parent, slots, direction: 'sub', slot: slots.leftSub };
+      }
+      if (slots.leftSup === current || isInScriptSlot(tree, slots.leftSup, node)) {
+        return { multiscripts: parent, slots, direction: 'sup', slot: slots.leftSup };
+      }
+      return null;
+    }
+    current = parent;
+  }
+  return null;
+}
+
+// Nested left-scripts (14-29/31/33): an empty left-script hole receives another
+// left-script wrapper for the item that will occupy that hole.
+function openNestedLeftScriptInHole(tree, focus, direction) {
+  const current = currentNode(tree, focus);
+  if (!isHole(current)) return null;
+  const { wrapper, slot } = createLeftScriptWrapper(direction, current.attrs?.['data-omniya-id'] ?? null);
+  replaceCurrent(tree, focus, wrapper);
+  return { tree, focus: focusNode(slot) };
+}
+
+// Rule 14-27: after `#10~~-`, the next `~4` makes the minus a left superscript
+// of 4 inside the right superscript of 10.
+function promoteRaisedLeftSuperscript(tree, focus) {
+  const current = currentNode(tree, focus);
+  if (!current || current.name === 'math' || isHole(current)) return null;
+  const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+  if (!parent || parent.name !== 'msup' || parent.children?.[1] !== current) return null;
+  const nested = parent.children[0];
+  if (!nested || nested.name !== 'msup' || !isHole(nested.children?.[1])) return null;
+  const realBase = nested.children[0];
+  if (!realBase || isHole(realBase)) return null;
+  const tensor = element('mmultiscripts', [], {});
+  const baseHole = hole(tensor, 'base');
+  const marker = element('mprescripts');
+  const leftContent = structuredClone(current);
+  leftContent.attrs['data-omniya-id'] = id();
+  tensor.children.push(baseHole, element('none'), element('none'), marker, element('none'), leftContent);
+  const replacement = element('msup', [structuredClone(realBase), tensor], {
+    'data-omniya-id': parent.attrs?.['data-omniya-id'] ?? id()
+  });
+  replacement.children[0].attrs['data-omniya-id'] = id();
+  const grand = findMathParent(tree, parent.attrs?.['data-omniya-id']);
+  if (!grand) return null;
+  const index = grand.children.indexOf(parent);
+  if (index < 0) return null;
+  grand.children[index] = replacement;
+  return { tree, focus: focusNode(baseHole) };
+}
+
+function focusEmptyMultiscriptBase(tree, node) {
+  let current = node;
+  let found = null;
+  while (current && current.name !== 'math') {
+    if (current.name === 'mmultiscripts' && isHole(current.children?.[0])) {
+      found = current.children[0];
+    }
+    current = findMathParent(tree, current.attrs?.['data-omniya-id']);
+  }
+  return found ? { tree, focus: focusNode(found) } : null;
+}
+
 // Rule 14.11.2: after one left script is filled and baseline returns to the
 // empty base, the opposite level indicator fills the other prescript. This
 // is a local slot fill, not a nested tensor or an English-letter choice.
@@ -1014,20 +1094,11 @@ function openScriptSlot(tree, focus, elementName, role) {
     }
     throw new RangeError(`The multiscript ${postRole} slot is already occupied.`);
   }
-  if (multiscripts && multiscripts.children?.[0] !== current) {
-    const markerIndex = multiscripts.children.findIndex((child) => child.name === 'mprescripts');
-    if (markerIndex < 0) throw new RangeError('The multiscript has no prescript boundary.');
-    const postRole = role === 'subscript' ? 'subscript' : 'superscript';
-    const postIndex = role === 'subscript' ? markerIndex + 1 : markerIndex + 2;
-    const slot = multiscripts.children[postIndex];
-    if (slot?.name === 'none' || isHole(slot)) {
-      const replacement = isHole(slot) ? slot : hole(multiscripts, postRole);
-      if (isHole(slot)) {
-        replacement.attrs['data-omniya-role'] = postRole;
-      }
-      multiscripts.children[postIndex] = replacement;
-      return { tree, focus: focusNode(replacement) };
-    }
+  // Content already inside a left-script slot takes an ordinary right script
+  // on that content (14-28/30/32). Never reinterpret the sibling left slot as
+  // a post-script.
+  if (leftScriptOwner(tree, current)) {
+    return wrapCurrent(tree, focus, elementName, ['base', role], {}, role);
   }
   // Compose the opposite side of an existing one-sided script locally. This
   // is the generic MathML transition used by integral bounds, limits, and
@@ -1121,7 +1192,7 @@ function openScriptChain(tree, focus, directions) {
   const base = current.name !== 'math' && !isHole(current)
     ? structuredClone(current)
     : null;
-  if (base !== current && base.attrs && !isHole(base)) base.attrs['data-omniya-id'] = id();
+  if (base?.attrs && !isHole(base)) base.attrs['data-omniya-id'] = id();
   let nested = base ?? element('mrow', []);
   const slots = [];
   for (let index = chain.length - 1; index >= 0; index -= 1) {
@@ -1132,6 +1203,9 @@ function openScriptChain(tree, focus, directions) {
     const elementName = direction === 'sub' ? 'msub' : 'msup';
     const role = direction === 'sub' ? 'subscript' : 'superscript';
     const wrapper = element(elementName, [], {});
+    // From an empty root the outermost hole is the first authored level. Focus
+    // that slot so a following level-return (14-27's `~4` after `~~-`) can
+    // target the raised item rather than an unfilled inner vacancy.
     wrapper.children.push(nested, hole(wrapper, role));
     nested = wrapper;
     slots.unshift(wrapper.children[1]);
@@ -3694,6 +3768,8 @@ const TREE_OPERATIONS = Object.freeze({
       }
     }
     if (args.mode === 'baseline') {
+      const emptyBase = focusEmptyMultiscriptBase(tree, node);
+      if (emptyBase) return emptyBase;
       const multiscript = ancestor(tree, node, ['mmultiscripts']);
       if (multiscript && multiscript.children?.[0]?.attrs?.['data-omniya-hole'] === 'true') {
         return { tree, focus: focusNode(multiscript.children[0]) };
@@ -4148,6 +4224,51 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
         cell: normalized
       });
+    }
+  }
+  // Nested left-scripts: a level indicator inside an empty left-script hole
+  // opens another left-script for the item that will occupy that hole.
+  if (state.mode === null && !state.prefix && (normalized === '⠘' || normalized === '⠰') && isHole(context.node)) {
+    const role = context.node.attrs?.['data-omniya-role'];
+    if (role === 'left-superscript' || role === 'left-subscript') {
+      const nested = openNestedLeftScriptInHole(context.tree, focus, normalized === '⠰' ? 'sub' : 'sup');
+      if (nested) {
+        return {
+          status: 'applied',
+          localCommitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+          document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(nested.tree), focus: nested.focus },
+          focus: nested.focus,
+          inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
+          announcement: normalized === '⠰' ? 'script.left-subscript' : 'script.left-superscript'
+        };
+      }
+    }
+  }
+  // After a nested left-script is filled, the outer left-script's level
+  // indicator names the nested base (14-29 `~n`, 14-31 `;n`, 14-33 `;x`).
+  if (state.mode === null && (state.prefix === '⠘' || state.prefix === '⠰') &&
+    (LETTERS.has(normalized) || DIGITS.has(normalized)) &&
+    context.node.name !== 'math' && !isHole(context.node)) {
+    const owner = leftScriptOwner(context.tree, context.node);
+    if (owner && isHole(owner.multiscripts.children?.[0])) {
+      const outer = leftScriptOwner(context.tree, owner.multiscripts);
+      const indicatorDirection = state.prefix === '⠰' ? 'sub' : 'sup';
+      if (outer && outer.direction === indicatorDirection) {
+        return applyNemethCell({
+          document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(context.tree), focus: focusNode(owner.multiscripts.children[0]) },
+          focus: focusNode(owner.multiscripts.children[0]),
+          inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
+          cell: normalized
+        });
+      }
+      if (!outer && owner.direction === indicatorDirection) {
+        return applyNemethCell({
+          document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(context.tree), focus: focusNode(owner.multiscripts.children[0]) },
+          focus: focusNode(owner.multiscripts.children[0]),
+          inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
+          cell: normalized
+        });
+      }
     }
   }
   if (state.mode === null && state.prefix === '⠘' && LETTERS.has(normalized) &&
@@ -5113,6 +5234,31 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const exactImmediate = (PREFIXES.get(sequence)?.mappings ?? [])
     .some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE &&
       !mapping.args?.deferForAtomicContinuation && mappingApplies(mapping, context));
+  // Rule 14.5: a complete `;;` / `~;` / `;~` at an empty root is a choice
+  // between nested left-script and the absolute chain, so do not hold it only
+  // because a longer chain row also exists.
+  const nestedLeftComplete = {
+    '⠘⠰': 'script.left-superscript',
+    '⠰⠘': 'script.left-subscript',
+    '⠰⠰': 'script.left-subscript'
+  }[sequence];
+  if (nestedLeftComplete && (context.node.name === 'math' || isHole(context.node))) {
+    const left = MAPPINGS.find((mapping) => mapping.id === nestedLeftComplete);
+    const chain = (PREFIXES.get(sequence)?.mappings ?? [])
+      .find((mapping) => mappingApplies(mapping, context) && mapping.id !== nestedLeftComplete)
+      ?? MATCHABLE_MAPPINGS.find((mapping) =>
+        mapping.cells.join('') === sequence && mappingApplies(mapping, context));
+    if (left && chain) {
+      return {
+        status: 'choice',
+        choices: [left, chain].map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+        document,
+        focus,
+        inputState: { ...state, prefix: sequence },
+        announcement: 'This local Nemeth prefix can begin a nested left-script or an absolute script chain. Choose its meaning.'
+      };
+    }
+  }
   const atomicContinuation = state.mode === null && !existingComparison && !exactImmediate && MATCHABLE_MAPPINGS.some((mapping) =>
     mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     mapping.cells.length > sequence.length &&
@@ -6179,9 +6325,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // a request to create a nested subscript. Consume the dot-6 boundary and
   // replay the next local symbol at the current script-row focus. This is a
   // one-symbol structural follow-up, not an operand parser.
+  // Exception: after left-subscript content, `;~` is the right superscript of
+  // that content (14-30), so do not swallow the superscript indicator here.
   if (state.mode === null && state.prefix === '⠰' &&
     hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
-    !LETTERS.has(normalized) && !DIGITS.has(normalized) && normalized !== '⠼' && normalized !== '⠰') {
+    !LETTERS.has(normalized) && !DIGITS.has(normalized) && normalized !== '⠼' && normalized !== '⠰' &&
+    !(normalized === '⠘' && leftScriptOwner(context.tree, context.node)?.direction === 'sub')) {
     const replay = applyNemethCell({
       document,
       focus,
@@ -6194,11 +6343,14 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // superscripted item, not a conversion of the outer msup into msubsup.
   // Hold the two-cell prefix when a longer absolute chain such as `~;~`
   // remains registered, so three-component indicators stay one local code.
+  // Left-script content is already off the ordinary depth count, so do not
+  // hold for longer chains there (14-28 `~n~;a`).
   if (state.mode === null && state.prefix === '⠘' && normalized === '⠰' &&
     hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
     context.node.name !== 'math' && !isHole(context.node)) {
+    const inLeftScript = Boolean(leftScriptOwner(context.tree, context.node));
     const held = `${state.prefix}${normalized}`;
-    const longerChain = MATCHABLE_MAPPINGS.some((mapping) =>
+    const longerChain = !inLeftScript && MATCHABLE_MAPPINGS.some((mapping) =>
       mapping.action === 'open-script-chain' &&
       mapping.cells.length > held.length &&
       mapping.cells.slice(0, held.length).join('') === held &&
@@ -6213,7 +6365,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       };
     }
     const depth = scriptDepth(context.tree, context.node, 'sup');
-    if (depth > 0) {
+    if (depth > 0 || inLeftScript) {
       let targetFocus = focus;
       const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
       const grand = parent ? findMathParent(context.tree, parent.attrs?.['data-omniya-id']) : null;
@@ -6228,6 +6380,39 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         focus: wrapped.focus,
         inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
         announcement: 'script.subscript'
+      };
+    }
+  }
+  // Rule 14-32: after a populated left subscript, `;;` names one right
+  // subscript on that content (absolute level 2 from the expression baseline).
+  if (state.mode === null && state.prefix === '⠰⠰' &&
+    (LETTERS.has(normalized) || DIGITS.has(normalized)) &&
+    context.node.name !== 'math' && !isHole(context.node)) {
+    const owner = leftScriptOwner(context.tree, context.node);
+    if (owner?.direction === 'sub') {
+      const wrapped = wrapCurrent(context.tree, focus, 'msub', ['base', 'subscript'], {}, 'subscript');
+      return applyNemethCell({
+        document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(wrapped.tree), focus: wrapped.focus },
+        focus: wrapped.focus,
+        inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
+        cell: normalized
+      });
+    }
+  }
+  // Rule 14-30: after a populated left subscript, `;~` is the right
+  // superscript of that content, not a second left superscript.
+  if (state.mode === null && state.prefix === '⠰' && normalized === '⠘' &&
+    context.node.name !== 'math' && !isHole(context.node)) {
+    const owner = leftScriptOwner(context.tree, context.node);
+    if (owner?.direction === 'sub') {
+      const wrapped = wrapCurrent(context.tree, focus, 'msup', ['base', 'superscript'], {}, 'superscript');
+      return {
+        status: 'applied',
+        localCommitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+        document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(wrapped.tree), focus: wrapped.focus },
+        focus: wrapped.focus,
+        inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
+        announcement: 'script.superscript'
       };
     }
   }
@@ -6515,6 +6700,28 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       .filter((mapping) => state.mode === 'multipurpose'
         ? mapping.action !== 'open-modifier'
         : mapping.action !== 'open-modifier');
+    // Rule 14.5: a held `;;` / `~;` / `;~` at an empty root may still be the
+    // nested left-script reading when the next cell proves the chain is done.
+    const nestedLeftHeld = {
+      '⠘⠰': 'script.left-superscript',
+      '⠰⠘': 'script.left-subscript',
+      '⠰⠰': 'script.left-subscript'
+    }[state.prefix];
+    if (nestedLeftHeld && (context.node.name === 'math' || isHole(context.node)) &&
+      previousMappings.length >= 1 &&
+      !hasApplicableContinuation(state.prefix, normalized, context)) {
+      const left = MAPPINGS.find((mapping) => mapping.id === nestedLeftHeld);
+      if (left) {
+        return {
+          status: 'choice',
+          choices: [left, ...previousMappings].map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+          document,
+          focus,
+          inputState: { ...state, prefix: state.prefix },
+          announcement: 'This local Nemeth prefix can begin a nested left-script or an absolute script chain. Choose its meaning.'
+        };
+      }
+    }
     if (previousMappings.length === 1 &&
       !hasApplicableContinuation(state.prefix, normalized, context)) {
       const first = applyMapping(document, focus, { ...state, prefix: '' }, previousMappings[0]);
@@ -6665,6 +6872,28 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // longer radical or modifier code.
   const simultaneousMapping = mappings.find((mapping) => mapping.action === 'simultaneous-modifier');
   if (simultaneousMapping) return applyMapping(document, focus, state, simultaneousMapping);
+  // Rule 14.5 nested left-scripts: at an empty root, `~;`, `;~`, and `;;` may
+  // begin either an ordinary absolute chain/msubsup or a nested left-script.
+  const nestedLeftChoice = {
+    '⠘⠰': { chainIds: ['script.sup-sub'], leftId: 'script.left-superscript' },
+    '⠰⠘': { chainIds: ['script.sub-sup'], leftId: 'script.left-subscript' },
+    '⠰⠰': { chainIds: ['script.sub-sub'], leftId: 'script.left-subscript' }
+  }[sequence];
+  if (nestedLeftChoice && (context.node.name === 'math' || isHole(context.node))) {
+    const left = MAPPINGS.find((mapping) => mapping.id === nestedLeftChoice.leftId);
+    const chain = mappings.find((mapping) => nestedLeftChoice.chainIds.includes(mapping.id))
+      ?? MATCHABLE_MAPPINGS.find((mapping) => nestedLeftChoice.chainIds.includes(mapping.id) && mappingApplies(mapping, context));
+    if (left && chain) {
+      return {
+        status: 'choice',
+        choices: [left, chain].map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+        document,
+        focus,
+        inputState: { ...state, prefix: sequence },
+        announcement: 'This local Nemeth prefix can begin a nested left-script or an absolute script chain. Choose its meaning.'
+      };
+    }
+  }
   // Rule 20.9 and Rule 21.6 intentionally share the simple-tilde cells. Once
   // that complete local code is present, keep the BANA meanings as an
   // explicit choice rather than guessing from the rendered glyph.
