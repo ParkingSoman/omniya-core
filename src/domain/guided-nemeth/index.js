@@ -450,6 +450,11 @@ function insertNumeric(tree, focus, value, { replace = false, mathvariant = null
       nextAttributes['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
       delete nextAttributes['data-omniya-nemeth-intent'];
     }
+    // Rule 14.6 leading-decimal numeric subscript (X.6) must not be overwritten
+    // by the following digit's numeric-start intent.
+    if (current.attrs['data-omniya-nemeth-intent'] === 'numeric-subscript') {
+      delete nextAttributes['data-omniya-nemeth-intent'];
+    }
     Object.assign(current.attrs, nextAttributes);
     if (current.children?.[0]?.text?.startsWith?.('.') && current.attrs['data-omniya-nemeth-intent'] === 'numeric-start') {
       current.attrs['data-omniya-nemeth-intent'] = 'numeric-decimal';
@@ -504,6 +509,7 @@ function extendIntegral(tree, focus, values) {
 // already-focused sign and never searches for an operand or parses a passage.
 function superposeToken(tree, focus, value, intent, allowedValues = null, sourceNotation = null) {
   const current = currentNode(tree, focus);
+  const authoredCells = sourceNotation ? sourceNotationToCells(sourceNotation).join('') : null;
   // Rule 15.9 also defines bounded superposed signs whose source code starts
   // on the baseline (for example `:$4]`). Those constructions have no
   // pre-existing operator to mutate: the complete local code is itself one
@@ -513,7 +519,7 @@ function superposeToken(tree, focus, value, intent, allowedValues = null, source
   if ((current.name === 'math' || isHole(current)) && !allowedValues) {
     const node = atom('mo', value, {
       ...(intent ? { 'data-omniya-nemeth-intent': intent } : {}),
-      ...(sourceNotation ? { 'data-omniya-nemeth-cells': sourceNotationToCells(sourceNotation).join('') } : {})
+      ...(authoredCells ? { 'data-omniya-nemeth-cells': authoredCells } : {})
     });
     const inserted = replaceCurrent(tree, focus, node);
     return { tree, focus: focusNode(inserted) };
@@ -523,6 +529,10 @@ function superposeToken(tree, focus, value, intent, allowedValues = null, source
   }
   current.children = [text(value)];
   if (intent) current.attrs['data-omniya-nemeth-intent'] = intent;
+  // Keep the complete authored superposition (base + superposed cells). The
+  // focused sign already carries its base cells; replace with the full local
+  // source sequence when the registry supplies one.
+  if (authoredCells) current.attrs['data-omniya-nemeth-cells'] = authoredCells;
   return { tree, focus: focusNode(current) };
 }
 
@@ -818,7 +828,11 @@ function promoteScriptToPrescript(tree, focus, direction) {
   const leftSubscript = direction === 'sub' ? script : none;
   const leftSuperscript = direction === 'sup' ? script : none;
   const replacement = element('mmultiscripts', [baseHole, marker, leftSubscript, leftSuperscript], {
-    'data-omniya-id': container.attrs['data-omniya-id']
+    'data-omniya-id': container.attrs['data-omniya-id'],
+    // Preserve authored left-script order for Braille projection (`~a";b"x`).
+    'data-omniya-nemeth-intent': direction === 'sup'
+      ? 'left-scripts:sup-first'
+      : 'left-scripts:sub-first'
   });
   const index = parent.children.indexOf(container);
   if (index < 0) return null;
@@ -833,6 +847,11 @@ function promoteScriptToPrescript(tree, focus, direction) {
 // inferred from later passage text.
 function createLeftScriptWrapper(direction, inheritedId = null) {
   const wrapper = element('mmultiscripts', [], inheritedId ? { 'data-omniya-id': inheritedId } : {});
+  // Remember which left script was authored first so Braille projection can
+  // restore reading order (`~a";b"x` vs `;b"~a"x`) without a passage parser.
+  wrapper.attrs['data-omniya-nemeth-intent'] = direction === 'sup'
+    ? 'left-scripts:sup-first'
+    : 'left-scripts:sub-first';
   const base = hole(wrapper, 'base');
   const postSub = element('none');
   const postSup = element('none');
@@ -1647,6 +1666,7 @@ function wrapModifierScope(tree, scope, elementName, value, dataAttributes = {})
   wrapper.children.push(base);
   const modifier = atom('mo', value, { 'data-omniya-role': elementName === 'munder' ? 'underscript' : 'overscript', ...dataAttributes });
   wrapper.children.push(modifier);
+  wrapper.attrs = { ...(wrapper.attrs ?? {}), 'data-omniya-nemeth-intent': 'five-step-modifier' };
   parent.children.splice(first, selected.length, wrapper);
   return { tree, focus: focusNode(modifier), wrapper };
 }
@@ -1765,11 +1785,19 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null, data
     }
     if (scope) {
       const wrapped = wrapModifierScope(tree, scope, modifierElementForMode(modeValue), value, dataAttributes);
+      if (wrapped.wrapper) {
+        wrapped.wrapper.attrs = {
+          ...(wrapped.wrapper.attrs ?? {}),
+          'data-omniya-nemeth-intent': 'five-step-modifier'
+        };
+      }
       return { tree, focus: wrapped.focus, wrapper: wrapped.wrapper };
     }
     const elementName = modifierElementForMode(modeValue);
     const initialSlot = elementName === 'munder' ? 'underscript' : 'overscript';
-    const wrapped = wrapCurrent(tree, focus, elementName, ['base', initialSlot], {}, initialSlot);
+    const wrapped = wrapCurrent(tree, focus, elementName, ['base', initialSlot], {
+      'data-omniya-nemeth-intent': 'five-step-modifier'
+    }, initialSlot);
     const slot = currentNode(tree, wrapped.focus);
     const replacement = atom('mo', value, dataAttributes);
     replacement.attrs['data-omniya-role'] = initialSlot;
@@ -2339,6 +2367,18 @@ const MAPPINGS = [
     banaRefs: ['15.9', '23.12'], action: 'superpose-token',
     commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
     args: { value: '⨖', allowedValues: ['∫', '∬', '∭'], sourceNotation: '!`$4]' }
+  },
+  {
+    id: 'shape.superpose.capital-a', cells: ['⠈', '⠫', '⠠', '⠁', '⠻'],
+    banaRefs: ['15.9'], action: 'superpose-token',
+    commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+    preferLonger: true,
+    args: {
+      value: '∠',
+      intent: 'shape-superposed-capital',
+      allowedValues: ['∠'],
+      sourceNotation: '$[`$A]'
+    }
   },
   // Rule 15.9's hierarchy is not integral-specific. These representative
   // source constructions use the same generic bounded superposition action;
@@ -3349,9 +3389,15 @@ function mappingApplies(mapping, context) {
     return context.node.name === 'math' || isHole(context.node);
   }
   if (mapping.action === 'superpose-token' && mapping.args?.allowedValues) {
-    return context.node.name === 'mo' && ['∫', '∬', '∭'].includes(context.node.children?.[0]?.text);
+    return context.node.name === 'mo'
+      && mapping.args.allowedValues.includes(context.node.children?.[0]?.text);
   }
   if (mapping.action === 'superpose-token') return context.node.name === 'mo';
+  // Rule 15.9 shape superposition shares leading `⠈⠫` with crossed d.
+  if (mapping.id === 'misc.crossed-d' && context.node.name === 'mo'
+    && ['∠'].includes(context.node.children?.[0]?.text)) {
+    return false;
+  }
   const nearestFraction = fractionAtFocus(context.tree, context.node);
   const fractionOfKind = (kind) => {
     let fraction = nearestFraction;
@@ -3430,7 +3476,17 @@ function mappingApplies(mapping, context) {
     if (openHole) return false;
     return context.node.name !== 'math' && !isHole(context.node);
   }
-  if (mapping.id === 'script.left-subscript') return context.node.name === 'math' || isHole(context.node);
+  if (mapping.id === 'script.left-subscript') {
+    if (context.node.name === 'math' || isHole(context.node)) return true;
+    // Rule 14.9.2 / 14-105: after a completed letter or single-letter number,
+    // left-subscript may open a sibling tensor for the next base (`";2",q`).
+    if (context.node.name === 'mi') return true;
+    if (context.node.name === 'mn'
+      && context.node.attrs?.['data-omniya-nemeth-intent'] === 'single-letter-number') {
+      return true;
+    }
+    return false;
+  }
   if (mapping.id === 'cancellation.end') return Boolean(hasAncestor(context.tree, context.node, 'menclose'));
   if (mapping.id === 'script.baseline') {
     if (isHole(context.node)) return false;
@@ -3498,6 +3554,15 @@ function mappingApplies(mapping, context) {
     }
     if (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-cells']
       && !['∶', ':', '<', '>', '=', '≤', '≥', '≠', '≡', '⊂', '⊃'].includes(context.node.children?.[0]?.text)) {
+      return false;
+    }
+  }
+  if (mapping.id === 'comparison.proportion') {
+    // Rule 14.5 / 14-105: after a letter or single-letter number, `;2` begins
+    // a left-subscript digit (`",p1";2",q`), not the proportion sign.
+    if (context.node.name === 'mi') return false;
+    if (context.node.name === 'mn'
+      && ['single-letter-number', 'lower-cell-numeric'].includes(context.node.attrs?.['data-omniya-nemeth-intent'])) {
       return false;
     }
   }
@@ -3697,6 +3762,28 @@ const TREE_OPERATIONS = Object.freeze({
     const numericVariant = inputState.mode?.startsWith?.('numeric:')
       ? inputState.mode.slice('numeric:'.length)
       : null;
+    // Rule 15.16: after multipurpose opens a fresh five-step numeric base,
+    // the first digit becomes a sibling <mn>; later digits append to it.
+    if (inputState.multipurposeNumericBase && inputState.mode === 'multipurpose' && node.name === 'mn') {
+      const inserted = atom('mn', args.value, {
+        ...(args.dataAttributes ?? {}),
+        'data-omniya-nemeth-intent': args.dataAttributes?.['data-omniya-nemeth-intent']
+          ?? 'five-step-numeric-base'
+      });
+      const target = insertAfter(tree, focus, inserted);
+      // The unmodified prefix stays outside the five-step collection. Start a
+      // fresh modifier scope on the new numeric base only.
+      return {
+        tree,
+        focus: focusNode(target),
+        clearMultipurposeNumericBase: true,
+        modifierScope: {
+          parentNodeId: findMathParent(tree, target.attrs['data-omniya-id'])?.attrs?.['data-omniya-id'],
+          firstNodeId: target.attrs['data-omniya-id'],
+          lastNodeId: target.attrs['data-omniya-id']
+        }
+      };
+    }
     // Rule 24.1: after multipurpose, a baseline number following a letter +
     // lower-cell criterion (c1"10) is a sibling atom, not an extension of that
     // criterion digit. Keep ordinary numeric subscripts such as sin12 intact.
@@ -3999,6 +4086,18 @@ const TREE_OPERATIONS = Object.freeze({
     if (args.mode === 'capital' && inputState.mode?.startsWith?.('typeform:')) {
       return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: `${inputState.mode}:capital` }, announcement: 'Nemeth capital indicator active within the typeform.' };
     }
+    // Rule 15.16: multipurpose on an already-filled numeric atom starts a
+    // sibling five-step numeric base for the next digit (`5"6<*]`).
+    if (args.mode === 'multipurpose' && node.name === 'mn') {
+      const textValue = String(node.children?.[0]?.text ?? '');
+      if (textValue && textValue !== '.') {
+        return {
+          status: 'pending', document, focus,
+          inputState: { ...inputState, prefix: '', mode: 'multipurpose', multipurposeNumericBase: true },
+          announcement: 'Nemeth multipurpose indicator active.'
+        };
+      }
+    }
     return { status: 'pending', document, focus, inputState: { ...inputState, prefix: '', mode: args.mode }, announcement: `Nemeth ${args.mode} indicator active.` };
   }
 });
@@ -4043,9 +4142,10 @@ function applyMapping(document, focus, inputState, mapping) {
       const index = parent?.children?.indexOf(node) ?? -1;
       return index > 0 && parent.children[index - 1]?.name === 'mi';
     })();
-  let nextModifierScope = collectingModifierScope && insertedAction && !skipFiveStepForSiblingBaseline
-    ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
-    : inputState.modifierScope;
+  let nextModifierScope = result.modifierScope
+    ?? (collectingModifierScope && insertedAction && !skipFiveStepForSiblingBaseline
+      ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
+      : inputState.modifierScope);
   // Rule 15-19: once a fenced group inside multipurpose closes, the five-step
   // modifier applies to that whole group, not only its interior content.
   if (mapping.id === 'group.round.end' && inputState.mode === 'multipurpose' && result.focus) {
@@ -4142,7 +4242,10 @@ function applyMapping(document, focus, inputState, mapping) {
           || inputState.mode?.startsWith?.('typeform:')
           || args.nextMode === 'multipurpose')
           ? (nextModifierScope ?? inputState.modifierScope)
-          : null
+          : null,
+      ...(result.clearMultipurposeNumericBase
+        ? {}
+        : (inputState.multipurposeNumericBase ? { multipurposeNumericBase: true } : {}))
     },
     announcement: mapping.id
   };
@@ -4672,8 +4775,22 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     // `.k` is both a complete equals sign and a prefix of longer comparison
     // constructions.
     if (state.prefix && !localContinues) {
-      const completed = (PREFIXES.get(state.prefix)?.mappings ?? [])
+      // The mode-entry ⠰ that opened script-level-preserved was consumed as the
+      // Rule 14.8.8 boundary. When the held prefix is itself only further
+      // subscript indicators (`;;`, `;;;`, …), that consumed cell still counts
+      // toward the absolute subscript level named from the unscripted base
+      // (`n;x;;y;;;z` → depth 3 for z). Do not boost superscript prefixes here:
+      // `;~` / `;~~` keep their authored mixed/sup chains unchanged.
+      let completed = (PREFIXES.get(state.prefix)?.mappings ?? [])
         .filter((mapping) => mappingApplies(mapping, context));
+      if (/^⠰+$/.test(state.prefix)) {
+        const total = state.prefix.length + 1;
+        const chainId = `script.${Array.from({ length: total }, () => 'sub').join('-')}`;
+        const chainMapping = MAPPINGS.find((mapping) => mapping.id === chainId);
+        if (chainMapping && mappingApplies(chainMapping, context)) {
+          completed = [chainMapping];
+        }
+      }
       if (completed.length === 1) {
         const committed = applyMapping(document, focus, { ...state, prefix: '', mode: null }, completed[0]);
         if (committed.status !== 'rejected') {
@@ -5247,9 +5364,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     (decimalBlankAnchor.name === 'mn' || decimalBlankAnchor.name === 'mo'));
   // Rule 14.6 numeric subscript to a letter may begin with a leading decimal
   // (X.6). Resolve that two-cell local decimal before radical-order claims the
-  // bare dot-4 prefix.
-  const decimalAfterLetter = context.node.name === 'mi' &&
-    /^[A-Za-z]$/.test(context.node.children?.[0]?.text ?? '');
+  // bare dot-4 prefix. Focus may already have advanced to the math root after
+  // the letter atom, so also accept a trailing mi sibling.
+  const trailingLetter = context.node.name === 'math'
+    ? context.node.children?.filter((child) => child.name !== 'mspace').at(-1)
+    : null;
+  const decimalAfterLetter = (context.node.name === 'mi' &&
+    /^[A-Za-z]$/.test(context.node.children?.[0]?.text ?? ''))
+    || (trailingLetter?.name === 'mi' &&
+      /^[A-Za-z]$/.test(trailingLetter.children?.[0]?.text ?? ''));
   if (state.mode === null && state.prefix === '⠨' && DIGITS.has(normalized) &&
     (decimalAfterBlank || decimalAfterOperator || decimalAfterLetter)) {
     const decimal = applyMapping(document, focus, { ...state, prefix: '' }, {
@@ -6255,12 +6378,17 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       if (!indicator) {
         return { status: 'rejected', document, focus, inputState: { ...state }, announcement: 'Decimal multipurpose indicator unavailable.' };
       }
+      const currentText = String(context.node.children?.[0]?.text ?? '');
+      const splitNumericBase = context.node.name === 'mn' && currentText !== '' && currentText !== '.';
       const multipurpose = applyMapping(document, focus, { ...state, mode: null }, indicator);
       if (multipurpose.status === 'rejected') return multipurpose;
       return applyNemethCell({
         document: multipurpose.document,
         focus: multipurpose.focus,
-        inputState: multipurpose.inputState,
+        inputState: {
+          ...multipurpose.inputState,
+          ...(splitNumericBase ? { multipurposeNumericBase: true } : {})
+        },
         cell: normalized
       });
     }
@@ -6858,6 +6986,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       };
     }
     }
+  }
+  // Rule 14-105: after multipurpose following a letter or single-letter number,
+  // `;digit` begins a left-subscript for the next base, not a right subscript of
+  // the criterion digit and not the proportion sign.
+  if (state.mode === 'multipurpose' && state.prefix === '⠰' && DIGITS.has(normalized) &&
+    (context.node.name === 'mi'
+      || context.node.attrs?.['data-omniya-nemeth-intent'] === 'single-letter-number')) {
+    return applyNemethChoice({
+      document,
+      focus,
+      inputState: { ...state, prefix: `${state.prefix}${normalized}`, mode: null },
+      operationId: 'script.left-subscript'
+    });
   }
   // The same dot-6 prefix followed by a letter is the ordinary Rule 14
   // subscript transition whenever the current focus is a populated atom.

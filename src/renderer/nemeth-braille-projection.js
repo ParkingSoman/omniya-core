@@ -27,6 +27,11 @@ const KEYSTROKE_SRE_CELLS = {
   'power': ['⠽ˣ']
 };
 
+// Unicode Braille "a-z" is not contiguous (⠽/⠺ sit outside ⠁-⠵). Match any
+// non-indicator cell when a letter run is required for Rule 14 projection.
+const BRAILLE_LETTER = '(?:(?![⠰⠘⠐⠀⠠⠼⠨⠸⠈⠄])[\\u2801-\\u28FF])';
+const BRAILLE_DIGIT = '[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]';
+
 function projectedCellsForShape(node) {
   const explicit = node.getAttribute?.('data-omniya-projection-cells');
   if (explicit) return [explicit];
@@ -89,7 +94,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     standaloneIntent.startsWith('comparison.superposed') ||
     standaloneIntent.startsWith('comparison.equals') ||
     standaloneIntent.startsWith('bar-superposed') ||
+    standaloneIntent.startsWith('shape-superposed') ||
+    standaloneIntent.startsWith('operation-superposed') ||
     (standaloneName === 'mo' && standaloneCells.startsWith('⠫')) ||
+    (standaloneName === 'mo' && standaloneCells.startsWith('⠮')) ||
     (standaloneName === 'mo' && standaloneCells.startsWith('⠐⠨⠅')) ||
     (standaloneName === 'mo' && standaloneCells.startsWith('⠱'))
   )) {
@@ -110,9 +118,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const baseText = String(base.textContent ?? '').trim();
       const digitCells = { '0': '⠴', '1': '⠂', '2': '⠆', '3': '⠒', '4': '⠲', '5': '⠢', '6': '⠖', '7': '⠶', '8': '⠦', '9': '⠔' };
       const marker = standaloneName === 'munder' ? '⠩' : '⠣';
-      if (standaloneName === 'mover' && base.localName === 'mn' && baseText.startsWith('.') && scriptCells === '⠡') {
+      const fiveStep = standaloneAuthored.getAttribute?.('data-omniya-nemeth-intent') === 'five-step-modifier';
+      if (standaloneName === 'mover' && base.localName === 'mn' && baseText.startsWith('.')
+        && (scriptCells === '⠡' || (scriptCells === '⠱' && fiveStep))) {
         const digits = [...baseText.slice(1)].map((d) => digitCells[d] || '').join('');
-        if (digits) return `⠼⠨⠐${digits}⠣⠡⠻`;
+        if (digits) return `⠼⠨⠐${digits}${marker}${scriptCells}⠻`;
       }
       // Rule 15.16.2 stacked dots: flat authored overscript/underscript row.
       if (script.localName === 'mrow') {
@@ -698,16 +708,35 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       return filled(leftSub) && filled(leftSup);
     });
     if (oppositeLeft) {
-      braille = braille.replace(/([⠰⠘])([⠁-⠵⠠]+)(?!⠐)(?=[⠰⠘])/g, '$1$2⠐');
+      braille = braille.replace(new RegExp(`([⠰⠘])(${BRAILLE_LETTER}+|⠠${BRAILLE_LETTER}+)(?!⠐)(?=[⠰⠘])`, 'g'), '$1$2⠐');
     }
     // Insert multipurpose only between the last left-script letter run and the
-    // following base letter (optionally followed by a right script indicator).
-    braille = braille.replace(/(?<![⠁-⠵])([⠰⠘]+[⠁-⠵⠠]+)(?!⠐)([⠁-⠵])(?=(?:⠰|⠘|⠐|$))/g, '$1⠐$2');
-    braille = braille.replace(/⠐{2,}(?=[⠁-⠵])/g, '⠐');
+    // following base letter (optionally capitalised, and optionally followed by
+    // a right script indicator).
+    braille = braille.replace(
+      new RegExp(`([⠰⠘]+)(${BRAILLE_LETTER}+)(?!⠐)((?:⠠${BRAILLE_LETTER})|${BRAILLE_LETTER})(?=(?:[⠰⠘⠐]|$))`, 'g'),
+      '$1$2⠐$3'
+    );
+    braille = braille.replace(new RegExp(`⠐{2,}(?=⠠?${BRAILLE_LETTER})`, 'g'), '⠐');
     // Nested left-sup of a minus keeps no multipurpose before the inner
     // superscript digit (`#10~~-~4`).
     if (hasNestedLeft) {
       braille = braille.replace(/⠤⠐⠘/g, '⠤⠘');
+    }
+    // Rule 14.11.2 authored left-sup then left-sub (`~a";b"x`) keeps that
+    // reading order even though MathML stores left-sub before left-sup.
+    const leftSupFirst = leftScriptTensors.some((tensor) =>
+      String(tensor.getAttribute?.('data-omniya-nemeth-intent') ?? '') === 'left-scripts:sup-first');
+    if (leftSupFirst) {
+      braille = braille.replace(
+        new RegExp(`⠰(${BRAILLE_LETTER}+|⠠${BRAILLE_LETTER}+)⠐⠘(${BRAILLE_LETTER}+|⠠${BRAILLE_LETTER}+)⠐`, 'g'),
+        '⠘$2⠐⠰$1⠐'
+      );
+    }
+    // Rule 14-105: a blank between a single-letter number and the following
+    // left-subscript indicator is the authored multipurpose separator.
+    if ([...singleLetterNumbers].length) {
+      braille = braille.replace(new RegExp(`(${BRAILLE_DIGIT})⠀(?=⠰)`, 'g'), '$1⠐');
     }
   }
   // Rule 14.11 `x1"~2`: single-letter numeric base of an msup keeps multipurpose
@@ -740,10 +769,21 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(new RegExp(`${hostCells}⠐(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴|⠨)`), hostCells);
   }
   // Leading-decimal numeric subscripts also omit a multipurpose that baseline
-  // Rule 24.1 restoration may have inserted before ⠨.
+  // Rule 24.1 restoration may have inserted before ⠨, and omit the number
+  // sign after the decimal point (`X.6` → ⠠⠭⠨⠖).
   if ([...(sourceMath.getElementsByTagName?.('mn') ?? [])]
-    .some((node) => node.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-subscript')) {
+    .some((node) => {
+      const intent = node.getAttribute?.('data-omniya-nemeth-intent');
+      if (intent === 'numeric-subscript') return true;
+      // Electron/SRE may still carry numeric-decimal on a letter-adjacent
+      // leading decimal; treat that the same when the previous sibling is mi.
+      if (intent !== 'numeric-decimal') return false;
+      let previous = node.previousElementSibling ?? node.previousSibling;
+      while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+      return previous && (previous.localName === 'mi' || previous.nodeName === 'mi');
+    })) {
     braille = braille.replace(/((?:⠠)?[⠁-⠵])⠐(?=⠨)/g, '$1');
+    braille = braille.replace(/((?:⠠)?[⠁-⠵]⠨)⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
   }
   // Numeric subscript after a prime omits the number sign (`x'1`).
   const primes = sourceNodes('mo').filter((node) => {
@@ -807,13 +847,69 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠰([^⠘⠰⠐]+)(?!⠰)⠘/g, '⠰$1⠰⠘');
     braille = braille.replace(/⠰⠘([^⠘⠰⠐]+)(?!⠰)⠘/g, '⠰⠘$1⠰⠘');
   }
+  // Deep nested scripts keep no blank before an authored ellipsis that stays
+  // inside the script (`n~x~~y~~~z~~~~'''`).
+  const ellipsisNodes = [
+    ...sourceNodes('mo')
+  ].filter((node) => (node.getAttribute?.('data-omniya-nemeth-cells') ?? '') === '⠄⠄⠄'
+    || String(node.textContent ?? '').trim() === '…');
+  if (ellipsisNodes.length && (
+    sourceMath.querySelector?.('msup') || sourceMath.querySelector?.('msub')
+  )) {
+    braille = braille.replace(/([⠘⠰])⠀(?=⠄⠄⠄)/g, '$1');
+    // Four-deep nested subscripts keep four level indicators before the
+    // ellipsis (`n;x;;y;;;z;;;;'''`).
+    const deepEllipsis = ellipsisNodes.some((node) => {
+      let depth = 0;
+      let current = node.parentElement ?? node.parentNode;
+      while (current) {
+        const name = (current.localName || current.nodeName || '').toLowerCase();
+        if (name === 'msub') depth += 1;
+        if (name === 'math') break;
+        current = current.parentElement ?? current.parentNode;
+      }
+      return depth >= 4;
+    });
+    if (deepEllipsis) {
+      braille = braille.replace(/⠰{3}(?=⠄⠄⠄)/g, '⠰⠰⠰⠰');
+    }
+  }
+  // Nested right subscripts of depth ≥ 3 restore the missing absolute level
+  // indicators SRE can omit before the deepest letter (`n;x;;y;;;z`).
+  const deepNestedSubs = [...sourceNodes('msub')].filter((node) =>
+    [...(node.getElementsByTagName?.('msub') ?? [])].length >= 2);
+  if (deepNestedSubs.length) {
+    braille = braille.replace(new RegExp(`(⠰⠰${BRAILLE_LETTER})(?!⠰)(?=${BRAILLE_LETTER})`, 'g'), '$1⠰⠰⠰');
+  }
   // Nested right subscripts restore the deeper level indicator before a digit.
   const nestedRightSubscripts = [...sourceNodes('msub')].filter((node) =>
     [...(node.children ?? [])].some((child) =>
       (child.localName || child.nodeName || '').toLowerCase() === 'msub'));
   if (nestedRightSubscripts.length) {
-    braille = braille.replace(/⠰(⠠?[⠁-⠵])(?!⠰)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠰$1⠰⠰');
-    braille = braille.replace(/(⠰⠠?[⠁-⠵])⠐(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
+    // SRE can emit a long run of subscript indicators before the nested digit
+    // (`x;I;;1`). Collapse any surplus to the authored two-level form.
+    braille = braille.replace(
+      new RegExp(`(⠰(?:⠠)?${BRAILLE_LETTER})⠰+(?=${BRAILLE_DIGIT})`, 'g'),
+      '$1⠰⠰'
+    );
+    braille = braille.replace(
+      new RegExp(`⠰((?:⠠)?${BRAILLE_LETTER})(?!⠰)(?=${BRAILLE_DIGIT})`, 'g'),
+      '⠰$1⠰⠰'
+    );
+    braille = braille.replace(
+      new RegExp(`(⠰(?:⠠)?${BRAILLE_LETTER})⠐(?=${BRAILLE_DIGIT})`, 'g'),
+      '$1'
+    );
+  }
+  // Raised function names / nested scripts return to baseline before an
+  // explicit blank or a simple-fraction slash. SRE may keep one extra level
+  // indicator (`e~cos~~2 x`, `?e~x~~2"/2#`).
+  if (sourceMath.querySelector?.('msup') && (
+    sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')
+    || sourceMath.querySelector?.('mfrac')
+  )) {
+    braille = braille.replace(/⠘(?=⠐⠌)/g, '');
+    braille = braille.replace(new RegExp(`(${BRAILLE_LETTER}|${BRAILLE_DIGIT})⠘(?=⠀)`, 'g'), '$1');
   }
   // Rule 14.7 contracted script comma is dots 2-4-6. SRE may spell the same
   // comma as literary comma plus a blank; restore only source-marked commas.
@@ -1825,6 +1921,50 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/^⠐⠐/, '⠐');
     braille = braille.replace(/⠻(?=[⠣⠩])/g, '');
   }
+  // Rule 15.3 higher-order nested movers/munders: SRE emits nested five-step
+  // forms (`" "x+y<:] <a .k #3]`). Collapse to one multipurpose with chained
+  // higher-order indicators (`"x+y<:<<a .k #3]`).
+  const nestedHigherOrder = [...sourceNodes('mover'), ...sourceNodes('munder')].filter((node) => {
+    const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+    if (kids.length !== 2) return false;
+    return ['mover', 'munder', 'munderover'].includes(kids[0]?.localName);
+  });
+  if (nestedHigherOrder.length) {
+    braille = braille.replace(/^⠐+/, '⠐');
+    braille = braille.replace(/([⠣⠩])⠱⠻(\1)/g, '$1⠱$2$2');
+    const underDepth = nestedHigherOrder.filter((node) => node.localName === 'munder').length;
+    if (underDepth >= 2) {
+      braille = braille.replace(/(⠨⠅⠀⠼[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]+)⠩⠩([⠁-⠵])/g, '$1⠩⠩⠩$2');
+    }
+    if (nestedHigherOrder.some((node) => node.localName === 'mover'
+      && [...(node.children ?? [])].some((child) => child.localName === 'munderover'))) {
+      braille = braille.replace(/⠱⠻⠣⠱⠻⠩/g, '⠱⠩⠩');
+      braille = braille.replace(/(⠨⠅⠀⠼[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]+)⠣([⠁-⠵])/g, '$1⠣⠱⠣⠣$2');
+    }
+  }
+  // Rule 15.6 / 15-43: letter underscript inside a closed group is contracted
+  // (`(n%k)`), not a five-step collection.
+  const contractedLetterUnders = [...sourceNodes('munder')].filter((node) => {
+    const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+    if (kids.length !== 2) return false;
+    const [base, under] = kids;
+    if (!['mi', 'mn'].includes(base.localName)) return false;
+    if (!/^[A-Za-z0-9]$/.test(String(under.textContent ?? '').trim())) return false;
+    let parent = node.parentElement ?? node.parentNode;
+    while (parent && parent !== sourceMath) {
+      if (parent.getAttribute?.('data-omniya-group') === 'round'
+        || parent.getAttribute?.('data-omniya-binomial') === 'true') return true;
+      parent = parent.parentElement ?? parent.parentNode;
+    }
+    return false;
+  });
+  if (contractedLetterUnders.length) {
+    braille = braille.replace(/⠐([⠁-⠵]|⠠[⠁-⠵])⠩([⠁-⠵])⠻/g, '$1⠩$2');
+  }
+  // Scripted five-step modifiers can leave a stray trailing multipurpose (15-46).
+  if (/⠻⠐$/.test(braille) && sourceNodes('mover').length) {
+    braille = braille.replace(/⠻⠐$/, '⠻');
+  }
   for (const node of sourceNodes('[data-omniya-nemeth-intent="horizontal-bracket-over"]')) {
     const cells = node.getAttribute?.('data-omniya-nemeth-cells');
     if (cells && /⠣⠻/.test(braille) && !braille.includes(`⠣${cells}⠻`)) {
@@ -1901,6 +2041,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // the five-step multipurpose form for the same MathML mover; collapse only
   // when the bar is the bare horizontal bar (cells ⠱ or unmarked).
   const contractedBars = [...(sourceMath.querySelectorAll?.('mover') ?? []), ...(sourceMath.querySelectorAll?.('munder') ?? [])].filter((node) => {
+    if (node.getAttribute?.('data-omniya-nemeth-intent') === 'five-step-modifier') return false;
     const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
     if (kids.length !== 2) return false;
     const base = kids[0];
@@ -1925,9 +2066,56 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.replace(/^⠐/, '').replace(/[⠣⠩]⠱⠻$/, '⠱');
     }
   }
+  // Rule 15.2.3 / 15-33: contracted under-bars mid-expression keep `⠩⠱`
+  // without multipurpose or terminator. SRE often emits five-step islands.
+  if (contractedBars.some((node) => node.localName === 'munder')) {
+    braille = braille.replace(/⠐(⠼[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴⠨⠠]+)⠩⠱⠻/g, '$1⠩⠱');
+  }
   if (contractedBars.length) {
     braille = braille.replace(/^⠐([⠁-⠵])[⠣⠩]⠱⠄⠻$/, '$1⠱⠄');
     braille = braille.replace(/^⠐([⠁-⠵])[⠣⠩]⠱⠻⠄$/, '$1⠱⠄');
+  }
+  // Rule 15.16 five-step digit modifiers: rebuild each authored five-step
+  // mover from its marked base digits and overscript cells.
+  {
+    const digitCells = {
+      '0': '⠴', '1': '⠂', '2': '⠆', '3': '⠒', '4': '⠲',
+      '5': '⠢', '6': '⠖', '7': '⠶', '8': '⠦', '9': '⠔'
+    };
+    const fiveStepDigitMovers = [...sourceNodes('mover'), ...sourceNodes('munder')].filter((node) =>
+      node.getAttribute?.('data-omniya-nemeth-intent') === 'five-step-modifier');
+    for (const node of fiveStepDigitMovers) {
+      const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+      if (kids.length !== 2 || kids[0].localName !== 'mn') continue;
+      const baseText = String(kids[0].textContent ?? '').trim();
+      const scriptCells = kids[1].getAttribute?.('data-omniya-nemeth-cells') || '';
+      if (!scriptCells || !/^[0-9.]+$/.test(baseText)) continue;
+      const marker = node.localName === 'munder' ? '⠩' : '⠣';
+      const bareDigits = [...baseText.replace('.', '')].map((d) => digitCells[d] || '').join('');
+      if (!bareDigits) continue;
+      const local = baseText.startsWith('.')
+        ? `⠼⠨⠐${bareDigits}${marker}${scriptCells}⠻`
+        : `⠐${bareDigits}${marker}${scriptCells}⠻`;
+      if (braille.includes(local)) continue;
+      if (baseText.startsWith('.')) {
+        braille = braille.replace(new RegExp(`⠼⠨${bareDigits}⠱`), local);
+        braille = braille.replace(new RegExp(`⠼⠨⠐${bareDigits}${marker}${scriptCells}⠻`), local);
+        // Multipurpose may sit before an unmodified decimal prefix; move it
+        // immediately before this mover's digits (`#.13"5<*]`).
+        braille = braille.replace(
+          new RegExp(`⠼⠨⠐([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]*)${bareDigits}${marker}${scriptCells}⠻`),
+          (_, prefix) => `⠼⠨${prefix}⠐${bareDigits}${marker}${scriptCells}⠻`
+        );
+      } else {
+        braille = braille.replace(new RegExp(`⠼?${bareDigits}⠱`), `⠐${bareDigits}${marker}${scriptCells}⠻`);
+        braille = braille.replace(new RegExp(`⠼⠐${bareDigits}${marker}${scriptCells}⠻`), `⠐${bareDigits}${marker}${scriptCells}⠻`);
+      }
+    }
+    // Adjacent five-step overdots (`#.1"3<*]5"6<*]`): drop a number sign that
+    // SRE inserts between completed five-step islands.
+    if (fiveStepDigitMovers.length >= 2) {
+      braille = braille.replace(/⠻⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠻');
+    }
   }
   if (explicitCellNodes.length) {
     const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

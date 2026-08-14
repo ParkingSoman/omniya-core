@@ -165,6 +165,7 @@ test('Rule 14.11.2 empty-base opposite scripts promote to complete left scripts'
   const report = completionReport(tree);
   assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
   assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].attrs?.['data-omniya-nemeth-intent'], 'left-scripts:sup-first');
   assert.equal(tree.children[0].children[0].children[0].text, 'x');
   const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
   assert.equal(tree.children[0].children[marker + 1].children[0].text, 'b');
@@ -192,7 +193,36 @@ test('Rule 14-54 leading decimal numeric subscript after a letter completes', ()
   assert.equal(tree.children[0].children[0].text, 'X');
   assert.equal(tree.children[1].name, 'mn');
   assert.equal(tree.children[1].children[0].text, '.6');
-  assert.match(tree.children[1].attrs?.['data-omniya-nemeth-intent'] ?? '', /numeric|subscript|decimal/);
+  assert.equal(tree.children[1].attrs?.['data-omniya-nemeth-intent'], 'numeric-subscript');
+});
+
+test('Rule 14-20 absolute ;;; nests a third subscript level', () => {
+  const { document } = replayCells(sourceNotationToCells('n;x;;y;;;z'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[0].children[0].text, 'n');
+  assert.equal(tree.children[0].children[1].name, 'msub');
+  assert.equal(tree.children[0].children[1].children[1].name, 'msub');
+  assert.equal(tree.children[0].children[1].children[1].children[0].children[0].text, 'y');
+  assert.equal(tree.children[0].children[1].children[1].children[1].children[0].text, 'z');
+});
+
+test('Rule 14-105 multipurpose then ;digit opens a left-subscript sibling', () => {
+  const { document } = replayCells(sourceNotationToCells(',p1";2",q'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].children[0].text, 'P');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '1');
+  const tensor = tree.children.find((node) => node.name === 'mmultiscripts');
+  assert.ok(tensor, 'left-subscript after multipurpose must open a sibling mmultiscripts');
+  assert.equal(tensor.children[0].children[0].text, 'Q');
+  const marker = tensor.children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tensor.children[marker + 1].children[0].text, '2');
 });
 
 test('Rule 14-55 sigma numeric limit and scripts complete without an open hole', () => {
@@ -2772,4 +2802,27 @@ test('Rule 24.23 shape then multipurpose number keeps equals after a blank', () 
   const equals = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠨⠅');
   assert.ok(equals);
   assert.equal(equals.children[0].text, '=');
+});
+
+test('Rule 15-68 five-step decimal bar stamps five-step intent on the mover', () => {
+  const { document } = replayCells(sourceNotationToCells('#."7128<:]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(tree.children[0].children[0].children[0].text, '.7128');
+});
+
+test('Rule 15-48 integral rectangle superposition stamps the full local cells', () => {
+  const { document } = replayCells(sourceNotationToCells('!`$r]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].children[0].text, '∯');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠮⠈⠫⠗⠻');
+});
+
+test('Rule 15-52 angle with superposed capital keeps one authored atom', () => {
+  const { document } = replayCells(sourceNotationToCells('$[`$A]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.length, 1);
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠫⠪⠈⠫⠠⠁⠻');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'shape-superposed-capital');
 });
