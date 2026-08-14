@@ -42,7 +42,7 @@ const elements = Object.fromEntries([
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
   'composer-form', 'composer-heading', 'composer-command', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
-  'composer-help', 'composer-error', 'editing-indicator', 'composer-submit',
+  'composer-help', 'composer-status', 'composer-error', 'composer-choices', 'editing-indicator', 'composer-submit',
   'composer-discard', 'composer-cancel', 'replacement-dock', 'replacement-heading',
   'replacement-scope', 'replacement-method', 'replacement-input', 'replacement-status', 'replacement-choices',
   'replacement-submit', 'replacement-cancel', 'app-error', 'app-error-message', 'retry-save'
@@ -423,6 +423,10 @@ function renderComposer() {
     : equationMethod === 'latex'
       ? 'latex-inline-editor'
       : '';
+  if (values.type !== 'equation') {
+    clearComposerNemethChoices();
+    setComposerMathStatus('');
+  }
   setFieldError(elements['composer-source'], elements['composer-error']);
 }
 
@@ -979,6 +983,8 @@ function clearComposerMathSession() {
   replacementSession = null;
   replacementHasContent = false;
   composerMathInputProcessing = Promise.resolve();
+  clearComposerNemethChoices();
+  setComposerMathStatus('');
 }
 
 function ensureComposerMathSession() {
@@ -994,6 +1000,35 @@ function ensureComposerMathSession() {
   });
   replacementSession.isNew = true;
   replacementHasContent = false;
+  clearComposerNemethChoices();
+  setComposerMathStatus('');
+}
+
+function setComposerMathStatus(message) {
+  if (!elements['composer-status']) return;
+  elements['composer-status'].textContent = message ?? '';
+}
+
+function clearComposerNemethChoices() {
+  const box = elements['composer-choices'];
+  if (!box) return;
+  box.replaceChildren();
+  box.hidden = true;
+}
+
+function renderComposerNemethChoices(choices = []) {
+  const box = elements['composer-choices'];
+  if (!box) return;
+  box.replaceChildren(...choices.map((choice) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'replacement-choice';
+    button.dataset.operationId = choice.operationId;
+    button.textContent = choice.label;
+    button.title = `BANA ${choice.banaRefs.join(', ')}`;
+    return button;
+  }));
+  box.hidden = choices.length === 0;
 }
 
 function returnToRead({ discardDraft = true } = {}) {
@@ -1184,13 +1219,14 @@ function applyReplacementMethodFromCommand(method) {
       field.value = '';
       draft.source = '';
     }
+    clearComposerNemethChoices();
     if (replacementEditor) {
       elements['replacement-status'].textContent = method === 'nemeth'
         ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
         : 'Enter LaTeX for the replacement expression.';
     } else {
       setFieldError(elements['composer-source'], elements['composer-error']);
-      announce(method === 'nemeth'
+      setComposerMathStatus(method === 'nemeth'
         ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
         : 'Enter LaTeX for the equation.');
     }
@@ -1358,9 +1394,17 @@ async function submitComposer() {
           replacementHasContent = true;
           elements['composer-source'].value = '';
           draft.source = '';
-          announce(`Local code committed: ${local.announcement}`);
+          clearComposerNemethChoices();
+          setComposerMathStatus(`Local code committed: ${local.announcement}`);
+          // Atomic / bounded local codes: Enter commits the construction only;
+          // the next Enter / Command n submits the equation.
+          if (local.localCommitPolicy !== 'immediate') {
+            elements['composer-source'].focus();
+            return;
+          }
         } else if (local.status === 'choice') {
-          setFieldError(elements['composer-source'], elements['composer-error'], local.announcement);
+          setComposerMathStatus(local.announcement);
+          renderComposerNemethChoices(local.choices);
           elements['composer-source'].focus();
           return;
         } else {
@@ -1521,7 +1565,7 @@ elements['replacement-method'].addEventListener('change', () => {
         : 'Enter LaTeX for the replacement expression.';
     } else {
       setFieldError(elements['composer-source'], elements['composer-error']);
-      announce(selected === 'nemeth'
+      setComposerMathStatus(selected === 'nemeth'
         ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
         : 'Enter LaTeX for the equation.');
     }
@@ -1531,7 +1575,10 @@ elements['replacement-method'].addEventListener('change', () => {
       equationMethod: selected,
       contentEmpty: true
     });
-    if (isComposerMathAuthoring()) renderComposer();
+    if (isComposerMathAuthoring()) {
+      clearComposerNemethChoices();
+      renderComposer();
+    }
   } catch (error) {
     elements['replacement-method'].querySelectorAll('input').forEach((input) => { input.checked = input.value === replacementSession.method; });
     if (replacementEditor) {
@@ -1580,7 +1627,8 @@ async function consumeComposerNemethCell(cell) {
     replacementHasContent = true;
     editor.value = '';
     draft.source = '';
-    announce(`Draft updated: ${result.announcement}`);
+    clearComposerNemethChoices();
+    setComposerMathStatus(`Draft updated: ${result.announcement}`);
     editor.removeAttribute('aria-invalid');
     setFieldError(editor, elements['composer-error']);
   } else if (result.status === 'pending' || result.status === 'choice') {
@@ -1588,16 +1636,46 @@ async function consumeComposerNemethCell(cell) {
     editor.value = prefix;
     draft.source = prefix;
     editor.setSelectionRange(prefix.length, prefix.length);
-    announce(result.announcement);
+    setComposerMathStatus(result.announcement);
     editor.removeAttribute('aria-invalid');
     setFieldError(editor, elements['composer-error']);
+    if (result.status === 'choice') renderComposerNemethChoices(result.choices);
+    else clearComposerNemethChoices();
   } else {
     editor.value = replacementSession.nemethState?.prefix || '';
     draft.source = editor.value;
+    clearComposerNemethChoices();
     setFieldError(editor, elements['composer-error'], result.announcement);
     editor.setAttribute('aria-invalid', 'true');
   }
   syncCommandContentEmpty();
+}
+
+async function chooseComposerNemethOperation(event) {
+  const button = event.target.closest?.('.replacement-choice');
+  if (!button || !isComposerMathAuthoring()) return;
+  const previousDraftMathML = replacementSession.draft.mathml;
+  const previousInputState = structuredClone(replacementSession.nemethState);
+  const result = applyNemethChoice(replacementSession, button.dataset.operationId);
+  replacementSession = result.session;
+  const committedChoice = result.status === 'applied' ||
+    (result.status === 'pending' && (
+      result.document?.mathml !== previousDraftMathML ||
+      JSON.stringify(result.inputState) !== JSON.stringify(previousInputState)
+    ));
+  if (!committedChoice) {
+    setComposerMathStatus(result.announcement);
+    return;
+  }
+  clearComposerNemethChoices();
+  const editor = elements['composer-source'];
+  if (result.status === 'applied') replacementHasContent = true;
+  editor.value = result.status === 'pending' ? (replacementSession.nemethState.prefix || '') : '';
+  draft.source = editor.value;
+  if (result.status === 'choice') renderComposerNemethChoices(result.choices);
+  setComposerMathStatus(`Draft updated: ${result.announcement}`);
+  syncCommandContentEmpty();
+  editor.focus();
 }
 
 async function handleComposerMathInput() {
@@ -1686,7 +1764,8 @@ elements['composer-source'].addEventListener('keydown', (event) => {
         elements['composer-source'].value = prefix;
         draft.source = prefix;
         elements['composer-source'].setSelectionRange(prefix.length, prefix.length);
-        announce(result.announcement);
+        clearComposerNemethChoices();
+        setComposerMathStatus(result.announcement);
         elements['composer-source'].toggleAttribute('aria-invalid', result.status === 'rejected');
         if (result.status === 'undone') {
           const draftMathml = replacementSession.draft?.mathml ?? '';
@@ -1705,31 +1784,55 @@ elements['composer-source'].addEventListener('keydown', (event) => {
   }
 });
 
+elements['composer-choices']?.addEventListener('click', (event) => {
+  void chooseComposerNemethOperation(event);
+});
+
 {
-  // Composer UEB six-key is scoped to #composer-source only. Nemeth replacement
-  // installs its own createSixKeyInput on the replacement editor, so the two
-  // never share listeners or fight over sdfjkl chords.
-  const composerSixKey = createSixKeyInput({
+  // Composer UEB six-key is scoped to text Insert. Nemeth equation Insert gets
+  // its own six-key emitter into #composer-source (same pattern as the dock).
+  const composerUebSixKey = createSixKeyInput({
     emit: (cell) => {
       uebCellChain = uebCellChain.then(() => handleComposerUebCell(cell)).catch(() => {});
     }
   });
+  const composerNemethSixKey = createSixKeyInput({
+    emit: (cell) => {
+      const editor = elements['composer-source'];
+      const start = editor.selectionStart ?? editor.value.length;
+      const end = editor.selectionEnd ?? start;
+      editor.setRangeText(cell, start, end, 'end');
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
   elements['composer-source'].addEventListener('keydown', (event) => {
     if (!globalThis.__omniyaBrailleSimulation) return;
+    if (commandState.interaction === 'command') return;
+    if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
+      composerNemethSixKey.keydown(event);
+      return;
+    }
     if (!composerIsTextInsert()) return;
     if (event.key === ' ' && uebBuffer.pending) {
       event.preventDefault();
       uebCellChain = uebCellChain.then(() => handleComposerUebCell(' ')).catch(() => {});
       return;
     }
-    composerSixKey.keydown(event);
+    composerUebSixKey.keydown(event);
   });
   elements['composer-source'].addEventListener('keyup', (event) => {
     if (!globalThis.__omniyaBrailleSimulation) return;
+    if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
+      composerNemethSixKey.keyup(event);
+      return;
+    }
     if (!composerIsTextInsert()) return;
-    composerSixKey.keyup(event);
+    composerUebSixKey.keyup(event);
   });
-  elements['composer-source'].addEventListener('blur', () => composerSixKey.blur());
+  elements['composer-source'].addEventListener('blur', () => {
+    composerUebSixKey.blur();
+    composerNemethSixKey.blur();
+  });
 }
 
 elements['composer-form'].addEventListener('submit', (event) => {

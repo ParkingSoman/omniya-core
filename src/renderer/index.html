@@ -97,11 +97,13 @@
             </div>
 
             <label for="composer-source" class="sr-only">Content</label>
-            <textarea id="composer-source" rows="1" required aria-describedby="composer-help composer-error"></textarea>
+            <textarea id="composer-source" rows="1" required aria-describedby="composer-help composer-status composer-error"></textarea>
+            <div id="composer-choices" class="replacement-choices" aria-label="Nemeth choices" hidden></div>
             <div id="note-row" hidden>
               <label for="composer-note">Note</label>
               <textarea id="composer-note" rows="2"></textarea>
             </div>
+            <p id="composer-status" class="composer-status" aria-live="polite"></p>
             <p id="composer-help">Enter adds · Shift+Enter makes a new line</p>
             <p id="composer-error" class="error" hidden></p>
             <div class="composer-footer">
