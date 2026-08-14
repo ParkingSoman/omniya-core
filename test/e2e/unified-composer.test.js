@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { electronLaunchEnv } from './launch-electron.js';
+import { chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -45,6 +45,16 @@ test('command x keeps composer-source visible', { timeout: 60_000 }, async (t) =
   await page.waitForFunction(() => /Equation · Nemeth/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
   assert.equal(await page.locator('#composer-source').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
+  assert.match(await page.locator('#composer-source').getAttribute('class') ?? '', /nemeth-inline-editor/);
   const help = await page.locator('#composer-help').textContent();
   assert.doesNotMatch(help ?? '', /opens the replacement writer/i);
+});
+
+test('Equation radio keeps composer-source visible', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-unified-radio-');
+  t.after(() => app.close().catch(() => {}));
+  await openComposer(page);
+  await chooseType(page, 'equation');
+  assert.equal(await page.locator('#composer-source').isVisible(), true);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 });

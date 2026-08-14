@@ -413,9 +413,14 @@ function renderComposer() {
   // Unified composer: Equation keeps #composer-source visible (Nemeth/LaTeX styling only).
   elements['composer-source'].hidden = false;
   elements['composer-source'].required = values.type === 'text';
-  elements['composer-source'].className = values.type === 'equation'
-    ? (preferredAuthoringMethod === 'nemeth' ? 'nemeth-inline-editor' : 'latex-inline-editor')
-    : '';
+  const equationMethod = values.type === 'equation'
+    ? (commandState.itemKind === 'equation' ? commandState.equationMethod : preferredAuthoringMethod)
+    : null;
+  elements['composer-source'].className = equationMethod === 'nemeth'
+    ? 'nemeth-inline-editor'
+    : equationMethod === 'latex'
+      ? 'latex-inline-editor'
+      : '';
   setFieldError(elements['composer-source'], elements['composer-error']);
 }
 
