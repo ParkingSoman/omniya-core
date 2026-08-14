@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T19:27:24.135Z",
+  "startedAt": "2026-08-14T20:05:27.175Z",
   "filter": {
     "rule": null,
     "example": "7-2"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-UFvjI5",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-dekwo6",
   "cases": [
     {
       "id": "electron:bana-2022:example-7-2",
@@ -26,7 +26,7 @@
         "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-7-2/electron_bana-2022_example-7-2-input.png",
         "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
       },
-      "error": "7-2 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-dee50857-d2e0-4908-aa8b-30753735e2d1\" data-semantic-structure=\"0\"><mi mathvariant=\"double-struck\" data-omniya-nemeth-intent=\"typeform-double-struck\" data-omniya-nemeth-cells=\"⠠⠸⠠⠗\" data-omniya-=\"\" id=\"omniya-source-omniya-31b991a8-4aba-4944-bcb7-5ab807ca5ad7\" data-semantic-type=\"identifier\" data-semantic-role=\"numbersetletter\" data-semantic-font=\"double-struck\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">R</mi></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-dee50857-d2e0-4908-aa8b-30753735e2d1\" data-semantic-structure=\"0\"><mi mathvariant=\"double-struck\" data-omniya-nemeth-intent=\"typeform-double-struck\" data-omniya-nemeth-cells=\"⠠⠸⠠⠗\" data-omniya-=\"\" id=\"omniya-source-omniya-31b991a8-4aba-4944-bcb7-5ab807ca5ad7\" data-semantic-type=\"identifier\" data-semantic-role=\"numbersetletter\" data-semantic-font=\"double-struck\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">R</mi></math>\n\n'⠈⠰⠠⠗' !== '⠠⠸⠰⠠⠗'\n"
+      "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('article.napkin-article').last().locator('mjx-speech[aria-braillelabel]') to be visible\n"
     }
   ]
 }
