@@ -270,6 +270,21 @@ for (const [number, mappingIds] of Object.entries({
   if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
 }
 for (const [number, mappingIds] of Object.entries({
+  132: ['misc.prime', 'script.superscript'],
+  133: ['misc.prime', 'script.sub-sup'],
+  134: ['misc.prime', 'script.superscript'],
+  135: ['misc.prime', 'script.superscript'],
+  136: ['script.superscript', 'misc.prime'],
+  137: ['script.sub-sup', 'misc.prime'],
+  138: ['misc.prime', 'script.sub-sup'],
+  139: ['script.superscript', 'script.possessive'],
+  140: ['script.subscript', 'script.possessive'],
+  141: ['script.subscript', 'script.possessive']
+})) {
+  const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
+  if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
+}
+for (const [number, mappingIds] of Object.entries({
   82: ['script.sup-sup'],
   83: ['script.sup-sup-sub'],
   84: ['script.subscript', 'script.contracted-comma'],
