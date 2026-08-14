@@ -36,7 +36,7 @@ const DIGITS = new Map([
 // Baseline arithmetic signs that keep a following lower-cell numeral in the
 // same local numeric item (`#1.2+1.4`, `#1.4709`*10`). Leading signed-number
 // mode stays plus/minus only.
-const BASELINE_ARITHMETIC_SIGNS = Object.freeze(['+', '−', '-', '±', '×', '÷']);
+const BASELINE_ARITHMETIC_SIGNS = Object.freeze(['+', '−', '-', '±', '∓', '×', '÷', '−+', '+−', '−−']);
 const GREEK_SMALL = [
   ['⠨⠁', 'α', '.a'], ['⠨⠃', 'β', '.b'], ['⠨⠛', 'γ', '.g'], ['⠨⠙', 'δ', '.d'], ['⠨⠑', 'ϵ', '.e'],
   ['⠨⠵', 'ζ', '.z'], ['⠨⠱', 'η', '.:'], ['⠨⠹', 'θ', '.?'], ['⠨⠊', 'ι', '.i'], ['⠨⠅', 'κ', '.k'],
@@ -268,7 +268,7 @@ function insertAfter(tree, focus, replacement) {
   // next local token belongs inside that row, even though the row itself is
   // the mroot's single radicand child. Keep the insertion local to that
   // structural slot rather than replacing the slot with a wrapper row.
-  if (parent.name === 'mroot' && parent.children?.[0] === current && current.name === 'mrow') {
+  if ((parent.name === 'mroot' || parent.name === 'msqrt') && parent.children?.[0] === current && current.name === 'mrow') {
     current.children.push(replacement);
     return replacement;
   }
@@ -2845,6 +2845,14 @@ function mappingApplies(mapping, context) {
   // it never requires a passage-level interpretation.
   if (mapping.id === 'cancellation.start' &&
     hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) return false;
+  // Rule 14.3's superscript asterisk shares `⠈⠼` with the script-number
+  // typeform. A script hole still needs a local atom, so the typeform number
+  // mode must not consume those cells before the asterisk can fill the slot.
+  if (mapping.id.startsWith('typeform.') && mapping.id.endsWith('.number') &&
+    isHole(context.node) &&
+    ['superscript', 'subscript', 'left-superscript', 'left-subscript'].includes(context.node.attrs?.['data-omniya-role'])) {
+    return false;
+  }
   if (mapping.id === 'misc.prime') {
     return context.node.name !== 'math' && !isHole(context.node);
   }
@@ -3095,7 +3103,8 @@ const TREE_OPERATIONS = Object.freeze({
       // structural MathML operation, not operand inference or passage
       // parsing, and gives MathJax the same sibling navigation it uses for a
       // populated row everywhere else.
-      if (script && scriptParent?.name === 'mroot' && scriptParent.children?.[0] === script) {
+      if (script && (scriptParent?.name === 'mroot' || scriptParent?.name === 'msqrt') &&
+        scriptParent.children?.[0] === script) {
         const row = element('mrow', [script]);
         scriptParent.children[0] = row;
         // Focus the newly-created radicand row, not the script itself. The
@@ -3964,6 +3973,26 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       }
     }
   }
+  // A numeric subscript such as `log10` omits the level indicator. An
+  // authored blank after that completed lower-cell atom is the baseline
+  // boundary before the next item, not a space inside the subscript.
+  if (!state.prefix && normalized === ' ' && context.node.name === 'mn') {
+    const subscript = ancestor(context.tree, context.node, ['msub']);
+    if (subscript && subscript.children?.[1] === context.node) {
+      const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+      if (baseline) {
+        const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
+        if (returned.status !== 'rejected') {
+          return applyNemethCell({
+            document: returned.document,
+            focus: returned.focus,
+            inputState: { ...returned.inputState, mode: null },
+            cell: normalized
+          });
+        }
+      }
+    }
+  }
   // A selected baseline-return indicator has already moved focus to the
   // surrounding row. Consume the immediately following local cell there;
   // retaining `baseline` would leave the numeric operand rejected and drop
@@ -3997,11 +4026,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     mapping.cells.length > sequence.length &&
     mapping.cells.slice(0, sequence.length).join('') === sequence &&
     mappingApplies(mapping, context));
+  // Complex/hypercomplex closers begin with the same cells as the capital
+  // indicator. Hold that prefix when the containing fraction still needs its
+  // registered terminator, rather than committing capitalization first.
+  const structuralContinuation = state.mode === null && !existingComparison && !exactImmediate && MATCHABLE_MAPPINGS.some((mapping) =>
+    mapping.commitPolicy === LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP &&
+    mapping.cells.length > sequence.length &&
+    mapping.cells.slice(0, sequence.length).join('') === sequence &&
+    mappingApplies(mapping, context));
   const immediateBeforeContinuation = state.mode === null && (PREFIXES.get(sequence)?.mappings ?? [])
     .filter((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mapping.args?.allowImmediateBeforeContinuation)
     .filter((mapping) => !mapping.args?.deferForAtomicContinuation)
     .filter((mapping) => mappingApplies(mapping, context));
-  if (atomicContinuation && immediateBeforeContinuation.length === 0) {
+  if ((atomicContinuation || structuralContinuation) && immediateBeforeContinuation.length === 0) {
     return {
       status: 'pending', document, focus,
       inputState: { ...state, prefix: sequence },
@@ -4257,6 +4294,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
   }
+  // Spatial arithmetic and coefficients such as `2x` omit the numeric
+  // indicator at an empty replacement root. Start one lower-cell numeric
+  // atom there; a following letter leaves that mode as an identifier sibling.
+  if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
+    context.node.name === 'math' && !(context.node.children?.length > 0)) {
+    const digit = digitMapping(normalized);
+    digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
+  }
   // Within a fraction slot, a lower-cell digit can continue the local
   // numerator/denominator item after an identifier (`n1`) without opening a
   // baseline numeric passage. The containing mfrac is the only context used.
@@ -4289,6 +4335,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // digit becomes its own <mn> sibling and the mode clears after that cell.
   // Keep the condition deliberately narrow so a digit never becomes an
   // implicit subscript or an expression-sized numeric buffer.
+  // BANA numeric subscripts on abbreviated functions (`log10`) omit the
+  // subscript indicator. The function atom is already committed; the digit
+  // opens that one required subscript slot and starts a lower-cell run.
+  if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
+    context.node.name === 'mi' && context.node.attrs?.['data-omniya-nemeth-intent'] === 'function-name') {
+    const script = MAPPINGS.find((candidate) => candidate.id === 'script.subscript');
+    const opened = applyMapping(document, focus, state, script);
+    if (opened.status !== 'rejected') {
+      const digit = digitMapping(normalized);
+      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+      return applyMapping(opened.document, opened.focus, { ...opened.inputState, mode: 'numeric' }, digit);
+    }
+  }
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     context.node.name === 'mi' && /^[A-Za-z]$/.test(context.node.children?.[0]?.text ?? '')) {
     const digit = digitMapping(normalized);
@@ -4321,10 +4380,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // number (for example `#2.;0~.p` in BANA Example 19-13).  Clear the
   // transient numeric mode before replaying the structural indicator so the
   // next registered local code can open the script and then insert its
-  // operand.  This is not expression parsing: it is the same one-cell mode
-  // boundary used for every structural follow-up after a numeric atom.
+  // operand.  A baseline-return cell after a numeric script operand is the
+  // same local boundary. Leave ⠐ on a baseline numeral for Rule 24.1.g's
+  // decimal-return transition. This is not expression parsing: it is the
+  // same one-cell mode boundary used for every structural follow-up after a
+  // numeric atom.
   if (state.mode?.startsWith?.('numeric') && !state.prefix &&
-    (normalized === '⠘' || normalized === '⠰') && context.node.name === 'mn') {
+    (normalized === '⠘' || normalized === '⠰' || normalized === '⠻' || normalized === '⠾' ||
+      (normalized === '⠐' && hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']))) &&
+    context.node.name === 'mn') {
     return applyNemethCell({
       document,
       focus,
@@ -4394,6 +4458,17 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       return applyMapping(document, focus, state, digit);
     }
     if (LETTERS.has(normalized) && context.node.name === 'mn') {
+      // A lower-cell numeral without a number sign is juxtaposition, not a
+      // non-decimal digit. `#2A` still uses insertBaseDigit because the
+      // numeric indicator marked that atom numeric-start.
+      if (context.node.attrs?.['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
+        return applyNemethCell({
+          document,
+          focus,
+          inputState: { ...state, mode: null },
+          cell: normalized
+        });
+      }
       // Rule 3.6: letters used as extra digits in a non-decimal base remain
       // in the same local numeric atom. The editor does not infer the base;
       // the transcriber-provided numeric indicator establishes this mode.

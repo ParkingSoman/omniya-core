@@ -133,6 +133,94 @@ test('Rule 15 five-step modifier keeps scope across a superscript and baseline r
   assert.equal(tree.children[0].children[1].children[0].text, '¯');
 });
 
+test('a leading lower-cell digit starts a numeric atom without a number sign', () => {
+  const { document } = replayCells(sourceNotationToCells('2x~3"'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '2');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+  assert.equal(tree.children[1].name, 'msup');
+  assert.equal(tree.children[1].children[0].children[0].text, 'x');
+  assert.equal(tree.children[1].children[1].children[0].text, '3');
+});
+
+test('spatial lower-cell digits continue one numeric atom at an empty root', () => {
+  const { document } = replayCells(sourceNotationToCells('273'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '273');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+});
+
+test('a function name followed by lower-cell digits is a numeric subscript', () => {
+  const { document } = replayCells(sourceNotationToCells('log10 #2'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[0].attrs['data-omniya-nemeth-intent'], 'function-name');
+  assert.equal(tree.children[0].children[0].children[0].text, 'log');
+  assert.equal(tree.children[0].children[1].name, 'mn');
+  assert.equal(tree.children[0].children[1].children[0].text, '10');
+  assert.equal(tree.children[1].name, 'mspace');
+  assert.equal(tree.children[2].name, 'mn');
+  assert.equal(tree.children[2].children[0].text, '2');
+});
+
+test('Rule 14.3 superscript asterisk uses the reference cells rather than a script-number mode', () => {
+  const { document } = replayCells(sourceNotationToCells('x~`#'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  assert.equal(tree.children[0].children[1].children[0].text, '∗');
+});
+
+test('a lower-cell digit follows a combined plus/minus operator without a number sign', () => {
+  const { document } = replayCells(sourceNotationToCells('+2-"+3'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].children[0].text, '+');
+  assert.equal(tree.children[1].children[0].text, '2');
+  assert.equal(tree.children[2].name, 'mo');
+  assert.equal(tree.children[3].name, 'mn');
+  assert.equal(tree.children[3].children[0].text, '3');
+});
+
+test('a radical terminator closes after a lower-cell numeric radicand', () => {
+  const { document } = replayCells(sourceNotationToCells('>x^2"+1]'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children.length, 1);
+  assert.equal(tree.children[0].name, 'msqrt');
+  const radicand = tree.children[0].children[0];
+  assert.equal(radicand.name, 'mrow');
+  assert.ok(radicand.children.some((child) => child.name === 'mo' && child.children?.[0]?.text === '+'));
+});
+
+test('a complex fraction closer follows a numeric superscript and baseline', () => {
+  const { document } = replayCells(sourceNotationToCells(',?d(?x/y#),/1+(?x/y#)~2",#'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mfrac');
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'complex');
+});
+
+test('a scripted radicand keeps a following plus inside the same square root', () => {
+  const { document } = replayCells(sourceNotationToCells('>x~2"+y~2"]'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children.length, 1);
+  assert.equal(tree.children[0].name, 'msqrt');
+});
+
 test('Rule 14 corpus operation IDs remain declared in the authoritative generator', () => {
   const generator = fs.readFileSync(new URL('../../scripts/bana-example-corpus-generate.mjs', import.meta.url), 'utf8');
   for (const number of [...Array.from({ length: 11 }, (_, index) => index + 12), ...Array.from({ length: 88 }, (_, index) => index + 34)]) {
