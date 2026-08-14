@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { _electron as electron } from 'playwright';
 import { operationRegistry, LOCAL_COMMIT_POLICIES } from '../../src/domain/guided-nemeth/index.js';
-import { chooseType, electronLaunchEnv } from './launch-electron.js';
+import { electronLaunchEnv, openReplacementDockOnNewEquation } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 
@@ -42,10 +42,7 @@ test('loaded Electron accepts the representative declarative Nemeth registry cor
   const mappings = smokeMappings().filter((mapping) => !process.env.BANA_ELECTRON_MAPPING_ID || mapping.id === process.env.BANA_ELECTRON_MAPPING_ID);
   assert.ok(mappings.length > 0, `registry smoke corpus unexpectedly small: ${mappings.length}`);
   for (const mapping of mappings) {
-    await page.getByRole('button', { name: 'Add item' }).click();
-    await chooseType(page, 'equation');
-    await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-    await page.locator('#replacement-dock').waitFor();
+    await openReplacementDockOnNewEquation(page);
     const input = page.getByLabel('Replacement input', { exact: true });
     await input.fill(mapping.cells.join(''));
     if (mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE) await input.press('Enter');

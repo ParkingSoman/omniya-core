@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import axe from 'axe-core';
 import { _electron as electron } from 'playwright';
-import { chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
+import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const artifactDirectory = path.join(projectRoot, 'test', 'artifacts', 'latest');
@@ -104,8 +104,6 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.getByRole('button', { name: 'Add item' }).click();
   await chooseType(page, 'equation');
   assert.equal(await page.locator('#note-toggle').isVisible(), false);
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-
   const methodChrome = await page.locator('#replacement-method').evaluate((el) => {
     const style = getComputedStyle(el);
     return { position: style.position, clip: style.clip, overflow: style.overflow };
@@ -114,9 +112,10 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   assert.equal(methodChrome.overflow, 'hidden');
   assert.match(methodChrome.clip, /^rect\(0px[, ]+0px[, ]+0px[, ]+0px\)$/);
   await chooseMethod(page, 'latex');
-  await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
-  await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-source').fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 
   assert.equal(await articles.count(), 2);
   assert.equal(await articles.nth(1).locator('h4').count(), 0);
@@ -167,13 +166,13 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
 
   await page.getByRole('button', { name: 'Add item' }).click();
   await chooseType(page, 'equation');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await chooseMethod(page, 'latex');
-  await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{');
-  await page.getByRole('button', { name: 'Replace' }).click();
-  assert.match(await page.locator('#replacement-status').textContent(), /convert|incomplete|empty/i);
+  await page.locator('#composer-source').fill('\\frac{');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  assert.match(await page.locator('#composer-error').textContent(), /convert|incomplete|empty/i);
   await assertNoAxeViolations(page);
-  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Add item' }).waitFor();
 
   await page.getByRole('button', { name: 'Keyboard help' }).click();
   assert.equal(await page.getByRole('dialog', { name: 'Keyboard help' }).count(), 1);
@@ -227,14 +226,7 @@ test('moves left and right between sibling expressions inside MathML', { timeout
   });
 
   const { page } = session;
-  await page.getByRole('button', { name: 'Add item' }).click();
-  await chooseType(page, 'equation');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#replacement-dock').waitFor();
-  await chooseMethod(page, 'latex');
-  await page.getByLabel('Replacement input', { exact: true }).fill('a+b');
-  await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await addEquationViaComposer(page, { method: 'latex', source: 'a+b' });
 
   const article = page.locator('article.napkin-article').first();
   await article.locator('mjx-container').waitFor();

@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { _electron as electron } from 'playwright';
-import { chooseType, electronLaunchEnv } from './launch-electron.js';
+import { electronLaunchEnv, openReplacementDockOnNewEquation } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 const corpus = JSON.parse(await readFile(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url), 'utf8'));
@@ -30,10 +30,7 @@ async function launch(existingDataDirectory = null) {
 }
 
 async function createDraft(page) {
-  await page.getByRole('button', { name: 'Add item' }).click();
-  await chooseType(page, 'equation');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#replacement-dock').waitFor();
+  await openReplacementDockOnNewEquation(page);
   return page.getByLabel('Replacement input', { exact: true });
 }
 

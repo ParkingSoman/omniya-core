@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { _electron as electron } from 'playwright';
-import { chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
+import { chooseMethod, electronLaunchEnv, openReplacementDockOnNewEquation } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 
@@ -23,11 +23,7 @@ async function launch(prefix = 'omniya-replacement-') {
 }
 
 async function addBlankEquation(page) {
-  await page.getByRole('button', { name: 'Add item' }).click();
-  await chooseType(page, 'equation');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#replacement-dock').waitFor();
-  return page.locator('article.napkin-article').last();
+  return openReplacementDockOnNewEquation(page);
 }
 
 async function commitDraft(page, source, method = 'latex') {
@@ -53,7 +49,8 @@ test('Replace button and Enter share one guarded submit transaction', { timeout:
     await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
     const snapshot = await page.evaluate(() => ({
       dockHidden: document.querySelector('#replacement-dock').hidden,
-      mathml: document.querySelector('article.napkin-article:last-of-type math')?.outerHTML,
+      mathml: document.querySelector('article.napkin-article:last-of-type math')?.outerHTML
+        ?.replace(/omniya-[a-f0-9-]+/gi, 'ID'),
     }));
     await app.close();
     return { snapshot };

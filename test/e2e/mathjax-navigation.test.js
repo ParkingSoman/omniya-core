@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
+import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -46,17 +46,7 @@ test('recovers from corrupt local napkin data without leaving the app unusable',
 });
 
 async function addEquation(page, source) {
-  await page.getByRole('button', { name: 'Add item' }).click();
-  await chooseType(page, 'equation');
-  assert.equal(await page.locator('#note-toggle').isVisible(), false);
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#replacement-dock').waitFor();
-  await chooseMethod(page, 'latex');
-  await page.getByLabel('Replacement input', { exact: true }).fill(source);
-  await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
-  const article = page.locator('article.napkin-article').last();
-  await article.locator('mjx-container').waitFor();
+  const article = await addEquationViaComposer(page, { method: 'latex', source });
   await article.locator('mjx-speech').waitFor();
   return article;
 }

@@ -58,3 +58,20 @@ test('Equation radio keeps composer-source visible', { timeout: 60_000 }, async 
   assert.equal(await page.locator('#composer-source').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 });
+
+test('equation Nemeth in composer commits without replacement dock', { timeout: 90_000 }, async (t) => {
+  const { app, page } = await launch('omniya-unified-nemeth-');
+  t.after(() => app.close().catch(() => {}));
+  await openComposer(page);
+  await enterCommand(page);
+  await page.keyboard.type('x'); // Equation Nemeth
+  await page.keyboard.type('i');
+  await page.locator('#composer-source').focus();
+  // Immediate letter.x cell — same fixture used by inline-editing / replacement-session tests.
+  await page.keyboard.type('⠭');
+  await page.keyboard.press('Control+[');
+  await page.keyboard.type('n');
+  await page.locator('article.napkin-article').first().waitFor({ timeout: 15_000 });
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
+});

@@ -155,23 +155,24 @@ test('mode panel is quiet and command ? help lists x and s', { timeout: 60_000 }
   assert.doesNotMatch(help ?? '', /make Equation \(Nemeth\).*e\b/i);
 });
 
-test('replacement Escape cancels dock; lowercase a rejected in Nemeth', { timeout: 90_000 }, async (t) => {
+test('composer Escape cancels equation; lowercase a rejected in Nemeth', { timeout: 90_000 }, async (t) => {
   const { app, page } = await launch('omniya-ueb-repl-escape-');
   t.after(() => app.close().catch(() => {}));
 
   await openComposer(page);
   await enterCommand(page);
   await page.keyboard.type('x'); // Equation Nemeth
-  await page.keyboard.type('n'); // Command submit empty equation → opens replacement dock
-  await page.locator('#replacement-dock:not([hidden])').waitFor();
-  await page.locator('#replacement-input').waitFor();
-  await page.locator('#replacement-input').focus();
+  await page.keyboard.type('i');
+  await page.locator('#composer-source').focus();
 
   await page.keyboard.type('a'); // lowercase — not an ASCII braille cell
-  assert.equal(await page.locator('#replacement-input').inputValue(), '');
-  assert.match(await page.locator('#replacement-status').textContent(), /braille cells only|LaTeX|Command x/i);
+  assert.equal(await page.locator('#composer-source').inputValue(), '');
+  assert.equal(await page.locator('#composer-source').getAttribute('aria-invalid'), 'true');
+  assert.match(await page.locator('#composer-error').textContent(), /braille cells only|LaTeX|Command x/i);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 
   await page.keyboard.press('Escape');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
   await page.getByRole('button', { name: 'Add item' }).waitFor();
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 });
