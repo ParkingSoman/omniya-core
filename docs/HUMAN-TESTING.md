@@ -32,7 +32,7 @@ equations, offline autosave.
   replace the focused subtree only
 - Insert / Command umbrella keys (Escape → Command; `i` / Enter → Insert)
 - Notes UI hidden; Text / Equation / Nemeth / LaTeX radios driven by Command
-  keys (`t`, `e`) instead of visible chrome
+  keys (`t`, `x`) instead of visible chrome
 - Literary UEB G1 / G2 text via native liblouis (`lou_translate`)
 - Backspace undoes the last Nemeth draft step (not the whole equation)
 - Headed thought-stream demo scripts (`npm run test:demo:thought`)
@@ -68,13 +68,16 @@ npm run test:demo:thought
 ## Sighted PM checklist
 
 1. Launch with `npm start`. Confirm notes / type radios are not visible chrome.
-2. Add item → Escape enters Command; status shows Command / Insert / Text /
-   Equation / UEB grade / Nemeth.
+2. Add item → Escape enters Command (text composer **and** equation /
+   replacement dock); `#mode-panel` shows Command / Insert / Text / Equation /
+   UEB grade / Nemeth (on demand via Command `s`; not a live region).
 3. Command `t` → Insert → type print text → Escape → `n` to submit. Confirm
    the article has a UEB `aria-braillelabel` (inspect or AT).
-4. Add item → Command `e` for Equation / Nemeth → Insert → author `#1+2`
-   (ASCII Nemeth) → Replace.
-5. Enter explorer → arrow to a term → **E** → change it → Replace.
+4. Add item → Command `x` for Equation / Nemeth → Insert → author `#1+2`
+   (ASCII Nemeth) → Replace. Non-cell QWERTY keys show a field error; `q`
+   in Command cancels.
+5. Enter explorer → arrow to a term → **E** (Edit; not Command `x`) → change
+   it → Replace.
 6. Cmd/Ctrl+Z undoes a submitted replacement; Shift+Z redoes.
 7. Backspace in an open Nemeth draft undoes the last accepted step.
 8. `?` in Command opens contextual help for the current state.
@@ -97,11 +100,14 @@ source before the task. Full protocol:
 **Core AT path to try:**
 
 1. Create a napkin; Add item.
-2. Listen for Command / Insert announcements on the live status region.
-3. Command `t` / `e` to choose Text vs Equation (not radios).
+2. Escape enters Command in text and in the equation / replacement dock; `q`
+   cancels. Command `s` focuses the authoring mode panel on demand (not live).
+3. Command `t` / `x` to choose Text vs Equation (not radios).
 4. For an equation: author cells into the replacement / composer field from
-   the braille display; Replace.
-5. Enter explorer; arrow to a subexpression; press **E**; author; Replace.
+   the braille display; Nemeth rejects non-cell keys with a field error;
+   Replace.
+5. Enter explorer; arrow to a subexpression; press **E** (Edit); author;
+   Replace.
 6. Confirm the focused braille matches the **subtree**, not only the whole
    expression.
 7. Undo / redo; save; quit; reopen.
