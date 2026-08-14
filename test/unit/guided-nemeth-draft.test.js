@@ -3187,3 +3187,38 @@ test('Rule 19-26 absolute-value bars prefer grouping without a mid-letter choice
   assert.equal(tree.children[1].children[0].text, 'x');
   assert.equal(tree.children[2].attrs['data-omniya-nemeth-cells'], '⠳');
 });
+
+test('Rule 24-11 multipurpose less-than then equals keeps literary mins', () => {
+  const { document } = replayCells(sourceNotationToCells(`,d"2 "k".k #5 ,'m1ns ,d"2`));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠠⠙');
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+  assert.equal(tree.children[3].attrs['data-omniya-nemeth-cells'], '⠐⠅');
+  assert.equal(tree.children[3].children[0].text, '<');
+  assert.equal(tree.children[4].attrs['data-omniya-nemeth-cells'], '⠐⠨⠅');
+  const word = tree.children.filter((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'ueb-word');
+  assert.equal(word.map((node) => node.children[0].text).join(''), 'm1ns');
+  assert.equal(word[0].attrs['data-omniya-nemeth-cells'], '⠠⠄⠍');
+});
+
+test('Rule 24-19 adjacent bars keep multipurpose without a choice dock', () => {
+  const { document } = replayCells(sourceNotationToCells('\\x\\"\\y\\'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children.map((node) => node.name).join(','), 'mo,mi,mo,mo,mi,mo');
+  assert.equal(tree.children[3].attrs['data-omniya-nemeth-cells'], '⠐⠳');
+  assert.equal(tree.children[3].attrs['data-omniya-nemeth-intent'], 'adjacent-vertical-bar');
+});
+
+test('Rule 24-22 adjacent bars then subscripted bar stay siblings', () => {
+  const { document } = replayCells(sourceNotationToCells('\\x\\"\\;x ;.k #0'), {
+    '⠰⠭': 'script.subscript'
+  });
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠳');
+  assert.equal(tree.children[2].attrs['data-omniya-nemeth-cells'], '⠳');
+  assert.equal(tree.children[3].name, 'msub');
+  assert.equal(tree.children[3].children[0].attrs['data-omniya-nemeth-cells'], '⠐⠳');
+});

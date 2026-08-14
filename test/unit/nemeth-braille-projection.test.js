@@ -2089,3 +2089,69 @@ test('Rule 21-20 letter before equals strips English indicator on relation', () 
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠭⠀⠰⠨⠅', source), '⠭⠀⠨⠅');
 });
+
+test('Rule 13-27 complex opener strips a spurious numerator number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mfrac data-omniya-fraction-kind="complex"><mn data-omniya-nemeth-intent="numeric-start">5</mn><mrow><mn data-omniya-nemeth-intent="numeric-start">4</mn><mfrac data-omniya-fraction-kind="mixed"><mn data-omniya-nemeth-intent="numeric-start">3</mn><mn data-omniya-nemeth-intent="numeric-start">8</mn></mfrac></mrow></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠹⠼⠢⠠⠌⠲⠸⠹⠒⠌⠦⠸⠼⠠⠼', source),
+    '⠠⠹⠢⠠⠌⠲⠸⠹⠒⠌⠦⠸⠼⠠⠼'
+  );
+});
+
+test('Rule 24-6 scripted bevelled minus drops opener and terminator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">2n1</mn><msup data-omniya-nemeth-intent="multipurpose-superscript" data-omniya-nemeth-cells="⠐⠘"><mn data-omniya-nemeth-intent="lower-cell-numeric">5</mn><mrow><mo data-omniya-nemeth-cells="⠤">−</mo><mfrac data-omniya-fraction-kind="simple" bevelled="true"><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></mfrac></mrow></msup><mo data-omniya-nemeth-cells="⠤">−</mo><mi>n</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><msup data-omniya-nemeth-intent="multipurpose-superscript" data-omniya-nemeth-cells="⠐⠘"><mn data-omniya-nemeth-intent="lower-cell-numeric">5</mn><mrow><mo data-omniya-nemeth-cells="⠤">−</mo><mfrac data-omniya-fraction-kind="simple" bevelled="true"><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></mfrac></mrow></msup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠆⠝⠂⠢⠘⠤⠹⠒⠸⠌⠆⠼⠐⠤⠝⠆⠐⠢⠘⠤⠹⠂⠸⠌⠆⠼', source),
+    '⠼⠆⠝⠂⠐⠢⠘⠤⠒⠸⠌⠆⠐⠤⠝⠆⠐⠢⠘⠤⠂⠸⠌⠆'
+  );
+});
+
+test('Rule 24-11 multipurpose comparison and UEB mins restore authored cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠠⠙">D</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠐⠅">&lt;</mo><mo data-omniya-nemeth-intent="multipurpose-equals" data-omniya-nemeth-cells="⠐⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">5</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mtext data-omniya-nemeth-intent="ueb-word" data-omniya-nemeth-cells="⠠⠄⠍">m</mtext><mtext data-omniya-nemeth-intent="ueb-word" data-omniya-nemeth-cells="⠂">1</mtext><mtext data-omniya-nemeth-intent="ueb-word" data-omniya-nemeth-cells="⠝">n</mtext><mtext data-omniya-nemeth-intent="ueb-word" data-omniya-nemeth-cells="⠎">s</mtext><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠠⠙">D</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠙⠆⠀⠅⠀⠨⠅⠀⠼⠢⠀⠍⠂⠝⠎⠀⠠⠙⠆', source),
+    '⠠⠙⠐⠆⠀⠐⠅⠐⠨⠅⠀⠼⠢⠀⠠⠄⠍⠂⠝⠎⠀⠠⠙⠐⠆'
+  );
+});
+
+test('Rule 24-15 decimal multipurpose plus drops a spurious number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-decimal">3.</mn><mo data-omniya-nemeth-intent="decimal-nonnumeric" data-omniya-nemeth-cells="⠬">+</mo><mn data-omniya-nemeth-intent="numeric-decimal">.4</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">3.4</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠒⠨⠐⠬⠼⠨⠲⠀⠨⠅⠀⠼⠒⠨⠲', source),
+    '⠼⠒⠨⠐⠬⠨⠲⠀⠨⠅⠀⠼⠒⠨⠲'
+  );
+});
+
+test('Rule 24-22 adjacent bars restore multipurpose before the following bar', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠳">|</mo><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-cells="⠳">|</mo><mo data-omniya-nemeth-intent="adjacent-vertical-bar" data-omniya-nemeth-cells="⠐⠳">|</mo><msub><mi>x</mi><mrow><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-intent="level-preserved-equals" data-omniya-nemeth-cells="⠰⠨⠅">=</mo><mn data-omniya-nemeth-intent="numeric-start">0</mn></mrow></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠳⠭⠳⠳⠰⠭⠀⠰⠨⠅⠀⠼⠴', source),
+    '⠳⠭⠳⠐⠳⠰⠭⠀⠰⠨⠅⠀⠼⠴'
+  );
+});
+
+test('Rule 24-24 solid square keeps multipurpose around the shape', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mn data-omniya-nemeth-intent="numeric-start">9</mn><mn data-omniya-nemeth-intent="numeric-start">7</mn></msub><mo data-omniya-nemeth-cells="⠫⠸⠲">■</mo><msub data-omniya-nemeth-intent="multipurpose-subscript" data-omniya-nemeth-cells="⠐⠰"><mn data-omniya-nemeth-intent="lower-cell-numeric">13</mn><mn data-omniya-nemeth-intent="lower-cell-numeric">7</mn></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠔⠰⠶⠀⠫⠸⠲⠀⠂⠒⠰⠶', source),
+    '⠼⠔⠰⠶⠐⠫⠸⠲⠐⠂⠒⠰⠶'
+  );
+});
