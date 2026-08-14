@@ -700,16 +700,12 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     });
     await inputProcessing;
   };
-  const keyHandler = async (event) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      await cancelReplacementEditor(article);
-      return;
-    }
-    if (event.key !== 'Enter' || event.shiftKey) return;
-    event.preventDefault();
-    event.stopPropagation();
+  // Keep the complete submit transaction on the active session/editor so all
+  // entry points (keyboard and button) share exactly the same behavior.
+  let submittingReplacement = false;
+  const submitReplacementEditor = async () => {
+    if (!replacementSession || submittingReplacement) return;
+    submittingReplacement = true;
     try {
       await inputProcessing;
       if (replacementSession.method === 'nemeth' && replacementSession.nemethState.prefix) {
@@ -772,7 +768,22 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     } catch (error) {
       elements['replacement-status'].textContent = error.message;
       editor.setAttribute('aria-invalid', 'true');
+    } finally {
+      submittingReplacement = false;
     }
+  };
+  editor._replacementSubmitHandler = submitReplacementEditor;
+  const keyHandler = async (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      await cancelReplacementEditor(article);
+      return;
+    }
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    event.preventDefault();
+    event.stopPropagation();
+    await submitReplacementEditor();
   };
   editor._replacementInputHandler = inputHandler;
   editor._replacementKeyHandler = keyHandler;
@@ -1002,7 +1013,7 @@ elements['napkin-list'].addEventListener('keydown', (event) => {
 
 elements['open-add-button'].addEventListener('click', openAddMode);
 elements['replacement-submit'].addEventListener('click', () => {
-  replacementEditor?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  void replacementEditor?._replacementSubmitHandler?.();
 });
 elements['replacement-cancel'].addEventListener('click', () => {
   const article = replacementSession && elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(activeItem()?.id ?? '')}"]`);
