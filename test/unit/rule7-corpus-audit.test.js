@@ -9,6 +9,8 @@ test('Rule 7 official corpus rows retain source links and expose unverified Elec
   const rows = corpus.cases.filter((entry) => entry.exampleNumber.startsWith('7-'));
   assert.equal(rows.length, 24);
   const inventoryIds = new Set(inventory.rows.map((row) => row.id));
+  const seven22 = inventory.rows.find((row) => row.id === 'bana-2022:example-7-22');
+  assert.equal(seven22.disposition, 'approved-context-policy');
   for (const row of rows) {
     assert.ok(row.sourceRows?.length, `${row.exampleNumber} has no source row links`);
     assert.ok(row.sourceRows.every((id) => inventoryIds.has(`bana-2022:${id}`) || inventoryIds.has(id)), `${row.exampleNumber} has an unresolved source link`);

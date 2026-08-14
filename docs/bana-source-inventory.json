@@ -12061,7 +12061,7 @@
       "printedPage": "7-7",
       "pdfPage": 109,
       "auditOrder": 415,
-      "disposition": "unclassified",
+      "disposition": "approved-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -12080,7 +12080,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "pending"
+      "transcriberReview": "reviewed: prose typeform example outside equation-tree scope"
     },
     {
       "id": "bana-2022:example-7-23",
