@@ -408,7 +408,7 @@ function renderComposer() {
   elements['composer-help'].textContent = editing
     ? 'Save changes commits the item · Ctrl+[ enters Command · Escape cancels'
     : values.type === 'equation'
-      ? 'Enter creates an empty equation and opens the replacement writer · Ctrl+[ enters Command · Escape cancels'
+      ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command · Escape cancels'
       : 'Enter adds · Shift+Enter makes a new line · Ctrl+[ enters Command · Escape cancels';
   elements['composer-source'].hidden = !editing && values.type === 'equation';
   elements['composer-source'].required = editing || values.type !== 'equation';
@@ -1407,6 +1407,7 @@ elements['replacement-method'].addEventListener('change', () => {
 });
 elements['composer-command'].addEventListener('click', () => {
   if (mode !== 'add' && mode !== 'edit' && !replacementSession) return;
+  if (commandState.interaction !== 'insert') return;
   syncCommandContentEmpty();
   commandState = enterCommand(commandState);
   syncModePanel(commandState);
