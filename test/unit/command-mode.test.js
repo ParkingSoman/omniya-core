@@ -80,6 +80,34 @@ test('question mark requests contextual help', () => {
   assert.match(r.announcement, /Command/i);
 });
 
+test('q is unknown (cancel is Escape outside the machine)', () => {
+  const s = enterCommand(createCommandState({ itemKind: 'text' }));
+  const r = applyCommandKey(s, 'q');
+  assert.equal(r.action, undefined);
+  assert.match(r.announcement, /Unknown command/i);
+});
+
+test('formatStatus includes replacing scope label', () => {
+  const s = createCommandState({
+    itemKind: 'equation',
+    equationMethod: 'nemeth',
+    contentEmpty: true,
+    replaceScopeLabel: 'integral'
+  });
+  assert.match(formatStatus(s), /replacing: integral/i);
+});
+
+test('t refuses when replaceScopeLabel is set', () => {
+  const s = enterCommand(createCommandState({
+    itemKind: 'equation',
+    contentEmpty: true,
+    replaceScopeLabel: 'term'
+  }));
+  const r = applyCommandKey(s, 't');
+  assert.equal(r.state.itemKind, 'equation');
+  assert.match(r.announcement, /Can’t switch to Text|Cannot switch to Text|replacing/i);
+});
+
 test('gradeForUebBackTranslate uses g1 for whole-item g1 or G1 passage', () => {
   assert.equal(
     gradeForUebBackTranslate(createCommandState({ contentEmpty: true, uebGrade: 'g1' })),

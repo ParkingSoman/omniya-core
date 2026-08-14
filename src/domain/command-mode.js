@@ -4,9 +4,10 @@ export function createCommandState({
   equationMethod = 'nemeth',
   uebGrade = 'g2', // whole-item grade when contentEmpty started as text
   g1Passage = false, // mid-block pending G1 passage
-  contentEmpty = true
+  contentEmpty = true,
+  replaceScopeLabel = null
 } = {}) {
-  return { interaction, itemKind, equationMethod, uebGrade, g1Passage, contentEmpty };
+  return { interaction, itemKind, equationMethod, uebGrade, g1Passage, contentEmpty, replaceScopeLabel };
 }
 
 export function enterCommand(state) {
@@ -27,7 +28,8 @@ export function formatStatus(state) {
   }
   if (state.itemKind === 'equation') {
     const fill = state.contentEmpty ? 'empty' : 'editing';
-    return `${mode} · Equation · ${state.equationMethod === 'latex' ? 'LaTeX' : 'Nemeth'} · ${fill}`;
+    const scope = state.replaceScopeLabel ? ` · replacing: ${state.replaceScopeLabel}` : '';
+    return `${mode} · Equation · ${state.equationMethod === 'latex' ? 'LaTeX' : 'Nemeth'} · ${fill}${scope}`;
   }
   return `${mode} · (choosing)`;
 }
@@ -51,10 +53,12 @@ export function applyCommandKey(state, key) {
     return { state: next, announcement: 'Insert mode' };
   }
   if (key === '?') return { state, announcement: formatStatus(state), action: 'help' };
-  if (key === 'q') return { state, announcement: 'Cancelled', action: 'cancel' };
   if (key === 'n') return { state, announcement: formatStatus(state), action: 'submit' };
 
   if (key === 't') {
+    if (state.replaceScopeLabel) {
+      return { state, announcement: "Can't switch to Text while replacing mathematics." };
+    }
     if (state.itemKind === 'equation' && !state.contentEmpty) {
       return { state, announcement: "Can’t switch to Text after equation content exists." };
     }
