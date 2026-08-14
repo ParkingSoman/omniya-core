@@ -16,7 +16,10 @@ Some Nemeth symbols are a single local construction made from several cells.
 An arrow is one example. Type all of the cells for the arrow, then press
 **Enter**. Omniya creates the arrow only after the complete registered code is
 present. If the code is incomplete or invalid, the draft does not change and
-the input remains available for correction.
+the input remains available for correction. Backspace undoes the last accepted
+Nemeth step in the open draft (one cell, pending prefix cell, choice, or local
+code commit). It does not delete the whole equation; Escape still cancels the
+entire replacement.
 
 Enter always has a small, local meaning in Nemeth mode:
 

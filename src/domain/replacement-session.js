@@ -24,6 +24,28 @@ function cloneSession(session) {
   return structuredClone(session);
 }
 
+function snapshotNemethStep(session) {
+  return {
+    draft: structuredClone(session.draft),
+    draftFocus: structuredClone(session.draftFocus ?? session.draft?.focus ?? null),
+    nemethState: structuredClone(session.nemethState ?? { prefix: '', mode: null }),
+    pendingNemethBoundary: session.pendingNemethBoundary ?? null
+  };
+}
+
+function pushNemethStep(session, next) {
+  next.stepHistory = [...(session.stepHistory ?? []), snapshotNemethStep(session)];
+}
+
+function sessionStateChanged(session, result, next) {
+  if (result.status === 'rejected') {
+    return JSON.stringify(next.nemethState) !== JSON.stringify(session.nemethState) ||
+      next.draft?.mathml !== session.draft?.mathml ||
+      JSON.stringify(next.draftFocus) !== JSON.stringify(session.draftFocus ?? session.draft?.focus);
+  }
+  return true;
+}
+
 export function startReplacementSession({ document = null, target, explorerFocus = null, method = 'nemeth' }) {
   if (!target?.kind) throw new TypeError('A replacement target is required');
   if (!['nemeth', 'latex'].includes(method)) throw new TypeError('Unknown authoring method');
@@ -36,7 +58,8 @@ export function startReplacementSession({ document = null, target, explorerFocus
     draft,
     draftFocus: draft.focus,
     nemethState: { prefix: '', mode: null },
-    latexSource: ''
+    latexSource: '',
+    stepHistory: []
   };
 }
 
@@ -89,6 +112,7 @@ export function applyNemethCell(session, cell) {
     next.draft = result.document;
     next.draftFocus = result.focus;
   }
+  if (sessionStateChanged(session, result, next)) pushNemethStep(session, next);
   return { ...result, session: next };
 }
 
@@ -138,6 +162,7 @@ export function applyNemethChoice(session, operationId) {
     next.draft = result.document;
     next.draftFocus = result.focus;
   }
+  if (sessionStateChanged(session, result, next)) pushNemethStep(session, next);
   if (result.status === 'applied' && session.pendingNemethBoundary === 'space') {
     delete next.pendingNemethBoundary;
     return applyNemethCell(next, ' ');
@@ -159,7 +184,39 @@ export function commitNemethLocalCode(session) {
     next.draft = result.document;
     next.draftFocus = result.focus;
   }
+  if (sessionStateChanged(session, result, next)) pushNemethStep(session, next);
   return { ...result, session: next };
+}
+
+/**
+ * Undo the last Nemeth draft transition (one accepted cell, pending prefix
+ * cell, choice resolution, or local-code commit). Empty drafts reject.
+ */
+export function undoNemethStep(session) {
+  if (session.method !== 'nemeth') throw new Error('The replacement session is not in Nemeth mode.');
+  const history = session.stepHistory ?? [];
+  if (history.length === 0) {
+    return {
+      status: 'rejected',
+      session,
+      announcement: 'Nothing to undo in this draft.'
+    };
+  }
+  const next = cloneSession(session);
+  const previous = next.stepHistory.pop();
+  next.draft = previous.draft;
+  next.draftFocus = previous.draftFocus;
+  next.nemethState = previous.nemethState;
+  if (previous.pendingNemethBoundary) next.pendingNemethBoundary = previous.pendingNemethBoundary;
+  else delete next.pendingNemethBoundary;
+  return {
+    status: 'undone',
+    session: next,
+    document: next.draft,
+    focus: next.draftFocus,
+    inputState: next.nemethState,
+    announcement: 'Undid last Nemeth input.'
+  };
 }
 
 function replacementNode(tree) {

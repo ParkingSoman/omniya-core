@@ -10,6 +10,7 @@ import {
   applyNemethBoundary,
   applyNemethChoice,
   commitNemethLocalCode,
+  undoNemethStep,
   cancelReplacement,
   submitReplacement,
   setLatexSource,
@@ -283,4 +284,62 @@ test('a five-step modifier over a superscript submits without an unfilled hole',
   const committed = await submitReplacement(session);
   assert.match(committed.document.mathml, /<mover[\s\S]*<msup[\s\S]*<mi[^>]*>x<\/mi>[\s\S]*<mn[^>]*>2<\/mn>/);
   assert.equal(committed.document.mathml.includes('data-omniya-hole'), false);
+});
+
+test('undoNemethStep rejects when the draft has no prior Nemeth input', () => {
+  const session = replacementSession();
+  const undone = undoNemethStep(session);
+  assert.equal(undone.status, 'rejected');
+  assert.match(undone.announcement, /nothing to undo/i);
+  assert.equal(undone.session.draft.mathml, session.draft.mathml);
+});
+
+test('undoNemethStep removes the last applied immediate cell from the draft', () => {
+  let session = replacementSession();
+  session = applyNemethCell(session, '⠭').session;
+  session = applyNemethCell(session, '⠽').session;
+  assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
+  assert.match(session.draft.mathml, /<mi[^>]*>y<\/mi>/);
+
+  const undone = undoNemethStep(session);
+  assert.equal(undone.status, 'undone');
+  session = undone.session;
+  assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
+  assert.equal(session.draft.mathml.includes('>y<'), false);
+
+  const emptied = undoNemethStep(session);
+  assert.equal(emptied.status, 'undone');
+  assert.equal(parseMathML(emptied.session.draft.mathml).children.length, 0);
+});
+
+test('undoNemethStep clears a pending operator after an applied letter', () => {
+  let session = replacementSession();
+  session = applyNemethCell(session, '⠭').session;
+  const pending = applyNemethCell(session, '⠬');
+  assert.equal(pending.status, 'pending');
+  session = pending.session;
+  assert.equal(session.nemethState.prefix, '⠬');
+  assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
+
+  session = undoNemethStep(session).session;
+  assert.equal(session.nemethState.prefix, '');
+  assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
+});
+
+test('undoNemethStep clears a pending atomic prefix one cell at a time', () => {
+  let session = replacementSession();
+  for (const cell of ['⠫', '⠒', '⠒']) {
+    const result = applyNemethCell(session, cell);
+    assert.equal(result.status, 'pending', result.announcement);
+    session = result.session;
+  }
+  assert.equal(session.nemethState.prefix, '⠫⠒⠒');
+
+  session = undoNemethStep(session).session;
+  assert.equal(session.nemethState.prefix, '⠫⠒');
+  session = undoNemethStep(session).session;
+  assert.equal(session.nemethState.prefix, '⠫');
+  session = undoNemethStep(session).session;
+  assert.equal(session.nemethState.prefix, '');
+  assert.equal(undoNemethStep(session).status, 'rejected');
 });

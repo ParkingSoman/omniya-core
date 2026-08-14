@@ -16,7 +16,11 @@ const isAutomatedTest = Boolean(process.env.OMNIYA_TEST_USER_DATA_DIR);
 // Playwright still drives the hidden BrowserWindow and can capture screenshots.
 // Do not append Chromium --headless here: Playwright's Electron launcher needs
 // a real BrowserWindow + remote debugging, which that switch breaks.
-const runHeadless = isAutomatedTest || process.env.OMNIYA_HEADLESS === '1';
+// OMNIYA_HEADLESS=0 forces a visible window even when a test userData dir is set
+// (headed demos). Unset + test userData still defaults to hidden.
+const runHeadless = process.env.OMNIYA_HEADLESS === '0'
+  ? false
+  : process.env.OMNIYA_HEADLESS === '1' || isAutomatedTest;
 
 if (process.env.OMNIYA_TEST_USER_DATA_DIR) {
   app.setPath('userData', process.env.OMNIYA_TEST_USER_DATA_DIR);

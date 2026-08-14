@@ -21,7 +21,8 @@ import {
   setLatexSource,
   setReplacementMethod,
   startReplacementSession,
-  submitReplacement
+  submitReplacement,
+  undoNemethStep
 } from '../domain/replacement-session.js';
 import {
   applyCommandKey,
@@ -650,30 +651,31 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       editor.value = '';
       elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
       await renderDraftPreview();
-    } else if (result.status === 'pending') {
-      // The input is a one-cell native proxy, not a Nemeth passage buffer.
-      // Keep the bounded prefix exclusively in NemethState; leaving it in the
-      // textarea causes the next physical cell to be dispatched as prefix+cell.
-      editor.value = '';
+    } else if (result.status === 'pending' || result.status === 'choice') {
+      // Mirror the held bounded prefix so a braille display can feel the
+      // incomplete local code (arrows, shapes, etc.). Immediate commits still
+      // clear above; this is not a passage buffer.
+      const prefix = replacementSession.nemethState?.prefix || '';
+      editor.value = prefix;
+      editor.setSelectionRange(prefix.length, prefix.length);
       elements['replacement-status'].textContent = result.announcement;
-    } else if (result.status === 'choice') {
-      editor.value = '';
-      elements['replacement-status'].textContent = result.announcement;
-      elements['replacement-choices'].replaceChildren(...result.choices.map((choice) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'replacement-choice';
-        button.dataset.operationId = choice.operationId;
-        button.textContent = choice.label;
-        button.title = `BANA ${choice.banaRefs.join(', ')}`;
-        return button;
-      }));
-      elements['replacement-choices'].hidden = false;
+      if (result.status === 'choice') {
+        elements['replacement-choices'].replaceChildren(...result.choices.map((choice) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'replacement-choice';
+          button.dataset.operationId = choice.operationId;
+          button.textContent = choice.label;
+          button.title = `BANA ${choice.banaRefs.join(', ')}`;
+          return button;
+        }));
+        elements['replacement-choices'].hidden = false;
+      }
     } else {
       // Invalid local input must remain available for correction. The
       // canonical draft has not changed, and the visible value is still only
       // the current bounded code (not an accumulated expression).
-      editor.value = '';
+      editor.value = replacementSession.nemethState?.prefix || '';
       elements['replacement-status'].textContent = result.announcement;
       editor.setAttribute('aria-invalid', 'true');
     }
@@ -723,17 +725,25 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       replacementSession = setLatexSource(replacementSession, editor.value);
       return;
     }
-    // The visible control mirrors a pending bounded prefix so a display user
-    // can review it.  When the next physical cell arrives, the browser input
-    // event therefore contains `prefix + newCell`; feed only the new suffix
-    // to the transition engine.  Re-consuming the mirrored prefix would
-    // duplicate scripts/fractions while making a real Electron workflow look
-    // like a parser bug.
+    // The visible control mirrors a pending bounded prefix so a braille
+    // display can feel it. Real typing appends, so the input event is
+    // `prefix + newCell` — feed only the suffix. One-cell fills (tests /
+    // select-all replace) put only the new cell in the control while the
+    // engine still holds the prefix; treat that whole value as the suffix.
+    // Re-consuming the mirrored prefix would duplicate scripts/fractions.
+    const knownPrefix = replacementSession.nemethState?.prefix || '';
     const visible = editor.value;
-    const cells = [...visible];
-    editor.value = '';
+    const suffix = knownPrefix && visible.startsWith(knownPrefix)
+      ? visible.slice(knownPrefix.length)
+      : visible;
+    const cells = [...suffix];
     inputProcessing = inputProcessing.then(async () => {
       for (const cell of cells) await consumeCell(cell);
+      if (!cells.length && replacementSession?.nemethState?.prefix) {
+        const prefix = replacementSession.nemethState.prefix;
+        editor.value = prefix;
+        editor.setSelectionRange(prefix.length, prefix.length);
+      }
     });
     await inputProcessing;
   };
@@ -751,16 +761,19 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
         if (local.status === 'applied') {
           elements['replacement-status'].textContent = `Local code committed: ${local.announcement}`;
           editor.value = '';
-          await renderDraftPreview();
           // A held short code is still an immediate operation.  Enter is its
           // disambiguator, so after committing it the same Enter may submit a
           // now-complete draft.  Atomic constructions intentionally stop here:
           // their Enter commits only that bounded local construction and the
-          // next Enter submits the replacement.
+          // next Enter submits the replacement.  Release the submit guard
+          // before the draft preview so the follow-up Enter is not dropped.
           if (local.localCommitPolicy !== 'immediate' && !allowAtomicSubmit) {
+            submittingReplacement = false;
+            await renderDraftPreview();
             editor.focus();
             return;
           }
+          await renderDraftPreview();
         } else if (local.status === 'choice') {
           elements['replacement-status'].textContent = local.announcement;
           elements['replacement-choices'].replaceChildren(...local.choices.map((choice) => {
@@ -815,6 +828,22 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       event.preventDefault();
       event.stopPropagation();
       await cancelReplacementEditor(article);
+      return;
+    }
+    if (event.key === 'Backspace' && replacementSession?.method === 'nemeth') {
+      event.preventDefault();
+      event.stopPropagation();
+      await inputProcessing;
+      const result = undoNemethStep(replacementSession);
+      replacementSession = result.session;
+      editor.value = result.session.nemethState?.prefix || '';
+      const prefix = editor.value;
+      editor.setSelectionRange(prefix.length, prefix.length);
+      elements['replacement-choices'].replaceChildren();
+      elements['replacement-choices'].hidden = true;
+      elements['replacement-status'].textContent = result.announcement;
+      editor.toggleAttribute('aria-invalid', result.status === 'rejected');
+      if (result.status === 'undone') await renderDraftPreview();
       return;
     }
     if (event.key !== 'Enter' || event.shiftKey) return;
