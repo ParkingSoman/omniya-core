@@ -552,6 +552,34 @@ test('Rule 14.8.7 integral subscript equals keeps the level indicator after a bl
   assert.equal(equals.attrs?.['data-omniya-nemeth-cells'], '⠰⠨⠅');
 });
 
+test('Rule 14.9.5 levelled comparisons keep sub/sup equals then baseline equals', () => {
+  const { document } = replayCells(sourceNotationToCells('t`);t ;.k a~t ~.k b .k b-a'), {
+    '⠨⠅': 'operator.equals',
+    '⠰⠞': 'script.subscript'
+  });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].children[0].text, 't');
+  assert.equal(tree.children[1].name, 'msub');
+  const subSlot = tree.children[1].children[1];
+  const slotChildren = subSlot.name === 'mrow' ? subSlot.children : [subSlot];
+  const subEquals = slotChildren.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'level-preserved-equals'
+    && node.attrs?.['data-omniya-nemeth-cells'] === '⠰⠨⠅');
+  assert.ok(subEquals, 'subscript-level equals stays inside the bracket subscript');
+  const raised = slotChildren.find((node) => node.name === 'msup');
+  assert.ok(raised, 'a~t remains a superscript inside the subscript row');
+  const supEquals = slotChildren.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'level-preserved-equals'
+    && node.attrs?.['data-omniya-nemeth-cells'] === '⠘⠨⠅');
+  assert.ok(supEquals, 'superscript-level equals is a sibling after a~t, not a left-script');
+  assert.ok(!slotChildren.some((node) => node.name === 'mmultiscripts'),
+    'level-preserved ~.k must not open left-scripts');
+  const baselineEquals = tree.children.find((node) => node.name === 'mo' && node.children?.[0]?.text === '='
+    && node.attrs?.['data-omniya-nemeth-intent'] !== 'level-preserved-equals');
+  assert.ok(baselineEquals, 'final blank+.k places equals at the math baseline');
+});
+
 test('Rule 15.7 a five-step tilde stays inside the subscript slot', () => {
   const { document } = replayCells(sourceNotationToCells(',a;"x<`:]'), { '⠈⠱': 'modifier.tilde.simple' });
   const tree = parseMathML(document.mathml);
@@ -1364,6 +1392,33 @@ test('Rule 12 adjacent cancellations keep later uncancelled letters as siblings'
   assert.equal(tree.children.filter((node) => node.name === 'menclose').length, 2);
   assert.equal(tree.children.at(-1).name, 'mi');
   assert.equal(tree.children.at(-1).children[0].text, 'z');
+});
+
+test('Rule 12-4 spatial digit-8 after empty root is a lower-cell numeral, not a quote', () => {
+  const { document } = replayCells(sourceNotationToCells('8 9 9 12 [9][0][0][ 2] - 3'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '8');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+  assert.equal(tree.children.filter((node) => node.name === 'menclose').length, 4);
+});
+
+test('Rule 12-5 cancellation without replacement keeps both cancelled pairs and the separator', () => {
+  const { document } = replayCells(sourceNotationToCells('[x][y] ?3333333# [x][y]z'));
+  const tree = parseMathML(document.mathml);
+  const cancellations = tree.children.filter((node) => node.name === 'menclose');
+  assert.equal(cancellations.length, 4);
+  assert.equal(tree.children.some((node) => node.name === 'mfrac'), true);
+  assert.equal(tree.children.at(-1).name, 'mi');
+  assert.equal(tree.children.at(-1).children[0].text, 'z');
+});
+
+test('Rule 12-3 cancelled grouped factors keep the spatial fraction separator', () => {
+  const { document } = replayCells(sourceNotationToCells('[(x+y)] ?333333333333# .k ?1/y+z# [(x+y)](y+z)'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children.filter((node) => node.name === 'menclose').length, 2);
+  assert.equal(tree.children.filter((node) => node.name === 'mfrac').length, 2);
 });
 
 test('Rule 8.7 short dash waits for its complete local code', () => {

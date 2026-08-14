@@ -1084,6 +1084,44 @@ function isAbsorbableBaselineSibling(node) {
     || intent === 'comma-ellipsis';
 }
 
+// Prior completed script sibling after an authored blank (and optional
+// ellipsis). Used by Rule 14.8.8 level-preserving indicators so `~.k` after
+// `a~t ` keeps the equals at superscript level instead of opening a new script.
+function priorCompletedScriptSibling(tree, node, scriptName) {
+  const parent = node.name === 'math' ? node : findMathParent(tree, node.attrs?.['data-omniya-id']);
+  if (!parent || !['math', 'mrow'].includes(parent.name)) return null;
+  const children = parent.children ?? [];
+  const fromIndex = node.name === 'math' ? children.length : children.indexOf(node);
+  if (fromIndex < 0) return null;
+  for (let index = fromIndex - 1; index >= 0; index -= 1) {
+    const sibling = children[index];
+    if (isAbsorbableBaselineSibling(sibling)) continue;
+    if (sibling.name === scriptName) return sibling;
+    // A script row may wrap the completed superscript (`t ;.k a~t ` → blank
+    // sits beside that row). Peek at its last non-absorbable child only.
+    if (sibling.name === 'mrow') {
+      for (let innerIndex = (sibling.children?.length ?? 0) - 1; innerIndex >= 0; innerIndex -= 1) {
+        const inner = sibling.children[innerIndex];
+        if (isAbsorbableBaselineSibling(inner)) continue;
+        if (inner.name === scriptName) return inner;
+        break;
+      }
+    }
+    return null;
+  }
+  return null;
+}
+
+function scriptLevelPreservedMode(direction) {
+  return direction === 'sup' ? 'script-level-preserved:sup' : 'script-level-preserved:sub';
+}
+
+function scriptLevelPreservedDirection(mode) {
+  if (mode === 'script-level-preserved:sup') return 'sup';
+  if (mode === 'script-level-preserved:sub' || mode === 'script-level-preserved') return 'sub';
+  return null;
+}
+
 // Rule 14.9.3/14.9.5: a space returns to baseline, then the next level
 // indicator restores the preceding script slot and absorbs the intervening
 // blanks/ellipsis. Adjacent-sibling repair only; it never scans a passage.
@@ -4261,11 +4299,12 @@ function applyMapping(document, focus, inputState, mapping) {
   // that comparison at the current script level. Stamp the authored level cell
   // onto the relation so projection can restore it after an explicit blank.
   let stampedArgs = args;
-  if (inputState.mode === 'script-level-preserved'
+  const preservedDirection = scriptLevelPreservedDirection(inputState.mode);
+  if (preservedDirection
     && mapping.id === 'operator.equals'
     && mapping.action === 'insert-token') {
-    const level = ancestor(tree, node, ['msub']) ? '⠰'
-      : ancestor(tree, node, ['msup']) ? '⠘'
+    const level = preservedDirection === 'sup' ? '⠘'
+      : preservedDirection === 'sub' ? '⠰'
         : '';
     if (level) {
       stampedArgs = {
@@ -4276,6 +4315,27 @@ function applyMapping(document, focus, inputState, mapping) {
           'data-omniya-nemeth-cells': `${level}⠨⠅`
         }
       };
+    }
+  }
+  // Rule 14.9.5 / 14-112: a blank before a comparison (with no level-preserving
+  // indicator) places that comparison at the baseline. Exit the surrounding
+  // script first, mirroring punctuation-comma baseline return.
+  if (mapping.id === 'operator.equals'
+    && !preservedDirection
+    && mapping.action === 'insert-token'
+    && (node.name === 'mspace' || node.attrs?.['data-omniya-nemeth-intent'] === 'explicit-space')
+    && ancestor(tree, node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+    const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+    if (baseline) {
+      const returned = applyMapping(document, focus, { ...inputState, prefix: '' }, baseline);
+      if (returned.status !== 'rejected') {
+        return applyMapping(
+          returned.document,
+          returned.focus,
+          { ...returned.inputState, prefix: '' },
+          mapping
+        );
+      }
     }
   }
   const operation = TREE_OPERATIONS[mapping.action];
@@ -4594,6 +4654,54 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+  // Digit-8 and left double quote share ⠦. Hold the cell at an empty root
+  // or after an authored blank until the next local cell disambiguates:
+  // blank/digit → lower-cell 8 (12-4); any other follow-up → quotation (`8>_0`).
+  if (state.mode === null && !state.prefix && normalized === '⠦' &&
+    ((context.node.name === 'math' && !(context.node.children?.length > 0)) ||
+      context.node.name === 'mspace' ||
+      ((context.node.name === 'math' || context.node.name === 'mrow') &&
+        context.node.children?.at(-1)?.name === 'mspace' &&
+        context.node.children.at(-1).attrs?.['data-omniya-nemeth-intent'] === 'explicit-space'))) {
+    return {
+      status: 'pending',
+      document,
+      focus,
+      inputState: { ...state, prefix: '⠦', mode: 'digit-or-quote' },
+      announcement: 'Nemeth digit or quotation pending.'
+    };
+  }
+  if (state.mode === 'digit-or-quote' && state.prefix === '⠦') {
+    // normalizeCell maps Braille blank U+2800 to ASCII space.
+    const asDigit = normalized === ' ' || normalized === '⠀' || DIGITS.has(normalized);
+    if (asDigit) {
+      const digit = digitMapping('⠦');
+      digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+      const committed = applyMapping(document, focus, { ...state, prefix: '', mode: 'numeric' }, digit);
+      if (committed.status === 'rejected') return committed;
+      return applyNemethCell({
+        document: committed.document,
+        focus: committed.focus,
+        inputState: committed.inputState,
+        cell: normalized
+      });
+    }
+    const quote = MAPPINGS.find((candidate) => candidate.id === 'punctuation.left-double-quote');
+    if (!quote) {
+      return {
+        status: 'rejected', document, focus, inputState: state,
+        announcement: 'That Nemeth cell is not valid at this draft focus.'
+      };
+    }
+    const committed = applyMapping(document, focus, { ...state, prefix: '', mode: null }, quote);
+    if (committed.status === 'rejected') return committed;
+    return applyNemethCell({
+      document: committed.document,
+      focus: committed.focus,
+      inputState: committed.inputState,
+      cell: normalized
+    });
+  }
   // Rule 15.16.1 continues a decimal after a completed overscripted digit
   // (example 15-78). Digits typed while focused on the closed mover, or on
   // the math root whose last child is that mover, belong to the surrounding
@@ -4941,18 +5049,29 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const capital = MAPPINGS.find((mapping) => mapping.id === `letter.capital-${LETTERS.get(normalized)}`);
     if (capital) return applyMapping(document, focus, state, capital);
   }
-  // Rule 14.8.8: dot 6 before a symbol that does not itself change level
-  // preserves the current script level.  It is therefore a local lookahead
-  // boundary, not another subscript opener.  Keep only this one-cell state;
-  // the next registered symbol is applied to the existing script row.
+  // Rule 14.8.8: a level indicator before a symbol that does not itself change
+  // level preserves that script level.  It is therefore a local lookahead
+  // boundary, not another script opener.  Keep only this one-cell state; the
+  // next registered symbol is applied to the existing script row.
   if (state.mode === null && !state.prefix && normalized === '⠰' && inSimpleSubscript) {
     return {
       status: 'pending', document, focus,
-      inputState: { ...state, mode: 'script-level-preserved' },
+      inputState: { ...state, mode: scriptLevelPreservedMode('sub') },
       announcement: 'Current script level preserved for the next symbol.'
     };
   }
-  if (state.mode === 'script-level-preserved') {
+  // Same rule with the superscript indicator: after a blank that left a
+  // completed msup (`a~t ~.k`), preserve superscript level for the comparison
+  // instead of opening a fresh left/right superscript.
+  if (state.mode === null && !state.prefix && normalized === '⠘'
+    && priorCompletedScriptSibling(context.tree, context.node, 'msup')) {
+    return {
+      status: 'pending', document, focus,
+      inputState: { ...state, mode: scriptLevelPreservedMode('sup') },
+      announcement: 'Current script level preserved for the next symbol.'
+    };
+  }
+  if (scriptLevelPreservedDirection(state.mode)) {
     // Rule 8.3.2 / 14.8 geometry words: the level-preserving dot-6 before a
     // following letter is also the English-letter indicator for that word.
     // Stamp the indicator cells on the first letter so projection can restore
@@ -6208,12 +6327,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
   }
-  // Rule 8 left double quote shares digit-8. Prefer the quote at an empty
-  // root or after an authored blank/comma so `8>_0` stays a quotation.
+  // Rule 8 left double quote shares digit-8. After a list comma, prefer the
+  // quotation (`8.1_0`). Empty-root / blank disambiguation is held above as
+  // digit-or-quote so spatial `8 9…` (12-4) can keep lower-cell numerals.
   if (state.mode === null && !state.prefix && normalized === '⠦' &&
-    ((context.node.name === 'math' && !(context.node.children?.length > 0)) ||
-      context.node.name === 'mspace' ||
-      context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma')) {
+    context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma') {
     const quote = MAPPINGS.find((candidate) => candidate.id === 'punctuation.left-double-quote');
     if (quote) return applyMapping(document, focus, state, quote);
   }
@@ -7915,6 +8033,13 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
     status: 'rejected', document, focus, inputState,
     announcement: 'There is no complete local Nemeth code to commit.'
   };
+  // A held digit-or-quote cell with no follow-up defaults to the quotation
+  // reading (`8>_0` after Enter). Spatial `8 9…` always supplies the blank
+  // or digit that resolves the ambiguity before commit.
+  if (inputState.mode === 'digit-or-quote' && prefix === '⠦') {
+    const quote = MAPPINGS.find((candidate) => candidate.id === 'punctuation.left-double-quote');
+    if (quote) return applyMapping(document, focus, { ...inputState, prefix: '', mode: null }, quote);
+  }
   const context = contextFor(document, focus);
   const mappings = resolveModifierAmbiguity((PREFIXES.get(prefix)?.mappings ?? [])
     .filter((mapping) => mappingApplies(mapping, context)), inputState.mode)

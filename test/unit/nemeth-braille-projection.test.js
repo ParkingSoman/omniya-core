@@ -545,6 +545,13 @@ test('cancelled grouped factors do not grow a fence before a following fraction 
     ),
     expected
   );
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠪⠷⠭⠬⠽⠾⠻⠀⠹⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠼⠾⠀⠨⠅⠀⠹⠂⠌⠽⠬⠵⠼⠀⠪⠷⠭⠬⠽⠾⠻⠻⠻⠻⠻⠻⠻⠷⠽⠬⠵⠾',
+      source
+    ),
+    expected
+  );
 });
 
 test('adjacent letter cancellations keep one terminator each', () => {
@@ -554,6 +561,28 @@ test('adjacent letter cancellations keep one terminator each', () => {
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠪⠭⠻⠪⠽⠻', source), '⠪⠭⠻⠪⠽⠻');
   assert.equal(applyNemethSourceIntentToBraille('⠪⠭⠻⠻⠻⠪⠽⠻⠻', source), '⠪⠭⠻⠪⠽⠻');
+});
+
+test('Rule 12-5 spatial cancellation separator keeps authored blanks', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <menclose notation="updiagonalstrike" data-omniya-nemeth-cells="⠪⠻"><mi data-omniya-nemeth-cells="⠭">x</mi></menclose>
+      <menclose notation="updiagonalstrike" data-omniya-nemeth-cells="⠪⠻"><mi data-omniya-nemeth-cells="⠽">y</mi></menclose>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="numeric-start">3333333</mn><mrow><mspace/></mrow></mfrac>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <menclose notation="updiagonalstrike" data-omniya-nemeth-cells="⠪⠻"><mi data-omniya-nemeth-cells="⠭">x</mi></menclose>
+      <menclose notation="updiagonalstrike" data-omniya-nemeth-cells="⠪⠻"><mi data-omniya-nemeth-cells="⠽">y</mi></menclose>
+      <mi data-omniya-nemeth-cells="⠵">z</mi>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  const expected = '⠪⠭⠻⠪⠽⠻⠀⠹⠒⠒⠒⠒⠒⠒⠒⠼⠀⠪⠭⠻⠪⠽⠻⠵';
+  assert.equal(applyNemethSourceIntentToBraille(expected, source), expected);
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠪⠭⠻⠪⠽⠻⠹⠒⠒⠒⠒⠒⠒⠒⠼⠪⠭⠻⠪⠽⠻⠵', source),
+    expected
+  );
 });
 
 test('a cancelled letter followed by an uncancelled letter keeps a single terminator', () => {
