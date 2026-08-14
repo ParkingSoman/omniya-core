@@ -476,6 +476,15 @@ test('Rule 16.3 nested radical order builds and closes a local inner radical', (
   assert.equal(root.children[0].children[0].name, 'mrow');
 });
 
+test('UEB passage mode inserts neutral alphabetic cells as source-linked mtext', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: 'ueb-passage' };
+  const result = applyNemethCell({ document, focus, inputState, cell: '⠁' });
+  assert.equal(result.status, 'applied');
+  assert.match(result.document.mathml, /<mtext[^>]*data-omniya-nemeth-intent="ueb-passage"[^>]*>a<\/mtext>/);
+});
+
 test('indexed radicals preserve MathML child order while following Nemeth entry order', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

@@ -3174,6 +3174,22 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+  // UEB literary passage/word modes admit neutral alphabetic cells without
+  // changing the mathematical mode. Preserve the authored Braille cells on
+  // speech-safe mtext so projection can reproduce the source exactly.
+  if (!state.prefix && (state.mode === 'ueb-passage' || state.mode === 'ueb-word') && LETTERS.has(normalized)) {
+    return applyMapping(document, focus, state, {
+      id: `ueb-neutral.${LETTERS.get(normalized)}`,
+      cells: [normalized],
+      banaRefs: ['4.1', '4.2'],
+      action: 'insert-token',
+      commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: { name: 'mtext', value: LETTERS.get(normalized), dataAttributes: {
+        'data-omniya-nemeth-intent': state.mode,
+        'data-omniya-nemeth-cells': normalized
+      } }
+    });
+  }
   if (state.mode === null && state.prefix === '⠘' && LETTERS.has(normalized) &&
     (context.node.name === 'math' || isHole(context.node))) {
     const superscript = MATCHABLE_MAPPINGS.find((mapping) => mapping.id === 'script.superscript');
