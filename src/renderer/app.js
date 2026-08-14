@@ -36,7 +36,7 @@ import { createUebCellBuffer, pushUebCell } from '../domain/ueb-cell-buffer.js';
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name', 'item-count',
-  'save-status', 'reading-section', 'reading-heading', 'reading-help',
+  'mode-panel', 'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions', 'open-add-button',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
   'composer-form', 'composer-heading', 'composer-back',
@@ -908,6 +908,7 @@ function returnToRead({ discardDraft = true } = {}) {
   editingItemId = null;
   commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
   renderAll();
+  syncModePanel(commandState);
   focusSelectedArticle();
 }
 
@@ -981,6 +982,10 @@ function selectedType() {
     : 'text';
 }
 
+function syncModePanel(state = commandState) {
+  if (elements['mode-panel']) elements['mode-panel'].textContent = formatStatus(state);
+}
+
 function applyCommandStateToChrome(nextState) {
   commandState = nextState;
   if (commandState.itemKind === 'text' || commandState.itemKind === 'equation') {
@@ -995,9 +1000,7 @@ function applyCommandStateToChrome(nextState) {
       input.checked = input.value === commandState.equationMethod;
     });
   }
-  if (elements['save-status'] && commandState) {
-    elements['save-status'].textContent = formatStatus(commandState);
-  }
+  syncModePanel(commandState);
 }
 
 function announce(message) {
@@ -1023,7 +1026,7 @@ async function handleComposerUebCell(cell) {
   if (!composerIsTextInsert()) return;
   if (cell === '⠿' && uebBuffer.pending === '') {
     commandState = enterCommand(commandState);
-    announce('Command mode');
+    syncModePanel(commandState);
     return;
   }
   const result = pushUebCell(uebBuffer, cell);
@@ -1062,8 +1065,12 @@ function openContextualHelp() {
     tHelp.append(` — ${commandState.itemKind === 'text' ? 'toggle UEB grade / G1 passage' : 'make Text (UEB)'}`);
     const eHelp = document.createElement('p');
     eHelp.append(document.createElement('kbd'));
-    eHelp.firstChild.textContent = 'e';
+    eHelp.firstChild.textContent = 'x';
     eHelp.append(` — ${commandState.itemKind === 'equation' && commandState.contentEmpty ? 'cycle Nemeth/LaTeX' : 'make Equation (Nemeth)'}`);
+    const sHelp = document.createElement('p');
+    sHelp.append(document.createElement('kbd'));
+    sHelp.firstChild.textContent = 's';
+    sHelp.append(' — focus authoring mode panel');
     const shortcuts = document.createElement('p');
     shortcuts.append(document.createElement('kbd'));
     shortcuts.children[0].textContent = 'n';
@@ -1074,7 +1081,7 @@ function openContextualHelp() {
     shortcuts.append(document.createElement('kbd'));
     shortcuts.children[2].textContent = 'i';
     shortcuts.append(' insert');
-    el.append(status, tHelp, eHelp, shortcuts);
+    el.append(status, tHelp, eHelp, sHelp, shortcuts);
   }
   if (typeof box.showModal === 'function') box.showModal();
   else box.hidden = false;
@@ -1087,12 +1094,12 @@ function handleComposerCommandKey(event) {
     event.stopPropagation();
     syncCommandContentEmpty();
     commandState = enterCommand(commandState);
-    announce('Command mode');
+    syncModePanel(commandState);
     return true;
   }
   if (commandState.interaction !== 'command') return false;
   const key = event.key;
-  const commandKeys = new Set(['i', 't', 'e', 'n', 'q', '?', 'Enter']);
+  const commandKeys = new Set(['i', 't', 'x', 's', 'n', 'q', '?', 'Enter', 'e']);
   if (!commandKeys.has(key)) {
     if (key === 'Escape') {
       event.preventDefault();
@@ -1106,13 +1113,26 @@ function handleComposerCommandKey(event) {
   syncCommandContentEmpty();
   const result = applyCommandKey(commandState, key);
   commandState = result.state;
-  announce(result.announcement);
   if (result.action === 'help') openContextualHelp();
-  if (result.action === 'cancel') returnToRead();
-  if (result.action === 'submit') void submitComposer();
+  if (result.action === 'cancel') {
+    returnToRead();
+    return true;
+  }
+  if (result.action === 'submit') {
+    void submitComposer();
+    return true;
+  }
   if (result.action === 'set-type' || result.action === 'set-method' || result.action === 'set-grade') {
     applyCommandStateToChrome(commandState);
     if (mode === 'add' || mode === 'edit') renderComposer();
+  } else if (key === 'i' || key === 'Enter' || result.action === 'focus-status' || result.action === 'help') {
+    syncModePanel(commandState);
+  } else if (elements['mode-panel'] && result.announcement) {
+    // Refusal / unknown / locked status — show on mode panel, not save-status
+    elements['mode-panel'].textContent = result.announcement;
+  }
+  if (result.action === 'focus-status') {
+    elements['mode-panel']?.focus();
   }
   return true;
 }
@@ -1136,6 +1156,7 @@ async function submitComposer() {
     editingItemId = null;
     commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
     renderAll();
+    syncModePanel(commandState);
     await saveState().catch(() => {});
     const article = item && elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`);
     if (article) void openReplacementEditor(article, item.math.focus, true);
@@ -1158,6 +1179,7 @@ async function submitComposer() {
   editingItemId = null;
   commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
   renderAll();
+  syncModePanel(commandState);
   focusSelectedArticle();
   elements['save-status'].textContent = editing ? 'Saved item' : 'Added item';
   await saveState().catch(() => {});

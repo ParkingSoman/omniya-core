@@ -35,8 +35,7 @@ async function enterCommand(page) {
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => {
     const mode = document.querySelector('#mode-panel')?.textContent ?? '';
-    const save = document.querySelector('#save-status')?.textContent ?? '';
-    return /Command/i.test(mode) || /Command/i.test(save);
+    return /Command/i.test(mode);
   });
 }
 
@@ -57,10 +56,10 @@ test('command t then insert submits text with a UEB braille label', { timeout: 6
   await enterCommand(page);
   await page.keyboard.type('t');
   await page.keyboard.type('i');
-  await page.waitForFunction(() => /Insert/i.test(document.querySelector('#save-status')?.textContent ?? ''));
+  await page.waitForFunction(() => /Insert/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
   await page.locator('#composer-source').fill('hello world');
   await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#save-status')?.textContent ?? ''));
+  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
   await page.keyboard.type('n');
 
   const article = page.locator('article.napkin-article').filter({ hasText: 'hello world' }).first();
@@ -71,46 +70,32 @@ test('command t then insert submits text with a UEB braille label', { timeout: 6
   assert.ok(labels.some((label) => /⠓/.test(label)), `expected UEB ⠓ on a descendant, got ${JSON.stringify(labels)}`);
 });
 
-test('command e cycles authoring method while the composer is empty', { timeout: 60_000 }, async (t) => {
-  const { app, page } = await launch('omniya-ueb-e-cycle-');
+test('command x cycles authoring method while the composer is empty', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-ueb-x-cycle-');
   t.after(() => app.close().catch(() => {}));
 
   await openComposer(page);
   await enterCommand(page);
-  await page.keyboard.type('e');
-  await page.waitForFunction(() => {
-    const status = document.querySelector('#save-status')?.textContent ?? '';
-    const method = document.querySelector('#replacement-method input:checked')?.value;
-    return /Nemeth/i.test(status) && method === 'nemeth';
-  });
-  assert.equal(
-    await page.evaluate(() => document.querySelector('#replacement-method input:checked')?.value),
-    'nemeth'
-  );
+  await page.keyboard.type('x');
+  await page.waitForFunction(() => /Equation · Nemeth/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  assert.equal(await page.evaluate(() => document.querySelector('#mode-switch input:checked')?.value), 'equation');
 
-  await page.keyboard.press('Escape');
-  await page.keyboard.type('e');
-  await page.waitForFunction(() => {
-    const status = document.querySelector('#save-status')?.textContent ?? '';
-    const method = document.querySelector('#replacement-method input:checked')?.value;
-    return /LaTeX/i.test(status) && method === 'latex';
-  });
-  assert.equal(
-    await page.evaluate(() => document.querySelector('#replacement-method input:checked')?.value),
-    'latex'
-  );
+  await page.keyboard.type('x');
+  await page.waitForFunction(() => /Equation · LaTeX/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
 
-  await page.keyboard.press('Escape');
-  await page.keyboard.type('e');
-  await page.waitForFunction(() => {
-    const status = document.querySelector('#save-status')?.textContent ?? '';
-    const method = document.querySelector('#replacement-method input:checked')?.value;
-    return /Nemeth/i.test(status) && method === 'nemeth';
-  });
-  assert.equal(
-    await page.evaluate(() => document.querySelector('#replacement-method input:checked')?.value),
-    'nemeth'
-  );
+  await page.keyboard.type('x');
+  await page.waitForFunction(() => /Equation · Nemeth/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+});
+
+test('command s focuses mode panel', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-ueb-s-focus-');
+  t.after(() => app.close().catch(() => {}));
+
+  await openComposer(page);
+  await enterCommand(page);
+  await page.keyboard.type('s');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'mode-panel');
+  assert.match(await page.locator('#mode-panel').textContent(), /Command/i);
 });
 
 test('mode panel is quiet and command ? help lists x and s', { timeout: 60_000 }, async (t) => {
