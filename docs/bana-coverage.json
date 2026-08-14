@@ -27407,7 +27407,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 465,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27417,7 +27417,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": true,
         "editing": true,
         "navigation": true,
@@ -27425,10 +27425,13 @@
         "focusedBraille": true,
         "undoRedo": true,
         "persistence": true,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3"
+      ],
       "evidenceScope": "source-policy"
     },
     {
@@ -27439,7 +27442,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 466,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27449,7 +27452,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": true,
         "editing": true,
         "navigation": true,
@@ -27457,10 +27460,14 @@
         "focusedBraille": true,
         "undoRedo": true,
         "persistence": true,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.1"
+      ],
       "evidenceScope": "source-policy"
     },
     {
@@ -27471,7 +27478,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 467,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27481,7 +27488,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27489,10 +27496,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.1"
+      ],
       "exampleParentId": "bana-2022:8.3.1",
       "officialSource": {
         "sourceLines": [
@@ -27517,7 +27528,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 468,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27527,7 +27538,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": true,
         "editing": true,
         "navigation": true,
@@ -27535,10 +27546,14 @@
         "focusedBraille": true,
         "undoRedo": true,
         "persistence": true,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.2"
+      ],
       "evidenceScope": "source-policy"
     },
     {
@@ -27549,7 +27564,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 469,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27559,7 +27574,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27567,10 +27582,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.2"
+      ],
       "exampleParentId": "bana-2022:8.3.2",
       "officialSource": {
         "sourceLines": [
@@ -27595,7 +27614,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 470,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27605,7 +27624,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27613,10 +27632,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.2"
+      ],
       "exampleParentId": "bana-2022:8.3.2",
       "officialSource": {
         "sourceLines": [
@@ -27641,7 +27664,7 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 471,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27651,7 +27674,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27659,10 +27682,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.2"
+      ],
       "exampleParentId": "bana-2022:8.3.2",
       "officialSource": {
         "sourceLines": [
@@ -27687,7 +27714,7 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 472,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27697,7 +27724,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27705,10 +27732,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.2"
+      ],
       "exampleParentId": "bana-2022:8.3.2",
       "officialSource": {
         "sourceLines": [
@@ -27733,7 +27764,7 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 473,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27743,7 +27774,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27751,10 +27782,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.2"
+      ],
       "exampleParentId": "bana-2022:8.3.2",
       "officialSource": {
         "sourceLines": [
@@ -27779,7 +27814,7 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 474,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27789,7 +27824,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27797,10 +27832,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.2"
+      ],
       "exampleParentId": "bana-2022:8.3.2",
       "officialSource": {
         "sourceLines": [
@@ -27825,7 +27864,7 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 475,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27835,7 +27874,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": true,
         "editing": true,
         "navigation": true,
@@ -27843,10 +27882,14 @@
         "focusedBraille": true,
         "undoRedo": true,
         "persistence": true,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.3"
+      ],
       "evidenceScope": "source-policy"
     },
     {
@@ -27857,7 +27900,7 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 476,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27867,7 +27910,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27875,10 +27918,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.3"
+      ],
       "exampleParentId": "bana-2022:8.3.3",
       "officialSource": {
         "sourceLines": [
@@ -27903,7 +27950,7 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 477,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27913,7 +27960,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27921,10 +27968,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.3"
+      ],
       "exampleParentId": "bana-2022:8.3.3",
       "officialSource": {
         "sourceLines": [
@@ -27949,7 +28000,7 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 478,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -27959,7 +28010,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -27967,10 +28018,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.3"
+      ],
       "exampleParentId": "bana-2022:8.3.3",
       "officialSource": {
         "sourceLines": [
@@ -27995,7 +28050,7 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 479,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -28005,7 +28060,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -28013,10 +28068,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.3"
+      ],
       "exampleParentId": "bana-2022:8.3.3",
       "officialSource": {
         "sourceLines": [
@@ -28041,7 +28100,7 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 480,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -28051,7 +28110,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": true,
         "editing": true,
         "navigation": true,
@@ -28059,10 +28118,14 @@
         "focusedBraille": true,
         "undoRedo": true,
         "persistence": true,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.4"
+      ],
       "evidenceScope": "source-policy"
     },
     {
@@ -28073,7 +28136,7 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 481,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -28083,7 +28146,7 @@
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -28091,10 +28154,14 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": false,
+        "contextPolicy": true,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "contextPolicyIds": [
+        "context-policy.8.3",
+        "context-policy.8.3.4"
+      ],
       "exampleParentId": "bana-2022:8.3.4",
       "officialSource": {
         "sourceLines": [
