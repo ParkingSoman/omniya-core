@@ -21526,11 +21526,9 @@
       "printedPage": "14-7",
       "pdfPage": 176,
       "auditOrder": 740,
-      "disposition": "implemented-operation",
+      "disposition": "approved-context-policy",
       "inputPolicy": null,
-      "mappingIds": [
-        "script.left-superscript"
-      ],
+      "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -21557,11 +21555,9 @@
       "printedPage": "14-7",
       "pdfPage": 176,
       "auditOrder": 741,
-      "disposition": "implemented-operation",
+      "disposition": "approved-context-policy",
       "inputPolicy": null,
-      "mappingIds": [
-        "script.left-superscript"
-      ],
+      "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -21651,12 +21647,9 @@
       "printedPage": "14-8",
       "pdfPage": 177,
       "auditOrder": 744,
-      "disposition": "implemented-operation",
+      "disposition": "approved-context-policy",
       "inputPolicy": null,
-      "mappingIds": [
-        "script.superscript",
-        "script.left-superscript"
-      ],
+      "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -21683,12 +21676,9 @@
       "printedPage": "14-8",
       "pdfPage": 177,
       "auditOrder": 745,
-      "disposition": "implemented-operation",
+      "disposition": "approved-context-policy",
       "inputPolicy": null,
-      "mappingIds": [
-        "script.left-superscript",
-        "script.subscript"
-      ],
+      "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -21715,12 +21705,9 @@
       "printedPage": "14-8",
       "pdfPage": 177,
       "auditOrder": 746,
-      "disposition": "implemented-operation",
+      "disposition": "approved-context-policy",
       "inputPolicy": null,
-      "mappingIds": [
-        "script.left-superscript",
-        "script.left-subscript"
-      ],
+      "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -21779,12 +21766,9 @@
       "printedPage": "14-8",
       "pdfPage": 177,
       "auditOrder": 748,
-      "disposition": "implemented-operation",
+      "disposition": "approved-context-policy",
       "inputPolicy": null,
-      "mappingIds": [
-        "script.left-subscript",
-        "script.left-superscript"
-      ],
+      "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
