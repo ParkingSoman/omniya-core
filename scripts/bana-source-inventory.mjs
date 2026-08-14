@@ -190,6 +190,24 @@ for (const [suffix, mappingIds] of Object.entries(rule14Batch)) {
 }
 const rule14Example2 = rows.find((row) => row.id === 'bana-2022:example-14-2');
 if (rule14Example2) rule14Example2.disposition = 'approved-context-policy';
+for (let number = 12; number <= 22; number += 1) {
+  const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
+  if (!row) continue;
+  const source = ({
+    12: 'n;x;;y', 13: 'n~x~~y~~~z', 14: 'x~y~~z~~;a', 15: 'x~y~;a~;~n',
+    16: 'n~x~;a~;;j', 17: 'x;a;~r;~~n', 18: 'x;a;~n;~;b',
+    19: 'x;p;;a;;~m', 20: 'n;x;;y;;;z', 21: 'n~x~~y~~~z~~~~\'\'\'',
+    22: 'n;x;;y;;;z;;;;\'\'\''
+  })[number];
+  const directions = [...source].filter((cell) => cell === '~' || cell === ';')
+    .map((cell) => cell === '~' ? 'sup' : 'sub');
+  row.disposition = 'implemented-operation';
+  row.mappingIds = [`script.${directions.join('-')}`];
+}
+for (let number = 23; number <= 31; number += 1) {
+  const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
+  if (row) row.disposition = 'approved-context-policy';
+}
 const result = {
   schemaVersion: 1,
   source: {
