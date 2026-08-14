@@ -106,7 +106,10 @@ const reviewedChoicePrefixes = new Map([
 // These printed examples are explanatory prose/layout demonstrations rather
 // than standalone equation-tree inputs. Keep their extracted cells for source
 // review, but never advertise them as executable Electron workflows.
-const reviewedDocumentFormatExamples = new Set(['14-1', '14-2']);
+const reviewedDocumentFormatExamples = new Set([
+  '14-1', '14-2',
+  ...Array.from({ length: 10 }, (_, index) => `19-${index + 36}`)
+]);
 const examples = source.examples
   .filter((example) => Number(example.exampleNumber.split('-')[0]) >= 3 && Number(example.exampleNumber.split('-')[0]) <= 24)
   .map((example) => {

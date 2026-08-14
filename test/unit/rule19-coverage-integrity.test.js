@@ -18,3 +18,11 @@ test('Rule 19 documentary exclusions are the printed 19-10 through 19-13 layout 
     assert.ok([262, 263, 264, 265].includes(row.pdfPage), row.id);
   }
 });
+
+test('Rule 19 documentary examples are not advertised as executable equations', () => {
+  const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
+  for (let number = 36; number <= 45; number += 1) {
+    const entry = corpus.cases.find((candidate) => candidate.exampleNumber === `19-${number}`);
+    assert.equal(entry?.executable, false, `19-${number} is a transcriber/layout example, not an equation workflow`);
+  }
+});

@@ -3,8 +3,8 @@
   "source": "docs/bana-official-examples.json",
   "counts": {
     "total": 1066,
-    "executable": 1032,
-    "nonExecutable": 34
+    "executable": 1022,
+    "nonExecutable": 44
   },
   "cases": [
     {
@@ -35251,7 +35251,7 @@
       "candidateBrailleLines": [
         "_% (?x+y/u+v#)^2 _:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35300,7 +35300,7 @@
       "candidateBrailleLines": [
         "_% a .k `(,?b,/c+?d/e#,#`) _:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35333,7 +35333,7 @@
       "candidateBrailleLines": [
         "_% (n+k%k) _:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35366,7 +35366,7 @@
       "candidateBrailleLines": [
         "_% >.>x.}} _:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35410,7 +35410,7 @@
       "candidateBrailleLines": [
         "_% !?f(x)dx/(x-t)^n\"# _:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35515,7 +35515,7 @@
         "_%",
         "_:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35620,7 +35620,7 @@
         "_%",
         "_:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35689,7 +35689,7 @@
         "_%",
         "_:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35752,7 +35752,7 @@
         "_%",
         "_:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
@@ -35787,7 +35787,7 @@
         "Extended                                   〰       `,:",
         "Simple                                     〜       `:"
       ],
-      "executable": true,
+      "executable": false,
       "conversionError": null,
       "creation": false,
       "editing": false,
