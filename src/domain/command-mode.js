@@ -71,7 +71,7 @@ export function applyCommandKey(state, key) {
     return { state: next, announcement: formatStatus(next), action: 'set-grade' };
   }
 
-  if (key === 'e') {
+  if (key === 'x') {
     if (state.itemKind === 'text' && !state.contentEmpty) {
       return { state, announcement: "Can’t switch to Equation after text content exists." };
     }
@@ -85,6 +85,10 @@ export function applyCommandKey(state, key) {
     const equationMethod = state.equationMethod === 'nemeth' ? 'latex' : 'nemeth';
     const next = { ...state, equationMethod };
     return { state: next, announcement: formatStatus(next), action: 'set-method' };
+  }
+
+  if (key === 's') {
+    return { state, announcement: formatStatus(state), action: 'focus-status' };
   }
 
   return { state, announcement: `Unknown command ${key}. Press ? for help.` };

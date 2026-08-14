@@ -39,15 +39,29 @@ test('t on text toggles grade whether empty or filled', () => {
   assert.equal(r.state.g1Passage, true);
 });
 
-test('e cycles nemeth/latex only while equation empty', () => {
+test('x cycles nemeth/latex only while equation empty', () => {
   let s = enterCommand(createCommandState({ itemKind: null, contentEmpty: true }));
-  s = applyCommandKey(s, 'e').state;
+  s = applyCommandKey(s, 'x').state;
   assert.equal(s.itemKind, 'equation');
   assert.equal(s.equationMethod, 'nemeth');
-  s = applyCommandKey(enterCommand(s), 'e').state;
+  s = applyCommandKey(enterCommand(s), 'x').state;
   assert.equal(s.equationMethod, 'latex');
-  s = applyCommandKey(enterCommand({ ...s, contentEmpty: false }), 'e').state;
+  s = applyCommandKey(enterCommand({ ...s, contentEmpty: false }), 'x').state;
   assert.equal(s.equationMethod, 'latex'); // locked
+});
+
+test('e in command is unknown (no alias to x)', () => {
+  const s = enterCommand(createCommandState({ itemKind: 'text', contentEmpty: true }));
+  const r = applyCommandKey(s, 'e');
+  assert.equal(r.state.itemKind, 'text');
+  assert.equal(r.action, undefined);
+  assert.match(r.announcement, /Unknown command/i);
+});
+
+test('s requests focus-status', () => {
+  const s = enterCommand(createCommandState({ itemKind: 'text', uebGrade: 'g2' }));
+  const r = applyCommandKey(s, 's');
+  assert.equal(r.action, 'focus-status');
 });
 
 test('t refuses when equation has content', () => {
