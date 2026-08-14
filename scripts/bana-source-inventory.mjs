@@ -208,6 +208,18 @@ for (let number = 23; number <= 31; number += 1) {
   const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
   if (row) row.disposition = 'approved-context-policy';
 }
+for (const [number, mappingIds] of Object.entries({
+  25: ['script.left-subscript'], 26: ['script.left-subscript', 'script.subscript'],
+  30: ['script.left-subscript', 'script.superscript'], 32: ['script.left-subscript', 'script.sub-sub'],
+  33: ['script.left-subscript', 'script.sub-sub'], 36: ['script.subscript'], 37: ['script.subscript'],
+  38: ['script.subscript'], 39: ['script.subscript'], 40: ['script.sub-sub'], 41: ['script.subscript'],
+  42: ['script.subscript'], 43: ['script.subscript'], 44: ['script.subscript'], 45: ['script.subscript'],
+  46: ['script.sub-sup'], 47: ['script.subscript'], 48: ['script.subscript'], 49: ['script.subscript'],
+  50: ['script.left-subscript'], 51: ['script.subscript']
+})) {
+  const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
+  if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
+}
 const result = {
   schemaVersion: 1,
   source: {
