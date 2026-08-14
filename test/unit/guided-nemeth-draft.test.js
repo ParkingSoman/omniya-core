@@ -21,6 +21,13 @@ function cell(document, focus, inputState, value) {
   return applyNemethCell({ document, focus, inputState, cell: value });
 }
 
+test('Rule 14 corpus operation IDs remain declared in the authoritative generator', () => {
+  const generator = fs.readFileSync(new URL('../../scripts/bana-example-corpus-generate.mjs', import.meta.url), 'utf8');
+  for (const number of [...Array.from({ length: 11 }, (_, index) => index + 12), ...Array.from({ length: 11 }, (_, index) => index + 34)]) {
+    assert.match(generator, new RegExp(`['"]14-${number}['"]\\s*:`), `14-${number} must remain generator-owned rather than generated-only`);
+  }
+});
+
 test('Rule 14 Electron corpus cases 14-12 through 14-22 replay authored cells', () => {
   const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
   for (let number = 12; number <= 22; number += 1) {
