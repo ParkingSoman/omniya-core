@@ -1291,8 +1291,9 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null, data
     const slotParent = current.name !== 'math' && isHole(current)
       ? findMathParent(tree, current.attrs?.['data-omniya-id'])
       : null;
-    if (slotParent?.name === 'munderover') {
-      const role = current.attrs?.['data-omniya-role'];
+    if (['mover', 'munder', 'munderover'].includes(slotParent?.name)) {
+      const role = current.attrs?.['data-omniya-role']
+        ?? (slotParent.name === 'munder' ? 'underscript' : 'overscript');
       const replacement = atom('mo', value, { 'data-omniya-role': role, ...dataAttributes });
       const index = slotParent.children.indexOf(current);
       slotParent.children[index] = replacement;
@@ -2794,7 +2795,7 @@ function mappingApplies(mapping, context) {
   // do not expose a spurious modifier choice or mutate an empty draft.
   if (mapping.action === 'insert-modifier' &&
     ((context.node.name === 'math' && !(context.node.children?.length > 0)) ||
-      (isHole(context.node) && findMathParent(context.tree, context.node.attrs?.['data-omniya-id'])?.name !== 'munderover'))) return false;
+      (isHole(context.node) && !['mover', 'munder', 'munderover'].includes(findMathParent(context.tree, context.node.attrs?.['data-omniya-id'])?.name)))) return false;
   // The English-letter indicator is a local abbreviation mode, not a
   // structural navigation command.  In a script slot the same cell is a
   // Rule 14 return/move indicator, so leave that structural follow-up as the
@@ -2885,7 +2886,8 @@ function mappingApplies(mapping, context) {
     (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-cells'] === '⠘⠨⠡'));
   if (mapping.action === 'simultaneous-modifier') {
     const container = hasAncestor(context.tree, context.node, ['mover', 'munder']);
-    return Boolean(container && container.name !== 'munderover');
+    if (!container || container.name === 'munderover') return false;
+    return mapping.args.direction === 'over' ? container.name === 'munder' : container.name === 'mover';
   }
   if (mapping.action === 'higher-order-modifier') {
     let node = context.node;
@@ -3342,7 +3344,7 @@ function applyMapping(document, focus, inputState, mapping) {
     }
   }
   if (result.status === 'pending') return result;
-  const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-script-chain', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token', 'open-left-script'].includes(mapping.action);
+  const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-script-chain', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token', 'open-left-script', 'extend-integral'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' ||
     (inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel');
   const nextModifierScope = collectingModifierScope && insertedAction
@@ -3380,8 +3382,10 @@ function applyMapping(document, focus, inputState, mapping) {
     ? (inputState.mode === 'modifier-parallel'
       ? 'modifier-parallel'
       : (inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-') ? 'modifier-complete' : 'modifier-parallel'))
-    : mapping.action === 'simultaneous-modifier'
+    : mapping.action === 'simultaneous-modifier' || mapping.action === 'higher-order-modifier'
       ? `modifier-${args.direction}`
+    : mapping.action === 'extend-integral' && inputState.mode === 'multipurpose'
+      ? 'multipurpose'
     : beginSignedNumeric
     ? 'signed-numeric'
     : retainNumericAfterOperator
@@ -3578,8 +3582,53 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     !state.mode?.startsWith?.('modifier-')) {
     const bar = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');
     if (bar && mappingApplies(bar, context)) {
-      return applyMapping(document, focus, state, bar);
+      return applyMapping(document, focus, { ...state, mode: null }, bar);
     }
+  }
+  // Rule 15.2.3 contracted under: after a letter or digit, `%` plus the
+  // modifier symbol wraps only that atom. Do not steal Rule 15.6's binomial
+  // lower-cell move, and do not open five-step mode without a multipurpose.
+  const binomialLower = MAPPINGS.find((candidate) => candidate.id === 'binomial.lower');
+  const binomialTable = hasAncestor(context.tree, context.node, 'mtable');
+  if (!state.prefix && normalized === '⠩' &&
+    (context.node.name === 'mi' || context.node.name === 'mn') &&
+    !isHole(context.node) &&
+    state.mode !== 'multipurpose' &&
+    !state.mode?.startsWith?.('modifier-') &&
+    binomialTable?.attrs?.['data-omniya-role'] !== 'binomial-table' &&
+    !(binomialLower && mappingApplies(binomialLower, context))) {
+    return {
+      status: 'pending', document, focus,
+      inputState: { ...state, prefix: normalized },
+      announcement: 'Contracted under-modifier pending.'
+    };
+  }
+  if (state.prefix === '⠩' &&
+    (context.node.name === 'mi' || context.node.name === 'mn') &&
+    !isHole(context.node) &&
+    state.mode !== 'multipurpose' &&
+    !state.mode?.startsWith?.('modifier-') &&
+    binomialTable?.attrs?.['data-omniya-role'] !== 'binomial-table' &&
+    (normalized === '⠱' || LETTERS.has(normalized) || DIGITS.has(normalized))) {
+    const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+    const index = parent?.children.indexOf(context.node) ?? -1;
+    if (!parent || index < 0) {
+      return { status: 'rejected', document, focus, inputState: { ...state }, announcement: 'A contracted under-modifier has no parent expression.' };
+    }
+    const value = normalized === '⠱' ? '¯' : (LETTERS.get(normalized) ?? DIGITS.get(normalized));
+    const wrapper = element('munder', [], { 'data-omniya-id': context.node.attrs['data-omniya-id'] });
+    const base = structuredClone(context.node);
+    base.attrs['data-omniya-id'] = id();
+    wrapper.children.push(base, atom('mo', value, { 'data-omniya-role': 'underscript' }));
+    parent.children[index] = wrapper;
+    return {
+      status: 'applied',
+      localCommitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+      document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(context.tree), focus: focusNode(wrapper) },
+      focus: focusNode(wrapper),
+      inputState: { prefix: '', mode: 'modifier-parallel', modifierScope: null },
+      announcement: 'modifier.contracted-under'
+    };
   }
   if (state.mode === 'modifier-parallel' && !state.prefix &&
     (normalized === '⠬' || normalized === '⠤' || normalized === '⠸' || normalized === '⠲')) {
@@ -3764,6 +3813,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       mapping.cells.join('') === `${state.prefix}${normalized}`);
     if (localModifier) {
       return applyMapping(document, focus, { ...state, prefix: '' }, localModifier);
+    }
+    const slotToken = MAPPINGS.find((mapping) =>
+      mapping.action === 'insert-token' &&
+      mapping.cells.join('') === `${state.prefix}${normalized}` &&
+      mappingApplies(mapping, context));
+    if (slotToken && !hasApplicableContinuation(state.prefix, normalized, context) &&
+      !MAPPINGS.some((mapping) => mapping.action === 'insert-modifier'
+        && mapping.cells.join('') === `${state.prefix}${normalized}`)) {
+      return applyMapping(document, focus, { ...state, prefix: '' }, {
+        ...slotToken,
+        action: 'insert-modifier',
+        commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP
+      });
     }
   }
   // A letter entered into an already-open script slot is an identifier atom,
@@ -3957,6 +4019,24 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     if (activated.status !== 'rejected') {
       return applyNemethCell({ document: activated.document, focus: activated.focus,
         inputState: activated.inputState, cell: normalized });
+    }
+  }
+  // Five-step `".,s` holds `"`. as a Greek prefix. Once capitalization
+  // arrives, the leading multipurpose still owns the collected expression.
+  if (state.mode === null && state.prefix === '⠐⠨' && normalized === '⠠' &&
+    !hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+    const indicator = PREFIXES.get('⠐')?.mappings?.find((mapping) => mapping.id === 'indicator.multipurpose');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
+    if (activated.status !== 'rejected') {
+      let replay = applyNemethCell({
+        document: activated.document, focus: activated.focus, inputState: activated.inputState, cell: '⠨'
+      });
+      if (replay.status !== 'rejected') {
+        replay = applyNemethCell({
+          document: replay.document, focus: replay.focus, inputState: replay.inputState, cell: normalized
+        });
+      }
+      if (replay.status !== 'rejected') return replay;
     }
   }
   if (state.prefix && (normalized === '⠨' || normalized === '⠠') && [...state.prefix].every((prefixCell) =>
@@ -5166,9 +5246,27 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // indicator before the single terminator.  This is still a one-structure
   // transition; the state carries only the local modifier phase.
   if (state.mode === 'modifier-complete' && !state.prefix && (normalized === '⠣' || normalized === '⠩')) {
+    const container = hasAncestor(context.tree, context.node, ['mover', 'munder', 'munderover']);
+    const sameSide = (normalized === '⠣' && container?.name === 'mover')
+      || (normalized === '⠩' && container?.name === 'munder');
+    if (sameSide) {
+      return {
+        status: 'pending', document, focus,
+        inputState: { ...state, prefix: normalized },
+        announcement: 'Higher-order modifier may continue.'
+      };
+    }
     const operationId = normalized === '⠣' ? 'modifier.simultaneous.over' : 'modifier.simultaneous.under';
     const mapping = MAPPINGS.find((candidate) => candidate.id === operationId);
     return applyMapping(document, focus, state, mapping);
+  }
+  if (state.mode === 'modifier-complete' && state.prefix === '⠣' && normalized === '⠣') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.directly-over.higher');
+    if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+  }
+  if (state.mode === 'modifier-complete' && state.prefix === '⠩' && normalized === '⠩') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.directly-under.higher');
+    if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
   }
   if (state.mode === 'modifier-under' && !state.prefix && normalized === '⠱') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');

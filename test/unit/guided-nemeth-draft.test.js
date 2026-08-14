@@ -783,6 +783,60 @@ test('Rule 23 integral dx stays outside f(x) after baseline return from bounds',
   assert.deepEqual(afterGroup, ['d', 'x']);
 });
 
+test('Rule 23.12 infinity is a local modifier in the integral overscript', () => {
+  const { document } = replayCells(sourceNotationToCells('"!%0<,=]f(x)dx'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const limit = tree.children[0];
+  assert.equal(limit.name, 'munderover');
+  assert.equal(limit.children[0].children[0].text, '∫');
+  assert.equal(limit.children[1].children[0].text, '0');
+  assert.equal(limit.children[2].children[0].text, '∞');
+  const group = tree.children.find((node) => node.name === 'mrow' && node.attrs?.['data-omniya-group'] === 'round');
+  assert.ok(group);
+  const afterGroup = tree.children.slice(tree.children.indexOf(group) + 1).map((node) => node.children?.[0]?.text);
+  assert.deepEqual(afterGroup, ['d', 'x']);
+});
+
+test('Rule 15.2.3 contracted under-bar wraps only the focused atom', () => {
+  const { document } = replayCells(sourceNotationToCells('X%:'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[0].children[0].children[0].text, 'X');
+  assert.equal(tree.children[0].children[1].children[0].text, '¯');
+});
+
+test('Rule 15 contracted over-bar still applies to a completed decimal', () => {
+  const { document } = replayCells(sourceNotationToCells('#3.54:'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[0].children[0].text, '3.54');
+  assert.equal(tree.children[0].children[1].children[0].text, '¯');
+});
+
+test('Rule 15.3 same-side << nests a higher-order overscript before the terminator', () => {
+  const { document } = replayCells(sourceNotationToCells('"x+y<:<<a'));
+  const tree = parseMathML(document.mathml);
+  const outer = tree.children[0];
+  assert.equal(outer.name, 'mover');
+  assert.equal(outer.children[0].name, 'mover');
+  assert.equal(outer.children[1].children[0].text, 'a');
+  const inner = outer.children[0];
+  assert.deepEqual(inner.children[0].children.map((child) => child.children[0].text), ['x', '+', 'y']);
+  assert.equal(inner.children[1].children[0].text, '¯');
+});
+
+test('Rule 23.12 double integral keeps five-step under after extend', () => {
+  const { document } = replayCells(sourceNotationToCells('"!!%,r]'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[0].children[0].children[0].text, '∬');
+  assert.equal(tree.children[0].children[1].children[0].text, 'R');
+});
+
 test('complex and hypercomplex fraction indicators keep their BANA distinction locally', () => {
   for (const [kind, opening, separator, closing] of [
     ['complex', ['⠠', '⠹'], ['⠠', '⠌'], ['⠠', '⠼']],

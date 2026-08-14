@@ -1693,6 +1693,25 @@ test('BANA Rule 15.3 keeps same-side higher-order modifiers distinct from simult
   assert.equal(tree.children[0].children[1].attrs['data-omniya-hole'], 'true');
 });
 
+test('BANA Rule 15.5 parallel bars stay in one munderover slot', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠐', '⠭', '⠩', '⠱', '⠱', '⠣', '⠱', '⠱', '⠻']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'munderover');
+  const under = tree.children[0].children[1];
+  const over = tree.children[0].children[2];
+  assert.equal(under.name, 'mrow');
+  assert.equal(over.name, 'mrow');
+  assert.deepEqual(under.children.map((node) => node.children[0].text), ['¯', '¯']);
+  assert.deepEqual(over.children.map((node) => node.children[0].text), ['¯', '¯']);
+});
+
 test('BANA Rule 15.5 keeps parallel bars in one local modifier row', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
