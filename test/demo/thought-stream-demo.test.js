@@ -1,10 +1,15 @@
 /**
- * Headed coherent writing demo: work a definite-integral problem across
- * napkin items — author ∫ with bounds, recover with Backspace, revisit via
- * Explorer+E, then write the antiderivative informed by prior work.
+ * Headed coherent writing demo from a braille-first workflow.
  *
- * Watch with: npm run test:demo:thought
- * Kept outside test/e2e so default CI e2e stays headless and fast.
+ * Blind-author path for a nontrivial definite integral:
+ * 1. Author the problem as math (not plain text): ∫_a^b with a placeholder integrand
+ * 2. Explore bounds/integrand via speech + Braille labels
+ * 3. E-replace the placeholder with √(1−x²), typed slowly cell-by-cell
+ * 4. Explore nested radical / script structure
+ * 5. Specialize bounds a→0, b→1
+ * 6. Record the evaluated result π/4 as a follow-on equation
+ *
+ * Watch: cd /tmp/omniya-paper-writing-workflow && npm run test:demo:thought
  */
 import assert from 'node:assert/strict';
 import { mkdtemp } from 'node:fs/promises';
@@ -16,11 +21,10 @@ import { _electron as electron } from 'playwright';
 import { electronLaunchEnv } from '../e2e/launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-/** Short enough to watch end-to-end without dragging; dense integral beats. */
-const PAUSE_MS = 220;
-const BEAT_MS = 400;
+const CELL_MS = 850;
+const BEAT_MS = 1200;
 
-async function pause(page, ms = PAUSE_MS) {
+async function pause(page, ms = CELL_MS) {
   await page.waitForTimeout(ms);
 }
 
@@ -41,15 +45,6 @@ async function launch() {
   return { app, page, dataDirectory };
 }
 
-async function addTextItem(page, text) {
-  await page.getByRole('button', { name: 'Add item' }).click();
-  await page.getByRole('radio', { name: 'Text' }).check();
-  await page.getByLabel('Content', { exact: true }).fill(text);
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
-  await pause(page, BEAT_MS);
-}
-
 async function addBlankEquation(page) {
   await page.getByRole('button', { name: 'Add item' }).click();
   await page.getByRole('radio', { name: 'Equation' }).check();
@@ -59,15 +54,44 @@ async function addBlankEquation(page) {
   return page.locator('article.napkin-article').last();
 }
 
-async function feedCells(page, cells) {
+async function resolveChoiceIfNeeded(page, preferredOperationId) {
+  const panel = page.locator('#replacement-choices');
+  if (await panel.isHidden()) return;
+  if (preferredOperationId) {
+    const preferred = panel.locator(`.replacement-choice[data-operation-id="${preferredOperationId}"]`);
+    if (await preferred.count()) {
+      await preferred.click();
+      await pause(page, CELL_MS);
+      return;
+    }
+  }
+  await panel.locator('.replacement-choice').first().click();
+  await pause(page, CELL_MS);
+}
+
+async function feedCell(page, cell, { choiceId, statusIncludes } = {}) {
   const input = page.getByLabel('Replacement input', { exact: true });
-  for (const cell of cells) {
-    await input.fill(cell);
-    await pause(page);
+  await input.fill(cell);
+  await pause(page, CELL_MS);
+  await resolveChoiceIfNeeded(page, choiceId);
+  if (statusIncludes) {
+    await page.waitForFunction(
+      (needle) => (document.querySelector('#replacement-status')?.textContent ?? '').includes(needle),
+      statusIncludes,
+      { timeout: 10_000 }
+    );
+  }
+}
+
+async function feedCells(page, cells) {
+  for (const step of cells) {
+    if (typeof step === 'string') await feedCell(page, step);
+    else await feedCell(page, step.cell, step);
   }
 }
 
 async function submitReplacement(page) {
+  await pause(page, BEAT_MS);
   const input = page.getByLabel('Replacement input', { exact: true });
   await input.press('Enter');
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -78,7 +102,7 @@ async function focusArticle(page, index) {
   const article = page.locator('article.napkin-article').nth(index);
   await article.click();
   await article.focus();
-  await pause(page);
+  await pause(page, BEAT_MS);
   return article;
 }
 
@@ -90,96 +114,227 @@ async function enterExplore(page, article) {
     null,
     { timeout: 15_000 }
   );
-  await pause(page);
+  await pause(page, BEAT_MS);
 }
 
 async function leaveExplore(page) {
   await page.keyboard.press('Escape');
-  await pause(page);
+  await pause(page, BEAT_MS);
 }
 
-async function openBoundReplacement(page, article, { arrowRights = 1, labelHint = /lower|a|underscript/i } = {}) {
-  await enterExplore(page, article);
-  await page.keyboard.press('ArrowDown');
-  await pause(page);
-  for (let i = 0; i < arrowRights; i += 1) {
-    await page.keyboard.press('ArrowRight');
-    await pause(page);
+async function currentSpeech(page) {
+  return page.evaluate(() => {
+    const speech = document.querySelector('mjx-speech');
+    return {
+      label: speech?.getAttribute('aria-label') ?? '',
+      braille: speech?.getAttribute('aria-braillelabel') ?? ''
+    };
+  });
+}
+
+async function exploreUntil(page, predicate, { maxSteps = 12, key = 'ArrowDown' } = {}) {
+  for (let i = 0; i < maxSteps; i += 1) {
+    const speech = await currentSpeech(page);
+    if (predicate(speech)) return speech;
+    await page.keyboard.press(key);
+    await pause(page, CELL_MS);
   }
-  await page.waitForFunction((pattern) => {
-    const label = document.querySelector('mjx-speech')?.getAttribute('aria-label') ?? '';
-    return new RegExp(pattern, 'i').test(label);
-  }, typeof labelHint === 'string' ? labelHint : labelHint.source);
+  const speech = await currentSpeech(page);
+  throw new Error(`Explorer did not reach target. Last speech="${speech.label}" braille="${speech.braille}"`);
+}
+
+async function openExactReplacement(page, article, predicate, navigate = {}) {
+  await enterExplore(page, article);
+  await exploreUntil(page, predicate, navigate);
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
   await pause(page, BEAT_MS);
 }
 
-async function articleMathML(article) {
-  return article.locator('math').evaluate((node) => node.outerHTML);
+/**
+ * E must target the integrand leaf (placeholder x), not the integral/msubsup.
+ * Pressing E on the operator replaces that whole subtree and the integral vanishes
+ * (usage error / easy footgun — see friction log F8).
+ *
+ * Friction F9: ArrowDown alone often stays on the whole “integral from a to b of x”
+ * utterance (braille ⠮⠰⠁⠘⠃⠐⠭). Reaching the leaf x needs Right/Down mixing.
+ */
+async function openIntegrandReplacement(page, article) {
+  await enterExplore(page, article);
+  const isIntegrandX = ({ label, braille }) => {
+    if (/integral from|underscript|overscript|radicand|radical|root/i.test(label)) return false;
+    if (braille.length > 2 && braille.includes('⠮')) return false; // whole-expression braille
+    const brailleIsX = braille === '⠭' || braille === '⠐⠭';
+    const labelIsBareX = /^(x)([,.]|\s|$)/i.test(label.trim());
+    return brailleIsX || labelIsBareX;
+  };
+
+  let speech = await currentSpeech(page);
+  const keys = [
+    'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown',
+    'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ArrowDown',
+    'ArrowRight', 'ArrowDown', 'ArrowRight', 'ArrowUp',
+    'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown'
+  ];
+  for (let i = 0; i < keys.length; i += 1) {
+    if (isIntegrandX(speech)) break;
+    await page.keyboard.press(keys[i]);
+    await pause(page, CELL_MS);
+    speech = await currentSpeech(page);
+  }
+  assert.ok(
+    isIntegrandX(speech),
+    `refusing to E-replace: focus is not the integrand x (${JSON.stringify(speech)})`
+  );
+  await pause(page, BEAT_MS);
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  const scope = await page.locator('#replacement-scope').textContent();
+  assert.match(scope ?? '', /x/i);
+  assert.equal(
+    /integral|∫/i.test(scope ?? ''),
+    false,
+    `replacement scope must be the integrand, not the integral (scope="${scope}")`
+  );
+  await pause(page, BEAT_MS);
 }
 
-async function boundChildren(article) {
-  return article.locator('math > msubsup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent));
+/**
+ * After an integrand radical exists, fixed Down/Right counts can fall into the
+ * radicand. Require script-role speech (underscript/overscript) before E.
+ */
+async function openIntegralBoundReplacement(page, article, which) {
+  await enterExplore(page, article);
+  const wantLower = which === 'lower';
+  const matches = ({ label, braille }) => {
+    if (/radicand|radical|root|square|power|super/i.test(label)) return false;
+    if (wantLower) {
+      return /underscript/i.test(label) || braille === '⠁' || braille === '⠼⠴';
+    }
+    return /overscript/i.test(label) || braille === '⠃' || braille === '⠼⠂';
+  };
+
+  let speech = await currentSpeech(page);
+  const keys = ['ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowRight', 'ArrowDown'];
+  for (let i = 0; i < keys.length; i += 1) {
+    if (matches(speech)) break;
+    await page.keyboard.press(keys[i]);
+    await pause(page, CELL_MS);
+    speech = await currentSpeech(page);
+  }
+  assert.ok(matches(speech), `expected ${which} bound before E, got ${JSON.stringify(speech)}`);
+  await page.keyboard.press('e');
+  await page.locator('#replacement-dock').waitFor();
+  const scope = await page.locator('#replacement-scope').textContent();
+  if (wantLower) assert.match(scope ?? '', /lower|a|0|under/i);
+  else assert.match(scope ?? '', /upper|b|1|over/i);
+  await pause(page, BEAT_MS);
 }
 
-test('thought-stream demo: definite integral scratch across napkin items', { timeout: 90_000 }, async (t) => {
+test('thought-stream demo: braille-authored hard definite integral workspace', { timeout: 120_000 }, async (t) => {
   const started = Date.now();
   const { app, page } = await launch();
   t.after(() => app.close().catch(() => {}));
 
   await page.getByRole('button', { name: 'New napkin' }).click();
-  await page.getByLabel('Napkin name').fill('Integral scratch');
+  await page.getByLabel('Napkin name').fill('Quarter-circle integral');
   await page.getByRole('button', { name: 'Create napkin' }).click();
-  await pause(page);
-  assert.equal(await page.getByRole('button', { name: 'Integral scratch' }).count(), 1);
+  await pause(page, BEAT_MS);
 
-  // Beat 1: problem statement
-  await addTextItem(page, 'evaluate ∫_0^1 of 2x dx');
-
-  // Beat 2: author ∫_a^b with a mistaken cell, Backspace, then finish bounds
-  const equationA = await addBlankEquation(page);
-  await feedCells(page, ['⠮']);
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('operator.integral'));
-  await feedCells(page, ['⠽']);
+  // Beat 1 — write the problem as mathematics: ∫_a^b x (placeholder integrand).
+  // A plain text line cannot render MathML; the problem itself must be authored.
+  const problem = await addBlankEquation(page);
+  await feedCell(page, '⠮', { statusIncludes: 'operator.integral' });
+  await feedCell(page, '⠽'); // deliberate mistake
   await page.getByLabel('Replacement input', { exact: true }).press('Backspace');
   await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Undid last Nemeth input'));
-  await feedCells(page, ['⠰', '⠁', '⠘', '⠃']);
-  await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type math > msubsup') !== null);
+  await pause(page, CELL_MS);
+  await feedCells(page, [
+    { cell: '⠰', statusIncludes: 'pending' },
+    { cell: '⠁', statusIncludes: 'letter.a' },
+    { cell: '⠘' },
+    { cell: '⠃', statusIncludes: 'letter.b' },
+    { cell: '⠐' },
+    { cell: '⠭', statusIncludes: 'letter.x' }
+  ]);
   await submitReplacement(page);
-  assert.deepEqual(await boundChildren(equationA), ['∫', 'a', 'b']);
+  assert.match(await problem.locator('math').evaluate((n) => n.outerHTML), /msubsup/);
+  assert.equal(await problem.locator('math mi').filter({ hasText: 'x' }).count() > 0, true);
 
-  // Beat 3: read lower bound, E-replace a → 0
-  await focusArticle(page, 1);
-  await openBoundReplacement(page, equationA, { arrowRights: 1, labelHint: /underscript|a/i });
-  await feedCells(page, ['⠼', '⠴']);
+  // Beat 2 — read the problem with Explorer; require Braille labels at each stop.
+  await focusArticle(page, 0);
+  await enterExplore(page, problem);
+  const integralSpeech = await exploreUntil(page, ({ label, braille }) => /integral/i.test(label) || braille.includes('⠮'));
+  assert.ok(integralSpeech.braille.length > 0, 'integral focus must expose Braille');
+  const lowerSpeech = await exploreUntil(page, ({ label, braille }) => /underscript|a/i.test(label) || braille.includes('⠁'), { key: 'ArrowRight' });
+  assert.ok(lowerSpeech.braille.length > 0, 'lower bound must expose Braille');
+  await leaveExplore(page);
+
+  // Beat 3 — navigate to the integrand x first, then E-replace with √(1−x²).
+  // E on the integral/msubsup would replace that whole tree (friction F8).
+  await openIntegrandReplacement(page, problem);
+  await feedCells(page, [
+    { cell: '⠜', statusIncludes: 'radical' },
+    { cell: '⠼' },
+    { cell: '⠂', statusIncludes: 'number.1' },
+    { cell: '⠤' },
+    { cell: '⠭', statusIncludes: 'letter.x' },
+    { cell: '⠘' },
+    { cell: '⠆', statusIncludes: 'number.2' },
+    { cell: '⠻', statusIncludes: 'radical.end' }
+  ]);
   await submitReplacement(page);
-  assert.deepEqual(await boundChildren(equationA), ['∫', '0', 'b']);
+  const afterIntegrand = await problem.locator('math').evaluate((n) => n.outerHTML);
+  assert.match(afterIntegrand, /msubsup/, 'integral with bounds must survive integrand replace');
+  assert.equal(await problem.locator('math msqrt').count(), 1);
+  assert.match(afterIntegrand, /msup[\s\S]*x[\s\S]*2/);
 
-  // Beat 4: read upper bound, E-replace b → 1
-  await focusArticle(page, 1);
-  await openBoundReplacement(page, equationA, { arrowRights: 2, labelHint: /overscript|b|1|upper/i });
-  await feedCells(page, ['⠼', '⠂']);
+  // Beat 4 — navigate nested radical / power structure; Braille must stay present.
+  await focusArticle(page, 0);
+  await enterExplore(page, problem);
+  await exploreUntil(page, ({ label }) => /root|square|radical|sqrt/i.test(label));
+  const nested = await exploreUntil(page, ({ label, braille }) => /x|2|power|super/i.test(label) || /⠭|⠆/.test(braille));
+  assert.ok(nested.braille.length > 0, 'nested radical content must expose Braille');
+  await leaveExplore(page);
+
+  // Beat 5 — specialize bounds to the unit interval by exact replacements.
+  await openIntegralBoundReplacement(page, problem, 'lower');
+  await feedCells(page, [
+    { cell: '⠼' },
+    { cell: '⠴', statusIncludes: 'number.0' }
+  ]);
   await submitReplacement(page);
-  assert.deepEqual(await boundChildren(equationA), ['∫', '0', '1']);
 
-  // Beat 5: antiderivative of 2x is x^2 — written after reading the integral setup
+  await openIntegralBoundReplacement(page, problem, 'upper');
+  await feedCells(page, [
+    { cell: '⠼' },
+    { cell: '⠂', statusIncludes: 'number.1' }
+  ]);
+  await submitReplacement(page);
+
+  const boundTexts = await problem.locator('math > msubsup > *').evaluateAll((nodes) => nodes.map((n) => n.textContent));
+  assert.equal(boundTexts[0], '∫');
+  assert.equal(boundTexts[1], '0');
+  assert.equal(boundTexts[2], '1');
+  assert.equal(await problem.locator('math msqrt').count(), 1);
+
+  // Beat 6 — after reading the specialized integral, record π/4.
   await leaveExplore(page).catch(() => {});
-  const equationB = await addBlankEquation(page);
-  await feedCells(page, ['⠭', '⠘', '⠆']);
+  const result = await addBlankEquation(page);
+  await feedCells(page, [
+    { cell: '⠹', statusIncludes: 'fraction.start' },
+    { cell: '⠨' },
+    { cell: '⠏', statusIncludes: 'π' },
+    { cell: '⠌', statusIncludes: 'denominator' },
+    { cell: '⠼' },
+    { cell: '⠲', statusIncludes: 'number.4' },
+    { cell: '⠼', statusIncludes: 'fraction.end' }
+  ]);
   await submitReplacement(page);
-  assert.match(await articleMathML(equationB), /<msup[\s\S]*<mi[^>]*>x<\/mi>[\s\S]*<mn[^>]*>2<\/mn>/);
+  assert.match(await result.locator('math').evaluate((n) => n.outerHTML), /<mi[^>]*>π<\/mi>/);
+  assert.match(await result.locator('math').evaluate((n) => n.outerHTML), /<mn[^>]*>4<\/mn>/);
 
-  // Beat 6: evaluated difference F(1)-F(0) = 1
-  const equationC = await addBlankEquation(page);
-  await feedCells(page, ['⠼', '⠂']);
-  await submitReplacement(page);
-  assert.match(await articleMathML(equationC), /<mn[^>]*>1<\/mn>/);
-
-  const articles = page.locator('article.napkin-article');
-  assert.equal(await articles.count(), 4);
-  assert.match(await articles.nth(0).textContent(), /∫|2x|dx/i);
-
+  assert.equal(await page.locator('article.napkin-article').count(), 2);
   const elapsedMs = Date.now() - started;
-  assert.ok(elapsedMs <= 60_000, `demo exceeded 60s (${elapsedMs}ms)`);
+  assert.ok(elapsedMs <= 120_000, `demo exceeded 2 minutes (${elapsedMs}ms)`);
 });
