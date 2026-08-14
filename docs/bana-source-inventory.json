@@ -24420,9 +24420,12 @@
       "printedPage": "14-24",
       "pdfPage": 193,
       "auditOrder": 833,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.sup-sup-sup",
+        "group.round"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24478,9 +24481,12 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 835,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "script.left-superscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24507,9 +24513,12 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 836,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript",
+        "script.left-subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24536,9 +24545,12 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 837,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript",
+        "script.left-subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24565,9 +24577,12 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 838,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript",
+        "modifier.directly-over"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24623,9 +24638,11 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 840,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24652,9 +24669,11 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 841,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.sup-sup-sup"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24681,9 +24700,11 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 842,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24739,9 +24760,12 @@
       "printedPage": "14-26",
       "pdfPage": 195,
       "auditOrder": 844,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24797,9 +24821,12 @@
       "printedPage": "14-26",
       "pdfPage": 195,
       "auditOrder": 846,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24826,9 +24853,13 @@
       "printedPage": "14-27",
       "pdfPage": 196,
       "auditOrder": 847,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript",
+        "script.superscript",
+        "comparison.less"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24855,9 +24886,12 @@
       "printedPage": "14-27",
       "pdfPage": 196,
       "auditOrder": 848,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "comparison.less"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24884,9 +24918,11 @@
       "printedPage": "14-27",
       "pdfPage": 196,
       "auditOrder": 849,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.sub-sub"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -24913,9 +24949,12 @@
       "printedPage": "14-27",
       "pdfPage": 196,
       "auditOrder": 850,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "script.subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -25000,9 +25039,11 @@
       "printedPage": "14-28",
       "pdfPage": 197,
       "auditOrder": 853,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -25029,9 +25070,11 @@
       "printedPage": "14-28",
       "pdfPage": 197,
       "auditOrder": 854,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -25087,9 +25130,11 @@
       "printedPage": "14-28",
       "pdfPage": 197,
       "auditOrder": 856,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -25116,9 +25161,11 @@
       "printedPage": "14-28",
       "pdfPage": 197,
       "auditOrder": 857,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -25174,9 +25221,11 @@
       "printedPage": "14-29",
       "pdfPage": 198,
       "auditOrder": 859,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -25261,9 +25310,11 @@
       "printedPage": "14-30",
       "pdfPage": 199,
       "auditOrder": 862,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.sup-sub"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],

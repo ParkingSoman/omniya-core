@@ -16,7 +16,7 @@
     "examples": 1229,
     "errata": 42,
     "errataInScope": 34,
-    "mappedRows": 1059,
+    "mappedRows": 1079,
     "electronCreationRows": 168,
     "electronEditingRows": 166,
     "officialExamplesLinked": 1229
@@ -45492,17 +45492,23 @@
       "printedPage": "14-24",
       "pdfPage": 193,
       "auditOrder": 833,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "mappingIds": [
+        "script.sup-sup-sup",
+        "group.round"
+      ],
+      "unitCaseIds": [
+        "registry:script.sup-sup-sup",
+        "registry:group.round"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -45570,17 +45576,23 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 835,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.superscript",
+        "script.left-superscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.superscript",
+        "registry:script.left-superscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -45616,17 +45628,23 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 836,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript",
+        "script.left-subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript",
+        "registry:script.left-subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -45662,17 +45680,23 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 837,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript",
+        "script.left-subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript",
+        "registry:script.left-subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -45708,17 +45732,23 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 838,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "mappingIds": [
+        "script.subscript",
+        "modifier.directly-over"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript",
+        "registry:modifier.directly-over"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -45786,17 +45816,21 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 840,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -45832,17 +45866,21 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 841,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
+      "mappingIds": [
+        "script.sup-sup-sup"
+      ],
+      "unitCaseIds": [
+        "registry:script.sup-sup-sup"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -45878,17 +45916,21 @@
       "printedPage": "14-25",
       "pdfPage": 194,
       "auditOrder": 842,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -45957,17 +45999,23 @@
       "printedPage": "14-26",
       "pdfPage": 195,
       "auditOrder": 844,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
+      "unitCaseIds": [
+        "registry:script.superscript",
+        "registry:script.baseline"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46036,17 +46084,23 @@
       "printedPage": "14-26",
       "pdfPage": 195,
       "auditOrder": 846,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
+      "unitCaseIds": [
+        "registry:script.superscript",
+        "registry:script.baseline"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46082,17 +46136,25 @@
       "printedPage": "14-27",
       "pdfPage": 196,
       "auditOrder": 847,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript",
+        "script.superscript",
+        "comparison.less"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript",
+        "registry:script.superscript",
+        "registry:comparison.less"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46128,17 +46190,23 @@
       "printedPage": "14-27",
       "pdfPage": 196,
       "auditOrder": 848,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.superscript",
+        "comparison.less"
+      ],
+      "unitCaseIds": [
+        "registry:script.superscript",
+        "registry:comparison.less"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46174,17 +46242,21 @@
       "printedPage": "14-27",
       "pdfPage": 196,
       "auditOrder": 849,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "atomic-sequence",
+      "mappingIds": [
+        "script.sub-sub"
+      ],
+      "unitCaseIds": [
+        "registry:script.sub-sub"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46220,17 +46292,23 @@
       "printedPage": "14-27",
       "pdfPage": 196,
       "auditOrder": 850,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.superscript",
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.superscript",
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46330,17 +46408,21 @@
       "printedPage": "14-28",
       "pdfPage": 197,
       "auditOrder": 853,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46376,17 +46458,21 @@
       "printedPage": "14-28",
       "pdfPage": 197,
       "auditOrder": 854,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.subscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.subscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46454,17 +46540,21 @@
       "printedPage": "14-28",
       "pdfPage": 197,
       "auditOrder": 856,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.superscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.superscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46501,17 +46591,21 @@
       "printedPage": "14-28",
       "pdfPage": 197,
       "auditOrder": 857,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.superscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.superscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46580,17 +46674,21 @@
       "printedPage": "14-29",
       "pdfPage": 198,
       "auditOrder": 859,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.superscript"
+      ],
+      "unitCaseIds": [
+        "registry:script.superscript"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -46691,17 +46789,21 @@
       "printedPage": "14-30",
       "pdfPage": 199,
       "auditOrder": 862,
-      "disposition": "unclassified",
-      "inputPolicy": null,
-      "mappingIds": [],
-      "unitCaseIds": [],
+      "disposition": "implemented-operation",
+      "inputPolicy": "immediate",
+      "mappingIds": [
+        "script.sup-sub"
+      ],
+      "unitCaseIds": [
+        "registry:script.sup-sub"
+      ],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": false,
+        "implementation": true,
         "creation": false,
         "editing": false,
         "navigation": false,
