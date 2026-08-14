@@ -8186,7 +8186,7 @@
         ],
         "expectedWholeBraille": ",op5+ ,neme? ,code 9dicator .=",
         "sourceNotation": ",op5+ ,neme? ,code 9dicator .=",
-        "brailleCells": "⠠⠕⠏⠢⠬⠀⠠⠝⠑⠍⠑⠹⠀⠠⠉⠕⠙⠑⠀⠊⠝⠙⠊⠉⠁⠞⠕⠗⠀⠨⠿"
+        "brailleCells": "⠠⠕⠏⠢⠬⠀⠠⠝⠑⠍⠑⠹⠀⠠⠉⠕⠙⠑⠀⠔⠙⠊⠉⠁⠞⠕⠗⠀⠨⠿"
       },
       "evidenceScope": "equation-workflow"
     },
@@ -10755,7 +10755,7 @@
         ],
         "expectedWholeBraille": "${ ,x ,'is #90~.*",
         "sourceNotation": "${ ,x ,'is #90~.*",
-        "brailleCells": null
+        "brailleCells": "⠫⠪⠀⠠⠭⠀⠠⠄⠊⠎⠀⠼⠔⠴⠘⠨⠡"
       },
       "evidenceScope": "equation-workflow"
     },
@@ -19274,7 +19274,7 @@
         ],
         "expectedWholeBraille": "${s ;,c ,'& ;,d",
         "sourceNotation": "${s ;,c ,'& ;,d",
-        "brailleCells": null
+        "brailleCells": "⠫⠪⠎⠀⠰⠠⠉⠀⠠⠄⠯⠀⠰⠠⠙"
       },
       "evidenceScope": "equation-workflow"
     },
@@ -23134,7 +23134,7 @@
         ],
         "expectedWholeBraille": "m${ ,b",
         "sourceNotation": "m${ ,b",
-        "brailleCells": null
+        "brailleCells": "⠍⠫⠪⠀⠠⠃"
       },
       "evidenceScope": "equation-workflow"
     },
@@ -34553,7 +34553,7 @@
         ],
         "expectedWholeBraille": "#7888 {in4^3\"] *?33333333333333#",
         "sourceNotation": "#7888 {in4^3\"] *?33333333333333#",
-        "brailleCells": null
+        "brailleCells": "⠼⠶⠦⠦⠦⠀⠪⠊⠝⠲⠘⠒⠐⠻⠀⠡⠹⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠼"
       },
       "evidenceScope": "equation-workflow"
     },
@@ -36952,7 +36952,7 @@
         ],
         "expectedWholeBraille": "#7888 {in4^3\"] *?33333333333333#",
         "sourceNotation": "#7888 {in4^3\"] *?33333333333333#",
-        "brailleCells": null
+        "brailleCells": "⠼⠶⠦⠦⠦⠀⠪⠊⠝⠲⠘⠒⠐⠻⠀⠡⠹⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠼"
       },
       "evidenceScope": "equation-workflow"
     },
