@@ -5,5 +5,7 @@ contextBridge.exposeInMainWorld('omniya', {
   saveState: (state) => ipcRenderer.invoke('state:save', state),
   latexToMathML: (source) => ipcRenderer.invoke('math:convert', source)
   ,importMath: (source) => ipcRenderer.invoke('math:import', source)
-  ,exportMathLatex: (document) => ipcRenderer.invoke('math:export', document)
+  ,exportMathLatex: (document) => ipcRenderer.invoke('math:export', document),
+  translateUeb: (text, grade) => ipcRenderer.invoke('ueb:translate', { text, grade }),
+  backTranslateUeb: (braille, grade) => ipcRenderer.invoke('ueb:backTranslate', { braille, grade })
 });
