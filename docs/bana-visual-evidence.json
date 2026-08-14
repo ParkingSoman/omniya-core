@@ -214,6 +214,23 @@
         { "phase": "focused", "path": "electron-screenshots/rule-19-13/electron_bana-2022_example-19-13-focused.png", "claim": "MathJax Explorer visibly selects the nested expression before E opens exact replacement." },
         { "phase": "editing", "path": "electron-screenshots/rule-19-13/electron_bana-2022_example-19-13-editing.png", "claim": "The replacement is rendered after the transaction; the artifact retains the complete pre-edit Braille and MathML separately." }
       ] }
+    },
+    {
+      "id": "electron:bana-2022:example-12-1",
+      "sourceRows": ["example-12-1", "12.1.1"],
+      "rule": "12",
+      "example": "12-1",
+      "artifact": "electron-evidence/example-12-1.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases; cancelled x with remainder y is one canonical source tree through commit, exact-node focus, and replacement, with undo/redo and persistence passing."
+      },
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-12-1/input.png", "claim": "The completed cancellation draft (1, cancelled x, remainder y) is visible before submission." },
+        { "phase": "committed", "path": "electron-screenshots/rule-12-1/committed.png", "claim": "The committed 1 [x] ----- [x]y ;y cancellation is visibly rendered as one canonical MathML tree." },
+        { "phase": "focused", "path": "electron-screenshots/rule-12-1/focused.png", "claim": "MathJax Explorer visibly selects the leading 1 before replacement." },
+        { "phase": "editing", "path": "electron-screenshots/rule-12-1/editing.png", "claim": "The exact node replacement is visibly rendered as y while the cancelled-x remainder structure remains present." }
+      ] }
     }
   ]
 }
