@@ -504,6 +504,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const without = `${hostCells}${digitCells}`;
       if (braille.includes(withIndicator)) continue;
       if (braille.includes(without)) braille = braille.replace(without, withIndicator);
+      // A lower-cell decimal after multipurpose is not a numeric passage, so
+      // drop an SRE number indicator between the decimal point and digits.
+      if (String(node.textContent ?? '').trim().startsWith('.')) {
+        braille = braille.replace(/⠐⠨⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/, '⠐⠨');
+      }
     }
   }
   if (lowerCellNumeric.length && braille.includes('⠬')) {

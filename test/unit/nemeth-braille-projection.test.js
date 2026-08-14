@@ -588,4 +588,5 @@ test('Rule 24.1 letter or largeop followed by a baseline number keeps the multip
     'text/xml'
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠠⠭⠨⠖', decimal), '⠠⠭⠐⠨⠖');
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠭⠐⠨⠼⠖', decimal), '⠠⠭⠐⠨⠖');
 });
