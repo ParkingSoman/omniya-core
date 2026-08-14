@@ -1723,3 +1723,71 @@ test('Rule 3 letter-digit numeric decimals keep the decimal marker', () => {
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠞⠲⠞⠦', source), '⠼⠒⠞⠨⠞⠦');
 });
+
+test('Rule 24.1 C0"10^2 keeps multipurpose before the multi-digit scripted base', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠠⠉">C</mi><mn data-omniya-nemeth-intent="single-letter-number">0</mn><msup><mn data-omniya-nemeth-intent="lower-cell-numeric">10</mn><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup><mo data-omniya-nemeth-cells="⠬">+</mo><mi>c</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn><mn data-omniya-nemeth-intent="lower-cell-numeric">10</mn><mo data-omniya-nemeth-cells="⠬">+</mo><mi>c</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠉⠴⠂⠴⠘⠆⠐⠬⠉⠂⠐⠂⠴⠬⠉⠆', source),
+    '⠠⠉⠴⠐⠂⠴⠘⠆⠐⠬⠉⠂⠐⠂⠴⠬⠉⠆'
+  );
+});
+
+test('Rule 24.7 right then left script strips the SRE multipurpose before the first superscript', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mi data-omniya-nemeth-cells="⠏">p</mi><mi data-omniya-nemeth-cells="⠃">b</mi></msup><mmultiscripts data-omniya-nemeth-intent="left-scripts:sup-first"><mi data-omniya-nemeth-cells="⠭">x</mi><mprescripts/><none/><mi data-omniya-nemeth-cells="⠉">c</mi></mmultiscripts></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠏⠐⠘⠃⠐⠘⠉⠐⠭', source), '⠏⠘⠃⠐⠘⠉⠐⠭');
+});
+
+test('Rule 3 capital letter before authored blank+equals keeps the blank', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠠⠧">V</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">5</mn><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠠⠇">L</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">50</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠧⠠⠨⠅⠀⠼⠢⠠⠀⠠⠇⠀⠨⠅⠀⠼⠢⠴', source),
+    '⠠⠧⠀⠨⠅⠀⠼⠢⠠⠀⠠⠇⠀⠨⠅⠀⠼⠢⠴'
+  );
+});
+
+test('Rule 24.1 decimal general omission restores dot-4 multipurpose cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="numeric-start">1</mn><mn data-omniya-nemeth-intent="numeric-start">3</mn></mfrac><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-intent="omission-decimal-general" data-omniya-nemeth-cells="⠨⠐⠿">?</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠹⠂⠌⠒⠼⠀⠨⠅⠀⠿', source), '⠹⠂⠌⠒⠼⠀⠨⠅⠀⠨⠐⠿');
+});
+
+test('Rule 24.1 shape then lower-cell numeral keeps multipurpose without blanks', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">9</mn><mo data-omniya-nemeth-cells="⠫⠲">□</mo><mrow><mn data-omniya-nemeth-intent="lower-cell-numeric">14</mn></mrow><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">23</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠔⠀⠫⠲⠀⠂⠲⠀⠨⠅⠀⠼⠆⠒', source), '⠼⠔⠫⠲⠐⠂⠲⠀⠨⠅⠀⠼⠆⠒');
+});
+
+test('Rule 15-46 sibling five-step modifiers in a subscript restore level+multipurpose', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mrow><mover data-omniya-nemeth-intent="five-step-modifier"><mi>x</mi><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠈⠱">~</mo></mover><mo data-omniya-nemeth-cells="⠬">+</mo><mover data-omniya-nemeth-intent="five-step-modifier"><mi>y</mi><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠈⠱">~</mo></mover></mrow></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠁⠰⠐⠭⠣⠈⠱⠻⠬⠐⠣⠈⠱⠜⠽⠻', source),
+    '⠠⠁⠰⠐⠭⠣⠈⠱⠻⠬⠰⠐⠽⠣⠈⠱⠻'
+  );
+});
+
+test('Rule 24.1 decimal-nonnumeric strips a spurious number sign after greek digits', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-decimal">0.</mn><mi data-omniya-nemeth-intent="decimal-nonnumeric" data-omniya-nemeth-cells="⠨⠁">α</mi><mi data-omniya-nemeth-intent="decimal-nonnumeric">1</mi><mi data-omniya-nemeth-cells="⠨⠁">α</mi><mi data-omniya-nemeth-intent="decimal-nonnumeric">2</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠴⠨⠐⠨⠁⠂⠨⠁⠼⠆⠀⠄⠄⠄', source),
+    '⠼⠴⠨⠐⠨⠁⠂⠨⠁⠆⠀⠄⠄⠄'
+  );
+});

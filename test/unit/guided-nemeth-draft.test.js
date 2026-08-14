@@ -2966,3 +2966,31 @@ test('Rule 3 hyphen plus number indicator starts a fresh numeric item', () => {
   assert.equal(numbers[0].attrs['data-omniya-nemeth-intent'], 'numeric-start');
   assert.equal(numbers[1].attrs['data-omniya-nemeth-intent'], 'numeric-start');
 });
+
+test('Rule 15-46 keeps a second five-step tilde inside the same subscript after +', () => {
+  const { document } = replayCells(sourceNotationToCells(',a;"x<`:]+;"y<`:]'), {
+    '⠈⠱': 'modifier.tilde.simple'
+  });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  const slot = tree.children[0].children[1];
+  assert.equal(slot.name, 'mrow');
+  assert.equal(slot.children.length, 3);
+  assert.equal(slot.children[0].name, 'mover');
+  assert.equal(slot.children[0].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(slot.children[1].children[0].text, '+');
+  assert.equal(slot.children[2].name, 'mover');
+  assert.equal(slot.children[2].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(slot.children[2].children[0].children[0].text, 'y');
+});
+
+test('Rule 24-14 decimal general omission keeps dot-4 multipurpose cells', () => {
+  const { document } = replayCells(sourceNotationToCells('?1/3# .k ."='));
+  const tree = parseMathML(document.mathml);
+  const omission = tree.children.find((node) => node.name === 'mo'
+    && node.attrs?.['data-omniya-nemeth-intent'] === 'omission-decimal-general');
+  assert.ok(omission, 'expected omission-decimal-general token');
+  assert.equal(omission.attrs['data-omniya-nemeth-cells'], '⠨⠐⠿');
+});

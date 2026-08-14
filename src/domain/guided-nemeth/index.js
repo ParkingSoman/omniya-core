@@ -777,6 +777,12 @@ function closeStructure(tree, focus, elementName) {
       : null;
   }
   if (!container) throw new RangeError(`No open ${elementName} at the current draft focus.`);
+  // Spatial complex/hypercomplex closes may arrive while the denominator is
+  // still an empty hole. Materialize that hole so completion does not treat
+  // the finished bar as incomplete (13-32).
+  if (elementName === 'mfrac' && isHole(container.children?.[1])) {
+    materializeHoleContainer(container.children[1]);
+  }
   const parent = findMathParent(tree, container.attrs['data-omniya-id']);
   // A radical's authored terminator closes the radical itself, but the next
   // local token may still belong to a surrounding script slot. Preserve that
@@ -3480,10 +3486,17 @@ function mappingApplies(mapping, context) {
     const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
     const trailingBlank = context.node.name === 'mspace' && parent?.name === 'mrow' && parent.children?.at(-1) === context.node;
     if (denominatorBoundary || trailingBlank) return false;
-    const matched = fractionOfKind(kind);
+    const matched = fractionOfKind(kind === 'order3' ? 'hypercomplex' : kind);
     const matchedDenominatorFocus = Boolean(matched && (contains(context.tree, matched.children[1], context.node) ||
       (context.node === matched && !isHole(matched.children[1]))));
-    return Boolean(matched && matchedDenominatorFocus &&
+    // Spatial complex/hypercomplex bars (13.8 / 13-32) close from the
+    // numerator when the denominator remains an empty hole — there is no
+    // explicit `,,/` line before `,,#`.
+    const matchedSpatialClose = Boolean(matched && isHole(matched.children?.[1]) && (
+      contains(context.tree, matched.children[0], context.node) ||
+      (context.node === matched && isHole(matched.children[1]))
+    ) && ['complex', 'hypercomplex'].includes(matched.attrs?.['data-omniya-fraction-kind'] ?? ''));
+    return Boolean(matched && (matchedDenominatorFocus || matchedSpatialClose) &&
       (!mapping.id.includes('order3') || matched.attrs?.['data-omniya-fraction-order'] === '3'));
   }
   if (mapping.id === 'radical.next.radicand') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
@@ -3939,6 +3952,22 @@ const TREE_OPERATIONS = Object.freeze({
           const slot = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === (args.initialSlot ?? 'denominator'));
           return { tree, focus: focusNode(slot ?? wrapper.children[1]) };
         }
+      }
+    }
+    // A completed group that occupies a fraction numerator/denominator slot
+    // is a finished sibling operand. Opening another fraction must not wrap
+    // that group; collect both under a local row (13-33 `,? (1-X) ?D/DX#`).
+    if (args.element === 'mfrac' && node.attrs?.['data-omniya-role'] === 'closed-group' &&
+      args.attrs?.bevelled !== true && args.attrs?.bevelled !== 'true') {
+      const parent = findMathParent(tree, node.attrs?.['data-omniya-id']);
+      if (parent?.name === 'mfrac') {
+        const wrapper = element(args.element, [], args.attrs ?? {});
+        for (const role of args.slots ?? []) wrapper.children.push(hole(wrapper, role));
+        const row = element('mrow', [node, wrapper]);
+        const index = parent.children.indexOf(node);
+        parent.children[index] = row;
+        const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === args.initialSlot);
+        return { tree, focus: focusNode(first ?? wrapper.children[0]) };
       }
     }
     if (args.element === 'mfrac' && node.name !== 'math' && !isHole(node) &&
@@ -4775,6 +4804,29 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       });
     }
   }
+  // A completed capital letter held as a local atomic sequence, followed by
+  // the simple-fraction line, commits the letter then moves to the
+  // denominator (`?D/DX#`). Without this, `⠌` extends the capital prefix and
+  // rejects the next capital in the denominator.
+  if (state.mode === null && /^⠠[⠁-⠵]$/.test(state.prefix) && normalized === '⠌') {
+    const openFraction = fractionAtFocus(context.tree, context.node);
+    const openKind = openFraction?.attrs?.['data-omniya-fraction-kind'] ?? 'simple';
+    if (openFraction && isHole(openFraction.children?.[1]) &&
+      contains(context.tree, openFraction.children[0], context.node) &&
+      ['simple', 'mixed'].includes(openKind)) {
+      const committed = commitNemethLocalCode({ document, focus, inputState: state });
+      if (committed.status === 'applied' || committed.status === 'choice') {
+        if (committed.status === 'applied') {
+          return applyNemethCell({
+            document: committed.document,
+            focus: committed.focus,
+            inputState: committed.inputState,
+            cell: normalized
+          });
+        }
+      }
+    }
+  }
   // A multipurpose scope may begin with a capitalized identifier. Keep the
   // same two-cell dot-6 decision inside that scope so the capital atom also
   // extends the exact modifier operand range.
@@ -4812,6 +4864,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         { ...state, prefix: '', mode: 'english-letter' },
         letterMapping(normalized, { ...state, prefix: '', mode: 'english-letter' })
       );
+    }
+    // Rule 15.7 / 15-46: after the level-preserving indicator, `" ` opens
+    // multipurpose (five-step) at the current script level. The same cell is
+    // Rule 14 baseline return inside a filled script, so force multipurpose
+    // here before that baseline mapping can claim the prefix.
+    if (!state.prefix && normalized === '⠐') {
+      const multipurpose = MAPPINGS.find((mapping) => mapping.id === 'indicator.multipurpose');
+      if (multipurpose) {
+        return applyMapping(document, focus, { ...state, prefix: '', mode: null }, multipurpose);
+      }
     }
     const localSequence = `${state.prefix}${normalized}`;
     const localCandidates = (PREFIXES.get(localSequence)?.mappings ?? [])
@@ -6016,7 +6078,13 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // is one bounded numeric atom at the current row boundary, not a passage
   // buffer. Keep the temporary numeric mode only for the digit run.
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
-    (context.node.name === 'mspace' || (isHole(context.node) && hasAncestor(context.tree, context.node, 'mrow')))) {
+    (context.node.name === 'mspace' ||
+      (isHole(context.node) && hasAncestor(context.tree, context.node, 'mrow')) ||
+      // After space, focus may already have advanced to the math/mrow root
+      // while the trailing sibling is still the authored blank (23-7).
+      ((context.node.name === 'math' || context.node.name === 'mrow') &&
+        context.node.children?.at(-1)?.name === 'mspace' &&
+        context.node.children.at(-1).attrs?.['data-omniya-nemeth-intent'] === 'explicit-space'))) {
 
     const digit = digitMapping(normalized);
     digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
