@@ -12,3 +12,21 @@ export function electronLaunchEnv(overrides = {}) {
   if (env.OMNIYA_HEADLESS == null) env.OMNIYA_HEADLESS = '1';
   return env;
 }
+
+export async function chooseType(page, type) {
+  await page.evaluate((t) => {
+    const input = document.querySelector(`#mode-switch input[value="${t}"]`);
+    input.checked = true;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }, type);
+}
+
+export async function chooseMethod(page, method) {
+  const value = method === 'latex' || method === 'LaTeX' ? 'latex' : 'nemeth';
+  await page.evaluate((m) => {
+    const input = document.querySelector(`#replacement-method input[value="${m}"]`);
+    if (input.checked) return;
+    input.checked = true;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }, value);
+}

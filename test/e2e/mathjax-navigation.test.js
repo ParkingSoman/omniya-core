@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { electronLaunchEnv } from './launch-electron.js';
+import { chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -47,11 +47,11 @@ test('recovers from corrupt local napkin data without leaving the app unusable',
 
 async function addEquation(page, source) {
   await page.getByRole('button', { name: 'Add item' }).click();
-  await page.getByRole('radio', { name: 'Equation' }).check();
+  await chooseType(page, 'equation');
   assert.equal(await page.locator('#note-toggle').isVisible(), false);
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill(source);
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -183,7 +183,7 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   await article.focus();
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   const source = page.getByLabel('Replacement input', { exact: true });
   await source.fill('\\frac{');
   await page.getByRole('button', { name: 'Replace' }).click();
@@ -198,7 +198,7 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   await article.focus();
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('x^3');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -302,17 +302,14 @@ test('E opens the exact replacement even during the explorer focus handoff', { t
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
 });
 
-test('switches input type with radio arrow keys and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {
+test('switches input type without visible radios and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-keyboard-input-e2e-');
   await page.getByRole('button', { name: 'Add item' }).click();
 
-  const text = page.getByRole('radio', { name: 'Text' });
-  const equation = page.getByRole('radio', { name: 'Equation' });
-  await text.focus();
-  await text.press('ArrowRight');
-  assert.equal(await equation.isChecked(), true);
-  await equation.press('ArrowLeft');
-  assert.equal(await text.isChecked(), true);
+  await chooseType(page, 'equation');
+  assert.equal(await page.evaluate(() => document.querySelector('#mode-switch input[value="equation"]')?.checked), true);
+  await chooseType(page, 'text');
+  assert.equal(await page.evaluate(() => document.querySelector('#mode-switch input[value="text"]')?.checked), true);
 
   const content = page.getByLabel('Content', { exact: true });
   await content.fill('Keyboard-created text');

@@ -22,6 +22,7 @@ import {
   startReplacementSession,
   submitReplacement
 } from '../domain/replacement-session.js';
+import { createCommandState, formatStatus } from '../domain/command-mode.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -52,6 +53,7 @@ let exploringEquationItemId = null;
 let replacementSession = null;
 let replacementEditor = null;
 let preferredAuthoringMethod = 'nemeth';
+let commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
 const mathHistory = new Map();
 // MathJax changes the visual and speech nodes in a short asynchronous handoff
 // after an arrow key. Keep the last successfully resolved *exact* address so
@@ -907,6 +909,25 @@ function selectedType() {
     : 'text';
 }
 
+function applyCommandStateToChrome(nextState) {
+  commandState = nextState;
+  if (commandState.itemKind === 'text' || commandState.itemKind === 'equation') {
+    elements['mode-switch'].querySelectorAll('input').forEach((input) => {
+      input.checked = input.value === commandState.itemKind;
+    });
+    draft.type = commandState.itemKind;
+  }
+  if (commandState.itemKind === 'equation') {
+    preferredAuthoringMethod = commandState.equationMethod;
+    elements['replacement-method']?.querySelectorAll('input').forEach((input) => {
+      input.checked = input.value === commandState.equationMethod;
+    });
+  }
+  if (elements['save-status'] && commandState) {
+    elements['save-status'].textContent = formatStatus(commandState);
+  }
+}
+
 async function submitComposer() {
   if (mode !== 'add' && mode !== 'edit') return;
   if (!activeNapkin()) returnToRead();
@@ -1040,6 +1061,11 @@ elements['replacement-method'].addEventListener('change', () => {
     elements['replacement-status'].textContent = selected === 'nemeth'
       ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
       : 'Enter LaTeX for the replacement expression.';
+    applyCommandStateToChrome({
+      ...commandState,
+      itemKind: 'equation',
+      equationMethod: selected
+    });
   } catch (error) {
     elements['replacement-method'].querySelectorAll('input').forEach((input) => { input.checked = input.value === replacementSession.method; });
     elements['replacement-status'].textContent = error.message;
@@ -1071,6 +1097,11 @@ elements['composer-source'].addEventListener('input', () => {
 });
 elements['mode-switch'].addEventListener('change', () => {
   draft.type = selectedType();
+  applyCommandStateToChrome({
+    ...commandState,
+    itemKind: draft.type,
+    equationMethod: draft.type === 'equation' ? preferredAuthoringMethod : commandState.equationMethod
+  });
   if (mode === 'add' || mode === 'edit') renderComposer();
 });
 

@@ -146,6 +146,18 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .error { color: #a33218; font-size: 0.75rem; margin: 0.35rem 0; }
 .sr-only { height: 1px; margin: -1px; overflow: hidden; position: absolute; width: 1px; clip: rect(0, 0, 0, 0); }
 
+.chrome-radios-hidden #mode-switch,
+.chrome-radios-hidden #replacement-method {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-inline-size: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 @media (max-width: 42rem) {
   #app-shell { grid-template-columns: 10rem minmax(0, 1fr); }
   #workspace-header { align-items: start; flex-direction: column; gap: 0.5rem; }
