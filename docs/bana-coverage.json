@@ -8097,7 +8097,7 @@
       "printedPage": "4-1",
       "pdfPage": 54,
       "auditOrder": 169,
-      "disposition": "implemented-operation",
+      "disposition": "approved-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "switch.ueb-passage.open",
@@ -8140,7 +8140,7 @@
       "printedPage": "4-1",
       "pdfPage": 54,
       "auditOrder": 170,
-      "disposition": "implemented-operation",
+      "disposition": "approved-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "switch.ueb-passage.open",

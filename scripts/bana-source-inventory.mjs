@@ -173,6 +173,12 @@ if (durableDisposition) durableDisposition.disposition = 'approved-context-polic
 // prose-aware corpus workflow.
 const rule14Example1 = rows.find((row) => row.id === 'bana-2022:example-14-1');
 if (rule14Example1) rule14Example1.disposition = 'approved-context-policy';
+// Rule 4.1 and Example 4-1 are the Special Symbols Page/documentary
+// description of switch indicators, not executable mathematical content.
+for (const id of ['bana-2022:4.1', 'bana-2022:example-4-1']) {
+  const row = rows.find((candidate) => candidate.id === id);
+  if (row) row.disposition = 'approved-context-policy';
+}
 const rule14Batch = {
   'example-14-3': ['script.superscript'],
   'example-14-4': ['script.superscript'],
