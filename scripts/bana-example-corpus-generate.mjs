@@ -62,12 +62,23 @@ const reviewedOperationIds = new Map(Object.entries({
   '14-95': ['script.superscript', 'script.baseline'], '14-96': ['script.sup-sup-sup'],
   '14-97': ['fraction.start.simple', 'script.superscript', 'script.baseline'],
   '14-98': ['fraction.start.complex', 'script.superscript', 'script.baseline'],
-  '14-99': ['script.superscript', 'modifier.directly-over']
+  '14-99': ['script.superscript', 'modifier.directly-over'],
+  '14-100': ['script.superscript', 'modifier.terminate.over'],
+  '14-101': ['script.superscript', 'group.round'], '14-102': ['script.sup-sup-sup', 'group.round'],
+  '14-103': ['script.superscript', 'script.left-superscript'],
+  '14-104': ['script.subscript', 'script.left-subscript'],
+  '14-105': ['script.subscript', 'script.left-subscript'],
+  '14-106': ['script.subscript', 'modifier.directly-over'], '14-107': ['script.subscript'],
+  '14-108': ['script.sup-sup-sup'], '14-109': ['script.subscript'],
+  '14-110': ['script.superscript', 'script.baseline']
 }));
 const reviewedChoicePrefixes = new Map([
   ['14-34', ['⠘⠉', 'script.left-superscript']],
   ['14-35', ['⠰⠉', 'script.left-subscript']],
-  ['14-50', ['⠰⠒', 'script.left-subscript']]
+  ['14-50', ['⠰⠒', 'script.left-subscript']],
+  ['14-103', ['⠘⠉', 'script.left-superscript']],
+  ['14-104', ['⠰⠉', 'script.left-subscript']],
+  ['14-105', ['⠰⠆', 'script.left-subscript']]
 ]);
 const examples = source.examples
   .filter((example) => Number(example.exampleNumber.split('-')[0]) >= 3 && Number(example.exampleNumber.split('-')[0]) <= 24)

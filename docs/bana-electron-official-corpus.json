@@ -24684,6 +24684,10 @@
       "printedPage": null,
       "pdfPage": 193,
       "sourceNotation": "x~2\"[y~2\"]",
+      "operationIds": [
+        "script.superscript",
+        "modifier.terminate.over"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -24720,6 +24724,10 @@
       "printedPage": null,
       "pdfPage": 193,
       "sourceNotation": "(x~2\"+y~2\")",
+      "operationIds": [
+        "script.superscript",
+        "group.round"
+      ],
       "cells": [
         "⠷",
         "⠭",
@@ -24757,6 +24765,10 @@
       "printedPage": null,
       "pdfPage": 193,
       "sourceNotation": "x~(m~~n~)",
+      "operationIds": [
+        "script.sup-sup-sup",
+        "group.round"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -24792,6 +24804,13 @@
       "printedPage": null,
       "pdfPage": 194,
       "sourceNotation": "p~b\"~c\"q",
+      "operationIds": [
+        "script.superscript",
+        "script.left-superscript"
+      ],
+      "choiceOperationIds": {
+        "⠘⠉": "script.left-superscript"
+      },
       "cells": [
         "⠏",
         "⠘",
@@ -24826,6 +24845,13 @@
       "printedPage": null,
       "pdfPage": 194,
       "sourceNotation": ",p;b\";c\",q",
+      "operationIds": [
+        "script.subscript",
+        "script.left-subscript"
+      ],
+      "choiceOperationIds": {
+        "⠰⠉": "script.left-subscript"
+      },
       "cells": [
         "⠠",
         "⠏",
@@ -24862,6 +24888,13 @@
       "printedPage": null,
       "pdfPage": 194,
       "sourceNotation": ",p1\";2\",q",
+      "operationIds": [
+        "script.subscript",
+        "script.left-subscript"
+      ],
+      "choiceOperationIds": {
+        "⠰⠆": "script.left-subscript"
+      },
       "cells": [
         "⠠",
         "⠏",
@@ -24897,6 +24930,10 @@
       "printedPage": null,
       "pdfPage": 194,
       "sourceNotation": ",a;\"x<`:]+;\"y<`:]",
+      "operationIds": [
+        "script.subscript",
+        "modifier.directly-over"
+      ],
       "cells": [
         "⠠",
         "⠁",
@@ -24940,6 +24977,9 @@
       "printedPage": null,
       "pdfPage": 194,
       "sourceNotation": "$t;regular ;polygon",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠫",
         "⠞",
@@ -24985,6 +25025,9 @@
       "printedPage": null,
       "pdfPage": 194,
       "sourceNotation": "a~n+n+n ''' ~to ~m ~n~_'s",
+      "operationIds": [
+        "script.sup-sup-sup"
+      ],
       "cells": [
         "⠁",
         "⠘",
@@ -25036,6 +25079,9 @@
       "printedPage": null,
       "pdfPage": 194,
       "sourceNotation": "!;PATH ;,C\"_;F(X, Y, Z)*_;D_;,L .K !!;SURFACE ;,S\"(.$@*_;,F)_;D_;,S",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠮",
         "⠰",
@@ -25152,6 +25198,10 @@
       "printedPage": null,
       "pdfPage": 195,
       "sourceNotation": "2x~3\"- x~2\"+ x+ 1 3x~3\"+4x~2\"-10x+ 7 5x~2\" +12 -2x~3\" - 6x 333333333333333333333 3x~3\"+8x~2\"-15x+20",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠆",
         "⠭",
