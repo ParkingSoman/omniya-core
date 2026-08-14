@@ -29751,16 +29751,14 @@
       "printedPage": "17-5",
       "pdfPage": 231,
       "auditOrder": 1025,
-      "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
-      "errataRefs": [
-        "errata-2025:17.1-Special-Considerations-c-17-6"
-      ],
+      "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": false,
@@ -29772,7 +29770,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-1",
@@ -29782,8 +29780,8 @@
       "printedPage": "17-6",
       "pdfPage": 232,
       "auditOrder": 1026,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -29801,7 +29799,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-2",
@@ -29811,8 +29809,8 @@
       "printedPage": "17-6",
       "pdfPage": 232,
       "auditOrder": 1027,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -29830,7 +29828,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-3",
@@ -29840,8 +29838,8 @@
       "printedPage": "17-6",
       "pdfPage": 232,
       "auditOrder": 1028,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -29859,7 +29857,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-4",
@@ -29869,8 +29867,8 @@
       "printedPage": "17-6",
       "pdfPage": 232,
       "auditOrder": 1029,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -29888,7 +29886,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-5",
@@ -29898,8 +29896,8 @@
       "printedPage": "17-6",
       "pdfPage": 232,
       "auditOrder": 1030,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -29917,7 +29915,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-6",
@@ -29927,8 +29925,8 @@
       "printedPage": "17-6",
       "pdfPage": 232,
       "auditOrder": 1031,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -29946,7 +29944,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-7",
@@ -29956,8 +29954,8 @@
       "printedPage": "17-7",
       "pdfPage": 233,
       "auditOrder": 1032,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -29975,7 +29973,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-8",
@@ -29985,8 +29983,8 @@
       "printedPage": "17-7",
       "pdfPage": 233,
       "auditOrder": 1033,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30004,7 +30002,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.2",
@@ -30014,8 +30012,8 @@
       "printedPage": "17-7",
       "pdfPage": 233,
       "auditOrder": 1034,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30033,7 +30031,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.3",
@@ -30043,8 +30041,8 @@
       "printedPage": "17-7",
       "pdfPage": 233,
       "auditOrder": 1035,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30062,7 +30060,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-9",
@@ -30072,8 +30070,8 @@
       "printedPage": "17-7",
       "pdfPage": 233,
       "auditOrder": 1036,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30091,7 +30089,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-10",
@@ -30101,8 +30099,8 @@
       "printedPage": "17-8",
       "pdfPage": 234,
       "auditOrder": 1037,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30120,7 +30118,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.4",
@@ -30130,8 +30128,8 @@
       "printedPage": "17-8",
       "pdfPage": 234,
       "auditOrder": 1038,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30149,7 +30147,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-11",
@@ -30159,8 +30157,8 @@
       "printedPage": "17-8",
       "pdfPage": 234,
       "auditOrder": 1039,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30178,7 +30176,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-12",
@@ -30188,8 +30186,8 @@
       "printedPage": "17-8",
       "pdfPage": 234,
       "auditOrder": 1040,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30207,7 +30205,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-13",
@@ -30217,8 +30215,8 @@
       "printedPage": "17-8",
       "pdfPage": 234,
       "auditOrder": 1041,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30236,7 +30234,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-14",
@@ -30246,8 +30244,8 @@
       "printedPage": "17-8",
       "pdfPage": 234,
       "auditOrder": 1042,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30265,7 +30263,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.5",
@@ -30275,8 +30273,8 @@
       "printedPage": "17-9",
       "pdfPage": 235,
       "auditOrder": 1043,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30294,7 +30292,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-15",
@@ -30304,8 +30302,8 @@
       "printedPage": "17-9",
       "pdfPage": 235,
       "auditOrder": 1044,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30323,7 +30321,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-16",
@@ -30333,8 +30331,8 @@
       "printedPage": "17-9",
       "pdfPage": 235,
       "auditOrder": 1045,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30352,7 +30350,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.6",
@@ -30362,7 +30360,7 @@
       "printedPage": "17-10",
       "pdfPage": 236,
       "auditOrder": 1046,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -30381,7 +30379,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.6.1",
@@ -30391,8 +30389,8 @@
       "printedPage": "17-10",
       "pdfPage": 236,
       "auditOrder": 1047,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30410,7 +30408,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-17",
@@ -30420,8 +30418,8 @@
       "printedPage": "17-10",
       "pdfPage": 236,
       "auditOrder": 1048,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30439,7 +30437,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-18",
@@ -30449,8 +30447,8 @@
       "printedPage": "17-10",
       "pdfPage": 236,
       "auditOrder": 1049,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30468,7 +30466,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-19",
@@ -30478,8 +30476,8 @@
       "printedPage": "17-10",
       "pdfPage": 236,
       "auditOrder": 1050,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30497,7 +30495,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-20",
@@ -30507,8 +30505,8 @@
       "printedPage": "17-10",
       "pdfPage": 236,
       "auditOrder": 1051,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30526,7 +30524,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-21",
@@ -30536,16 +30534,14 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1052,
-      "disposition": "excluded-document-format",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
-      "errataRefs": [
-        "errata-2025:17.1-Special-Considerations-c-17-6"
-      ],
+      "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": false,
@@ -30557,7 +30553,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.6.2",
@@ -30567,8 +30563,8 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1053,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30586,7 +30582,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-22",
@@ -30596,8 +30592,8 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1054,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30615,7 +30611,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.6.3",
@@ -30625,8 +30621,8 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1055,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30644,7 +30640,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-23",
@@ -30654,8 +30650,8 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1056,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30673,7 +30669,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.6.4",
@@ -30683,8 +30679,8 @@
       "printedPage": "17-12",
       "pdfPage": 238,
       "auditOrder": 1057,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30702,7 +30698,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-24",
@@ -30712,8 +30708,8 @@
       "printedPage": "17-12",
       "pdfPage": 238,
       "auditOrder": 1058,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30731,7 +30727,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-25",
@@ -30741,8 +30737,8 @@
       "printedPage": "17-12",
       "pdfPage": 238,
       "auditOrder": 1059,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30760,7 +30756,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-26",
@@ -30770,8 +30766,8 @@
       "printedPage": "17-13",
       "pdfPage": 239,
       "auditOrder": 1060,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30789,7 +30785,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-27",
@@ -30799,8 +30795,8 @@
       "printedPage": "17-13",
       "pdfPage": 239,
       "auditOrder": 1061,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30818,7 +30814,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-28",
@@ -30828,8 +30824,8 @@
       "printedPage": "17-13",
       "pdfPage": 239,
       "auditOrder": 1062,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30847,7 +30843,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-29",
@@ -30857,8 +30853,8 @@
       "printedPage": "17-13",
       "pdfPage": 239,
       "auditOrder": 1063,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30876,7 +30872,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-30",
@@ -30886,8 +30882,8 @@
       "printedPage": "17-13",
       "pdfPage": 239,
       "auditOrder": 1064,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30905,7 +30901,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-31",
@@ -30915,8 +30911,8 @@
       "printedPage": "17-13",
       "pdfPage": 239,
       "auditOrder": 1065,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30934,7 +30930,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-32",
@@ -30944,8 +30940,8 @@
       "printedPage": "17-13",
       "pdfPage": 239,
       "auditOrder": 1066,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30963,7 +30959,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.7",
@@ -30973,8 +30969,8 @@
       "printedPage": "17-14",
       "pdfPage": 240,
       "auditOrder": 1067,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -30992,7 +30988,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-33",
@@ -31002,8 +30998,8 @@
       "printedPage": "17-14",
       "pdfPage": 240,
       "auditOrder": 1068,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31021,7 +31017,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-34",
@@ -31031,8 +31027,8 @@
       "printedPage": "17-14",
       "pdfPage": 240,
       "auditOrder": 1069,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31050,7 +31046,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.8",
@@ -31060,7 +31056,7 @@
       "printedPage": "17-14",
       "pdfPage": 240,
       "auditOrder": 1070,
-      "disposition": "excluded-document-format",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -31079,7 +31075,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.9",
@@ -31089,8 +31085,8 @@
       "printedPage": "17-14",
       "pdfPage": 240,
       "auditOrder": 1071,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31108,7 +31104,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-35",
@@ -31118,8 +31114,8 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1072,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31137,7 +31133,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.10",
@@ -31147,7 +31143,7 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1073,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -31166,7 +31162,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.10.1",
@@ -31176,7 +31172,7 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1074,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -31195,7 +31191,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-36",
@@ -31205,8 +31201,8 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1075,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31224,7 +31220,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-37",
@@ -31234,8 +31230,8 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1076,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31253,7 +31249,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-38",
@@ -31263,8 +31259,8 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1077,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31282,7 +31278,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-39",
@@ -31292,8 +31288,8 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1078,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31311,7 +31307,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-40",
@@ -31321,8 +31317,8 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1079,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31340,7 +31336,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-41",
@@ -31350,8 +31346,8 @@
       "printedPage": "17-16",
       "pdfPage": 242,
       "auditOrder": 1080,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31369,7 +31365,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-42",
@@ -31379,8 +31375,8 @@
       "printedPage": "17-16",
       "pdfPage": 242,
       "auditOrder": 1081,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31398,7 +31394,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-43",
@@ -31408,8 +31404,8 @@
       "printedPage": "17-16",
       "pdfPage": 242,
       "auditOrder": 1082,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31427,7 +31423,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-44",
@@ -31437,8 +31433,8 @@
       "printedPage": "17-16",
       "pdfPage": 242,
       "auditOrder": 1083,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31456,7 +31452,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-45",
@@ -31466,8 +31462,8 @@
       "printedPage": "17-16",
       "pdfPage": 242,
       "auditOrder": 1084,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31485,7 +31481,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-46",
@@ -31495,8 +31491,8 @@
       "printedPage": "17-16",
       "pdfPage": 242,
       "auditOrder": 1085,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31514,7 +31510,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-47",
@@ -31524,8 +31520,8 @@
       "printedPage": "17-16",
       "pdfPage": 242,
       "auditOrder": 1086,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31543,7 +31539,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.10.2",
@@ -31553,7 +31549,7 @@
       "printedPage": "17-16",
       "pdfPage": 242,
       "auditOrder": 1087,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -31572,7 +31568,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-48",
@@ -31582,8 +31578,8 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1088,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31601,7 +31597,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-49",
@@ -31611,8 +31607,8 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1089,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31630,7 +31626,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-50",
@@ -31640,8 +31636,8 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1090,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31659,7 +31655,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-51",
@@ -31669,8 +31665,8 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1091,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31688,7 +31684,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-52",
@@ -31698,8 +31694,8 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1092,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31717,7 +31713,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-53",
@@ -31727,8 +31723,8 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1093,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31746,7 +31742,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-54",
@@ -31756,8 +31752,8 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1094,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31775,7 +31771,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.10.3",
@@ -31785,7 +31781,7 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1095,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -31804,7 +31800,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-55",
@@ -31814,8 +31810,8 @@
       "printedPage": "17-17",
       "pdfPage": 243,
       "auditOrder": 1096,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31833,7 +31829,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-56",
@@ -31843,8 +31839,8 @@
       "printedPage": "17-18",
       "pdfPage": 244,
       "auditOrder": 1097,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31862,7 +31858,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-57",
@@ -31872,8 +31868,8 @@
       "printedPage": "17-18",
       "pdfPage": 244,
       "auditOrder": 1098,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31891,7 +31887,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-58",
@@ -31901,8 +31897,8 @@
       "printedPage": "17-18",
       "pdfPage": 244,
       "auditOrder": 1099,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31920,7 +31916,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-59",
@@ -31930,8 +31926,8 @@
       "printedPage": "17-18",
       "pdfPage": 244,
       "auditOrder": 1100,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31949,7 +31945,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-60",
@@ -31959,8 +31955,8 @@
       "printedPage": "17-18",
       "pdfPage": 244,
       "auditOrder": 1101,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -31978,7 +31974,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:17.10.4",
@@ -31988,7 +31984,7 @@
       "printedPage": "17-18",
       "pdfPage": 244,
       "auditOrder": 1102,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -32007,7 +32003,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:example-17-61",
@@ -32017,65 +32013,7 @@
       "printedPage": "17-18",
       "pdfPage": 244,
       "auditOrder": 1103,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
-      "mappingIds": [],
-      "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
-      "errataRefs": [],
-      "verified": {
-        "source": true,
-        "implementation": false,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false
-      },
-      "transcriberReview": "reviewed"
-    },
-    {
-      "id": "bana-2022:example-17-62",
-      "kind": "example",
-      "parentId": "bana-2022:17.10.4",
-      "title": "Diamond Shape and Subscript Indicator",
-      "printedPage": "17-18",
-      "pdfPage": 244,
-      "auditOrder": 1104,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
-      "mappingIds": [],
-      "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
-      "errataRefs": [],
-      "verified": {
-        "source": true,
-        "implementation": false,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false
-      },
-      "transcriberReview": "reviewed"
-    },
-    {
-      "id": "bana-2022:17.10.5",
-      "kind": "provision",
-      "parentId": "bana-2022:17.10",
-      "title": "No space may be left between keystroke constructions and",
-      "printedPage": "17-19",
-      "pdfPage": 245,
-      "auditOrder": 1105,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -32094,18 +32032,18 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
-      "id": "bana-2022:example-17-63",
+      "id": "bana-2022:example-17-62",
       "kind": "example",
-      "parentId": "bana-2022:17.10.5",
-      "title": "Unspaced Arrow in a Keystroke Construction",
-      "printedPage": "17-19",
-      "pdfPage": 245,
-      "auditOrder": 1106,
-      "disposition": "implemented-operation",
-      "inputPolicy": "compositional",
+      "parentId": "bana-2022:17.10.4",
+      "title": "Diamond Shape and Subscript Indicator",
+      "printedPage": "17-18",
+      "pdfPage": 244,
+      "auditOrder": 1104,
+      "disposition": "unclassified",
+      "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
@@ -32123,7 +32061,65 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
+    },
+    {
+      "id": "bana-2022:17.10.5",
+      "kind": "provision",
+      "parentId": "bana-2022:17.10",
+      "title": "No space may be left between keystroke constructions and",
+      "printedPage": "17-19",
+      "pdfPage": 245,
+      "auditOrder": 1105,
+      "disposition": "unclassified",
+      "inputPolicy": null,
+      "mappingIds": [],
+      "unitCaseIds": [],
+      "electronCreationCaseIds": [],
+      "electronEditingCaseIds": [],
+      "navigationCaseIds": [],
+      "errataRefs": [],
+      "verified": {
+        "source": true,
+        "implementation": false,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false
+      },
+      "transcriberReview": "pending"
+    },
+    {
+      "id": "bana-2022:example-17-63",
+      "kind": "example",
+      "parentId": "bana-2022:17.10.5",
+      "title": "Unspaced Arrow in a Keystroke Construction",
+      "printedPage": "17-19",
+      "pdfPage": 245,
+      "auditOrder": 1106,
+      "disposition": "unclassified",
+      "inputPolicy": null,
+      "mappingIds": [],
+      "unitCaseIds": [],
+      "electronCreationCaseIds": [],
+      "electronEditingCaseIds": [],
+      "navigationCaseIds": [],
+      "errataRefs": [],
+      "verified": {
+        "source": true,
+        "implementation": false,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false
+      },
+      "transcriberReview": "pending"
     },
     {
       "id": "bana-2022:18.1",
@@ -34308,7 +34304,7 @@
       "printedPage": "19-10",
       "pdfPage": 262,
       "auditOrder": 1182,
-      "disposition": "excluded-document-format",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -34482,7 +34478,7 @@
       "printedPage": "19-11",
       "pdfPage": 263,
       "auditOrder": 1188,
-      "disposition": "excluded-document-format",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -34569,7 +34565,7 @@
       "printedPage": "19-12",
       "pdfPage": 264,
       "auditOrder": 1191,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -34598,7 +34594,7 @@
       "printedPage": "19-13",
       "pdfPage": 265,
       "auditOrder": 1192,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -34685,7 +34681,7 @@
       "printedPage": "19-13",
       "pdfPage": 265,
       "auditOrder": 1195,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -37469,7 +37465,7 @@
       "printedPage": "21-14",
       "pdfPage": 290,
       "auditOrder": 1291,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -37614,7 +37610,7 @@
       "printedPage": "21-15",
       "pdfPage": 291,
       "auditOrder": 1296,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -38165,7 +38161,7 @@
       "printedPage": "22-3",
       "pdfPage": 296,
       "auditOrder": 1315,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -39354,7 +39350,7 @@
       "printedPage": "22-8",
       "pdfPage": 301,
       "auditOrder": 1356,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -51128,7 +51124,7 @@
       "printedPage": "17-6",
       "pdfPage": null,
       "auditOrder": 1762,
-      "disposition": "implemented-context-policy",
+      "disposition": "unclassified",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -51147,7 +51143,7 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "reviewed"
+      "transcriberReview": "pending"
     },
     {
       "id": "errata-2025:20.6-20-9",
