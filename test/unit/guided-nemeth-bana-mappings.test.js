@@ -1940,7 +1940,7 @@ test('every accepted mapping has explicit BANA source evidence and action', () =
     assert.ok(entry.banaRefs.every((ref) => /^\d+(\.\d+)*$/.test(ref)), entry.id);
     assert.ok(Array.isArray(entry.errataRefs), entry.id);
     assert.ok(entry.args?.sourceNotation || entry.args?.sourceKind, `${entry.id} has no source notation or contextual classification`);
-    assert.ok(['insert-token', 'insert-numeric', 'insert-composite', 'insert-modifier', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'wrap-script-token', 'open-structure', 'open-left-script', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial', 'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
+    assert.ok(['insert-token', 'insert-numeric', 'insert-composite', 'insert-modifier', 'insert-structured-token', 'insert-contracted-script-comma', 'append-possessive', 'append-plural', 'append-ordinal', 'wrap-script-token', 'open-structure', 'open-left-script', 'open-fixed-root', 'open-function-limit', 'open-script-chain', 'open-modifier', 'move-slot', 'close-structure', 'set-mode', 'extend-integral', 'superpose-integral', 'superpose-token', 'simultaneous-modifier', 'higher-order-modifier', 'open-binomial', 'move-binomial-lower', 'close-binomial', 'open-typeform-scope', 'close-typeform-scope'].includes(entry.action), entry.id);
   }
 });
 
@@ -2153,7 +2153,9 @@ test('BANA Rule 24.1.g decimal return is one bounded nonnumeric transition', () 
     assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
     ({ document, focus, inputState } = result);
   }
-  assert.equal(inputState.mode, 'decimal-nonnumeric');
+  // Dot-5 after a decimal is shared with Rule 15.16 multipurpose-before-digit.
+  // The next local symbol chooses: a letter completes the 24.1.g nonnumeric path.
+  assert.equal(inputState.mode, 'decimal-dot5');
   const before = document.mathml;
   const result = applyNemethCell({ document, focus, inputState, cell: '⠁' });
   assert.equal(result.status, 'applied');

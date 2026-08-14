@@ -901,3 +901,56 @@ test('Rule 7.2 italic typeform number cells are restored when SRE omits the type
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠨⠢', source), '⠨⠼⠒⠨⠢');
 });
+
+test('Rule 15 modified equals and bar-shape keep authored standalone cells', () => {
+  const equals = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-intent="comparison.equals.left-caret-over" data-omniya-nemeth-cells="⠐⠨⠅⠣⠰⠣⠻">=</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠨⠅', equals), '⠐⠨⠅⠣⠰⠣⠻');
+
+  const barShape = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-intent="bar-superposed-square" data-omniya-nemeth-cells="⠱⠈⠫⠲⠻">⊟</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⊟', barShape), '⠱⠈⠫⠲⠻');
+});
+
+test('Rule 15 arc and arrow modifier slots restore authored cells', () => {
+  const arc = new DOMParser().parseFromString(
+    '<math><munder><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mo data-omniya-role="underscript" data-omniya-nemeth-cells="⠫⠁">⁀</mo></munder></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠐⠠⠁⠩⠻', arc), '⠐⠠⠁⠩⠫⠁⠻');
+
+  const arrow = new DOMParser().parseFromString(
+    '<math><mover><mrow><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mi data-omniya-nemeth-cells="⠠⠃">B</mi></mrow><mo data-omniya-role="overscript" data-omniya-nemeth-intent="modifier-arrow-left-barbed-right-dotted" data-omniya-nemeth-cells="⠫⠪⠒⠒⠡">⇇</mo></mover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠐⠠⠁⠠⠃⠣⠫⠚⠒⠒⠫⠚⠒⠒⠻', arrow),
+    '⠐⠠⠁⠠⠃⠣⠫⠪⠒⠒⠡⠻'
+  );
+});
+
+test('Rule 15 contracted over-bar and stacked dots collapse SRE five-step forms', () => {
+  const bar = new DOMParser().parseFromString(
+    '<math><mover><mn data-omniya-nemeth-intent="numeric-decimal">.3</mn><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠱">¯</mo></mover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠐⠼⠨⠒⠣⠱⠻', bar), '⠼⠨⠒⠱');
+
+  const dots = new DOMParser().parseFromString(
+    '<math><mover><mi>x</mi><mrow><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠡">•</mo><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠡">•</mo></mrow></mover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠐⠭⠣⠐⠔⠔⠣⠔⠔⠻⠻', dots), '⠐⠭⠣⠡⠡⠻');
+});
+
+test('Rule 15.16.1 decimal overdot rebuilds multipurpose cells from the authored mover', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mover><mn data-omniya-nemeth-intent="lower-cell-numeric">.3</mn><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠡">•</mo></mover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠨⠐⠣⠡⠜⠼⠒⠻', source), '⠼⠨⠐⠒⠣⠡⠻');
+});

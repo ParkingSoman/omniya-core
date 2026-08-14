@@ -2052,3 +2052,66 @@ test('Rule 8 punctuation after a numeric item is colon or question, not a modifi
   assert.ok(mark);
   assert.equal(mark.attrs['data-omniya-nemeth-cells'], '⠸⠦');
 });
+
+test('Rule 15.9 bar-shape superposition authors one atom at an empty root', () => {
+  const { document } = replayCells(sourceNotationToCells(':`$4]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'mo');
+  assert.equal(tree.children[0].children[0].text, '⊟');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'bar-superposed-square');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠱⠈⠫⠲⠻');
+});
+
+test('Rule 15.11 arc modifiers keep authored shape cells in the script slot', () => {
+  const under = replayCells(sourceNotationToCells('",a%$a]'));
+  const underTree = parseMathML(under.document.mathml);
+  assert.equal(underTree.children[0].name, 'munder');
+  assert.equal(underTree.children[0].children[1].children[0].text, '⁀');
+  assert.equal(underTree.children[0].children[1].attrs['data-omniya-nemeth-cells'], '⠫⠁');
+
+  const conj = replayCells(sourceNotationToCells("\",a%$']"));
+  const conjTree = parseMathML(conj.document.mathml);
+  assert.equal(conjTree.children[0].name, 'munder');
+  assert.equal(conjTree.children[0].children[1].attrs['data-omniya-nemeth-cells'], '⠫⠄');
+});
+
+test('Rule 15.12 arrow modifiers stamp their complete local cells', () => {
+  const { document } = replayCells(sourceNotationToCells('",a,b<$[33*]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  const arrow = tree.children[0].children[1];
+  assert.equal(arrow.attrs['data-omniya-nemeth-intent'], 'modifier-arrow-left-barbed-right-dotted');
+  assert.equal(arrow.attrs['data-omniya-nemeth-cells'], '⠫⠪⠒⠒⠡');
+});
+
+test('Rule 15.16 stacked dots stay in one overscript row', () => {
+  const two = replayCells(sourceNotationToCells('"x<**]'));
+  const twoTree = parseMathML(two.document.mathml);
+  assert.equal(twoTree.children[0].name, 'mover');
+  assert.equal(twoTree.children[0].children[1].name, 'mrow');
+  assert.equal(twoTree.children[0].children[1].children.length, 2);
+
+  const three = replayCells(sourceNotationToCells('"x<***]'));
+  const threeTree = parseMathML(three.document.mathml);
+  assert.equal(threeTree.children[0].children[1].name, 'mrow');
+  assert.equal(threeTree.children[0].children[1].children.length, 3);
+});
+
+test('Rule 15.16.1 multipurpose after a decimal opens a five-step overdot', () => {
+  const { document } = replayCells(sourceNotationToCells('#."3<*]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[0].children[0].text, '.3');
+  assert.equal(tree.children[0].children[1].children[0].text, '•');
+  assert.equal(tree.children[0].children[1].attrs['data-omniya-nemeth-cells'], '⠡');
+});
+
+test('Rule 15.18 equals with under-question is one structured comparison', () => {
+  const { document } = replayCells(sourceNotationToCells('".k%_8]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠐⠨⠅⠩⠸⠦⠻');
+  assert.equal(tree.children[0].children[0].children[0].text, '=');
+  assert.equal(tree.children[0].children[1].children[0].text, '?');
+});

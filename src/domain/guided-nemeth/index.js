@@ -484,14 +484,50 @@ function extendIntegral(tree, focus, values) {
 // bars, operation signs, shapes, and comparison signs.  The source code is
 // collected as one local registry entry; this primitive only changes the
 // already-focused sign and never searches for an operand or parses a passage.
-function superposeToken(tree, focus, value, intent, allowedValues = null) {
+function superposeToken(tree, focus, value, intent, allowedValues = null, sourceNotation = null) {
   const current = currentNode(tree, focus);
+  // Rule 15.9 also defines bounded superposed signs whose source code starts
+  // on the baseline (for example `:$4]`). Those constructions have no
+  // pre-existing operator to mutate: the complete local code is itself one
+  // authored mathematical atom. Keep this fallback explicit and atomic so
+  // it cannot widen into an expression parser or affect the integral rows
+  // that still require a focused operator.
+  if ((current.name === 'math' || isHole(current)) && !allowedValues) {
+    const node = atom('mo', value, {
+      ...(intent ? { 'data-omniya-nemeth-intent': intent } : {}),
+      ...(sourceNotation ? { 'data-omniya-nemeth-cells': sourceNotationToCells(sourceNotation).join('') } : {})
+    });
+    const inserted = replaceCurrent(tree, focus, node);
+    return { tree, focus: focusNode(inserted) };
+  }
   if (current.name !== 'mo' || (allowedValues && !allowedValues.includes(current.children?.[0]?.text))) {
     throw new RangeError('Superposition requires the focused mathematical sign.');
   }
   current.children = [text(value)];
   if (intent) current.attrs['data-omniya-nemeth-intent'] = intent;
   return { tree, focus: focusNode(current) };
+}
+
+// A finite modified comparison can be authored as one bounded local code
+// whose printed form is a native MathML under/over sign. Keep this operation
+// declarative: the registry supplies the two authored children and the
+// transition only replaces the current empty slot. It never searches for a
+// baseline operand or infers scope beyond that one local construction.
+function insertStructuredToken(tree, focus, elementName, parts, attrs = {}) {
+  if (!['munder', 'mover', 'munderover'].includes(elementName) || !Array.isArray(parts) || parts.length < 2) {
+    throw new RangeError('A structured token needs a native modifier element and at least two parts.');
+  }
+  const current = currentNode(tree, focus);
+  if (current.name !== 'math' && !isHole(current)) {
+    throw new RangeError('A structured token requires an empty local slot.');
+  }
+  const children = parts.map((part) => atom(part.name ?? 'mo', part.value, {
+    ...(part.role ? { 'data-omniya-role': part.role } : {}),
+    ...(part.dataAttributes ?? {})
+  }));
+  const wrapper = element(elementName, children, attrs);
+  const inserted = replaceCurrent(tree, focus, wrapper);
+  return { tree, focus: focusNode(inserted) };
 }
 
 function wrapCurrent(tree, focus, elementName, roles, attrs = {}, initialSlot = roles[0]) {
@@ -1387,21 +1423,31 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null, data
   }
   // BANA 15.5: parallel horizontal bars are one modifier, not higher-order
   // modifiers.  Append only to the currently occupied local modifier slot.
-  if (modeValue === 'modifier-complete' && value === '¯') {
+  // Rule 15.16.2 stacks dots the same way: repeated •/∘ cells stay in one
+  // overscript/underscript slot instead of nesting fresh movers.
+  if (modeValue === 'modifier-complete' && (value === '¯' || value === '•' || value === '∘')) {
     const current = currentNode(tree, focus);
     const parent = current.name !== 'math' ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
     const role = current.attrs?.['data-omniya-role'];
     if (parent && ['mover', 'munder', 'munderover'].includes(parent.name) &&
-      ['overscript', 'underscript'].includes(role) && current.name === 'mo' && current.children?.[0]?.text === '¯') {
-      const row = element('mrow', [current, atom('mo', '¯', { 'data-omniya-role': role, ...dataAttributes })]);
+      ['overscript', 'underscript'].includes(role) && current.name === 'mo' && current.children?.[0]?.text === value) {
+      const row = element('mrow', [current, atom('mo', value, { 'data-omniya-role': role, ...dataAttributes })]);
       const index = parent.children.indexOf(current);
       parent.children[index] = row;
       return { tree, focus: focusNode(row.children[1]), wrapper: parent };
     }
     if (parent && ['mover', 'munder', 'munderover'].includes(parent.name) &&
       ['overscript', 'underscript'].includes(role) && current.name === 'mrow') {
-      current.children.push(atom('mo', '¯', { 'data-omniya-role': role, ...dataAttributes }));
+      current.children.push(atom('mo', value, { 'data-omniya-role': role, ...dataAttributes }));
       return { tree, focus: focusNode(current.children.at(-1)), wrapper: parent };
+    }
+    // A prior stacked-dot/bar append already promoted the slot to an mrow.
+    // Keep later identical cells in that same local row.
+    if (parent?.name === 'mrow' && current.name === 'mo' && current.children?.[0]?.text === value &&
+      ['overscript', 'underscript'].includes(role)) {
+      parent.children.push(atom('mo', value, { 'data-omniya-role': role, ...dataAttributes }));
+      const wrapper = findMathParent(tree, parent.attrs?.['data-omniya-id']);
+      return { tree, focus: focusNode(parent.children.at(-1)), wrapper };
     }
   }
   // When the expression starts in an empty replacement root, the
@@ -1684,10 +1730,16 @@ const mode = (id, cells, banaRefs, value, preferLonger = false, sourceNotation =
 const modifier = (id, cells, banaRefs, elementName, slot, requiresMode = 'multipurpose', options = {}) => ({
   id, cells, banaRefs, action: 'open-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP, args: { element: elementName, slot, requiresMode, ...options }
 });
-const modifierToken = (id, cells, banaRefs, value, options = {}) => ({
-  id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
-  args: { name: 'mo', value, ...options }
-});
+const modifierToken = (id, cells, banaRefs, value, options = {}) => {
+  const dataAttributes = {
+    ...(options.dataAttributes ?? {}),
+    'data-omniya-nemeth-cells': options.dataAttributes?.['data-omniya-nemeth-cells'] ?? cells.join('')
+  };
+  return {
+    id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+    args: { name: 'mo', value, ...options, dataAttributes }
+  };
+};
 // A BANA modifier can be a complete local code whose result is a standard
 // MathML structure. Degree is the canonical example: `~.*` does not insert a
 // free-standing degree glyph; it places the hollow dot at superscript level
@@ -1716,9 +1768,31 @@ const typeformScope = (id, sourceNotation, banaRefs, mathvariant, options = {}) 
 // cells.  Keep that construction in the same bounded local-code registry as
 // ordinary arrows and shape interiors.  The modifier's MathML slot is not
 // changed until Enter commits the exact registered sequence.
-const atomicModifierToken = (id, cells, banaRefs, value, options = {}) => ({
-  id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
-  args: { name: 'mo', value, ...options }
+const atomicModifierToken = (id, cells, banaRefs, value, options = {}) => {
+  const dataAttributes = {
+    ...(options.dataAttributes ?? {}),
+    'data-omniya-nemeth-cells': options.dataAttributes?.['data-omniya-nemeth-cells'] ?? cells.join('')
+  };
+  return {
+    id, cells, banaRefs, action: 'insert-modifier', commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    args: { name: 'mo', value, ...options, dataAttributes }
+  };
+};
+const structuredToken = (id, sourceNotation, banaRefs, elementName, parts, options = {}) => ({
+  id,
+  cells: sourceCells(sourceNotation),
+  banaRefs,
+  action: 'insert-structured-token',
+  commitPolicy: options.commitPolicy ?? LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+  args: {
+    element: elementName,
+    parts,
+    sourceNotation,
+    dataAttributes: {
+      'data-omniya-nemeth-cells': sourceCells(sourceNotation).join(''),
+      ...(options.dataAttributes ?? {})
+    }
+  }
 });
 const simultaneous = (id, cells, banaRefs, direction, sourceNotation = null) => ({
   id, cells, banaRefs, action: 'simultaneous-modifier',
@@ -2157,6 +2231,14 @@ const MAPPINGS = [
   modifierToken('modifier.dot', ['⠡'], ['15.16'], '•', { sourceNotation: '*' }),
   modifierToken('modifier.hollow-dot', ['⠨', '⠡'], ['15.17'], '∘', { preferLonger: true, sourceNotation: '.*' }),
   modifierToken('modifier.question', ['⠸', '⠦'], ['15.18'], '?', { sourceNotation: '_8' }),
+  // Rule 15.18 Example 15-84: the multipurpose/equality/under/question
+  // sequence is one finite modified comparison. Its canonical structure is
+  // native munder (equals base with a subscribed question), not a free
+  // question token or an unfinished modifier hole.
+  structuredToken('modifier.equals.question-under', '".k%_8]', ['15.18'], 'munder', [
+    { name: 'mo', value: '=' },
+    { name: 'mo', value: '?', role: 'underscript' }
+  ], { dataAttributes: { 'data-omniya-nemeth-intent': 'comparison.equals.question-under' } }),
   modifierToken('modifier.tilde.extended', ['⠠', '⠱'], ['15.19'], '〰', { sourceNotation: '`,:' }),
   modifierToken('modifier.tilde.simple', ['⠈', '⠱'], ['15.19'], '~', { sourceNotation: '`:' }),
   modifierToken('modifier.triangle', ['⠫', '⠞'], ['15.10'], '△', { sourceNotation: '$t' }),
@@ -2870,7 +2952,7 @@ export function registryDiagnostics() {
       !['move-slot', 'close-structure', 'extend-integral', 'superpose-token',
         'simultaneous-modifier', 'higher-order-modifier', 'insert-modifier', 'open-modifier',
         'move-binomial-lower', 'close-binomial', 'append-possessive', 'append-plural', 'append-ordinal', 'open-structure',
-        'insert-contracted-script-comma', 'set-mode', 'open-binomial', 'open-typeform-scope', 'open-structure',
+        'insert-contracted-script-comma', 'insert-structured-token', 'set-mode', 'open-binomial', 'open-typeform-scope', 'open-structure',
         'close-typeform-scope'].includes(entry.action)) {
       errors.push({ id: entry.id, error: 'structural-followup-needs-structural-action' });
     }
@@ -2966,6 +3048,10 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.id === 'integral.extend') {
     return context.node.name === 'mo' && ['∫', '∬'].includes(context.node.children?.[0]?.text);
+  }
+  if (mapping.id === 'superposition.bar-shape' || mapping.id === 'superposition.operation-equals' ||
+      mapping.id === 'superposition.comparison') {
+    return context.node.name === 'math' || isHole(context.node);
   }
   if (mapping.action === 'superpose-token' && mapping.args?.allowedValues) {
     return context.node.name === 'mo' && ['∫', '∬', '∭'].includes(context.node.children?.[0]?.text);
@@ -3310,8 +3396,10 @@ const TREE_OPERATIONS = Object.freeze({
   },
   'insert-decimal-nonnumeric': ({ tree, focus, args }) => insertDecimalNonnumeric(tree, focus, args.value, args.dataAttributes ?? {}),
   'insert-composite': ({ tree, focus, args }) => insertComposite(tree, focus, args.parts, args.dataAttributes),
+  'insert-structured-token': ({ tree, focus, args }) => insertStructuredToken(tree, focus, args.element, args.parts, args.dataAttributes),
   'open-left-script': ({ tree, focus, args }) => openLeftScript(tree, focus, args.direction),
   'insert-modifier': ({ tree, focus, inputState, args }) => insertModifier(tree, focus, args.value, inputState.mode, inputState.modifierScope, args.dataAttributes ?? {}),
+  'superpose-token': ({ tree, focus, args }) => superposeToken(tree, focus, args.value, args.intent, args.allowedValues, args.sourceNotation),
   'open-structure': ({ tree, focus, node, args, inputState }) => {
     // A preceding explicit blank is a sibling separator, not the operand of
     // the new structure.  Start the structure after that local boundary so
@@ -3446,7 +3534,6 @@ const TREE_OPERATIONS = Object.freeze({
   'close-binomial': ({ tree, focus }) => closeBinomial(tree, focus),
   'close-structure': ({ tree, focus, args }) => closeStructure(tree, focus, args.element),
   'extend-integral': ({ tree, focus, args }) => extendIntegral(tree, focus, args.values),
-  'superpose-token': ({ tree, focus, args }) => superposeToken(tree, focus, args.value, args.intent, args.allowedValues),
   'move-slot': ({ tree, focus, node, args }) => {
     if (args.element === 'mfrac' && Object.hasOwn(args, 'bevelled')) {
       const fraction = fractionAtFocus(tree, node);
@@ -3551,7 +3638,7 @@ function applyMapping(document, focus, inputState, mapping) {
     }
   }
   if (result.status === 'pending') return result;
-  const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-script-chain', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'open-binomial', 'wrap-script-token', 'open-left-script', 'extend-integral'].includes(mapping.action);
+  const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-script-chain', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'insert-structured-token', 'open-binomial', 'wrap-script-token', 'open-left-script', 'extend-integral', 'superpose-token'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' ||
     (inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel');
   const nextModifierScope = collectingModifierScope && insertedAction
@@ -3778,6 +3865,25 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+  // Rule 15.16.1 continues a decimal after a completed overscripted digit
+  // (example 15-78). Digits typed while focused on the closed mover, or on
+  // the math root whose last child is that mover, belong to the surrounding
+  // numeric item as a sibling continuation.
+  if (!state.prefix && DIGITS.has(normalized)) {
+    const focusNodeName = context.node.name;
+    const lastChild = focusNodeName === 'math' ? context.node.children?.at(-1) : null;
+    const continueFrom = ['mroot', 'mover', 'munder'].includes(focusNodeName)
+      ? context.node
+      : (lastChild && ['mroot', 'mover', 'munder'].includes(lastChild.name) ? lastChild : null);
+    if (continueFrom) {
+      return applyMapping(
+        document,
+        focusNode(continueFrom),
+        { ...state, mode: 'numeric' },
+        digitMapping(normalized)
+      );
+    }
+  }
   // Rule 15 contracted bar after an ordinary letter/number (example 8-15).
   // Keep following operators/punctuation on the surrounding row: only the
   // bar itself uses the parallel-modifier continuation, and arithmetic or
@@ -5169,18 +5275,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       }
       return applyMapping(document, focus, state, numericPunctuationMapping(normalized, ',', '3.2.2'));
     }
-    // BANA 24.1.g: after a decimal point, dot 5 makes the next symbol
-    // nonnumeric (unless it is the comma or punctuation indicator).  This is
-    // a one-symbol local mode, not a numeric/passage parser: the following
-    // token is inserted through the ordinary registry and the mode clears.
+    // After a decimal point, dot 5 is shared by Rule 24.1.g (nonnumeric next
+    // symbol) and Rule 15.16 (multipurpose before an overscripted digit).
+    // Hold the cell until the next local symbol chooses between those paths.
     if (normalized === '⠐') {
       const current = context.node;
       const decimal = current.name === 'mn' && current.children?.[0]?.text?.includes?.('.');
-      if (decimal) return {
-        status: 'pending', document, focus,
-        inputState: { ...state, mode: 'decimal-nonnumeric', prefix: '' },
-        announcement: 'Decimal nonnumeric indicator active for the next symbol.'
-      };
+      if (decimal) {
+        return {
+          status: 'pending', document, focus,
+          inputState: { ...state, mode: 'decimal-dot5', prefix: '' },
+          announcement: 'Decimal dot-5 transition pending for the next symbol.'
+        };
+      }
     }
   }
   if (state.mode?.startsWith?.('numeric') && state.prefix === '⠸') {
@@ -5236,6 +5343,28 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
     if (normalized === '⠠') return applyMapping(document, focus, state, { id: 'ueb-number.comma', cells: [normalized], banaRefs: ['3.2.1'], action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value: ',' } });
     if (normalized === '⠨') return applyMapping(document, focus, state, { id: 'ueb-number.decimal', cells: [normalized], banaRefs: ['3.2.1'], action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE, args: { value: '.', dataAttributes: { 'data-omniya-nemeth-intent': 'ueb-decimal' } } });
+  }
+  if (state.mode === 'decimal-dot5' && !state.prefix) {
+    if (DIGITS.has(normalized)) {
+      const indicator = PREFIXES.get('⠐')?.mappings?.find((mapping) => mapping.id === 'indicator.multipurpose');
+      if (!indicator) {
+        return { status: 'rejected', document, focus, inputState: { ...state }, announcement: 'Decimal multipurpose indicator unavailable.' };
+      }
+      const multipurpose = applyMapping(document, focus, { ...state, mode: null }, indicator);
+      if (multipurpose.status === 'rejected') return multipurpose;
+      return applyNemethCell({
+        document: multipurpose.document,
+        focus: multipurpose.focus,
+        inputState: multipurpose.inputState,
+        cell: normalized
+      });
+    }
+    return applyNemethCell({
+      document,
+      focus,
+      inputState: { ...state, mode: 'decimal-nonnumeric', prefix: '' },
+      cell: normalized
+    });
   }
   if ((state.mode === 'decimal-nonnumeric' || context.node.attrs?.['data-omniya-nemeth-intent'] === 'decimal-nonnumeric') && !state.prefix) {
     // The indicator applies to exactly the next local symbol.  Resolve a

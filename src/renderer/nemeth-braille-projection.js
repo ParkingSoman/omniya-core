@@ -87,9 +87,47 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     standaloneAuthored.getAttribute?.('data-omniya-shape-kind') ||
     standaloneIntent.startsWith('arrow-') ||
     standaloneIntent.startsWith('comparison.superposed') ||
-    (standaloneName === 'mo' && standaloneCells.startsWith('⠫'))
+    standaloneIntent.startsWith('comparison.equals') ||
+    standaloneIntent.startsWith('bar-superposed') ||
+    (standaloneName === 'mo' && standaloneCells.startsWith('⠫')) ||
+    (standaloneName === 'mo' && standaloneCells.startsWith('⠐⠨⠅')) ||
+    (standaloneName === 'mo' && standaloneCells.startsWith('⠱'))
   )) {
     return standaloneCells;
+  }
+  if (standaloneName === 'munder' || standaloneName === 'mover' || standaloneName === 'munderover') {
+    const structuredCells = standaloneAuthored.getAttribute?.('data-omniya-nemeth-cells');
+    if (structuredCells) return structuredCells;
+    // Rule 15.16.1: a complete five-step decimal with an overscripted digit
+    // keeps multipurpose before that digit. When the guided draft authored
+    // that local mover, rebuild the bounded cells from the marked base and
+    // overscript instead of trusting SRE's radical-shaped projection.
+    const kids = [...(standaloneAuthored.children ?? [])].filter((node) => node.nodeType === 1);
+    if (kids.length === 2 && (standaloneName === 'mover' || standaloneName === 'munder')) {
+      const base = kids[0];
+      const script = kids[1];
+      const scriptCells = script.getAttribute?.('data-omniya-nemeth-cells') || '';
+      const baseText = String(base.textContent ?? '').trim();
+      const digitCells = { '0': '⠴', '1': '⠂', '2': '⠆', '3': '⠒', '4': '⠲', '5': '⠢', '6': '⠖', '7': '⠶', '8': '⠦', '9': '⠔' };
+      const marker = standaloneName === 'munder' ? '⠩' : '⠣';
+      if (standaloneName === 'mover' && base.localName === 'mn' && baseText.startsWith('.') && scriptCells === '⠡') {
+        const digits = [...baseText.slice(1)].map((d) => digitCells[d] || '').join('');
+        if (digits) return `⠼⠨⠐${digits}⠣⠡⠻`;
+      }
+      // Rule 15.16.2 stacked dots: flat authored overscript/underscript row.
+      if (script.localName === 'mrow') {
+        const dots = [...(script.children ?? [])].filter((node) => node.nodeType === 1);
+        if (dots.length >= 2 && dots.every((dot) => (dot.getAttribute?.('data-omniya-nemeth-cells') || '') === '⠡')) {
+          const letterCells = {
+            a: '⠁', b: '⠃', c: '⠉', d: '⠙', e: '⠑', f: '⠋', g: '⠛', h: '⠓', i: '⠊', j: '⠚',
+            k: '⠅', l: '⠇', m: '⠍', n: '⠝', o: '⠕', p: '⠏', q: '⠟', r: '⠗', s: '⠎', t: '⠞',
+            u: '⠥', v: '⠧', w: '⠺', x: '⠭', y: '⠽', z: '⠵'
+          };
+          const baseCell = base.localName === 'mi' ? (letterCells[baseText.toLowerCase()] || '') : '';
+          if (baseCell) return `⠐${baseCell}${marker}${'⠡'.repeat(dots.length)}⠻`;
+        }
+      }
+    }
   }
   if (standaloneShape && mathChildren.length === 1 && (standaloneShape.parentElement ?? standaloneShape.parentNode) === sourceMath) {
     return standaloneShape.getAttribute('data-omniya-nemeth-cells') || braille;
@@ -1522,6 +1560,70 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     if (cells && /⠩⠻/.test(braille) && !braille.includes(`⠩${cells}⠻`)) {
       braille = braille.replace(/⠩⠻/, `⠩${cells}⠻`);
     }
+  }
+  // Rule 15 modifier tokens (arcs, arrows, stacked dots, carets) store their
+  // complete local code on the overscript/underscript atom. SRE projects the
+  // Unicode glyph instead; restore only that authored slot between the
+  // directly-over/under indicator and the terminator.
+  const authoredModifierSlots = sourceNodes('mo').filter((node) => {
+    const role = node.getAttribute?.('data-omniya-role');
+    const cells = node.getAttribute?.('data-omniya-nemeth-cells');
+    const intent = node.getAttribute?.('data-omniya-nemeth-intent') || '';
+    return Boolean(cells) && (role === 'overscript' || role === 'underscript' || intent.startsWith('modifier-arrow'));
+  });
+  const restoredModifierParents = new Set();
+  for (const node of authoredModifierSlots) {
+    const cells = node.getAttribute?.('data-omniya-nemeth-cells');
+    if (!cells) continue;
+    const role = node.getAttribute?.('data-omniya-role') ||
+      ((node.parentElement ?? node.parentNode)?.localName === 'munder' ? 'underscript' : 'overscript');
+    const parent = node.parentElement ?? node.parentNode;
+    const parentKey = parent?.getAttribute?.('data-omniya-id') || parent;
+    if (restoredModifierParents.has(parentKey)) continue;
+    const parentKids = [...(parent?.children ?? [])].filter((child) => child.nodeType === 1);
+    const inRow = parent?.localName === 'mrow' && parentKids.every((kid) =>
+      kid.getAttribute?.('data-omniya-role') === role);
+    const siblingCells = inRow
+      ? parentKids.map((kid) => kid.getAttribute?.('data-omniya-nemeth-cells') || '').join('')
+      : cells;
+    if (!siblingCells || braille.includes(siblingCells)) {
+      restoredModifierParents.add(parentKey);
+      continue;
+    }
+    const marker = role === 'underscript' ? '⠩' : '⠣';
+    if (/^⠡+$/.test(siblingCells)) {
+      const stacked = new RegExp(`${marker}(?:[^⠻]*${marker})?[^⠻]*⠻(?:⠻)?`);
+      if (stacked.test(braille)) {
+        braille = braille.replace(stacked, `${marker}${siblingCells}⠻`);
+        restoredModifierParents.add(parentKey);
+        continue;
+      }
+    }
+    const pattern = new RegExp(`${marker}([^${marker}⠻]*)⠻`);
+    if (pattern.test(braille)) {
+      braille = braille.replace(pattern, `${marker}${siblingCells}⠻`);
+      restoredModifierParents.add(parentKey);
+    } else if (braille.endsWith(`${marker}⠻`)) {
+      braille = `${braille.slice(0, -1)}${siblingCells}⠻`;
+      restoredModifierParents.add(parentKey);
+    }
+  }
+  // Rule 15.2.2/15.13 contracted over-bar is one atom plus ⠱. SRE often emits
+  // the five-step multipurpose form for the same MathML mover; collapse only
+  // when the bar is the bare horizontal bar (cells ⠱ or unmarked).
+  const contractedBars = [...(sourceMath.querySelectorAll?.('mover') ?? []), ...(sourceMath.querySelectorAll?.('munder') ?? [])].filter((node) => {
+    const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+    if (kids.length !== 2) return false;
+    const base = kids[0];
+    const bar = kids[1];
+    const barText = String(bar.textContent ?? '').trim();
+    if (barText !== '¯') return false;
+    const barCells = bar.getAttribute?.('data-omniya-nemeth-cells');
+    if (barCells && barCells !== '⠱') return false;
+    return ['mi', 'mn'].includes(base.localName);
+  });
+  if (contractedBars.length && /^⠐/.test(braille) && /[⠣⠩]⠱⠻$/.test(braille)) {
+    braille = braille.replace(/^⠐/, '').replace(/[⠣⠩]⠱⠻$/, '⠱');
   }
   if (explicitCellNodes.length) {
     const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
