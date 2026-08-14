@@ -5,11 +5,12 @@ const sourcePath = process.argv[2] ?? 'docs/bana-official-examples.json';
 const outputPath = process.argv[3] ?? 'docs/bana-electron-official-corpus.json';
 const source = JSON.parse(await readFile(sourcePath, 'utf8'));
 const reviewedOperationIds = new Map(Object.entries({
-  '14-3': ['script.superscript'], '14-4': ['script.superscript'],
-  '14-5': ['script.superscript'], '14-6': ['script.superscript'],
-  '14-7': ['script.subscript'], '14-8': ['script.subscript'],
-  '14-9': ['script.sup-sup'], '14-10': ['script.sup-sup-sub'],
-  '14-11': ['script.sub-sub-sup']
+  '14-12': ['script.sub-sub'], '14-13': ['script.sup-sup-sup'],
+  '14-14': ['script.sup-sup-sub'], '14-15': ['script.sup-sub-sub-sup'],
+  '14-16': ['script.sup-sub-sub-sub'], '14-17': ['script.sub-sub-sup-sup'],
+  '14-18': ['script.sub-sup-sub-sub'], '14-19': ['script.sub-sub-sub-sup'],
+  '14-20': ['script.sub-sub-sub-sub'], '14-21': ['script.sup-sup-sup-sup'],
+  '14-22': ['script.sub-sub-sub-sub-sub']
 }));
 const examples = source.examples
   .filter((example) => Number(example.exampleNumber.split('-')[0]) >= 3 && Number(example.exampleNumber.split('-')[0]) <= 24)
