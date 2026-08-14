@@ -1506,6 +1506,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     const adjacent = `${left}${right}`;
     if (left && right && braille.includes(adjacent)) {
       braille = braille.replace(adjacent, `${left}${mid}${right}`);
+      continue;
+    }
+    const leftTail = left.at(-1);
+    const tailAdjacent = leftTail && right ? `${leftTail}${right}` : '';
+    if (tailAdjacent && braille.includes(tailAdjacent)) {
+      braille = braille.replace(tailAdjacent, `${leftTail}${mid}${right}`);
     }
   }
   // When SRE omits a transcriber close entirely, reinsert it against the
@@ -1679,7 +1685,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     }
   }
   if (hasSource('mo[data-omniya-nemeth-cells="⠈⠠⠷"]')) {
-    braille = braille.replace(/⠈⠠⠷⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠈⠠⠷');
+    const capitalOpens = sourceNodes('mo[data-omniya-nemeth-cells="⠈⠠⠷"]');
+    const numberedOpens = capitalOpens.filter((open) => {
+      const next = skipLayout(elementNeighbor(open, 'next'), 'next');
+      const name = next?.localName || next?.nodeName;
+      return name === 'mn' || String(next?.getAttribute?.('data-omniya-nemeth-intent') ?? '').includes('numeric');
+    });
+    let numberedIndex = 0;
+    braille = braille.replace(/⠈⠠⠷⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, (match) => {
+      const open = numberedOpens[numberedIndex++];
+      const next = open ? skipLayout(elementNeighbor(open, 'next'), 'next') : null;
+      return next?.getAttribute?.('data-omniya-nemeth-intent') === 'lower-cell-numeric' ? '⠈⠠⠷' : match;
+    });
   }
   // Rule 19.1.2's closing bracket may carry both a subscript and a
   // superscript. SRE exposes the baseline return after that embellished
