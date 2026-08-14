@@ -1001,6 +1001,17 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // source fence at the terminal boundary.
     if (braille.endsWith('⠙') && !braille.endsWith('⠙⠾')) braille += '⠾';
   }
+  // Percent never owns a grouping closer. SRE can park a closed-group fence
+  // immediately after `⠈⠴` and drop the same closer from a later choice
+  // group. Move that one displaced cell back onto the last open group.
+  if (sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠈⠴"]') && closedGroups.length &&
+      /⠈⠴⠾⠀?⠨⠅/.test(braille)) {
+    braille = braille.replace(/⠈⠴⠾(?=⠀?⠨⠅)/, '⠈⠴');
+    const lastOpen = braille.lastIndexOf('⠷');
+    if (lastOpen >= 0 && !braille.slice(lastOpen).includes('⠾')) {
+      braille = `${braille.slice(0, lastOpen + 2)}⠾${braille.slice(lastOpen + 2)}`;
+    }
+  }
   // A grouped superscript followed by another sibling can expose two return
   // cells around the implicit semantic row. The authored group boundary has
   // one return only; collapse the duplicated adjacent pair without touching

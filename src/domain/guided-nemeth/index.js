@@ -678,6 +678,18 @@ function ancestor(tree, node, names) {
   return null;
 }
 
+function previousNonSpaceSibling(tree, node) {
+  const parent = node.name === 'math' ? node : findMathParent(tree, node.attrs?.['data-omniya-id']);
+  if (!parent?.children?.length) return null;
+  const start = node.name === 'math' ? parent.children.length - 1 : parent.children.indexOf(node) - 1;
+  for (let index = start; index >= 0; index -= 1) {
+    if (parent.children[index] === node) continue;
+    if (parent.children[index].name === 'mspace') continue;
+    return parent.children[index];
+  }
+  return null;
+}
+
 function focusRole(tree, focus, elementName, role) {
   const container = ancestor(tree, currentNode(tree, focus), [elementName]);
   if (!container) throw new RangeError(`No open ${elementName} at the current draft focus.`);
@@ -3031,6 +3043,13 @@ function mappingApplies(mapping, context) {
   // shape atom is the labeled drawing rather than a script base.
   if ((mapping.id === 'script.subscript' || mapping.id === 'script.superscript') &&
     context.node.attrs?.['data-omniya-shape-kind']) return false;
+  // A left (or right) quote is punctuation, not a script base. The same
+  // dot-6 cell is the English-letter indicator for the quoted letter
+  // (`8;x_0`), not a subscript of the quotation mark.
+  if ((mapping.id === 'script.subscript' || mapping.id === 'script.superscript') &&
+    (context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-left-double-quote' ||
+      context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-right-double-quote' ||
+      ['“', '”'].includes(context.node.children?.[0]?.text))) return false;
   // The English-letter indicator is a local abbreviation mode, not a
   // structural navigation command.  In a script slot the same cell is a
   // Rule 14 return/move indicator, so leave that structural follow-up as the
@@ -4129,12 +4148,42 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // Dot 6 is held for one cell so an immediately following alphabetic cell
   // can form a bounded capital identifier. An explicit space proves the dot
   // 6 was punctuation instead; commit that local atom and then route the
-  // space normally.
-  if (state.mode === null && state.prefix === '⠠' && normalized === ' ') {
-    const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.comma');
-    const applied = applyMapping(document, focus, { ...state, prefix: '' }, punctuation);
-    if (applied.status === 'rejected') return applied;
-    return applyNemethCell({ document: applied.document, focus: applied.focus, inputState: applied.inputState, cell: normalized });
+  // space normally. The same one-cell hold distinguishes a thousands comma
+  // (digit) from a list/omission comma (any other non-letter cell) after a
+  // numeric item, without scanning the rest of the expression.
+  if (state.mode === null && state.prefix === '⠠') {
+    if (DIGITS.has(normalized) && context.node.name === 'mn') {
+      const thousands = applyMapping(
+        document,
+        focus,
+        { ...state, prefix: '', mode: 'numeric' },
+        numericPunctuationMapping('⠠', ',', '3.2.2')
+      );
+      if (thousands.status !== 'rejected') {
+        return applyNemethCell({
+          document: thousands.document,
+          focus: thousands.focus,
+          inputState: { ...thousands.inputState, mode: 'numeric' },
+          cell: normalized
+        });
+      }
+    }
+    const continues = MATCHABLE_MAPPINGS.some((mapping) =>
+      mapping.cells[0] === '⠠' &&
+      mapping.cells.length > 1 &&
+      mapping.cells[1] === normalized &&
+      mappingApplies(mapping, context));
+    if (!LETTERS.has(normalized) && !continues) {
+      const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.comma');
+      const applied = applyMapping(document, focus, { ...state, prefix: '' }, punctuation);
+      if (applied.status === 'rejected') return applied;
+      return applyNemethCell({
+        document: applied.document,
+        focus: applied.focus,
+        inputState: applied.inputState,
+        cell: normalized
+      });
+    }
   }
   // A multipurpose scope may begin with a capitalized identifier. Keep the
   // same two-cell dot-6 decision inside that scope so the capital atom also
@@ -4715,15 +4764,23 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // operator without repeating the numeric indicator (`#.1+.2`). Once the
   // plus/minus token has ended the preceding numeric run, resolve this
   // two-cell local decimal before the shared dot-4 radical/indicator prefix.
-  // The scope is deliberately limited to a baseline operator, so it cannot
-  // alter indexed radicals or script-level dot-4 meanings.
+  // The scope is deliberately limited to a baseline operator or a blank
+  // after a number/operator. A blank after an identifier keeps the dotted
+  // comparison (`.1` greater-than), not a leading decimal.
+  const decimalAfterOperator = context.node.name === 'mo' && (
+    ['+', '−', '-', '±', '='].includes(context.node.children?.[0]?.text) ||
+    POST_OPERATOR_LOWER_CELL.includes(context.node.children?.[0]?.text)
+  );
+  const decimalBlank = context.node.name === 'mspace'
+    ? context.node
+    : (context.node.name === 'math' && context.node.children?.at(-1)?.name === 'mspace'
+      ? context.node.children.at(-1)
+      : null);
+  const decimalBlankAnchor = decimalBlank ? previousNonSpaceSibling(context.tree, decimalBlank) : null;
+  const decimalAfterBlank = Boolean(decimalBlank && decimalBlankAnchor &&
+    (decimalBlankAnchor.name === 'mn' || decimalBlankAnchor.name === 'mo'));
   if (state.mode === null && state.prefix === '⠨' && DIGITS.has(normalized) &&
-    (context.node.name === 'mspace' ||
-      (context.node.name === 'math' && context.node.children?.at(-1)?.name === 'mspace') ||
-      (context.node.name === 'mo' && (
-        ['+', '−', '-', '±', '='].includes(context.node.children?.[0]?.text) ||
-        POST_OPERATOR_LOWER_CELL.includes(context.node.children?.[0]?.text)
-      )))) {
+    (decimalAfterBlank || decimalAfterOperator)) {
     const decimal = applyMapping(document, focus, { ...state, prefix: '' }, numericPunctuationMapping('⠨', '.', '3.2.3'));
     if (decimal.status !== 'rejected') {
       return applyNemethCell({
@@ -4854,6 +4911,22 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       action: 'insert-numeric', commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
       args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'numeric-start' } }
     });
+  }
+  if (!state.prefix && normalized === ' ' &&
+      context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma' &&
+      hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup'])) {
+    const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+    if (baseline) {
+      const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
+      if (returned.status !== 'rejected') {
+        return applyNemethCell({
+          document: returned.document,
+          focus: returned.focus,
+          inputState: { ...returned.inputState, mode: null },
+          cell: normalized
+        });
+      }
+    }
   }
   if (!state.prefix && normalized === ' ' &&
       hasAncestor(context.tree, context.node, 'msup')) {
@@ -5588,7 +5661,14 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
           return applyMapping(document, focus, { ...state, mode: null }, punctuation);
         }
       }
-      return applyMapping(document, focus, state, numericPunctuationMapping(normalized, ',', '3.2.2'));
+      // Hold the comma until the next cell chooses thousands (digit) versus
+      // a list/punctuation comma (space or other non-letter). Complex
+      // fraction `,/` / `,#` follow-ups keep the same one-cell hold.
+      return {
+        status: 'pending', document, focus,
+        inputState: { ...state, prefix: '⠠', mode: null },
+        announcement: 'Nemeth numeric comma pending.'
+      };
     }
     // After a decimal point, dot 5 is shared by Rule 24.1.g (nonnumeric next
     // symbol) and Rule 15.16 (multipurpose before an overscripted digit).
@@ -5768,32 +5848,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode === 'polygon-numeric' && !state.prefix && normalized === '⠼') {
     return applyMapping(document, focus, { ...state, mode: null }, MAPPINGS.find((candidate) => candidate.id === 'indicator.number'));
   }
-  if (state.mode === 'roman' && !state.prefix && ROMAN_LETTERS.has(normalized)) {
-    const result = insertRomanLetter(context.tree, focus, ROMAN_LETTERS.get(normalized).toUpperCase());
-    return {
-      status: 'applied', document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(result.tree), focus: result.focus },
-      focus: result.focus, inputState: { ...state, prefix: '' }, announcement: `roman.${ROMAN_LETTERS.get(normalized)}`
-    };
-  }
-  if (state.mode === 'roman' && !state.prefix && normalized === '⠎') {
-    const result = insertRomanLetter(context.tree, focus, 'S');
-    return {
-      status: 'applied', document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(result.tree), focus: result.focus },
-      focus: result.focus, inputState: { ...state, prefix: '' }, announcement: 'roman.s'
-    };
-  }
   // The double-capital indicator is itself a complete local mode. The next
-  // Roman letter is consumed by that mode and remains one authored numeral,
-  // rather than being emitted as ordinary lowercase identifiers.
+  // letter is consumed by that mode as one authored roman/double-cap
+  // identifier, including letters outside the IVXLCDM numeral set.
   if (state.mode === 'roman' && !state.prefix && LETTERS.has(normalized)) {
-    const roman = ROMAN_LETTERS.get(normalized);
-    if (roman) {
-      const result = insertRomanLetter(context.tree, focus, roman.toUpperCase());
-      return {
-        status: 'applied', document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(result.tree), focus: result.focus },
-        focus: result.focus, inputState: { ...state, prefix: '' }, announcement: `roman.${roman}`
-      };
-    }
+    const roman = (ROMAN_LETTERS.get(normalized) ?? LETTERS.get(normalized)).toUpperCase();
+    const result = insertRomanLetter(context.tree, focus, roman);
+    return {
+      status: 'applied', document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(result.tree), focus: result.focus },
+      focus: result.focus, inputState: { ...state, prefix: '' }, announcement: `roman.${roman.toLowerCase()}`
+    };
   }
   if ((state.mode === 'capital' || state.mode?.startsWith?.('english-letter') || state.mode?.startsWith?.('typeform:')) && !state.prefix && LETTERS.has(normalized)) {
     const capitalized = state.mode === 'capital' || state.mode?.endsWith?.(':capital');

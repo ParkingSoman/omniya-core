@@ -1052,3 +1052,51 @@ test('Rule 24.1 decimal-nonnumeric greek digits keep the authored dot-5 transiti
     '⠼⠴⠨⠐⠨⠁⠂⠨⠁⠆'
   );
 });
+
+test('Rule 6.3.2 a percent never keeps a displaced group closer before equals', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mn data-omniya-nemeth-intent="numeric-start">1</mn>
+      <mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-start">7.6</mn>
+      <mo data-omniya-nemeth-cells="⠈⠴">%</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠨⠅">=</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-intent="omission-general" data-omniya-nemeth-cells="⠿">?</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mrow data-omniya-group="round" data-omniya-role="closed-group">
+        <mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo>
+        <mi>a</mi>
+        <mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo>
+      </mrow>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-start">7.6</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mrow data-omniya-group="round" data-omniya-role="closed-group">
+        <mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo>
+        <mi>b</mi>
+        <mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo>
+      </mrow>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-decimal">.076</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mrow data-omniya-group="round" data-omniya-role="closed-group">
+        <mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo>
+        <mi>c</mi>
+        <mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo>
+      </mrow>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-decimal">.76</mn>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠼⠂⠸⠲⠀⠼⠶⠨⠖⠈⠴⠾⠀⠨⠅⠀⠿⠀⠷⠁⠾⠀⠼⠶⠨⠖⠀⠷⠃⠾⠀⠼⠨⠴⠶⠖⠀⠷⠉⠀⠼⠨⠶⠖',
+      source
+    ),
+    '⠼⠂⠸⠲⠀⠼⠶⠨⠖⠈⠴⠀⠨⠅⠀⠿⠀⠷⠁⠾⠀⠼⠶⠨⠖⠀⠷⠃⠾⠀⠼⠨⠴⠶⠖⠀⠷⠉⠾⠀⠼⠨⠶⠖'
+  );
+});

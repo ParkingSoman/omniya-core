@@ -2353,3 +2353,84 @@ test('Rule 24.1 decimal-nonnumeric greek digits keep consecutive lower cells', (
   assert.ok(texts.join('').includes('α1'));
   assert.ok(texts.join('').includes('α2') || texts.join('').endsWith('2'));
 });
+
+function leafTexts(node) {
+  const texts = [];
+  const visit = (current) => {
+    if (current?.text) texts.push(current.text);
+    for (const child of current?.children ?? []) visit(child);
+  };
+  visit(node);
+  return texts;
+}
+
+test('Rule 6.4.7 a numeric list comma stays outside the number', () => {
+  const { document } = replayCells(sourceNotationToCells("I .k #1, #2, ''', ;n"));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.deepEqual(leafTexts(tree), ['I', '=', '1', ',', '2', ',', '…', ',', 'n']);
+  const numbers = [];
+  const visit = (node) => {
+    if (node.name === 'mn') numbers.push(node.children[0].text);
+    for (const child of node.children ?? []) visit(child);
+  };
+  visit(tree);
+  assert.deepEqual(numbers, ['1', '2']);
+});
+
+test('Rule 3.2.2 a thousands comma still joins the numeric item', () => {
+  const { document } = replayCells(sourceNotationToCells('#1,000'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '1,000');
+});
+
+test('Rule 6.4.7 a dotted 1 after a letter blank is greater-than', () => {
+  const { document } = replayCells(sourceNotationToCells('(x .1 y)'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const group = tree.children[0];
+  const inner = group.children.find((node) => node.name === 'mrow') ?? group;
+  const tokens = inner.children.filter((node) => node.name !== 'mspace');
+  assert.equal(tokens[0].children[0].text, 'x');
+  assert.equal(tokens[1].children[0].text, '>');
+  assert.equal(tokens[2].children[0].text, 'y');
+});
+
+test('Rule 6.4.7 an English letter after a left quote is not a subscript', () => {
+  const { document } = replayCells(sourceNotationToCells('8;x_0 .k 8;y_0'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(countNodes(tree, 'msub'), 0);
+  const english = [];
+  const visit = (node) => {
+    if (node.attrs?.['data-omniya-nemeth-intent'] === 'english-letter') english.push(node.children[0].text);
+    for (const child of node.children ?? []) visit(child);
+  };
+  visit(tree);
+  assert.deepEqual(english, ['x', 'y']);
+});
+
+test('Rule 6.4.9 a double-capital R is a roman identifier', () => {
+  const { document } = replayCells(['⠠', '⠠', '⠗', '⠈', '⠾', '⠰', '⠁', '⠘', '⠃']);
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].children[0].text, 'R');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'roman');
+  assert.equal(tree.children[1].name, 'msubsup');
+});
+
+test('Rule 6.4.11 a comma-space after a letter subscript returns to baseline', () => {
+  const { document } = replayCells(sourceNotationToCells("x', x'', x1, x;a, x^2, x:"));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const scripts = tree.children.filter((node) => node.name === 'msub' || node.name === 'msup' || node.name === 'mover');
+  assert.equal(scripts.filter((node) => node.name === 'msub').length, 1);
+  assert.equal(scripts.filter((node) => node.name === 'msup').length, 1);
+  assert.equal(scripts.filter((node) => node.name === 'mover').length, 1);
+  const subscript = scripts.find((node) => node.name === 'msub');
+  assert.equal(countNodes(subscript, 'msup'), 0);
+  assert.equal(countNodes(subscript, 'mover'), 0);
+});
