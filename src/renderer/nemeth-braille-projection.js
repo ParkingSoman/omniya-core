@@ -234,6 +234,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // one blank at each boundary; collapse the run after the bounded number
     // and before the equality/long-dash relation.
     braille = braille.replace(/⠀⠀(?=⠨⠅|⠨⠐)/g, '⠀');
+    // A baseline return emitted by an authored superscript is presentation
+    // state, not a source cell, when the next sibling is an explicit blank.
+    // Use the source sibling boundary to remove only those local returns.
+    let scriptSpaceReturns = [...sourceMath.querySelectorAll('mspace[data-omniya-nemeth-intent="explicit-space"]')]
+      .filter((space) => space.previousElementSibling?.localName === 'msup').length;
+    while (scriptSpaceReturns > 0 && braille.includes('⠐⠀')) {
+      braille = braille.replace('⠐⠀', '⠀');
+      scriptSpaceReturns -= 1;
+    }
+    if (sourceMath.querySelector?.('msup') && sourceMath.querySelector?.('[data-omniya-nemeth-cells="⠨⠅"]') && braille.includes('⠐⠀')) {
+      braille = braille.replace('⠐⠀', '⠀');
+    }
     // Enrichment may place the sign before the following operator's
     // function-application row rather than directly before the minus. The
     // authored diagonal fraction and its explicit boundary still identify
