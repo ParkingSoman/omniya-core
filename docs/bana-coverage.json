@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 34,
     "mappedRows": 1027,
-    "electronCreationRows": 159,
-    "electronEditingRows": 157,
+    "electronCreationRows": 166,
+    "electronEditingRows": 164,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -15353,15 +15353,21 @@
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-6-1",
-        "electron:bana-2022:example-6-2"
+        "electron:bana-2022:example-6-2",
+        "electron:bana-2022:example-6-3",
+        "electron:bana-2022:example-6-4"
       ],
       "electronEditingCaseIds": [
         "electron:bana-2022:example-6-1",
-        "electron:bana-2022:example-6-2"
+        "electron:bana-2022:example-6-2",
+        "electron:bana-2022:example-6-3",
+        "electron:bana-2022:example-6-4"
       ],
       "navigationCaseIds": [
         "electron:bana-2022:example-6-1",
-        "electron:bana-2022:example-6-2"
+        "electron:bana-2022:example-6-2",
+        "electron:bana-2022:example-6-3",
+        "electron:bana-2022:example-6-4"
       ],
       "errataRefs": [],
       "verified": {
@@ -16147,20 +16153,26 @@
         "registry:greek.capital-Ω",
         "registry:indicator.english-letter"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-3"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-3"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-3"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
         "visualEvidence": false
       },
@@ -16409,20 +16421,26 @@
         "registry:greek.capital-Ω",
         "registry:indicator.english-letter"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-4"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-4"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-4"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
         "visualEvidence": false
       },
@@ -16470,20 +16488,26 @@
         "registry:greek.variant-φ",
         "registry:indicator.english-letter"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-5"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-5"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-5"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
         "visualEvidence": false
       },
@@ -16516,20 +16540,26 @@
         "registry:greek.variant-φ",
         "registry:indicator.english-letter"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-5"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-5"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-5"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
         "visualEvidence": false
       },
@@ -16568,20 +16598,29 @@
         "registry:operator.sum",
         "registry:indicator.english-letter"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-6",
+        "electron:bana-2022:example-6-7"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-6",
+        "electron:bana-2022:example-6-7"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-6",
+        "electron:bana-2022:example-6-7"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
         "visualEvidence": false
       },
@@ -16606,20 +16645,26 @@
         "registry:operator.sum",
         "registry:indicator.english-letter"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-6"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-6"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-6"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
         "visualEvidence": false
       },
@@ -16658,20 +16703,26 @@
         "registry:operator.sum",
         "registry:indicator.english-letter"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-7"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-7"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-7"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
         "visualEvidence": false
       },

@@ -8,11 +8,11 @@ Generated from `docs/bana-coverage.json`.
 - Fully implemented rows: 1331
 - Official examples: 1229
 - Official examples with extracted source blocks: 1229
-- Official examples with Electron creation evidence: 108
-- Official examples with Electron editing evidence: 108
+- Official examples with Electron creation evidence: 113
+- Official examples with Electron editing evidence: 113
 - Appendix rows: 66 (63 Appendix D symbols plus A–C policy rows)
-- Electron creation-linked rows: 159
-- Electron editing-linked rows: 157
+- Electron creation-linked rows: 166
+- Electron editing-linked rows: 164
 
 | Rule | Total | Applicable | Implemented | Electron creation | Electron editing | Excluded |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -21,7 +21,7 @@ Generated from `docs/bana-coverage.json`.
 | 3 | 155 | 155 | 151 | 24 | 24 | 0 |
 | 4 | 116 | 116 | 112 | 0 | 0 | 0 |
 | 5 | 14 | 14 | 6 | 0 | 0 | 0 |
-| 6 | 85 | 85 | 82 | 4 | 4 | 0 |
+| 6 | 85 | 85 | 82 | 11 | 11 | 0 |
 | 7 | 45 | 45 | 29 | 2 | 2 | 0 |
 | 8 | 104 | 104 | 100 | 0 | 0 | 0 |
 | 9 | 16 | 16 | 6 | 11 | 11 | 0 |
