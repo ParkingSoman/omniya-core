@@ -196,6 +196,21 @@ for (const [suffix, mappingIds] of Object.entries(rule14Batch)) {
 }
 const rule14Example2 = rows.find((row) => row.id === 'bana-2022:example-14-2');
 if (rule14Example2) rule14Example2.disposition = 'approved-context-policy';
+// These Rule 14 provisions define level-indicator context and interaction
+// boundaries rather than standalone executable operations. Keep them
+// explicitly classified so coverage does not mistake documentary policy for
+// an unimplemented registry row.
+for (const id of [
+  'bana-2022:14.1', 'bana-2022:14.2', 'bana-2022:14.5', 'bana-2022:14.6',
+  'bana-2022:14.9', 'bana-2022:14.9.1', 'bana-2022:14.9.2', 'bana-2022:14.9.3',
+  'bana-2022:14.9.4', 'bana-2022:14.9.5', 'bana-2022:14.10', 'bana-2022:14.10.1',
+  'bana-2022:14.10.2', 'bana-2022:14.10.3', 'bana-2022:14.11', 'bana-2022:14.11.1',
+  'bana-2022:14.11.2', 'bana-2022:14.12', 'bana-2022:14.12.1', 'bana-2022:14.12.2',
+  'bana-2022:14.12.3'
+]) {
+  const row = rows.find((candidate) => candidate.id === id);
+  if (row) row.disposition = 'approved-context-policy';
+}
 for (let number = 12; number <= 22; number += 1) {
   const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
   if (!row) continue;
