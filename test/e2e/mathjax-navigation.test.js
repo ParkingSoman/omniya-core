@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { electronLaunchEnv } from './launch-electron.js';
+import { chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -45,16 +45,13 @@ test('recovers from corrupt local napkin data without leaving the app unusable',
   assert.equal(await session.page.getByRole('button', { name: 'Add item' }).count(), 1);
 });
 
-async function addEquation(page, source, note = '') {
+async function addEquation(page, source) {
   await page.getByRole('button', { name: 'Add item' }).click();
-  await page.getByRole('radio', { name: 'Equation' }).check();
-  if (note) {
-    await page.getByRole('button', { name: 'Add note' }).click();
-    await page.getByLabel('Note', { exact: true }).fill(note);
-  }
+  await chooseType(page, 'equation');
+  assert.equal(await page.locator('#note-toggle').isVisible(), false);
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill(source);
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -175,24 +172,23 @@ test('renders accessible MathML and supports complete tree navigation', { timeou
 
 test('replaces a whole focused equation through the LaTeX draft without a linear composer', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-edit-e2e-');
-  const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}', 'original expression');
+  const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}');
   const math = article.locator('mjx-container math');
 
   assert.equal(await math.locator('mfrac').count(), 1);
   assert.equal(await math.locator('msup').count(), 1);
   assert.equal(await math.locator('msqrt').count(), 1);
-  assert.match(await article.textContent(), /original expression/);
+  assert.equal(await article.locator('.item-note').count(), 0);
 
   await article.focus();
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   const source = page.getByLabel('Replacement input', { exact: true });
   await source.fill('\\frac{');
   await page.getByRole('button', { name: 'Replace' }).click();
   assert.match(await page.locator('#replacement-status').textContent(), /convert|incomplete|empty/i);
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
-  assert.match(await article.textContent(), /original expression/);
 
   await page.getByRole('button', { name: 'Cancel' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -202,14 +198,14 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   await article.focus();
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('x^3');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
   await page.locator('article.napkin-article mjx-container').waitFor();
   assert.equal(await page.locator('article.napkin-article math msup').count(), 1);
   assert.equal(await page.locator('article.napkin-article math mfrac').count(), 0);
-  assert.match(await page.locator('article.napkin-article').textContent(), /original expression/);
+  assert.equal(await page.locator('article.napkin-article .item-note').count(), 0);
 });
 
 test('uses MathJax table navigation for matrix cells', { timeout: 60_000 }, async (t) => {
@@ -306,17 +302,14 @@ test('E opens the exact replacement even during the explorer focus handoff', { t
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
 });
 
-test('switches input type with radio arrow keys and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {
+test('switches input type without visible radios and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-keyboard-input-e2e-');
   await page.getByRole('button', { name: 'Add item' }).click();
 
-  const text = page.getByRole('radio', { name: 'Text' });
-  const equation = page.getByRole('radio', { name: 'Equation' });
-  await text.focus();
-  await text.press('ArrowRight');
-  assert.equal(await equation.isChecked(), true);
-  await equation.press('ArrowLeft');
-  assert.equal(await text.isChecked(), true);
+  await chooseType(page, 'equation');
+  assert.equal(await page.evaluate(() => document.querySelector('#mode-switch input[value="equation"]')?.checked), true);
+  await chooseType(page, 'text');
+  assert.equal(await page.evaluate(() => document.querySelector('#mode-switch input[value="text"]')?.checked), true);
 
   const content = page.getByLabel('Content', { exact: true });
   await content.fill('Keyboard-created text');

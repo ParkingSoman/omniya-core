@@ -8,6 +8,7 @@ import {
   updateItem
 } from '../domain/model.js';
 import { applyNemethSourceIntentToBraille } from './nemeth-braille-projection.js';
+import { applyUebBrailleLabel } from './ueb-braille-projection.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { createSixKeyInput } from './braille-input.js';
 import { createEmptyDraftMathDocument } from '../domain/guided-nemeth/index.js';
@@ -22,6 +23,14 @@ import {
   startReplacementSession,
   submitReplacement
 } from '../domain/replacement-session.js';
+import {
+  applyCommandKey,
+  createCommandState,
+  enterCommand,
+  formatStatus,
+  gradeForUebBackTranslate
+} from '../domain/command-mode.js';
+import { createUebCellBuffer, pushUebCell } from '../domain/ueb-cell-buffer.js';
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -37,6 +46,8 @@ const elements = Object.fromEntries([
   'replacement-submit', 'replacement-cancel', 'app-error', 'app-error-message', 'retry-save'
 ].map((id) => [id, document.getElementById(id)]));
 
+const NOTES_UI_ENABLED = false;
+
 let state;
 let mode = 'read';
 let editingItemId = null;
@@ -50,6 +61,9 @@ let exploringEquationItemId = null;
 let replacementSession = null;
 let replacementEditor = null;
 let preferredAuthoringMethod = 'nemeth';
+let commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+let uebBuffer = createUebCellBuffer();
+let uebCellChain = Promise.resolve();
 const mathHistory = new Map();
 // MathJax changes the visual and speech nodes in a short asynchronous handoff
 // after an arrow key. Keep the last successfully resolved *exact* address so
@@ -225,8 +239,15 @@ async function renderEquation(container, item, version) {
     }
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
-    if (item.math?.focus && activeNapkin()?.selectedItemId === item.id) {
-      setTimeout(() => void restoreExplorerFocus(articleForContainer(container), item.math.focus), 0);
+    // Only restore explorer focus if that equation is still being explored.
+    // A selected equation with saved math.focus must not auto-enter explorer
+    // after ArrowDown, or a late restore will steal focus back from Escape.
+    if (item.math?.focus && exploringEquationItemId === item.id) {
+      const itemId = item.id;
+      setTimeout(() => {
+        if (exploringEquationItemId !== itemId || !container.isConnected) return;
+        void restoreExplorerFocus(articleForContainer(container), item.math.focus);
+      }, 0);
     }
   } catch {
     if (version !== transcriptRenderVersion || !container.isConnected) return;
@@ -316,10 +337,18 @@ function renderTranscript() {
       text.className = 'item-text';
       text.textContent = item.source;
       content.append(text);
+      if (typeof window.omniya?.translateUeb === 'function') {
+        void applyUebBrailleLabel(
+          text,
+          item.source,
+          'g2',
+          (source, grade) => window.omniya.translateUeb(source, grade)
+        );
+      }
     }
 
     article.append(descriptor, content);
-    if (item.note) {
+    if (NOTES_UI_ENABLED && item.note) {
       const note = document.createElement('p');
       note.className = 'item-note';
       note.textContent = `Note: ${item.note}`;
@@ -341,7 +370,7 @@ function renderMode() {
   elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
     ? 'Up and Down arrows move between items. Enter explores an equation; E replaces the exact focus.'
-    : 'Reading remains available above. Escape returns without saving.';
+    : 'Reading remains available above. Escape enters Command mode · q cancels.';
 }
 
 function renderComposer() {
@@ -364,15 +393,20 @@ function renderComposer() {
     input.disabled = editing;
     input.checked = input.value === values.type;
   });
-  if (editing) noteVisible = Boolean(values.note);
-  elements['note-row'].hidden = !noteVisible;
-  elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
-  elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
+  if (!NOTES_UI_ENABLED) {
+    elements['note-toggle'].hidden = true;
+    elements['note-row'].hidden = true;
+  } else {
+    if (editing) noteVisible = Boolean(values.note);
+    elements['note-row'].hidden = !noteVisible;
+    elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
+    elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
+  }
   elements['composer-help'].textContent = editing
-    ? 'Save changes commits the item · Escape cancels'
+    ? 'Save changes commits the item · Escape enters Command mode · q cancels'
     : values.type === 'equation'
-      ? 'Enter creates an empty equation and opens the replacement writer · Escape cancels'
-      : 'Enter adds · Shift+Enter makes a new line · Escape cancels';
+      ? 'Enter creates an empty equation and opens the replacement writer · Escape enters Command mode · q cancels'
+      : 'Enter adds · Shift+Enter makes a new line · Escape enters Command mode · q cancels';
   elements['composer-source'].hidden = !editing && values.type === 'equation';
   elements['composer-source'].required = editing || values.type !== 'equation';
   setFieldError(elements['composer-source'], elements['composer-error']);
@@ -799,9 +833,9 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
 // expression is being explored. Keep Escape reliable even in that case.
 document.addEventListener('keydown', (event) => {
   if (!exploringEquationItemId) return;
-  const focused = document.activeElement;
-  if (!focused?.matches?.('mjx-container, math, mjx-focus') &&
-      !focused?.closest?.('mjx-container, math, mjx-focus')) return;
+  const focused = event.target instanceof Element ? event.target : document.activeElement;
+  if (!focused?.matches?.('mjx-container, math, mjx-focus, mjx-speech') &&
+      !focused?.closest?.('mjx-container, math, mjx-focus, mjx-speech')) return;
   const article = elements['transcript'].querySelector(
     `article.napkin-article[data-item-id="${CSS.escape(exploringEquationItemId)}"]`
   );
@@ -839,8 +873,11 @@ function resetDraft() {
 
 function returnToRead({ discardDraft = true } = {}) {
   if (discardDraft) resetDraft();
+  if (uebBuffer.pending) announce('Discarded pending UEB cells');
+  uebBuffer = createUebCellBuffer();
   mode = 'read';
   editingItemId = null;
+  commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
   renderAll();
   focusSelectedArticle();
 }
@@ -850,7 +887,14 @@ function openAddMode() {
   mode = 'add';
   editingItemId = null;
   resetDraft();
+  uebBuffer = createUebCellBuffer();
+  commandState = createCommandState({
+    itemKind: draft.type,
+    contentEmpty: true,
+    equationMethod: preferredAuthoringMethod
+  });
   renderAll();
+  applyCommandStateToChrome(commandState);
   elements['composer-source'].focus();
 }
 
@@ -862,7 +906,15 @@ function openEditMode(itemId) {
   state = selectItem(state, itemId);
   mode = 'edit';
   editingItemId = itemId;
+  uebBuffer = createUebCellBuffer();
+  const item = napkin.items.find(({ id }) => id === itemId);
+  commandState = createCommandState({
+    itemKind: item?.type === 'equation' ? 'equation' : 'text',
+    contentEmpty: !(item?.source ?? '').trim(),
+    equationMethod: preferredAuthoringMethod
+  });
   renderAll();
+  applyCommandStateToChrome(commandState);
   elements['composer-source'].focus();
 }
 
@@ -900,6 +952,142 @@ function selectedType() {
     : 'text';
 }
 
+function applyCommandStateToChrome(nextState) {
+  commandState = nextState;
+  if (commandState.itemKind === 'text' || commandState.itemKind === 'equation') {
+    elements['mode-switch'].querySelectorAll('input').forEach((input) => {
+      input.checked = input.value === commandState.itemKind;
+    });
+    draft.type = commandState.itemKind;
+  }
+  if (commandState.itemKind === 'equation') {
+    preferredAuthoringMethod = commandState.equationMethod;
+    elements['replacement-method']?.querySelectorAll('input').forEach((input) => {
+      input.checked = input.value === commandState.equationMethod;
+    });
+  }
+  if (elements['save-status'] && commandState) {
+    elements['save-status'].textContent = formatStatus(commandState);
+  }
+}
+
+function announce(message) {
+  elements['save-status'].textContent = message;
+}
+
+function composerIsTextInsert() {
+  if (mode !== 'add' && mode !== 'edit') return false;
+  if (commandState.interaction !== 'insert') return false;
+  const kind = commandState.itemKind ?? draft.type;
+  return kind === 'text';
+}
+
+async function appendUebPrint(printText, { trailingSpace = false } = {}) {
+  const area = elements['composer-source'];
+  if (!area) return;
+  const next = `${area.value}${printText ?? ''}${trailingSpace ? ' ' : ''}`;
+  area.value = next;
+  area.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+async function handleComposerUebCell(cell) {
+  if (!composerIsTextInsert()) return;
+  if (cell === '⠿' && uebBuffer.pending === '') {
+    commandState = enterCommand(commandState);
+    announce('Command mode');
+    return;
+  }
+  const result = pushUebCell(uebBuffer, cell);
+  uebBuffer = result.buffer;
+  if (!result.flush) {
+    announce(`UEB cells: ${uebBuffer.pending}`);
+    return;
+  }
+  const grade = gradeForUebBackTranslate(commandState);
+  const trailingSpace = cell === ' ' || cell === '\u2800';
+  try {
+    const translated = await window.omniya.backTranslateUeb(result.flush, grade);
+    const text = typeof translated === 'string' ? translated : translated?.text;
+    await appendUebPrint(text ?? '', { trailingSpace });
+    announce(`UEB word: ${text ?? ''}`);
+  } catch (err) {
+    announce(`UEB translate failed: ${err.message}`);
+  }
+}
+
+function syncCommandContentEmpty() {
+  const src = elements['composer-source']?.value ?? '';
+  commandState = { ...commandState, contentEmpty: src.trim().length === 0 };
+}
+
+function openContextualHelp() {
+  const box = elements['keyboard-help'];
+  const el = box.querySelector('[data-command-help]');
+  if (el) {
+    el.replaceChildren();
+    const status = document.createElement('p');
+    status.textContent = formatStatus(commandState);
+    const tHelp = document.createElement('p');
+    tHelp.append(document.createElement('kbd'));
+    tHelp.firstChild.textContent = 't';
+    tHelp.append(` — ${commandState.itemKind === 'text' ? 'toggle UEB grade / G1 passage' : 'make Text (UEB)'}`);
+    const eHelp = document.createElement('p');
+    eHelp.append(document.createElement('kbd'));
+    eHelp.firstChild.textContent = 'e';
+    eHelp.append(` — ${commandState.itemKind === 'equation' && commandState.contentEmpty ? 'cycle Nemeth/LaTeX' : 'make Equation (Nemeth)'}`);
+    const shortcuts = document.createElement('p');
+    shortcuts.append(document.createElement('kbd'));
+    shortcuts.children[0].textContent = 'n';
+    shortcuts.append(' submit · ');
+    shortcuts.append(document.createElement('kbd'));
+    shortcuts.children[1].textContent = 'q';
+    shortcuts.append(' cancel · ');
+    shortcuts.append(document.createElement('kbd'));
+    shortcuts.children[2].textContent = 'i';
+    shortcuts.append(' insert');
+    el.append(status, tHelp, eHelp, shortcuts);
+  }
+  if (typeof box.showModal === 'function') box.showModal();
+  else box.hidden = false;
+}
+
+function handleComposerCommandKey(event) {
+  if (mode !== 'add' && mode !== 'edit') return false;
+  if (event.key === 'Escape' && commandState.interaction === 'insert') {
+    event.preventDefault();
+    event.stopPropagation();
+    syncCommandContentEmpty();
+    commandState = enterCommand(commandState);
+    announce('Command mode');
+    return true;
+  }
+  if (commandState.interaction !== 'command') return false;
+  const key = event.key;
+  const commandKeys = new Set(['i', 't', 'e', 'n', 'q', '?', 'Enter']);
+  if (!commandKeys.has(key)) {
+    if (key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      return true;
+    }
+    return false;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  syncCommandContentEmpty();
+  const result = applyCommandKey(commandState, key);
+  commandState = result.state;
+  announce(result.announcement);
+  if (result.action === 'help') openContextualHelp();
+  if (result.action === 'cancel') returnToRead();
+  if (result.action === 'submit') void submitComposer();
+  if (result.action === 'set-type' || result.action === 'set-method' || result.action === 'set-grade') {
+    applyCommandStateToChrome(commandState);
+    if (mode === 'add' || mode === 'edit') renderComposer();
+  }
+  return true;
+}
+
 async function submitComposer() {
   if (mode !== 'add' && mode !== 'edit') return;
   if (!activeNapkin()) returnToRead();
@@ -916,6 +1104,8 @@ async function submitComposer() {
     const item = activeItem();
     resetDraft();
     mode = 'read';
+    editingItemId = null;
+    commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
     renderAll();
     await saveState().catch(() => {});
     const article = item && elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`);
@@ -937,6 +1127,7 @@ async function submitComposer() {
   resetDraft();
   mode = 'read';
   editingItemId = null;
+  commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
   renderAll();
   focusSelectedArticle();
   elements['save-status'].textContent = editing ? 'Saved item' : 'Added item';
@@ -1033,6 +1224,11 @@ elements['replacement-method'].addEventListener('change', () => {
     elements['replacement-status'].textContent = selected === 'nemeth'
       ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
       : 'Enter LaTeX for the replacement expression.';
+    applyCommandStateToChrome({
+      ...commandState,
+      itemKind: 'equation',
+      equationMethod: selected
+    });
   } catch (error) {
     elements['replacement-method'].querySelectorAll('input').forEach((input) => { input.checked = input.value === replacementSession.method; });
     elements['replacement-status'].textContent = error.message;
@@ -1042,43 +1238,86 @@ elements['composer-back'].addEventListener('click', () => returnToRead());
 elements['composer-discard'].addEventListener('click', () => returnToRead());
 elements['composer-cancel'].addEventListener('click', () => returnToRead());
 
-elements['note-toggle'].addEventListener('click', () => {
-  noteVisible = !noteVisible;
-  elements['note-row'].hidden = !noteVisible;
-  elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
-  elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
-  if (noteVisible) elements['composer-note'].focus();
-});
+if (NOTES_UI_ENABLED) {
+  elements['note-toggle'].addEventListener('click', () => {
+    noteVisible = !noteVisible;
+    elements['note-row'].hidden = !noteVisible;
+    elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
+    elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
+    if (noteVisible) elements['composer-note'].focus();
+  });
+
+  elements['composer-note'].addEventListener('input', () => {
+    draft.note = elements['composer-note'].value;
+  });
+} else {
+  elements['note-toggle'].hidden = true;
+  elements['note-row'].hidden = true;
+}
 
 elements['composer-source'].addEventListener('input', () => {
   draft.source = elements['composer-source'].value;
-});
-elements['composer-note'].addEventListener('input', () => {
-  draft.note = elements['composer-note'].value;
+  syncCommandContentEmpty();
 });
 elements['mode-switch'].addEventListener('change', () => {
   draft.type = selectedType();
+  applyCommandStateToChrome({
+    ...commandState,
+    itemKind: draft.type,
+    equationMethod: draft.type === 'equation' ? preferredAuthoringMethod : commandState.equationMethod
+  });
   if (mode === 'add' || mode === 'edit') renderComposer();
 });
 
 elements['composer-source'].addEventListener('keydown', (event) => {
+  if (commandState.interaction === 'command') return;
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
     event.preventDefault();
     void submitComposer();
   }
 });
 
+{
+  // Composer UEB six-key is scoped to #composer-source only. Nemeth replacement
+  // installs its own createSixKeyInput on the replacement editor, so the two
+  // never share listeners or fight over sdfjkl chords.
+  const composerSixKey = createSixKeyInput({
+    emit: (cell) => {
+      uebCellChain = uebCellChain.then(() => handleComposerUebCell(cell)).catch(() => {});
+    }
+  });
+  elements['composer-source'].addEventListener('keydown', (event) => {
+    if (!globalThis.__omniyaBrailleSimulation) return;
+    if (!composerIsTextInsert()) return;
+    if (event.key === ' ' && uebBuffer.pending) {
+      event.preventDefault();
+      uebCellChain = uebCellChain.then(() => handleComposerUebCell(' ')).catch(() => {});
+      return;
+    }
+    composerSixKey.keydown(event);
+  });
+  elements['composer-source'].addEventListener('keyup', (event) => {
+    if (!globalThis.__omniyaBrailleSimulation) return;
+    if (!composerIsTextInsert()) return;
+    composerSixKey.keyup(event);
+  });
+  elements['composer-source'].addEventListener('blur', () => composerSixKey.blur());
+}
+
 elements['composer-form'].addEventListener('submit', (event) => {
   event.preventDefault();
   void submitComposer();
 });
 
-elements['composer-form'].addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && (mode === 'add' || mode === 'edit')) {
-    event.preventDefault();
-    returnToRead();
-  }
-});
+// Command keys must keep working after `e` hides #composer-source (focus
+// leaves the dock). Scope to add/edit and skip foreign chrome.
+document.addEventListener('keydown', (event) => {
+  if (mode !== 'add' && mode !== 'edit') return;
+  if (exploringEquationItemId) return;
+  if (elements['keyboard-help']?.open) return;
+  if (event.target?.closest?.('#replacement-dock, #new-napkin-form, #napkin-rail, dialog')) return;
+  handleComposerCommandKey(event);
+}, true);
 
 elements['transcript'].addEventListener('click', (event) => {
   const article = event.target.closest('.napkin-article');
@@ -1093,7 +1332,7 @@ elements['transcript'].addEventListener('keydown', (event) => {
   const article = event.target.closest('.napkin-article');
   if (!article) return;
 
-  const math = event.target.closest('mjx-container, math, mjx-focus');
+  const math = event.target.closest('mjx-container, math, mjx-focus, mjx-speech');
   if (math) {
     if (event.key === 'Escape') {
       event.preventDefault();

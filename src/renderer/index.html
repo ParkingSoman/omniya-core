@@ -9,7 +9,7 @@
     <script src="./mathjax-config.js"></script>
     <script src="../../node_modules/@mathjax/src/bundle/tex-mml-chtml.js"></script>
   </head>
-  <body>
+  <body class="chrome-radios-hidden">
     <div id="app-shell" aria-busy="true">
       <aside id="napkin-rail" aria-label="Napkins">
         <div class="rail-brand"><span class="brand-mark" aria-hidden="true">∴</span><span>Omniya</span></div>
@@ -61,7 +61,7 @@
             <span id="replacement-scope" class="muted"></span>
           </div>
           <fieldset id="replacement-method" aria-describedby="replacement-method-help">
-            <legend>Authoring method</legend>
+            <legend class="sr-only">Authoring method</legend>
             <label><input type="radio" name="replacement-method" value="nemeth" checked> Nemeth</label>
             <label><input type="radio" name="replacement-method" value="latex"> LaTeX</label>
           </fieldset>
@@ -91,7 +91,7 @@
                 <label><input type="radio" name="item-type" value="text" checked> <span>Text</span></label>
                 <label><input type="radio" name="item-type" value="equation"> <span>Equation</span></label>
               </fieldset>
-              <button id="note-toggle" type="button" aria-expanded="false">Add note</button>
+              <button id="note-toggle" type="button" aria-expanded="false" hidden>Add note</button>
             </div>
 
             <label for="composer-source" class="sr-only">Content</label>
@@ -114,7 +114,8 @@
         <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
           <h3 id="keyboard-help-heading">Keyboard help</h3>
           <p><strong>Reading:</strong> Enter explores an equation. MathJax arrows navigate its hierarchy; E replaces the exact focus.</p>
-          <p><strong>Authoring:</strong> Nemeth is the default. LaTeX is an alternate replacement method. Replace commits; Escape cancels.</p>
+          <p><strong>Authoring:</strong> Nemeth is the default. LaTeX is an alternate replacement method. Escape enters Command mode; q cancels. Replace commits replacement drafts.</p>
+          <div data-command-help></div>
           <p><strong>History:</strong> Command/Ctrl+Z undoes a submitted replacement. Command/Ctrl+Shift+Z redoes it.</p>
           <button id="close-keyboard-help" type="button">Close</button>
         </dialog>

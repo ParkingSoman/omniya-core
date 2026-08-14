@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import axe from 'axe-core';
 import { _electron as electron } from 'playwright';
-import { electronLaunchEnv } from './launch-electron.js';
+import { chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const artifactDirectory = path.join(projectRoot, 'test', 'artifacts', 'latest');
@@ -84,23 +84,36 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   assert.equal(await page.locator('#reading-actions').isHidden(), true);
   assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 0);
   await assertNoAxeViolations(page);
+  const modeSwitchChrome = await page.locator('#mode-switch').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { position: style.position, clip: style.clip, overflow: style.overflow };
+  });
+  assert.equal(modeSwitchChrome.position, 'absolute');
+  assert.equal(modeSwitchChrome.overflow, 'hidden');
+  assert.match(modeSwitchChrome.clip, /^rect\(0px[, ]+0px[, ]+0px[, ]+0px\)$/);
   await source.fill('Let a be positive.');
-  await page.getByRole('button', { name: 'Add note' }).click();
-  await page.getByLabel('Note', { exact: true }).fill('Define the domain.');
+  assert.equal(await page.locator('#note-toggle').isVisible(), false);
+  assert.equal(await page.locator('#note-row').isVisible(), false);
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
 
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   assert.equal(await articles.count(), 1);
   assert.match(await articles.first().textContent(), /Let a be positive/);
-  assert.match(await articles.first().textContent(), /Define the domain/);
+  assert.equal(await articles.first().locator('.item-note').count(), 0);
 
   await page.getByRole('button', { name: 'Add item' }).click();
-  await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
-  await page.getByRole('button', { name: 'Add note' }).click();
-  await page.getByLabel('Note', { exact: true }).fill('Fundamental theorem example.');
+  await chooseType(page, 'equation');
+  assert.equal(await page.locator('#note-toggle').isVisible(), false);
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
 
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  const methodChrome = await page.locator('#replacement-method').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { position: style.position, clip: style.clip, overflow: style.overflow };
+  });
+  assert.equal(methodChrome.position, 'absolute');
+  assert.equal(methodChrome.overflow, 'hidden');
+  assert.match(methodChrome.clip, /^rect\(0px[, ]+0px[, ]+0px[, ]+0px\)$/);
+  await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -112,7 +125,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   assert.ok(await articles.nth(1).locator('mjx-container').count());
   assert.ok(await articles.nth(1).locator('mjx-container math mfrac').count());
   assert.ok(await articles.nth(1).locator('mjx-container math msubsup').count());
-  assert.match(await articles.nth(1).textContent(), /Fundamental theorem example/);
+  assert.equal(await articles.nth(1).locator('.item-note').count(), 0);
 
   const firstArticle = articles.nth(0);
   const secondArticle = articles.nth(1);
@@ -124,11 +137,12 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
   assert.equal(await page.evaluate(() => document.activeElement?.closest?.('mjx-container')?.localName), 'mjx-container');
   await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.activeElement?.tagName === 'ARTICLE');
   assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
   await page.keyboard.press('e');
   assert.equal(await page.getByRole('heading', { name: 'Replace focused mathematics' }).count(), 1);
   await assertNoAxeViolations(page);
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -147,13 +161,14 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.getByRole('button', { name: 'Add item' }).click();
   await source.fill('unfinished draft');
   await source.press('Escape');
+  await source.press('q');
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   assert.equal(await articles.count(), 2);
 
   await page.getByRole('button', { name: 'Add item' }).click();
-  await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
+  await chooseType(page, 'equation');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{');
   await page.getByRole('button', { name: 'Replace' }).click();
   assert.match(await page.locator('#replacement-status').textContent(), /convert|incomplete|empty/i);
@@ -213,10 +228,10 @@ test('moves left and right between sibling expressions inside MathML', { timeout
 
   const { page } = session;
   await page.getByRole('button', { name: 'Add item' }).click();
-  await page.getByRole('radio', { name: 'Equation' }).check();
+  await chooseType(page, 'equation');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'LaTeX' }).check();
+  await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('a+b');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });

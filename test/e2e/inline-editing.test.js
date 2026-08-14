@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { _electron as electron } from 'playwright';
-import { electronLaunchEnv } from './launch-electron.js';
+import { chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 
@@ -24,14 +24,10 @@ async function launch(prefix = 'omniya-replacement-') {
 
 async function addBlankEquation(page) {
   await page.getByRole('button', { name: 'Add item' }).click();
-  await page.getByRole('radio', { name: 'Equation' }).check();
-  await page.getByLabel('Content', { exact: true }).press('Enter');
+  await chooseType(page, 'equation');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await page.locator('#replacement-dock').waitFor();
   return page.locator('article.napkin-article').last();
-}
-
-async function chooseMethod(page, method) {
-  await page.getByRole('radio', { name: method === 'latex' ? 'LaTeX' : 'Nemeth' }).check();
 }
 
 async function commitDraft(page, source, method = 'latex') {
@@ -49,7 +45,7 @@ test('Replace button and Enter share one guarded submit transaction', { timeout:
   const run = async (mode) => {
     const { app, page } = await launch(`omniya-submit-parity-${mode}-`);
     const article = await addBlankEquation(page);
-    await chooseMethod(page, 'Nemeth');
+    await chooseMethod(page, 'nemeth');
     const input = page.getByLabel('Replacement input', { exact: true });
     await input.fill('⠭');
     if (mode === 'enter') await input.press('Enter');
@@ -85,7 +81,7 @@ test('new equations use the same empty Nemeth replacement draft and commit once'
   const { app, page } = await launch();
   t.after(() => app.close().catch(() => {}));
   const article = await addBlankEquation(page);
-  assert.equal(await page.getByRole('radio', { name: 'Nemeth' }).isChecked(), true);
+  assert.equal(await page.evaluate(() => document.querySelector('#replacement-method input[value="nemeth"]')?.checked), true);
   await page.getByLabel('Replacement input', { exact: true }).fill('⠭⠬⠁');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -215,7 +211,7 @@ test('Nemeth integral creation and MathJax sign navigation edit preserve the loc
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮⠮');
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠮');
   await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('operator.integral'));
   await input.press('Enter');
@@ -263,7 +259,7 @@ test('Nemeth integral bounds are created locally and MathJax navigation edits on
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /lower|a/i);
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
   await page.getByRole('button', { name: 'Replace' }).click();
@@ -312,7 +308,7 @@ test('Nemeth degree decoration is created as one local code and MathJax edits it
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /base|90/i);
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠙');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -379,7 +375,7 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   assert.match(scope, /Radicand y to the z-th power/);
 
   // Replace only y^z with z^z. The outer x^sqrt(...) tree must remain intact.
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   for (const cell of ['⠵', '⠘', '⠵']) {
     await input.fill(cell);
     const expected = cell === '⠘' ? 'Nemeth sequence may continue' : 'Draft updated';
@@ -428,7 +424,7 @@ test('Nemeth modifier creation and MathJax base navigation edit preserve the ove
   await page.locator('#replacement-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /Base x/);
 
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
   await page.getByRole('button', { name: 'Replace' }).click();
@@ -472,7 +468,7 @@ test('Nemeth function creation and MathJax argument navigation edit preserve app
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /x/);
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
   await page.getByRole('button', { name: 'Replace' }).click();
@@ -509,7 +505,7 @@ test('Nemeth geometry atom creation and MathJax whole-scope editing preserve the
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠫⠙');
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠫⠲');
   await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠲');
   await input.press('Enter');
@@ -548,7 +544,7 @@ test('Nemeth cancellation owns its content and MathJax edits only the canceled t
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -582,7 +578,7 @@ test('Nemeth fraction creation and MathJax numerator navigation edit preserve th
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -624,7 +620,7 @@ test('Nemeth left-subscript choice creates multiscripts and MathJax edits the ow
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠝');
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -663,7 +659,7 @@ test('Nemeth typeform scope creation and MathJax inner editing preserve the bold
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠁');
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -699,7 +695,7 @@ test('Nemeth comparison creation and MathJax relation navigation edit preserve b
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠽');
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
-  await page.getByRole('radio', { name: 'Nemeth' }).check();
+  await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });

@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { convertLatexToMathML } from './main/mathml.js';
 import { exportLatex, importLatex } from './main/math-service.js';
 import { createStorage } from './main/storage.js';
+import { backTranslateUeb, translateUeb } from './main/ueb-service.js';
 
 const sourceDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rendererFile = path.join(sourceDirectory, 'renderer', 'index.html');
@@ -43,6 +44,14 @@ function registerIpc(storage) {
   });
   ipcMain.handle('math:import', async (event, source) => { assertTrustedSender(event); return importLatex(source); });
   ipcMain.handle('math:export', async (event, document) => { assertTrustedSender(event); return exportLatex(document); });
+  ipcMain.handle('ueb:translate', async (event, { text, grade }) => {
+    assertTrustedSender(event);
+    return { braille: await translateUeb(text, grade) };
+  });
+  ipcMain.handle('ueb:backTranslate', async (event, { braille, grade }) => {
+    assertTrustedSender(event);
+    return { text: await backTranslateUeb(braille, grade) };
+  });
 }
 
 function createWindow() {
