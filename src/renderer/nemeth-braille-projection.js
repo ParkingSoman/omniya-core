@@ -335,8 +335,15 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // A leading/embedded decimal in a lower-cell numeric item is the same BANA
   // distinction as an explicit numeric-decimal intent: SRE often emits the
   // ordinary period cell (⠲) where the authored construction needs dot-4 (⠨).
-  const numericDecimal = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="numeric-decimal"], [data-omniya-nemeth-intent="lower-cell-numeric"]')]
-    .filter((node) => /^\.?[0-9A-Za-z]+(?:\.[0-9A-Za-z]*)?$/.test(String(node.textContent ?? '').trim()) && String(node.textContent ?? '').trim().includes('.'));
+  // Numeric-start atoms with embedded decimals (including letter-digits in
+  // non-decimal bases such as `#3t.t8`) keep the same BANA decimal marker.
+  // Query each intent separately: the xmldom test polyfill does not accept
+  // comma-separated CSS selectors.
+  const numericDecimal = [
+    ...sourceNodes('[data-omniya-nemeth-intent="numeric-decimal"]'),
+    ...sourceNodes('[data-omniya-nemeth-intent="lower-cell-numeric"]'),
+    ...sourceNodes('[data-omniya-nemeth-intent="numeric-start"]')
+  ].filter((node) => /^\.?[0-9A-Za-z]+(?:\.[0-9A-Za-z]*)?$/.test(String(node.textContent ?? '').trim()) && String(node.textContent ?? '').trim().includes('.'));
   const decimalLongDash = sourceMath.querySelector?.('[data-omniya-nemeth-intent="omission-decimal-long-dash"]');
   const functionNames = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="function-name"]')]
     .map((node) => String(node.textContent ?? '').trim())
@@ -1160,6 +1167,15 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠷⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠷');
     braille = braille.replace(/⠠⠀⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠠⠀');
     braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠀⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1⠀');
+    // Spatial arithmetic / alignment rows never entered `#`. When the source
+    // has only lower-cell numbers plus an explicit blank layout (and no
+    // signed-numeric or comparison-driven number signs), strip SRE's isolated
+    // <mn> number indicators.
+    if (!numericStarts.length && !signedNumeric && explicitSpaces &&
+      (shapeCells.includes?.('⠈⠡') || /⠒{3,}/.test(braille) ||
+        sourceMath.querySelector?.('[data-omniya-nemeth-cells="⠈⠡"]'))) {
+      braille = braille.replace(/⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '');
+    }
     // Rule 19.10 nests lower-cell numerals inside enlarged grouping signs
     // and ends the group immediately before division. MathJax enriches those
     // isolated numbers as ordinary <mn> nodes and moves the prefixed close
@@ -1849,18 +1865,44 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       // A scripted bevelled fraction (`x~1_/2`) does not carry the ordinary
       // simple-fraction opener inside the superscript (13-11).
       braille = braille.replace(/([⠘⠰])⠹(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1');
+      // Numeric-mode diagonals (`#1_/x`) and abbreviation diagonals
+      // (`mi./hr.`) omit ordinary openers/terminators. Rebuild those local
+      // spans from the authored numeric-start or literary-period marks.
+      const numericModeBevelled = [...simpleFractions].some((node) => {
+        if (node.getAttribute('bevelled') !== 'true') return false;
+        const kids = node.children
+          ? [...node.children]
+          : [...(node.childNodes ?? [])].filter((child) => child.nodeType === 1);
+        const numerator = kids[0];
+        if (!numerator) return false;
+        if (numerator.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start') return true;
+        const hasLiterary = Boolean(node.querySelector?.('[data-omniya-nemeth-intent="punctuation-literary-period"]')
+          || [...(numerator.getElementsByTagName?.('*') ?? [])].some((leaf) =>
+            leaf.getAttribute?.('data-omniya-nemeth-intent') === 'punctuation-literary-period'));
+        return hasLiterary;
+      });
+      if (numericModeBevelled) {
+        braille = braille.replace(/⠹([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]+)⠸⠌([^⠹]*?)⠼/g, '⠼$1⠸⠌$2');
+        braille = braille.replace(/⠹(?=[⠁-⠵])/g, '');
+        braille = braille.replace(/⠲⠐⠸⠌/g, '⠲⠸⠌');
+        braille = braille.replace(/⠸⠌([^⠹⠼]*?)⠼(?=⠀|$)/g, (match, body) => {
+          if (/[⠁-⠵]/.test(body) || /⠲/.test(body)) return `⠸⠌${body}`;
+          return match;
+        });
+      }
       // Diagonal-only fractions (`#1_/3`) omit the ordinary terminator.
       // A `?…#` simple fraction that is later bevelled keeps both ⠹ and ⠼;
       // restore a missing closer when the opener is still present.
       const openedSimple = [...simpleFractions].some((node) =>
-        node.getAttribute('bevelled') === 'true') && /⠹(?!⠲)/.test(braille);
+        node.getAttribute('bevelled') === 'true') && /⠹(?!⠲)/.test(braille)
+        && !numericModeBevelled;
       if (openedSimple) {
         // Keep/restore the terminator for a real `?…#` opener. A literary
         // period misread as `⠹⠲` is not an opener (8-29).
         if (/⠹(?!⠲)/.test(braille) && /⠸⠌|⠌/.test(braille) && !/(⠼|⠠⠼)$/.test(braille)) {
           braille = `${braille}⠼`;
         }
-      } else if (braille.endsWith('⠼')) {
+      } else if (braille.endsWith('⠼') && numericModeBevelled) {
         // Only remove a terminal number sign when the fraction itself ends the
         // source expression. A following local minus is outside the fraction;
         // its number sign belongs to the ordinary operator boundary and must
@@ -3063,16 +3105,35 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   };
   // Rule 8 literary periods are bare ⠲. SRE may treat them as a simple-fraction
   // digit (`⠹⠲`), leave a visual blank before the period cell, or emit the
-  // multipurpose decimal pair (`⠨⠐`) after an abbreviation in a geometry
-  // subscript.
+  // multipurpose decimal pair (`⠨⠐`) after an abbreviation — including before
+  // a hyphen, literary comma, or superscript (Rule 10 measurement units).
   if (literaryPeriods.length) {
     braille = braille.replace(/⠹⠲/g, '⠲');
     braille = braille.replace(/([⠁-⠵]|⠝)⠀⠲/g, '$1⠲');
-    braille = braille.replace(/([⠁-⠵])⠨⠐(?=⠀|$)/g, '$1⠲');
-    // After a literary period and an authored blank, the next word keeps the
-    // English-letter / level indicator. SRE often drops that local `⠰`.
-    if (explicitSpaces) {
+    braille = braille.replace(/([⠁-⠵])⠨⠐/g, '$1⠲');
+    // Scripted abbreviations (`ft.^2`) keep the period immediately before the
+    // superscript indicator without a multipurpose return or trailing return.
+    braille = braille.replace(/⠲⠐(?=⠘)/g, '⠲');
+    if (/⠲⠘/.test(braille)) {
+      braille = braille.replace(/(⠲⠘[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]+)⠐$/g, '$1');
+    }
+    // After a literary period and an authored blank, restore an English-letter
+    // indicator only when the source marked one or the period sits in a
+    // geometry subscript. Baseline measurement abbreviations (`sq. ft.`) stay
+    // bare multi-letter runs.
+    const literaryInScript = literaryPeriods.some((node) => {
+      let host = node.parentElement ?? node.parentNode;
+      while (host) {
+        const name = (host.localName || host.nodeName || '').toLowerCase();
+        if (['msub', 'msup', 'msubsup', 'mmultiscripts'].includes(name)) return true;
+        host = host.parentElement ?? host.parentNode;
+      }
+      return false;
+    });
+    if (explicitSpaces && (englishLetters.length || literaryInScript)) {
       braille = braille.replace(/⠲⠀(?!⠰)(?=[⠁-⠵])/g, '⠲⠀⠰');
+    } else if (explicitSpaces && !englishLetters.length) {
+      braille = braille.replace(/⠲⠀⠰(?=[⠁-⠵])/g, '⠲⠀');
     }
   }
   // Rule 10.4 literary commas after literary periods are lower-cell ⠂.
@@ -3168,9 +3229,16 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     });
   }
   // A source-marked mathematical comma after a lower-cell digit must remain
-  // `⠠`, not digit one (`⠂`) — e.g. Rule 8-52 `(-3, 2)`.
-  if (boundCommas && !braille.includes('⠠⠀') && /[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]⠂⠀/.test(braille)) {
-    braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠂(?=⠀)/, '$1⠠');
+  // `⠠`, not digit one (`⠂`) — e.g. Rule 8-52 `(-3, 2)` and enclosed lists
+  // with several commas after numerals (Rule 3-71).
+  if (boundCommas && /[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]⠂⠀/.test(braille)) {
+    const already = [...braille.matchAll(/[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]⠠⠀/g)].length;
+    let needed = Math.max(0, boundCommas - already);
+    braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠂(?=⠀)/g, (match, digit) => {
+      if (needed <= 0) return match;
+      needed -= 1;
+      return `${digit}⠠`;
+    });
   }
   // Bevelled fractions that carry literary periods keep the diagonal line
   // indicator. SRE can emit a plain slash after the period cell.

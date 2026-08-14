@@ -2883,3 +2883,50 @@ test('Rule 15-52 angle with superposed capital keeps one authored atom', () => {
   assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠫⠪⠈⠫⠠⠁⠻');
   assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'shape-superposed-capital');
 });
+
+test('Rule 10 measurement abbreviation ending in r keeps a literary period', () => {
+  const { document } = replayCells(sourceNotationToCells('#60 mi4_/hr4'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const fraction = tree.children.find((node) => node.name === 'mfrac');
+  assert.ok(fraction);
+  const denominator = fraction.children[1];
+  const intents = [];
+  const visit = (node) => {
+    if (node.attrs?.['data-omniya-nemeth-intent']) intents.push(node.attrs['data-omniya-nemeth-intent']);
+    for (const child of node.children ?? []) visit(child);
+  };
+  visit(denominator);
+  assert.ok(intents.includes('punctuation-literary-period'), `denominator intents=${intents.join(',')}`);
+  assert.equal(intents.includes('numeric-start') || intents.includes('single-letter-number'), false);
+});
+
+test('Rule 3 hyphen plus number indicator starts a fresh numeric item', () => {
+  const word = replayCells(sourceNotationToCells(",guanosine-#5'-,diphosphate"));
+  const wordTree = parseMathML(word.document.mathml);
+  const wordNumber = (() => {
+    const visit = (node) => {
+      if (node.name === 'mn') return node;
+      for (const child of node.children ?? []) {
+        const found = visit(child);
+        if (found) return found;
+      }
+      return null;
+    };
+    return visit(wordTree);
+  })();
+  assert.equal(wordNumber?.children?.[0]?.text, '5');
+  assert.equal(wordNumber?.attrs?.['data-omniya-nemeth-intent'], 'numeric-start');
+
+  const range = replayCells(sourceNotationToCells('#4.5 m,l-#5.3 m,l'));
+  const rangeTree = parseMathML(range.document.mathml);
+  const numbers = [];
+  const collect = (node) => {
+    if (node.name === 'mn') numbers.push(node);
+    for (const child of node.children ?? []) collect(child);
+  };
+  collect(rangeTree);
+  assert.equal(numbers.length, 2);
+  assert.equal(numbers[0].attrs['data-omniya-nemeth-intent'], 'numeric-start');
+  assert.equal(numbers[1].attrs['data-omniya-nemeth-intent'], 'numeric-start');
+});

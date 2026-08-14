@@ -1595,3 +1595,61 @@ test('Rule 15-44 multipurpose binomial rebuilds both scripted rows', () => {
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠷⠛⠰⠚⠐⠩⠾⠾', source), '⠷⠛⠰⠚⠐⠩⠁⠰⠚⠐⠾');
 });
+
+test('Rule 10 literary period before hyphen or superscript is not a decimal pair', () => {
+  const hyphen = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">6.3</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠋">f</mi><mi data-omniya-nemeth-cells="⠞">t</mi><mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo><mo data-omniya-nemeth-cells="⠤">−</mo><mi data-omniya-nemeth-cells="⠇">l</mi><mi data-omniya-nemeth-cells="⠃">b</mi><mi data-omniya-nemeth-cells="⠎">s</mi><mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠖⠨⠒⠀⠋⠞⠨⠐⠤⠇⠃⠎⠲', hyphen), '⠼⠖⠨⠒⠀⠋⠞⠲⠤⠇⠃⠎⠲');
+
+  const scripted = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">9</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠋">f</mi><mi data-omniya-nemeth-cells="⠞">t</mi><msup><mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠔⠀⠋⠞⠲⠐⠘⠆⠐', scripted), '⠼⠔⠀⠋⠞⠲⠘⠆');
+});
+
+test('Rule 10 spaced multi-letter abbreviations do not invent English-letter indicators', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">1.2</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠎">s</mi><mi data-omniya-nemeth-cells="⠟">q</mi><mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠋">f</mi><mi data-omniya-nemeth-cells="⠞">t</mi><mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠂⠨⠆⠀⠎⠟⠲⠀⠋⠞⠲', source), '⠼⠂⠨⠆⠀⠎⠟⠲⠀⠋⠞⠲');
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠂⠨⠆⠀⠎⠟⠲⠀⠰⠋⠞⠲', source), '⠼⠂⠨⠆⠀⠎⠟⠲⠀⠋⠞⠲');
+});
+
+test('Rule 10 numeric-mode bevelled fractions keep number-sign form without openers', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mfrac data-omniya-fraction-kind="simple" bevelled="true"><mn data-omniya-nemeth-intent="numeric-start">1</mn><mi data-omniya-nemeth-cells="⠭">x</mi></mfrac><mspace data-omniya-nemeth-intent="explicit-space"/><mtext data-omniya-nemeth-intent="vs-abbreviation" data-omniya-nemeth-cells="⠠⠄⠧⠎⠲">vs.</mtext><mspace data-omniya-nemeth-intent="explicit-space"/><mfrac data-omniya-fraction-kind="simple" bevelled="true"><mn data-omniya-nemeth-intent="numeric-start">2</mn><mi data-omniya-nemeth-cells="⠭">x</mi></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠹⠂⠸⠌⠭⠼⠀⠠⠄⠧⠎⠲⠀⠹⠆⠸⠌⠭⠼', source),
+    '⠼⠂⠸⠌⠭⠀⠠⠄⠧⠎⠲⠀⠼⠆⠸⠌⠭'
+  );
+});
+
+test('Rule 3 enclosed-list commas stay punctuation after every numeral', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">7</mn><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn mathvariant="bold" data-omniya-nemeth-intent="typeform-bold-number" data-omniya-nemeth-cells="⠸⠼⠦">8</mn><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠽">y</mi><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠷⠭⠠⠀⠶⠂⠀⠸⠼⠦⠂⠀⠽⠾', source), '⠷⠭⠠⠀⠶⠠⠀⠸⠼⠦⠠⠀⠽⠾');
+});
+
+test('Rule 3 spatial lower-cell arithmetic omits number signs', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="lower-cell-numeric">426</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠈⠡">×</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">34</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">333333</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠲⠆⠖⠀⠈⠡⠒⠲⠀⠒⠒⠒⠒⠒⠒', source), '⠲⠆⠖⠀⠈⠡⠒⠲⠀⠒⠒⠒⠒⠒⠒');
+});
+
+test('Rule 3 letter-digit numeric decimals keep the decimal marker', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">3t.t8</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠞⠲⠞⠦', source), '⠼⠒⠞⠨⠞⠦');
+});

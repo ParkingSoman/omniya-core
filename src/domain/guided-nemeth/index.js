@@ -450,6 +450,13 @@ function insertNumeric(tree, focus, value, { replace = false, mathvariant = null
       nextAttributes['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
       delete nextAttributes['data-omniya-nemeth-intent'];
     }
+    // A decimal-extended numeric item (`#5.3` after `-#`) must keep its
+    // numeric-start/decimal intent when a later digit would otherwise inherit
+    // a lower-cell afterOperator mark from the preceding minus.
+    if (current.attrs['data-omniya-nemeth-intent'] === 'numeric-decimal' &&
+      nextAttributes['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
+      delete nextAttributes['data-omniya-nemeth-intent'];
+    }
     // Rule 14.6 leading-decimal numeric subscript (X.6) must not be overwritten
     // by the following digit's numeric-start intent.
     if (current.attrs['data-omniya-nemeth-intent'] === 'numeric-subscript') {
@@ -6037,7 +6044,9 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // Within a fraction slot, a lower-cell digit can continue the local
   // numerator/denominator item after an identifier (`n1`) without opening a
   // baseline numeric passage. The containing mfrac is the only context used.
-  if (state.mode === null && !state.prefix && DIGITS.has(normalized)) {
+  // Literary periods after abbreviations (`hr4`) share digit-4 and must win
+  // first — they are handled below before any digit mapping claims `⠲`.
+  if (state.mode === null && !state.prefix && DIGITS.has(normalized) && normalized !== '⠲') {
     const fraction = hasAncestor(context.tree, context.node, 'mfrac');
     const numerator = fraction?.children?.[0];
     const denominator = fraction?.children?.[1];
@@ -6045,20 +6054,6 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         (denominator && contains(context.tree, denominator, context.node))) {
       return applyMapping(document, focus, { ...state, mode: 'numeric' }, digitMapping(normalized));
     }
-  }
-  // BANA relation abbreviations may be followed by one lower-cell numeral
-  // as part of the same local label (`R1`, `R2`, ...). Scope this numeric
-  // continuation to the relation token itself; it does not create a global
-  // numeric passage mode.
-  if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
-    context.node.name === 'mi' && ['R', 'r'].includes(context.node.children?.[0]?.text)) {
-    const result = applyMapping(document, focus, { ...state, mode: 'numeric' }, {
-      ...digitMapping(normalized),
-      args: { ...digitMapping(normalized).args, dataAttributes: { 'data-omniya-nemeth-intent': 'single-letter-number' } }
-    });
-    return result.status === 'applied'
-      ? { ...result, inputState: { ...result.inputState, mode: null } }
-      : result;
   }
   // Rule 6.3's single-letter criteria allow a lower-cell numeral immediately
   // after an ordinary one-letter identifier (for example `n1`, `n2`, `s1`).
@@ -6081,6 +6076,10 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       }
     }
   }
+  // Literary periods after abbreviations must win before digit-4 / relation
+  // numeral paths. Measurement units such as `hr4` end in `r`, and `⠲` is
+  // also digit 4 — resolve the abbreviation period first when the focused
+  // letter continues a prior letter sibling or a multi-letter atom.
   if (state.mode === null && !state.prefix && normalized === '⠲' &&
     context.node.name === 'mi' &&
     (context.node.attrs?.['data-omniya-nemeth-intent'] === 'function-name' ||
@@ -6093,6 +6092,21 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       })())) {
     const literary = MAPPINGS.find((candidate) => candidate.id === 'punctuation.literary-period');
     if (literary) return applyMapping(document, focus, state, literary);
+  }
+  // BANA relation abbreviations may be followed by one lower-cell numeral
+  // as part of the same local label (`R1`, `R2`, ...). Scope this numeric
+  // continuation to the relation token itself; it does not create a global
+  // numeric passage mode. Standalone `r`/`R` only — abbreviation finals such
+  // as `hr4` already took the literary-period path above.
+  if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
+    context.node.name === 'mi' && ['R', 'r'].includes(context.node.children?.[0]?.text)) {
+    const result = applyMapping(document, focus, { ...state, mode: 'numeric' }, {
+      ...digitMapping(normalized),
+      args: { ...digitMapping(normalized).args, dataAttributes: { 'data-omniya-nemeth-intent': 'single-letter-number' } }
+    });
+    return result.status === 'applied'
+      ? { ...result, inputState: { ...result.inputState, mode: null } }
+      : result;
   }
   // BANA numeric subscripts on abbreviated functions (`log10`) omit the
   // subscript indicator. The function atom is already committed; the digit
@@ -6272,8 +6286,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       // must remain numeric-start so projection can restore the number sign.
       const parent = context.node.name !== 'math' ? findMathParent(context.tree, context.node.attrs?.['data-omniya-id']) : null;
       const preceding = parent?.children?.[Math.max(0, parent.children.indexOf(context.node) - 1)];
-      const afterOperator = (context.node.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(context.node.children?.[0]?.text)) ||
-        (preceding?.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(preceding.children?.[0]?.text));
+      // Digits typed while focus remains on an arithmetic operator mean the
+      // number indicator was just applied (`-#5`, `mL-#5.3`). That starts a
+      // fresh numeric-start item. Continuations without `#` (`#1+2`) arrive
+      // with the operator held as prefix and are handled earlier. Digits that
+      // extend an already-focused <mn> keep that atom's authored intent.
+      const afterOperator = context.node.name !== 'mo' &&
+        context.node.name !== 'mn' &&
+        preceding?.name === 'mo' &&
+        BASELINE_ARITHMETIC_SIGNS.includes(preceding.children?.[0]?.text);
       const continuingLowerCell = context.node.name === 'mn' &&
         context.node.attrs?.['data-omniya-nemeth-intent'] === 'lower-cell-numeric';
       if (afterOperator || continuingLowerCell) {
