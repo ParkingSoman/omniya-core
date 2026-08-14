@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 5,
     "mappedRows": 1135,
-    "electronCreationRows": 1060,
-    "electronEditingRows": 1054,
+    "electronCreationRows": 1063,
+    "electronEditingRows": 1057,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -1610,10 +1610,12 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
-        "omission.decimal-long-dash"
+        "omission.decimal-long-dash",
+        "omission.decimal-general"
       ],
       "unitCaseIds": [
-        "registry:omission.decimal-long-dash"
+        "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general"
       ],
       "electronCreationCaseIds": [
         "bana-e2e:rule3-decimals",
@@ -1722,10 +1724,12 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
-        "omission.decimal-long-dash"
+        "omission.decimal-long-dash",
+        "omission.decimal-general"
       ],
       "unitCaseIds": [
-        "registry:omission.decimal-long-dash"
+        "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-3-5"
@@ -1830,10 +1834,12 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
-        "omission.decimal-long-dash"
+        "omission.decimal-long-dash",
+        "omission.decimal-general"
       ],
       "unitCaseIds": [
-        "registry:omission.decimal-long-dash"
+        "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-3-6"
@@ -1938,10 +1944,12 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
-        "omission.decimal-long-dash"
+        "omission.decimal-long-dash",
+        "omission.decimal-general"
       ],
       "unitCaseIds": [
-        "registry:omission.decimal-long-dash"
+        "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-3-7"
@@ -2046,10 +2054,12 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
-        "omission.decimal-long-dash"
+        "omission.decimal-long-dash",
+        "omission.decimal-general"
       ],
       "unitCaseIds": [
-        "registry:omission.decimal-long-dash"
+        "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-3-8"
@@ -2154,10 +2164,12 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
-        "omission.decimal-long-dash"
+        "omission.decimal-long-dash",
+        "omission.decimal-general"
       ],
       "unitCaseIds": [
-        "registry:omission.decimal-long-dash"
+        "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-3-9"
@@ -2262,10 +2274,12 @@
       "disposition": "implemented-operation",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
-        "omission.decimal-long-dash"
+        "omission.decimal-long-dash",
+        "omission.decimal-general"
       ],
       "unitCaseIds": [
-        "registry:omission.decimal-long-dash"
+        "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general"
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-3-10"
@@ -56518,11 +56532,13 @@
       "pdfPage": 143,
       "auditOrder": 605,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [
@@ -56630,11 +56646,13 @@
       "pdfPage": 143,
       "auditOrder": 606,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [
@@ -56738,11 +56756,13 @@
       "pdfPage": 143,
       "auditOrder": 607,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [],
@@ -56802,11 +56822,13 @@
       "pdfPage": 143,
       "auditOrder": 608,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [
@@ -56910,11 +56932,13 @@
       "pdfPage": 143,
       "auditOrder": 609,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [
@@ -57018,11 +57042,13 @@
       "pdfPage": 143,
       "auditOrder": 610,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [
@@ -57126,11 +57152,13 @@
       "pdfPage": 143,
       "auditOrder": 611,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [
@@ -57234,11 +57262,13 @@
       "pdfPage": 144,
       "auditOrder": 612,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [
@@ -57342,11 +57372,13 @@
       "pdfPage": 144,
       "auditOrder": 613,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [
@@ -145189,10 +145221,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -145204,8 +145238,11 @@
         "electron:bana-2022:example-24-9",
         "electron:bana-2022:example-24-10",
         "electron:bana-2022:example-24-12",
+        "electron:bana-2022:example-24-16",
+        "electron:bana-2022:example-24-17",
         "electron:bana-2022:example-24-20",
-        "electron:bana-2022:example-24-21"
+        "electron:bana-2022:example-24-21",
+        "electron:bana-2022:example-24-25"
       ],
       "electronEditingCaseIds": [
         "electron:bana-2022:example-24-1",
@@ -145216,8 +145253,11 @@
         "electron:bana-2022:example-24-9",
         "electron:bana-2022:example-24-10",
         "electron:bana-2022:example-24-12",
+        "electron:bana-2022:example-24-16",
+        "electron:bana-2022:example-24-17",
         "electron:bana-2022:example-24-20",
-        "electron:bana-2022:example-24-21"
+        "electron:bana-2022:example-24-21",
+        "electron:bana-2022:example-24-25"
       ],
       "navigationCaseIds": [
         "electron:bana-2022:example-24-1",
@@ -145228,8 +145268,11 @@
         "electron:bana-2022:example-24-9",
         "electron:bana-2022:example-24-10",
         "electron:bana-2022:example-24-12",
+        "electron:bana-2022:example-24-16",
+        "electron:bana-2022:example-24-17",
         "electron:bana-2022:example-24-20",
-        "electron:bana-2022:example-24-21"
+        "electron:bana-2022:example-24-21",
+        "electron:bana-2022:example-24-25"
       ],
       "errataRefs": [],
       "verified": {
@@ -145250,39 +145293,39 @@
         "context-policy.24.1"
       ],
       "visualEvidence": {
-        "id": "electron:bana-2022:example-24-9",
+        "id": "electron:bana-2022:example-24-25",
         "sourceRows": [
-          "example-24-9",
+          "example-24-25",
           "24.1"
         ],
         "rule": "24",
-        "example": "24-9",
-        "artifact": "electron-evidence/example-24-9.json",
+        "example": "24-25",
+        "artifact": "electron-evidence/example-24-25.json",
         "review": {
           "reviewer": "evidence-steward",
-          "conclusion": "Accepted all four real Electron phases for example 24-9; geometry contract passed in-runner and screenshots are non-empty."
+          "conclusion": "Accepted all four real Electron phases for example 24-25; geometry contract passed in-runner and screenshots are non-empty."
         },
         "evidenceSet": {
           "screenshots": [
             {
               "phase": "input",
-              "path": "electron-screenshots/rule-24-9/input.png",
-              "claim": "The complete Nemeth draft for example 24-9 is visible before submission."
+              "path": "electron-screenshots/rule-24-25/input.png",
+              "claim": "The complete Nemeth draft for example 24-25 is visible before submission."
             },
             {
               "phase": "committed",
-              "path": "electron-screenshots/rule-24-9/committed.png",
-              "claim": "The committed expression for example 24-9 is visibly rendered as one canonical MathML tree."
+              "path": "electron-screenshots/rule-24-25/committed.png",
+              "claim": "The committed expression for example 24-25 is visibly rendered as one canonical MathML tree."
             },
             {
               "phase": "focused",
-              "path": "electron-screenshots/rule-24-9/focused.png",
-              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 24-9."
+              "path": "electron-screenshots/rule-24-25/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 24-25."
             },
             {
               "phase": "editing",
-              "path": "electron-screenshots/rule-24-9/editing.png",
-              "claim": "The exact-node replacement for example 24-9 remains visibly integrated with the surrounding expression."
+              "path": "electron-screenshots/rule-24-25/editing.png",
+              "claim": "The exact-node replacement for example 24-25 remains visibly integrated with the surrounding expression."
             }
           ]
         }
@@ -145311,10 +145354,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -145420,10 +145465,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -145529,10 +145576,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -145638,10 +145687,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -145747,10 +145798,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -145812,10 +145865,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -145877,10 +145932,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -145942,10 +145999,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -146051,10 +146110,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -146160,10 +146221,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -146269,10 +146332,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -146335,10 +146400,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -146444,10 +146511,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -146509,10 +146578,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -146574,10 +146645,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -146639,28 +146712,36 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-24-16"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-24-16"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-24-16"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -146679,6 +146760,44 @@
         "expectedWholeBraille": "(3.\")",
         "sourceNotation": "(3.\")",
         "brailleCells": "⠷⠒⠨⠐⠾"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-24-16",
+        "sourceRows": [
+          "example-24-16",
+          "24.1"
+        ],
+        "rule": "24",
+        "example": "24-16",
+        "artifact": "electron-evidence/example-24-16.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 24-16; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-24-16/input.png",
+              "claim": "The complete Nemeth draft for example 24-16 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-24-16/committed.png",
+              "claim": "The committed expression for example 24-16 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-24-16/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 24-16."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-24-16/editing.png",
+              "claim": "The exact-node replacement for example 24-16 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -146704,28 +146823,36 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-24-17"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-24-17"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-24-17"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -146744,6 +146871,44 @@
         "expectedWholeBraille": "?1.\"/2.\"#",
         "sourceNotation": "?1.\"/2.\"#",
         "brailleCells": "⠹⠂⠨⠐⠌⠆⠨⠐⠼"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-24-17",
+        "sourceRows": [
+          "example-24-17",
+          "24.1"
+        ],
+        "rule": "24",
+        "example": "24-17",
+        "artifact": "electron-evidence/example-24-17.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 24-17; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-24-17/input.png",
+              "claim": "The complete Nemeth draft for example 24-17 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-24-17/committed.png",
+              "claim": "The committed expression for example 24-17 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-24-17/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 24-17."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-24-17/editing.png",
+              "claim": "The exact-node replacement for example 24-17 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -146769,10 +146934,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -146834,10 +147001,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -146899,10 +147068,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -147008,10 +147179,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [
@@ -147117,10 +147290,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -147182,10 +147357,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -147247,10 +147424,12 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
       "electronCreationCaseIds": [],
@@ -147312,28 +147491,36 @@
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",
+        "omission.decimal-general",
         "indicator.multipurpose"
       ],
       "unitCaseIds": [
         "registry:omission.decimal-long-dash",
+        "registry:omission.decimal-general",
         "registry:indicator.multipurpose"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-24-25"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-24-25"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-24-25"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -147354,6 +147541,44 @@
         "expectedWholeBraille": "@:\"@:,T",
         "sourceNotation": "@:\"@:,T",
         "brailleCells": "⠈⠱⠐⠈⠱⠠⠠⠞"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-24-25",
+        "sourceRows": [
+          "example-24-25",
+          "24.1"
+        ],
+        "rule": "24",
+        "example": "24-25",
+        "artifact": "electron-evidence/example-24-25.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 24-25; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-24-25/input.png",
+              "claim": "The complete Nemeth draft for example 24-25 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-24-25/committed.png",
+              "claim": "The committed expression for example 24-25 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-24-25/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 24-25."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-24-25/editing.png",
+              "claim": "The exact-node replacement for example 24-25 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -165023,11 +165248,13 @@
       "pdfPage": 451,
       "auditOrder": 1809,
       "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
+      "inputPolicy": null,
       "mappingIds": [
+        "omission.decimal-general",
         "omission.general"
       ],
       "unitCaseIds": [
+        "registry:omission.decimal-general",
         "registry:omission.general"
       ],
       "electronCreationCaseIds": [],
