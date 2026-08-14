@@ -244,6 +244,23 @@ for (const [number, mappingIds] of Object.entries({
   if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
 }
 for (const [number, mappingIds] of Object.entries({
+  102: ['script.sup-sup-sup', 'group.round'],
+  103: ['script.superscript', 'script.left-superscript'],
+  104: ['script.subscript', 'script.left-subscript'],
+  105: ['script.subscript', 'script.left-subscript'],
+  106: ['script.subscript', 'modifier.directly-over'],
+  107: ['script.subscript'], 108: ['script.sup-sup-sup'], 109: ['script.subscript'],
+  110: ['script.superscript', 'script.baseline'], 111: ['script.superscript', 'script.baseline'],
+  112: ['script.subscript', 'script.superscript', 'comparison.less'],
+  113: ['script.superscript', 'comparison.less'], 114: ['script.sub-sub'],
+  115: ['script.superscript', 'script.subscript'], 116: ['script.subscript'],
+  117: ['script.subscript'], 118: ['script.superscript'], 119: ['script.superscript'],
+  120: ['script.superscript'], 121: ['script.sup-sub']
+})) {
+  const row = rows.find((entry) => entry.id === `bana-2022:example-14-${number}`);
+  if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
+}
+for (const [number, mappingIds] of Object.entries({
   82: ['script.sup-sup'],
   83: ['script.sup-sup-sub'],
   84: ['script.subscript', 'script.contracted-comma'],
