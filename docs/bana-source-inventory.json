@@ -15,7 +15,7 @@
     "numberedRowCountNote": "The PDF contains 508 actual numbered provision labels plus the 4.6.8.c provision explicitly targeted by the errata, for 509 source provision rows. The prior 516 baseline counted seven numeric example lines as provisions; this inventory excludes them.",
     "examples": 1229,
     "errata": 42,
-    "errataInScope": 29
+    "errataInScope": 24
   },
   "rows": [
     {
@@ -51454,9 +51454,16 @@
       "printedPage": "15-4",
       "pdfPage": null,
       "auditOrder": 1760,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript",
+        "indicator.multipurpose",
+        "modifier.directly-over",
+        "modifier.tilde.simple",
+        "modifier.terminate.over",
+        "script.baseline"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -51483,7 +51490,7 @@
       "printedPage": "15-12",
       "pdfPage": null,
       "auditOrder": 1761,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -51954,7 +51961,7 @@
       "printedPage": "B-2",
       "pdfPage": null,
       "auditOrder": 1777,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -51983,9 +51990,11 @@
       "printedPage": "D-27",
       "pdfPage": null,
       "auditOrder": 1778,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "misc.crossed-d"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -52012,7 +52021,7 @@
       "printedPage": "D-32",
       "pdfPage": null,
       "auditOrder": 1779,
-      "disposition": "unclassified",
+      "disposition": "excluded-document-format",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],

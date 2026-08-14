@@ -4,8 +4,8 @@ Generated from `docs/bana-coverage.json`.
 
 - Source rows: 1846
 - Numbered provisions: 509
-- Applicable rows: 1567
-- Fully implemented rows: 1513
+- Applicable rows: 1566
+- Fully implemented rows: 1517
 - Official examples: 1229
 - Official examples with extracted source blocks: 1229
 - Official examples with Electron creation evidence: 120
@@ -17,7 +17,7 @@ Generated from `docs/bana-coverage.json`.
 | Rule | Total | Applicable | Implemented | Electron creation | Electron editing | Excluded |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1 | 17 | 17 | 17 | 0 | 0 | 0 |
-| 2 | 2 | 2 | 1 | 0 | 0 | 0 |
+| 2 | 2 | 2 | 2 | 0 | 0 | 0 |
 | 3 | 155 | 155 | 151 | 24 | 24 | 0 |
 | 4 | 116 | 116 | 110 | 0 | 0 | 0 |
 | 5 | 14 | 14 | 14 | 10 | 10 | 0 |
@@ -30,7 +30,7 @@ Generated from `docs/bana-coverage.json`.
 | 12 | 9 | 9 | 9 | 1 | 1 | 0 |
 | 13 | 62 | 62 | 62 | 1 | 1 | 0 |
 | 14 | 181 | 181 | 158 | 3 | 3 | 0 |
-| 15 | 116 | 116 | 114 | 1 | 1 | 0 |
+| 15 | 116 | 116 | 116 | 1 | 1 | 0 |
 | 16 | 22 | 22 | 22 | 2 | 2 | 0 |
 | 17 | 83 | 83 | 82 | 79 | 79 | 0 |
 | 18 | 30 | 29 | 29 | 2 | 2 | 1 |
@@ -42,8 +42,8 @@ Generated from `docs/bana-coverage.json`.
 | 24 | 27 | 27 | 27 | 0 | 0 | 0 |
 | 25 | 131 | 0 | 0 | 0 | 0 | 131 |
 | 26 | 131 | 0 | 0 | 0 | 0 | 131 |
-| 27 | 1 | 1 | 0 | 0 | 0 | 0 |
-| 32 | 1 | 1 | 0 | 0 | 0 | 0 |
+| 27 | 1 | 1 | 1 | 0 | 0 | 0 |
+| 32 | 1 | 0 | 0 | 0 | 0 | 1 |
 | other | 66 | 66 | 66 | 0 | 0 | 0 |
 
 Status: **development**. The release gate remains intentionally open until every applicable row has implementation and full Electron/Braille evidence.

@@ -172,6 +172,33 @@ if (durableDisposition) durableDisposition.disposition = 'approved-context-polic
 // unchanged, so it owns no executable operation or context-policy behavior.
 const rule20HeadingErratum = rows.find((row) => row.id === 'errata-2025:20.6-20-9');
 if (rule20HeadingErratum) rule20HeadingErratum.disposition = 'excluded-document-format';
+// The remaining Rule 15 and appendix errata have different scopes. Example
+// 15-8 supplies corrected executable BRF for a subscripted modified expression;
+// Rule 15.7 corrects print-only modifier context; Appendix B clarifies document
+// placement; Appendix D adds crossed d and removes a UEB-only index entry.
+const rule15Example8Erratum = rows.find((row) => row.id === 'errata-2025:15.2.1-15-4');
+if (rule15Example8Erratum) {
+  rule15Example8Erratum.disposition = 'implemented-operation';
+  rule15Example8Erratum.mappingIds = [
+    'script.subscript',
+    'indicator.multipurpose',
+    'modifier.directly-over',
+    'modifier.tilde.simple',
+    'modifier.terminate.over',
+    'script.baseline'
+  ];
+}
+for (const id of ['errata-2025:15.7-15-12', 'errata-2025:B-2-B-2']) {
+  const row = rows.find((candidate) => candidate.id === id);
+  if (row) row.disposition = 'implemented-context-policy';
+}
+const appendixCrossedDErratum = rows.find((row) => row.id === 'errata-2025:D-27-D-27');
+if (appendixCrossedDErratum) {
+  appendixCrossedDErratum.disposition = 'implemented-operation';
+  appendixCrossedDErratum.mappingIds = ['misc.crossed-d'];
+}
+const appendixUebRemovalErratum = rows.find((row) => row.id === 'errata-2025:D-32-D-32');
+if (appendixUebRemovalErratum) appendixUebRemovalErratum.disposition = 'excluded-document-format';
 // The Rule 23 errata restores crossed d in the symbol list and section 23.4,
 // adds a spatial-layout exception to monetary spacing, and corrects Example
 // 23-48 with the barred-letter indicator. Link each correction to only the
