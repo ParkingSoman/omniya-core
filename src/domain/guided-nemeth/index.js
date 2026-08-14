@@ -44,6 +44,10 @@ const TYPEFORM_NUMBER_PREFIXES = Object.freeze({
 // same local numeric item (`#1.2+1.4`, `#1.4709`*10`). Leading signed-number
 // mode stays plus/minus only.
 const BASELINE_ARITHMETIC_SIGNS = Object.freeze(['+', '−', '-', '±', '∓', '×', '÷', '−+', '+−', '−−']);
+const POST_OPERATOR_LOWER_CELL = Object.freeze([
+  ...BASELINE_ARITHMETIC_SIGNS,
+  '^', '′', '″', '‴', '∣', '§', '€', '∪', '∩', '/', '∗', '#', '〃'
+]);
 const GREEK_SMALL = [
   ['⠨⠁', 'α', '.a'], ['⠨⠃', 'β', '.b'], ['⠨⠛', 'γ', '.g'], ['⠨⠙', 'δ', '.d'], ['⠨⠑', 'ϵ', '.e'],
   ['⠨⠵', 'ζ', '.z'], ['⠨⠱', 'η', '.:'], ['⠨⠹', 'θ', '.?'], ['⠨⠊', 'ι', '.i'], ['⠨⠅', 'κ', '.k'],
@@ -3074,6 +3078,9 @@ function mappingApplies(mapping, context) {
   // and leave the outer denominator hole empty.
   if (mapping.id === 'fraction.start.diagonal') {
     if (fraction && numeratorFocus && isHole(fraction.children?.[1])) return false;
+    // Rule 20.8: after an ordinary identifier, `_/` is the slash operator.
+    // Numeric atoms and literary-period unit fractions still wrap.
+    if (context.node.name === 'mi') return false;
   }
   if (mapping.id.startsWith('fraction.end.')) {
     const kind = mapping.id.split('.').at(-1);
@@ -3223,6 +3230,10 @@ function mappingApplies(mapping, context) {
   // numeric typeform. Rule 20.3's number-sign follows an ordinary atom.
   // After a typeform numeral the same cells continue the decimal passage.
   if (mapping.id === 'operator.number-sign') {
+    const script = hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup']);
+    if (script && isHole(context.node) && script.children?.[0] && !isHole(script.children[0])) {
+      return true;
+    }
     if ((context.node.name === 'math' && !(context.node.children?.length > 0)) ||
       isHole(context.node) || context.node.name === 'mspace' ||
       TYPEFORM_NUMBER_PREFIXES[context.node.attrs?.mathvariant]) {
@@ -3248,6 +3259,11 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.id === 'misc.prime') {
     return context.node.name !== 'math' && !isHole(context.node);
+  }
+  if (mapping.id === 'comparison.member') {
+    if ((context.node.name === 'math' && !(context.node.children?.length > 0)) || isHole(context.node)) {
+      return false;
+    }
   }
   if (mapping.id === 'misc.empty-set') {
     const parent = context.node.name !== 'math'
@@ -3829,7 +3845,7 @@ function letterMapping(cell, inputState) {
   const typeformPrefix = typeform === 'bold' ? '⠸⠰'
     : typeform === 'script' ? '⠈⠰'
       : typeform === 'italic' ? '⠨⠰'
-        : typeform === 'double-struck' ? '⠠⠸⠰'
+        : typeform === 'double-struck' ? (capital ? '⠠⠸' : '⠠⠸⠰')
           : '';
   return {
     id: `letter.${value}`,
@@ -3853,6 +3869,16 @@ function letterMapping(cell, inputState) {
       } : {})
     }
   };
+}
+
+function insertTallyMarks(document, focus, state, count) {
+  const tally = MAPPINGS.find((mapping) => mapping.id === 'misc.tally');
+  let result = { status: 'applied', document, focus, inputState: { ...state, prefix: '' } };
+  for (let index = 0; index < count; index += 1) {
+    result = applyMapping(result.document, result.focus, { ...result.inputState, prefix: '' }, tally);
+    if (result.status === 'rejected') return result;
+  }
+  return result;
 }
 
 export function applyNemethCell({ document, focus, inputState = { prefix: '', mode: null }, cell }) {
@@ -4016,6 +4042,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       inputState: { ...state, prefix: sequence },
       announcement: 'This local Nemeth prefix can begin a superscript or a left-superscript construction. Choose its meaning.'
     };
+  }
+  // Rule 20.3's crosshatch in a superscript (`~.#`) is the number-sign
+  // operator in that script slot, not an italic numeric typeform.
+  if (state.mode === null && state.prefix === '⠘⠨' && normalized === '⠼' &&
+    ['mi', 'mn', 'mo'].includes(context.node.name) &&
+    !hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+    const superscript = MAPPINGS.find((mapping) => mapping.id === 'script.superscript');
+    const numberSign = MAPPINGS.find((mapping) => mapping.id === 'operator.number-sign');
+    const opened = applyMapping(document, focus, { ...state, prefix: '' }, superscript);
+    if (opened.status !== 'rejected' && numberSign) {
+      const applied = applyMapping(opened.document, opened.focus, opened.inputState, numberSign);
+      if (applied.status !== 'rejected') return applied;
+    }
   }
   const inScript = Boolean(hasAncestor(context.tree, context.node,
     ['msup', 'msub', 'msubsup', 'mmultiscripts']));
@@ -4308,6 +4347,21 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       }
     }
   }
+  // Rule 23.17's double-struck capital (`,_,n`) uses the capital indicator
+  // in place of the English-letter cell. Keep the barred typeform mode and
+  // replay this one capital cell.
+  if (state.mode === null && state.prefix === '⠠⠸' && normalized === '⠠') {
+    const barred = MAPPINGS.find((mapping) => mapping.id === 'typeform.barred');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, barred);
+    if (activated.status !== 'rejected') {
+      return applyNemethCell({
+        document: activated.document,
+        focus: activated.focus,
+        inputState: activated.inputState,
+        cell: normalized
+      });
+    }
+  }
 
   // Rule 8.3's English capital after a literary apostrophe (`,',J`) holds the
   // three-cell prefix `⠠⠄⠠` and then the letter. Without this local hold,
@@ -4376,7 +4430,25 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       if (replay.status !== 'rejected') return replay;
     }
   }
+  // Five-step `" .%` / `" .+` is multipurpose plus the complete union or
+  // intersection operator, not an under-opener on a decimal point.
+  if (state.mode === null && state.prefix === '⠐⠨' && (normalized === '⠩' || normalized === '⠬') &&
+    !hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+    const indicator = PREFIXES.get('⠐')?.mappings?.find((mapping) => mapping.id === 'indicator.multipurpose');
+    const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
+    const operator = MAPPINGS.find((mapping) => mapping.id === (normalized === '⠩' ? 'operator.intersection' : 'operator.union'));
+    if (activated.status !== 'rejected' && operator) {
+      const applied = applyMapping(
+        activated.document,
+        activated.focus,
+        { ...activated.inputState, prefix: '', mode: 'multipurpose' },
+        operator
+      );
+      if (applied.status !== 'rejected') return applied;
+    }
+  }
   if (state.mode !== 'numeric-function-prefix' && state.prefix && (normalized === '⠨' || normalized === '⠠') && [...state.prefix].every((prefixCell) =>
+    LETTERS.has(prefixCell) &&
     (PREFIXES.get(prefixCell)?.mappings ?? []).some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mappingApplies(mapping, context))) &&
     !(PREFIXES.get(state.prefix)?.mappings ?? []).some((mapping) =>
       mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE && mappingApplies(mapping, context)) &&
@@ -4463,6 +4535,45 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         });
       }
     }
+    if (state.prefix === '⠳' && DIGITS.has(normalized)) {
+      const divides = MAPPINGS.find((candidate) => candidate.id === 'operator.divides');
+      const applied = applyMapping(document, focus, { ...state, prefix: '' }, divides);
+      if (applied.status !== 'rejected') {
+        return applyNemethCell({
+          document: applied.document,
+          focus: applied.focus,
+          inputState: applied.inputState,
+          cell: normalized
+        });
+      }
+    }
+    if (state.prefix === '⠠⠄' && normalized === ' ' &&
+      !hasAncestor(context.tree, context.node, 'mstyle')) {
+      const ditto = MAPPINGS.find((candidate) => candidate.id === 'misc.ditto');
+      const applied = applyMapping(document, focus, { ...state, prefix: '' }, ditto);
+      if (applied.status !== 'rejected') {
+        return applyNemethCell({
+          document: applied.document,
+          focus: applied.focus,
+          inputState: applied.inputState,
+          cell: normalized
+        });
+      }
+    }
+    if (!state.mode?.startsWith?.('numeric') &&
+      state.prefix.length > 0 && [...state.prefix].every((prefixCell) => prefixCell === '⠸') &&
+      ((normalized === '⠸' && state.prefix.length >= 2) || normalized === ' ') &&
+      !hasApplicableContinuation(state.prefix, normalized, context)) {
+      const inserted = insertTallyMarks(document, focus, state, state.prefix.length);
+      if (inserted.status !== 'rejected') {
+        return applyNemethCell({
+          document: inserted.document,
+          focus: inserted.focus,
+          inputState: inserted.inputState,
+          cell: normalized
+        });
+      }
+    }
     const functionPrefix = BANA_FUNCTION_MAPPINGS.find((mapping) => mapping.cells.join('') === state.prefix && mappingApplies(mapping, context));
     const sequenceFunction = BANA_FUNCTION_MAPPINGS.find((mapping) => mapping.cells.join('') === sequence && mappingApplies(mapping, context));
     const functionContinues = BANA_FUNCTION_MAPPINGS.some((mapping) => mapping.cells.join('').startsWith(sequence) && mapping.cells.length > sequence.length && mappingApplies(mapping, context));
@@ -4543,7 +4654,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // The scope is deliberately limited to a baseline operator, so it cannot
   // alter indexed radicals or script-level dot-4 meanings.
   if (state.mode === null && state.prefix === '⠨' && DIGITS.has(normalized) &&
-    context.node.name === 'mo' && ['+', '−', '-', '±'].includes(context.node.children?.[0]?.text)) {
+    (context.node.name === 'mspace' ||
+      (context.node.name === 'math' && context.node.children?.at(-1)?.name === 'mspace') ||
+      (context.node.name === 'mo' && (
+        ['+', '−', '-', '±', '='].includes(context.node.children?.[0]?.text) ||
+        POST_OPERATOR_LOWER_CELL.includes(context.node.children?.[0]?.text)
+      )))) {
     const decimal = applyMapping(document, focus, { ...state, prefix: '' }, numericPunctuationMapping('⠨', '.', '3.2.3'));
     if (decimal.status !== 'rejected') {
       return applyNemethCell({
@@ -5021,7 +5137,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // it for the source-intent Braille projection; no surrounding operands are
   // inferred.
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
-    context.node.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(context.node.children?.[0]?.text)) {
+    context.node.name === 'mo' && POST_OPERATOR_LOWER_CELL.includes(context.node.children?.[0]?.text)) {
     const digit = digitMapping(normalized);
     digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
@@ -5029,6 +5145,14 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // Spatial arithmetic and coefficients such as `2x` omit the numeric
   // indicator at an empty replacement root. Start one lower-cell numeric
   // atom there; a following letter leaves that mode as an identifier sibling.
+  if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
+    ['math', 'mrow'].includes(context.node.name) &&
+    context.node.children?.length > 0 &&
+    ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover'].includes(context.node.children.at(-1)?.name)) {
+    const digit = digitMapping(normalized);
+    digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
+    return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
+  }
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     context.node.name === 'math' && !(context.node.children?.length > 0)) {
     const digit = digitMapping(normalized);
@@ -5167,18 +5291,14 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // one cell as the next local operation.
   if (state.mode?.startsWith?.('numeric') && state.prefix === '⠨') {
     const candidate = `${state.prefix}${normalized}`;
-    const numberSign = (PREFIXES.get(candidate)?.mappings ?? [])
-      .filter((mapping) => mapping.id === 'operator.number-sign')
-      .filter((mapping) => mappingApplies(mapping, context));
-    if (numberSign.length === 1) {
-      return applyMapping(document, focus, { ...state, prefix: '', mode: null }, numberSign[0]);
-    }
-    const nonnumeric = (PREFIXES.get(candidate)?.mappings ?? [])
+    const complete = (PREFIXES.get(candidate)?.mappings ?? [])
       .filter((mapping) => mapping.id !== 'number.decimal-point')
-      .filter((mapping) => mapping.id.startsWith('greek.'))
       .filter((mapping) => mappingApplies(mapping, context));
-    if (nonnumeric.length === 1) {
-      return applyMapping(document, focus, { ...state, prefix: '', mode: null }, nonnumeric[0]);
+    const allowed = DIGITS.has(normalized)
+      ? complete.filter((mapping) => mapping.id.startsWith('greek.') || mapping.id === 'operator.number-sign')
+      : complete;
+    if (allowed.length === 1) {
+      return applyMapping(document, focus, { ...state, prefix: '', mode: null }, allowed[0]);
     }
     const decimal = numericPunctuationMapping('⠨', '.', '3.2.3');
     const decimalMode = state.mode?.startsWith?.('numeric:') ? state.mode : 'numeric';
@@ -5317,7 +5437,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // without the Nemeth number indicator. This is a bounded local mode owned
   // by the immediately preceding currency atom; it accepts only the next
   // numeric run's cells and never becomes a passage buffer.
-  const currency = context.node.name === 'mo' && ['$', '£', '¢', '₣', '₦', '€', '₩', '¥'].includes(context.node.children?.[0]?.text);
+  const currency = context.node.name === 'mo' && ['$', '£', '¢', '₣', '₦', '€', '₩', '¥', '§'].includes(context.node.children?.[0]?.text);
   if (currency && state.mode === null && !state.prefix && normalized === '⠸' &&
     MATCHABLE_MAPPINGS.some((mapping) => mapping.id === 'punctuation.period' && mappingApplies(mapping, context))) {
     return { status: 'pending', document, focus, inputState: { ...state, prefix: '⠸' }, announcement: 'Nemeth punctuation period pending.' };
@@ -5805,6 +5925,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     !LETTERS.has(normalized) && !DIGITS.has(normalized) &&
     normalized !== '⠼' && normalized !== '⠘' && normalized !== '⠰') {
     const depth = scriptDepth(context.tree, context.node, 'sup');
+    if (depth > 0) {
     const returned = depth > 1
       ? returnToScriptLevel(context.tree, focus, 1, 'sup')
       : { tree: context.tree, focus };
@@ -5821,6 +5942,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
           ? `Returned to the first superscript level; ${replay.announcement}`
           : `Stayed at the current script level; ${replay.announcement}`
       };
+    }
     }
   }
   // The same dot-6 prefix followed by a letter is the ordinary Rule 14
@@ -5921,6 +6043,21 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // from the script context, then replay exactly this one following cell at
   // the returned focus.  This is still one bounded structural follow-up,
   // never a passage buffer or expression parser.
+  if (state.prefix === '⠐' && DIGITS.has(normalized) &&
+    hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts'])) {
+    const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+    if (baseline) {
+      const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
+      if (returned.status !== 'rejected') {
+        return applyNemethCell({
+          document: returned.document,
+          focus: returned.focus,
+          inputState: { ...returned.inputState, mode: null },
+          cell: normalized
+        });
+      }
+    }
+  }
   if (state.prefix === '⠐' &&
     hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
     !LETTERS.has(normalized) && !DIGITS.has(normalized) && normalized !== '⠼') {
@@ -6255,7 +6392,7 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
   const mappings = resolveModifierAmbiguity((PREFIXES.get(prefix)?.mappings ?? [])
     .filter((mapping) => mappingApplies(mapping, context)), inputState.mode)
     .filter((mapping) => inputState.mode === 'multipurpose'
-      ? mapping.action === 'open-modifier'
+      ? mapping.action === 'open-modifier' || mapping.action === 'insert-token'
       : mapping.action !== 'open-modifier');
   // A capital indicator followed by a word is still a bounded local
   // construction. When the prefix is an otherwise ambiguous capitalized
@@ -6275,6 +6412,16 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
     if (period && mappings.some((mapping) => mapping.id === 'misc.tally')) {
       return { status: 'pending', document, focus, inputState, announcement: 'Nemeth punctuation period is incomplete; enter its terminating cell.' };
     }
+  }
+  if (!inputState.mode?.startsWith?.('numeric') && /^⠸+$/.test(prefix) &&
+    (prefix.length >= 2 || context.node.attrs?.['data-omniya-nemeth-cells'] === '⠸')) {
+    const inserted = insertTallyMarks(document, focus, inputState, prefix.length);
+    if (inserted.status !== 'rejected') return inserted;
+  }
+  if (prefix === '⠠⠄' && !hasAncestor(context.tree, context.node, 'mstyle')) {
+    const ditto = mappings.find((mapping) => mapping.id === 'misc.ditto')
+      ?? MAPPINGS.find((mapping) => mapping.id === 'misc.ditto');
+    if (ditto) return applyMapping(document, focus, { ...inputState, prefix: '' }, ditto);
   }
   if (!mappings.length) return {
     status: 'rejected', document, focus, inputState,

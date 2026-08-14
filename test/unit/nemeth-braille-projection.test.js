@@ -954,3 +954,66 @@ test('Rule 15.16.1 decimal overdot rebuilds multipurpose cells from the authored
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠨⠐⠣⠡⠜⠼⠒⠻', source), '⠼⠨⠐⠒⠣⠡⠻');
 });
+
+test('Rule 20.3 asterisk restores a dropped operator between letters or numerals', () => {
+  const letters = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠋">f</mi><mo data-omniya-nemeth-cells="⠈⠼">∗</mo><mi data-omniya-nemeth-cells="⠛">g</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠋⠛', letters), '⠋⠈⠼⠛');
+
+  const numerals = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">3</mn><mo data-omniya-nemeth-cells="⠈⠼">∗</mo><mn data-omniya-nemeth-intent="numeric-start">4</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠲', numerals), '⠼⠒⠈⠼⠼⠲');
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠼⠲', numerals), '⠼⠒⠈⠼⠼⠲');
+});
+
+test('Rule 20.4 union restores the dotted-four cell when SRE keeps only plus', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mo data-omniya-nemeth-cells="⠨⠬">∪</mo><mi data-omniya-nemeth-cells="⠠⠃">B</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠠⠁⠬⠠⠃', source), '⠠⠁⠨⠬⠠⠃');
+});
+
+test('Rule 20.8 slash restores the diagonal-line indicator between letters', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠍⠊">mi</mi><mo data-omniya-nemeth-cells="⠸⠌">/</mo><mi data-omniya-nemeth-cells="⠓⠗">hr</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠍⠊⠌⠓⠗', source), '⠍⠊⠸⠌⠓⠗');
+});
+
+test('Rule 23.11 integral bounds restore the baseline return before the integrand', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msubsup><mo data-omniya-nemeth-cells="⠮">∫</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">0</mn><mo data-omniya-nemeth-cells="⠠⠿">∞</mo></msubsup><mi data-omniya-nemeth-cells="⠋">f</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠮⠰⠴⠘⠠⠿⠋', source), '⠮⠰⠴⠘⠠⠿⠐⠋');
+});
+
+test('Rule 23.16 contracted bar-prime stays contracted', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mover><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠱">¯</mo></mover><mo data-omniya-nemeth-cells="⠄">′</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠐⠭⠣⠱⠄⠻', source), '⠭⠱⠄');
+});
+
+test('Rule 23.17 english-letter restore does not eat exists-unique cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠈⠿">∃</mo><mo data-omniya-nemeth-cells="⠳">|</mo><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠭">x</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠈⠿⠳⠭', source), '⠈⠿⠳⠰⠭');
+});
+
+test('Rule 23.20 such-that bar keeps the authored blank before the bar', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mrow data-omniya-group="brace"><mo data-omniya-nemeth-cells="⠨⠷">{</mo><mi data-omniya-nemeth-cells="⠭">x</mi><mspace data-omniya-nemeth-intent="explicit-space"></mspace><mo data-omniya-nemeth-cells="⠳">∣</mo></mrow></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠨⠷⠭⠳', source), '⠨⠷⠭⠀⠳');
+});

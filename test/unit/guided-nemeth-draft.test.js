@@ -2115,3 +2115,148 @@ test('Rule 15.18 equals with under-question is one structured comparison', () =>
   assert.equal(tree.children[0].children[0].children[0].text, '=');
   assert.equal(tree.children[0].children[1].children[0].text, '?');
 });
+
+test('Rule 20.4 union keeps the dotted-four operator before a following capital', () => {
+  const { document } = replayCells(sourceNotationToCells(',a.+,b'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children.length, 3);
+  assert.equal(tree.children[0].children[0].text, 'A');
+  assert.equal(tree.children[1].children[0].text, '∪');
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-cells'], '⠨⠬');
+  assert.equal(tree.children[2].children[0].text, 'B');
+});
+
+test('Rule 20.8 numeric division completes the operator before the following digit', () => {
+  const { document } = replayCells(sourceNotationToCells('#12./3'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.deepEqual(tree.children.map((node) => node.children[0].text), ['12', '÷', '3']);
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-cells'], '⠨⠌');
+});
+
+test('Rule 20.8 slash after a word is the operator, not a new diagonal fraction', () => {
+  const { document } = replayCells(sourceNotationToCells('miles_/hour'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(countNodes(tree, 'mfrac'), 0);
+  const slash = tree.children.find((node) => node.name === 'mo' && node.children[0].text === '/');
+  assert.ok(slash);
+  assert.equal(slash.attrs['data-omniya-nemeth-cells'], '⠸⠌');
+});
+
+test('Rule 20.8 divides followed by a digit stays a local operator', () => {
+  const { document } = replayCells(sourceNotationToCells('(2n+3)\\3'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const texts = [];
+  const visit = (node) => {
+    if (node?.text) texts.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(tree);
+  assert.equal(texts.join(''), '(2n+3)∣3');
+});
+
+test('Rule 20.1 consecutive tallies commit each mark without waiting for a dagger', () => {
+  const four = replayCells(sourceNotationToCells('____ + ____'));
+  const fourTree = parseMathML(four.document.mathml);
+  assert.equal(completionReport(fourTree).complete, true);
+  const fourMarks = fourTree.children.filter((node) => node.name === 'mo' && node.attrs?.['data-omniya-nemeth-cells'] === '⠸');
+  assert.equal(fourMarks.length, 8);
+
+  const three = replayCells(sourceNotationToCells('___'));
+  const threeTree = parseMathML(three.document.mathml);
+  assert.equal(completionReport(threeTree).complete, true);
+  assert.equal(threeTree.children.filter((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠸').length, 3);
+});
+
+test('Rule 20.4 five-step intersection keeps the operator before the under slot', () => {
+  const { document } = replayCells(sourceNotationToCells('".%%.a]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[0].children[0].children[0].text, '∩');
+  assert.equal(tree.children[0].children[1].children[0].text, 'α');
+});
+
+test('Rule 23.3 caret keeps a following lower-cell number', () => {
+  const { document } = replayCells(sourceNotationToCells('#.35_<73'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.deepEqual(tree.children.map((node) => node.children[0].text), ['.35', '^', '73']);
+});
+
+test('Rule 23.13 euro at an empty root is not the member comparison', () => {
+  const { document } = replayCells(sourceNotationToCells('`e3'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].children[0].text, '€');
+  assert.equal(tree.children[1].children[0].text, '3');
+});
+
+test('Rule 23.16 prime keeps a following lower-cell digit', () => {
+  const { document } = replayCells(sourceNotationToCells("x'1"));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.deepEqual(tree.children.map((node) => node.children?.[0]?.text), ['x', '′', '1']);
+});
+
+test('Rule 23.6 ditto after a blank is the mark, not a typeform terminator', () => {
+  const { document } = replayCells(sourceNotationToCells("#100 .k 250 ,'"));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const ditto = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠠⠄');
+  assert.ok(ditto);
+  assert.equal(ditto.children[0].text, '〃');
+});
+
+test('Rule 23.11 integral bounds keep subscript 0 and superscript infinity', () => {
+  const { document } = replayCells(sourceNotationToCells('!;0~,="f(x)dx'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const bounds = tree.children[0];
+  assert.equal(bounds.name, 'msubsup');
+  assert.equal(bounds.children[1].children[0].text, '0');
+  assert.equal(bounds.children[2].children[0].text, '∞');
+});
+
+test('Rule 23.10 degree returns to baseline before minutes and seconds', () => {
+  const { document } = replayCells(sourceNotationToCells('#20~.*"30\'10\'\''));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, '20');
+  assert.equal(tree.children[0].children[1].children[0].text, '°');
+  assert.equal(tree.children[1].children[0].text, '30');
+  assert.equal(tree.children[2].children[0].text, '′');
+  assert.equal(tree.children[3].children[0].text, '10');
+  assert.equal(tree.children[4].children[0].text, '″');
+});
+
+test('Rule 20.3 crosshatch in a superscript fills the script slot', () => {
+  const { document } = replayCells(sourceNotationToCells(',r~.#'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'R');
+  assert.equal(tree.children[0].children[1].children[0].text, '#');
+  assert.equal(tree.children[0].children[1].attrs['data-omniya-nemeth-cells'], '⠨⠼');
+});
+
+test('Rule 23.17 double-struck capital uses the barred typeform without an English-letter cell', () => {
+  const { document } = replayCells(sourceNotationToCells(',_,n'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].children[0].text, 'N');
+  assert.equal(tree.children[0].attrs.mathvariant, 'double-struck');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠠⠸⠠⠝');
+});
+
+test('Rule 23.6 a leading decimal after equals is a number, not radical order', () => {
+  const { document } = replayCells(sourceNotationToCells('#1 .k .465'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const texts = tree.children.filter((node) => node.name !== 'mspace').map((node) => node.children[0].text);
+  assert.deepEqual(texts, ['1', '=', '.465']);
+});

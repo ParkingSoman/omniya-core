@@ -1625,6 +1625,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (contractedBars.length && /^⠐/.test(braille) && /[⠣⠩]⠱⠻$/.test(braille)) {
     braille = braille.replace(/^⠐/, '').replace(/[⠣⠩]⠱⠻$/, '⠱');
   }
+  if (contractedBars.length) {
+    braille = braille.replace(/^⠐([⠁-⠵])[⠣⠩]⠱⠄⠻$/, '$1⠱⠄');
+    braille = braille.replace(/^⠐([⠁-⠵])[⠣⠩]⠱⠻⠄$/, '$1⠱⠄');
+  }
   if (explicitCellNodes.length) {
     const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const present = new Map();
@@ -2120,6 +2124,75 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (hasSource('mo[data-omniya-nemeth-cells="⠨⠼"]') &&
       sourceMath.querySelector?.('[data-omniya-nemeth-intent="numeric-start"]')) {
     braille = braille.replace(/⠨⠼(?!⠼)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠨⠼⠼');
+  }
+  for (const operatorCells of ['⠈⠼', '⠨⠼', '⠨⠬', '⠨⠩', '⠸⠌']) {
+    if (!hasSource(`mo[data-omniya-nemeth-cells="${operatorCells}"]`)) continue;
+    const operators = sourceNodes(`mo[data-omniya-nemeth-cells="${operatorCells}"]`);
+    for (const node of operators) {
+      if (braille.includes(operatorCells)) continue;
+      const previous = skipLayout(elementNeighbor(node, 'previous'), 'previous');
+      const next = skipLayout(elementNeighbor(node, 'next'), 'next');
+      const left = previous?.getAttribute?.('data-omniya-nemeth-cells')
+        || (previous?.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start'
+          ? [...String(previous.textContent ?? '').trim()].map((digit) => [...'⠴⠂⠆⠒⠲⠢⠖⠶⠦⠔'][Number(digit)]).join('')
+          : null);
+      const right = next?.getAttribute?.('data-omniya-nemeth-cells')
+        || (next?.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start'
+          ? [...String(next.textContent ?? '').trim()].map((digit) => [...'⠴⠂⠆⠒⠲⠢⠖⠶⠦⠔'][Number(digit)]).join('')
+          : null);
+      if (left && right && braille.includes(`${left}${right}`)) {
+        const restored = (operatorCells === '⠈⠼' || operatorCells === '⠨⠼') &&
+          next?.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start'
+          ? `${left}${operatorCells}⠼${right}`
+          : `${left}${operatorCells}${right}`;
+        braille = braille.replace(`${left}${right}`, restored);
+        continue;
+      }
+      if (left && right && (operatorCells === '⠈⠼' || operatorCells === '⠨⠼') &&
+        next?.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start' &&
+        braille.includes(`${left}⠼${right}`) && !braille.includes(operatorCells)) {
+        braille = braille.replace(`${left}⠼${right}`, `${left}${operatorCells}⠼${right}`);
+        continue;
+      }
+      if (operatorCells === '⠸⠌' && braille.includes('⠌') && !braille.includes('⠸⠌')) {
+        if (left && right && braille.includes(`${left}⠌${right}`)) {
+          braille = braille.replace(`${left}⠌${right}`, `${left}⠸⠌${right}`);
+        } else if (left && braille.includes(`${left}⠌`)) {
+          braille = braille.replace(`${left}⠌`, `${left}⠸⠌`);
+        }
+        continue;
+      }
+      if (operatorCells === '⠨⠬' && braille.includes('⠬') && !braille.includes('⠨⠬')) {
+        braille = braille.replace(/(?<!⠨)⠬/g, '⠨⠬');
+      }
+    }
+  }
+  for (const script of [...sourceNodes('msubsup'), ...sourceNodes('msup'), ...sourceNodes('msub')]) {
+    const next = skipLayout(elementNeighbor(script, 'next'), 'next');
+    const nextCells = next?.getAttribute?.('data-omniya-nemeth-cells');
+    const kids = [...(script.children ?? [])].filter((child) => child.nodeType === 1);
+    const last = kids.at(-1);
+    const lastCells = last?.getAttribute?.('data-omniya-nemeth-cells');
+    if (!lastCells || !nextCells) continue;
+    const nextName = (next.localName || next.nodeName || '').toLowerCase();
+    if (nextName === 'mo' && /[⠷⠾]$/.test(nextCells)) continue;
+    const glued = `${lastCells}${nextCells}`;
+    const separated = `${lastCells}⠐${nextCells}`;
+    if (braille.includes(glued) && !braille.includes(separated)) {
+      braille = braille.replace(glued, separated);
+    }
+  }
+  for (const space of sourceNodes('[data-omniya-nemeth-intent="explicit-space"]')) {
+    const previous = elementNeighbor(space, 'previous');
+    const next = elementNeighbor(space, 'next');
+    const left = previous?.getAttribute?.('data-omniya-nemeth-cells');
+    const right = next?.getAttribute?.('data-omniya-nemeth-cells');
+    if (!left || !right) continue;
+    const glued = `${left}${right}`;
+    const spaced = `${left}⠀${right}`;
+    if (braille.includes(glued) && !braille.includes(spaced)) {
+      braille = braille.replace(glued, spaced);
+    }
   }
   // Rule 20.9 consecutive tildes keep a multipurpose separator between the
   // two authored operator cells. SRE concatenates them.
