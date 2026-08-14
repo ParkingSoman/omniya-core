@@ -271,6 +271,8 @@ for (const [suffix, mappingIds] of Object.entries(rule21ExampleMappings)) {
 // prose-aware corpus workflow.
 const rule14Example1 = rows.find((row) => row.id === 'bana-2022:example-14-1');
 if (rule14Example1) rule14Example1.disposition = 'approved-context-policy';
+const rule17_8 = rows.find((row) => row.id === 'bana-2022:17.8');
+if (rule17_8) rule17_8.disposition = 'excluded-document-format';
 // Rule 19.7–19.9 and Examples 19-36–19-45 are layout/spacing prose and
 // transcriber-inserted grouping guidance, not standalone executable symbols.
 for (const row of rows.filter((candidate) => /^bana-2022:(?:19\.7|19\.8|19\.9(?:\.1|\.2)?|example-19-(?:3[6-9]|4[0-5]))$/.test(candidate.id))) {
