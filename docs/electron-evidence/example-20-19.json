@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T16:18:13.648Z",
+  "startedAt": "2026-08-14T16:33:05.763Z",
   "filter": {
     "rule": null,
     "example": "20-19"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Iex8Lg",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-WMA2BW",
   "cases": [
     {
       "id": "electron:bana-2022:example-20-19",
