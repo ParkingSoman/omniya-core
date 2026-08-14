@@ -2145,10 +2145,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     return value;
   };
   // Rule 8 literary periods are bare ⠲. SRE may treat them as a simple-fraction
-  // digit (`⠹⠲`) or leave a visual blank before the period cell.
+  // digit (`⠹⠲`), leave a visual blank before the period cell, or emit the
+  // multipurpose decimal pair (`⠨⠐`) after an abbreviation in a geometry
+  // subscript.
   if (literaryPeriods.length) {
     braille = braille.replace(/⠹⠲/g, '⠲');
     braille = braille.replace(/([⠁-⠵]|⠝)⠀⠲/g, '$1⠲');
+    braille = braille.replace(/([⠁-⠵])⠨⠐(?=⠀|$)/g, '$1⠲');
+    // After a literary period and an authored blank, the next word keeps the
+    // English-letter / level indicator. SRE often drops that local `⠰`.
+    if (explicitSpaces) {
+      braille = braille.replace(/⠲⠀(?!⠰)(?=[⠁-⠵])/g, '⠲⠀⠰');
+    }
   }
   // Rule 8.3's English capital with literary apostrophe (`⠠⠄⠠⠚`) must not
   // keep a following capital-punctuation indicator that SRE inserts before

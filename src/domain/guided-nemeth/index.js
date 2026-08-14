@@ -3962,6 +3962,18 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     };
   }
   if (state.mode === 'script-level-preserved') {
+    // Rule 8.3.2 / 14.8 geometry words: the level-preserving dot-6 before a
+    // following letter is also the English-letter indicator for that word.
+    // Stamp the indicator cells on the first letter so projection can restore
+    // them after an explicit blank (for example `;polygon` after `reg4 `).
+    if (!state.prefix && LETTERS.has(normalized)) {
+      return applyMapping(
+        document,
+        focus,
+        { ...state, prefix: '', mode: 'english-letter' },
+        letterMapping(normalized, { ...state, prefix: '', mode: 'english-letter' })
+      );
+    }
     const localSequence = `${state.prefix}${normalized}`;
     const localCandidates = (PREFIXES.get(localSequence)?.mappings ?? [])
       .filter((mapping) => mappingApplies(mapping, context));

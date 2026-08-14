@@ -708,6 +708,63 @@ test('Rule 8 literary periods and bevelled fractions keep bare period cells', ()
   );
 });
 
+test('Rule 8 literary period in a geometry subscript keeps period and letter indicator', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <msub>
+        <mo data-omniya-nemeth-cells="⠫⠞">△</mo>
+        <mrow>
+          <mi>r</mi>
+          <mi>e</mi>
+          <mi>g</mi>
+          <mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠏">p</mi>
+          <mi>o</mi>
+          <mi>l</mi>
+          <mi>y</mi>
+          <mi>g</mi>
+          <mi>o</mi>
+          <mi>n</mi>
+        </mrow>
+      </msub>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠫⠞⠰⠗⠑⠛⠨⠐⠀⠏⠕⠇⠽⠛⠕⠝', source),
+    '⠫⠞⠰⠗⠑⠛⠲⠀⠰⠏⠕⠇⠽⠛⠕⠝'
+  );
+  // Projection still restores the indicator when the draft only stamped the
+  // letter cell and left the literary period intent on the period atom.
+  const withoutEnglishStamp = new DOMParser().parseFromString(
+    `<math>
+      <msub>
+        <mo data-omniya-nemeth-cells="⠫⠞">△</mo>
+        <mrow>
+          <mi>r</mi>
+          <mi>e</mi>
+          <mi>g</mi>
+          <mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mi data-omniya-nemeth-cells="⠏">p</mi>
+          <mi>o</mi>
+          <mi>l</mi>
+          <mi>y</mi>
+          <mi>g</mi>
+          <mi>o</mi>
+          <mi>n</mi>
+        </mrow>
+      </msub>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠫⠞⠰⠗⠑⠛⠨⠐⠀⠏⠕⠇⠽⠛⠕⠝', withoutEnglishStamp),
+    '⠫⠞⠰⠗⠑⠛⠲⠀⠰⠏⠕⠇⠽⠛⠕⠝'
+  );
+});
+
 test('Rule 8 quotes restore indicated openers, or-words, and quoted decimals', () => {
   const quotes = new DOMParser().parseFromString(
     `<math>

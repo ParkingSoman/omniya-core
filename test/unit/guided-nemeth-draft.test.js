@@ -1864,6 +1864,27 @@ test('Rule 8 literary periods after letters and abbreviated functions stay punct
   assert.equal(denominator.children[1].attrs['data-omniya-nemeth-intent'], 'punctuation-literary-period');
 });
 
+test('Rule 8 literary period after an abbreviation in a geometry subscript stamps the next word indicator', () => {
+  const { document } = replayCells(sourceNotationToCells('$t;reg4 ;polygon'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'msub');
+  const subscript = tree.children[0].children[1];
+  assert.equal(subscript.name, 'mrow');
+  const literary = subscript.children.find((node) =>
+    node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-literary-period');
+  assert.ok(literary);
+  assert.equal(literary.attrs['data-omniya-nemeth-cells'], '⠲');
+  const spaceIndex = subscript.children.findIndex((node) =>
+    node.attrs?.['data-omniya-nemeth-intent'] === 'explicit-space');
+  assert.ok(spaceIndex >= 0);
+  const wordStart = subscript.children[spaceIndex + 1];
+  assert.equal(wordStart.name, 'mi');
+  assert.equal(wordStart.children[0].text, 'p');
+  assert.equal(wordStart.attrs['data-omniya-nemeth-intent'], 'english-letter');
+  assert.equal(wordStart.attrs['data-omniya-nemeth-cells'], '⠰⠏');
+});
+
 test('Rule 8 indicated quotes keep radical and comparison content between them', () => {
   const radical = replayCells(sourceNotationToCells('8>_0'));
   const radicalTree = parseMathML(radical.document.mathml);
