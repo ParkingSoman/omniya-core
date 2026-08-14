@@ -460,6 +460,10 @@ test('Rule 22 official source examples remain literal registry rows', () => {
     ['arrow.northeast', '$~33o', '⠫⠘⠒⠒⠕'],
     ['arrow.southeast', '$;33o', '⠫⠰⠒⠒⠕'],
     ['arrow.southwest', '$;[33', '⠫⠰⠪⠒⠒'],
+    ['arrow.northwest-southeast', '$~[33o', '⠫⠘⠪⠒⠒⠕'],
+    ['arrow.southwest-northeast', '$;[33o', '⠫⠰⠪⠒⠒⠕'],
+    ['arrow.both.short', '$[3o', '⠫⠪⠒⠕'],
+    ['arrow.both.long', '$[333o', '⠫⠪⠒⠒⠒⠕'],
     ['arrow.counterclockwise', '$59o', '⠫⠢⠔⠕'],
     ['arrow.clockwise', '$[59', '⠫⠪⠢⠔'],
     ['arrow.spear.right', '$77o', '⠫⠶⠶⠕'],
@@ -496,6 +500,10 @@ test('Rule 22 directional and shaft constructions retain their published source 
     ['arrow.northeast', '$~33o'],
     ['arrow.southeast', '$;33o'],
     ['arrow.southwest', '$;[33'],
+    ['arrow.northwest-southeast', '$~[33o'],
+    ['arrow.southwest-northeast', '$;[33o'],
+    ['arrow.both.short', '$[3o'],
+    ['arrow.both.long', '$[333o'],
     ['arrow.counterclockwise', '$59o'],
     ['arrow.clockwise', '$[59'],
     ['arrow.bold.right', '$_33o'],
@@ -537,6 +545,22 @@ test('BANA Rule 22.3 and 22.7.2 arrow constructions are complete bounded atoms',
     assert.equal(entry.args?.sourceNotation, sourceNotation, id);
     assert.ok(entry.banaRefs.some((ref) => ref.startsWith('22.')), id);
     assert.ok(entry.args?.dataAttributes?.['data-omniya-nemeth-intent'], id);
+  }
+});
+
+test('Rule 22 two-way arrows that share a one-way prefix remain one atom', () => {
+  for (const [id, expected] of [
+    ['arrow.both.short', '↔'],
+    ['arrow.both.long', '⟷'],
+    ['arrow.northwest-southeast', '⤡'],
+    ['arrow.southwest-northeast', '⤢']
+  ]) {
+    const entry = operationRegistry().find((candidate) => candidate.id === id);
+    const tree = applyFixture(id, entry.cells);
+    const inserted = tree.children.at(-1);
+    assert.equal(inserted.name, 'mo', id);
+    assert.equal(inserted.children?.[0]?.text, expected, id);
+    assert.equal(tree.children.filter((node) => node.name === 'mi').length, 0, id);
   }
 });
 

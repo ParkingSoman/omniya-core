@@ -2221,10 +2221,12 @@ const MAPPINGS = [
     commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
     dataAttributes: { 'data-omniya-nemeth-intent': 'arrow-northwest-blunted-double-shaft' }
   }),
-  token('arrow.northwest', ['⠫', '⠘', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↖', 'mo', { sourceNotation: '$~[33' }),
+  token('arrow.northwest', ['⠫', '⠘', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↖', 'mo', { preferLonger: true, sourceNotation: '$~[33' }),
   token('arrow.northeast', ['⠫', '⠘', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↗', 'mo', { preferLonger: true, sourceNotation: '$~33o' }),
   token('arrow.southeast', ['⠫', '⠰', '⠒', '⠒', '⠕'], ['22.4.3', '22.5'], '↘', 'mo', { preferLonger: true, sourceNotation: '$;33o' }),
-  token('arrow.southwest', ['⠫', '⠰', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↙', 'mo', { sourceNotation: '$;[33' }),
+  token('arrow.southwest', ['⠫', '⠰', '⠪', '⠒', '⠒'], ['22.4.3', '22.5'], '↙', 'mo', { preferLonger: true, sourceNotation: '$;[33' }),
+  token('arrow.northwest-southeast', ['⠫', '⠘', '⠪', '⠒', '⠒', '⠕'], ['22.4.3'], '⤡', 'mo', { preferLonger: true, sourceNotation: '$~[33o' }),
+  token('arrow.southwest-northeast', ['⠫', '⠰', '⠪', '⠒', '⠒', '⠕'], ['22.4.3'], '⤢', 'mo', { preferLonger: true, sourceNotation: '$;[33o' }),
   // BANA Rule 22.5 examples 22-17 through 22-27 and Rule 22.6 examples
   // 22-28 through 22-30. These are exact bounded constructions from the
   // standard; a shaft is never inferred from an arbitrary cell stream.
@@ -2396,8 +2398,10 @@ const MAPPINGS = [
   token('arrow.both', ['⠫', '⠪', '⠒', '⠒', '⠕'], ['22.4'], '↔', 'mo', { preferLonger: true, sourceNotation: '$[33o' }),
   token('arrow.right.short', ['⠫', '⠒', '⠕'], ['22.5.3'], '⇢', 'mo', { preferLonger: true, sourceNotation: '$3o' }),
   token('arrow.left.short', ['⠫', '⠪', '⠒'], ['22.5.3'], '⇠', 'mo', { preferLonger: true, sourceNotation: '$[3' }),
+  token('arrow.both.short', ['⠫', '⠪', '⠒', '⠕'], ['22.5.3'], '↔', 'mo', { preferLonger: true, sourceNotation: '$[3o' }),
   token('arrow.right.long', ['⠫', '⠒', '⠒', '⠒', '⠕'], ['22.5.3'], '⟶', 'mo', { preferLonger: true, sourceNotation: '$333o' }),
   token('arrow.left.long', ['⠫', '⠪', '⠒', '⠒', '⠒'], ['22.5.3'], '⟵', 'mo', { preferLonger: true, sourceNotation: '$[333' }),
+  token('arrow.both.long', ['⠫', '⠪', '⠒', '⠒', '⠒', '⠕'], ['22.5.3'], '⟷', 'mo', { preferLonger: true, sourceNotation: '$[333o' }),
   ...GREEK_SMALL.map(([cells, value, sourceNotation]) => token(`greek.${value}`, [...cells], ['6.1.4', '6.2.1'], value, 'mi', { sourceNotation })),
   ...GREEK_CAPITAL.map(([cells, value, sourceNotation]) => token(`greek.capital-${value}`, [...cells], ['5.1.1', '6.1.4', '6.2.1'], value, 'mi', { sourceNotation })),
   ...GREEK_VARIANTS.map(([cells, value, sourceNotation]) => token(`greek.variant-${value}`, [...cells], ['6.1.5', '6.2.2'], value, 'mi', { sourceNotation })),
