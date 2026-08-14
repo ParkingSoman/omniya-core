@@ -173,6 +173,11 @@ if (durableDisposition) durableDisposition.disposition = 'approved-context-polic
 // prose-aware corpus workflow.
 const rule14Example1 = rows.find((row) => row.id === 'bana-2022:example-14-1');
 if (rule14Example1) rule14Example1.disposition = 'approved-context-policy';
+// Rule 19.7–19.9 and Examples 19-36–19-45 are layout/spacing prose and
+// transcriber-inserted grouping guidance, not standalone executable symbols.
+for (const row of rows.filter((candidate) => /^bana-2022:(?:19\.7|19\.8|19\.9(?:\.1|\.2)?|example-19-(?:3[6-9]|4[0-5]))$/.test(candidate.id))) {
+  row.disposition = 'excluded-document-format';
+}
 // Rule 4.1 and Example 4-1 are the Special Symbols Page/documentary
 // description of switch indicators, not executable mathematical content.
 for (const id of ['bana-2022:4.1', 'bana-2022:example-4-1']) {

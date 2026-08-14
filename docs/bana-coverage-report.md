@@ -4,7 +4,7 @@ Generated from `docs/bana-coverage.json`.
 
 - Source rows: 1846
 - Numbered provisions: 509
-- Applicable rows: 1583
+- Applicable rows: 1568
 - Fully implemented rows: 1470
 - Official examples: 1229
 - Official examples with extracted source blocks: 1229
@@ -34,7 +34,7 @@ Generated from `docs/bana-coverage.json`.
 | 16 | 22 | 22 | 22 | 2 | 2 | 0 |
 | 17 | 83 | 83 | 82 | 79 | 79 | 0 |
 | 18 | 30 | 29 | 26 | 2 | 2 | 1 |
-| 19 | 60 | 60 | 45 | 11 | 11 | 0 |
+| 19 | 60 | 45 | 45 | 11 | 11 | 15 |
 | 20 | 64 | 64 | 63 | 1 | 1 | 0 |
 | 21 | 54 | 54 | 34 | 1 | 1 | 0 |
 | 22 | 67 | 67 | 67 | 2 | 0 | 0 |
