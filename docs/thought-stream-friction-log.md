@@ -93,9 +93,13 @@ Refuse E until focus is bare integrand; assert `msubsup` survives after replace.
 | Goal | Path that works for `\int_a^b x` |
 |------|----------------------------------|
 | Root (after Enter) | — |
-| Integrand `x` | Down, Right, Right |
-| Lower `a` | Down, Down, Right, Up |
-| Upper `b` | Down, Down, Right, Right |
+| Integral group (no integrand) | Down |
+| Base `∫` | Down from group |
+| Integrand `x` | Down, Right, Right (Right from group = sibling) |
+| Lower `a` | Right from base |
+| Upper `b` | Right, Right from base |
+
+**Trap:** From the group, Right jumps to the integrand `x`, not into the operator. From base, Up returns to the group — use Right for underscript.
 
 **Why it matters:** This is not “broken navigation”; authors must learn the tree. Demos/tests that copy recipes from a different shape will “fail” and look like product bugs. Auditing usage means re-mapping paths when the expression changes.
 
