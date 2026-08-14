@@ -410,8 +410,12 @@ function renderComposer() {
     : values.type === 'equation'
       ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command · Escape cancels'
       : 'Enter adds · Shift+Enter makes a new line · Ctrl+[ enters Command · Escape cancels';
-  elements['composer-source'].hidden = !editing && values.type === 'equation';
-  elements['composer-source'].required = editing || values.type !== 'equation';
+  // Unified composer: Equation keeps #composer-source visible (Nemeth/LaTeX styling only).
+  elements['composer-source'].hidden = false;
+  elements['composer-source'].required = values.type === 'text';
+  elements['composer-source'].className = values.type === 'equation'
+    ? (preferredAuthoringMethod === 'nemeth' ? 'nemeth-inline-editor' : 'latex-inline-editor')
+    : '';
   setFieldError(elements['composer-source'], elements['composer-error']);
 }
 
