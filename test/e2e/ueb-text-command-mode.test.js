@@ -32,11 +32,8 @@ async function openComposer(page) {
 }
 
 async function enterCommand(page) {
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => {
-    const mode = document.querySelector('#mode-panel')?.textContent ?? '';
-    return /Command/i.test(mode);
-  });
+  await page.keyboard.press('Control+[');
+  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
 }
 
 test('hides notes UI after launch and Add item', { timeout: 60_000 }, async (t) => {
@@ -46,6 +43,19 @@ test('hides notes UI after launch and Add item', { timeout: 60_000 }, async (t) 
   await openComposer(page);
   assert.equal(await page.locator('#note-toggle').isVisible(), false);
   assert.equal(await page.locator('#note-row').isVisible(), false);
+});
+
+test('Ctrl+[ enters Command; Escape cancels composer', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-cmd-chord-');
+  t.after(() => app.close().catch(() => {}));
+  await openComposer(page);
+  await page.keyboard.type('hello');
+  await page.keyboard.press('Control+[');
+  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  await page.keyboard.press('Escape');
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await page.getByRole('button', { name: 'Add item' }).waitFor();
+  assert.equal(await page.locator('article.napkin-article').count(), 0);
 });
 
 test('command t then insert submits text with a UEB braille label', { timeout: 60_000 }, async (t) => {
@@ -58,7 +68,7 @@ test('command t then insert submits text with a UEB braille label', { timeout: 6
   await page.keyboard.type('i');
   await page.waitForFunction(() => /Insert/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
   await page.locator('#composer-source').fill('hello world');
-  await page.keyboard.press('Escape');
+  await page.keyboard.press('Control+[');
   await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
   await page.keyboard.type('n');
 
@@ -128,10 +138,14 @@ test('mode panel is quiet and command ? help lists x and s', { timeout: 60_000 }
   assert.match(help ?? '', /Command · Text · UEB G2/i);
   assert.match(help ?? '', /\bx\b/i);
   assert.match(help ?? '', /\bs\b/i);
+  assert.match(help ?? '', /Ctrl\+\[/i);
+  assert.match(help ?? '', /Escape cancels/i);
+  assert.doesNotMatch(help ?? '', /Escape enters Command/i);
+  assert.doesNotMatch(help ?? '', /\bq\b.*cancel/i);
   assert.doesNotMatch(help ?? '', /make Equation \(Nemeth\).*e\b/i);
 });
 
-test('replacement Escape enters Command; q cancels; lowercase a rejected in Nemeth', { timeout: 90_000 }, async (t) => {
+test('replacement Escape cancels dock; lowercase a rejected in Nemeth', { timeout: 90_000 }, async (t) => {
   const { app, page } = await launch('omniya-ueb-repl-escape-');
   t.after(() => app.close().catch(() => {}));
 
@@ -143,18 +157,11 @@ test('replacement Escape enters Command; q cancels; lowercase a rejected in Neme
   await page.locator('#replacement-input').waitFor();
   await page.locator('#replacement-input').focus();
 
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
-  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
-
-  await page.keyboard.type('i');
-  await page.waitForFunction(() => /Insert/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
-
   await page.keyboard.type('a'); // lowercase — not an ASCII braille cell
   assert.equal(await page.locator('#replacement-input').inputValue(), '');
   assert.match(await page.locator('#replacement-status').textContent(), /braille cells only|LaTeX|Command x/i);
 
   await page.keyboard.press('Escape');
-  await page.keyboard.type('q');
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.getByRole('button', { name: 'Add item' }).waitFor();
 });

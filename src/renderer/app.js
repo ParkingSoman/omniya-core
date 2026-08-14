@@ -373,7 +373,7 @@ function renderMode() {
   elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
     ? 'Up and Down arrows move between items. Enter explores an equation; E replaces the exact focus.'
-    : 'Reading remains available above. Escape enters Command mode · q cancels.';
+    : 'Reading remains available above. Ctrl+[ enters Command · Escape cancels.';
 }
 
 function renderComposer() {
@@ -406,10 +406,10 @@ function renderComposer() {
     elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
   }
   elements['composer-help'].textContent = editing
-    ? 'Save changes commits the item · Escape enters Command mode · q cancels'
+    ? 'Save changes commits the item · Ctrl+[ enters Command · Escape cancels'
     : values.type === 'equation'
-      ? 'Enter creates an empty equation and opens the replacement writer · Escape enters Command mode · q cancels'
-      : 'Enter adds · Shift+Enter makes a new line · Escape enters Command mode · q cancels';
+      ? 'Enter creates an empty equation and opens the replacement writer · Ctrl+[ enters Command · Escape cancels'
+      : 'Enter adds · Shift+Enter makes a new line · Ctrl+[ enters Command · Escape cancels';
   elements['composer-source'].hidden = !editing && values.type === 'equation';
   elements['composer-source'].required = editing || values.type !== 'equation';
   setFieldError(elements['composer-source'], elements['composer-error']);
@@ -837,17 +837,20 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
   };
   editor._replacementSubmitHandler = submitReplacementEditor;
   const keyHandler = async (event) => {
-    if (event.key === 'Escape') {
+    if ((event.ctrlKey || event.metaKey) && event.key === '[') {
       event.preventDefault();
       event.stopPropagation();
       if (commandState.interaction === 'insert') {
-        commandState = enterCommand(createCommandState({
-          itemKind: 'equation',
-          equationMethod: replacementSession?.method ?? preferredAuthoringMethod,
-          contentEmpty: replacementDraftIsEmpty()
-        }));
+        syncCommandContentEmpty();
+        commandState = enterCommand(commandState);
         syncModePanel(commandState);
       }
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      void cancelReplacementEditor(findReplacementArticle());
       return;
     }
     if (commandState.interaction === 'command') {
@@ -1162,13 +1165,16 @@ function openContextualHelp() {
     sHelp.append(' — focus authoring mode panel');
     const shortcuts = document.createElement('p');
     shortcuts.append(document.createElement('kbd'));
-    shortcuts.children[0].textContent = 'n';
+    shortcuts.children[0].textContent = 'Ctrl+[';
+    shortcuts.append(' enters Command · ');
+    shortcuts.append(document.createElement('kbd'));
+    shortcuts.children[1].textContent = 'Escape';
+    shortcuts.append(' cancels · ');
+    shortcuts.append(document.createElement('kbd'));
+    shortcuts.children[2].textContent = 'n';
     shortcuts.append(' submit · ');
     shortcuts.append(document.createElement('kbd'));
-    shortcuts.children[1].textContent = 'q';
-    shortcuts.append(' cancel · ');
-    shortcuts.append(document.createElement('kbd'));
-    shortcuts.children[2].textContent = 'i';
+    shortcuts.children[3].textContent = 'i';
     shortcuts.append(' insert');
     el.append(status, tHelp, eHelp, sHelp, shortcuts);
   }
@@ -1179,25 +1185,33 @@ function openContextualHelp() {
 function handleComposerCommandKey(event) {
   const inReplacement = Boolean(replacementSession);
   if (!inReplacement && mode !== 'add' && mode !== 'edit') return false;
-  if (!inReplacement && event.key === 'Escape' && commandState.interaction === 'insert') {
+
+  if ((event.ctrlKey || event.metaKey) && event.key === '[') {
     event.preventDefault();
     event.stopPropagation();
-    syncCommandContentEmpty();
-    commandState = enterCommand(commandState);
-    syncModePanel(commandState);
+    if (commandState.interaction === 'insert') {
+      syncCommandContentEmpty();
+      commandState = enterCommand(commandState);
+      syncModePanel(commandState);
+    }
     return true;
   }
-  if (commandState.interaction !== 'command') return false;
-  const key = event.key;
-  const commandKeys = new Set(['i', 't', 'x', 's', 'n', 'q', '?', 'Enter', 'e']);
-  if (!commandKeys.has(key)) {
-    if (key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
+
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopPropagation();
+    if (replacementSession) {
+      void cancelReplacementEditor(findReplacementArticle());
       return true;
     }
-    return false;
+    returnToRead();
+    return true;
   }
+
+  if (commandState.interaction !== 'command') return false;
+  const key = event.key;
+  const commandKeys = new Set(['i', 't', 'x', 's', 'n', '?', 'Enter', 'e']);
+  if (!commandKeys.has(key)) return false;
   event.preventDefault();
   event.stopPropagation();
   // While replacing an equation, Text umbrella must not flip chrome to Text.
