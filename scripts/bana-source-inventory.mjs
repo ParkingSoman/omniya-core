@@ -167,6 +167,41 @@ if (appendixDStart >= 0) {
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
 const durableDisposition = rows.find((row) => row.id === 'bana-2022:example-7-22');
 if (durableDisposition) durableDisposition.disposition = 'approved-context-policy';
+// Rule 21.10 decides when the four set/logical symbols are operations versus
+// comparisons, and 21.13 governs spaces around comparison symbols. They are
+// context policies rather than new cells. Their examples, however, exercise
+// exact existing operations and receive only those row-specific mappings.
+for (const ref of ['21.10', '21.13']) {
+  const row = rows.find((candidate) => candidate.id === `bana-2022:${ref}`);
+  if (row) row.disposition = 'implemented-context-policy';
+}
+const rule21ExampleMappings = Object.freeze({
+  'example-21-23': ['comparison.union.bar-under'],
+  'example-21-25': ['shape.square'],
+  'example-21-26': ['operator.equals'],
+  'example-21-27': ['operator.equals'],
+  'example-21-28': ['operator.equals'],
+  'example-21-29': ['comparison.greater'],
+  'example-21-30': ['comparison.subset'],
+  'example-21-31': ['comparison.subset'],
+  'example-21-32': ['comparison.less'],
+  'example-21-33': ['comparison.reverse-membership'],
+  'example-21-34': ['comparison.ratio', 'comparison.proportion'],
+  'example-21-35': ['comparison.ratio', 'comparison.proportion'],
+  'example-21-36': ['comparison.variation'],
+  'example-21-37': ['comparison.vertical-bar', 'comparison.less'],
+  'example-21-38': ['operator.equals', 'comparison.vertical-bar', 'comparison.less-equal'],
+  'example-21-39': ['comparison.less'],
+  'example-21-40': ['comparison.less', 'operator.equals', 'comparison.greater'],
+  'example-21-41': ['operator.equals']
+});
+for (const [suffix, mappingIds] of Object.entries(rule21ExampleMappings)) {
+  const row = rows.find((candidate) => candidate.id === `bana-2022:${suffix}`);
+  if (row) {
+    row.disposition = 'implemented-operation';
+    row.mappingIds = mappingIds;
+  }
+}
 // Example 14-1 is explanatory prose (the braille line includes the sentence
 // identifying the subscript), not an executable standalone math expression.
 // Keep it source-linked but explicitly non-executable pending a dedicated
