@@ -2983,7 +2983,9 @@ function applyMapping(document, focus, inputState, mapping) {
       ? inputState.mode
     : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'multipurpose'
         ? 'multipurpose'
-    : null);
+    : (['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'ueb-word'
+      ? null
+      : null));
   return {
     status: 'applied',
     // The renderer uses this only to distinguish a short immediate code that
