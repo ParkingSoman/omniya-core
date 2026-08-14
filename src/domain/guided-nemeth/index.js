@@ -2853,6 +2853,19 @@ function mappingApplies(mapping, context) {
     ['superscript', 'subscript', 'left-superscript', 'left-subscript'].includes(context.node.attrs?.['data-omniya-role'])) {
     return false;
   }
+  // Typeform number modes start a fresh numeric passage. After an existing
+  // identifier or numeral they yield to the shared Rule 20 operation rows
+  // (`⠈⠼` asterisk, `⠨⠼` number-sign).
+  if ((mapping.id === 'typeform.script.number' || mapping.id === 'typeform.italic.number') &&
+    (context.node.name === 'mi' || context.node.name === 'mn')) {
+    return false;
+  }
+  // Footnote reference asterisks follow prose. After a math operand, the same
+  // cells are BANA 20.3's operation asterisk.
+  if (mapping.id === 'reference.asterisk' &&
+    (context.node.name === 'mi' || context.node.name === 'mn')) {
+    return false;
+  }
   if (mapping.id === 'misc.prime') {
     return context.node.name !== 'math' && !isHole(context.node);
   }
@@ -4399,10 +4412,19 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
 
   // Resolve a dot-4 lookahead held inside numeric mode.  A matching
   // nonnumeric registry row, such as the Greek theta code, consumes the
-  // complete local sequence.  If no such row matches, commit the numeric
-  // decimal point and replay this one cell as the next local operation.
+  // complete local sequence.  Rule 20.3's number-sign operator shares the
+  // same first cell with the decimal point; when `⠨⠼` completes that row,
+  // prefer the authored operator over inventing a decimal digit passage.
+  // If no such row matches, commit the numeric decimal point and replay this
+  // one cell as the next local operation.
   if (state.mode?.startsWith?.('numeric') && state.prefix === '⠨') {
     const candidate = `${state.prefix}${normalized}`;
+    const numberSign = (PREFIXES.get(candidate)?.mappings ?? [])
+      .filter((mapping) => mapping.id === 'operator.number-sign')
+      .filter((mapping) => mappingApplies(mapping, context));
+    if (numberSign.length === 1) {
+      return applyMapping(document, focus, { ...state, prefix: '', mode: null }, numberSign[0]);
+    }
     const nonnumeric = (PREFIXES.get(candidate)?.mappings ?? [])
       .filter((mapping) => mapping.id !== 'number.decimal-point')
       .filter((mapping) => mapping.id.startsWith('greek.'))
@@ -4481,7 +4503,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     if (normalized === '⠨') {
       const nonnumericContinuation = MATCHABLE_MAPPINGS.some((mapping) =>
         mapping.cells.length > 1 && mapping.cells[0] === '⠨' &&
-        mapping.id.startsWith('greek.') &&
+        (mapping.id.startsWith('greek.') || mapping.id === 'operator.number-sign') &&
         mappingApplies(mapping, context));
       if (nonnumericContinuation) {
         return {

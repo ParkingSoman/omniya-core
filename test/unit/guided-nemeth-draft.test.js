@@ -1585,3 +1585,33 @@ test('punctuation and Greek symbols remain declarative token mappings', () => {
   assert.equal(tree.children[0].children[0].text, 'π');
   assert.equal(tree.children[1].children[0].text, '.');
 });
+
+test('Rule 20.3 number-sign between digits is the operator, not a decimal passage', () => {
+  const { document } = replayCells(sourceNotationToCells('#2.##3'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children.length, 3);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '2');
+  assert.equal(tree.children[1].name, 'mo');
+  assert.equal(tree.children[1].children[0].text, '#');
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-cells'], '⠨⠼');
+  assert.equal(tree.children[2].name, 'mn');
+  assert.equal(tree.children[2].children[0].text, '3');
+});
+
+test('Rule 20.3 asterisk after a letter or numeral is the operation, not a typeform mode', () => {
+  const letter = replayCells(sourceNotationToCells('f`#g'));
+  const letterTree = parseMathML(letter.document.mathml);
+  assert.equal(letterTree.children.length, 3);
+  assert.equal(letterTree.children[1].children[0].text, '∗');
+  assert.equal(letterTree.children[1].attrs['data-omniya-nemeth-cells'], '⠈⠼');
+
+  const numeric = replayCells(sourceNotationToCells('#3`##4'));
+  const numericTree = parseMathML(numeric.document.mathml);
+  assert.equal(numericTree.children.length, 3);
+  assert.equal(numericTree.children[0].children[0].text, '3');
+  assert.equal(numericTree.children[1].children[0].text, '∗');
+  assert.equal(numericTree.children[2].children[0].text, '4');
+});

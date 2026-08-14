@@ -81,11 +81,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     ? standaloneAuthored
     : (sourceMath.querySelector?.('[data-omniya-shape-kind][data-omniya-nemeth-cells]') ?? null);
   // Complete one-node constructions keep BANA distinctions Unicode/SRE cannot
-  // reconstruct from the printed glyph. Rule 22 arrows and Rule 17 shapes are
-  // both authored as a single local sequence on that node.
+  // reconstruct from the printed glyph. Rule 22 arrows, Rule 17 shapes, and
+  // Rule 15/21 superposed comparisons are all authored as one local sequence.
   if (standaloneCells && (
     standaloneAuthored.getAttribute?.('data-omniya-shape-kind') ||
     standaloneIntent.startsWith('arrow-') ||
+    standaloneIntent.startsWith('comparison.superposed') ||
     (standaloneName === 'mo' && standaloneCells.startsWith('⠫'))
   )) {
     return standaloneCells;
@@ -206,10 +207,29 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     : 0;
   const shapeSubscriptCount = Math.max(directShapeSubscripts.length, enrichedShapeSubscriptCount);
   const shapeSubscriptBaselineCount = Math.max(directShapeSubscriptBaselineCount, shapeSubscriptCount - 1);
-  const degreeBaselineCount = Math.min(
-    sourceNodes('[data-omniya-nemeth-cells="⠘⠨⠡"]').length,
-    sourceNodes('[data-omniya-nemeth-cells="⠬"]').length
-  );
+  // A degree in msup returns to baseline before the next authored sibling
+  // (plus or minus). Walk parents instead of Element.closest so xmldom fixtures
+  // and the renderer DOM share the same count. Explicit mathematical blanks
+  // between the degree and the following sign are layout only.
+  const degreeBaselineFollowers = sourceNodes('[data-omniya-nemeth-cells="⠘⠨⠡"]').flatMap((node) => {
+    let host = node;
+    while (host && !['msup', 'msubsup', 'mmultiscripts'].includes((host.localName || host.nodeName || '').toLowerCase())) {
+      host = host.parentElement ?? host.parentNode;
+    }
+    host = host && ['msup', 'msubsup', 'mmultiscripts'].includes((host.localName || host.nodeName || '').toLowerCase())
+      ? host
+      : node;
+    let next = host.nextElementSibling ?? host.nextSibling;
+    while (next && (next.nodeType !== 1
+      || (next.localName || next.nodeName || '').toLowerCase() === 'mspace'
+      || next.getAttribute?.('data-omniya-nemeth-intent') === 'explicit-space')) {
+      next = next.nextElementSibling ?? next.nextSibling;
+    }
+    const cells = next?.getAttribute?.('data-omniya-nemeth-cells') || '';
+    return cells === '⠬' || cells === '⠤' ? [cells] : [];
+  });
+  const degreeBaselinePlusCount = degreeBaselineFollowers.filter((cells) => cells === '⠬').length;
+  const degreeBaselineMinusCount = degreeBaselineFollowers.filter((cells) => cells === '⠤').length;
   const diagonalFractions = [...sourceMath.querySelectorAll('mfrac[data-omniya-nemeth-cells]')]
     .map((node) => {
       const digits = new Map([['0', '⠴'], ['1', '⠂'], ['2', '⠆'], ['3', '⠒'], ['4', '⠲'], ['5', '⠢'], ['6', '⠖'], ['7', '⠶'], ['8', '⠦'], ['9', '⠔'], [',', '⠠']]);
@@ -640,6 +660,20 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     let restoreCursor = 0;
     for (const node of numericStarts) {
       if (operatorFollowedNumbers.includes(node)) continue;
+      // Simple-fraction numerator/denominator digits are already in the
+      // fraction's lower-cell numeric context. Restoring a number sign here
+      // invents `#` cells inside `?n/d#` constructions after punctuation.
+      if (node.closest?.('mfrac[data-omniya-fraction-kind="simple"]') ||
+        (() => {
+          let current = node.parentElement ?? node.parentNode;
+          while (current) {
+            if (current.getAttribute?.('data-omniya-fraction-kind') === 'simple') return true;
+            current = current.parentElement ?? current.parentNode;
+          }
+          return false;
+        })()) {
+        continue;
+      }
       const value = String(node.textContent ?? '').trim();
       if (!/^\d+$/.test(value)) continue;
       const cells = [...value].map((digit) => digits.get(digit) ?? '').join('');
@@ -1162,8 +1196,15 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // mathematical blank. Semantic fraction layout can add a visual blank
     // after the slash; remove exactly that local artifact.
     if (denominatorStartsWithAuthoredAtom) braille = braille.replace(/⠌⠀/, '⠌');
-    braille = braille.replace(/⠹⠼(?=[⠂⠆⠒⠲⠢⠔⠦⠖⠴])/, '⠹');
-    braille = braille.replace(/⠌⠼(?=[⠂⠆⠒⠲⠢⠔⠦⠖⠴])/, '⠌');
+    braille = braille.replace(/⠹⠼(?=[⠂⠆⠒⠲⠢⠔⠦⠖⠴])/g, '⠹');
+    braille = braille.replace(/⠌⠼(?=[⠂⠆⠒⠲⠢⠔⠦⠖⠴])/g, '⠌');
+    // A source-marked punctuation period after a simple fraction terminator
+    // must remain `_4`. SRE can insert a number sign between the punctuation
+    // indicator and the period cell when the preceding fraction ends numeric
+    // mode; remove only that local artifact.
+    if (punctuationPeriods.length) {
+      braille = braille.replace(/⠸⠼⠲/g, '⠸⠲');
+    }
     // Rule 18.4.3's function-following diagonal fraction is produced by a
     // simple fraction plus the bevelled structural follow-up. MathJax keeps
     // the presentation slash but may retain the ordinary opener and the
@@ -1888,6 +1929,22 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (sourceMath.querySelector?.('[data-omniya-shape-kind="keystroke"]')) {
     braille = braille.replace(/(⠫⠅⠨⠻)⠐?⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/g, '$1');
   }
+  // Rule 20.3's asterisk and crosshatch end a numeric passage. SRE often
+  // keeps the operator cells but drops the fresh number sign on the following
+  // numeric-start atom (`#3`##4` -> ⠼⠒⠈⠼⠲). Restore only that local sign.
+  if (hasSource('mo[data-omniya-nemeth-cells="⠈⠼"]') &&
+      sourceMath.querySelector?.('[data-omniya-nemeth-intent="numeric-start"]')) {
+    braille = braille.replace(/⠈⠼(?!⠼)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠈⠼⠼');
+  }
+  if (hasSource('mo[data-omniya-nemeth-cells="⠨⠼"]') &&
+      sourceMath.querySelector?.('[data-omniya-nemeth-intent="numeric-start"]')) {
+    braille = braille.replace(/⠨⠼(?!⠼)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠨⠼⠼');
+  }
+  // Rule 20.9 consecutive tildes keep a multipurpose separator between the
+  // two authored operator cells. SRE concatenates them.
+  if (sourceNodes('mo[data-omniya-nemeth-cells="⠈⠱"]').length >= 2) {
+    braille = braille.replace(/⠈⠱(?!⠐)(?=⠈⠱)/g, '⠈⠱⠐');
+  }
   const finalize = (value) => {
     const degreeWithFollowingNumber = sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠘⠨⠡"]') &&
       [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="lower-cell-numeric"]')].some((node) =>
@@ -1961,12 +2018,20 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         return `${match}⠐`;
       });
     }
-    if (degreeBaselineCount) {
-      let returns = degreeBaselineCount;
+    if (degreeBaselinePlusCount) {
+      let returns = degreeBaselinePlusCount;
       value = value.replace(/(⠘⠨⠡)(?!⠐)(?=⠬)/g, (degree) => {
         if (returns <= 0) return degree;
         returns -= 1;
         return `${degree}⠐`;
+      });
+    }
+    if (degreeBaselineMinusCount) {
+      let returns = degreeBaselineMinusCount;
+      value = value.replace(/(⠘⠨⠡)⠀?(?!⠐)(?=⠤)/g, (degree) => {
+        if (returns <= 0) return degree;
+        returns -= 1;
+        return '⠘⠨⠡⠐';
       });
     }
     return value;
@@ -2125,6 +2190,14 @@ function restorePunctuationPeriods(braille, count, groups = 0) {
     if (remaining <= 0) return match;
     remaining -= 1;
     return `${digit}⠸⠲`;
+  });
+  // SRE may also project the indicated period as a number sign plus digit 4
+  // (`⠸⠼⠲`) when it follows a numeric item. Restore the authored local
+  // punctuation indicator + period cells for each remaining source period.
+  braille = braille.replace(/⠸⠼⠲/g, (match) => {
+    if (remaining <= 0) return match;
+    remaining -= 1;
+    return '⠸⠲';
   });
   // Explicit guided round groups carry their fence cells in MathML. SRE may
   // suppress the paired grouping indicators when the content is incomplete;

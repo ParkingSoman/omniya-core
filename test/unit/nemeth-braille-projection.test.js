@@ -601,3 +601,47 @@ test('Rule 24.1 letter or largeop followed by a baseline number keeps the multip
   assert.equal(applyNemethSourceIntentToBraille('⠠⠭⠨⠖', decimal), '⠠⠭⠐⠨⠖');
   assert.equal(applyNemethSourceIntentToBraille('⠠⠭⠐⠨⠼⠖', decimal), '⠠⠭⠐⠨⠖');
 });
+
+test('Rule 15.9 standalone superposed comparisons keep authored cells over SRE glyphs', () => {
+  const subset = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-intent="comparison.superposed.equals-subset" data-omniya-nemeth-cells="⠨⠅⠈⠸⠐⠅⠻">⊆</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠸⠐⠅⠱', subset), '⠨⠅⠈⠸⠐⠅⠻');
+
+  const dotEquals = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-intent="comparison.superposed.dot-equals" data-omniya-nemeth-cells="⠡⠈⠨⠅⠻">≐</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠐⠨⠅⠣⠡⠻', dotEquals), '⠡⠈⠨⠅⠻');
+});
+
+test('Rule 20.3 asterisk and number-sign restore the following numeric indicator', () => {
+  const asterisk = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">3</mn><mo data-omniya-nemeth-cells="⠈⠼">∗</mo><mn data-omniya-nemeth-intent="numeric-start">4</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠈⠼⠲', asterisk), '⠼⠒⠈⠼⠼⠲');
+
+  const crosshatch = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">2</mn><mo data-omniya-nemeth-cells="⠨⠼">#</mo><mn data-omniya-nemeth-intent="numeric-start">3</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠆⠨⠼⠒', crosshatch), '⠼⠆⠨⠼⠼⠒');
+});
+
+test('Rule 20.9 consecutive tildes keep a multipurpose separator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠈⠱">∼</mo><mo data-omniya-nemeth-cells="⠈⠱">∼</mo><mi data-omniya-nemeth-cells="⠠⠞">T</mi><mo data-omniya-nemeth-cells="⠈⠬">∨</mo><mi data-omniya-nemeth-cells="⠠⠗">R</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠈⠱⠈⠱⠠⠞⠈⠬⠠⠗', source), '⠈⠱⠐⠈⠱⠠⠞⠈⠬⠠⠗');
+});
+
+test('Rule 14.11 degree returns to baseline before a following hyphen', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mn data-omniya-nemeth-intent="numeric-start">360</mn><mo data-omniya-nemeth-cells="⠘⠨⠡">°</mo></msup><mo data-omniya-nemeth-cells="⠤">−</mo><mi>i</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠖⠴⠘⠨⠡⠤⠊', source), '⠼⠒⠖⠴⠘⠨⠡⠐⠤⠊');
+});
