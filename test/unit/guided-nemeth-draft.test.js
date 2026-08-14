@@ -21,6 +21,13 @@ function cell(document, focus, inputState, value) {
   return applyNemethCell({ document, focus, inputState, cell: value });
 }
 
+function elementNames(node, names = []) {
+  if (!node) return names;
+  if (node.name) names.push(node.name);
+  for (const child of node.children ?? []) elementNames(child, names);
+  return names;
+}
+
 test('Rule 14 Electron corpus cases 14-3 through 14-11 replay their authored cells', () => {
   const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
   const expected = new Map([
@@ -49,6 +56,12 @@ test('Rule 14 Electron corpus cases 14-3 through 14-11 replay their authored cel
       }
       assert.notEqual(result.status, 'rejected', `${exampleNumber}: ${result.announcement}`);
       ({ document, focus, inputState } = result);
+    }
+    const names = elementNames(parseMathML(document.mathml));
+    assert.ok(names.includes('msup') || names.includes('msub') || names.includes('msubsup') || names.includes('mmultiscripts'), `${exampleNumber} lacks canonical script MathML`);
+    if (operationIds.some((id) => id.includes('sup-') || id.includes('sub-'))) {
+      assert.ok(names.filter((name) => name === 'msup' || name === 'msub' || name === 'msubsup' || name === 'mmultiscripts').length >= 1,
+        `${exampleNumber} lacks nested script structure`);
     }
   }
 });
