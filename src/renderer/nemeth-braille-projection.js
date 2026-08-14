@@ -1354,7 +1354,8 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     let englishCursor = 0;
     for (const sequence of englishCells) {
       const base = sequence.at(-1);
-      const index = value.indexOf(base, englishCursor);
+      const occurrences = [...value.matchAll(new RegExp(base, 'g'))].map((match) => match.index).filter((index) => index >= englishCursor);
+      const index = occurrences.length > 1 ? occurrences.at(-1) : occurrences[0];
       if (index < 0) continue;
       const prefix = sequence.slice(0, -1);
       if (value.slice(Math.max(0, index - prefix.length), index) !== prefix) {
