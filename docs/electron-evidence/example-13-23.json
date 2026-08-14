@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T18:17:32.129Z",
+  "filter": {
+    "rule": null,
+    "example": "13-23"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-LyPWDl",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-13-23",
+      "sourceRows": [
+        "example-13-23",
+        "13.6"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-13-23/electron_bana-2022_example-13-23-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "cell 11 ⠼ rejected: That Nemeth cell is not valid at this draft focus.; prefix=; choices="
+    }
+  ]
+}
