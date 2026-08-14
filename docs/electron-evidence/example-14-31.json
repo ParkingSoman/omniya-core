@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T15:30:50.223Z",
+  "filter": {
+    "rule": null,
+    "example": "14-31"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-38Q4hz",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-14-31",
+      "sourceRows": [
+        "example-14-31",
+        "14.5.1"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-14-31/electron_bana-2022_example-14-31-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Replacement draft is incomplete at base.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-42b15baa-a2fa-4fa6-8bd2-8e3310b8e10a\\\" data-semantic-type=\\\"infixop\\\" data-semantic-role=\\\"implicit\\\" data-semantic-annotation=\\\"clearspeak:unit;depth:1\\\" data-semantic-id=\\\"9\\\" data-semantic-children=\\\"6,7\\\" data-semantic-content=\\\"8\\\" data-semantic-owns=\\\"6 8 7\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\" data-semantic-structure=\\\"(9 (6 0 (4 1 3 2)) 8 7)\\\"><msubsup data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-c61d81c9-b3b0-48bb-b143-53b8267a5421\\\" data-semantic-type=\\\"subscript\\\" data-semantic-role=\\\"space\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-id=\\\"6\\\" data-semantic-children=\\\"0,4\\\" data-semantic-parent=\\\"9\\\" data-semantic-owns=\\\"0 4\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\"><mrow data-omniya-=\\\"\\\" data-omniya-hole=\\\"true\\\" data-omniya-owner=\\\"omniya-c61d81c9-b3b0-48bb-b143-53b8267a5421\\\" data-omniya-role=\\\"base\\\" id=\\\"omniya-source-omniya-8b3590b2-ef8a-486e-990a-6234c96c9d6d\\\"><mspace width=\\\"1em\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-e544bf6e-07f2-474b-ae38-7894ab2b57f8\\\" data-semantic-type=\\\"text\\\" data-semantic-role=\\\"space\\\" data-semantic-annotation=\\\"clearspeak:unit;nemeth:number;depth:3\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"6\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\"></mspace></mrow><mrow data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-0ce583ae-3a61-4e22-b968-de05c87bdb96\\\" data-semantic-type=\\\"infixop\\\" data-semantic-role=\\\"implicit\\\" data-semantic-annotation=\\\"clearspeak:simple;clearspeak:unit;depth:3\\\" data-semantic-id=\\\"4\\\" data-semantic-children=\\\"1,2\\\" data-semantic-content=\\\"3\\\" data-semantic-parent=\\\"6\\\" data-semantic-owns=\\\"1 3 2\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\"><mi data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-0d4e3cef-c6fb-4eb4-977b-1fc16219d6c5\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:4\\\" data-semantic-id=\\\"1\\\" data-semantic-parent=\\\"4\\\" data-semantic-level-number=\\\"3\\\" data-speech-node=\\\"true\\\">a</mi><mo data-semantic-type=\\\"operator\\\" data-semantic-role=\\\"multiplication\\\" data-semantic-annotation=\\\"depth:4\\\" data-semantic-=\\\"\\\" data-semantic-parent=\\\"4\\\" data-semantic-added=\\\"true\\\" data-semantic-operator=\\\"infixop,⁢\\\" data-semantic-level-number=\\\"3\\\" data-speech-node=\\\"true\\\">⁢</mo><mi data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-352dff3b-53ae-4c78-b98a-00747df45336\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:4\\\" data-semantic-id=\\\"2\\\" data-semantic-parent=\\\"4\\\" data-semantic-level-number=\\\"3\\\" data-speech-node=\\\"true\\\">n</mi></mrow><mrow data-omniya-=\\\"\\\" data-omniya-hole=\\\"true\\\" data-omniya-owner=\\\"omniya-c61d81c9-b3b0-48bb-b143-53b8267a5421\\\" data-omniya-role=\\\"superscript\\\" id=\\\"omniya-source-omniya-e985fdeb-9ca7-4a24-99e0-e60b56c247b5\\\"><mspace width=\\\"1em\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-31bd2ed1-5254-4900-acb4-15d88345f7a0\\\"></mspace></mrow></msubsup><mo data-semantic-type=\\\"operator\\\" data-semantic-role=\\\"multiplication\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-=\\\"\\\" data-semantic-parent=\\\"9\\\" data-semantic-added=\\\"true\\\" data-semantic-operator=\\\"infixop,⁢\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">⁢</mo><mi data-omniya-nemeth-cells=\\\"⠭\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-1535019d-d7aa-45a3-8896-b2554e340a47\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:2\\\" data-semantic-id=\\\"7\\\" data-semantic-parent=\\\"9\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">x</mi></math>\"}"
+    }
+  ]
+}

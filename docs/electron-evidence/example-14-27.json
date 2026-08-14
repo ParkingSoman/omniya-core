@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T15:30:13.097Z",
+  "filter": {
+    "rule": null,
+    "example": "14-27"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-TftiAn",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-14-27",
+      "sourceRows": [
+        "example-14-27",
+        "14.5.1"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-14-27/electron_bana-2022_example-14-27-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Replacement draft is incomplete at superscript.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-759e78ca-b0a1-4812-bf30-e9d4f3e1953b\\\" data-semantic-structure=\\\"(5 0 (4 2 3))\\\"><msup data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-ec6f00cd-9433-40ae-8dd3-6adca3841b1e\\\"><msup data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-244d4dd4-8a1f-46d5-860c-579ef3164a5a\\\" data-semantic-type=\\\"superscript\\\" data-semantic-role=\\\"integer\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"5\\\" data-semantic-children=\\\"0,4\\\" data-semantic-owns=\\\"0 4\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\"><mn data-omniya-nemeth-intent=\\\"numeric-start\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-4da7d02e-73eb-4a78-9f0b-1a9b43f0f5e2\\\" data-semantic-type=\\\"number\\\" data-semantic-role=\\\"integer\\\" data-semantic-font=\\\"normal\\\" data-semantic-annotation=\\\"empty:MSUP;clearspeak:simple;nemeth:number;depth:2\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"5\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">10</mn><mrow data-omniya-=\\\"\\\" data-omniya-hole=\\\"true\\\" data-omniya-owner=\\\"omniya-244d4dd4-8a1f-46d5-860c-579ef3164a5a\\\" data-omniya-role=\\\"superscript\\\" id=\\\"omniya-source-omniya-c0671d6b-10d8-44f2-8226-395097ebf407\\\"><mspace width=\\\"1em\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-34809ce8-c917-4123-8a0b-37b57b14011a\\\"></mspace></mrow></msup><msup data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-4b016284-206d-4afc-b59f-12d532bf1b72\\\" data-semantic-type=\\\"superscript\\\" data-semantic-role=\\\"subtraction\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-embellished=\\\"operator\\\" data-semantic-id=\\\"4\\\" data-semantic-children=\\\"2,3\\\" data-semantic-parent=\\\"5\\\" data-semantic-owns=\\\"2 3\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\"><mo data-omniya-nemeth-cells=\\\"⠤\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-6fa1d1f5-5203-49ab-943c-2f5380e6fdff\\\" data-semantic-type=\\\"operator\\\" data-semantic-role=\\\"subtraction\\\" data-semantic-annotation=\\\"depth:3\\\" data-semantic-id=\\\"2\\\" data-semantic-parent=\\\"4\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\">−</mo><mn data-omniya-nemeth-intent=\\\"lower-cell-numeric\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-44ca8558-f0b2-4c45-9c39-41acb5d9a419\\\" data-semantic-type=\\\"number\\\" data-semantic-role=\\\"integer\\\" data-semantic-font=\\\"normal\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:3\\\" data-semantic-id=\\\"3\\\" data-semantic-parent=\\\"4\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\">4</mn></msup></msup></math>\"}"
+    }
+  ]
+}
