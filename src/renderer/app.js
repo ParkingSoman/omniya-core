@@ -1200,6 +1200,13 @@ function handleComposerCommandKey(event) {
   }
   event.preventDefault();
   event.stopPropagation();
+  // While replacing an equation, Text umbrella must not flip chrome to Text.
+  if (inReplacement && key === 't') {
+    if (elements['mode-panel']) {
+      elements['mode-panel'].textContent = "Can't switch to Text while replacing an equation.";
+    }
+    return true;
+  }
   syncCommandContentEmpty();
   const result = applyCommandKey(commandState, key);
   commandState = result.state;
@@ -1467,13 +1474,17 @@ elements['composer-form'].addEventListener('submit', (event) => {
   void submitComposer();
 });
 
-// Command keys must keep working after `e` hides #composer-source (focus
-// leaves the dock). Scope to add/edit and skip foreign chrome.
+// Command keys must keep working when focus leaves the composer/replacement
+// field (e.g. Command s → #mode-panel). Replacement textarea has its own
+// keyHandler; skip it here to avoid double-handling.
 document.addEventListener('keydown', (event) => {
-  if (mode !== 'add' && mode !== 'edit') return;
+  const inReplacement = Boolean(replacementSession) && !elements['replacement-dock']?.hidden;
+  if (mode !== 'add' && mode !== 'edit' && !inReplacement) return;
   if (exploringEquationItemId) return;
   if (elements['keyboard-help']?.open) return;
-  if (event.target?.closest?.('#replacement-dock, #new-napkin-form, #napkin-rail, dialog')) return;
+  if (event.target?.closest?.('#new-napkin-form, #napkin-rail, dialog')) return;
+  if (inReplacement && event.target?.id === 'replacement-input') return;
+  if (!inReplacement && event.target?.closest?.('#replacement-dock')) return;
   handleComposerCommandKey(event);
 }, true);
 
