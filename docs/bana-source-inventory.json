@@ -15628,7 +15628,7 @@
       "printedPage": "10-1",
       "pdfPage": 132,
       "auditOrder": 538,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -15647,7 +15647,8 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "pending"
+      "transcriberReview": "pending",
+      "suppressMappingInference": true
     },
     {
       "id": "bana-2022:example-10-3",
@@ -15657,7 +15658,7 @@
       "printedPage": "10-1",
       "pdfPage": 132,
       "auditOrder": 539,
-      "disposition": "unclassified",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
@@ -15676,7 +15677,8 @@
         "undoRedo": false,
         "persistence": false
       },
-      "transcriberReview": "pending"
+      "transcriberReview": "pending",
+      "suppressMappingInference": true
     },
     {
       "id": "bana-2022:example-10-4",

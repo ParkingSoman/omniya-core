@@ -16,7 +16,7 @@
     "examples": 1229,
     "errata": 42,
     "errataInScope": 5,
-    "mappedRows": 1119,
+    "mappedRows": 1117,
     "electronCreationRows": 178,
     "electronEditingRows": 176,
     "officialExamplesLinked": 1229
@@ -31783,14 +31783,10 @@
       "printedPage": "10-1",
       "pdfPage": 132,
       "auditOrder": 538,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
-      "mappingIds": [
-        "misc.vs"
-      ],
-      "unitCaseIds": [
-        "registry:misc.vs"
-      ],
+      "disposition": "implemented-context-policy",
+      "inputPolicy": null,
+      "mappingIds": [],
+      "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -31809,6 +31805,7 @@
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "suppressMappingInference": true,
       "contextPolicyIds": [
         "context-policy.10.1"
       ],
@@ -31834,14 +31831,10 @@
       "printedPage": "10-1",
       "pdfPage": 132,
       "auditOrder": 539,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
-      "mappingIds": [
-        "misc.vs"
-      ],
-      "unitCaseIds": [
-        "registry:misc.vs"
-      ],
+      "disposition": "implemented-context-policy",
+      "inputPolicy": null,
+      "mappingIds": [],
+      "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
@@ -31860,6 +31853,7 @@
         "visualEvidence": false
       },
       "transcriberReview": "pending",
+      "suppressMappingInference": true,
       "contextPolicyIds": [
         "context-policy.10.1"
       ],

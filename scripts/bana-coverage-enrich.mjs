@@ -81,7 +81,7 @@ const rows = inventory.rows.map((row) => {
   // Preserve explicit authoritative overlays from the source inventory (for
   // context-sensitive examples whose BANA provision is shared by multiple
   // operations); otherwise derive mappings from source references as usual.
-  const mappingIds = excludedDocument
+  const mappingIds = excludedDocument || row.suppressMappingInference === true
     ? []
     : row.mappingIds?.length
       ? [...row.mappingIds]

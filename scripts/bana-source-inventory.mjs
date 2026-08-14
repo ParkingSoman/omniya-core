@@ -344,6 +344,16 @@ for (const number of [15, 16, 17]) {
   const row = rows.find((candidate) => candidate.id === `bana-2022:example-10-${number}`);
   if (row) row.disposition = 'excluded-document-format';
 }
+// Examples 10-2 and 10-3 are literary SAS/FOIL initialism policy examples.
+// They demonstrate when literary transcription applies and do not execute a
+// local Nemeth operation; suppress the shared-parent mapping heuristic.
+for (const number of [2, 3]) {
+  const row = rows.find((candidate) => candidate.id === `bana-2022:example-10-${number}`);
+  if (row) {
+    row.disposition = 'implemented-context-policy';
+    row.suppressMappingInference = true;
+  }
+}
 const rule14Batch = {
   'example-14-3': ['script.superscript'],
   'example-14-4': ['script.superscript'],
