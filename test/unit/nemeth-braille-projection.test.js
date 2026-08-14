@@ -119,6 +119,14 @@ test('authored punctuation series retains comma-space boundaries and lower-cell 
   );
 });
 
+test('trigonometric coefficients and degree scripts preserve their authored numeric levels', () => {
+  const sourceMath = new DOMParser().parseFromString('<math><mrow data-omniya-group="round"><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mi data-omniya-nemeth-intent="function-name" data-omniya-nemeth-cells="⠎⠊⠝">sin</mi><mspace data-omniya-nemeth-intent="explicit-space"/><msup><mn data-omniya-nemeth-intent="lower-cell-numeric">30</mn><mrow><mo data-omniya-nemeth-cells="⠘⠨⠡">°</mo><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo></mrow></msup><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mi data-omniya-nemeth-intent="function-name" data-omniya-nemeth-cells="⠉⠕⠎">cos</mi><mspace data-omniya-nemeth-intent="explicit-space"/><msup><mn data-omniya-nemeth-intent="lower-cell-numeric">60</mn><mo data-omniya-nemeth-cells="⠘⠨⠡">°</mo></msup></mrow></math>', 'text/xml');
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠷⠼⠒⠎⠊⠝⠀⠼⠒⠴⠘⠨⠡⠠⠐⠀⠼⠒⠉⠕⠎⠀⠼⠖⠴⠘⠨⠡⠾', sourceMath),
+    '⠷⠒⠎⠊⠝⠀⠼⠒⠴⠘⠨⠡⠠⠀⠒⠉⠕⠎⠀⠼⠖⠴⠘⠨⠡⠐⠾'
+  );
+});
+
 test('nested multiscripts do not expose SRE presentation baseline before a superscript', () => {
   const sourceMath = {
     querySelectorAll(selector) {

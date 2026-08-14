@@ -209,6 +209,25 @@ test('a dot-6 punctuation prefix resolves as punctuation at a visible blank', ()
   assert.match(result.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
 });
 
+test('a blank after superscript punctuation returns to the group and preserves the next lower-cell number boundary', () => {
+  let session = replacementSession();
+  const opener = applyNemethCell(session, '⠷');
+  const group = applyNemethChoice(opener.session, 'group.round');
+  assert.equal(group.status, 'applied');
+  session = group.session;
+  for (const cell of ['⠒', '⠎', '⠊', '⠝']) session = applyNemethCell(session, cell).session;
+  session = applyNemethBoundary(session, 'space').session;
+  for (const cell of ['⠼', '⠒', '⠴', '⠘', '⠨', '⠡', '⠠']) session = applyNemethCell(session, cell).session;
+
+  const boundary = applyNemethBoundary(session, 'space');
+  assert.equal(boundary.status, 'applied');
+  assert.match(boundary.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"[^>]*data-omniya-source-space="true"/);
+
+  const nextNumber = applyNemethCell(boundary.session, '⠒');
+  assert.equal(nextNumber.status, 'applied');
+  assert.match(nextNumber.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"[^>]*\/><mn[^>]*data-omniya-nemeth-intent="lower-cell-numeric"[^>]*>3<\/mn>/);
+});
+
 test('a blank does not mutate an incomplete atomic local code', () => {
   let session = replacementSession();
   for (const cell of ['⠫', '⠒', '⠒']) session = applyNemethCell(session, cell).session;

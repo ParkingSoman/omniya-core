@@ -3732,7 +3732,18 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
     if (baseline) {
       const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
-      if (returned.status !== 'rejected') return { ...returned, inputState: { ...returned.inputState, mode: null } };
+      if (returned.status !== 'rejected') {
+        // The blank is both the local level boundary and authored spacing in
+        // the surrounding row. The baseline transition moves focus out of the
+        // superscript; replay the same blank once at that returned focus so it
+        // is not silently consumed before the following lower-cell numeral.
+        return applyNemethCell({
+          document: returned.document,
+          focus: returned.focus,
+          inputState: { ...returned.inputState, mode: null },
+          cell: normalized
+        });
+      }
     }
   }
   // A selected baseline-return indicator has already moved focus to the

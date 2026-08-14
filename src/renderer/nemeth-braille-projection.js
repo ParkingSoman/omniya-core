@@ -265,7 +265,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // state, not a source cell, when the next sibling is an explicit blank.
     // Use the source sibling boundary to remove only those local returns.
     let scriptSpaceReturns = [...sourceMath.querySelectorAll('mspace[data-omniya-nemeth-intent="explicit-space"]')]
-      .filter((space) => space.previousElementSibling?.localName === 'msup').length;
+      .filter((space) => {
+        let previous = space.previousElementSibling ?? space.previousSibling;
+        while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+        return (previous?.localName ?? previous?.nodeName) === 'msup';
+      }).length;
     while (scriptSpaceReturns > 0 && braille.includes('⠐⠀')) {
       braille = braille.replace('⠐⠀', '⠀');
       scriptSpaceReturns -= 1;
@@ -293,6 +297,39 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.replace('⠁⠠⠬', '⠁⠠⠀⠬');
     }
   }
+  // A coefficient immediately before an authored function name is a
+  // lower-cell numeral, while a degree value inside msup starts its own
+  // numeric passage. SRE sees both as isolated <mn> nodes and prefixes both.
+  // Remove only the signs belonging to source-marked, non-script function
+  // coefficients. Degree punctuation at the end of a closed group likewise
+  // needs the authored return to baseline before the closing fence.
+  const functionCoefficients = [...lowerCellNumeric].filter((node) => {
+    let ancestor = node.parentElement ?? node.parentNode;
+    while (ancestor && ancestor !== sourceMath) {
+      if (['msup', 'msub', 'msubsup', 'mmultiscripts'].includes(ancestor.localName ?? ancestor.nodeName)) return false;
+      ancestor = ancestor.parentElement ?? ancestor.parentNode;
+    }
+    const elementSibling = (current) => {
+      if (current.nextElementSibling) return current.nextElementSibling;
+      let sibling = current.nextSibling;
+      while (sibling && sibling.nodeType !== 1) sibling = sibling.nextSibling;
+      return sibling;
+    };
+    let next = elementSibling(node);
+    while (next?.getAttribute?.('data-semantic-added') === 'true') next = elementSibling(next);
+    return next?.getAttribute?.('data-omniya-nemeth-intent') === 'function-name';
+  });
+  for (let remaining = functionCoefficients.length; remaining > 0; remaining -= 1) {
+    braille = braille.replace(/⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴](?:⠎⠊⠝|⠉⠕⠎|⠞⠁⠝))/, '');
+  }
+  const terminalDegreeScript = [...sourceMath.querySelectorAll('msup')].some((script) => {
+    const hasDegree = [...(script.getElementsByTagName?.('*') ?? [])]
+      .some((node) => node.getAttribute?.('data-omniya-nemeth-cells') === '⠘⠨⠡');
+    let next = script.nextElementSibling ?? script.nextSibling;
+    while (next && next.nodeType !== 1) next = next.nextSibling;
+    return hasDegree && (!next || next.getAttribute?.('data-omniya-role') === 'close-fence');
+  });
+  if (terminalDegreeScript) braille = braille.replace(/(⠘⠨⠡)(?!⠐)(?=⠾$)/, '$1⠐');
   if (functionLimitCells.length && braille.endsWith('⠻')) {
     // A limit-function terminator is part of the bounded local code. SRE
     // cannot recover that source boundary from an munder/mover, and may emit
