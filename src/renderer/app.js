@@ -703,7 +703,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
   // Keep the complete submit transaction on the active session/editor so all
   // entry points (keyboard and button) share exactly the same behavior.
   let submittingReplacement = false;
-  const submitReplacementEditor = async () => {
+  const submitReplacementEditor = async ({ allowAtomicSubmit = false } = {}) => {
     if (!replacementSession || submittingReplacement) return;
     submittingReplacement = true;
     try {
@@ -720,7 +720,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
           // now-complete draft.  Atomic constructions intentionally stop here:
           // their Enter commits only that bounded local construction and the
           // next Enter submits the replacement.
-          if (local.localCommitPolicy !== 'immediate') {
+          if (local.localCommitPolicy !== 'immediate' && !allowAtomicSubmit) {
             editor.focus();
             return;
           }
@@ -1013,7 +1013,7 @@ elements['napkin-list'].addEventListener('keydown', (event) => {
 
 elements['open-add-button'].addEventListener('click', openAddMode);
 elements['replacement-submit'].addEventListener('click', () => {
-  void replacementEditor?._replacementSubmitHandler?.();
+  void replacementEditor?._replacementSubmitHandler?.({ allowAtomicSubmit: true });
 });
 elements['replacement-cancel'].addEventListener('click', () => {
   const article = replacementSession && elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(activeItem()?.id ?? '')}"]`);
