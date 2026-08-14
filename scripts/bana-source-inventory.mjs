@@ -167,6 +167,12 @@ if (appendixDStart >= 0) {
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
 const durableDisposition = rows.find((row) => row.id === 'bana-2022:example-7-22');
 if (durableDisposition) durableDisposition.disposition = 'approved-context-policy';
+// Example 14-1 is explanatory prose (the braille line includes the sentence
+// identifying the subscript), not an executable standalone math expression.
+// Keep it source-linked but explicitly non-executable pending a dedicated
+// prose-aware corpus workflow.
+const rule14Example1 = rows.find((row) => row.id === 'bana-2022:example-14-1');
+if (rule14Example1) rule14Example1.disposition = 'approved-context-policy';
 const result = {
   schemaVersion: 1,
   source: {
