@@ -161,6 +161,9 @@ Pay attention to item type and position announcements, equation structure, focus
 
 ## Run from source
 
+For the human-testing gate build (guided Nemeth + UEB command mode), check out
+the `testing` branch and see [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
+
 The prototype requires a current Node.js installation.
 
 ```bash
