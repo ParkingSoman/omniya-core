@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T16:32:15.669Z",
+  "startedAt": "2026-08-14T17:44:39.544Z",
   "filter": {
     "rule": null,
     "example": "15-68"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Z8Ay3H",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-86YQMH",
   "cases": [
     {
       "id": "electron:bana-2022:example-15-68",
@@ -26,7 +26,7 @@
         "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-15-68/electron_bana-2022_example-15-68-input.png",
         "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
       },
-      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"That local Nemeth code is incomplete or invalid. The draft was not changed.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-84161a5a-eb02-43d4-98fb-3a4f7bf80eb2\\\" data-semantic-type=\\\"punctuated\\\" data-semantic-role=\\\"startpunct\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"2\\\" data-semantic-children=\\\"0,1\\\" data-semantic-content=\\\"0\\\" data-semantic-owns=\\\"0 1\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\" data-semantic-structure=\\\"(2 0 1)\\\"><mn data-omniya-nemeth-intent=\\\"numeric-decimal\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-e19fab63-90c1-4591-a8a9-964a3143735e\\\" data-semantic-type=\\\"punctuation\\\" data-semantic-role=\\\"fullstop\\\" data-semantic-annotation=\\\"nemeth:number;depth:2\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"2\\\" data-semantic-operator=\\\"punctuated\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">.</mn><mi data-omniya-nemeth-intent=\\\"decimal-nonnumeric\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-759fd3bf-a7fb-4077-8018-7b9be836b39d\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"unknown\\\" data-semantic-font=\\\"normal\\\" data-semantic-annotation=\\\"nemeth:number;depth:2\\\" data-semantic-id=\\\"1\\\" data-semantic-parent=\\\"2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">7128</mi></math>\"}"
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"That local Nemeth code is incomplete or invalid. The draft was not changed.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-1123cd24-48f6-4ceb-93f4-c381dbc54a24\\\" data-semantic-type=\\\"punctuated\\\" data-semantic-role=\\\"startpunct\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"2\\\" data-semantic-children=\\\"0,1\\\" data-semantic-content=\\\"0\\\" data-semantic-owns=\\\"0 1\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\" data-semantic-structure=\\\"(2 0 1)\\\"><mn data-omniya-nemeth-intent=\\\"numeric-decimal\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-22b780a5-7c55-4383-beed-4873a90f6ac5\\\" data-semantic-type=\\\"punctuation\\\" data-semantic-role=\\\"fullstop\\\" data-semantic-annotation=\\\"nemeth:number;depth:2\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"2\\\" data-semantic-operator=\\\"punctuated\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">.</mn><mi data-omniya-nemeth-intent=\\\"decimal-nonnumeric\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-f4b4598f-4bd8-40ff-ba24-3da8dab6f234\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"unknown\\\" data-semantic-font=\\\"normal\\\" data-semantic-annotation=\\\"nemeth:number;depth:2\\\" data-semantic-id=\\\"1\\\" data-semantic-parent=\\\"2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">7128</mi></math>\"}"
     }
   ]
 }
