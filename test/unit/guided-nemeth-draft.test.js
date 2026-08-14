@@ -2459,6 +2459,16 @@ test('Rule 23.17 double-struck capital uses the barred typeform without an Engli
   assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠠⠸⠠⠝');
 });
 
+test('Rule 7.2 barred typeform capital keeps the letter indicator cell', () => {
+  const { document } = replayCells(sourceNotationToCells(',_;,r'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].children[0].text, 'R');
+  assert.equal(tree.children[0].attrs.mathvariant, 'double-struck');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'typeform-double-struck');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠠⠸⠰⠠⠗');
+});
+
 test('Rule 23.6 a leading decimal after equals is a number, not radical order', () => {
   const { document } = replayCells(sourceNotationToCells('#1 .k .465'));
   const tree = parseMathML(document.mathml);

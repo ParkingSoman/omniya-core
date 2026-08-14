@@ -4169,7 +4169,11 @@ function letterMapping(cell, inputState) {
   const typeformPrefix = typeform === 'bold' ? '⠸⠰'
     : typeform === 'script' ? '⠈⠰'
       : typeform === 'italic' ? '⠨⠰'
-        : typeform === 'double-struck' ? (capital ? '⠠⠸' : '⠠⠸⠰')
+        // Rule 7.2 barred typeform keeps the letter indicator (`⠠⠸⠰`) even
+        // before a capital. Rule 23.17's `,_,n` shortcut omits that cell and
+        // sets omitTypeformLetterIndicator on the input state.
+        : typeform === 'double-struck'
+          ? (inputState.omitTypeformLetterIndicator ? '⠠⠸' : '⠠⠸⠰')
           : '';
   return {
     id: `letter.${value}`,
@@ -4210,7 +4214,9 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const state = {
     prefix: inputState.prefix ?? '',
     mode: inputState.mode ?? null,
-    modifierScope: inputState.modifierScope ?? null
+    modifierScope: inputState.modifierScope ?? null,
+    ...(inputState.omitTypeformLetterIndicator ? { omitTypeformLetterIndicator: true } : {}),
+    ...(inputState.capital ? { capital: true } : {})
   };
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
@@ -4778,17 +4784,24 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   }
   // Rule 23.17's double-struck capital (`,_,n`) uses the capital indicator
   // in place of the English-letter cell. Keep the barred typeform mode and
-  // replay this one capital cell.
+  // advance directly into the typeform capital state so the following letter
+  // stamps `⠠⠸⠠x` without the alphabetic indicator.
   if (state.mode === null && state.prefix === '⠠⠸' && normalized === '⠠') {
     const barred = MAPPINGS.find((mapping) => mapping.id === 'typeform.barred');
     const activated = applyMapping(document, focus, { ...state, prefix: '' }, barred);
     if (activated.status !== 'rejected') {
-      return applyNemethCell({
+      return {
+        status: 'pending',
         document: activated.document,
         focus: activated.focus,
-        inputState: activated.inputState,
-        cell: normalized
-      });
+        inputState: {
+          ...activated.inputState,
+          omitTypeformLetterIndicator: true,
+          mode: `${activated.inputState.mode}:capital`,
+          prefix: ''
+        },
+        announcement: 'Nemeth capital indicator active within the typeform.'
+      };
     }
   }
 

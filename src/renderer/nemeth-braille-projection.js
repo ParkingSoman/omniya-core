@@ -607,6 +607,27 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
     }
   }
+  // Rule 14 numeric subscripts on a numeric base also omit the number sign
+  // inside the script (`#12;7` → `⠼⠂⠆⠰⠶`). Those digits are often stamped
+  // numeric-start rather than lower-cell-numeric; strip only script-local
+  // number signs when an msub/msup hosts an mn child.
+  const scriptedNumericStart = [...(sourceMath.getElementsByTagName?.('mn') ?? [])]
+    .filter((node) => {
+      const intent = node.getAttribute?.('data-omniya-nemeth-intent');
+      if (!(intent === 'numeric-start' || intent === 'lower-cell-numeric' || intent === 'single-letter-number')) {
+        return false;
+      }
+      let host = node.parentElement ?? node.parentNode;
+      while (host && host !== sourceMath) {
+        const name = (host.localName || host.nodeName || '').toLowerCase();
+        if (['msub', 'msup', 'msubsup', 'mmultiscripts'].includes(name)) return true;
+        host = host.parentElement ?? host.parentNode;
+      }
+      return false;
+    });
+  if (scriptedNumericStart.length) {
+    braille = braille.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
+  }
   if (lowerCellNumeric.length > 1) {
     braille = braille.replace(/⠘⠆⠬/g, '⠘⠆⠐⠬');
     braille = braille.replace(/⠘⠘⠆⠘/g, '⠘⠆⠐');
@@ -1409,8 +1430,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // The punctuation indicator is meaningful on the apostrophe cell even
     // though MathML/SRE sees only a prime glyph. Restore each bounded
     // possessive prefix without touching ordinary primes elsewhere.
+    // Authored ellipsis sequences are three bare dots (`⠄⠄⠄`); protect
+    // them so possessive rewrite cannot consume those cells (8-45, 14-141).
     let remaining = possessiveApostrophes.length;
-    braille = braille.replace(/(?<!⠸)⠄/g, (match) => {
+    braille = braille.replace(/⠄⠄⠄|(?<!⠸)⠄/g, (match) => {
+      if (match === '⠄⠄⠄') return match;
       if (remaining <= 0) return match;
       remaining -= 1;
       return '⠸⠄';
@@ -1840,6 +1864,32 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         if (remaining <= 0) return cell;
         remaining -= 1;
         return '⠸⠳';
+      });
+    }
+    // Rule 24.5 adjacent vertical-bar groups keep a multipurpose separator
+    // between authored fence groups. SRE concatenates double/single bars.
+    const doubleBarCount = explicitCellNodes.filter((sequence) => sequence === '⠳⠳').length;
+    const singleBarCount = explicitCellNodes.filter((sequence) => sequence === '⠳').length;
+    if (doubleBarCount >= 2) {
+      braille = braille.replace(/⠳⠳(?!⠐)(?=⠳⠳)/g, '⠳⠳⠐');
+    }
+    if (doubleBarCount >= 1 && singleBarCount >= 1) {
+      // Double bars immediately before a single-bar group that wraps an
+      // identifier (`|| |x| ||`) need a multipurpose separator. Require the
+      // following letter so a trailing `⠳⠳⠳` close/open edge is untouched.
+      braille = braille.replace(/⠳⠳(?!⠐)(?=⠳[⠁-⠵])/g, '⠳⠳⠐');
+      braille = braille.replace(/([⠁-⠵])⠳(?!⠐)(?=⠳⠳)/g, '$1⠳⠐');
+    }
+    // Rule 23.19 tally marks reuse the vertical-bar glyph in MathML. SRE
+    // projects that glyph as ⠳; restore each authored single-cell tally.
+    // Skip when bold bars are present so `⠸⠳` is not rewritten to `⠸⠸`.
+    const tallyCount = explicitCellNodes.filter((sequence) => sequence === '⠸').length;
+    if (tallyCount && !boldBarCount) {
+      let remaining = tallyCount;
+      braille = braille.replace(/⠳/g, (cell) => {
+        if (remaining <= 0) return cell;
+        remaining -= 1;
+        return '⠸';
       });
     }
     // Prefixed grouping fences can lose a bold, capital, or enlarged modifier
@@ -2293,14 +2343,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠈⠱(?!⠐)(?=⠈⠱)/g, '⠈⠱⠐');
   }
   const finalize = (value) => {
+    if (scriptedNumericStart.length) {
+      value = value.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
+    }
     const degreeWithFollowingNumber = sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠘⠨⠡"]') &&
       [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="lower-cell-numeric"]')].some((node) =>
         String(node.textContent ?? '').trim() === '20' && node.parentElement?.localName !== 'msup');
     if (degreeWithFollowingNumber && !value.includes('⠘⠨⠡⠐⠆⠴')) {
       value = value.replace('⠘⠨⠡⠆⠴', '⠘⠨⠡⠐⠆⠴');
     }
-    // SRE may project an indicated colon as digit 3. Restore only when the
-    // source stamped colon cells and the digit sits before a following number.
+    // SRE may project an indicated colon as digit 3. Restore when the source
+    // stamped colon cells: either digit+number (ratio) or letter/script host
+    // before a bare ⠒ (8-46, 8-47 such-that / unspaced colon).
     const colonCount = sourceNodes('mo[data-omniya-nemeth-cells="⠸⠒"]').length
       || sourceNodes('[data-omniya-nemeth-intent="punctuation-colon"]').length;
     let colonsNeeded = colonCount - [...value.matchAll(/⠸⠒/g)].length;
@@ -2310,13 +2364,29 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         colonsNeeded -= 1;
         return `${digit}⠸⠒`;
       });
+      value = value.replace(/([⠁-⠵])⠒(?!⠸)/g, (match, letter) => {
+        if (colonsNeeded <= 0) return match;
+        colonsNeeded -= 1;
+        return `${letter}⠸⠒`;
+      });
     }
-    // Italic typeform numbers keep `⠨⠼` on the source atom. SRE often emits
-    // an ordinary number sign; restore only the authored typeform prefix.
-    for (const node of sourceNodes('[data-omniya-nemeth-intent="typeform-italic-number"]')) {
+    // Typeform numbers keep an authored typeform+number-sign prefix on the
+    // source atom. SRE often emits an ordinary number sign; restore only that
+    // local prefix for italic, bold, and script numerals (Rule 7.2).
+    const typeformNumberIntents = new Set([
+      'typeform-italic-number',
+      'typeform-bold-number',
+      'typeform-script-number'
+    ]);
+    for (const node of [...(sourceMath.getElementsByTagName?.('mn') ?? [])]) {
+      const intent = node.getAttribute?.('data-omniya-nemeth-intent');
+      if (!typeformNumberIntents.has(intent)) continue;
       const cells = node.getAttribute?.('data-omniya-nemeth-cells');
-      if (!cells?.startsWith('⠨⠼') || value.includes(cells)) continue;
-      const rest = cells.slice(2);
+      if (!cells || value.includes(cells)) continue;
+      const prefixes = ['⠨⠼', '⠸⠼', '⠈⠼', '⠠⠸⠼'];
+      const prefix = prefixes.find((candidate) => cells.startsWith(candidate));
+      if (!prefix) continue;
+      const rest = cells.slice(prefix.length);
       if (rest && value.includes(`⠼${rest}`)) value = value.replace(`⠼${rest}`, cells);
       else if (rest && value.includes(rest)) value = value.replace(rest, cells);
     }
@@ -2409,6 +2479,9 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         returns -= 1;
         return '⠘⠨⠡⠐';
       });
+    }
+    if (scriptedNumericStart.length) {
+      value = value.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
     }
     return value;
   };
