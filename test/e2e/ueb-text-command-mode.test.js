@@ -33,7 +33,11 @@ async function openComposer(page) {
 
 async function enterCommand(page) {
   await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#save-status')?.textContent ?? ''));
+  await page.waitForFunction(() => {
+    const mode = document.querySelector('#mode-panel')?.textContent ?? '';
+    const save = document.querySelector('#save-status')?.textContent ?? '';
+    return /Command/i.test(mode) || /Command/i.test(save);
+  });
 }
 
 test('hides notes UI after launch and Add item', { timeout: 60_000 }, async (t) => {
@@ -109,32 +113,35 @@ test('command e cycles authoring method while the composer is empty', { timeout:
   );
 });
 
-test('command ? opens contextual help and the status live region updates', { timeout: 60_000 }, async (t) => {
-  const { app, page } = await launch('omniya-ueb-help-live-');
+test('mode panel is quiet and command ? help lists x and s', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-ueb-help-quiet-');
   t.after(() => app.close().catch(() => {}));
 
-  const live = await page.locator('#save-status').evaluate((el) => ({
-    role: el.getAttribute('role'),
+  const mode = await page.locator('#mode-panel').evaluate((el) => ({
+    id: el.id,
     live: el.getAttribute('aria-live'),
-    atomic: el.getAttribute('aria-atomic')
+    role: el.getAttribute('role'),
+    tabIndex: el.tabIndex
   }));
-  assert.equal(live.role, 'status');
-  assert.equal(live.live, 'polite');
-  assert.equal(live.atomic, 'true');
+  assert.equal(mode.live, null);
+  assert.notEqual(mode.role, 'status');
+  assert.equal(mode.tabIndex, -1);
+
+  const save = await page.locator('#save-status').evaluate((el) => ({
+    live: el.getAttribute('aria-live'),
+    role: el.getAttribute('role')
+  }));
+  assert.equal(save.live, null);
+  assert.notEqual(save.role, 'status');
 
   await openComposer(page);
   await enterCommand(page);
-  const commandStatus = await page.locator('#save-status').textContent();
-  assert.match(commandStatus ?? '', /Command/i);
-
   await page.keyboard.type('?');
   const dialog = page.getByRole('dialog', { name: 'Keyboard help' });
   await dialog.waitFor();
   const help = await page.locator('#keyboard-help [data-command-help]').innerText();
   assert.match(help ?? '', /Command · Text · UEB G2/i);
-  assert.match(help ?? '', /toggle UEB grade \/ G1 passage/i);
-  assert.match(help ?? '', /make Equation \(Nemeth\)/i);
-  assert.match(help ?? '', /n\s+submit/i);
-  await page.getByRole('button', { name: 'Close' }).click();
-  await dialog.waitFor({ state: 'hidden' });
+  assert.match(help ?? '', /\bx\b/i);
+  assert.match(help ?? '', /\bs\b/i);
+  assert.doesNotMatch(help ?? '', /make Equation \(Nemeth\).*e\b/i);
 });
