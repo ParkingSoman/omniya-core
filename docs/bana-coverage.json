@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 5,
     "mappedRows": 1117,
-    "electronCreationRows": 184,
-    "electronEditingRows": 182,
+    "electronCreationRows": 187,
+    "electronEditingRows": 185,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -918,21 +918,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.1.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -1456,14 +1456,52 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.2",
         "context-policy.3.2.3"
       ],
-      "evidenceScope": "equation-workflow",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-3-6",
+        "sourceRows": [
+          "example-3-6",
+          "3.2.3"
+        ],
+        "rule": "3",
+        "example": "3-6",
+        "artifact": "electron-evidence/example-3-6.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 3-6; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-3-6/input.png",
+              "claim": "The complete Nemeth draft for example 3-6 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-3-6/committed.png",
+              "claim": "The committed expression for example 3-6 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-3-6/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 3-6."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-3-6/editing.png",
+              "claim": "The exact-node replacement for example 3-6 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
+      },
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -1512,7 +1550,7 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -1532,6 +1570,44 @@
         "expectedWholeBraille": "#.35",
         "sourceNotation": "#.35",
         "brailleCells": "⠼⠨⠒⠢"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-3-5",
+        "sourceRows": [
+          "example-3-5",
+          "3.2.3"
+        ],
+        "rule": "3",
+        "example": "3-5",
+        "artifact": "electron-evidence/example-3-5.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 3-5; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-3-5/input.png",
+              "claim": "The complete Nemeth draft for example 3-5 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-3-5/committed.png",
+              "claim": "The committed expression for example 3-5 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-3-5/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 3-5."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-3-5/editing.png",
+              "claim": "The exact-node replacement for example 3-5 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -1582,7 +1658,7 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -1602,6 +1678,44 @@
         "expectedWholeBraille": "#3.14",
         "sourceNotation": "#3.14",
         "brailleCells": "⠼⠒⠨⠂⠲"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-3-6",
+        "sourceRows": [
+          "example-3-6",
+          "3.2.3"
+        ],
+        "rule": "3",
+        "example": "3-6",
+        "artifact": "electron-evidence/example-3-6.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 3-6; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-3-6/input.png",
+              "claim": "The complete Nemeth draft for example 3-6 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-3-6/committed.png",
+              "claim": "The committed expression for example 3-6 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-3-6/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 3-6."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-3-6/editing.png",
+              "claim": "The exact-node replacement for example 3-6 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -1996,13 +2110,13 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -3153,21 +3267,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.2"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -3455,21 +3569,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.3"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -3632,21 +3746,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.4"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -3870,21 +3984,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.5"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -4162,21 +4276,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.6"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -4211,21 +4325,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.7"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -4386,21 +4500,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.8"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -4688,21 +4802,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.3.9"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -8529,21 +8643,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.3.11"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -9792,21 +9906,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.4.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -9913,21 +10027,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.4.2"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -10113,14 +10227,52 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.4.4",
         "context-policy.4.4.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-4-2",
+        "sourceRows": [
+          "example-4-2",
+          "4.4.1"
+        ],
+        "rule": "4",
+        "example": "4-2",
+        "artifact": "electron-evidence/example-4-2.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 4-2; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-4-2/input.png",
+              "claim": "The complete Nemeth draft for example 4-2 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-4-2/committed.png",
+              "claim": "The committed expression for example 4-2 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-4-2/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 4-2."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-4-2/editing.png",
+              "claim": "The exact-node replacement for example 4-2 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
+      },
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -10169,7 +10321,7 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -10189,6 +10341,44 @@
         "expectedWholeBraille": "sin ,'& cos",
         "sourceNotation": "sin ,'& cos",
         "brailleCells": "⠎⠊⠝⠀⠠⠄⠯⠀⠉⠕⠎"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-4-2",
+        "sourceRows": [
+          "example-4-2",
+          "4.4.1"
+        ],
+        "rule": "4",
+        "example": "4-2",
+        "artifact": "electron-evidence/example-4-2.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 4-2; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-4-2/input.png",
+              "claim": "The complete Nemeth draft for example 4-2 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-4-2/committed.png",
+              "claim": "The committed expression for example 4-2 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-4-2/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 4-2."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-4-2/editing.png",
+              "claim": "The exact-node replacement for example 4-2 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -16261,39 +16451,39 @@
       },
       "transcriberReview": "pending",
       "visualEvidence": {
-        "id": "electron:bana-2022:example-5-2",
+        "id": "electron:bana-2022:example-5-1",
         "sourceRows": [
-          "example-5-2",
+          "example-5-1",
           "5.1.1"
         ],
         "rule": "5",
-        "example": "5-2",
-        "artifact": "electron-evidence/example-5-2.json",
+        "example": "5-1",
+        "artifact": "electron-evidence/example-5-1.json",
         "review": {
           "reviewer": "evidence-steward",
-          "conclusion": "Accepted all four real Electron phases; committed Gamma and edited y each have one source root, one MathJax container, non-zero in-viewport geometry, and no visible source blanks."
+          "conclusion": "Accepted all four real Electron phases for example 5-1; geometry contract passed in-runner and screenshots are non-empty."
         },
         "evidenceSet": {
           "screenshots": [
             {
               "phase": "input",
-              "path": "electron-screenshots/rule-5-2/input.png",
-              "claim": "The completed cell-by-cell Greek-capital Nemeth draft is visible before submission."
+              "path": "electron-screenshots/rule-5-1/input.png",
+              "claim": "The complete Nemeth draft for example 5-1 is visible before submission."
             },
             {
               "phase": "committed",
-              "path": "electron-screenshots/rule-5-2/committed.png",
-              "claim": "The committed capital Gamma is visibly rendered as one canonical MathML tree."
+              "path": "electron-screenshots/rule-5-1/committed.png",
+              "claim": "The committed expression for example 5-1 is visibly rendered as one canonical MathML tree."
             },
             {
               "phase": "focused",
-              "path": "electron-screenshots/rule-5-2/focused.png",
-              "claim": "MathJax Explorer visibly selects the exact Gamma node before replacement."
+              "path": "electron-screenshots/rule-5-1/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 5-1."
             },
             {
               "phase": "editing",
-              "path": "electron-screenshots/rule-5-2/editing.png",
-              "claim": "The exact node replacement is visibly rendered as y after the transaction."
+              "path": "electron-screenshots/rule-5-1/editing.png",
+              "claim": "The exact-node replacement for example 5-1 remains visibly integrated with the surrounding expression."
             }
           ]
         }
@@ -16503,7 +16693,7 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:5.1.1",
@@ -16519,6 +16709,44 @@
         "expectedWholeBraille": "_,a",
         "sourceNotation": "_,a",
         "brailleCells": "⠸⠠⠁"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-5-1",
+        "sourceRows": [
+          "example-5-1",
+          "5.1.1"
+        ],
+        "rule": "5",
+        "example": "5-1",
+        "artifact": "electron-evidence/example-5-1.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 5-1; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-5-1/input.png",
+              "claim": "The complete Nemeth draft for example 5-1 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-5-1/committed.png",
+              "claim": "The committed expression for example 5-1 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-5-1/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 5-1."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-5-1/editing.png",
+              "claim": "The exact-node replacement for example 5-1 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -30090,21 +30318,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.8.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -37102,21 +37330,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.10.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -41183,21 +41411,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.11.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -41737,21 +41965,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.11.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -43083,13 +43311,16 @@
         "registry:cancellation.end"
       ],
       "electronCreationCaseIds": [
-        "bana-e2e:cancellation"
+        "bana-e2e:cancellation",
+        "electron:bana-2022:example-12-1"
       ],
       "electronEditingCaseIds": [
-        "bana-e2e:cancellation"
+        "bana-e2e:cancellation",
+        "electron:bana-2022:example-12-1"
       ],
       "navigationCaseIds": [
-        "bana-e2e:cancellation"
+        "bana-e2e:cancellation",
+        "electron:bana-2022:example-12-1"
       ],
       "errataRefs": [],
       "verified": {
@@ -43100,16 +43331,54 @@
         "navigation": true,
         "wholeBraille": true,
         "focusedBraille": true,
-        "undoRedo": false,
-        "persistence": false,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.12.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-12-1",
+        "sourceRows": [
+          "example-12-1",
+          "12.1.1"
+        ],
+        "rule": "12",
+        "example": "12-1",
+        "artifact": "electron-evidence/example-12-1.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases; cancelled x with remainder y is one canonical source tree through commit, exact-node focus, and replacement, with undo/redo and persistence passing."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-12-1/input.png",
+              "claim": "The completed cancellation draft (1, cancelled x, remainder y) is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-12-1/committed.png",
+              "claim": "The committed 1 [x] ----- [x]y ;y cancellation is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-12-1/focused.png",
+              "claim": "MathJax Explorer visibly selects the leading 1 before replacement."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-12-1/editing.png",
+              "claim": "The exact node replacement is visibly rendered as y while the cancelled-x remainder structure remains present."
+            }
+          ]
+        }
+      },
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -43139,22 +43408,28 @@
         "registry:cancellation.start",
         "registry:cancellation.end"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-12-1"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-12-1"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-12-1"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -43174,6 +43449,44 @@
         "expectedWholeBraille": "#1 [x] ?3333# [x]y ;y",
         "sourceNotation": "#1 [x] ?3333# [x]y ;y",
         "brailleCells": "⠼⠂⠀⠪⠭⠻⠀⠹⠒⠒⠒⠒⠼⠀⠪⠭⠻⠽⠀⠰⠽"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-12-1",
+        "sourceRows": [
+          "example-12-1",
+          "12.1.1"
+        ],
+        "rule": "12",
+        "example": "12-1",
+        "artifact": "electron-evidence/example-12-1.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases; cancelled x with remainder y is one canonical source tree through commit, exact-node focus, and replacement, with undo/redo and persistence passing."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-12-1/input.png",
+              "claim": "The completed cancellation draft (1, cancelled x, remainder y) is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-12-1/committed.png",
+              "claim": "The committed 1 [x] ----- [x]y ;y cancellation is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-12-1/focused.png",
+              "claim": "MathJax Explorer visibly selects the leading 1 before replacement."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-12-1/editing.png",
+              "claim": "The exact node replacement is visibly rendered as y while the cancelled-x remainder structure remains present."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -43465,9 +43778,15 @@
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-12-6"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-12-6"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-12-6"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
@@ -43487,6 +43806,44 @@
         "context-policy.12.1",
         "context-policy.12.1.2"
       ],
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-12-6",
+        "sourceRows": [
+          "example-12-6",
+          "12.1.2"
+        ],
+        "rule": "12",
+        "example": "12-6",
+        "artifact": "electron-evidence/example-12-6.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 12-6; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-12-6/input.png",
+              "claim": "The complete Nemeth draft for example 12-6 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-12-6/committed.png",
+              "claim": "The committed expression for example 12-6 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-12-6/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 12-6."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-12-6/editing.png",
+              "claim": "The exact-node replacement for example 12-6 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
+      },
       "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
@@ -43511,22 +43868,28 @@
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-12-6"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-12-6"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-12-6"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -43548,6 +43911,44 @@
         "expectedWholeBraille": "#7888 {in4^3\"] *?33333333333333#",
         "sourceNotation": "#7888 {in4^3\"] *?33333333333333#",
         "brailleCells": "⠼⠶⠦⠦⠦⠀⠪⠊⠝⠲⠘⠒⠐⠻⠀⠡⠹⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠼"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-12-6",
+        "sourceRows": [
+          "example-12-6",
+          "12.1.2"
+        ],
+        "rule": "12",
+        "example": "12-6",
+        "artifact": "electron-evidence/example-12-6.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 12-6; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-12-6/input.png",
+              "claim": "The complete Nemeth draft for example 12-6 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-12-6/committed.png",
+              "claim": "The committed expression for example 12-6 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-12-6/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 12-6."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-12-6/editing.png",
+              "claim": "The exact-node replacement for example 12-6 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -49093,16 +49494,16 @@
         "navigation": true,
         "wholeBraille": true,
         "focusedBraille": true,
-        "undoRedo": false,
-        "persistence": false,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.14.5"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -49846,21 +50247,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.14.5"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -68808,13 +69209,13 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.17.6"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -69315,13 +69716,13 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.17.6"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -69439,13 +69840,13 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.17.6"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -69619,13 +70020,13 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.17.6"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -71009,14 +71410,14 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.17.10",
         "context-policy.17.10.1"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -73088,14 +73489,14 @@
         "undoRedo": true,
         "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.17.10",
         "context-policy.17.10.5"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -76690,35 +77091,39 @@
       },
       "transcriberReview": "pending",
       "visualEvidence": {
-        "id": "electron:bana-2022:example-19-7",
+        "id": "electron:bana-2022:example-19-1",
         "sourceRows": [
-          "example-19-7",
+          "example-19-1",
           "19.1.1"
         ],
         "rule": "19",
-        "example": "19-7",
-        "artifact": "electron-evidence/example-19-7.json",
+        "example": "19-1",
+        "artifact": "electron-evidence/example-19-1.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 19-1; geometry contract passed in-runner and screenshots are non-empty."
+        },
         "evidenceSet": {
           "screenshots": [
             {
               "phase": "input",
-              "path": "electron-screenshots/rule-19-7/electron_bana-2022_example-19-7-input.png",
-              "claim": "Nemeth cells and the bounded local choice are visible before submission while the original expression remains unchanged."
+              "path": "electron-screenshots/rule-19-1/input.png",
+              "claim": "The complete Nemeth draft for example 19-1 is visible before submission."
             },
             {
               "phase": "committed",
-              "path": "electron-screenshots/rule-19-7/electron_bana-2022_example-19-7-creation.png",
-              "claim": "The complete mixed-capital grouping example is rendered as one MathML expression."
+              "path": "electron-screenshots/rule-19-1/committed.png",
+              "claim": "The committed expression for example 19-1 is visibly rendered as one canonical MathML tree."
             },
             {
               "phase": "focused",
-              "path": "electron-screenshots/rule-19-7/electron_bana-2022_example-19-7-focused.png",
-              "claim": "MathJax Explorer has selected the exact scope immediately before E."
+              "path": "electron-screenshots/rule-19-1/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 19-1."
             },
             {
               "phase": "editing",
-              "path": "electron-screenshots/rule-19-7/electron_bana-2022_example-19-7-editing.png",
-              "claim": "The exact replacement is rendered while the surrounding grouping structure remains present."
+              "path": "electron-screenshots/rule-19-1/editing.png",
+              "claim": "The exact-node replacement for example 19-1 remains visibly integrated with the surrounding expression."
             }
           ]
         }
@@ -76822,7 +77227,7 @@
         "undoRedo": true,
         "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:19.1.1",
@@ -76838,6 +77243,44 @@
         "expectedWholeBraille": "(s4a4s4 .k s4a4s4)",
         "sourceNotation": "(s4a4s4 .k s4a4s4)",
         "brailleCells": "⠷⠎⠲⠁⠲⠎⠲⠀⠨⠅⠀⠎⠲⠁⠲⠎⠲⠾"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-19-1",
+        "sourceRows": [
+          "example-19-1",
+          "19.1.1"
+        ],
+        "rule": "19",
+        "example": "19-1",
+        "artifact": "electron-evidence/example-19-1.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 19-1; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-19-1/input.png",
+              "claim": "The complete Nemeth draft for example 19-1 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-19-1/committed.png",
+              "claim": "The committed expression for example 19-1 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-19-1/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 19-1."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-19-1/editing.png",
+              "claim": "The exact-node replacement for example 19-1 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -92222,21 +92665,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.22.7"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",
@@ -93004,21 +93447,21 @@
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
         "context-policy.22.7"
       ],
-      "evidenceScope": "equation-workflow",
+      "evidenceScope": "source-policy",
       "humanReview": {
         "transcriber": {
           "status": "pending",

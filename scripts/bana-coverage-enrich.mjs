@@ -117,15 +117,9 @@ const rows = inventory.rows.map((row) => {
       ? !documentContextExample
       : contextPolicyIds.length === 0 && mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy')
   );
-  const disposition = excludedDocument
-    ? row.disposition
-    : contextPolicyIds.length > 0 && !isExample
-      ? 'implemented-context-policy'
-      : (mappingIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
-        ? 'implemented-operation'
-        : row.disposition === 'unclassified'
-          ? row.disposition
-          : row.disposition;
+  const disposition = row.disposition === 'unclassified' && (mappingIds.length > 0 || contextPolicyIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
+      ? (contextPolicyIds.length > 0 && mappingIds.length === 0 || mappings.some((mapping) => mapping.args?.sourceKind === 'context-policy') ? 'implemented-context-policy' : 'implemented-operation')
+      : row.disposition;
   for (const field of ['creation', 'editing', 'navigation', 'wholeBraille', 'focusedBraille', 'undoRedo', 'persistence']) {
     verified[field] = excludedDocument
       ? false
