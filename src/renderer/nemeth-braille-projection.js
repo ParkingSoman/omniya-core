@@ -1453,6 +1453,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠘([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠐⠬/g, '⠘$1⠬');
     braille = braille.replace(/⠬⠠⠀/g, '⠬⠀');
     braille = braille.replace(/⠄⠄⠄⠀⠘⠬/g, '⠄⠄⠄⠀⠬');
+    // Raised diagonal series keep bare lower-cell numerators (14-86). SRE may
+    // project each bevelled term as a simple fraction (`⠹…⠼`) or a numeric
+    // fraction (`⠼digit⠸⠌`); strip those indicators inside the superscript.
+    braille = braille.replace(/⠹([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]+)⠸⠌([^⠹]*?)⠼/g, '$1⠸⠌$2');
+    braille = braille.replace(/⠬⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠬');
+    braille = braille.replace(/⠄⠄⠄⠀⠀+/g, '⠄⠄⠄⠀');
   }
   // The equality relation inside a superscript is a normal baseline relation;
   // SRE may expose the baseline-return cell before it. The authored Rule 11
@@ -1765,7 +1771,9 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // the final fence into a semantic wrapper and emit an extra closing cell;
   // restore the authored close exactly once per closed source group. This is
   // a source-intent correction, not a delimiter parser.
-  if (closedGroups.length) {
+  // Enlarged capital closes (`⠈⠠⠾`) also contain `⠾`; do not treat those
+  // cells as excess round closers (14-119).
+  if (closedGroups.length && !hasSource('mo[data-omniya-nemeth-cells="⠈⠠⠷"]')) {
     const expectedClosers = closedGroups.length;
     let closeCount = [...braille].filter((cell) => cell === '⠾').length;
     if (closeCount > expectedClosers) {
@@ -1947,7 +1955,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // number of authored groups, so restore only these source boundaries and
   // trim excess trailing closes. This is deliberately bounded to a sequence
   // of authored groups and is not delimiter parsing.
-  if (closedGroups.length >= 3) {
+  // Skip when enlarged capital brackets are present: their `⠈⠠⠾` cells also
+  // contain `⠾`, and continuing `⠀⠬` inside divided rows is not a missing
+  // round close (14-119).
+  if (closedGroups.length >= 3 && !hasSource('mo[data-omniya-nemeth-cells="⠈⠠⠷"]')) {
     for (const boundary of ['⠀⠬', '⠀⠨⠅']) {
       const index = braille.indexOf(boundary);
       if (index >= 0 && braille[index - 1] !== '⠾' && braille[index - 1] !== '⠼') {
@@ -3524,6 +3535,9 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const next = open ? skipLayout(elementNeighbor(open, 'next'), 'next') : null;
       return next?.getAttribute?.('data-omniya-nemeth-intent') === 'lower-cell-numeric' ? '⠈⠠⠷' : match;
     });
+    // Explicit blanks already return to the baseline; drop SRE's script-return
+    // cell before those blanks (14-119 divided rows).
+    braille = braille.replace(/⠐⠀/g, '⠀');
     // Rule 14.10.2: after an open enlarged bracket, a continuing plus keeps
     // multipurpose (`⠈⠠⠷⠐⠬`). Unary minus inside the first cell does not.
     // After a blank, continuing plus/minus keep multipurpose; do not mark a
@@ -3531,11 +3545,6 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠈⠠⠷(?![⠐])(?=⠬)/g, '⠈⠠⠷⠐');
     braille = braille.replace(/⠀(?![⠐])(?=[⠬⠤](?!⠷))/g, '⠀⠐');
     braille = braille.replace(/⠐$/g, '');
-    // Empty enlarged bracket row keeps both fences (`⠈⠠⠷⠀⠈⠠⠾`).
-    braille = braille.replace(/⠈⠠⠷⠀⠈(?!⠠)/g, '⠈⠠⠷⠀⠈⠠⠾⠀⠈');
-    // Close fences before a following open must stay complete.
-    braille = braille.replace(/⠈⠠⠾⠀⠈⠠⠷/g, '⠈⠠⠾⠀⠈⠠⠷');
-    braille = braille.replace(/⠞⠈(?!⠠)/g, '⠞⠈⠠⠾⠀⠈');
   }
   // Rule 19.1.2's closing bracket may carry both a subscript and a
   // superscript. SRE exposes the baseline return after that embellished
@@ -3740,6 +3749,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     let adjacencyCursor = 0;
     for (const [left, right] of authoredAdjacencies) {
       if (authoredSpacedPairs.has(`${left}\0${right}`)) continue;
+      // A letter nested against a close fence (`TE^T]`) can share cells with a
+      // later letter-blank-close (`…T @,)`). Do not let the nested pair erase
+      // those later blanks (14-119). Fence-to-fence adjacency still cleans up.
+      if (/[⠁-⠵]$/.test(left) && /[⠷⠾]/.test(right)) continue;
       const spaced = `${left}⠀${right}`;
       const index = value.indexOf(spaced, adjacencyCursor);
       if (index < 0) continue;

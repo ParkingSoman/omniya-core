@@ -894,6 +894,122 @@ test('Rule 14.8.6 raised diagonal series strips capital and multipurpose artifac
     applyNemethSourceIntentToBraille('⠭⠘⠂⠬⠠⠂⠠⠸⠌⠆⠐⠬⠂⠸⠌⠒⠬⠠⠀⠄⠄⠄⠀⠬⠂⠸⠌⠝', source),
     '⠭⠘⠂⠬⠂⠸⠌⠆⠬⠂⠸⠌⠒⠬⠀⠄⠄⠄⠀⠬⠂⠸⠌⠝'
   );
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠭⠘⠂⠬⠹⠂⠸⠌⠆⠼⠬⠹⠂⠸⠌⠒⠼⠬⠀⠄⠄⠄⠀⠀⠬⠹⠂⠸⠌⠝⠼', source),
+    '⠭⠘⠂⠬⠂⠸⠌⠆⠬⠂⠸⠌⠒⠬⠀⠄⠄⠄⠀⠬⠂⠸⠌⠝'
+  );
+});
+
+test('Rule 14.9.3 lettered integral underbars restore subscript PATH/C forms', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <msub>
+        <mo data-omniya-nemeth-cells="⠮">∫</mo>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠠⠏">P</mi>
+          <mi data-omniya-nemeth-cells="⠠⠁">A</mi>
+          <mi data-omniya-nemeth-cells="⠠⠞">T</mi>
+          <mi data-omniya-nemeth-cells="⠠⠓">H</mi>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mi data-omniya-nemeth-cells="⠠⠉">C</mi>
+        </mrow>
+      </msub>
+      <mi mathvariant="bold" data-omniya-nemeth-cells="⠸⠰⠠⠋">F</mi>
+      <mo data-omniya-nemeth-cells="⠷">(</mo>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠐⠮⠩⠠⠏⠠⠁⠠⠞⠠⠓⠀⠠⠉⠻⠸⠰⠠⠋⠷', source),
+    '⠮⠰⠠⠏⠠⠁⠠⠞⠠⠓⠀⠰⠠⠉⠐⠸⠰⠠⠋⠷'
+  );
+});
+
+test('Rule 14.9.4 alignment polynomials strip number signs and keep multipurpose blanks', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      <msup>
+        <mi data-omniya-nemeth-cells="⠭">x</mi>
+        <mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn>
+      </msup>
+      <mo data-omniya-nemeth-cells="⠤">−</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <msup>
+        <mi data-omniya-nemeth-cells="⠭">x</mi>
+        <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      </msup>
+      <mo data-omniya-nemeth-cells="⠬">+</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠒⠒⠒⠒⠒⠒">⋯</mo>
+      <mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠆⠭⠘⠒⠐⠤⠀⠭⠘⠆⠐⠬⠀⠒⠒⠒⠒⠒⠒⠼⠒', source),
+    '⠆⠭⠘⠒⠐⠤⠀⠭⠘⠆⠐⠬⠀⠒⠒⠒⠒⠒⠒⠒'
+  );
+});
+
+test('Rule 14.10.2 enlarged capital brackets restore multipurpose and blanks', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mo data-omniya-nemeth-cells="⠈⠠⠷">[</mo>
+      <mo data-omniya-nemeth-cells="⠤">−</mo>
+      <mn data-omniya-nemeth-intent="numeric-start">2</mn>
+      <msup>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠠⠞">T</mi>
+          <mi data-omniya-nemeth-cells="⠠⠑">E</mi>
+        </mrow>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠠⠞">T</mi>
+          <mo data-omniya-nemeth-cells="⠈⠠⠾">]</mo>
+        </mrow>
+      </msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠈⠠⠷">[</mo>
+      <mo data-omniya-nemeth-cells="⠬">+</mo>
+      <msup data-omniya-nemeth-intent="multipurpose-superscript" data-omniya-nemeth-cells="⠐⠘">
+        <mi>e</mi>
+        <mrow>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+          <mi>t</mi>
+        </mrow>
+      </msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠤">−</mo>
+      <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      <msup data-omniya-nemeth-intent="multipurpose-superscript" data-omniya-nemeth-cells="⠐⠘">
+        <mi data-omniya-nemeth-cells="⠠⠑">E</mi>
+        <mrow>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+          <mi data-omniya-nemeth-cells="⠠⠞">T</mi>
+        </mrow>
+      </msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠬">+</mo>
+      <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      <msup data-omniya-nemeth-intent="multipurpose-superscript" data-omniya-nemeth-cells="⠐⠘">
+        <mi data-omniya-nemeth-cells="⠠⠑">E</mi>
+        <mrow>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+          <mi data-omniya-nemeth-cells="⠠⠞">T</mi>
+        </mrow>
+      </msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠈⠠⠾">]</mo>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠈⠷⠤⠼⠆⠠⠞⠠⠑⠘⠠⠞⠈⠾⠐⠀⠈⠷⠬⠑⠘⠆⠞⠐⠀⠤⠆⠠⠑⠘⠆⠠⠞⠐⠀⠬⠆⠠⠑⠘⠆⠠⠞⠐⠀⠈⠾',
+      source
+    ),
+    '⠈⠠⠷⠤⠼⠆⠠⠞⠠⠑⠘⠠⠞⠈⠠⠾⠀⠈⠠⠷⠐⠬⠑⠘⠆⠞⠀⠐⠤⠆⠠⠑⠘⠆⠠⠞⠀⠐⠬⠆⠠⠑⠘⠆⠠⠞⠀⠈⠠⠾'
+  );
 });
 
 test('Rule 14.8.7 subscript equals after a blank restores the level indicator', () => {
