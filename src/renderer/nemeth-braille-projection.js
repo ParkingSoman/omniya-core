@@ -184,7 +184,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   );
   const diagonalFractions = [...sourceMath.querySelectorAll('mfrac[data-omniya-nemeth-cells]')]
     .map((node) => {
-      const digits = new Map([['0', '⠴'], ['1', '⠂'], ['2', '⠆'], ['3', '⠒'], ['4', '⠲'], ['5', '⠢'], ['6', '⠖'], ['7', '⠶'], ['8', '⠦'], ['9', '⠔']]);
+      const digits = new Map([['0', '⠴'], ['1', '⠂'], ['2', '⠆'], ['3', '⠒'], ['4', '⠲'], ['5', '⠢'], ['6', '⠖'], ['7', '⠶'], ['8', '⠦'], ['9', '⠔'], [',', '⠠']]);
       const denominator = String(node.children?.[1]?.textContent ?? '').trim();
       return `${node.getAttribute('data-omniya-nemeth-cells')}${[...denominator].map((d) => digits.get(d) ?? '').join('')}`;
     })
@@ -951,7 +951,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // both while enriching the bevelled MathML; remove only those structural
     // artifacts at this source-marked boundary.
     braille = braille.replace(/⠠⠹/g, '⠹').replace(/⠠⠸⠌/g, '⠸⠌').replace(/⠼⠠⠼/g, '');
+    // A bevelled denominator stays in the same numeric passage. SRE prefixes
+    // the isolated denominator <mn> with a fresh number indicator; strip only
+    // that indicator immediately after the diagonal line.
+    braille = braille.replace(/⠸⠌⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠸⠌');
     for (const sequence of diagonalFractions) {
+      const withoutComma = sequence.replace(/⠠/g, '');
+      if (withoutComma !== sequence && braille.includes(withoutComma)) {
+        braille = braille.replace(withoutComma, sequence);
+      }
+      // SRE may leave a terminal number sign after a completed bevelled
+      // denominator before the next explicit space.
+      braille = braille.replaceAll(`${sequence}⠼`, sequence);
       const digits = sequence.slice(0, -2);
       const escaped = sequence.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       // Replace the complete SRE bevelled fraction span, preserving the

@@ -174,6 +174,17 @@ test('an omitted transcriber close is restored between adjacent authored letter 
   );
 });
 
+test('an omitted upper-half close inside a subscript is restored before the following capital', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mrow><mi>n</mi><mo data-omniya-nemeth-cells="⠈⠘⠾">⎤</mo><mi data-omniya-nemeth-cells="⠠⠊">I</mi></mrow></msub></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠁⠰⠝⠠⠊', source),
+    '⠠⠁⠰⠝⠈⠘⠾⠠⠊'
+  );
+});
+
 test('mixed transcriber grouping restores omitted open and close around a flat sequence', () => {
   const source = new DOMParser().parseFromString(
     '<math><mo data-omniya-nemeth-cells="⠈⠘⠷">⎡</mo><mi data-omniya-nemeth-cells="⠁">a</mi><mn data-omniya-nemeth-intent="single-letter-number">1</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠁">a</mi><mn data-omniya-nemeth-intent="single-letter-number">2</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠁">a</mi><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠝">n</mi><mo data-omniya-nemeth-cells="⠈⠰⠾">⎦</mo></math>',
@@ -462,4 +473,19 @@ test('Rule 22 does not replace a larger expression with a single arrow node\'s c
     'text/xml'
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠭⠫⠒⠒⠕⠽', source), '⠭⠫⠒⠒⠕⠽');
+});
+
+test('Rule 23.1 diagonal thousand-comma keeps the authored comma and no extra number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mfrac bevelled="true" data-omniya-nemeth-cells="⠼⠂⠸⠌"><mn data-omniya-nemeth-intent="numeric-start">1</mn><mn data-omniya-nemeth-intent="numeric-start">10,000</mn></mfrac><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠨⠍">μ</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">1</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠈⠠⠁">Å</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠂⠸⠌⠼⠂⠴⠴⠴⠴⠀⠨⠍⠀⠨⠅⠀⠼⠂⠀⠈⠠⠁', source),
+    '⠼⠂⠸⠌⠂⠴⠠⠴⠴⠴⠀⠨⠍⠀⠨⠅⠀⠼⠂⠀⠈⠠⠁'
+  );
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠂⠸⠌⠂⠴⠠⠴⠴⠴⠼⠀⠨⠍⠀⠨⠅⠀⠼⠂⠀⠈⠠⠁', source),
+    '⠼⠂⠸⠌⠂⠴⠠⠴⠴⠴⠀⠨⠍⠀⠨⠅⠀⠼⠂⠀⠈⠠⠁'
+  );
 });
