@@ -23710,6 +23710,10 @@
       "printedPage": null,
       "pdfPage": 188,
       "sourceNotation": "e~sin x",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠑",
         "⠘",
@@ -23743,6 +23747,10 @@
       "printedPage": null,
       "pdfPage": 188,
       "sourceNotation": "cos~2 x",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠉",
         "⠕",
@@ -23776,6 +23784,10 @@
       "printedPage": null,
       "pdfPage": 188,
       "sourceNotation": "e~cos~~2 x",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠑",
         "⠘",
@@ -23812,6 +23824,10 @@
       "printedPage": null,
       "pdfPage": 188,
       "sourceNotation": "e~sin x+icos x",
+      "operationIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "cells": [
         "⠑",
         "⠘",
@@ -23852,6 +23868,9 @@
       "printedPage": null,
       "pdfPage": 188,
       "sourceNotation": "e~sin~~2 x+sin~~2 y",
+      "operationIds": [
+        "script.sup-sup"
+      ],
       "cells": [
         "⠑",
         "⠘",
@@ -23897,6 +23916,9 @@
       "printedPage": null,
       "pdfPage": 189,
       "sourceNotation": "q~log~;q a",
+      "operationIds": [
+        "script.sup-sup-sub"
+      ],
       "cells": [
         "⠟",
         "⠘",
@@ -23933,6 +23955,10 @@
       "printedPage": null,
       "pdfPage": 189,
       "sourceNotation": ",v;max (m[n)",
+      "operationIds": [
+        "script.subscript",
+        "script.contracted-comma"
+      ],
       "cells": [
         "⠠",
         "⠧",
@@ -23971,6 +23997,9 @@
       "printedPage": null,
       "pdfPage": 189,
       "sourceNotation": "e~3.14159 26535",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠑",
         "⠘",
@@ -24012,6 +24041,10 @@
       "printedPage": null,
       "pdfPage": 189,
       "sourceNotation": "x~1+1_/2+1_/3+ ''' +1_/n",
+      "operationIds": [
+        "script.superscript",
+        "fraction.start.diagonal"
+      ],
       "cells": [
         "⠭",
         "⠘",
@@ -24062,6 +24095,9 @@
       "printedPage": null,
       "pdfPage": 190,
       "sourceNotation": "s1 ''' s;n",
+      "operationIds": [
+        "script.subscript"
+      ],
       "cells": [
         "⠎",
         "⠂",
@@ -24098,6 +24134,9 @@
       "printedPage": null,
       "pdfPage": 190,
       "sourceNotation": "#10~3+ ----",
+      "operationIds": [
+        "script.superscript"
+      ],
       "cells": [
         "⠼",
         "⠂",
