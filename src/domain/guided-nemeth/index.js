@@ -212,32 +212,14 @@ function insertAfter(tree, focus, replacement) {
     return replacement;
   }
   if (isHole(current)) return replaceCurrent(tree, focus, replacement);
-  // A group-close follow-up leaves focus on the fenced wrapper. Continue the
-  // surrounding local content inside that group's content row, immediately
-  // before its closing fence. This is the same compositional behavior used
-  // for nested fractions and does not widen the input scope.
+  // A group-close follow-up leaves focus on the fenced wrapper. An open
+  // group still collects content before its closing fence. Once the wrapper
+  // is marked closed, it is a finished operand: the next token belongs
+  // beside it in the surrounding row, including unspaced identifiers such as
+  // Rule 23 `dx`. Keep this state on the source node rather than inferring
+  // it from siblings or maintaining a parser stack.
   if (current.name === 'mrow' && current.attrs?.['data-omniya-group']) {
-    // `closeStructure` deliberately leaves focus on the fenced wrapper so
-    // MathJax can announce the completed local construction.  That wrapper
-    // is now a closed operand: the next token belongs beside it in the
-    // surrounding row, never back inside its content.  Keep this state on
-    // the source node rather than inferring it from siblings or maintaining
-    // a parser stack.
-    if (current.attrs?.['data-omniya-role'] === 'closed-group' &&
-        (replacement.name === 'mo' || replacement.attrs?.['data-omniya-group'])) {
-      const surrounding = findMathParent(tree, current.attrs['data-omniya-id']);
-      if (surrounding) {
-        const groupIndex = surrounding.children.indexOf(current);
-        surrounding.children.splice(groupIndex + 1, 0, replacement);
-        return replacement;
-      }
-    }
-    // A blank after a closed fenced construct is the explicit local boundary
-    // between that group and the following expression. Preserve it as a
-    // sibling in the surrounding row; only a non-space token continues inside
-    // the group's content. This keeps `(a) x` distinct from `(a x)` without
-    // requiring a passage parser or delimiter stack.
-    if (replacement.attrs?.['data-omniya-nemeth-intent'] === 'explicit-space') {
+    if (current.attrs?.['data-omniya-role'] === 'closed-group') {
       const surrounding = findMathParent(tree, current.attrs['data-omniya-id']);
       if (surrounding) {
         const groupIndex = surrounding.children.indexOf(current);
@@ -278,9 +260,20 @@ function insertAfter(tree, focus, replacement) {
     // adding the token so completion traversal does not report a stale empty
     // slot after nested groups are authored.
     if (isHole(parent) && current.name === 'mspace') materializeHoleContainer(parent);
+    // A closed group is a finished operand even when focus is still on one
+    // of its fence children. Insert beside the wrapper, never before its
+    // close fence.
+    if (parent.attrs?.['data-omniya-group'] && parent.attrs?.['data-omniya-role'] === 'closed-group') {
+      const surrounding = findMathParent(tree, parent.attrs['data-omniya-id']);
+      if (surrounding) {
+        const groupIndex = surrounding.children.indexOf(parent);
+        surrounding.children.splice(groupIndex + 1, 0, replacement);
+        return replacement;
+      }
+    }
     // A token focused inside a fenced group's content row stays in that row.
-    // A token focused on the group wrapper itself, after its close indicator,
-    // is inserted beside the group in the surrounding expression.
+    // A token focused on the still-open group wrapper is inserted before the
+    // close fence so the group can keep collecting local content.
     if (parent.attrs?.['data-omniya-group'] && current.attrs?.['data-omniya-role'] !== 'content') {
       const last = parent.children?.at(-1);
       if (last && isElement(last) && last.name === 'mo' && last.attrs?.['data-omniya-role'] === 'close-fence') {
@@ -889,6 +882,30 @@ function openScriptChain(tree, focus, directions) {
       }
       chain = Array.from({ length: delta }, () => direction);
     }
+  } else if (current.name !== 'math' && !isHole(current)) {
+    // BANA 14.4 absolute mixed chains (~~;, ~;~, ;~~, …) name a level path
+    // from the unscripted base. When the writer is already on the item that
+    // occupies the leading same-direction prefix, open only the remaining
+    // opposite direction(s) on that item instead of rebuilding the prefix.
+    const firstDirection = directions[0];
+    let leading = 0;
+    while (leading < directions.length && directions[leading] === firstDirection) leading += 1;
+    const currentDepth = scriptDepth(tree, current, firstDirection);
+    if (leading > 0 && leading < directions.length && currentDepth > 0) {
+      let at = { tree, focus };
+      if (currentDepth > leading) {
+        const returned = applyAbsoluteScriptLevel(tree, focus, firstDirection, leading);
+        if (returned) at = returned;
+      }
+      const rest = directions.slice(leading);
+      if (rest.length === 1) {
+        const direction = rest[0];
+        const role = direction === 'sub' ? 'subscript' : 'superscript';
+        return wrapCurrent(at.tree, at.focus, direction === 'sub' ? 'msub' : 'msup',
+          ['base', role], {}, role);
+      }
+      return openScriptChain(at.tree, at.focus, rest);
+    }
   }
   const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
   const base = current.name !== 'math' && !isHole(current)
@@ -1249,14 +1266,14 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null, data
     const current = currentNode(tree, focus);
     const parent = current.name !== 'math' ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
     const role = current.attrs?.['data-omniya-role'];
-    if (parent && ['mover', 'munder'].includes(parent.name) &&
+    if (parent && ['mover', 'munder', 'munderover'].includes(parent.name) &&
       ['overscript', 'underscript'].includes(role) && current.name === 'mo' && current.children?.[0]?.text === '¯') {
       const row = element('mrow', [current, atom('mo', '¯', { 'data-omniya-role': role, ...dataAttributes })]);
       const index = parent.children.indexOf(current);
       parent.children[index] = row;
       return { tree, focus: focusNode(row.children[1]), wrapper: parent };
     }
-    if (parent && ['mover', 'munder'].includes(parent.name) &&
+    if (parent && ['mover', 'munder', 'munderover'].includes(parent.name) &&
       ['overscript', 'underscript'].includes(role) && current.name === 'mrow') {
       current.children.push(atom('mo', '¯', { 'data-omniya-role': role, ...dataAttributes }));
       return { tree, focus: focusNode(current.children.at(-1)), wrapper: parent };
@@ -2844,10 +2861,24 @@ function mappingApplies(mapping, context) {
     const radical = hasAncestor(context.tree, context.node, mapping.args.element ?? ['msqrt', 'mroot']);
     return Boolean(radical && radical.attrs?.['data-omniya-radical-order'] === String(mapping.args.radicalOrder));
   }
-  if (mapping.id === 'script.sup-sub.move-sub') return Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
-  if (mapping.id === 'script.sub-sup.move-sup') return Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
-  if (mapping.id === 'script.superscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
-  if (mapping.id === 'script.subscript') return !Boolean(hasAncestor(context.tree, context.node, 'msubsup'));
+  if (mapping.id === 'script.sup-sub.move-sub') {
+    const compound = hasAncestor(context.tree, context.node, 'msubsup');
+    return Boolean(compound && isHole(compound.children?.[1]));
+  }
+  if (mapping.id === 'script.sub-sup.move-sup') {
+    const compound = hasAncestor(context.tree, context.node, 'msubsup');
+    return Boolean(compound && isHole(compound.children?.[2]));
+  }
+  // Inside a filled msubsup, further level indicators nest on the focused
+  // script item (BANA 14.4.3). Keep the one-cell openers blocked only while
+  // either compound slot is still an empty hole that the move rows own.
+  if (mapping.id === 'script.superscript' || mapping.id === 'script.subscript') {
+    const compound = hasAncestor(context.tree, context.node, 'msubsup');
+    if (!compound) return true;
+    const openHole = isHole(compound.children?.[1]) || isHole(compound.children?.[2]);
+    if (openHole) return false;
+    return context.node.name !== 'math' && !isHole(context.node);
+  }
   if (mapping.id === 'script.left-subscript') return context.node.name === 'math' || isHole(context.node);
   if (mapping.id === 'cancellation.end') return Boolean(hasAncestor(context.tree, context.node, 'menclose'));
   if (mapping.id === 'script.baseline') return Boolean(hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mover', 'munder', 'munderover']) ||
@@ -5258,9 +5289,26 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   }
   // BANA 14.8.7: `~;` after a populated superscript is the subscript of that
   // superscripted item, not a conversion of the outer msup into msubsup.
+  // Hold the two-cell prefix when a longer absolute chain such as `~;~`
+  // remains registered, so three-component indicators stay one local code.
   if (state.mode === null && state.prefix === '⠘' && normalized === '⠰' &&
     hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
     context.node.name !== 'math' && !isHole(context.node)) {
+    const held = `${state.prefix}${normalized}`;
+    const longerChain = MATCHABLE_MAPPINGS.some((mapping) =>
+      mapping.action === 'open-script-chain' &&
+      mapping.cells.length > held.length &&
+      mapping.cells.slice(0, held.length).join('') === held &&
+      mappingApplies(mapping, context));
+    if (longerChain) {
+      return {
+        status: 'pending',
+        document,
+        focus,
+        inputState: { ...state, prefix: held },
+        announcement: 'Nemeth sequence may continue.'
+      };
+    }
     const depth = scriptDepth(context.tree, context.node, 'sup');
     if (depth > 0) {
       let targetFocus = focus;
@@ -5409,6 +5457,48 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     !LETTERS.has(normalized) && !DIGITS.has(normalized) && normalized !== '⠼') {
     const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
     if (baseline) {
+      // Rule 14.11 non-simultaneous scripts: multipurpose/baseline followed by
+      // the opposite level indicator attaches that script to the same item.
+      // Promote the one-sided script through openScriptSlot while focus is still
+      // on its script child, then continue with any later symbol cells.
+      const oneSided = ancestor(context.tree, context.node, ['msup', 'msub']);
+      const oppositeRole = normalized === '⠘' ? 'superscript'
+        : normalized === '⠰' ? 'subscript'
+          : null;
+      const existingRole = oneSided?.name === 'msub' ? 'subscript'
+        : oneSided?.name === 'msup' ? 'superscript'
+          : null;
+      if (oneSided && oppositeRole && existingRole && oppositeRole !== existingRole
+        && (oneSided.children?.[1] === context.node
+          || isInScriptSlot(context.tree, oneSided.children?.[1], context.node))) {
+        const slotFocus = oneSided.children[1] === context.node
+          ? focus
+          : focusNode(oneSided.children[1]);
+        const opened = openScriptSlot(
+          context.tree,
+          slotFocus,
+          oppositeRole === 'subscript' ? 'msub' : 'msup',
+          oppositeRole
+        );
+        const compound = ancestor(opened.tree, currentNode(opened.tree, opened.focus), ['msubsup']);
+        if (compound) {
+          compound.attrs['data-omniya-nemeth-intent'] = existingRole === 'subscript'
+            ? 'non-simultaneous-scripts:sub-sup'
+            : 'non-simultaneous-scripts:sup-sub';
+        }
+        return {
+          status: 'applied',
+          localCommitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+          document: {
+            formatVersion: MATH_FORMAT_VERSION,
+            mathml: serializeMathML(opened.tree),
+            focus: opened.focus
+          },
+          focus: opened.focus,
+          inputState: { prefix: '', mode: null, modifierScope: state.modifierScope ?? null },
+          announcement: `script.baseline; script.${oppositeRole === 'subscript' ? 'subscript' : 'superscript'}`
+        };
+      }
       const returned = applyMapping(document, focus, { ...state, prefix: '' }, baseline);
       if (returned.status !== 'rejected') {
         const next = applyNemethCell({ document: returned.document, focus: returned.focus,
