@@ -60,3 +60,10 @@ test('canonical parser removes formatting whitespace text nodes', () => {
   assert.deepEqual(tree.children.map((child) => child.name), ['mfrac']);
   assert.deepEqual(tree.children[0].children.map((child) => child.name), ['mrow', 'mrow']);
 });
+
+test('canonicalization keeps authored shape projection cells', () => {
+  const source = '<math><mo data-omniya-shape-kind="keystroke" data-omniya-nemeth-cells="⠫⠅⠬⠻" data-omniya-projection-cells="⠬">+</mo></math>';
+  const tree = parseMathML(source);
+  assert.equal(tree.children[0].attrs['data-omniya-projection-cells'], '⠬');
+  assert.match(canonicalizeMathML(source), /data-omniya-projection-cells="⠬"/);
+});
