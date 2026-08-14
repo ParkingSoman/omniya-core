@@ -524,6 +524,59 @@ function wrapScriptAfterPrime(tree, focus, elementName, roles, attrs = {}, initi
   return { tree, focus: focusNode(slot ?? wrapper) };
 }
 
+// Rule 8 literary/indicated periods can end a multi-letter numerator. Diagonal
+// `_/` is then a structural follow-up over that punctuated item, not a fresh
+// empty fraction after the period operator.
+function wrapDiagonalFractionAfterPunctuatedItem(tree, focus, attrs = {}, initialSlot = 'denominator') {
+  const current = currentNode(tree, focus);
+  const intent = current.attrs?.['data-omniya-nemeth-intent'] ?? '';
+  const literaryOrIndicatedPeriod = current.name === 'mo'
+    && current.children?.[0]?.text === '.'
+    && (intent === 'punctuation-literary-period'
+      || intent === 'punctuation-period'
+      || current.attrs?.['data-omniya-nemeth-cells'] === '⠲'
+      || current.attrs?.['data-omniya-nemeth-cells'] === '⠸⠲');
+  if (!literaryOrIndicatedPeriod) return null;
+  const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+  if (!parent || !['math', 'mrow'].includes(parent.name)) return null;
+  const endIndex = parent.children.indexOf(current);
+  if (endIndex < 0) return null;
+  let startIndex = endIndex;
+  while (startIndex > 0) {
+    const previous = parent.children[startIndex - 1];
+    if (previous?.name === 'mi') {
+      startIndex -= 1;
+      continue;
+    }
+    if (previous?.name === 'mn'
+      && previous.attrs?.['data-omniya-nemeth-intent'] === 'single-letter-number') {
+      startIndex -= 1;
+      continue;
+    }
+    break;
+  }
+  const span = parent.children.slice(startIndex, endIndex + 1);
+  const numerator = span.length === 1
+    ? (() => {
+      const clone = structuredClone(span[0]);
+      clone.attrs['data-omniya-id'] = id();
+      return clone;
+    })()
+    : element('mrow', span.map((node) => {
+      const clone = structuredClone(node);
+      clone.attrs['data-omniya-id'] = id();
+      return clone;
+    }), { 'data-omniya-id': id() });
+  const wrapper = element('mfrac', [], {
+    ...attrs,
+    'data-omniya-id': span[0].attrs?.['data-omniya-id'] ?? id()
+  });
+  wrapper.children.push(numerator, hole(wrapper, 'denominator'));
+  parent.children.splice(startIndex, span.length, wrapper);
+  const slot = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === initialSlot);
+  return { tree, focus: focusNode(slot ?? wrapper) };
+}
+
 
 function openFixedRoot(tree, focus, index, indexText, radicalOrder = null, indexKind = 'mn') {
   const current = currentNode(tree, focus);
@@ -1672,8 +1725,37 @@ const MAPPINGS = [
   // is explicit in the BANA punctuation table and matters after a MathML
   // expression at baseline.
   token('punctuation.right-single-quote', ['⠠', '⠴'], ['8.1'], '’', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',0' }),
-  token('punctuation.left-double-quote', ['⠦'], ['8.1'], '“', 'mo', { sourceNotation: '8' }),
-  token('punctuation.right-double-quote', ['⠴'], ['8.1'], '”', 'mo', { sourceNotation: '0' }),
+  token('punctuation.left-double-quote', ['⠦'], ['8.1'], '“', 'mo', {
+    sourceNotation: '8',
+    dataAttributes: { 'data-omniya-nemeth-intent': 'punctuation-left-double-quote' }
+  }),
+  token('punctuation.right-double-quote', ['⠴'], ['8.1'], '”', 'mo', {
+    sourceNotation: '0',
+    dataAttributes: { 'data-omniya-nemeth-intent': 'punctuation-right-double-quote' }
+  }),
+  token('punctuation.left-double-quote.indicated', ['⠸', '⠦'], ['8.1', '8.2'], '“', 'mo', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    sourceNotation: '_8',
+    dataAttributes: {
+      'data-omniya-nemeth-intent': 'punctuation-left-double-quote',
+      'data-omniya-nemeth-cells': '⠸⠦'
+    }
+  }),
+  token('punctuation.right-double-quote.indicated', ['⠸', '⠴'], ['8.1', '8.2'], '”', 'mo', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    sourceNotation: '_0',
+    dataAttributes: {
+      'data-omniya-nemeth-intent': 'punctuation-right-double-quote',
+      'data-omniya-nemeth-cells': '⠸⠴'
+    }
+  }),
+  token('punctuation.literary-period', ['⠲'], ['8.1', '8.3'], '.', 'mo', {
+    sourceNotation: '4',
+    dataAttributes: {
+      'data-omniya-nemeth-intent': 'punctuation-literary-period',
+      'data-omniya-nemeth-cells': '⠲'
+    }
+  }),
   token('operator.minus', ['⠤'], ['20.6'], '−', 'mo', { preferLonger: true, sourceNotation: '-' }),
   token('operator.equals', ['⠨', '⠅'], ['21.1'], '=', 'mo', { sourceNotation: '.k' }),
   token('comparison.less', ['⠐', '⠅'], ['21.5'], '<', 'mo', { preferLonger: true, sourceNotation: '"k' }),
@@ -2180,6 +2262,11 @@ const MAPPINGS = [
     sourceNotation: ",'&",
     dataAttributes: { 'data-omniya-nemeth-intent': 'and-word', 'data-omniya-nemeth-cells': '⠠⠄⠯' }
   }),
+  token('misc.or', ['⠠', '⠄', '⠕', '⠗'], ['6.4.6', '8.2'], 'or', 'mtext', {
+    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+    sourceNotation: ",'or",
+    dataAttributes: { 'data-omniya-nemeth-intent': 'or-word', 'data-omniya-nemeth-cells': '⠠⠄⠕⠗' }
+  }),
   // BANA's mathematical “then” abbreviation in Rule 6.4.7 is one bounded
   // local text construction. It is not a literary word parser: the four
   // registered cells create one MathML text atom and subsequent mathematics
@@ -2227,7 +2314,10 @@ const MAPPINGS = [
   token('misc.prime', ['⠄'], ['23.16'], '′', 'mo', { preferLonger: true, sourceNotation: "'" }),
   token('misc.factorial', ['⠯'], ['23.9'], '!', 'mo', { sourceNotation: '&' }),
   token('misc.percent', ['⠈', '⠴'], ['23.15'], '%', 'mo', { preferLonger: true, sourceNotation: '`0' }),
-  token('misc.empty-set', ['⠸', '⠴'], ['23.7'], '∅', 'mo', { sourceNotation: '_0' }),
+  token('misc.empty-set', ['⠸', '⠴'], ['23.7'], '∅', 'mo', {
+    sourceNotation: '_0',
+    dataAttributes: { 'data-omniya-nemeth-intent': 'empty-set', 'data-omniya-nemeth-cells': '⠸⠴' }
+  }),
   // The shape + left-head prefix is also the start of every left/vertical
   // arrow. Keep the local meaning pending while a shaft or right head may
   // follow; end-of-code commits the standalone angle.
@@ -2869,8 +2959,55 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'misc.prime') {
     return context.node.name !== 'math' && !isHole(context.node);
   }
+  if (mapping.id === 'misc.empty-set') {
+    const parent = context.node.name !== 'math'
+      ? findMathParent(context.tree, context.node.attrs?.['data-omniya-id'])
+      : context.node;
+    if (parent?.children) {
+      const focusIndex = parent.children.indexOf(context.node);
+      const ahead = focusIndex >= 0 ? parent.children.slice(0, focusIndex + 1) : parent.children;
+      let openQuotes = 0;
+      for (const child of ahead) {
+        const intent = child.attrs?.['data-omniya-nemeth-intent'];
+        const text = child.children?.[0]?.text;
+        if (intent === 'punctuation-left-double-quote' || text === '“') openQuotes += 1;
+        if (intent === 'punctuation-right-double-quote' || text === '”') openQuotes -= 1;
+      }
+      if (openQuotes > 0) return false;
+    }
+    if (context.node.name === 'math' && !(context.node.children?.length > 0)) return true;
+    if (isHole(context.node)) return true;
+    const text = context.node.children?.[0]?.text;
+    return context.node.name === 'mo' && ['=', '≡', '≠', '≈', '∼'].includes(text);
+  }
+  if (mapping.id === 'punctuation.left-double-quote.indicated') {
+    if (context.node.name === 'math' && !(context.node.children?.length > 0)) return true;
+    if (context.node.name === 'mspace' || isHole(context.node)) return true;
+    if (context.node.attrs?.['data-omniya-role'] === 'open-fence') return true;
+    const text = context.node.children?.[0]?.text;
+    return context.node.name === 'mo' && ['–', '―', '−', '(', '[', '{', '⟨'].includes(text);
+  }
+  if (mapping.id === 'punctuation.question') {
+    if (context.node.name === 'math' && !(context.node.children?.length > 0)) return false;
+    if (context.node.name === 'mspace' || isHole(context.node)) return false;
+    if (context.node.attrs?.['data-omniya-role'] === 'open-fence') return false;
+    const text = context.node.children?.[0]?.text;
+    if (context.node.name === 'mo' && ['–', '―', '(', '[', '{', '⟨', '“'].includes(text)) return false;
+    return context.node.name !== 'math' && !isHole(context.node);
+  }
+  if (mapping.id === 'punctuation.right-double-quote.indicated') {
+    if (context.node.name === 'math' && !(context.node.children?.length > 0)) return false;
+    if (isHole(context.node) && !hasAncestor(context.tree, context.node, 'msqrt')) return false;
+    return true;
+  }
+  if (mapping.id === 'punctuation.literary-period') {
+    if (context.node.name === 'math' || isHole(context.node) || context.node.name === 'mn') return false;
+    return context.node.name === 'mi' || context.node.name === 'mtext' ||
+      (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-literary-period');
+  }
   return true;
 }
+
 
 function resolveModifierAmbiguity(mappings, modeValue) {
   if (modeValue?.startsWith?.('modifier-') && modeValue !== 'modifier-parallel') {
@@ -2987,6 +3124,10 @@ const TREE_OPERATIONS = Object.freeze({
       const inserted = insertAfter(tree, focus, wrapper);
       const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === args.initialSlot);
       return { tree, focus: focusNode(first ?? inserted) };
+    }
+    if (args.element === 'mfrac' && (args.attrs?.bevelled === true || args.attrs?.bevelled === 'true')) {
+      const punctuated = wrapDiagonalFractionAfterPunctuatedItem(tree, focus, args.attrs ?? {}, args.initialSlot ?? 'denominator');
+      if (punctuated) return punctuated;
     }
     if (args.element === 'mfrac' && node.name !== 'math' && !isHole(node) &&
       (findMathParent(tree, node.attrs?.['data-omniya-id'])?.name === 'mrow' ||
@@ -3395,9 +3536,57 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   const sequence = `${state.prefix}${normalized}`;
   const match = PREFIXES.get(sequence);
   const context = contextFor(document, focus);
+  // Rule 15 contracted bar after an ordinary letter/number (example 8-15).
+  // Keep following operators/punctuation on the surrounding row: only the
+  // bar itself uses the parallel-modifier continuation, and arithmetic or
+  // Rule 8 punctuation must clear that mode before insertion.
+  if (!state.prefix && normalized === '⠱' &&
+    (context.node.name === 'mi' || context.node.name === 'mn') &&
+    !isHole(context.node) &&
+    state.mode !== 'multipurpose' &&
+    !state.mode?.startsWith?.('modifier-')) {
+    const bar = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');
+    if (bar && mappingApplies(bar, context)) {
+      return applyMapping(document, focus, state, bar);
+    }
+  }
+  if (state.mode === 'modifier-parallel' && !state.prefix &&
+    (normalized === '⠬' || normalized === '⠤' || normalized === '⠸' || normalized === '⠲')) {
+    return applyNemethCell({
+      document,
+      focus,
+      inputState: { ...state, mode: null, modifierScope: null },
+      cell: normalized
+    });
+  }
+  // After a left double quote, `.k_0` is equals then indicated closer.
+  if (state.prefix === '⠨⠅' && normalized === '⠸') {
+    const parent = context.node.name !== 'math' ? findMathParent(context.tree, context.node.attrs?.['data-omniya-id']) : null;
+    const index = parent?.children?.indexOf?.(context.node) ?? -1;
+    const previous = index > 0 ? parent.children[index - 1] : null;
+    const quoteFocus = context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-left-double-quote' ||
+      context.node.children?.[0]?.text === '“' ||
+      previous?.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-left-double-quote' ||
+      previous?.children?.[0]?.text === '“';
+    if (quoteFocus) {
+      const equals = MAPPINGS.find((candidate) => candidate.id === 'operator.equals');
+      if (equals) {
+        const committed = applyMapping(document, focus, { ...state, prefix: '' }, equals);
+        if (committed.status !== 'rejected') {
+          return applyNemethCell({
+            document: committed.document,
+            focus: committed.focus,
+            inputState: committed.inputState,
+            cell: normalized
+          });
+        }
+      }
+    }
+  }
   // UEB literary passage/word modes admit neutral alphabetic cells without
   // changing the mathematical mode. Preserve the authored Braille cells on
   // speech-safe mtext so projection can reproduce the source exactly.
+
   if (!state.prefix && (state.mode === 'ueb-passage' || state.mode === 'ueb-word') && LETTERS.has(normalized)) {
     return applyMapping(document, focus, state, {
       id: `ueb-neutral.${LETTERS.get(normalized)}`,
@@ -3636,12 +3825,34 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       : digitMapping(normalized);
     return applyMapping(document, focus, { ...state, mode: null }, mapping);
   }
+  // Rule 8 quotes the radical sign itself (`8>_0`) without a radicand.
+  if (state.mode === null && !state.prefix && normalized === '⠜' &&
+    context.node.name === 'mo' &&
+    (context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-left-double-quote' ||
+      context.node.children?.[0]?.text === '“')) {
+    return applyMapping(document, focus, state, {
+      id: 'radical.sign',
+      cells: ['⠜'],
+      banaRefs: ['8.2', '16.1'],
+      action: 'insert-token',
+      commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: {
+        name: 'mo',
+        value: '√',
+        dataAttributes: {
+          'data-omniya-nemeth-intent': 'radical-sign',
+          'data-omniya-nemeth-cells': '⠜'
+        }
+      }
+    });
+  }
   // An indexed radical with a letter order is one bounded local construction
   // (`<n>`). Hold only the opener plus that single index letter until its
   // closing cell arrives. This is not an expression buffer and cannot absorb
   // a second mathematical token.
   if (state.prefix === '⠣' && LETTERS.has(normalized) &&
     (context.node.name === 'math' || isHole(context.node)) &&
+
     // A letter-index radical is the fallback meaning of the bare `<` cell.
     // Do not take that fallback while a longer registered construction (for
     // example `<lim`) begins with the same two cells.  Consult the exact
@@ -3666,6 +3877,41 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         return applyNemethCell({ document: activated.document, focus: activated.focus, inputState: activated.inputState, cell: normalized });
       }
     }
+  }
+
+  // Rule 8.3's English capital after a literary apostrophe (`,',J`) holds the
+  // three-cell prefix `⠠⠄⠠` and then the letter. Without this local hold,
+  // `⠠⠄` would replay as ditto/prime and open a fresh capital letter.
+  if (state.mode === null && state.prefix === '⠠⠄' && normalized === '⠠') {
+    return {
+      status: 'pending',
+      document,
+      focus,
+      inputState: { ...state, prefix: '⠠⠄⠠', mode: null },
+      announcement: 'Nemeth sequence may continue.'
+    };
+  }
+  if (state.mode === null && state.prefix === '⠠⠄⠠' && LETTERS.has(normalized)) {
+    const letter = LETTERS.get(normalized);
+    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, {
+      id: 'letter.english-capital-apostrophe',
+      cells: ['⠠', '⠄', '⠠', normalized],
+      banaRefs: ['8.3', '6.1'],
+      action: 'insert-token',
+      commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
+      args: {
+        name: 'mi',
+        value: letter.toUpperCase(),
+        sourceNotation: `,',${letter}`,
+        dataAttributes: {
+          'data-omniya-nemeth-intent': 'english-letter',
+          'data-omniya-nemeth-cells': `⠠⠄⠠${normalized}`
+        }
+      },
+      commandLabel: `letter.english-capital-${letter}`,
+      validContexts: ['empty-root', 'row', 'structure-slot'],
+      errataRefs: []
+    });
   }
 
   // Function-name constructions are bounded atoms, but their ordinary
@@ -3797,7 +4043,21 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
     if (functionPrefix && !functionContinues) {
       const applied = applyMapping(document, focus, { ...state, prefix: '', mode: null }, functionPrefix);
-      if (applied.status !== 'rejected') return applyNemethCell({ document: applied.document, focus: applied.focus, inputState: applied.inputState, cell: normalized });
+      if (applied.status !== 'rejected') {
+        // Rule 8 literary period after an abbreviated function (`min4`, `log4`)
+        // must win before the bare lower-cell digit path can open a numeric
+        // subscript on the just-committed function atom. After commit, focus is
+        // no longer on that <mi>, so replaying ⠲ alone would miss the mi-scoped
+        // literary check and become numeral 4.
+        if (normalized === '⠲') {
+          const literary = MAPPINGS.find((candidate) => candidate.id === 'punctuation.literary-period');
+          if (literary) {
+            const withPeriod = applyMapping(applied.document, applied.focus, applied.inputState, literary);
+            if (withPeriod.status !== 'rejected') return withPeriod;
+          }
+        }
+        return applyNemethCell({ document: applied.document, focus: applied.focus, inputState: applied.inputState, cell: normalized });
+      }
     }
 
   }
@@ -4286,12 +4546,22 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
   }
+  // Rule 8 left double quote shares digit-8. Prefer the quote at an empty
+  // root or after an authored blank/comma so `8>_0` stays a quotation.
+  if (state.mode === null && !state.prefix && normalized === '⠦' &&
+    ((context.node.name === 'math' && !(context.node.children?.length > 0)) ||
+      context.node.name === 'mspace' ||
+      context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma')) {
+    const quote = MAPPINGS.find((candidate) => candidate.id === 'punctuation.left-double-quote');
+    if (quote) return applyMapping(document, focus, state, quote);
+  }
   // BANA 6.4.5 permits a lower-cell numeral after a mathematical blank
   // inside a grouped expression without repeating the number indicator. This
   // is one bounded numeric atom at the current row boundary, not a passage
   // buffer. Keep the temporary numeric mode only for the digit run.
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     (context.node.name === 'mspace' || (isHole(context.node) && hasAncestor(context.tree, context.node, 'mrow')))) {
+
     const digit = digitMapping(normalized);
     digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
@@ -4348,11 +4618,40 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // digit becomes its own <mn> sibling and the mode clears after that cell.
   // Keep the condition deliberately narrow so a digit never becomes an
   // implicit subscript or an expression-sized numeric buffer.
+  if (state.prefix && normalized === '⠲') {
+    const functions = BANA_FUNCTION_MAPPINGS.filter((mapping) =>
+      mapping.cells.join('') === state.prefix && mappingApplies(mapping, context));
+    if (functions.length === 1) {
+      const committed = applyMapping(document, focus, { ...state, prefix: '' }, functions[0]);
+      if (committed.status !== 'rejected') {
+        return applyNemethCell({
+          document: committed.document,
+          focus: committed.focus,
+          inputState: committed.inputState,
+          cell: normalized
+        });
+      }
+    }
+  }
+  if (state.mode === null && !state.prefix && normalized === '⠲' &&
+    context.node.name === 'mi' &&
+    (context.node.attrs?.['data-omniya-nemeth-intent'] === 'function-name' ||
+      String(context.node.children?.[0]?.text ?? '').length > 1 ||
+      (() => {
+        const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+        const index = parent?.children?.indexOf?.(context.node) ?? -1;
+        const previous = index > 0 ? parent.children[index - 1] : null;
+        return previous?.name === 'mi' && /^[A-Za-z]$/.test(previous.children?.[0]?.text ?? '');
+      })())) {
+    const literary = MAPPINGS.find((candidate) => candidate.id === 'punctuation.literary-period');
+    if (literary) return applyMapping(document, focus, state, literary);
+  }
   // BANA numeric subscripts on abbreviated functions (`log10`) omit the
   // subscript indicator. The function atom is already committed; the digit
   // opens that one required subscript slot and starts a lower-cell run.
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
     context.node.name === 'mi' && context.node.attrs?.['data-omniya-nemeth-intent'] === 'function-name') {
+
     const script = MAPPINGS.find((candidate) => candidate.id === 'script.subscript');
     const opened = applyMapping(document, focus, state, script);
     if (opened.status !== 'rejected') {
@@ -4514,7 +4813,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       }
       return applyMapping(document, focus, state, numericPunctuationMapping(normalized, '.', '3.2.3'));
     }
-    if (normalized === '⠠') return applyMapping(document, focus, state, numericPunctuationMapping(normalized, ',', '3.2.2'));
+    if (normalized === '⠠') {
+      const text = String(context.node.children?.[0]?.text ?? '');
+      if (context.node.name === 'mn' && text.includes('.')) {
+        const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.comma');
+        if (punctuation) {
+          return applyMapping(document, focus, { ...state, mode: null }, punctuation);
+        }
+      }
+      return applyMapping(document, focus, state, numericPunctuationMapping(normalized, ',', '3.2.2'));
+    }
     // BANA 24.1.g: after a decimal point, dot 5 makes the next symbol
     // nonnumeric (unless it is the comma or punctuation indicator).  This is
     // a one-symbol local mode, not a numeric/passage parser: the following
@@ -4550,7 +4858,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // by the immediately preceding currency atom; it accepts only the next
   // numeric run's cells and never becomes a passage buffer.
   const currency = context.node.name === 'mo' && ['$', '£', '¢', '₣', '₦', '€', '₩', '¥'].includes(context.node.children?.[0]?.text);
+  if (currency && state.mode === null && !state.prefix && normalized === '⠸' &&
+    MATCHABLE_MAPPINGS.some((mapping) => mapping.id === 'punctuation.period' && mappingApplies(mapping, context))) {
+    return { status: 'pending', document, focus, inputState: { ...state, prefix: '⠸' }, announcement: 'Nemeth punctuation period pending.' };
+  }
+  if (currency && state.prefix === '⠸' && normalized === '⠲') {
+    const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.period');
+    if (punctuation) return applyMapping(document, focus, { ...state, prefix: '', mode: null }, punctuation);
+  }
   if (state.mode === null && currency && DIGITS.has(normalized)) {
+
     return applyMapping(document, focus, { ...state, mode: 'ueb-numeric' }, {
       id: `ueb-number.${DIGITS.get(normalized)}`,
       cells: [normalized], banaRefs: ['3.1.1'], action: 'insert-numeric',

@@ -141,6 +141,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     .filter((node) => /^[A-Z]$/.test(String(node.textContent ?? '').trim()) ||
       String(node.getAttribute?.('data-omniya-nemeth-cells') ?? '').startsWith('⠠')).length;
   const punctuationPeriods = sourceMath.querySelectorAll('[data-omniya-nemeth-intent="punctuation-period"]');
+  const literaryPeriods = sourceNodes('[data-omniya-nemeth-intent="punctuation-literary-period"]');
+  const leftDoubleQuotes = sourceNodes('[data-omniya-nemeth-intent="punctuation-left-double-quote"]');
+  const rightDoubleQuotes = sourceNodes('[data-omniya-nemeth-intent="punctuation-right-double-quote"]');
+  const radicalSigns = sourceNodes('[data-omniya-nemeth-intent="radical-sign"]');
   const explicitGroups = sourceMath.querySelectorAll('[data-omniya-group="round"]');
   const closedGroups = [...sourceMath.querySelectorAll('[data-omniya-group="round"]')]
     .filter((node) => node.getAttribute('data-omniya-role') === 'closed-group');
@@ -326,6 +330,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // separator around it. BANA's source has one blank cell, so collapse
     // only this explicitly authored spacing run, never arbitrary SRE output.
     braille = braille.replace(/⠀{2,}/g, '⠀');
+    // A punctuation comma before an authored ellipsis keeps its mathematical
+    // blank. SRE may concatenate the comma cell with the ellipsis cells.
+    if (hasSource('mo[data-omniya-nemeth-cells="⠄⠄⠄"]') &&
+      hasSource('[data-omniya-nemeth-intent="punctuation-comma"]')) {
+      braille = braille.replace(/⠠(?!⠀)(?=⠄⠄⠄)/g, '⠠⠀');
+    }
     // Enrichment can create two semantic spaces for one authored blank when
     // a lower-cell decimal is followed by a relation. The source has only
     // one blank at each boundary; collapse the run after the bounded number
@@ -1505,6 +1515,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         present.set(sequence, (present.get(sequence) ?? 0) + 1);
         continue;
       }
+      if (sequence === '⠠⠄⠕⠗' && /(⠠⠄)?⠕⠗/.test(braille)) {
+        braille = braille.replace(/(?<!⠠⠄)⠕⠗/, sequence);
+        present.set(sequence, (present.get(sequence) ?? 0) + 1);
+        continue;
+      }
       if (sequence === '⠠⠄⠮⠝' && /⠞⠓⠑⠝/.test(braille)) {
         braille = braille.replace(/⠞⠓⠑⠝/, sequence);
         present.set(sequence, (present.get(sequence) ?? 0) + 1);
@@ -1673,7 +1688,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     : [...(parent?.childNodes ?? [])].filter((child) => child.nodeType === 1);
   // Transcriber grouping after a then/and word is not a MathML fence SRE can
   // recover. Wrap the following identifier with the authored open/close cells.
-  for (const intent of ['then-word', 'and-word']) {
+  for (const intent of ['then-word', 'and-word', 'or-word']) {
     const word = sourceNodes(`[data-omniya-nemeth-intent="${intent}"]`)[0];
     const wordCells = word?.getAttribute?.('data-omniya-nemeth-cells');
     if (!word || !wordCells || !braille.includes(wordCells)) continue;
@@ -1981,6 +1996,14 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       value = value.replace(/((?:⠠[⠁-⠵]){2,})(?!⠠)⠀/, '$1⠠⠀⠀');
       value = value.replace(/((?:⠠[⠁-⠵]){2,}⠠)(?=[⠁-⠵])/, '$1⠀');
     }
+    // Rule 8.3 apostrophe-capital English letters are a single authored cell
+    // sequence. Capital-punctuation restoration above can append an extra
+    // dot-6 before the following blank; remove only that local artifact.
+    for (const node of sourceNodes('[data-omniya-nemeth-intent="english-letter"]')) {
+      const sequence = node.getAttribute?.('data-omniya-nemeth-cells');
+      if (!/^⠠⠄⠠[⠁-⠵]$/.test(sequence ?? '')) continue;
+      value = value.replace(new RegExp(`${sequence}⠠⠀+`), `${sequence}⠀`);
+    }
     // Two source siblings with explicit authored cell sequences have no
     // mathematical blank between them. Semantic relation/operator layout may
     // insert one visually; remove only the blank anchored by those two local
@@ -2036,6 +2059,73 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     }
     return value;
   };
+  // Rule 8 literary periods are bare ⠲. SRE may treat them as a simple-fraction
+  // digit (`⠹⠲`) or leave a visual blank before the period cell.
+  if (literaryPeriods.length) {
+    braille = braille.replace(/⠹⠲/g, '⠲');
+    braille = braille.replace(/([⠁-⠵]|⠝)⠀⠲/g, '$1⠲');
+  }
+  // Rule 8.3's English capital with literary apostrophe (`⠠⠄⠠⠚`) must not
+  // keep a following capital-punctuation indicator that SRE inserts before
+  // the next blank.
+  const apostropheCapitals = sourceNodes('[data-omniya-nemeth-intent="english-letter"]')
+    .map((node) => node.getAttribute('data-omniya-nemeth-cells'))
+    .filter((cells) => /^⠠⠄⠠[⠁-⠵]$/.test(cells ?? ''));
+  for (const sequence of apostropheCapitals) {
+    braille = braille.replace(new RegExp(`${sequence}⠠(?=⠀)`), sequence);
+  }
+  // Bevelled fractions that carry literary periods keep the diagonal line
+  // indicator. SRE can emit a plain slash after the period cell.
+  if (literaryPeriods.length &&
+    [...simpleFractions].some((node) => node.getAttribute('bevelled') === 'true')) {
+    braille = braille.replace(/⠲(?!⠸)⠌/g, '⠲⠸⠌');
+  }
+  // Indicated left double quotes keep `_8` (`⠸⠦`). SRE may project the empty-
+  // set glyph (`⠿`) or a bare left quote when the source marks the indicated
+  // form after a fence or dash.
+  const indicatedLeftQuotes = leftDoubleQuotes.filter((node) =>
+    node.getAttribute('data-omniya-nemeth-cells') === '⠸⠦');
+  if (indicatedLeftQuotes.length) {
+    let remainingQuotes = indicatedLeftQuotes.length;
+    braille = braille.replace(/⠿/g, (match) => {
+      if (remainingQuotes <= 0) return match;
+      remainingQuotes -= 1;
+      return '⠸⠦';
+    });
+    braille = braille.replace(/⠤⠤⠀+⠸⠦/g, '⠤⠤⠸⠦');
+    braille = braille.replace(/⠷⠀*⠸⠦⠀*/g, '⠷⠸⠦');
+  }
+  // Unindicated left quotes are bare ⠦. SRE may keep a number sign from a
+  // prior numeric passage (`⠼⠦`) when the quote opens a later comparison.
+  const bareLeftQuotes = leftDoubleQuotes.filter((node) =>
+    (node.getAttribute('data-omniya-nemeth-cells') || '⠦') === '⠦');
+  if (bareLeftQuotes.length) {
+    let remainingQuotes = Math.max(0, bareLeftQuotes.length - [...braille.matchAll(/(?<!⠼|⠸)⠦/g)].length);
+    braille = braille.replace(/⠼⠦/g, (match) => {
+      if (remainingQuotes <= 0) return match;
+      remainingQuotes -= 1;
+      return '⠦';
+    });
+  }
+  // Quoted decimals keep the number sign before the decimal marker
+  // (`⠼⠨⠦`). SRE sometimes swaps those cells after an indicated quote.
+  if (leftDoubleQuotes.length) {
+    braille = braille.replace(/⠸⠦⠨⠼(?=[⠂⠆⠒⠲⠢⠔⠦⠖⠶⠴])/g, '⠸⠦⠼⠨');
+    braille = braille.replace(/⠦⠨⠼(?=[⠂⠆⠒⠲⠢⠔⠦⠖⠶⠴])/g, '⠦⠼⠨');
+    braille = braille.replace(/⠸⠦⠀+⠨⠼(?=[⠂⠆⠒⠲⠢⠔⠦⠖⠶⠴])/g, '⠸⠦⠼⠨');
+    braille = braille.replace(/⠸⠦⠀+(?=⠨)/g, '⠸⠦');
+  }
+  // A radical sign inside quotes is the standalone `⠜` cell, not a square-
+  // root enclosure. Restore the authored cells when SRE emits a different
+  // radical form around the same quote pair.
+  if (radicalSigns.length && leftDoubleQuotes.length && rightDoubleQuotes.length) {
+    for (const sign of radicalSigns) {
+      const cells = sign.getAttribute('data-omniya-nemeth-cells') || '⠜';
+      if (cells && !braille.includes(cells) && /⠦.*⠸⠴/.test(braille)) {
+        braille = braille.replace(/⠦([^⠦⠸]*)⠸⠴/, `⠦${cells}⠸⠴`);
+      }
+    }
+  }
   if (!decimalNonnumeric.length && !numericDecimal.length) return finalize(normalizeFractionSubtraction(restorePunctuationPeriods(braille, punctuationPeriods.length, explicitGroups.length).replace(/⠀{2,}/g, '⠀')));
   if (numericDecimal.length && !decimalNonnumeric.length) {
     // BANA 3.2.3 uses dot 4 for a decimal point in a numeric item. SRE's
@@ -2190,6 +2280,14 @@ function restorePunctuationPeriods(braille, count, groups = 0) {
     if (remaining <= 0) return match;
     remaining -= 1;
     return `${digit}⠸⠲`;
+  });
+  // Currency and similar baseline operators keep the indicated period
+  // immediately after the operator cell (`⠈⠉⠸⠲`). SRE may emit a bare
+  // period cell there.
+  braille = braille.replace(/(⠈[⠁-⠵])⠲/g, (match, currency) => {
+    if (remaining <= 0) return match;
+    remaining -= 1;
+    return `${currency}⠸⠲`;
   });
   // SRE may also project the indicated period as a number sign plus digit 4
   // (`⠸⠼⠲`) when it follows a numeric item. Restore the authored local

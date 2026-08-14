@@ -1615,3 +1615,59 @@ test('Rule 20.3 asterisk after a letter or numeral is the operation, not a typef
   assert.equal(numericTree.children[1].children[0].text, '∗');
   assert.equal(numericTree.children[2].children[0].text, '4');
 });
+
+test('Rule 8 literary periods after letters and abbreviated functions stay punctuation', () => {
+  const { document } = replayCells(sourceNotationToCells('#2 mi4_/min4'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].children[0].text, '2');
+  const fraction = tree.children[2];
+  assert.equal(fraction.name, 'mfrac');
+  assert.equal(fraction.attrs.bevelled, 'true');
+  const numerator = fraction.children[0];
+  assert.equal(numerator.name, 'mrow');
+  assert.equal(numerator.children[0].children[0].text, 'm');
+  assert.equal(numerator.children[1].children[0].text, 'i');
+  assert.equal(numerator.children[2].attrs['data-omniya-nemeth-intent'], 'punctuation-literary-period');
+  const denominator = fraction.children[1];
+  assert.equal(denominator.children[0].attrs['data-omniya-nemeth-intent'], 'function-name');
+  assert.equal(denominator.children[0].children[0].text, 'min');
+  assert.equal(denominator.children[1].attrs['data-omniya-nemeth-intent'], 'punctuation-literary-period');
+});
+
+test('Rule 8 indicated quotes keep radical and comparison content between them', () => {
+  const radical = replayCells(sourceNotationToCells('8>_0'));
+  const radicalTree = parseMathML(radical.document.mathml);
+  assert.equal(radicalTree.children[0].attrs['data-omniya-nemeth-intent'], 'punctuation-left-double-quote');
+  assert.equal(radicalTree.children[1].attrs['data-omniya-nemeth-intent'], 'radical-sign');
+  assert.equal(radicalTree.children[2].attrs['data-omniya-nemeth-intent'], 'punctuation-right-double-quote');
+
+  const comparisons = replayCells(sourceNotationToCells('8"k_0, 8.k_0, ,\'or 8.1_0'));
+  const comparisonTree = parseMathML(comparisons.document.mathml);
+  assert.equal(comparisonTree.children.some((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'or-word'), true);
+  assert.equal(
+    comparisonTree.children.filter((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-left-double-quote').length,
+    3
+  );
+});
+
+test('Rule 8 contracted bar keeps an indicated period after the letter', () => {
+  const { document } = replayCells(sourceNotationToCells('x:_4'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  assert.equal(tree.children[1].attrs?.['data-omniya-nemeth-intent'], 'punctuation-period');
+  assert.equal(tree.children[1].attrs?.['data-omniya-nemeth-cells'], '⠸⠲');
+});
+
+test('Rule 8.3 apostrophe-capital English letter is one identifier', () => {
+  const { document } = replayCells(sourceNotationToCells("#3.1413, '''_4 ,',j #5`0"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const english = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'english-letter');
+  assert.ok(english);
+  assert.equal(english.children[0].text, 'J');
+  assert.equal(english.attrs['data-omniya-nemeth-cells'], '⠠⠄⠠⠚');
+});

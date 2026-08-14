@@ -645,3 +645,101 @@ test('Rule 14.11 degree returns to baseline before a following hyphen', () => {
   ).documentElement;
   assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠖⠴⠘⠨⠡⠤⠊', source), '⠼⠒⠖⠴⠘⠨⠡⠐⠤⠊');
 });
+
+test('Rule 8 simple fractions drop interior number signs and keep indicated periods', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="numeric-start">1</mn><mn data-omniya-nemeth-intent="numeric-start">2</mn></mfrac>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="numeric-start">2</mn><mn data-omniya-nemeth-intent="numeric-start">4</mn></mfrac>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mtext data-omniya-nemeth-intent="and-word" data-omniya-nemeth-cells="⠠⠄⠯">and</mtext>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="numeric-start">3</mn><mn data-omniya-nemeth-intent="numeric-start">4</mn></mfrac>
+      <mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="simple"><mn data-omniya-nemeth-intent="numeric-start">2</mn><mn data-omniya-nemeth-intent="numeric-start">3</mn></mfrac>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠹⠂⠌⠆⠼⠠⠀⠹⠼⠆⠌⠼⠲⠼⠠⠀⠠⠄⠯⠀⠹⠼⠒⠌⠼⠲⠼⠸⠼⠲⠀⠹⠼⠆⠌⠼⠒⠼', source),
+    '⠹⠂⠌⠆⠼⠠⠀⠹⠆⠌⠲⠼⠠⠀⠠⠄⠯⠀⠹⠒⠌⠲⠼⠸⠲⠀⠹⠆⠌⠒⠼'
+  );
+});
+
+test('Rule 8 literary periods and bevelled fractions keep bare period cells', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mn data-omniya-nemeth-intent="numeric-start">2</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="simple" bevelled="true">
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠍">m</mi>
+          <mi data-omniya-nemeth-cells="⠊">i</mi>
+          <mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo>
+        </mrow>
+        <mrow>
+          <mi data-omniya-nemeth-intent="function-name" data-omniya-nemeth-cells="⠍⠊⠝">min</mi>
+          <mo data-omniya-nemeth-intent="punctuation-literary-period" data-omniya-nemeth-cells="⠲">.</mo>
+        </mrow>
+      </mfrac>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠆⠀⠍⠊⠹⠲⠸⠌⠍⠊⠝⠀⠲', source),
+    '⠼⠆⠀⠍⠊⠲⠸⠌⠍⠊⠝⠲'
+  );
+});
+
+test('Rule 8 quotes restore indicated openers, or-words, and quoted decimals', () => {
+  const quotes = new DOMParser().parseFromString(
+    `<math>
+      <mo data-omniya-nemeth-intent="punctuation-left-double-quote" data-omniya-nemeth-cells="⠦">“</mo>
+      <mo data-omniya-nemeth-cells="⠐⠅">&lt;</mo>
+      <mo data-omniya-nemeth-intent="punctuation-right-double-quote" data-omniya-nemeth-cells="⠸⠴">”</mo>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-intent="punctuation-left-double-quote" data-omniya-nemeth-cells="⠦">“</mo>
+      <mo data-omniya-nemeth-cells="⠨⠅">=</mo>
+      <mo data-omniya-nemeth-intent="punctuation-right-double-quote" data-omniya-nemeth-cells="⠸⠴">”</mo>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mtext data-omniya-nemeth-intent="or-word" data-omniya-nemeth-cells="⠠⠄⠕⠗">or</mtext>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-intent="punctuation-left-double-quote" data-omniya-nemeth-cells="⠦">“</mo>
+      <mo data-omniya-nemeth-cells="⠨⠂">&gt;</mo>
+      <mo data-omniya-nemeth-intent="punctuation-right-double-quote" data-omniya-nemeth-cells="⠸⠴">”</mo>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠦⠐⠅⠸⠴⠠⠀⠼⠦⠨⠅⠸⠴⠠⠀⠕⠗⠀⠼⠦⠨⠂⠸⠴', quotes),
+    '⠦⠐⠅⠸⠴⠠⠀⠦⠨⠅⠸⠴⠠⠀⠠⠄⠕⠗⠀⠦⠨⠂⠸⠴'
+  );
+
+  const decimal = new DOMParser().parseFromString(
+    `<math>
+      <mrow data-omniya-group="round" data-omniya-role="closed-group">
+        <mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo>
+        <mrow>
+          <mo data-omniya-nemeth-intent="punctuation-left-double-quote" data-omniya-nemeth-cells="⠸⠦">“</mo>
+          <mn data-omniya-nemeth-intent="numeric-decimal">.8</mn>
+          <mo data-omniya-nemeth-intent="punctuation-right-double-quote" data-omniya-nemeth-cells="⠸⠴">”</mo>
+        </mrow>
+        <mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo>
+      </mrow>
+      <mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠸⠲">.</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠷⠿⠨⠼⠦⠸⠴⠾⠸⠲⠀⠄⠄⠄', decimal),
+    '⠷⠸⠦⠼⠨⠦⠸⠴⠾⠸⠲⠀⠄⠄⠄'
+  );
+});
