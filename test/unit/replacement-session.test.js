@@ -32,6 +32,16 @@ test('replacement drafts start empty and cancel without mutating the source docu
   assert.deepEqual(cancelled.focus, { kind: 'node', nodeId: target });
 });
 
+test('committing a held Nemeth local code carries the immutable draft into the active session', () => {
+  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
+  for (const cell of ['⠫', '⠒', '⠒', '⠕']) session = applyNemethCell(session, cell).session;
+  const committed = commitNemethLocalCode(session);
+  assert.equal(committed.status, 'applied');
+  session = committed.session;
+  assert.equal(session.draft.mathml, committed.document.mathml);
+  assert.deepEqual(session.draftFocus, committed.focus);
+});
+
 test('LaTeX replacement spans multiple tokens and commits one exact subtree', async () => {
   const document = await importLatex('x+x');
   const tree = parseMathML(document.mathml);
