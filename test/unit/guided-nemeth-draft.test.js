@@ -2994,3 +2994,41 @@ test('Rule 24-14 decimal general omission keeps dot-4 multipurpose cells', () =>
   assert.ok(omission, 'expected omission-decimal-general token');
   assert.equal(omission.attrs['data-omniya-nemeth-cells'], '⠨⠐⠿');
 });
+
+test('Rule 23-7 lower-cell decimal after blank keeps lower-cell intent through the point', () => {
+  const { document } = replayCells(sourceNotationToCells('.k 4.65'));
+  const tree = parseMathML(document.mathml);
+  const numbers = [];
+  const collect = (node) => {
+    if (node.name === 'mn') numbers.push(node);
+    for (const child of node.children ?? []) collect(child);
+  };
+  collect(tree);
+  const decimal = numbers.find((node) => node.children?.[0]?.text === '4.65');
+  assert.ok(decimal, `numbers=${numbers.map((node) => node.children?.[0]?.text).join(',')}`);
+  assert.equal(decimal.attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+});
+
+test('Rule 13-35 blank after nested complex close stays in hypercomplex numerator for ,,/', () => {
+  const cells = [
+    ...sourceNotationToCells(',,?'),
+    ...sourceNotationToCells(',?'),
+    ...sourceNotationToCells('a'),
+    ...sourceNotationToCells(',#'),
+    '⠀',
+    ...sourceNotationToCells(',,/'),
+    ...sourceNotationToCells('b'),
+    ...sourceNotationToCells(',,#')
+  ];
+  const { document } = replayCells(cells);
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'hypercomplex');
+  assert.equal(tree.children[0].children[1].children[0].text, 'b');
+  assert.equal(
+    tree.children.some((node) => node.name === 'mspace'),
+    false,
+    'blank must remain inside the open hypercomplex numerator'
+  );
+});

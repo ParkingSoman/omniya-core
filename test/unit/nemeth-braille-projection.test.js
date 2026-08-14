@@ -1791,3 +1791,36 @@ test('Rule 24.1 decimal-nonnumeric strips a spurious number sign after greek dig
     '⠼⠴⠨⠐⠨⠁⠂⠨⠁⠆⠀⠄⠄⠄'
   );
 });
+
+test('Rule 23-7 lower-cell decimal after equals+blank keeps no number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">4.65</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-decimal">.465</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠨⠅⠀⠲⠨⠖⠢⠀⠨⠲⠖⠢', source),
+    '⠨⠅⠀⠲⠨⠖⠢⠀⠨⠲⠖⠢'
+  );
+});
+
+test('Rule 13-34 scripted digit then blank keeps number sign on the next numeric-start', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mrow data-omniya-group="round"><mo data-omniya-nemeth-cells="⠷">(</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mi data-omniya-nemeth-cells="⠠⠭">X</mi><mo data-omniya-nemeth-cells="⠾">)</mo></mrow><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">1</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mi data-omniya-nemeth-cells="⠠⠭">X</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠷⠂⠤⠠⠭⠾⠘⠆⠀⠼⠂⠤⠠⠭', source),
+    '⠷⠂⠤⠠⠭⠾⠘⠆⠀⠼⠂⠤⠠⠭'
+  );
+});
+
+test('Rule 13-33 nested simple inside complex does not rebuild the outer opener span', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mfrac data-omniya-fraction-kind="complex"><mrow><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mn data-omniya-nemeth-intent="numeric-start">1</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mi data-omniya-nemeth-cells="⠠⠭">X</mi><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><mfrac data-omniya-fraction-kind="simple"><mi data-omniya-nemeth-cells="⠠⠙">D</mi><mrow><mi data-omniya-nemeth-cells="⠠⠙">D</mi><mi data-omniya-nemeth-cells="⠠⠭">X</mi></mrow></mfrac></mrow><mrow data-omniya-hole="true"/></mfrac><mfrac data-omniya-fraction-kind="simple"><mrow><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><mi data-omniya-nemeth-cells="⠠⠭">X</mi></mrow><mrow><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mi data-omniya-nemeth-cells="⠠⠭">X</mi></mrow></mfrac></math>',
+    'text/xml'
+  ).documentElement;
+  const authored = '⠠⠹⠷⠂⠤⠠⠭⠾⠹⠠⠙⠌⠠⠙⠠⠭⠼⠷⠆⠠⠭⠾';
+  const got = applyNemethSourceIntentToBraille(authored, source);
+  assert.equal(got.startsWith('⠠⠹⠷⠂⠤⠠⠭⠾⠹⠠⠙⠌⠠⠙⠠⠭⠼'), true, `got=${got}`);
+  assert.equal(got.includes('⠠⠹⠠⠭⠌'), false, `corrupted opener in ${got}`);
+});

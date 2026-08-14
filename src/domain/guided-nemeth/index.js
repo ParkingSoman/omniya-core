@@ -268,6 +268,21 @@ function insertAfter(tree, focus, replacement) {
   const parent = findMathParent(tree, current.attrs['data-omniya-id']);
   if (!parent) return replaceCurrent(tree, focus, replacement);
   const index = parent.children.indexOf(current);
+  // When focus is an open fraction (nested complex closed inside a
+  // hypercomplex numerator), the next blank/token still belongs in that
+  // unfinished numerator — not as a sibling under math (13-35).
+  if (current.name === 'mfrac' && isHole(current.children?.[1])) {
+    const numerator = current.children[0];
+    if (numerator?.name === 'mrow') {
+      numerator.children.push(replacement);
+      return replacement;
+    }
+    if (numerator) {
+      const row = element('mrow', [numerator, replacement]);
+      current.children[0] = row;
+      return replacement;
+    }
+  }
   // A baseline return inside an mroot promotes its radicand to an mrow. The
   // next local token belongs inside that row, even though the row itself is
   // the mroot's single radicand child. Keep the insertion local to that
@@ -457,6 +472,14 @@ function insertNumeric(tree, focus, value, { replace = false, mathvariant = null
       nextAttributes['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
       delete nextAttributes['data-omniya-nemeth-intent'];
     }
+    // Lower-cell decimals after a blank (`4.65`) arrive as insert-numeric with
+    // a numeric-decimal mark, then a numeric-start digit. Keep the lower-cell
+    // provenance through both steps so projection does not invent `#` (23-7).
+    if (current.attrs['data-omniya-nemeth-intent'] === 'lower-cell-numeric'
+      && (nextAttributes['data-omniya-nemeth-intent'] === 'numeric-decimal'
+        || nextAttributes['data-omniya-nemeth-intent'] === 'numeric-start')) {
+      delete nextAttributes['data-omniya-nemeth-intent'];
+    }
     // Rule 14.6 leading-decimal numeric subscript (X.6) must not be overwritten
     // by the following digit's numeric-start intent.
     if (current.attrs['data-omniya-nemeth-intent'] === 'numeric-subscript') {
@@ -478,7 +501,13 @@ function insertNumericDecimal(tree, focus, value, dataAttributes = {}) {
   const current = currentNode(tree, focus);
   if (current.name === 'mn' && current.children?.length === 1) {
     current.children[0].text += value;
-    Object.assign(current.attrs, dataAttributes, { 'data-omniya-nemeth-intent': 'numeric-decimal' });
+    // Preserve a lower-cell start through the decimal (`4.65`); forcing
+    // numeric-decimal would let a later digit stamp numeric-start (23-7).
+    if (current.attrs?.['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
+      Object.assign(current.attrs, dataAttributes);
+    } else {
+      Object.assign(current.attrs, dataAttributes, { 'data-omniya-nemeth-intent': 'numeric-decimal' });
+    }
     return { tree, focus: focusNode(current) };
   }
   return insertToken(tree, focus, 'mn', value, {
@@ -5530,6 +5559,24 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode === null && state.prefix === '⠠⠠⠠' && normalized === '⠹') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'fraction.start.hypercomplex.order3');
     if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+  }
+  // Inside an open hypercomplex fraction, `,,/` is the denominator line.
+  // Hold/apply it before the roman-numeral indicator claims `,,` (13-35).
+  if (state.mode === null && state.prefix === '⠠' && normalized === '⠠') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'fraction.next.denominator.hypercomplex');
+    if (mapping && mappingApplies(mapping, context)) {
+      return {
+        status: 'pending', document, focus,
+        inputState: { ...state, prefix: '⠠⠠' },
+        announcement: 'Nemeth hypercomplex fraction follow-up pending.'
+      };
+    }
+  }
+  if (state.mode === null && state.prefix === '⠠⠠' && normalized === '⠌') {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === 'fraction.next.denominator.hypercomplex');
+    if (mapping && mappingApplies(mapping, context)) {
+      return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+    }
   }
 
   // BANA 24.1: letter/largeop/single-letter-number followed by multipurpose

@@ -872,7 +872,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // passage. MathJax may expose an isolated-number sign after the script
   // indicator; remove it only for the source-marked exponent.
   if (lowerCellNumeric.length) {
-    if (sourceMath.querySelector?.('[data-omniya-nemeth-cells="⠨⠅"]') && sourceMath.querySelector?.('[data-omniya-nemeth-intent="lower-cell-numeric"]')) braille = braille.replace(/(⠨⠅⠀)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/, '$1⠼');
+    // Equals+blank before a lower-cell digit keeps no number sign when that
+    // digit begins a decimal (`4.65`). Match numeric-start restore's `(?!⠨)`.
+    if (sourceMath.querySelector?.('[data-omniya-nemeth-cells="⠨⠅"]') && sourceMath.querySelector?.('[data-omniya-nemeth-intent="lower-cell-numeric"]')) {
+      braille = braille.replace(/(⠨⠅⠀)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴](?!⠨))/, '$1⠼');
+    }
     braille = braille.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
     const scriptedLower = [...lowerCellNumeric].filter((node) =>
       node.closest?.('msup, msub, msubsup, mmultiscripts'));
@@ -1359,7 +1363,9 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠠⠀⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠠⠀');
     // A decimal digit (`⠨⠲`) before a blank is not a lower-cell thousands
     // group. Keep the following number sign (`#2,375.4 #2`).
-    braille = braille.replace(/(?<!⠨)([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠀⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1⠀');
+    // A scripted digit before blank (`⠘⠆⠀⠼⠂`) starts a new numeric-start
+    // item after baseline return (13-34); do not strip its number sign.
+    braille = braille.replace(/(?<![⠨⠘⠰])([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠀⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1⠀');
     // Spatial arithmetic / alignment rows never entered `#`. When the source
     // has only lower-cell numbers plus an explicit blank layout (and no
     // signed-numeric or comparison-driven number signs), strip SRE's isolated
@@ -2402,6 +2408,20 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // not rebuild them from leaf cells (13-25 / 23-30).
     const kind = fraction.getAttribute?.('data-omniya-fraction-kind');
     if (kind === 'complex' || kind === 'hypercomplex') continue;
+    // Nested simples inside a higher-order fraction share the first `⠹…⠼`
+    // span with the outer opener; rebuilding that span from leaf cells eats
+    // grouped numerators such as `(1-X)?D/DX#` (13-33).
+    let higherHost = fraction.parentElement ?? fraction.parentNode;
+    let nestedInHigherOrder = false;
+    while (higherHost && higherHost !== sourceMath) {
+      const hostKind = higherHost.getAttribute?.('data-omniya-fraction-kind');
+      if (hostKind === 'complex' || hostKind === 'hypercomplex') {
+        nestedInHigherOrder = true;
+        break;
+      }
+      higherHost = higherHost.parentElement ?? higherHost.parentNode;
+    }
+    if (nestedInHigherOrder) continue;
     const direct = [...(fraction.children ?? [])].filter((node) => node?.nodeType === 1);
     if (direct.length !== 2) continue;
     const leaves = (node) => {
@@ -2419,6 +2439,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     if (!marker) continue;
     // Skip rebuilds that would erase an already-spaced authored row.
     if (marker[0].includes('⠀')) continue;
+    // The first `⠹…⠼` span in a higher-order expression may be the complex
+    // opener through an inner simple closer. Rebuilding that from a later
+    // simple's leaves eats `(1-X)?D/DX#` (13-33). Only rewrite a span that
+    // is already one simple fraction (single opener) and not a complex open.
+    if ((marker[0].match(/⠹/g) || []).length !== 1) continue;
+    if (marker.index > 0 && braille[marker.index - 1] === '⠠') continue;
     const close = marker[0].endsWith('⠼') ? '⠼' : '⠾';
     const replacement = `⠹${numerator}⠌${denominator}${close}`;
     braille = `${braille.slice(0, marker.index)}${replacement}${braille.slice(marker.index + marker[0].length)}`;
@@ -3725,10 +3751,19 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.replace(/⠨(?!⠐)(?=⠌)/g, '⠨⠐');
       braille = braille.replace(/⠨(?!⠐)(?=⠼)/g, '⠨⠐');
     }
-    const withNumber = braille.includes('⠼') || lowerCellOnly || enclosedTrailingDecimal
+    const hasLowerCellDecimal = numericDecimal.some((node) =>
+      node.getAttribute?.('data-omniya-nemeth-intent') === 'lower-cell-numeric');
+    const withNumber = braille.includes('⠼') || lowerCellOnly || enclosedTrailingDecimal || hasLowerCellDecimal
       ? braille
       : braille.replace(/(⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/, '⠼$1');
-    let projected = restorePunctuationPeriods(withNumber.replace(/(⠼[^⠨⠐]*)(⠲)/, '$1⠨'), punctuationPeriods.length, explicitGroups.length);
+    // Convert an SRE literary period inside a numeric item to the Nemeth
+    // decimal. Do not rewrite digit-4 when a real decimal cell already
+    // follows (`⠼⠲⠨…` for `#4.65`); that invents `⠼⠨⠨` (23-7).
+    let projected = restorePunctuationPeriods(
+      withNumber.replace(/(⠼[^⠨⠐]*)(⠲)(?!⠨)/, '$1⠨'),
+      punctuationPeriods.length,
+      explicitGroups.length
+    );
     const bars = sourceMath.querySelectorAll('[data-omniya-nemeth-intent="numeric-start"]');
     if (bars.length && sourceMath.querySelector('mover')) projected += projected.endsWith('⠱') ? '' : '⠱';
     return finalize(normalizeFractionSubtraction(projected.replace(/⠀{2,}/g, '⠀')));
