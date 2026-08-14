@@ -23,7 +23,7 @@ function cell(document, focus, inputState, value) {
 
 test('Rule 14 corpus operation IDs remain declared in the authoritative generator', () => {
   const generator = fs.readFileSync(new URL('../../scripts/bana-example-corpus-generate.mjs', import.meta.url), 'utf8');
-  for (const number of [...Array.from({ length: 11 }, (_, index) => index + 12), ...Array.from({ length: 33 }, (_, index) => index + 34)]) {
+  for (const number of [...Array.from({ length: 11 }, (_, index) => index + 12), ...Array.from({ length: 44 }, (_, index) => index + 34)]) {
     assert.match(generator, new RegExp(`['"]14-${number}['"]\\s*:`), `14-${number} must remain generator-owned rather than generated-only`);
   }
 });
@@ -56,6 +56,28 @@ test('Rule 14 corpus cases 14-45 through 14-66 retain source-grounded script ope
       assert.equal(chosen.status, 'applied', `14-${number} ${operationId} choice must apply`);
       assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
     }
+  }
+});
+
+test('Rule 14 corpus cases 14-67 through 14-77 retain level and baseline operations', () => {
+  const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
+  for (let number = 67; number <= 77; number += 1) {
+    const entry = corpus.cases.find((candidate) => candidate.exampleNumber === `14-${number}`);
+    assert.ok(entry?.executable, `14-${number} must be executable`);
+    assert.ok(entry.operationIds?.length, `14-${number} needs reviewed operation IDs`);
+    assert.deepEqual(entry.cells, sourceNotationToCells(entry.sourceNotation));
+    let document = createEmptyDraftMathDocument(); let focus = focusOf(document); let inputState = { prefix: '', mode: null };
+    for (const authoredCell of entry.cells) {
+      let result = cell(document, focus, inputState, authoredCell);
+      if (result.status === 'choice') result = applyNemethChoice({ document: result.document, focus: result.focus, inputState: result.inputState, operationId: result.choices[0].operationId });
+      if (result.status === 'rejected') break;
+      ({ document, focus, inputState } = result);
+    }
+    const names = [];
+    const visit = (node) => { if (node?.name) names.push(node.name); for (const child of node?.children ?? []) visit(child); };
+    visit(parseMathML(document.mathml));
+    assert.ok(names.some((name) => ['msup', 'msub', 'msubsup', 'mmultiscripts'].includes(name)) || entry.operationIds.some((id) => id.startsWith('script.')),
+      `14-${number} lacks canonical script replay or reviewed script metadata`);
   }
 });
 
