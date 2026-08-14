@@ -45,13 +45,10 @@ test('recovers from corrupt local napkin data without leaving the app unusable',
   assert.equal(await session.page.getByRole('button', { name: 'Add item' }).count(), 1);
 });
 
-async function addEquation(page, source, note = '') {
+async function addEquation(page, source) {
   await page.getByRole('button', { name: 'Add item' }).click();
   await page.getByRole('radio', { name: 'Equation' }).check();
-  if (note) {
-    await page.getByRole('button', { name: 'Add note' }).click();
-    await page.getByLabel('Note', { exact: true }).fill(note);
-  }
+  assert.equal(await page.locator('#note-toggle').isVisible(), false);
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await page.locator('#replacement-dock').waitFor();
   await page.getByRole('radio', { name: 'LaTeX' }).check();
@@ -175,13 +172,13 @@ test('renders accessible MathML and supports complete tree navigation', { timeou
 
 test('replaces a whole focused equation through the LaTeX draft without a linear composer', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-edit-e2e-');
-  const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}', 'original expression');
+  const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}');
   const math = article.locator('mjx-container math');
 
   assert.equal(await math.locator('mfrac').count(), 1);
   assert.equal(await math.locator('msup').count(), 1);
   assert.equal(await math.locator('msqrt').count(), 1);
-  assert.match(await article.textContent(), /original expression/);
+  assert.equal(await article.locator('.item-note').count(), 0);
 
   await article.focus();
   await page.keyboard.press('e');
@@ -192,7 +189,6 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   await page.getByRole('button', { name: 'Replace' }).click();
   assert.match(await page.locator('#replacement-status').textContent(), /convert|incomplete|empty/i);
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
-  assert.match(await article.textContent(), /original expression/);
 
   await page.getByRole('button', { name: 'Cancel' }).click();
   await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
@@ -209,7 +205,7 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   await page.locator('article.napkin-article mjx-container').waitFor();
   assert.equal(await page.locator('article.napkin-article math msup').count(), 1);
   assert.equal(await page.locator('article.napkin-article math mfrac').count(), 0);
-  assert.match(await page.locator('article.napkin-article').textContent(), /original expression/);
+  assert.equal(await page.locator('article.napkin-article .item-note').count(), 0);
 });
 
 test('uses MathJax table navigation for matrix cells', { timeout: 60_000 }, async (t) => {

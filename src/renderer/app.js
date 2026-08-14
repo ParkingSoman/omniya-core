@@ -37,6 +37,8 @@ const elements = Object.fromEntries([
   'replacement-submit', 'replacement-cancel', 'app-error', 'app-error-message', 'retry-save'
 ].map((id) => [id, document.getElementById(id)]));
 
+const NOTES_UI_ENABLED = false;
+
 let state;
 let mode = 'read';
 let editingItemId = null;
@@ -319,7 +321,7 @@ function renderTranscript() {
     }
 
     article.append(descriptor, content);
-    if (item.note) {
+    if (NOTES_UI_ENABLED && item.note) {
       const note = document.createElement('p');
       note.className = 'item-note';
       note.textContent = `Note: ${item.note}`;
@@ -364,10 +366,15 @@ function renderComposer() {
     input.disabled = editing;
     input.checked = input.value === values.type;
   });
-  if (editing) noteVisible = Boolean(values.note);
-  elements['note-row'].hidden = !noteVisible;
-  elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
-  elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
+  if (!NOTES_UI_ENABLED) {
+    elements['note-toggle'].hidden = true;
+    elements['note-row'].hidden = true;
+  } else {
+    if (editing) noteVisible = Boolean(values.note);
+    elements['note-row'].hidden = !noteVisible;
+    elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
+    elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
+  }
   elements['composer-help'].textContent = editing
     ? 'Save changes commits the item · Escape cancels'
     : values.type === 'equation'
@@ -1042,19 +1049,25 @@ elements['composer-back'].addEventListener('click', () => returnToRead());
 elements['composer-discard'].addEventListener('click', () => returnToRead());
 elements['composer-cancel'].addEventListener('click', () => returnToRead());
 
-elements['note-toggle'].addEventListener('click', () => {
-  noteVisible = !noteVisible;
-  elements['note-row'].hidden = !noteVisible;
-  elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
-  elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
-  if (noteVisible) elements['composer-note'].focus();
-});
+if (NOTES_UI_ENABLED) {
+  elements['note-toggle'].addEventListener('click', () => {
+    noteVisible = !noteVisible;
+    elements['note-row'].hidden = !noteVisible;
+    elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
+    elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
+    if (noteVisible) elements['composer-note'].focus();
+  });
+
+  elements['composer-note'].addEventListener('input', () => {
+    draft.note = elements['composer-note'].value;
+  });
+} else {
+  elements['note-toggle'].hidden = true;
+  elements['note-row'].hidden = true;
+}
 
 elements['composer-source'].addEventListener('input', () => {
   draft.source = elements['composer-source'].value;
-});
-elements['composer-note'].addEventListener('input', () => {
-  draft.note = elements['composer-note'].value;
 });
 elements['mode-switch'].addEventListener('change', () => {
   draft.type = selectedType();

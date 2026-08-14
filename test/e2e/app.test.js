@@ -85,19 +85,18 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 0);
   await assertNoAxeViolations(page);
   await source.fill('Let a be positive.');
-  await page.getByRole('button', { name: 'Add note' }).click();
-  await page.getByLabel('Note', { exact: true }).fill('Define the domain.');
+  assert.equal(await page.locator('#note-toggle').isVisible(), false);
+  assert.equal(await page.locator('#note-row').isVisible(), false);
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
 
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   assert.equal(await articles.count(), 1);
   assert.match(await articles.first().textContent(), /Let a be positive/);
-  assert.match(await articles.first().textContent(), /Define the domain/);
+  assert.equal(await articles.first().locator('.item-note').count(), 0);
 
   await page.getByRole('button', { name: 'Add item' }).click();
   await page.locator('#mode-switch label').filter({ hasText: 'Equation' }).click();
-  await page.getByRole('button', { name: 'Add note' }).click();
-  await page.getByLabel('Note', { exact: true }).fill('Fundamental theorem example.');
+  assert.equal(await page.locator('#note-toggle').isVisible(), false);
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
 
   await page.getByRole('radio', { name: 'LaTeX' }).check();
@@ -112,7 +111,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   assert.ok(await articles.nth(1).locator('mjx-container').count());
   assert.ok(await articles.nth(1).locator('mjx-container math mfrac').count());
   assert.ok(await articles.nth(1).locator('mjx-container math msubsup').count());
-  assert.match(await articles.nth(1).textContent(), /Fundamental theorem example/);
+  assert.equal(await articles.nth(1).locator('.item-note').count(), 0);
 
   const firstArticle = articles.nth(0);
   const secondArticle = articles.nth(1);
