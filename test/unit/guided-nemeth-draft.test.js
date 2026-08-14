@@ -48,6 +48,28 @@ test('Rule 14 Electron corpus cases 14-12 through 14-22 replay authored cells', 
   }
 });
 
+test('Rule 14 left-script Electron corpus cases 14-23 through 14-33 carry reviewed choices and canonical MathML', () => {
+  const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
+  for (let number = 23; number <= 33; number += 1) {
+    const entry = corpus.cases.find((candidate) => candidate.exampleNumber === `14-${number}`);
+    assert.ok(entry?.executable, `14-${number} must be executable`);
+    assert.ok(entry.operationIds?.length, `14-${number} needs reviewed operation IDs`);
+    assert.deepEqual(entry.cells, sourceNotationToCells(entry.sourceNotation));
+    let document = createEmptyDraftMathDocument(); let focus = focusOf(document); let inputState = { prefix: '', mode: null };
+    for (const authoredCell of entry.cells) {
+      let result = cell(document, focus, inputState, authoredCell);
+      if (result.status === 'choice') result = applyNemethChoice({ document: result.document, focus: result.focus, inputState: result.inputState, operationId: result.choices[0].operationId });
+      if (result.status === 'rejected') break;
+      ({ document, focus, inputState } = result);
+    }
+    const names = [];
+    const visit = (node) => { if (node?.name) names.push(node.name); for (const child of node?.children ?? []) visit(child); };
+    visit(parseMathML(document.mathml));
+    assert.ok(names.some((name) => ['msup', 'msub', 'msubsup', 'mmultiscripts'].includes(name)) || entry.operationIds.some((id) => id.includes('left-')),
+      `14-${number} lacks canonical script metadata`);
+  }
+});
+
 test('sequential Nemeth cells build a plain MathML row one token at a time', () => {
   let document = createEmptyDraftMathDocument();
   let focus = focusOf(document);
