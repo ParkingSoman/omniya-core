@@ -98,7 +98,7 @@ const rows = inventory.rows.map((row) => {
   const visual = visualBySource.get(ref) ?? visualBySource.get(row.id);
   const verified = { ...row.verified };
   verified.implementation = mappingIds.length > 0 || contextPolicyIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0;
-  verified.contextPolicy = contextPolicyIds.length > 0;
+  verified.contextPolicy = contextPolicyIds.length > 0 || (row.kind === 'appendix' && (appendixRefs.length > 0 || mappingIds.length > 0));
   const mappings = registry.filter((mapping) => mappingIds.includes(mapping.id));
   const policies = [...new Set(mappings.map((mapping) => mapping.commitPolicy))];
   // A source row can describe policy, scope, or document context rather than
@@ -112,10 +112,15 @@ const rows = inventory.rows.map((row) => {
   // nodes. Even when an operation also cites the same BANA ref for ledger
   // ownership, the provision itself remains source-policy coverage: Electron
   // creation belongs to the official examples that exercise those cells.
+  // Appendix D is an index into registry families, not a second input surface;
+  // symbol rows prove ownership via appendixRefs, while Electron evidence stays
+  // on the official examples that use those families.
   const requiresEquationEvidence = !excludedDocument && (
     isExample
       ? !documentContextExample
-      : contextPolicyIds.length === 0 && mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy')
+      : row.kind !== 'appendix'
+        && contextPolicyIds.length === 0
+        && mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy')
   );
   const disposition = row.disposition === 'unclassified' && (mappingIds.length > 0 || contextPolicyIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
       ? (contextPolicyIds.length > 0 && mappingIds.length === 0 || mappings.some((mapping) => mapping.args?.sourceKind === 'context-policy') ? 'implemented-context-policy' : 'implemented-operation')
