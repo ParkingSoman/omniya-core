@@ -5,7 +5,7 @@ Generated from `docs/bana-coverage.json`.
 - Source rows: 1846
 - Numbered provisions: 509
 - Applicable rows: 1568
-- Fully implemented rows: 1490
+- Fully implemented rows: 1502
 - Official examples: 1229
 - Official examples with extracted source blocks: 1229
 - Official examples with Electron creation evidence: 120
@@ -22,7 +22,7 @@ Generated from `docs/bana-coverage.json`.
 | 4 | 116 | 116 | 110 | 0 | 0 | 0 |
 | 5 | 14 | 14 | 14 | 10 | 10 | 0 |
 | 6 | 85 | 85 | 84 | 13 | 13 | 0 |
-| 7 | 45 | 45 | 29 | 2 | 2 | 0 |
+| 7 | 45 | 45 | 41 | 2 | 2 | 0 |
 | 8 | 104 | 104 | 100 | 0 | 0 | 0 |
 | 9 | 16 | 16 | 14 | 11 | 11 | 0 |
 | 10 | 72 | 72 | 66 | 12 | 12 | 0 |

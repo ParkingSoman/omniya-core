@@ -4,7 +4,7 @@ Normative source: [BANA Nemeth Code 2022](https://www.brailleauthority.org/sites
 
 This is the contributor-facing source of truth. It is generated from the sequential ledger, not hand-written. Every row is one provision, official example, symbol-table entry, appendix item, or erratum. `open` means engineering or evidence is still required; it is not an unsupported claim.
 
-Total ledger rows: **1846**. Applicable rows: **1568**. Implemented disposition: **1490**.
+Total ledger rows: **1846**. Applicable rows: **1568**. Implemented disposition: **1502**.
 
 ## Rule index and totals
 
@@ -18,7 +18,7 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | [Rule 4](#rule-4) | Fractions and numeric context | 116 | 116 | 110 | 9 | 5 | 0 | 0 | 0 | 44 |
 | [Rule 5](#rule-5) | Letters and capitalization | 14 | 14 | 14 | 4 | 6 | 10 | 10 | 10 | 10 |
 | [Rule 6](#rule-6) | Alphabets and special letterforms | 85 | 85 | 84 | 81 | 82 | 13 | 13 | 13 | 5 |
-| [Rule 7](#rule-7) | Typeforms | 45 | 45 | 29 | 45 | 29 | 2 | 2 | 2 | 11 |
+| [Rule 7](#rule-7) | Typeforms | 45 | 45 | 41 | 33 | 29 | 2 | 2 | 2 | 11 |
 | [Rule 8](#rule-8) | Punctuation | 104 | 104 | 100 | 86 | 83 | 0 | 0 | 0 | 9 |
 | [Rule 9](#rule-9) | Reference symbols | 16 | 16 | 14 | 8 | 6 | 11 | 11 | 11 | 6 |
 | [Rule 10](#rule-10) | Abbreviations | 72 | 72 | 66 | 26 | 23 | 12 | 12 | 12 | 15 |
@@ -457,19 +457,19 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | 405 | Rule 7: Typeforms | [example-7-18](bana-coverage.json#bana-2022-example-7-18) | Phrase in italics | 7-6 | source: `#6 pieces of pizza./2 people .k #3 ,'. pieces per person .,'`<br>cells: `⠼⠖⠀⠏⠊⠑⠉⠑⠎⠀⠕⠋⠀⠏⠊⠵⠵⠁⠨⠌⠆⠀⠏⠑⠕⠏⠇⠑⠀⠨⠅⠀⠼⠒⠀⠠⠄⠨⠀⠏⠊⠑⠉⠑⠎⠀⠏⠑⠗⠀⠏⠑⠗⠎⠕⠝⠀⠨⠠⠄` | — | implemented-operation | `typeform.terminate`, `typeform.scope.bold.open`, `typeform.scope.bold.close`, `typeform.scope.italic.open` +1 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
 | 406 | Rule 7: Typeforms | [7.3.5](bana-coverage.json#bana-2022-7-3-5) | A Mathematical Expression in Boldface or Italic | 7-6 | — | — | implemented-operation | `typeform.terminate`, `typeform.scope.bold.open`, `typeform.scope.bold.close`, `typeform.scope.italic.open` +1 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (1) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (1) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) | — | open |
 | 407 | Rule 7: Typeforms | [example-7-19](bana-coverage.json#bana-2022-example-7-19) | Expression in Boldface Type | 7-6 | source: `,'_ #59`0 _,'`<br>cells: `⠠⠄⠸⠀⠼⠢⠔⠈⠴⠀⠸⠠⠄` | — | implemented-operation | `typeform.terminate`, `typeform.scope.bold.open`, `typeform.scope.bold.close`, `typeform.scope.italic.open` +1 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
-| 408 | Rule 7: Typeforms | [7.4](bana-coverage.json#bana-2022-7-4) | Non-Use of Typeform Indicators | 7-6 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 409 | Rule 7: Typeforms | [7.4.1](bana-coverage.json#bana-2022-7-4-1) | A typeform indicator is not used when a letter or numeral is | 7-6 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 410 | Rule 7: Typeforms | [7.4.2](bana-coverage.json#bana-2022-7-4-2) | When technical material is printed in non-regular type that | 7-6 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 411 | Rule 7: Typeforms | [7.4.3](bana-coverage.json#bana-2022-7-4-3) | Frequently the letters which represent variables, constants, | 7-6 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 412 | Rule 7: Typeforms | [7.4.4](bana-coverage.json#bana-2022-7-4-4) | In mathematical statements such as Lemmas, Theorems, | 7-7 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 413 | Rule 7: Typeforms | [example-7-20](bana-coverage.json#bana-2022-example-7-20) | Bold Label; Italicized Statement | 7-7 | source: `a~.*`<br>cells: `⠁⠘⠨⠡` | — | unclassified | —  | — | — | — | — | — | open |
-| 414 | Rule 7: Typeforms | [example-7-21](bana-coverage.json#bana-2022-example-7-21) | Bold Label; Italics Disregarded in the Statement | 7-7 | source: `m .k #2 ,'& n .k #1`<br>cells: `⠍⠀⠨⠅⠀⠼⠆⠀⠠⠄⠯⠀⠝⠀⠨⠅⠀⠼⠂` | — | unclassified | —  | — | — | — | — | — | open |
+| 408 | Rule 7: Typeforms | [7.4](bana-coverage.json#bana-2022-7-4) | Non-Use of Typeform Indicators | 7-6 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 409 | Rule 7: Typeforms | [7.4.1](bana-coverage.json#bana-2022-7-4-1) | A typeform indicator is not used when a letter or numeral is | 7-6 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 410 | Rule 7: Typeforms | [7.4.2](bana-coverage.json#bana-2022-7-4-2) | When technical material is printed in non-regular type that | 7-6 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 411 | Rule 7: Typeforms | [7.4.3](bana-coverage.json#bana-2022-7-4-3) | Frequently the letters which represent variables, constants, | 7-6 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 412 | Rule 7: Typeforms | [7.4.4](bana-coverage.json#bana-2022-7-4-4) | In mathematical statements such as Lemmas, Theorems, | 7-7 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 413 | Rule 7: Typeforms | [example-7-20](bana-coverage.json#bana-2022-example-7-20) | Bold Label; Italicized Statement | 7-7 | source: `a~.*`<br>cells: `⠁⠘⠨⠡` | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 414 | Rule 7: Typeforms | [example-7-21](bana-coverage.json#bana-2022-example-7-21) | Bold Label; Italics Disregarded in the Statement | 7-7 | source: `m .k #2 ,'& n .k #1`<br>cells: `⠍⠀⠨⠅⠀⠼⠆⠀⠠⠄⠯⠀⠝⠀⠨⠅⠀⠼⠂` | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
 | 415 | Rule 7: Typeforms | [example-7-22](bana-coverage.json#bana-2022-example-7-22) | Uppercase Bold Label; Italicized Statement | 7-7 | — | — | approved-context-policy | —  | — | — | — | — | — | open |
-| 416 | Rule 7: Typeforms | [example-7-23](bana-coverage.json#bana-2022-example-7-23) | Math Expression within Boldface Phrase | 7-7 | source: `ab .k ba`<br>cells: `⠁⠃⠀⠨⠅⠀⠃⠁` | — | unclassified | —  | — | — | — | — | — | open |
-| 417 | Rule 7: Typeforms | [7.5](bana-coverage.json#bana-2022-7-5) | Symbols in Boldface Type | 7-8 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 418 | Rule 7: Typeforms | [7.5.1](bana-coverage.json#bana-2022-7-5-1) | Restricted Use. When certain signs are printed in boldface | 7-8 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 419 | Rule 7: Typeforms | [7.5.2](bana-coverage.json#bana-2022-7-5-2) | Vectors. Boldface type, used in many texts to identify | 7-8 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 420 | Rule 7: Typeforms | [example-7-24](bana-coverage.json#bana-2022-example-7-24) | Arrow Omitted Above Vector Notation | 7-8 | source: `_;,e`<br>cells: `⠸⠰⠠⠑` | — | unclassified | —  | — | — | — | — | — | open |
+| 416 | Rule 7: Typeforms | [example-7-23](bana-coverage.json#bana-2022-example-7-23) | Math Expression within Boldface Phrase | 7-7 | source: `ab .k ba`<br>cells: `⠁⠃⠀⠨⠅⠀⠃⠁` | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 417 | Rule 7: Typeforms | [7.5](bana-coverage.json#bana-2022-7-5) | Symbols in Boldface Type | 7-8 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 418 | Rule 7: Typeforms | [7.5.1](bana-coverage.json#bana-2022-7-5-1) | Restricted Use. When certain signs are printed in boldface | 7-8 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 419 | Rule 7: Typeforms | [7.5.2](bana-coverage.json#bana-2022-7-5-2) | Vectors. Boldface type, used in many texts to identify | 7-8 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 420 | Rule 7: Typeforms | [example-7-24](bana-coverage.json#bana-2022-example-7-24) | Arrow Omitted Above Vector Notation | 7-8 | source: `_;,e`<br>cells: `⠸⠰⠠⠑` | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
 | 421 | <a id="rule-8"></a>Rule 8: Punctuation | [8.1](bana-coverage.json#bana-2022-8-1) | Modes of Punctuation | 8-2 | — | context policy | implemented-context-policy | `punctuation.comma`, `punctuation.period`, `punctuation.colon`, `punctuation.semicolon` +6 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | pass |
 | 422 | Rule 8: Punctuation | [8.2](bana-coverage.json#bana-2022-8-2) | Use of the Punctuation Indicator | 8-2 | — | context policy | implemented-context-policy | `punctuation.comma`, `punctuation.period`, `punctuation.colon`, `punctuation.semicolon` +2 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
 | 423 | Rule 8: Punctuation | [8.2.1](bana-coverage.json#bana-2022-8-2-1) | The punctuation indicator is used after any braille indicator. | 8-2 | — | context policy | implemented-context-policy | `punctuation.comma`, `punctuation.period`, `punctuation.colon`, `punctuation.semicolon` +2 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
