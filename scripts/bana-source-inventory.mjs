@@ -265,12 +265,11 @@ for (const [suffix, mappingIds] of Object.entries(rule21ExampleMappings)) {
     row.mappingIds = mappingIds;
   }
 }
-// Example 14-1 is explanatory prose (the braille line includes the sentence
-// identifying the subscript), not an executable standalone math expression.
-// Keep it source-linked but explicitly non-executable pending a dedicated
-// prose-aware corpus workflow.
+// Examples 14-1 and 14-2 are explanatory prose/standalone script illustrations,
+// not executable equation-draft cases. Keep them source-linked as honest
+// document-format exclusions rather than claiming a context-policy operation.
 const rule14Example1 = rows.find((row) => row.id === 'bana-2022:example-14-1');
-if (rule14Example1) rule14Example1.disposition = 'approved-context-policy';
+if (rule14Example1) rule14Example1.disposition = 'excluded-document-format';
 const rule17_8 = rows.find((row) => row.id === 'bana-2022:17.8');
 if (rule17_8) rule17_8.disposition = 'excluded-document-format';
 // Rule 19.7–19.9 and Examples 19-36–19-45 are layout/spacing prose and
@@ -300,7 +299,7 @@ for (const [suffix, mappingIds] of Object.entries(rule14Batch)) {
   if (row) { row.disposition = 'implemented-operation'; row.mappingIds = mappingIds; }
 }
 const rule14Example2 = rows.find((row) => row.id === 'bana-2022:example-14-2');
-if (rule14Example2) rule14Example2.disposition = 'approved-context-policy';
+if (rule14Example2) rule14Example2.disposition = 'excluded-document-format';
 // These Rule 14 provisions define level-indicator context and interaction
 // boundaries rather than standalone executable operations. Keep them
 // explicitly classified so coverage does not mistake documentary policy for

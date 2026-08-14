@@ -82,7 +82,8 @@ const rows = inventory.rows.map((row) => {
     ? [...row.mappingIds]
     : registry.filter((mapping) => [...sourceRefs].some((sourceRef) => mapping.banaRefs?.includes(sourceRef)) || appendixRefs.some((sourceRef) => mapping.banaRefs?.includes(sourceRef))).map((mapping) => mapping.id);
   const contextRefs = [...sourceRefs, policyRef];
-  const contextPolicyIds = contextPolicies.filter((policy) => contextRefs.some((sourceRef) => policy.banaRefs.includes(sourceRef))).map((policy) => policy.id);
+  const excludedDocument = row.disposition === 'excluded-document-format' || row.disposition === 'document-context-exclusion';
+  const contextPolicyIds = excludedDocument ? [] : contextPolicies.filter((policy) => contextRefs.some((sourceRef) => policy.banaRefs.includes(sourceRef))).map((policy) => policy.id);
   // An official example is not credited merely because its parent provision
   // has a family test. It needs its own Electron case ID. Provision-level
   // cases may cover the provision itself, but example rows match exact IDs.
