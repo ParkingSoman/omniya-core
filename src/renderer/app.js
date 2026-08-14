@@ -20,7 +20,8 @@ import {
   setLatexSource,
   setReplacementMethod,
   startReplacementSession,
-  submitReplacement
+  submitReplacement,
+  undoNemethStep
 } from '../domain/replacement-session.js';
 
 const elements = Object.fromEntries([
@@ -781,6 +782,20 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       event.preventDefault();
       event.stopPropagation();
       await cancelReplacementEditor(article);
+      return;
+    }
+    if (event.key === 'Backspace' && replacementSession?.method === 'nemeth') {
+      event.preventDefault();
+      event.stopPropagation();
+      await inputProcessing;
+      const result = undoNemethStep(replacementSession);
+      replacementSession = result.session;
+      editor.value = result.session.nemethState?.prefix || '';
+      elements['replacement-choices'].replaceChildren();
+      elements['replacement-choices'].hidden = true;
+      elements['replacement-status'].textContent = result.announcement;
+      editor.toggleAttribute('aria-invalid', result.status === 'rejected');
+      if (result.status === 'undone') await renderDraftPreview();
       return;
     }
     if (event.key !== 'Enter' || event.shiftKey) return;

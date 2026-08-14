@@ -96,6 +96,34 @@ test('new equations use the same empty Nemeth replacement draft and commit once'
   assert.match(await article.locator('mjx-container').textContent(), /a/);
 });
 
+test('Backspace undoes the last Nemeth draft cell without canceling the replacement', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-nemeth-backspace-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addBlankEquation(page);
+  const input = page.getByLabel('Replacement input', { exact: true });
+
+  await input.fill('⠭');
+  await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type math mi')?.textContent === 'x');
+  await input.fill('⠽');
+  await page.waitForFunction(() => document.querySelectorAll('article.napkin-article:last-of-type math mi').length === 2);
+
+  await input.press('Backspace');
+  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Undid last Nemeth input'));
+  assert.equal(await article.locator('math mi').count(), 1);
+  assert.equal(await article.locator('math mi').textContent(), 'x');
+  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
+
+  await input.press('Backspace');
+  await page.waitForFunction(() => (document.querySelector('article.napkin-article:last-of-type math')?.children?.length ?? 0) === 0);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
+
+  await input.fill('⠵');
+  await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type math mi')?.textContent === 'z');
+  await input.press('Enter');
+  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  assert.equal(await article.locator('math mi').textContent(), 'z');
+});
+
 test('BANA Rule 3 numeric decimals are authored cell by cell and edited at a MathJax-selected numeral', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-nemeth-rule3-');
   t.after(() => app.close().catch(() => {}));
