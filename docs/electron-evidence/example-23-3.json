@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T18:12:25.216Z",
+  "startedAt": "2026-08-14T18:57:41.114Z",
   "filter": {
     "rule": null,
     "example": "23-3"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-w5zw5C",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Iwzkfe",
   "cases": [
     {
       "id": "electron:bana-2022:example-23-3",
@@ -21,7 +21,12 @@
       "focusedBraille": false,
       "undoRedo": false,
       "persistence": false,
-      "error": "cell 6 ⠶ rejected: That Nemeth cell is not valid at this draft focus.; prefix=; choices="
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-23-3/electron_bana-2022_example-23-3-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "23-3 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-71d4c3ff-cfc2-4999-8514-dc8e9ebb4498\" data-semantic-type=\"punctuated\" data-semantic-role=\"sequence\" data-semantic-annotation=\"depth:1\" data-semantic-id=\"3\" data-semantic-children=\"0,1,2\" data-semantic-content=\"1\" data-semantic-owns=\"0 1 2\" data-semantic-level-number=\"0\" data-speech-node=\"true\" data-semantic-structure=\"(3 0 1 2)\"><mn data-omniya-nemeth-intent=\"numeric-decimal\" data-omniya-=\"\" id=\"omniya-source-omniya-abed59db-4409-45ec-9569-a4c703815a28\" data-semantic-type=\"number\" data-semantic-role=\"float\" data-semantic-font=\"normal\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:2\" data-semantic-id=\"0\" data-semantic-parent=\"3\" data-semantic-level-number=\"1\" data-speech-node=\"true\">.35</mn><mo data-omniya-nemeth-cells=\"⠸⠣\" data-omniya-=\"\" id=\"omniya-source-omniya-a4ac2114-e0c9-48da-b5bd-82c8aa70e43a\" data-semantic-type=\"punctuation\" data-semantic-role=\"overaccent\" data-semantic-annotation=\"nemeth:number;depth:2\" data-semantic-id=\"1\" data-semantic-parent=\"3\" data-semantic-operator=\"punctuated\" data-semantic-level-number=\"1\" data-speech-node=\"true\">^</mo><mn data-omniya-nemeth-intent=\"lower-cell-numeric\" data-omniya-=\"\" id=\"omniya-source-omniya-fa7e155a-7562-423f-a688-b30e9484788b\" data-semantic-type=\"number\" data-semantic-role=\"integer\" data-semantic-font=\"normal\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:2\" data-semantic-id=\"2\" data-semantic-parent=\"3\" data-semantic-level-number=\"1\" data-speech-node=\"true\">73</mn></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-71d4c3ff-cfc2-4999-8514-dc8e9ebb4498\" data-semantic-type=\"punctuated\" data-semantic-role=\"sequence\" data-semantic-annotation=\"depth:1\" data-semantic-id=\"3\" data-semantic-children=\"0,1,2\" data-semantic-content=\"1\" data-semantic-owns=\"0 1 2\" data-semantic-level-number=\"0\" data-speech-node=\"true\" data-semantic-structure=\"(3 0 1 2)\"><mn data-omniya-nemeth-intent=\"numeric-decimal\" data-omniya-=\"\" id=\"omniya-source-omniya-abed59db-4409-45ec-9569-a4c703815a28\" data-semantic-type=\"number\" data-semantic-role=\"float\" data-semantic-font=\"normal\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:2\" data-semantic-id=\"0\" data-semantic-parent=\"3\" data-semantic-level-number=\"1\" data-speech-node=\"true\">.35</mn><mo data-omniya-nemeth-cells=\"⠸⠣\" data-omniya-=\"\" id=\"omniya-source-omniya-a4ac2114-e0c9-48da-b5bd-82c8aa70e43a\" data-semantic-type=\"punctuation\" data-semantic-role=\"overaccent\" data-semantic-annotation=\"nemeth:number;depth:2\" data-semantic-id=\"1\" data-semantic-parent=\"3\" data-semantic-operator=\"punctuated\" data-semantic-level-number=\"1\" data-speech-node=\"true\">^</mo><mn data-omniya-nemeth-intent=\"lower-cell-numeric\" data-omniya-=\"\" id=\"omniya-source-omniya-fa7e155a-7562-423f-a688-b30e9484788b\" data-semantic-type=\"number\" data-semantic-role=\"integer\" data-semantic-font=\"normal\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:2\" data-semantic-id=\"2\" data-semantic-parent=\"3\" data-semantic-level-number=\"1\" data-speech-node=\"true\">73</mn></math>\n+ actual - expected\n\n+ '⠼⠨⠒⠢⠸⠣⠼⠶⠒'\n- '⠼⠨⠒⠢⠸⠣⠶⠒'\n         ^\n"
     }
   ]
 }
