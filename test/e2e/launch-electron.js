@@ -1,7 +1,16 @@
 /**
  * Playwright Electron launches must not inherit ELECTRON_RUN_AS_NODE.
- * Cursor (and some CI shells) set that flag, which makes the Electron binary
- * behave as Node and reject --remote-debugging-port, aborting the launch.
+ * Cursor agent shells set that flag; without stripping it, Electron aborts with
+ * "Process failed to launch!" (it behaves as Node and rejects remote debugging).
+ *
+ * Agent / Cursor sandbox note: Electron also fails to launch inside the default
+ * Cursor command sandbox. E2E must run with full OS permissions (`all`), not
+ * the sandboxed Shell tool. That failure mode looks identical to a leaked
+ * ELECTRON_RUN_AS_NODE ("Process failed to launch!").
+ *
+ * Do not `pkill -f Electron` / Playwright globally — other worktrees may be
+ * running e2e. If this worktree is wedged, kill only processes whose argv
+ * contains this worktree's `node_modules/electron` path.
  *
  * OMNIYA_HEADLESS defaults on for e2e so BrowserWindows stay hidden (see
  * src/main.js). Pass OMNIYA_HEADLESS=0 to force a visible window while debugging.
@@ -54,8 +63,8 @@ export async function addEquationViaComposer(page, { method = 'latex', source })
 }
 
 /**
- * Open the legacy isNew #replacement-dock for subtree e2es until Task 6.
- * Product empty-submit no longer opens the dock (unified composer commits instead).
+ * Open unified-composer math replace on a new empty equation (subtree e2es).
+ * Product empty-submit no longer opens a second dock.
  */
 export async function openReplacementDockOnNewEquation(page) {
   await page.getByRole('button', { name: 'Add item' }).click();
@@ -63,6 +72,25 @@ export async function openReplacementDockOnNewEquation(page) {
   await page.evaluate(async () => {
     await globalThis.__omniyaTesting.openNewEquationDock();
   });
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
+  await page.getByLabel('Replacement input', { exact: true }).waitFor();
   return page.locator('article.napkin-article').last();
+}
+
+/** Product must not show #replacement-dock for math authoring. */
+export async function assertReplacementDockHidden(page) {
+  const visible = await page.locator('#replacement-dock').isVisible().catch(() => false);
+  if (visible) throw new Error('#replacement-dock must stay hidden; use #composer-dock');
+}
+
+export function mathAuthoringInput(page) {
+  return page.getByLabel('Replacement input', { exact: true });
+}
+
+export function mathAuthoringStatus(page) {
+  return page.locator('#composer-status');
+}
+
+export function mathAuthoringSurface(page) {
+  return page.locator('#composer-dock');
 }

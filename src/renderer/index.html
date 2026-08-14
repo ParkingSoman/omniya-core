@@ -36,7 +36,7 @@
           </div>
           <div class="header-meta">
             <span id="item-count">0 items</span>
-            <span id="mode-panel" aria-label="Authoring mode" tabindex="-1"></span>
+            <span id="mode-panel" role="status" aria-label="Authoring mode" tabindex="-1"></span>
             <span id="save-status"></span>
           </div>
         </header>
@@ -67,7 +67,7 @@
             <label><input type="radio" name="replacement-method" value="latex"> LaTeX</label>
           </fieldset>
           <p id="replacement-method-help">Nemeth builds the replacement one cell at a time. LaTeX accepts the complete replacement expression.</p>
-          <label for="replacement-input" class="sr-only">Replacement input</label>
+          <label for="replacement-input" class="sr-only">Legacy replacement input</label>
           <textarea id="replacement-input" rows="2" aria-describedby="replacement-status"></textarea>
           <p id="replacement-status"></p>
           <div id="replacement-choices" class="replacement-choices" aria-label="Nemeth choices" hidden></div>

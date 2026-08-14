@@ -31,7 +31,7 @@ async function commitDraft(page, source, method = 'latex') {
   const input = page.getByLabel('Replacement input', { exact: true });
   await input.fill(source);
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   const article = page.locator('article.napkin-article').last();
   await article.locator('mjx-container').waitFor();
   return article;
@@ -46,9 +46,9 @@ test('Replace button and Enter share one guarded submit transaction', { timeout:
     await input.fill('⠭');
     if (mode === 'enter') await input.press('Enter');
     else await page.getByRole('button', { name: 'Replace' }).click();
-    await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+    await page.locator('#composer-dock').waitFor({ state: 'hidden' });
     const snapshot = await page.evaluate(() => ({
-      dockHidden: document.querySelector('#replacement-dock').hidden,
+      dockHidden: document.querySelector('#composer-dock').hidden,
       mathml: document.querySelector('article.napkin-article:last-of-type math')?.outerHTML
         ?.replace(/omniya-[a-f0-9-]+/gi, 'ID'),
     }));
@@ -67,11 +67,13 @@ test('invalid replacement remains open and does not mutate the source', { timeou
   const { app, page } = await launch('omniya-submit-invalid-');
   t.after(() => app.close().catch(() => {}));
   const article = await addBlankEquation(page);
-  const before = await article.locator('math').evaluate((node) => node.outerHTML);
   await page.getByRole('button', { name: 'Replace' }).click();
-  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
-  assert.match(await page.locator('#replacement-status').textContent(), /empty|incomplete/i);
-  assert.equal(await article.locator('math').evaluate((node) => node.outerHTML), before);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.match(
+    `${await page.locator('#composer-error').textContent() ?? ''}\n${await page.locator('#composer-status').textContent() ?? ''}`,
+    /Enter Nemeth or LaTeX|empty|incomplete/i
+  );
+  assert.equal(await article.locator('math mi, math mn, math mo').count(), 0);
 });
 
 test('new equations use the same empty Nemeth replacement draft and commit once', { timeout: 60_000 }, async (t) => {
@@ -81,7 +83,7 @@ test('new equations use the same empty Nemeth replacement draft and commit once'
   assert.equal(await page.evaluate(() => document.querySelector('#replacement-method input[value="nemeth"]')?.checked), true);
   await page.getByLabel('Replacement input', { exact: true }).fill('⠭⠬⠁');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await page.waitForFunction(() => document.querySelectorAll('article.napkin-article math mi').length === 2);
   assert.equal(await article.locator('math mi').count(), 2);
   assert.equal(await article.locator('math mo').count(), 1);
@@ -101,19 +103,19 @@ test('Backspace undoes the last Nemeth draft cell without canceling the replacem
   await page.waitForFunction(() => document.querySelectorAll('article.napkin-article:last-of-type math mi').length === 2);
 
   await input.press('Backspace');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Undid last Nemeth input'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('Undid last Nemeth input'));
   assert.equal(await article.locator('math mi').count(), 1);
   assert.equal(await article.locator('math mi').textContent(), 'x');
-  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
 
   await input.press('Backspace');
   await page.waitForFunction(() => (document.querySelector('article.napkin-article:last-of-type math')?.children?.length ?? 0) === 0);
-  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
 
   await input.fill('⠵');
   await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type math mi')?.textContent === 'z');
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math mi').textContent(), 'z');
 });
 
@@ -133,7 +135,7 @@ test('BANA Rule 3 numeric decimals are authored cell by cell and edited at a Mat
   assert.equal(await article.locator('math > mn').textContent(), '3.14');
   assert.equal(await input.inputValue(), '');
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠼⠒⠨⠂⠲');
 
@@ -144,14 +146,14 @@ test('BANA Rule 3 numeric decimals are authored cell by cell and edited at a Mat
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   const replacementInput = page.getByLabel('Replacement input', { exact: true });
   for (const cell of ['⠼', '⠶', '⠨', '⠴']) {
     await replacementInput.fill(cell);
     await page.waitForTimeout(60);
   }
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math > mn').textContent(), '7.0');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠼⠶⠨⠴');
 });
@@ -165,12 +167,12 @@ test('renderer applies immediate, structural-followup, and atomic Nemeth codes i
   const integralArticle = await addBlankEquation(page);
   const input = page.getByLabel('Replacement input', { exact: true });
   await input.fill('⠮');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Draft updated'));
-  assert.equal(await page.locator('#replacement-dock').isVisible(), true);
-  assert.equal(await page.locator('#replacement-input').inputValue(), '');
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('Draft updated'));
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await page.locator('#composer-source').inputValue(), '');
   assert.equal(await integralArticle.locator('math mo').textContent(), '∫');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await integralArticle.locator('mjx-container').waitFor();
   assert.equal(await integralArticle.locator('mjx-speech[aria-braillelabel]').count() > 0, true);
   assert.equal(await integralArticle.locator('math mo').textContent(), '∫');
@@ -185,7 +187,7 @@ test('renderer applies immediate, structural-followup, and atomic Nemeth codes i
   await fractionInput.fill('⠭');
   await page.waitForFunction(() => document.querySelector('article.napkin-article:last-of-type mfrac mi')?.textContent === 'x');
   await fractionInput.fill('⠌');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('fraction.next.denominator'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('fraction.next.denominator'));
   assert.equal(await fractionArticle.locator('mfrac').count(), 1);
   assert.equal(await fractionArticle.locator('mfrac > mo').count(), 0);
 
@@ -198,14 +200,14 @@ test('renderer applies immediate, structural-followup, and atomic Nemeth codes i
   // Boundedly held: longer arrows share this prefix, so status may say the
   // sequence can continue; Enter still commits the exact uncontracted arrow.
   // The input mirrors the pending cells for braille review until that commit.
-  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠒⠒⠕');
-  assert.match(await page.locator('#replacement-status').textContent(), /may continue|Press Enter/i);
+  await page.waitForFunction(() => document.querySelector('#composer-source')?.value === '⠫⠒⠒⠕');
+  assert.match(await page.locator('#composer-status').textContent(), /may continue|Press Enter/i);
   assert.equal(await fractionArticle.locator('mfrac mo').count(), 0);
   await arrowInput.press('Enter');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Local code committed'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('Local code committed'));
   assert.equal(await fractionArticle.locator('mfrac > *').nth(1).textContent(), '→');
   await arrowInput.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await fractionArticle.locator('math mfrac').count(), 1);
   assert.deepEqual(await fractionArticle.locator('math mfrac > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['x', '→']);
 });
@@ -220,13 +222,13 @@ test('Nemeth integral creation and MathJax sign navigation edit preserve the loc
   // repeated integral is a structural follow-up on that already-created
   // operator, not an expression-sized parse.
   await input.fill('⠮');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('operator.integral'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('operator.integral'));
   await input.fill('⠮');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('integral.extend'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('integral.extend'));
   assert.equal(await article.locator('math > mo').textContent(), '∬');
   assert.equal(await input.inputValue(), '');
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮⠮');
 
@@ -238,12 +240,12 @@ test('Nemeth integral creation and MathJax sign navigation edit preserve the loc
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.toLowerCase().includes('integral'));
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮⠮');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠮');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('operator.integral'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('operator.integral'));
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math > mo').textContent(), '∫');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮');
 });
@@ -260,7 +262,7 @@ test('Nemeth integral bounds are created locally and MathJax navigation edits on
   for (const cell of ['⠮', '⠰', '⠁', '⠘', '⠃']) {
     await input.fill(cell);
     await page.waitForFunction((value) => {
-      const status = document.querySelector('#replacement-status')?.textContent ?? '';
+      const status = document.querySelector('#composer-status')?.textContent ?? '';
       return status.includes(value) || status.includes('Draft updated');
     }, cell === '⠮' ? 'operator.integral' : cell === '⠰' ? 'script.subscript' : cell === '⠘' ? 'script.superscript' : 'letter');
   }
@@ -268,7 +270,7 @@ test('Nemeth integral bounds are created locally and MathJax navigation edits on
   assert.equal(await article.locator('math > msubsup').count(), 1);
   assert.deepEqual(await article.locator('math > msubsup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['∫', 'a', 'b']);
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   // SRE includes the Rule 14 baseline-return indicator because the bounded
   // script is the complete rendered expression. This is an output projection
@@ -285,13 +287,13 @@ test('Nemeth integral bounds are created locally and MathJax navigation edits on
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.toLowerCase().includes('underscript'));
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠁');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /lower|a/i);
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('letter.z'));
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.deepEqual(await article.locator('math > msubsup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['∫', 'z', 'b']);
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮⠰⠵⠘⠃⠐');
 });
@@ -320,7 +322,7 @@ test('Nemeth degree decoration is created as one local code and MathJax edits it
   assert.equal(await article.locator('math > msup').count(), 1);
   assert.deepEqual(await article.locator('math > msup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['90', '°']);
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠼⠔⠴⠘⠨⠡');
 
@@ -334,12 +336,12 @@ test('Nemeth degree decoration is created as one local code and MathJax edits it
   const focusedDegreeChild = await article.locator('mjx-speech').last().getAttribute('aria-label');
   assert.match(focusedDegreeChild, /90|base|degree|superscript/i);
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /base|90/i);
   await chooseMethod(page, 'nemeth');
   await input.fill('⠙');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.deepEqual(await article.locator('math > msup > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['d', '°']);
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠙⠘⠨⠡');
 });
@@ -358,14 +360,14 @@ test('renderer creates a nested script and radical through compositional Nemeth 
   for (const cell of ['⠭', '⠘', '⠜', '⠽', '⠘', '⠵', '⠻']) {
     await input.fill(cell);
     const expected = cell === '⠻' ? 'radical.end' : cell === '⠘' ? 'Nemeth sequence may continue' : 'Draft updated';
-    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), expected);
+    await page.waitForFunction((value) => document.querySelector('#composer-status')?.textContent?.includes(value), expected);
   }
   assert.equal(await article.locator('math > msup').count(), 1);
   assert.equal(await article.locator('math > msup > msqrt').count(), 1);
   assert.deepEqual(await article.locator('math > msup > msqrt > msup > mi').allTextContents(), ['y', 'z']);
 
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠘⠜⠽⠘⠘⠵⠘⠻');
 });
@@ -378,10 +380,10 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   for (const cell of ['⠭', '⠘', '⠜', '⠽', '⠘', '⠵', '⠻']) {
     await input.fill(cell);
     const expected = cell === '⠻' ? 'radical.end' : cell === '⠘' ? 'Nemeth sequence may continue' : 'Draft updated';
-    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), expected);
+    await page.waitForFunction((value) => document.querySelector('#composer-status')?.textContent?.includes(value), expected);
   }
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-container').waitFor();
 
   // Root -> exponent -> radicand is the real MathJax Explorer path. At this
@@ -398,7 +400,7 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   // needed to describe the nested y^z scope in isolation.
   assert.equal(await page.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠽⠘⠘⠵⠘');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   const scope = await page.locator('#replacement-scope').textContent();
   assert.match(scope, /Radicand y to the z-th power/);
 
@@ -407,10 +409,10 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   for (const cell of ['⠵', '⠘', '⠵']) {
     await input.fill(cell);
     const expected = cell === '⠘' ? 'Nemeth sequence may continue' : 'Draft updated';
-    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), expected);
+    await page.waitForFunction((value) => document.querySelector('#composer-status')?.textContent?.includes(value), expected);
   }
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.deepEqual(await article.locator('math > msup > msqrt > msup > mi').allTextContents(), ['z', 'z']);
   assert.equal(await article.locator('math > msup > mi').first().textContent(), 'x');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠘⠜⠵⠘⠘⠵⠘⠻');
@@ -426,17 +428,17 @@ test('Nemeth modifier creation and MathJax base navigation edit preserve the ove
   // first cell inserts x immediately; the bar waits only for Enter and then
   // wraps that focused atom. It is not a passage buffer.
   await input.fill('⠭');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.x'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('letter.x'));
   await input.fill('⠱');
-  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠱');
+  await page.waitForFunction(() => document.querySelector('#composer-source')?.value === '⠱');
   assert.equal(await article.locator('math mover').count(), 0);
   await input.press('Enter');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('modifier.bar-over'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('modifier.bar-over'));
   assert.equal(await article.locator('math > mover > mi').textContent(), 'x');
   assert.equal(await article.locator('math > mover > mo').textContent(), '¯');
 
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠱');
 
@@ -449,14 +451,14 @@ test('Nemeth modifier creation and MathJax base navigation edit preserve the ove
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Base x');
   assert.equal(await page.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /Base x/);
 
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('letter.z'));
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.deepEqual(await article.locator('math > mover > mi').allTextContents(), ['z']);
   assert.equal(await article.locator('math > mover > mo').textContent(), '¯');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠵⠱');
@@ -473,14 +475,14 @@ test('Nemeth function creation and MathJax argument navigation edit preserve app
   // MathJax derives the application relationship from the resulting tree.
   for (const cell of ['⠎', '⠊', '⠝']) {
     await input.fill(cell);
-    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), cell === '⠝' ? 'Nemeth sequence may continue' : 'Nemeth sequence may continue');
+    await page.waitForFunction((value) => document.querySelector('#composer-status')?.textContent?.includes(value), cell === '⠝' ? 'Nemeth sequence may continue' : 'Nemeth sequence may continue');
   }
   await input.press('Enter');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('function.sin'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('function.sin'));
   await input.fill('⠭');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.x'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('letter.x'));
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠎⠊⠝⠀⠭');
 
@@ -494,13 +496,13 @@ test('Nemeth function creation and MathJax argument navigation edit preserve app
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /x/);
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.z'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('letter.z'));
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.deepEqual(await article.locator('math mi').allTextContents(), ['sin', 'z']);
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠎⠊⠝⠀⠵');
 });
@@ -514,13 +516,13 @@ test('Nemeth geometry atom creation and MathJax whole-scope editing preserve the
   // BANA Rule 17.1's diamond is a bounded atomic construction. Its two cells
   // are held locally until Enter, and no other expression text is parsed.
   await input.fill('⠫⠙');
-  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠙');
+  await page.waitForFunction(() => document.querySelector('#composer-source')?.value === '⠫⠙');
   assert.equal(await article.locator('math > mo').count(), 0);
   await input.press('Enter');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('shape.diamond'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('shape.diamond'));
   assert.equal(await article.locator('math > mo').textContent(), '◊');
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠫⠙');
 
@@ -532,14 +534,14 @@ test('Nemeth geometry atom creation and MathJax whole-scope editing preserve the
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.includes('lozenge'));
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠫⠙');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠫⠲');
-  await page.waitForFunction(() => document.querySelector('#replacement-input')?.value === '⠫⠲');
+  await page.waitForFunction(() => document.querySelector('#composer-source')?.value === '⠫⠲');
   await input.press('Enter');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('shape.square'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('shape.square'));
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math > mo').textContent(), '□');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠫⠲');
 });
@@ -555,11 +557,11 @@ test('Nemeth cancellation owns its content and MathJax edits only the canceled t
   // entered; the closer is a structural follow-up, not passage parsing.
   for (const cell of ['⠪', '⠭', '⠻']) {
     await input.fill(cell);
-    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), cell === '⠪' ? 'cancellation.start' : cell === '⠻' ? 'cancellation.end' : 'letter.x');
+    await page.waitForFunction((value) => document.querySelector('#composer-status')?.textContent?.includes(value), cell === '⠪' ? 'cancellation.start' : cell === '⠻' ? 'cancellation.end' : 'letter.x');
   }
   assert.equal(await article.locator('math > menclose[notation="updiagonalstrike"] > mi').textContent(), 'x');
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠪⠭⠻');
 
@@ -571,11 +573,11 @@ test('Nemeth cancellation owns its content and MathJax edits only the canceled t
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math > menclose[notation="updiagonalstrike"] > mi').textContent(), 'z');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠪⠵⠻');
 });
@@ -591,11 +593,11 @@ test('Nemeth fraction creation and MathJax numerator navigation edit preserve th
   // arbitrary operator; it moves the draft into the owned denominator slot.
   for (const cell of ['⠹', '⠭', '⠌', '⠽']) {
     await input.fill(cell);
-    await page.waitForFunction((value) => document.querySelector('#replacement-status')?.textContent?.includes(value), cell === '⠹' ? 'fraction.start.simple' : cell === '⠌' ? 'fraction.next.denominator' : 'Draft updated');
+    await page.waitForFunction((value) => document.querySelector('#composer-status')?.textContent?.includes(value), cell === '⠹' ? 'fraction.start.simple' : cell === '⠌' ? 'fraction.next.denominator' : 'Draft updated');
   }
   assert.deepEqual(await article.locator('math > mfrac > *').allTextContents(), ['x', 'y']);
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠹⠭⠌⠽⠼');
 
@@ -605,11 +607,11 @@ test('Nemeth fraction creation and MathJax numerator navigation edit preserve th
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Numerator x');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.deepEqual(await article.locator('math > mfrac > *').allTextContents(), ['z', 'y']);
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠹⠵⠌⠽⠼');
 });
@@ -626,15 +628,15 @@ test('Nemeth left-subscript choice creates multiscripts and MathJax edits the ow
   await input.fill('⠰');
   await input.fill('⠭');
   await page.getByRole('button', { name: 'Begin left-subscript construction' }).click();
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.x'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('letter.x'));
   await input.fill('⠐');
   await input.fill('⠝');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.n'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('letter.n'));
   assert.equal(await article.locator('math > mmultiscripts').count(), 1);
   assert.equal(await article.locator('math > mmultiscripts > mprescripts + mi').textContent(), 'x');
   assert.equal(await article.locator('math > mmultiscripts > mi').first().textContent(), 'n');
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠰⠭⠐⠝');
 
@@ -647,11 +649,11 @@ test('Nemeth left-subscript choice creates multiscripts and MathJax edits the ow
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Base n');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠝');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math > mmultiscripts > mi').first().textContent(), 'z');
   assert.equal(await article.locator('math > mmultiscripts > mprescripts + mi').textContent(), 'x');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠰⠭⠐⠵');
@@ -671,10 +673,10 @@ test('Nemeth typeform scope creation and MathJax inner editing preserve the bold
   for (const cell of ['⠁', '⠬', '⠃']) await input.fill(cell);
   for (const cell of ['⠸', '⠠', '⠄']) await input.fill(cell);
   await input.press('Enter');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('typeform.scope.bold.close'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('typeform.scope.bold.close'));
   assert.equal(await article.locator('math > mstyle[mathvariant="bold"] > mrow > mi').count(), 2);
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠁⠬⠃');
 
@@ -686,11 +688,11 @@ test('Nemeth typeform scope creation and MathJax inner editing preserve the bold
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'a');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠁');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math > mstyle[mathvariant="bold"] > mrow > mi').first().textContent(), 'z');
   assert.deepEqual(await article.locator('math > mstyle[mathvariant="bold"] > mrow > mi').allTextContents(), ['z', 'b']);
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠵⠬⠃');
@@ -706,9 +708,9 @@ test('Nemeth comparison creation and MathJax relation navigation edit preserve b
   // independent local transitions. The relation code itself is never a
   // whole-expression parse.
   for (const cell of ['⠭', '⠐', '⠅', '⠽']) await input.fill(cell);
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('letter.y'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('letter.y'));
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠀⠐⠅⠀⠽');
 
@@ -722,11 +724,11 @@ test('Nemeth comparison creation and MathJax relation navigation edit preserve b
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'y');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠽');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.deepEqual(await article.locator('math mi').allTextContents(), ['x', 'z']);
   assert.equal(await article.locator('math mo').textContent(), '<');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭⠀⠐⠅⠀⠵');
@@ -753,14 +755,14 @@ test('MathJax-focused Nemeth editing replaces only the selected subtree with an 
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').count() > 0, true);
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   const input = page.getByLabel('Replacement input', { exact: true });
   await input.fill('⠫⠒⠒⠕');
   await input.press('Enter');
-  await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent?.includes('Local code committed'));
+  await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent?.includes('Local code committed'));
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   // MathML may retain an application-owned mrow around the original sibling
   // row, so assert the semantic leaves rather than presentation wrapper
   // boundaries: one original x, the original plus, and the new arrow.
@@ -786,11 +788,11 @@ test('MathJax-selected duplicate subexpressions replace only the selected node',
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await page.getByLabel('Replacement input', { exact: true }).fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   const source = await article.locator('math').evaluate((node) => [...node.querySelectorAll('mi')].map((n) => n.textContent));
   assert.deepEqual(source, ['x', 'z']);
 });
@@ -806,11 +808,11 @@ test('nested numerator replacement preserves the containing fraction', { timeout
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Numerator a plus b');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await page.getByLabel('Replacement input', { exact: true }).fill('⠵');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math mfrac').count(), 1);
   assert.deepEqual(await article.locator('math mfrac > *').evaluateAll((nodes) => nodes.map((node) => node.textContent)), ['z', 'c']);
 });
@@ -822,26 +824,26 @@ test('LaTeX is an alternate replacement draft and cancel or invalid input leaves
   await commitDraft(page, 'a+b', 'latex');
   await article.focus();
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('x^2+\\sqrt{y}');
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.match(await article.locator('mjx-container').textContent(), /a/);
   assert.match(await article.locator('mjx-container').textContent(), /b/);
 
   await article.focus();
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'latex');
   const input = page.getByLabel('Replacement input', { exact: true });
   await input.fill('\\frac{');
   await page.getByRole('button', { name: 'Replace' }).click();
-  assert.match(await page.locator('#replacement-status').textContent(), /convert|empty|invalid|incomplete/i);
+  assert.match(await page.locator('#composer-status').textContent(), /convert|empty|invalid|incomplete/i);
   assert.match(await article.locator('mjx-container').textContent(), /a/);
   await input.fill('x^3');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math msup').count(), 1);
 });
 
@@ -858,7 +860,7 @@ test('six-key input feeds the same Nemeth draft transition as Unicode cells', { 
   await page.keyboard.up('s');
   await page.keyboard.up('d');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await article.locator('math mi').count(), 1);
   assert.equal(await article.locator('math mi').textContent(), 'l');
   assert.equal(await input.count(), 1);
@@ -877,7 +879,7 @@ test('six-key input feeds the same Nemeth draft transition as Unicode cells', { 
       || current?.getAttribute('aria-label') === 'l';
   });
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await page.keyboard.down('f');
   await page.keyboard.down('s');
   await page.keyboard.down('k');
@@ -887,7 +889,7 @@ test('six-key input feeds the same Nemeth draft transition as Unicode cells', { 
   await page.keyboard.up('k');
   await page.keyboard.up('l');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   const editedIdentifiers = await article.locator('math mi').allTextContents();
   const braille = await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
   assert.ok(editedIdentifiers.length >= 1 && editedIdentifiers.every((value) => value === 'z'), `six-key edit must leave no stale identifier: ${editedIdentifiers.join(',')}; braille=${braille}`);

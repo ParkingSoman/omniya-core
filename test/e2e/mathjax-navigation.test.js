@@ -79,11 +79,11 @@ async function waitForSpeechChange(page, article, previous) {
 
 async function assertCurrentFocusCanBeReplaced(page) {
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
-  const status = await page.locator('#replacement-status').textContent();
+  await page.locator('#composer-dock').waitFor();
+  const status = await page.locator('#composer-status').textContent();
   assert.doesNotMatch(status, /cannot|unsafe|safe/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
 }
 
 async function resetExplorer(page, article) {
@@ -172,26 +172,26 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
 
   await article.focus();
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'latex');
   const source = page.getByLabel('Replacement input', { exact: true });
   await source.fill('\\frac{');
   await page.getByRole('button', { name: 'Replace' }).click();
-  assert.match(await page.locator('#replacement-status').textContent(), /convert|incomplete|empty/i);
+  assert.match(await page.locator('#composer-status').textContent(), /convert|incomplete|empty/i);
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
 
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-container math mfrac').waitFor();
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
 
   await article.focus();
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('x^3');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await page.locator('article.napkin-article mjx-container').waitFor();
   assert.equal(await page.locator('article.napkin-article math msup').count(), 1);
   assert.equal(await page.locator('article.napkin-article math mfrac').count(), 0);
@@ -257,10 +257,10 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
   });
   assert.ok(focusedTargetId, 'MathJax focus must map to a canonical Omniya node');
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id'), focusedTargetId);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
 
   const matrix = await addEquation(page, '\\begin{matrix}a&b\\\\c&d\\end{matrix}');
   await resetExplorer(page, matrix);
@@ -285,11 +285,11 @@ test('E opens the exact replacement even during the explorer focus handoff', { t
   // the real VoiceOver timing where E can arrive while MathJax is handing the
   // current node from the visual explorer to its speech proxy.
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id') !== null, true);
   assert.doesNotMatch(await page.locator('#save-status').textContent(), /cannot be edited safely|unsafe/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
 });
 
 test('switches input type without visible radios and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {

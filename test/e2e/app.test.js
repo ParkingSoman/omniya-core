@@ -139,12 +139,14 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.waitForFunction(() => document.activeElement?.tagName === 'ARTICLE');
   assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
   await page.keyboard.press('e');
-  assert.equal(await page.getByRole('heading', { name: 'Replace focused mathematics' }).count(), 1);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
+  assert.match(await page.locator('#mode-panel').textContent() ?? '', /replacing/i);
   await assertNoAxeViolations(page);
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   await articles.nth(1).locator('mjx-container').waitFor();
   assert.ok(await articles.nth(1).locator('mjx-container math').count());

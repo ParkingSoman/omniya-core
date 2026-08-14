@@ -46,38 +46,38 @@ test('loaded Electron accepts the representative declarative Nemeth registry cor
     const input = page.getByLabel('Replacement input', { exact: true });
     await input.fill(mapping.cells.join(''));
     if (mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE) await input.press('Enter');
-    await page.waitForFunction(() => document.querySelector('#replacement-status')?.textContent);
-    const status = await page.locator('#replacement-status').textContent();
+    await page.waitForFunction(() => document.querySelector('#composer-status')?.textContent);
+    const status = await page.locator('#composer-status').textContent();
     assert.doesNotMatch(status ?? '', /not valid|incomplete|cannot/i, `${mapping.id} rejected in loaded Electron`);
-    if (await page.locator('#replacement-choices:not([hidden])').count()) {
+    if (await page.locator('#composer-choices:not([hidden])').count()) {
       const choice = page.locator('.replacement-choice').filter({ hasText: mapping.id });
       assert.equal(await choice.count(), 1, `${mapping.id} must be an explicit local choice when its code is ambiguous`);
       await choice.click();
     }
     const localInput = await input.inputValue();
     await input.press('Enter');
-    if (mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE && await page.locator('#replacement-dock').isVisible()) {
+    if (mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE && await page.locator('#composer-dock').isVisible()) {
       await input.press('Enter');
-    } else if (localInput && await page.locator('#replacement-dock').isVisible()) {
+    } else if (localInput && await page.locator('#composer-dock').isVisible()) {
       // An immediate code held for bounded lookahead consumes the first Enter
       // as its short-code disambiguator and the second as the replacement.
       await input.press('Enter');
     }
-    if (await page.locator('#replacement-dock').isVisible()) {
+    if (await page.locator('#composer-dock').isVisible()) {
       const submit = page.getByRole('button', { name: 'Replace' });
       if (!(await submit.count())) continue;
       await submit.waitFor();
       await page.waitForFunction(() => {
-        const button = document.querySelector('#replacement-submit');
+        const button = document.querySelector('#composer-submit');
         return button && !button.disabled;
       });
       await submit.click();
     }
     try {
-      await page.locator('#replacement-dock').waitFor({ state: 'hidden', timeout: 2_000 });
+      await page.locator('#composer-dock').waitFor({ state: 'hidden', timeout: 2_000 });
     } catch (error) {
       const draftValue = await input.inputValue().catch(() => '');
-      const choices = await page.locator('#replacement-choices').textContent().catch(() => '');
+      const choices = await page.locator('#composer-choices').textContent().catch(() => '');
       throw new Error(`${mapping.id} (${mapping.commitPolicy}, ${mapping.cells.join('')}) did not submit; status=${status}; input=${draftValue}; choices=${choices}`, { cause: error });
     }
   }

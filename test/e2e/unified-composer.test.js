@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { chooseType, electronLaunchEnv } from './launch-electron.js';
+import { addEquationViaComposer, chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -75,7 +75,7 @@ test('equation Nemeth in composer commits without replacement dock', { timeout: 
   await page.keyboard.type('n');
   await page.locator('article.napkin-article').first().waitFor({ timeout: 15_000 });
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-  assert.equal(await page.locator('#composer-dock').isVisible(), false);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 });
 
 test('empty equation submit refuses without opening replacement dock', { timeout: 60_000 }, async (t) => {
@@ -106,7 +106,7 @@ test('atomic Nemeth arrow needs a second Enter to commit from composer', { timeo
   assert.equal(await page.locator('article.napkin-article').count(), 0);
   await page.keyboard.press('Enter');
   await page.locator('article.napkin-article').first().waitFor({ timeout: 15_000 });
-  assert.equal(await page.locator('#composer-dock').isVisible(), false);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 });
 
@@ -124,4 +124,33 @@ test('composer shows Nemeth choice buttons for left-subscript ambiguity', { time
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
   await page.getByRole('button', { name: 'Begin left-subscript construction' }).click();
   await page.waitForFunction(() => /letter\.x|Draft updated/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
+});
+
+test('E opens unified composer for subtree replace', { timeout: 90_000 }, async (t) => {
+  const { app, page } = await launch('omniya-unified-e-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addEquationViaComposer(page, { method: 'latex', source: 'x+1' });
+  const beforeTokens = await article.locator('math').evaluate((node) =>
+    [...node.querySelectorAll('mi, mn, mo')].map((el) => el.textContent).join('|')
+  );
+  await article.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
+  await page.keyboard.press('e');
+  await page.locator('#composer-dock').waitFor();
+  assert.equal(await page.locator('#composer-source').isVisible(), true);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
+  assert.match(await page.locator('#mode-panel').textContent() ?? '', /replacing/i);
+  await page.keyboard.press('Control+[');
+  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  await page.keyboard.type('t');
+  await page.waitForFunction(() => /Can't switch to Text|Equation/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  assert.doesNotMatch(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB/i);
+  await page.keyboard.press('Escape');
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  const afterTokens = await article.locator('math').evaluate((node) =>
+    [...node.querySelectorAll('mi, mn, mo')].map((el) => el.textContent).join('|')
+  );
+  assert.equal(afterTokens, beforeTokens);
+  assert.equal(afterTokens, 'x|+|1');
 });

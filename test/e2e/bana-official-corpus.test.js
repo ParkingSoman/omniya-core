@@ -112,7 +112,7 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   });
   const resolveChoices = async (nextCell = null) => {
     for (let attempt = 0; attempt < 6; attempt += 1) {
-      const choices = page.locator('#replacement-choices .replacement-choice');
+      const choices = page.locator('#composer-choices .replacement-choice');
       if (!(await choices.count())) return;
       const prefix = (await input.inputValue()).trimEnd();
       const requested = choiceOperationIds[`${prefix}${nextCell ?? ''}`]
@@ -120,13 +120,13 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
         ?? Object.entries(choiceOperationIds).find(([localPrefix]) => prefix.endsWith(localPrefix))?.[1]
         ?? (prefix.endsWith('⠐') && nextCell && ['⠤', '⠬', '⠀'].includes(nextCell) ? 'script.baseline' : null);
       const contextChoice = !requested && nextCell && [...'⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵'].includes(nextCell)
-        ? page.locator('#replacement-choices .replacement-choice[data-operation-id="indicator.capital"]')
+        ? page.locator('#composer-choices .replacement-choice[data-operation-id="indicator.capital"]')
         : null;
       const inferredReferenceAsterisk = !requested && prefix.includes('⠈⠼')
-        ? page.locator('#replacement-choices .replacement-choice[data-operation-id="reference.asterisk"]')
+        ? page.locator('#composer-choices .replacement-choice[data-operation-id="reference.asterisk"]')
         : null;
       const selected = requested
-        ? page.locator(`#replacement-choices .replacement-choice[data-operation-id="${requested}"]`)
+        ? page.locator(`#composer-choices .replacement-choice[data-operation-id="${requested}"]`)
         : inferredReferenceAsterisk || contextChoice || choices.first();
       const selectedCount = await selected.count();
       if (requested && !selectedCount) {
@@ -135,16 +135,16 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
       }
       await (selectedCount ? selected.first() : choices.first()).click();
       await page.waitForTimeout(80);
-      if (requested && await page.locator('#replacement-choices .replacement-choice').count()) {
-        throw new Error(`requested local choice ${requested} remained after click; prefix=${prefix}; status=${await page.locator('#replacement-status').textContent()}`);
+      if (requested && await page.locator('#composer-choices .replacement-choice').count()) {
+        throw new Error(`requested local choice ${requested} remained after click; prefix=${prefix}; status=${await page.locator('#composer-status').textContent()}`);
       }
       // A selected shorter meaning may leave a second choice for a different
       // local prefix in the same bounded construction. The next loop reads
       // that fresh prefix and resolves it without treating the entire draft
       // as a parser buffer.
     }
-    assert.equal(await page.locator('#replacement-choices .replacement-choice').count(), 0,
-      `bounded local choice did not resolve after six explicit selections; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
+    assert.equal(await page.locator('#composer-choices .replacement-choice').count(), 0,
+      `bounded local choice did not resolve after six explicit selections; prefix=${await input.inputValue()}; choices=${await page.locator('#composer-choices .replacement-choice').allTextContents()}`);
   };
   for (const [cellIndex, cell] of cells.entries()) {
     // Pending bounded prefixes are mirrored in the textarea for braille
@@ -162,18 +162,18 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
     // preview. Give that preview a turn before routing the next physical
     // cell; bounded prefixes intentionally remain visible in the proxy.
     await page.waitForTimeout(80);
-    if (await page.locator('#replacement-choices .replacement-choice').count()) {
+    if (await page.locator('#composer-choices .replacement-choice').count()) {
       await resolveChoices(cells[cellIndex + 1] ?? null);
     }
-    const status = await page.locator('#replacement-status').textContent();
-    assert.doesNotMatch(status ?? '', /That Nemeth cell is not valid at this draft focus/i, `cell ${cellIndex} ${cell} rejected: ${status}; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
+    const status = await page.locator('#composer-status').textContent();
+    assert.doesNotMatch(status ?? '', /That Nemeth cell is not valid at this draft focus/i, `cell ${cellIndex} ${cell} rejected: ${status}; prefix=${await input.inputValue()}; choices=${await page.locator('#composer-choices .replacement-choice').allTextContents()}`);
   }
   // Enter commits only a still-pending bounded local code. A second Enter is
   // the ordinary replacement transaction, never a passage-sized parse.
   if (await input.inputValue()) await input.press('Enter');
   await page.waitForTimeout(40);
-  if (await page.locator('#replacement-choices .replacement-choice').count()) {
-    const choices = page.locator('#replacement-choices .replacement-choice');
+  if (await page.locator('#composer-choices .replacement-choice').count()) {
+    const choices = page.locator('#composer-choices .replacement-choice');
     const omission = choices.filter({ hasText: 'omission.long-dash' });
     await (await omission.count() ? omission.first() : choices.first()).click();
     await page.waitForTimeout(40);
@@ -183,7 +183,7 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   // group's content row even after its closing cell was consumed. Give that
   // completed boundary one final local commit opportunity before submitting;
   // this is still a UI Enter for the bounded code, not passage parsing.
-  if ((await page.locator('#replacement-status').textContent() ?? '').includes('incomplete at content') && cells.at(-1) === '⠾') {
+  if ((await page.locator('#composer-status').textContent() ?? '').includes('incomplete at content') && cells.at(-1) === '⠾') {
     await input.press('Enter');
     await page.waitForTimeout(80);
   }
@@ -193,10 +193,10 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
     // its required radicand hole.
     return feedLocalCode(page, input, options.completionCells, choiceOperationIds, { ...options, allowIncompleteDraft: false, completionCells: null });
   }
-  if (options.allowIncompleteDraft && (await page.locator('#replacement-status').textContent() ?? '').includes('incomplete at radicand')) {
+  if (options.allowIncompleteDraft && (await page.locator('#composer-status').textContent() ?? '').includes('incomplete at radicand')) {
     throw new Error(`official incomplete draft has no completion fixture: ${cells.join('')}`);
   }
-  if (await page.locator('#replacement-dock').isVisible()) {
+  if (await page.locator('#composer-dock').isVisible()) {
     // A final alphabetic prefix can be a valid bounded word fragment whose
     // next source cell is a structural closer. Pressing Enter here is the
     // local-code disambiguator, never a passage-sized submission.
@@ -206,20 +206,20 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
     }
     const submit = page.getByRole('button', { name: 'Replace' });
     await submit.waitFor();
-    await page.waitForFunction(() => !document.querySelector('#replacement-submit')?.disabled);
+    await page.waitForFunction(() => !document.querySelector('#composer-submit')?.disabled);
     await submit.click();
   }
-  if (options.allowIncompleteDraft && (await page.locator('#replacement-status').textContent() ?? '').includes('incomplete at radicand')) {
+  if (options.allowIncompleteDraft && (await page.locator('#composer-status').textContent() ?? '').includes('incomplete at radicand')) {
     throw new Error(`official incomplete draft remained after local completion: ${cells.join('')}`);
   }
   try {
-    await page.locator('#replacement-dock').waitFor({ state: 'hidden', timeout: 5000 });
+    await page.locator('#composer-dock').waitFor({ state: 'hidden', timeout: 5000 });
   } catch (error) {
       const diagnostic = await page.evaluate(() => ({
-      status: document.querySelector('#replacement-status')?.textContent,
-      input: document.querySelector('#replacement-input')?.value,
-      choices: [...document.querySelectorAll('#replacement-choices .replacement-choice')].map((node) => node.textContent),
-      submitDisabled: document.querySelector('#replacement-submit')?.disabled,
+      status: document.querySelector('#composer-status')?.textContent,
+      input: document.querySelector('#composer-source')?.value,
+      choices: [...document.querySelectorAll('#composer-choices .replacement-choice')].map((node) => node.textContent),
+      submitDisabled: document.querySelector('#composer-submit')?.disabled,
       math: document.querySelector('article.napkin-article:last-of-type math')?.outerHTML
     }));
     throw new Error(`${error.message}; replacement diagnostic=${JSON.stringify(diagnostic)}`);
@@ -259,7 +259,7 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
     ? await options.captureFocusedEvidence()
     : null;
   await page.keyboard.press('e');
-  await page.locator('#replacement-dock').waitFor();
+  await page.locator('#composer-dock').waitFor();
   const targetId = await page.locator('#replacement-scope').getAttribute('data-target-id');
   assert.ok(targetId, 'official edit must freeze a canonical MathJax descendant or range');
   const input = page.getByLabel('Replacement input', { exact: true });

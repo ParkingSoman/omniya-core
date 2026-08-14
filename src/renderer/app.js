@@ -378,24 +378,50 @@ function renderMode() {
     : 'Reading remains available above. Ctrl+[ enters Command · Escape cancels.';
 }
 
+function isMathReplaceAuthoring() {
+  return Boolean(
+    replacementSession
+    && !replacementEditor
+    && mode === 'edit'
+    && (commandState.replaceScopeLabel || replacementSession.originalDocument || replacementSession.isNew)
+  );
+}
+
 function renderComposer() {
   const editing = mode === 'edit';
+  const mathReplace = isMathReplaceAuthoring();
   const item = editing ? activeItem() : null;
   const values = editing
-    ? { source: item?.source ?? '', note: item?.note ?? '', type: item?.type ?? 'text' }
+    ? {
+      source: mathReplace ? (elements['composer-source']?.value ?? draft.source ?? '') : (item?.source ?? ''),
+      note: item?.note ?? '',
+      type: mathReplace ? 'equation' : (item?.type ?? 'text')
+    }
     : draft;
 
-  elements['composer-heading'].textContent = editing
-    ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
-    : `Adding to ${activeNapkin().name}`;
-  elements['composer-submit'].textContent = editing ? 'Save changes' : 'Add item';
-  elements['composer-discard'].hidden = editing;
-  elements['composer-cancel'].hidden = !editing;
-  elements['editing-indicator'].textContent = editing ? 'Changes are not saved until you choose Save changes.' : '';
-  elements['composer-source'].value = values.source;
+  elements['composer-heading'].textContent = mathReplace
+    ? (commandState.replaceScopeLabel
+      ? `Replacing: ${commandState.replaceScopeLabel}`
+      : 'Replace focused mathematics')
+    : editing
+      ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
+      : `Adding to ${activeNapkin().name}`;
+  elements['composer-submit'].textContent = mathReplace ? 'Replace' : editing ? 'Save changes' : 'Add item';
+  elements['composer-discard'].hidden = editing || mathReplace;
+  elements['composer-cancel'].hidden = !(editing || mathReplace);
+  elements['editing-indicator'].textContent = mathReplace
+    ? 'Escape cancels without changing the equation.'
+    : editing
+      ? 'Changes are not saved until you choose Save changes.'
+      : '';
+  if (!mathReplace || mode === 'add') {
+    elements['composer-source'].value = values.source;
+  } else if (!replacementHasContent && !(replacementSession?.nemethState?.prefix) && replacementSession?.method !== 'latex') {
+    elements['composer-source'].value = '';
+  }
   elements['composer-note'].value = values.note;
   elements['mode-switch'].querySelectorAll('input').forEach((input) => {
-    input.disabled = editing;
+    input.disabled = editing || mathReplace;
     input.checked = input.value === values.type;
   });
   if (!NOTES_UI_ENABLED) {
@@ -407,14 +433,19 @@ function renderComposer() {
     elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
     elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
   }
-  elements['composer-help'].textContent = editing
-    ? 'Save changes commits the item · Ctrl+[ enters Command · Escape cancels'
-    : values.type === 'equation'
-      ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command · Escape cancels'
-      : 'Enter adds · Shift+Enter makes a new line · Ctrl+[ enters Command · Escape cancels';
+  const sourceLabel = elements['composer-source']?.labels?.[0]
+    || document.querySelector('label[for="composer-source"]');
+  if (sourceLabel) sourceLabel.textContent = mathReplace ? 'Replacement input' : 'Content';
+  elements['composer-help'].textContent = mathReplace
+    ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command · Escape cancels · Replace commits'
+    : editing
+      ? 'Save changes commits the item · Ctrl+[ enters Command · Escape cancels'
+      : values.type === 'equation'
+        ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command · Escape cancels'
+        : 'Enter adds · Shift+Enter makes a new line · Ctrl+[ enters Command · Escape cancels';
   // Unified composer: Equation keeps #composer-source visible (Nemeth/LaTeX styling only).
   elements['composer-source'].hidden = false;
-  elements['composer-source'].required = values.type === 'text';
+  elements['composer-source'].required = values.type === 'text' && !mathReplace;
   const equationMethod = values.type === 'equation'
     ? (commandState.itemKind === 'equation' ? commandState.equationMethod : preferredAuthoringMethod)
     : null;
@@ -535,6 +566,11 @@ async function applyMathHistory(itemId, direction) {
 
 async function cancelReplacementEditor(article) {
   if (!replacementSession) return;
+  // Composer-bound math replace: Escape / Cancel share returnToRead.
+  if (!replacementEditor) {
+    returnToRead({ discardDraft: true });
+    return;
+  }
   const session = replacementSession;
   cancelReplacement(session);
   const wasNew = Boolean(session.isNew);
@@ -554,19 +590,15 @@ async function cancelReplacementEditor(article) {
   elements['save-status'].textContent = 'Replacement cancelled';
 }
 
-async function openReplacementEditor(article, startingFocus = null, isNew = false) {
-  if (replacementSession) return;
-  const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
-  if (!item) return;
+async function resolveMathReplaceFocus(article, item, startingFocus = null, isNew = false) {
   let math = article.querySelector('mjx-container, math');
   if (!isNew) {
     for (let attempt = 0; !math && attempt < 100 && article.isConnected; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 20));
       math = article.querySelector('mjx-container, math');
     }
-    if (!math) return;
+    if (!math) return null;
   }
-  let focus;
   // The persisted equation is validated canonical MathML. It is therefore
   // always an exact replacement target, even during the short interval in
   // which MathJax is handing focus between its explorer and the browser. Keep
@@ -582,26 +614,20 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
       ? { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' }
       : null;
   };
+  let focus;
   try {
     if (startingFocus) {
       focus = { target: startingFocus, speech: '', nemeth: '' };
     } else if (exploringEquationItemId === article.dataset.itemId) {
       try {
         focus = await captureExplorerFocusWithRetry(article);
-      } catch (error) {
+      } catch {
         // MathJax can briefly expose neither its visual nor speech focus while
         // handing control back to the browser. The last bridge result, the
         // persisted focus, or the canonical equation root are all exact
         // application-owned targets. This path never publishes an unsafe
         // focus error to the user.
-        const root = canonicalRootFocus();
-        focus = explorerFocusCache.get(article.dataset.itemId)
-          || root;
-        // Canonical MathML is validated before it reaches the renderer and
-        // always has a stable root ID. If MathJax is between enrichment
-        // frames, the root is therefore an exact, editable target rather
-        // than an unsafe approximation. Keep the error only in diagnostics;
-        // never expose a focus-safety failure to the user.
+        focus = explorerFocusCache.get(article.dataset.itemId) || canonicalRootFocus();
         if (!focus) focus = canonicalRootFocus();
       }
       explorerFocusCache.set(article.dataset.itemId, focus);
@@ -613,19 +639,29 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     // an internal diagnostic only; no "focus cannot be edited safely" state is
     // exposed in the editing workflow.
     console.error('MathJax focus bridge could not resolve the active node', error);
-    // A validated equation always has a canonical root. Reaching this branch
-    // means the DOM and source snapshot disagreed for a transient frame. Open
-    // the exact persisted root rather than abandoning an otherwise valid edit.
     focus = canonicalRootFocus();
   }
+  return focus;
+}
+
+/** Open the unified composer to replace a focused math subtree (explorer/article E). */
+async function openComposerForMathReplace(article, startingFocus = null, isNew = false) {
+  if (replacementSession) return;
+  const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
+  if (!item) return;
+  const focus = await resolveMathReplaceFocus(article, item, startingFocus, isNew);
   if (!focus?.target) {
-    // This can only indicate corrupt state that bypassed the model boundary.
-    // Keep it diagnostic, but do not expose the old “cannot be edited safely”
-    // message or leave the user stranded in reading mode.
     console.error('Validated equation has no canonical replacement root');
     elements['save-status'].textContent = 'Equation is unavailable.';
     return;
   }
+  exploringEquationItemId = null;
+  explorerFocusCache.delete(article.dataset.itemId);
+  state = selectItem(state, article.dataset.itemId);
+  mode = 'edit';
+  editingItemId = article.dataset.itemId;
+  draft = { source: '', note: item.note ?? '', type: 'equation' };
+  uebBuffer = createUebCellBuffer();
   replacementSession = startReplacementSession({
     document: item.math,
     target: focus.target,
@@ -633,295 +669,44 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
     method: preferredAuthoringMethod
   });
   replacementSession.isNew = isNew;
-  explorerFocusCache.delete(article.dataset.itemId);
-  const editor = elements['replacement-input'];
-  replacementEditor = editor;
+  replacementEditor = null;
   replacementHasContent = false;
+  composerMathInputProcessing = Promise.resolve();
+  const scopeLabel = focus.speech || 'selection';
   commandState = createCommandState({
     itemKind: 'equation',
     equationMethod: preferredAuthoringMethod,
     contentEmpty: true,
-    interaction: 'insert'
+    interaction: 'insert',
+    replaceScopeLabel: scopeLabel
   });
-  syncModePanel(commandState);
-  editor.className = preferredAuthoringMethod === 'nemeth' ? 'nemeth-inline-editor' : 'latex-inline-editor';
-  editor.value = '';
-  elements['replacement-dock'].hidden = false;
-  elements['replacement-scope'].textContent = focus.speech ? `Selected: ${focus.speech}` : 'Selected mathematical scope';
-  elements['replacement-scope'].dataset.targetId = focus.target.kind === 'node'
-    ? focus.target.nodeId
-    : focus.target.firstNodeId;
-  elements['replacement-status'].textContent = preferredAuthoringMethod === 'nemeth'
-    ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
-    : 'Enter LaTeX for the replacement expression.';
-  elements['replacement-method'].querySelectorAll('input').forEach((input) => { input.checked = input.value === preferredAuthoringMethod; });
-  elements['replacement-choices'].replaceChildren();
-  elements['replacement-choices'].hidden = true;
-  let inputProcessing = Promise.resolve();
-
-  const renderDraftPreview = async () => {
-    if (!replacementSession || replacementSession.method !== 'nemeth') return;
-    const content = article.querySelector('.item-content');
-    if (!content) return;
-    await renderEquation(content, { ...item, math: replacementSession.draft }, ++transcriptRenderVersion);
-    if (replacementSession?.draftFocus) setTimeout(() => void restoreExplorerFocus(article, replacementSession.draftFocus), 0);
-  };
-
-  const consumeCell = async (cell) => {
-    if (!replacementSession) return;
-    const result = (cell === ' ' || cell === '⠀')
-      ? applyNemethBoundary(replacementSession, 'space')
-      : applyNemethCell(replacementSession, cell);
-    replacementSession = result.session;
-    if (result.status === 'applied') {
-      replacementHasContent = true;
-      editor.value = '';
-      elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
-      await renderDraftPreview();
-    } else if (result.status === 'pending' || result.status === 'choice') {
-      // Mirror the held bounded prefix so a braille display can feel the
-      // incomplete local code (arrows, shapes, etc.). Immediate commits still
-      // clear above; this is not a passage buffer.
-      const prefix = replacementSession.nemethState?.prefix || '';
-      editor.value = prefix;
-      editor.setSelectionRange(prefix.length, prefix.length);
-      elements['replacement-status'].textContent = result.announcement;
-      if (result.status === 'choice') {
-        elements['replacement-choices'].replaceChildren(...result.choices.map((choice) => {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'replacement-choice';
-          button.dataset.operationId = choice.operationId;
-          button.textContent = choice.label;
-          button.title = `BANA ${choice.banaRefs.join(', ')}`;
-          return button;
-        }));
-        elements['replacement-choices'].hidden = false;
-      }
-    } else {
-      // Invalid local input must remain available for correction. The
-      // canonical draft has not changed, and the visible value is still only
-      // the current bounded code (not an accumulated expression).
-      editor.value = replacementSession.nemethState?.prefix || '';
-      elements['replacement-status'].textContent = result.announcement;
-      editor.setAttribute('aria-invalid', 'true');
-    }
-  };
-  const chooseOperation = async (event) => {
-    const button = event.target.closest?.('.replacement-choice');
-    if (!button || !replacementSession) return;
-    const previousDraftMathML = replacementSession.draft.mathml;
-    const previousInputState = structuredClone(replacementSession.nemethState);
-    const result = applyNemethChoice(replacementSession, button.dataset.operationId);
-    replacementSession = result.session;
-    const committedChoice = result.status === 'applied' ||
-      (result.status === 'pending' && (
-        result.document?.mathml !== previousDraftMathML ||
-        JSON.stringify(result.inputState) !== JSON.stringify(previousInputState)
-      ));
-    if (!committedChoice) {
-      elements['replacement-status'].textContent = result.announcement;
-      return;
-    }
-    elements['replacement-choices'].replaceChildren();
-    elements['replacement-choices'].hidden = true;
-    // The selected operation consumes the entire bounded local prefix. Clear
-    // the visible one-cell proxy before the next physical key can arrive; a
-    // stale prefix here would be re-fed and duplicate the next local code.
-    if (result.status === 'applied') replacementHasContent = true;
-    editor.value = result.status === 'pending' ? (replacementSession.nemethState.prefix || '') : '';
-    elements['replacement-status'].textContent = `Draft updated: ${result.announcement}`;
-    await renderDraftPreview();
-    editor.focus();
-  };
-  editor._replacementChoiceHandler = chooseOperation;
-  elements['replacement-choices'].addEventListener('click', chooseOperation);
-
-  if (globalThis.__omniyaBrailleSimulation) {
-    const sixKey = createSixKeyInput({ emit: (cell) => {
-      const start = editor.selectionStart ?? editor.value.length;
-      const end = editor.selectionEnd ?? start;
-      editor.setRangeText(cell, start, end, 'end');
-      editor.dispatchEvent(new Event('input', { bubbles: true }));
-    }});
-    editor.addEventListener('keydown', (event) => sixKey.keydown(event));
-    editor.addEventListener('keyup', (event) => sixKey.keyup(event));
+  // Keep scope metadata for e2es / Task 7 cleanup; product chrome is the composer.
+  if (elements['replacement-scope']) {
+    elements['replacement-scope'].textContent = focus.speech ? `Selected: ${focus.speech}` : 'Selected mathematical scope';
+    elements['replacement-scope'].dataset.targetId = focus.target.kind === 'node'
+      ? focus.target.nodeId
+      : focus.target.firstNodeId;
   }
-  const inputHandler = async () => {
-    if (!replacementSession) return;
-    if (replacementSession.method === 'latex') {
-      replacementSession = setLatexSource(replacementSession, editor.value);
-      return;
-    }
-    // The visible control mirrors a pending bounded prefix so a braille
-    // display can feel it. Real typing appends, so the input event is
-    // `prefix + newCell` — feed only the suffix. One-cell fills (tests /
-    // select-all replace) put only the new cell in the control while the
-    // engine still holds the prefix; treat that whole value as the suffix.
-    // Re-consuming the mirrored prefix would duplicate scripts/fractions.
-    const knownPrefix = replacementSession.nemethState?.prefix || '';
-    const visible = editor.value;
-    const suffix = knownPrefix && visible.startsWith(knownPrefix)
-      ? visible.slice(knownPrefix.length)
-      : visible;
-    const cells = [...suffix];
-    inputProcessing = inputProcessing.then(async () => {
-      for (const cell of cells) await consumeCell(cell);
-      if (!cells.length && replacementSession?.nemethState?.prefix) {
-        const prefix = replacementSession.nemethState.prefix;
-        editor.value = prefix;
-        editor.setSelectionRange(prefix.length, prefix.length);
-      }
-    });
-    await inputProcessing;
-  };
-  // Keep the complete submit transaction on the active session/editor so all
-  // entry points (keyboard and button) share exactly the same behavior.
-  let submittingReplacement = false;
-  const submitReplacementEditor = async ({ allowAtomicSubmit = false } = {}) => {
-    if (!replacementSession || submittingReplacement) return;
-    submittingReplacement = true;
-    try {
-      await inputProcessing;
-      if (replacementSession.method === 'nemeth' && replacementSession.nemethState.prefix) {
-        const local = commitNemethLocalCode(replacementSession);
-        replacementSession = local.session;
-        if (local.status === 'applied') {
-          elements['replacement-status'].textContent = `Local code committed: ${local.announcement}`;
-          editor.value = '';
-          // A held short code is still an immediate operation.  Enter is its
-          // disambiguator, so after committing it the same Enter may submit a
-          // now-complete draft.  Atomic constructions intentionally stop here:
-          // their Enter commits only that bounded local construction and the
-          // next Enter submits the replacement.  Release the submit guard
-          // before the draft preview so the follow-up Enter is not dropped.
-          if (local.localCommitPolicy !== 'immediate' && !allowAtomicSubmit) {
-            submittingReplacement = false;
-            await renderDraftPreview();
-            editor.focus();
-            return;
-          }
-          await renderDraftPreview();
-        } else if (local.status === 'choice') {
-          elements['replacement-status'].textContent = local.announcement;
-          elements['replacement-choices'].replaceChildren(...local.choices.map((choice) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'replacement-choice';
-            button.dataset.operationId = choice.operationId;
-            button.textContent = choice.label;
-            button.title = `BANA ${choice.banaRefs.join(', ')}`;
-            return button;
-          }));
-          elements['replacement-choices'].hidden = false;
-          return;
-        } else {
-          elements['replacement-status'].textContent = local.announcement;
-          editor.setAttribute('aria-invalid', 'true');
-          return;
-        }
-      }
-      const result = await submitReplacement(replacementSession, {
-        convertLatexToMathML: async (source) => {
-          const converted = await window.omniya.latexToMathML(source);
-          return converted?.mathml ?? converted;
-        }
-      });
-      if (replacementSession.originalDocument) {
-        const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
-        history.undo.push({ document: structuredClone(item.math), focus: item.math.focus });
-        history.undo = history.undo.slice(-100);
-        history.redo = [];
-        mathHistory.set(item.id, history);
-        state = updateItem(state, item.id, { note: item.note, math: result.document });
-      } else {
-        state = addItem(state, { type: 'equation', note: '', math: result.document });
-      }
-      closeReplacementEditor();
-      renderAll();
-      const replacementArticle = elements['transcript'].querySelector(`article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`);
-      if (replacementArticle) setTimeout(() => void restoreExplorerFocus(replacementArticle, result.focus), 0);
-      await saveState().catch(() => {});
-      elements['save-status'].textContent = 'Replacement committed';
-    } catch (error) {
-      elements['replacement-status'].textContent = error.message;
-      editor.setAttribute('aria-invalid', 'true');
-    } finally {
-      submittingReplacement = false;
-    }
-  };
-  editor._replacementSubmitHandler = submitReplacementEditor;
-  const keyHandler = async (event) => {
-    if ((event.ctrlKey || event.metaKey) && event.key === '[') {
-      event.preventDefault();
-      event.stopPropagation();
-      if (commandState.interaction === 'insert') {
-        syncCommandContentEmpty();
-        commandState = enterCommand(commandState);
-        syncModePanel(commandState);
-      }
-      return;
-    }
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      void cancelReplacementEditor(findReplacementArticle());
-      return;
-    }
-    if (commandState.interaction === 'command') {
-      event.preventDefault();
-      event.stopPropagation();
-      handleComposerCommandKey(event);
-      return;
-    }
-    if (
-      replacementSession?.method === 'nemeth' &&
-      event.key.length === 1 &&
-      !event.metaKey && !event.ctrlKey && !event.altKey
-    ) {
-      if (!isAllowedNemethCellInput(event.key)) {
-        event.preventDefault();
-        event.stopPropagation();
-        editor.setAttribute('aria-invalid', 'true');
-        elements['replacement-status'].textContent =
-          'Nemeth mode accepts braille cells only. Switch to LaTeX with Command x while the draft is empty, or enter cells.';
-        return;
-      }
-      editor.removeAttribute('aria-invalid');
-    }
-    if (event.key === 'Backspace' && replacementSession?.method === 'nemeth') {
-      event.preventDefault();
-      event.stopPropagation();
-      await inputProcessing;
-      const result = undoNemethStep(replacementSession);
-      replacementSession = result.session;
-      editor.value = result.session.nemethState?.prefix || '';
-      const prefix = editor.value;
-      editor.setSelectionRange(prefix.length, prefix.length);
-      elements['replacement-choices'].replaceChildren();
-      elements['replacement-choices'].hidden = true;
-      elements['replacement-status'].textContent = result.announcement;
-      editor.toggleAttribute('aria-invalid', result.status === 'rejected');
-      if (result.status === 'undone') {
-        await renderDraftPreview();
-        const draftMathml = replacementSession.draft?.mathml ?? '';
-        const hasDraftContent = ['<mi>', '<mn>', '<mo>'].some((tag) => draftMathml.includes(tag));
-        if (!hasDraftContent && !(replacementSession.nemethState?.prefix ?? '')) {
-          replacementHasContent = false;
-        }
-      }
-      return;
-    }
-    if (event.key !== 'Enter' || event.shiftKey) return;
-    event.preventDefault();
-    event.stopPropagation();
-    await submitReplacementEditor();
-  };
-  editor._replacementInputHandler = inputHandler;
-  editor._replacementKeyHandler = keyHandler;
-  editor.addEventListener('input', inputHandler);
-  editor.addEventListener('keydown', keyHandler);
-  editor.focus();
+  elements['replacement-dock'].hidden = true;
+  elements['replacement-method']?.querySelectorAll('input').forEach((input) => {
+    input.checked = input.value === preferredAuthoringMethod;
+  });
+  clearComposerNemethChoices();
+  setComposerMathStatus(preferredAuthoringMethod === 'nemeth'
+    ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
+    : 'Enter LaTeX for the replacement expression.');
+  renderAll();
+  applyCommandStateToChrome(commandState);
+  elements['composer-source'].value = '';
+  elements['composer-source'].className = preferredAuthoringMethod === 'nemeth'
+    ? 'nemeth-inline-editor'
+    : 'latex-inline-editor';
+  elements['composer-source'].focus();
+}
+
+/** @deprecated Product path uses openComposerForMathReplace; kept as alias for safety. */
+async function openReplacementEditor(article, startingFocus = null, isNew = false) {
+  await openComposerForMathReplace(article, startingFocus, isNew);
 }
 
 // MathJax may move focus to its short-lived hidden focus element while an
@@ -938,7 +723,7 @@ document.addEventListener('keydown', (event) => {
   if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
     event.preventDefault();
     event.stopImmediatePropagation();
-    void openReplacementEditor(article);
+    void openComposerForMathReplace(article);
     return;
   }
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
@@ -974,6 +759,22 @@ function isDockReplacement() {
 /** True while add-mode equation authoring binds guided Nemeth/LaTeX to #composer-source. */
 function isComposerMathAuthoring() {
   return Boolean(replacementSession) && !replacementEditor && (mode === 'add' || mode === 'edit');
+}
+
+async function renderComposerDraftPreview() {
+  if (!isComposerMathAuthoring() || replacementSession?.method !== 'nemeth') return;
+  const itemId = editingItemId;
+  if (!itemId) return;
+  const article = elements['transcript'].querySelector(
+    `article.napkin-article[data-item-id="${CSS.escape(itemId)}"]`
+  );
+  const item = activeNapkin()?.items.find(({ id }) => id === itemId);
+  const content = article?.querySelector('.item-content');
+  if (!article || !item || !content) return;
+  await renderEquation(content, { ...item, math: replacementSession.draft }, ++transcriptRenderVersion);
+  if (replacementSession?.draftFocus) {
+    setTimeout(() => void restoreExplorerFocus(article, replacementSession.draftFocus), 0);
+  }
 }
 
 function clearComposerMathSession() {
@@ -1032,15 +833,35 @@ function renderComposerNemethChoices(choices = []) {
 }
 
 function returnToRead({ discardDraft = true } = {}) {
+  const session = (!replacementEditor && replacementSession) ? replacementSession : null;
+  const wasNew = Boolean(session?.isNew);
+  const wasMathReplace = Boolean(session && (session.originalDocument || wasNew || commandState.replaceScopeLabel));
+  const itemId = editingItemId;
+  const restoreTarget = session?.target;
+  const restoreExplorer = session?.originalExplorerFocus;
   clearComposerMathSession();
   if (discardDraft) resetDraft();
   if (uebBuffer.pending) announce('Discarded pending UEB cells');
   uebBuffer = createUebCellBuffer();
+  if (wasNew && itemId) state = deleteItem(state, itemId);
   mode = 'read';
   editingItemId = null;
   commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
   renderAll();
   syncModePanel(commandState);
+  if (wasMathReplace && !wasNew && itemId && restoreTarget) {
+    const restored = elements['transcript'].querySelector(
+      `article.napkin-article[data-item-id="${CSS.escape(itemId)}"]`
+    );
+    if (restored) setTimeout(() => void restoreExplorerFocus(restored, restoreTarget, restoreExplorer), 0);
+    elements['save-status'].textContent = 'Replacement cancelled';
+    return;
+  }
+  if (wasNew) {
+    void saveState().catch(() => {});
+    focusSelectedArticle();
+    return;
+  }
   focusSelectedArticle();
 }
 
@@ -1361,22 +1182,24 @@ function handleComposerCommandKey(event) {
   return true;
 }
 
-async function submitComposer() {
+async function submitComposer({ allowAtomicSubmit = false } = {}) {
   if (mode !== 'add' && mode !== 'edit') return;
   if (!activeNapkin()) returnToRead();
   if (!activeNapkin()) return;
   const source = elements['composer-source'].value;
   const note = elements['composer-note'].value;
   const editing = mode === 'edit';
-  const type = editing ? activeItem().type : selectedType();
+  const type = editing ? (activeItem()?.type ?? selectedType()) : selectedType();
   draft = { source, note, type };
   setFieldError(elements['composer-source'], elements['composer-error']);
 
-  if (!editing && type === 'equation') {
+  const mathSessionActive = Boolean(replacementSession) && !replacementEditor
+    && (( !editing && type === 'equation') || (editing && (type === 'equation' || commandState.replaceScopeLabel || replacementSession.isNew)));
+  if (mathSessionActive) {
     if (submittingComposerEquation) return;
     submittingComposerEquation = true;
     try {
-      ensureComposerMathSession();
+      if (!editing) ensureComposerMathSession();
       if (!replacementSession || replacementEditor) {
         setFieldError(elements['composer-source'], elements['composer-error'], 'Enter Nemeth or LaTeX');
         elements['composer-source'].focus();
@@ -1397,11 +1220,15 @@ async function submitComposer() {
           clearComposerNemethChoices();
           setComposerMathStatus(`Local code committed: ${local.announcement}`);
           // Atomic / bounded local codes: Enter commits the construction only;
-          // the next Enter / Command n submits the equation.
-          if (local.localCommitPolicy !== 'immediate') {
+          // the next Enter / Command n submits the equation. Release the submit
+          // guard before draft preview so a follow-up Enter is not dropped.
+          if (local.localCommitPolicy !== 'immediate' && !allowAtomicSubmit) {
+            submittingComposerEquation = false;
+            await renderComposerDraftPreview();
             elements['composer-source'].focus();
             return;
           }
+          await renderComposerDraftPreview();
         } else if (local.status === 'choice') {
           setComposerMathStatus(local.announcement);
           renderComposerNemethChoices(local.choices);
@@ -1414,30 +1241,60 @@ async function submitComposer() {
           return;
         }
       }
-      if (replacementDraftIsEmpty()) {
-        setFieldError(elements['composer-source'], elements['composer-error'], 'Enter Nemeth or LaTeX');
+  if (replacementDraftIsEmpty()) {
+        const emptyMessage = editing || commandState.replaceScopeLabel
+          ? 'Replacement draft is empty or incomplete.'
+          : 'Enter Nemeth or LaTeX';
+        setFieldError(elements['composer-source'], elements['composer-error'], emptyMessage);
+        setComposerMathStatus(emptyMessage);
         elements['composer-source'].focus();
         return;
       }
+      const itemId = editingItemId ?? activeItem()?.id;
+      const item = activeNapkin()?.items.find(({ id }) => id === itemId);
       const result = await submitReplacement(replacementSession, {
         convertLatexToMathML: async (latex) => {
           const converted = await window.omniya.latexToMathML(latex);
           return converted?.mathml ?? converted;
         }
       });
-      state = addItem(state, { type: 'equation', note, math: result.document });
-      clearComposerMathSession();
-      resetDraft();
-      mode = 'read';
-      editingItemId = null;
-      commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
-      renderAll();
-      syncModePanel(commandState);
-      focusSelectedArticle();
-      elements['save-status'].textContent = 'Added item';
-      await saveState().catch(() => {});
+      if (replacementSession.originalDocument && item) {
+        const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
+        history.undo.push({ document: structuredClone(item.math), focus: item.math?.focus ?? null });
+        history.undo = history.undo.slice(-100);
+        history.redo = [];
+        mathHistory.set(item.id, history);
+        state = updateItem(state, item.id, { note: item.note, math: result.document });
+        clearComposerMathSession();
+        resetDraft();
+        mode = 'read';
+        editingItemId = null;
+        commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+        renderAll();
+        syncModePanel(commandState);
+        const replacementArticle = elements['transcript'].querySelector(
+          `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
+        );
+        if (replacementArticle) setTimeout(() => void restoreExplorerFocus(replacementArticle, result.focus), 0);
+        else focusSelectedArticle();
+        elements['save-status'].textContent = 'Replacement committed';
+        await saveState().catch(() => {});
+      } else {
+        state = addItem(state, { type: 'equation', note, math: result.document });
+        clearComposerMathSession();
+        resetDraft();
+        mode = 'read';
+        editingItemId = null;
+        commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+        renderAll();
+        syncModePanel(commandState);
+        focusSelectedArticle();
+        elements['save-status'].textContent = 'Added item';
+        await saveState().catch(() => {});
+      }
     } catch (error) {
       setFieldError(elements['composer-source'], elements['composer-error'], error.message);
+      setComposerMathStatus(error.message);
       elements['composer-source'].setAttribute('aria-invalid', 'true');
       elements['composer-source'].focus();
     } finally {
@@ -1631,6 +1488,7 @@ async function consumeComposerNemethCell(cell) {
     setComposerMathStatus(`Draft updated: ${result.announcement}`);
     editor.removeAttribute('aria-invalid');
     setFieldError(editor, elements['composer-error']);
+    await renderComposerDraftPreview();
   } else if (result.status === 'pending' || result.status === 'choice') {
     const prefix = replacementSession.nemethState?.prefix || '';
     editor.value = prefix;
@@ -1675,6 +1533,7 @@ async function chooseComposerNemethOperation(event) {
   if (result.status === 'choice') renderComposerNemethChoices(result.choices);
   setComposerMathStatus(`Draft updated: ${result.announcement}`);
   syncCommandContentEmpty();
+  await renderComposerDraftPreview();
   editor.focus();
 }
 
@@ -1771,6 +1630,7 @@ elements['composer-source'].addEventListener('keydown', (event) => {
           const draftMathml = replacementSession.draft?.mathml ?? '';
           const hasDraftContent = ['<mi>', '<mn>', '<mo>'].some((tag) => draftMathml.includes(tag));
           if (!hasDraftContent && !prefix) replacementHasContent = false;
+          await renderComposerDraftPreview();
         }
         syncCommandContentEmpty();
       });
@@ -1837,7 +1697,7 @@ elements['composer-choices']?.addEventListener('click', (event) => {
 
 elements['composer-form'].addEventListener('submit', (event) => {
   event.preventDefault();
-  void submitComposer();
+  void submitComposer({ allowAtomicSubmit: true });
 });
 
 // Command keys must keep working when focus leaves the composer/replacement
@@ -1875,7 +1735,7 @@ elements['transcript'].addEventListener('keydown', (event) => {
     }
     if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
       event.preventDefault();
-      void openReplacementEditor(article);
+      void openComposerForMathReplace(article);
     }
     return;
   }
@@ -1892,8 +1752,11 @@ elements['transcript'].addEventListener('keydown', (event) => {
   }
   if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
     event.preventDefault();
-    if (activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId)?.type === 'equation') void openReplacementEditor(article);
-    else openEditMode(article.dataset.itemId);
+    if (activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId)?.type === 'equation') {
+      void openComposerForMathReplace(article);
+    } else {
+      openEditMode(article.dataset.itemId);
+    }
     return;
   }
   if (event.key === 'Backspace') {
@@ -1938,7 +1801,7 @@ if (!globalThis.omniya?.loadState) {
 }
 elements['app-shell'].setAttribute('aria-busy', 'false');
 
-// Test-only hook: open the legacy isNew replacement dock for subtree e2es until Task 6.
+// Test-only hook: open composer math-replace on a new empty equation (subtree e2es).
 // Product submit never calls this — new equations commit from #composer-source.
 globalThis.__omniyaTesting = {
   async openNewEquationDock() {
@@ -1959,6 +1822,6 @@ globalThis.__omniyaTesting = {
     const article = item && elements['transcript'].querySelector(
       `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
     );
-    if (article) await openReplacementEditor(article, item.math.focus, true);
+    if (article) await openComposerForMathReplace(article, item.math.focus, true);
   }
 };
