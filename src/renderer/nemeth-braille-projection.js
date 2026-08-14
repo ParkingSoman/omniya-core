@@ -266,6 +266,14 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.replace('⠁⠠⠬', '⠁⠠⠀⠬');
     }
   }
+  // Identical authored grouped lower-cell operands share the same local
+  // numeric intent.  Enrichment may add a number sign only to a later group;
+  // remove that presentation artifact when the source group starts directly
+  // with a lower-cell digit and carries no numeric-start marker.
+  const groupedLowerCell = [...sourceMath.querySelectorAll('[data-omniya-group="round"]')]
+    .filter((group) => !group.querySelector('[data-omniya-nemeth-intent="numeric-start"]'))
+    .filter((group) => group.querySelector('[data-omniya-nemeth-intent="lower-cell-numeric"]')).length;
+  if (groupedLowerCell > 1) braille = braille.replace(/⠷⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠷');
   if (functionLimitCells.length && braille.endsWith('⠻')) {
     // A limit-function terminator is part of the bounded local code. SRE
     // cannot recover that source boundary from an munder/mover, and may emit
