@@ -733,7 +733,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         projectionCursor = authoredIndex + authored.length;
         continue;
       }
-      if (index < 0) continue;
+      if (index == null || index < 0) continue;
       braille = `${braille.slice(0, index)}${authored}${braille.slice(index + projected.length)}`;
       projectionCursor = index + authored.length;
     }
@@ -1355,7 +1355,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     for (const sequence of englishCells) {
       const base = sequence.at(-1);
       const occurrences = [...value.matchAll(new RegExp(base, 'g'))].map((match) => match.index).filter((index) => index >= englishCursor);
-      const index = occurrences.length > 1 ? occurrences.at(-1) : occurrences[0];
+      const index = englishCells.length === 1 && occurrences.length > 1 ? occurrences.at(-1) : occurrences[0];
       if (index < 0) continue;
       const prefix = sequence.slice(0, -1);
       if (value.slice(Math.max(0, index - prefix.length), index) !== prefix) {
