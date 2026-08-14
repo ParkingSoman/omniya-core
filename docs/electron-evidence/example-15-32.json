@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:29:26.144Z",
+  "filter": {
+    "rule": null,
+    "example": "15-32"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-6hHvCM",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-15-32",
+      "sourceRows": [
+        "example-15-32",
+        "15.2.3"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-15-32/electron_bana-2022_example-15-32-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"That local Nemeth code is incomplete or invalid. The draft was not changed.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-cb448414-257c-442e-a2b7-dd8fa1d0a33b\\\" data-semantic-structure=\\\"0\\\"><mi mathvariant=\\\"bold\\\" data-omniya-nemeth-intent=\\\"typeform-bold\\\" data-omniya-nemeth-cells=\\\"⠸⠰⠠⠵\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-7eab64d3-0870-4f58-a4fb-23cf8e0ee5a3\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"bold\\\" data-semantic-annotation=\\\"clearspeak:simple;nemeth:number;depth:1\\\" data-semantic-id=\\\"0\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\">Z</mi></math>\"}"
+    }
+  ]
+}

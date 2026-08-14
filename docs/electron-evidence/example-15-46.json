@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:30:46.836Z",
+  "filter": {
+    "rule": null,
+    "example": "15-46"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Rc2qih",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-15-46",
+      "sourceRows": [
+        "example-15-46",
+        "15.7"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-15-46/electron_bana-2022_example-15-46-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Replacement draft is incomplete at subscript.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-1d4f87dc-1038-404c-8feb-f080647ed90b\\\" data-semantic-type=\\\"infixop\\\" data-semantic-role=\\\"addition\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"12\\\" data-semantic-children=\\\"11,9\\\" data-semantic-content=\\\"5\\\" data-semantic-owns=\\\"11 5 9\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\" data-semantic-structure=\\\"(12 (11 0 10 (4 2 3)) 5 (9 7 8))\\\"><merror data-mjx-message=\\\"Wrong number of children for &quot;msub&quot; node\\\" title=\\\"Wrong number of children for &quot;msub&quot; node\\\"><mtext>msub</mtext></merror><mroot data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-3eb8f173-37c2-4515-a823-273cea5b6c37\\\" data-semantic-type=\\\"root\\\" data-semantic-role=\\\"unknown\\\" data-semantic-annotation=\\\"depth:3\\\" data-semantic-id=\\\"4\\\" data-semantic-children=\\\"2,3\\\" data-semantic-parent=\\\"11\\\" data-semantic-owns=\\\"2 3\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\"><mi data-omniya-nemeth-cells=\\\"⠭\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-8bb63c49-0b30-4405-ae8e-d1c04a7d031b\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:4\\\" data-semantic-id=\\\"3\\\" data-semantic-parent=\\\"4\\\" data-semantic-level-number=\\\"3\\\" data-speech-node=\\\"true\\\">x</mi><mo data-omniya-nemeth-cells=\\\"⠈⠱\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-5c7e6be0-29d2-4e63-ad37-a4a0668e19c9\\\" data-semantic-type=\\\"relation\\\" data-semantic-role=\\\"equality\\\" data-semantic-annotation=\\\"depth:4\\\" data-semantic-id=\\\"2\\\" data-semantic-parent=\\\"4\\\" data-semantic-level-number=\\\"3\\\" data-speech-node=\\\"true\\\">∼</mo></mroot><msub data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-7bc228c6-9f66-445b-a276-8c8ed48b2fec\\\"><mo data-omniya-nemeth-cells=\\\"⠬\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-a0ca9e72-aa5c-49bc-b7cc-c49d5364e815\\\" data-semantic-type=\\\"operator\\\" data-semantic-role=\\\"addition\\\" data-semantic-annotation=\\\"empty:MSUB;depth:2\\\" data-semantic-id=\\\"5\\\" data-semantic-parent=\\\"12\\\" data-semantic-operator=\\\"infixop,+\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">+</mo><mrow data-omniya-=\\\"\\\" data-omniya-hole=\\\"true\\\" data-omniya-owner=\\\"omniya-7bc228c6-9f66-445b-a276-8c8ed48b2fec\\\" data-omniya-role=\\\"subscript\\\" id=\\\"omniya-source-omniya-56978d0c-a784-4b7b-ab29-445fe50477e4\\\"><mspace width=\\\"1em\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-8e924245-fa92-41a8-b5db-7011572ff141\\\"></mspace></mrow></msub><mroot data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-bd80c582-7c1a-4572-a798-e490a1ac5abc\\\" data-semantic-type=\\\"root\\\" data-semantic-role=\\\"unknown\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-id=\\\"9\\\" data-semantic-children=\\\"7,8\\\" data-semantic-parent=\\\"12\\\" data-semantic-owns=\\\"7 8\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\"><mi data-omniya-nemeth-cells=\\\"⠽\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-31639a62-90a5-4d2b-a06f-60330d7331b7\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:3\\\" data-semantic-id=\\\"8\\\" data-semantic-parent=\\\"9\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\">y</mi><mo data-omniya-nemeth-cells=\\\"⠈⠱\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-9c7baa26-6d30-477d-8f58-676b465a1da6\\\" data-semantic-type=\\\"relation\\\" data-semantic-role=\\\"equality\\\" data-semantic-annotation=\\\"depth:3\\\" data-semantic-id=\\\"7\\\" data-semantic-parent=\\\"9\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\">∼</mo></mroot></math>\"}"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:30:29.369Z",
+  "filter": {
+    "rule": null,
+    "example": "15-44"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-NLi4Dz",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-15-44",
+      "sourceRows": [
+        "example-15-44",
+        "15.6"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-15-44/electron_bana-2022_example-15-44-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    13 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"That local Nemeth code is incomplete or invalid. The draft was not changed.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-8622dc47-d759-4f4c-b32a-38bb65984b94\\\" data-semantic-structure=\\\"(5 0 (3 1 2) 4)\\\"><mrow data-omniya-group=\\\"round\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-a2804516-0905-48d7-ab5b-ab351bf1525e\\\" data-semantic-type=\\\"fenced\\\" data-semantic-role=\\\"leftright\\\" data-semantic-annotation=\\\"fences:paren;depth:1\\\" data-semantic-id=\\\"5\\\" data-semantic-children=\\\"3\\\" data-semantic-content=\\\"0,4\\\" data-semantic-owns=\\\"0 3 4\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\"><mo data-omniya-role=\\\"open-fence\\\" data-omniya-nemeth-cells=\\\"⠷\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-3c4718d0-401b-4429-b699-e1cb30b59083\\\" data-semantic-type=\\\"fence\\\" data-semantic-role=\\\"open\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"5\\\" data-semantic-operator=\\\"fenced\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">(</mo><mrow data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-ba84e41d-3423-448f-9300-736c692d423d\\\"><msub data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-91aee310-4b34-4e42-a049-55b0057e7e00\\\" data-semantic-type=\\\"subscript\\\" data-semantic-role=\\\"simple function\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-id=\\\"3\\\" data-semantic-children=\\\"1,2\\\" data-semantic-parent=\\\"5\\\" data-semantic-owns=\\\"1 2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\"><mi data-omniya-nemeth-cells=\\\"⠛\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-006189bc-825e-420e-9319-c9ee106eb6c3\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"simple function\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:3\\\" data-semantic-id=\\\"1\\\" data-semantic-parent=\\\"3\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\">g</mi><mi data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-8b3a71c6-358c-4b90-acd0-5abaf863e8b3\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:3\\\" data-semantic-id=\\\"2\\\" data-semantic-parent=\\\"3\\\" data-semantic-level-number=\\\"2\\\" data-speech-node=\\\"true\\\">j</mi></msub></mrow><mo data-omniya-role=\\\"close-fence\\\" data-omniya-nemeth-cells=\\\"⠾\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-0ffe496a-19a9-493f-9e8f-432fbb177222\\\" data-semantic-type=\\\"fence\\\" data-semantic-role=\\\"close\\\" data-semantic-annotation=\\\"depth:2\\\" data-semantic-id=\\\"4\\\" data-semantic-parent=\\\"5\\\" data-semantic-operator=\\\"fenced\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">)</mo></mrow></math>\"}"
+    }
+  ]
+}

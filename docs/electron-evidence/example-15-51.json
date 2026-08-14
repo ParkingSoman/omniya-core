@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:31:03.762Z",
+  "filter": {
+    "rule": null,
+    "example": "15-51"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-e9ipg3",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-15-51",
+      "sourceRows": [
+        "example-15-51",
+        "15.9"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-15-51/electron_bana-2022_example-15-51-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "15-51 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-9f5a4c6d-d7bf-4ccd-b715-e3acaa55cb7d\" data-semantic-structure=\"0\"><mo data-omniya-nemeth-intent=\"comparison.superposed.equals-subset\" data-omniya-nemeth-cells=\"⠨⠅⠈⠸⠐⠅⠻\" data-omniya-=\"\" id=\"omniya-source-omniya-cd69a1d3-3c3c-401e-a8d0-5bb3fdab56c8\" data-semantic-type=\"relation\" data-semantic-role=\"set\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">⊆</mo></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-9f5a4c6d-d7bf-4ccd-b715-e3acaa55cb7d\" data-semantic-structure=\"0\"><mo data-omniya-nemeth-intent=\"comparison.superposed.equals-subset\" data-omniya-nemeth-cells=\"⠨⠅⠈⠸⠐⠅⠻\" data-omniya-=\"\" id=\"omniya-source-omniya-cd69a1d3-3c3c-401e-a8d0-5bb3fdab56c8\" data-semantic-type=\"relation\" data-semantic-role=\"set\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">⊆</mo></math>\n\n'⠸⠐⠅⠱' !== '⠨⠅⠈⠸⠐⠅⠻'\n"
+    }
+  ]
+}

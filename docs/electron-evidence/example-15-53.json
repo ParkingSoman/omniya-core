@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:31:10.349Z",
+  "filter": {
+    "rule": null,
+    "example": "15-53"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-F5bVjd",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-15-53",
+      "sourceRows": [
+        "example-15-53",
+        "15.11"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-15-53/electron_bana-2022_example-15-53-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "15-53 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-df49a7d0-f05a-495f-9a5b-3da2bae9d802\" data-semantic-structure=\"(2 0 1)\"><munder data-omniya-=\"\" id=\"omniya-source-omniya-c4052e70-abae-4af4-b59d-a2a3bfd9a6aa\" data-semantic-type=\"underscore\" data-semantic-role=\"latinletter\" data-semantic-annotation=\"depth:1\" data-semantic-id=\"2\" data-semantic-children=\"0,1\" data-semantic-owns=\"0 1\" data-semantic-level-number=\"0\" data-speech-node=\"true\"><mi data-omniya-nemeth-cells=\"⠠⠁\" data-omniya-=\"\" id=\"omniya-source-omniya-9bbfb9f9-2b46-4f55-b954-7ce2e31e1204\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:2\" data-semantic-id=\"0\" data-semantic-parent=\"2\" data-semantic-level-number=\"1\" data-speech-node=\"true\">A</mi><mo data-omniya-role=\"underscript\" data-omniya-=\"\" id=\"omniya-source-omniya-07ded536-020a-4bf0-b961-112603806535\" data-semantic-type=\"punctuation\" data-semantic-role=\"underaccent\" data-semantic-annotation=\"accent:overaccent;depth:2\" data-semantic-id=\"1\" data-semantic-parent=\"2\" data-semantic-level-number=\"1\" data-speech-node=\"true\">⁀</mo></munder></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-df49a7d0-f05a-495f-9a5b-3da2bae9d802\" data-semantic-structure=\"(2 0 1)\"><munder data-omniya-=\"\" id=\"omniya-source-omniya-c4052e70-abae-4af4-b59d-a2a3bfd9a6aa\" data-semantic-type=\"underscore\" data-semantic-role=\"latinletter\" data-semantic-annotation=\"depth:1\" data-semantic-id=\"2\" data-semantic-children=\"0,1\" data-semantic-owns=\"0 1\" data-semantic-level-number=\"0\" data-speech-node=\"true\"><mi data-omniya-nemeth-cells=\"⠠⠁\" data-omniya-=\"\" id=\"omniya-source-omniya-9bbfb9f9-2b46-4f55-b954-7ce2e31e1204\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:2\" data-semantic-id=\"0\" data-semantic-parent=\"2\" data-semantic-level-number=\"1\" data-speech-node=\"true\">A</mi><mo data-omniya-role=\"underscript\" data-omniya-=\"\" id=\"omniya-source-omniya-07ded536-020a-4bf0-b961-112603806535\" data-semantic-type=\"punctuation\" data-semantic-role=\"underaccent\" data-semantic-annotation=\"accent:overaccent;depth:2\" data-semantic-id=\"1\" data-semantic-parent=\"2\" data-semantic-level-number=\"1\" data-speech-node=\"true\">⁀</mo></munder></math>\n\n'⠐⠠⠁⠩⠻' !== '⠐⠠⠁⠩⠫⠁⠻'\n"
+    }
+  ]
+}
