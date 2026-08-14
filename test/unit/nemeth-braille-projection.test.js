@@ -780,6 +780,56 @@ test('Rule 14.7 contracted script comma restores the dots-2-4-6 cell', () => {
   assert.equal(applyNemethSourceIntentToBraille('⠭⠰⠊⠠⠀⠚', source), '⠭⠰⠊⠪⠚');
 });
 
+test('Rule 14.7 restores remaining contracted commas when some ⠪ are already present', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <msub><mi data-omniya-nemeth-cells="⠭">x</mi><mrow>
+        <mi>n</mi><mo>−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+        <mo data-omniya-script-comma="true" data-omniya-nemeth-cells="⠪">,</mo>
+        <mi>n</mi><mo>−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+      </mrow></msub>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <msub><mi data-omniya-nemeth-cells="⠭">x</mi><mrow>
+        <mi>n</mi><mo>−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+        <mo data-omniya-script-comma="true" data-omniya-nemeth-cells="⠪">,</mo>
+        <mi>n</mi>
+      </mrow></msub>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <msub><mi data-omniya-nemeth-cells="⠭">x</mi><mrow>
+        <mi>n</mi>
+        <mo data-omniya-script-comma="true" data-omniya-nemeth-cells="⠪">,</mo>
+        <mi>n</mi><mo>−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+      </mrow></msub>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠭⠰⠝⠤⠂⠠⠀⠝⠤⠂⠠⠐⠀⠭⠰⠝⠤⠂⠪⠝⠠⠐⠀⠭⠰⠝⠪⠝⠤⠂', source),
+    '⠭⠰⠝⠤⠂⠪⠝⠤⠂⠠⠀⠭⠰⠝⠤⠂⠪⠝⠠⠀⠭⠰⠝⠪⠝⠤⠂'
+  );
+});
+
+test('Rule 14.8.6 comma ellipsis restores three literary commas', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <msup><mi data-omniya-nemeth-cells="⠭">x</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-intent="comma-ellipsis" data-omniya-nemeth-cells="⠠⠠⠠">…</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mtext data-omniya-nemeth-intent="and-word" data-omniya-nemeth-cells="⠠⠄⠯">and</mtext>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <msup><mi data-omniya-nemeth-cells="⠽">y</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠭⠘⠆⠀⠄⠯⠀⠽⠘⠆', source),
+    '⠭⠘⠆⠀⠠⠠⠠⠀⠠⠄⠯⠀⠽⠘⠆'
+  );
+});
+
 test('Rule 14.8 English-letter after a subscript blank restores the indicator', () => {
   const source = new DOMParser().parseFromString(
     '<math><msub><mo data-omniya-shape-kind="triangle" data-omniya-nemeth-cells="⠫⠞">△</mo><mrow><mi>regular</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠏">p</mi><mi>olygon</mi></mrow></msub></math>',

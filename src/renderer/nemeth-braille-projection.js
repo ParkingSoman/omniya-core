@@ -1289,9 +1289,40 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   }
   // Rule 14.7 contracted script comma is dots 2-4-6. SRE may spell the same
   // comma as literary comma plus a blank; restore only source-marked commas.
+  // Some already-correct ⠪ cells must not block restoring the remaining ones.
   const scriptCommas = sourceNodes('[data-omniya-script-comma="true"]');
-  if (scriptCommas.length && !braille.includes('⠪')) {
-    braille = braille.replace(/([⠁-⠵⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠠⠀/g, '$1⠪');
+  if (scriptCommas.length) {
+    let remaining = scriptCommas.length - (braille.match(/⠪/g) || []).length;
+    if (remaining > 0) {
+      braille = braille.replace(/([⠁-⠵⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠠⠀/g, (match, lead) => {
+        if (remaining <= 0) return match;
+        remaining -= 1;
+        return `${lead}⠪`;
+      });
+    }
+  }
+  // Baseline list commas followed by an authored blank do not keep a
+  // multipurpose return before that blank (Rule 14.7 geometry lists).
+  if (sourceNodes('[data-omniya-nemeth-intent="punctuation-comma"]').length
+    && sourceNodes('[data-omniya-nemeth-intent="explicit-space"]').length) {
+    braille = braille.replace(/⠠⠐⠀/g, '⠠⠀');
+  }
+  // Rule 8.8 / 14.8.6: three literary commas are a comma ellipsis. SRE may
+  // omit them entirely when an and-word follows; restore the authored cells
+  // before that conjunction.
+  const commaEllipses = sourceNodes('[data-omniya-nemeth-intent="comma-ellipsis"]');
+  for (const node of commaEllipses) {
+    const cells = node.getAttribute('data-omniya-nemeth-cells') || '⠠⠠⠠';
+    if (!cells || braille.includes(cells)) continue;
+    if (/⠀⠄⠯/.test(braille)) {
+      braille = braille.replace(/⠀⠄⠯/, `⠀${cells}⠀⠠⠄⠯`);
+      continue;
+    }
+    if (/⠀⠠⠄⠯/.test(braille)) {
+      braille = braille.replace(/⠀⠠⠄⠯/, `⠀${cells}⠀⠠⠄⠯`);
+      continue;
+    }
+    braille = braille.replace(/(⠘[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠀/, `$1⠀${cells}⠀`);
   }
   // An explicit mathematical blank already returns to the baseline. SRE may
   // still announce a script-return cell before the following plus.

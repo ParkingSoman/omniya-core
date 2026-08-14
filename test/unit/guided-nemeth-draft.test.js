@@ -493,6 +493,38 @@ test('Rule 14.7 contracted comma then a digit stays in the same subscript', () =
   assert.deepEqual(texts, ['1', ',', '2']);
 });
 
+test('Rule 14.7 punctuation comma after a contracted script list returns to baseline', () => {
+  const { document } = replayCells(sourceNotationToCells('x;n-1[n-1, x'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  const slotTexts = [];
+  const visit = (node) => {
+    if (node?.text) slotTexts.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(tree.children[0].children[1]);
+  assert.deepEqual(slotTexts, ['n', '−', '1', ',', 'n', '−', '1']);
+  const comma = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma');
+  assert.ok(comma, 'baseline punctuation comma must be a sibling of the subscript');
+  assert.equal(tree.children.at(-1).name, 'mi');
+  assert.equal(tree.children.at(-1).children[0].text, 'x');
+});
+
+test('Rule 14.8.6 comma ellipsis keeps three literary commas', () => {
+  const { document } = replayCells(sourceNotationToCells("x~2 ,,, ,'& y~2"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const ellipsis = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'comma-ellipsis');
+  assert.ok(ellipsis, 'comma ellipsis token must be present');
+  assert.equal(ellipsis.attrs['data-omniya-nemeth-cells'], '⠠⠠⠠');
+  const andWord = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'and-word');
+  assert.ok(andWord);
+  assert.equal(tree.children.filter((node) => node.name === 'msup').length, 2);
+});
+
 test('Rule 15.7 a five-step tilde stays inside the subscript slot', () => {
   const { document } = replayCells(sourceNotationToCells(',a;"x<`:]'), { '⠈⠱': 'modifier.tilde.simple' });
   const tree = parseMathML(document.mathml);

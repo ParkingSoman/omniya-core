@@ -2326,6 +2326,17 @@ const MAPPINGS = [
     }
   }),
   token('punctuation.ellipsis', ['⠄', '⠄', '⠄'], ['8.8'], '…', 'mo', { sourceNotation: "'''" }),
+  // Rule 8.8 / 14.8.6: three literary commas form a comma ellipsis. The same
+  // three-cell prefix opens a hypercomplex fraction (`,,,?`), so preferLonger
+  // holds until the next cell chooses between those local meanings.
+  token('punctuation.comma-ellipsis', ['⠠', '⠠', '⠠'], ['8.8', '14.8.6'], '…', 'mo', {
+    preferLonger: true,
+    sourceNotation: ',,,',
+    dataAttributes: {
+      'data-omniya-nemeth-intent': 'comma-ellipsis',
+      'data-omniya-nemeth-cells': '⠠⠠⠠'
+    }
+  }),
   token('punctuation.left-single-quote', ['⠠', '⠦'], ['8.1'], '‘', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: ',8' }),
   // Rule 8's closing single quotation mark is punctuation indicator + dot 0
   // (⠴), not punctuation indicator + dot 6 (the apostrophe). The distinction
@@ -4207,6 +4218,26 @@ const TREE_OPERATIONS = Object.freeze({
 function applyMapping(document, focus, inputState, mapping) {
   const { tree, node } = contextFor(document, focus);
   const args = mapping.args ?? {};
+  // Rule 14.7: the mathematical punctuation comma separates baseline list
+  // items. Inside a filled script the contracted comma owns that role, so a
+  // punctuation comma first returns to the surrounding row, then inserts.
+  if (mapping.id === 'punctuation.comma' && !isHole(node)) {
+    const script = ancestor(tree, node, ['msup', 'msub', 'msubsup']);
+    if (script) {
+      const baseline = MAPPINGS.find((candidate) => candidate.id === 'script.baseline');
+      if (baseline) {
+        const returned = applyMapping(document, focus, { ...inputState, prefix: '' }, baseline);
+        if (returned.status !== 'rejected') {
+          return applyMapping(
+            returned.document,
+            returned.focus,
+            { ...returned.inputState, prefix: '' },
+            mapping
+          );
+        }
+      }
+    }
+  }
   const operation = TREE_OPERATIONS[mapping.action];
   if (!operation) return { status: 'rejected', document, focus, inputState, announcement: `Unknown local operation: ${mapping.action}` };
   let result;
@@ -5559,6 +5590,23 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   if (state.mode === null && state.prefix === '⠠⠠⠠' && normalized === '⠹') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'fraction.start.hypercomplex.order3');
     if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+  }
+  // Three literary commas followed by anything other than a hypercomplex
+  // fraction follow-up are the Rule 8.8 comma ellipsis (`x~2 ,,, ,'& y~2`).
+  if (state.mode === null && state.prefix === '⠠⠠⠠'
+    && normalized !== '⠹' && normalized !== '⠌' && normalized !== '⠼' && normalized !== '⠸') {
+    const ellipsis = MAPPINGS.find((candidate) => candidate.id === 'punctuation.comma-ellipsis');
+    if (ellipsis) {
+      const applied = applyMapping(document, focus, { ...state, prefix: '' }, ellipsis);
+      if (applied.status !== 'rejected') {
+        return applyNemethCell({
+          document: applied.document,
+          focus: applied.focus,
+          inputState: applied.inputState,
+          cell: normalized
+        });
+      }
+    }
   }
   // Inside an open hypercomplex fraction, `,,/` is the denominator line.
   // Hold/apply it before the roman-numeral indicator claims `,,` (13-35).
