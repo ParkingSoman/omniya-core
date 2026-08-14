@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 34,
     "mappedRows": 1096,
-    "electronCreationRows": 176,
-    "electronEditingRows": 174,
+    "electronCreationRows": 178,
+    "electronEditingRows": 176,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -17347,24 +17347,68 @@
         "registry:letter.y",
         "registry:letter.z"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-8"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-8"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-8"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-6-8",
+        "sourceRows": [
+          "example-6-8",
+          "6.3.1"
+        ],
+        "rule": "6",
+        "example": "6-8",
+        "artifact": "electron-evidence/example-6-8.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases; the comma-separated n/n1/n2/s/s1/s2 series retains visible punctuation and spacing, one canonical source tree, and a clean exact-node edit."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-6-8/input.png",
+              "claim": "The complete comma-separated mathematical series draft is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-6-8/committed.png",
+              "claim": "The committed n, n1, n2, s, s1, s2 series is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-6-8/focused.png",
+              "claim": "MathJax Explorer visibly selects the leading n before replacement."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-6-8/editing.png",
+              "claim": "The inspected final render visibly shows y, n1, n2, s, s1, s2 with punctuation and spacing intact."
+            }
+          ]
+        }
+      },
       "evidenceScope": "equation-workflow"
     },
     {
@@ -17433,22 +17477,28 @@
         "registry:letter.y",
         "registry:letter.z"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-6-8"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-6-8"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-6-8"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:6.3.1",
@@ -17465,6 +17515,44 @@
         "expectedWholeBraille": ";n, n1, n2, ;s, s1, s2",
         "sourceNotation": ";n, n1, n2, ;s, s1, s2",
         "brailleCells": "⠰⠝⠠⠀⠝⠂⠠⠀⠝⠆⠠⠀⠰⠎⠠⠀⠎⠂⠠⠀⠎⠆"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-6-8",
+        "sourceRows": [
+          "example-6-8",
+          "6.3.1"
+        ],
+        "rule": "6",
+        "example": "6-8",
+        "artifact": "electron-evidence/example-6-8.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases; the comma-separated n/n1/n2/s/s1/s2 series retains visible punctuation and spacing, one canonical source tree, and a clean exact-node edit."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-6-8/input.png",
+              "claim": "The complete comma-separated mathematical series draft is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-6-8/committed.png",
+              "claim": "The committed n, n1, n2, s, s1, s2 series is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-6-8/focused.png",
+              "claim": "MathJax Explorer visibly selects the leading n before replacement."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-6-8/editing.png",
+              "claim": "The inspected final render visibly shows y, n1, n2, s, s1, s2 with punctuation and spacing intact."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow"
     },

@@ -203,6 +203,33 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     if (braille.includes('⠨⠐⠤⠤⠤⠤')) return braille;
     return braille.replace(/⠤⠤⠤⠤/, '⠨⠐⠤⠤⠤⠤').replace(/⠀{2,}/g, '⠀');
   }
+  // In a comma-separated mathematical series, semantic enrichment can move
+  // punctuation across its following explicit space and can merge a
+  // single-letter numeric suffix into the preceding identifier. Every leaf
+  // in this bounded pattern already carries authored source intent, so
+  // project those leaf cells in document order instead of repairing an SRE
+  // presentation string by position. Semantic-added multiplication nodes
+  // are ignored because they have no authored cells.
+  if (boundCommas && explicitSpaces && singleLetterNumbers.length && sourceMath.getElementsByTagName) {
+    const lowerDigits = new Map([
+      ['0', '⠴'], ['1', '⠂'], ['2', '⠆'], ['3', '⠒'], ['4', '⠲'],
+      ['5', '⠢'], ['6', '⠖'], ['7', '⠶'], ['8', '⠦'], ['9', '⠔']
+    ]);
+    const leaves = [...sourceMath.getElementsByTagName('*')]
+      .filter((node) => ['mi', 'mo', 'mn', 'mspace'].includes(node.localName ?? node.nodeName));
+    const authored = leaves.map((node) => {
+      if (node.getAttribute?.('data-semantic-added') === 'true') return '';
+      const intent = node.getAttribute?.('data-omniya-nemeth-intent');
+      if (intent === 'explicit-space') return '⠀';
+      if (intent === 'single-letter-number') {
+        const value = String(node.textContent ?? '').trim();
+        const cells = [...value].map((digit) => lowerDigits.get(digit) ?? '').join('');
+        return cells.length === value.length ? cells : null;
+      }
+      return node.getAttribute?.('data-omniya-nemeth-cells') || null;
+    });
+    if (authored.length && authored.every((cells) => cells !== null)) return authored.join('');
+  }
   if (boundCommas) {
     let capitalIndicators = boundCommaNodes.filter((node) => node.nextElementSibling?.localName === 'mi').length;
     braille = braille.replace(/⠠⠀(?=[⠁-⠵])/g, (match) => {

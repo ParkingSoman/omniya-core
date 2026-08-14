@@ -2,6 +2,23 @@
   "schemaVersion": 1,
   "cases": [
     {
+      "id": "electron:bana-2022:example-6-8",
+      "sourceRows": ["example-6-8", "6.3.1"],
+      "rule": "6",
+      "example": "6-8",
+      "artifact": "electron-evidence/example-6-8.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases; the comma-separated n/n1/n2/s/s1/s2 series retains visible punctuation and spacing, one canonical source tree, and a clean exact-node edit."
+      },
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-6-8/input.png", "claim": "The complete comma-separated mathematical series draft is visible before submission." },
+        { "phase": "committed", "path": "electron-screenshots/rule-6-8/committed.png", "claim": "The committed n, n1, n2, s, s1, s2 series is visibly rendered as one canonical MathML tree." },
+        { "phase": "focused", "path": "electron-screenshots/rule-6-8/focused.png", "claim": "MathJax Explorer visibly selects the leading n before replacement." },
+        { "phase": "editing", "path": "electron-screenshots/rule-6-8/editing.png", "claim": "The inspected final render visibly shows y, n1, n2, s, s1, s2 with punctuation and spacing intact." }
+      ] }
+    },
+    {
       "id": "electron:bana-2022:example-5-3",
       "sourceRows": ["example-5-3", "5.2"],
       "rule": "5",

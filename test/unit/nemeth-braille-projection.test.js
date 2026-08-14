@@ -108,6 +108,17 @@ test('BANA punctuation comma intent binds directly to the following atom', () =>
   assert.equal(applyNemethSourceIntentToBraille('⠠⠀⠝⠷', sourceMath), '⠠⠝⠷');
 });
 
+test('authored punctuation series retains comma-space boundaries and lower-cell suffixes', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠝">n</mi><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mrow><mspace data-omniya-nemeth-intent="explicit-space"/><mrow><mi data-omniya-nemeth-cells="⠝">n</mi><mo data-semantic-added="true">⁢</mo><mn data-omniya-nemeth-intent="single-letter-number">1</mn></mrow></mrow><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠎">s</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠰⠝⠠⠀⠰⠝⠂⠂⠀⠰⠎', source),
+    '⠰⠝⠠⠀⠝⠂⠠⠀⠰⠎'
+  );
+});
+
 test('nested multiscripts do not expose SRE presentation baseline before a superscript', () => {
   const sourceMath = {
     querySelectorAll(selector) {
