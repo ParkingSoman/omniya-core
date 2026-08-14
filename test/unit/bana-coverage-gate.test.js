@@ -8,7 +8,7 @@ test('BANA source inventory contains the complete manual order and does not sile
   assert.equal(inventory.counts.planBaselineNumberedRows, 516);
   assert.equal(inventory.counts.examples, 1229);
   assert.equal(inventory.counts.errata, 42);
-  assert.equal(inventory.counts.errataInScope, 24);
+  assert.equal(inventory.counts.errataInScope, 5);
   assert.equal(inventory.rows[0].auditOrder, 0);
   assert.ok(inventory.rows.every((row, index) => row.auditOrder === index));
   assert.ok(!inventory.rows.some((row) => /^bana-2022:(?:0\.333|1\.5|2\.5|10\.0|9\.80|6\.696)$/.test(row.id)));

@@ -1238,6 +1238,10 @@ const CONTEXT_POLICY_REFS = [
   ...['errata-2025:24.1.e-24-2'],
   ...['errata-2025:7.2.1-7-2', 'errata-2025:7.3.3-7-5', 'errata-2025:7.3.5-7-6'],
   ...['errata-2025:15.7-15-12', 'errata-2025:B-2-B-2'],
+  // These errata change normative context rules without introducing new
+  // authored cells: switch scope, function-name continuation, degree-letter
+  // context, and omission punctuation.
+  ...['errata-2025:4.2-4-1', 'errata-2025:4.6.8.c-4-16', 'errata-2025:6.4.2-6-9', 'errata-2025:10.6.3-10-11', 'errata-2025:11.1.4-11-3'],
   ...['9.3', '9.3.1', '9.3.2', '9.3.3'],
   ...['15.5', '15.7', '15.8', '15.14'],
   ...['13.3', '13.3.1', '13.3.2', '13.3.3', '13.9', '13.10', '13.10.1', '13.10.2', '13.10.3', '13.10.4', '13.10.5'],

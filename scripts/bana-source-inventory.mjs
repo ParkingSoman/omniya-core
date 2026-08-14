@@ -167,6 +167,48 @@ if (appendixDStart >= 0) {
 const hash = (path, content) => createHash('sha256').update(content).digest('hex');
 const durableDisposition = rows.find((row) => row.id === 'bana-2022:example-7-22');
 if (durableDisposition) durableDisposition.disposition = 'approved-context-policy';
+// Rules 3-11 errata are classified from the exact 2025 correction text.
+// Only three corrections change executable Nemeth cells; five change
+// normative context rules. The remainder correct headings, commentary, print
+// layout, or a withdrawn erratum and therefore own no application behavior.
+const rules3To11ErrataOperations = Object.freeze({
+  'errata-2025:3.3.1-3-4': ['letter.capital-r'],
+  'errata-2025:8.2.4-8-3': ['punctuation.long-dash', 'punctuation.ellipsis'],
+  'errata-2025:9.1-9-1': ['reference.checkmark']
+});
+for (const [id, mappingIds] of Object.entries(rules3To11ErrataOperations)) {
+  const row = rows.find((candidate) => candidate.id === id);
+  if (row) {
+    row.disposition = 'implemented-operation';
+    row.mappingIds = mappingIds;
+  }
+}
+for (const id of [
+  'errata-2025:4.2-4-1',
+  'errata-2025:4.6.8.c-4-16',
+  'errata-2025:6.4.2-6-9',
+  'errata-2025:10.6.3-10-11',
+  'errata-2025:11.1.4-11-3'
+]) {
+  const row = rows.find((candidate) => candidate.id === id);
+  if (row) row.disposition = 'implemented-context-policy';
+}
+for (const id of [
+  'errata-2025:3.4.3-3-14',
+  'errata-2025:3.5.2-3-16',
+  'errata-2025:3.6.2-3-20',
+  'errata-2025:4.5.3-4-8',
+  'errata-2025:4.8.2-4-19',
+  'errata-2025:8.2.13-8-7',
+  'errata-2025:8.2.16-8-8',
+  'errata-2025:8.8.2-8-15',
+  'errata-2025:9.3.2-9-3',
+  'errata-2025:10.1.1.a-10-1',
+  'errata-2025:10.6.1-10-9'
+]) {
+  const row = rows.find((candidate) => candidate.id === id);
+  if (row) row.disposition = 'excluded-document-format';
+}
 // The 2025 Rule 20.6 erratum changes only the heading of Example 20-36 from
 // "Plus and Minus" to "Minus and Plus." Its print expression and BRF are
 // unchanged, so it owns no executable operation or context-policy behavior.
