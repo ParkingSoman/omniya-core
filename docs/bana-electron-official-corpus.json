@@ -8229,7 +8229,8 @@
       "id": "electron:bana-2022:example-5-1",
       "sourceRows": [
         "example-5-1",
-        "5.1.1"
+        "5.1.1",
+        "5.1"
       ],
       "exampleNumber": "5-1",
       "printedPage": null,
@@ -8258,7 +8259,8 @@
       "id": "electron:bana-2022:example-5-2",
       "sourceRows": [
         "example-5-2",
-        "5.1.1"
+        "5.1.1",
+        "5.1"
       ],
       "exampleNumber": "5-2",
       "printedPage": null,

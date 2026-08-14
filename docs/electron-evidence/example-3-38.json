@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T15:32:21.256Z",
+  "filter": {
+    "rule": null,
+    "example": "3-38"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-lxlSdL",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-3-38",
+      "sourceRows": [
+        "example-3-38",
+        "3.3.5"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-3-38/electron_bana-2022_example-3-38-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "3-38 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-f1d1809d-dbff-4dbc-8c1f-ce699d03555d\" data-semantic-structure=\"0\"><mn mathvariant=\"script\" data-omniya-nemeth-intent=\"lower-cell-numeric\" data-omniya-=\"\" id=\"omniya-source-omniya-f703c53a-c496-41b6-b4c9-c4baae0ea05e\" data-semantic-type=\"number\" data-semantic-role=\"integer\" data-semantic-font=\"script\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">2</mn></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-f1d1809d-dbff-4dbc-8c1f-ce699d03555d\" data-semantic-structure=\"0\"><mn mathvariant=\"script\" data-omniya-nemeth-intent=\"lower-cell-numeric\" data-omniya-=\"\" id=\"omniya-source-omniya-f703c53a-c496-41b6-b4c9-c4baae0ea05e\" data-semantic-type=\"number\" data-semantic-role=\"integer\" data-semantic-font=\"script\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">2</mn></math>\n\n'⠼⠆' !== '⠈⠼⠆'\n"
+    }
+  ]
+}

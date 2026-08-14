@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T15:34:41.131Z",
+  "filter": {
+    "rule": null,
+    "example": "14-54"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Fozcxj",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-14-54",
+      "sourceRows": [
+        "example-14-54",
+        "14.6"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-14-54/electron_bana-2022_example-14-54-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "14-54 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-a375064d-fa63-420a-841f-afadb8ab932a\" data-semantic-structure=\"0\"><mi data-omniya-nemeth-cells=\"⠠⠭\" data-omniya-=\"\" id=\"omniya-source-omniya-48476eba-eeb3-4a37-bb93-730bd1e949b2\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">X</mi></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-a375064d-fa63-420a-841f-afadb8ab932a\" data-semantic-structure=\"0\"><mi data-omniya-nemeth-cells=\"⠠⠭\" data-omniya-=\"\" id=\"omniya-source-omniya-48476eba-eeb3-4a37-bb93-730bd1e949b2\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">X</mi></math>\n\n'⠠⠭' !== '⠠⠭⠨⠖'\n"
+    }
+  ]
+}
