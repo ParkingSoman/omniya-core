@@ -1356,6 +1356,46 @@ test('Rule 13-19 bevelled mixed fraction restores diagonal indicator', () => {
   assert.equal(applyNemethSourceIntentToBraille('⠼⠲⠸⠹⠒⠌⠦⠸⠼', source), '⠼⠲⠸⠹⠒⠸⠌⠦⠸⠼');
 });
 
+test('Rule 23.3 caret strips the number sign before a lower-cell numeral', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-decimal">.35</mn><mo data-omniya-nemeth-cells="⠸⠣">^</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">73</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠨⠒⠢⠸⠣⠼⠶⠒', source), '⠼⠨⠒⠢⠸⠣⠶⠒');
+});
+
+test('Rule 23.43 degree restores baseline return before minutes', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mn data-omniya-nemeth-intent="numeric-start">20</mn><mo data-omniya-nemeth-cells="⠘⠨⠡">°</mo></msup><mn data-omniya-nemeth-intent="lower-cell-numeric">30</mn><mo data-omniya-nemeth-cells="⠄">′</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠆⠴⠘⠨⠡⠒⠴⠄', source), '⠼⠆⠴⠘⠨⠡⠐⠒⠴⠄');
+});
+
+test('Rule 23.17 integral munderover restores under/over cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><munderover><mo data-omniya-nemeth-cells="⠮">∫</mo><mo>0</mo><mo data-omniya-nemeth-cells="⠠⠿">∞</mo></munderover><mi data-omniya-nemeth-cells="⠋">f</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠮⠰⠴⠘⠠⠿⠐⠋', source), '⠐⠮⠩⠴⠣⠠⠿⠻⠋');
+});
+
+test('Rule 24.9 multipurpose minus keeps no number sign', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="signed-numeric-indicator">3</mn><mo data-omniya-nemeth-cells="⠬⠐⠤">+−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">5</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠤⠼⠒⠬⠐⠤⠼⠢', source), '⠤⠼⠒⠬⠐⠤⠢');
+});
+
+test('Rule 23.52 tally groups restore the authored blank', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠸">|</mo><mo data-omniya-nemeth-cells="⠸">|</mo><mo data-omniya-nemeth-cells="⠸">|</mo><mo data-omniya-nemeth-cells="⠸">|</mo><mo data-omniya-nemeth-cells="⠸">|</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠸">|</mo><mo data-omniya-nemeth-cells="⠸">|</mo><mo data-omniya-nemeth-cells="⠸">|</mo><mo data-omniya-nemeth-cells="⠸">|</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠸⠸⠸⠸⠸⠸⠸⠸⠸', source), '⠸⠸⠸⠸⠸⠀⠸⠸⠸⠸');
+});
+
 test('Rule 3.9 shape interior number restores the number sign', () => {
   const source = new DOMParser().parseFromString(
     '<math><mo data-omniya-shape-kind="square" data-omniya-shape-modification="interior-number-5" data-omniya-nemeth-cells="⠫⠲⠸⠫⠼⠢⠻">➄</mo></math>',

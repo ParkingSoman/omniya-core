@@ -2717,3 +2717,59 @@ test('Rule 6.4.11 a comma-space after a letter subscript returns to baseline', (
   assert.equal(countNodes(subscript, 'msup'), 0);
   assert.equal(countNodes(subscript, 'mover'), 0);
 });
+
+test('Rule 24.5 numeric subscript then multipurpose baseline number stays siblings', () => {
+  const { document } = replayCells(sourceNotationToCells('C0"10^2"+c1"10+c2'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].children[0].text, 'C');
+  assert.equal(tree.children[1].children[0].text, '0');
+  assert.equal(tree.children[2].name, 'msup');
+  assert.equal(tree.children[2].children[0].children[0].text, '10');
+  assert.equal(tree.children[4].children[0].text, 'c');
+  assert.equal(tree.children[5].children[0].text, '1');
+  assert.equal(tree.children[6].children[0].text, '10');
+});
+
+test('Rule 24.7 right superscript then left superscript keeps both bases', () => {
+  const { document } = replayCells(sourceNotationToCells('p~b"~c"x'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'p');
+  assert.equal(tree.children[0].children[1].children[0].text, 'b');
+  assert.equal(tree.children[1].name, 'mmultiscripts');
+  assert.equal(tree.children[1].children[0].children[0].text, 'x');
+  const marker = tree.children[1].children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tree.children[1].children[marker + 2].children[0].text, 'c');
+});
+
+test('Rule 24.8 right superscript then left subscript splits onto the following base', () => {
+  const { document } = replayCells(sourceNotationToCells('p~b";c"x'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'p');
+  assert.equal(tree.children[1].name, 'mmultiscripts');
+  assert.equal(tree.children[1].children[0].children[0].text, 'x');
+  const marker = tree.children[1].children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tree.children[1].children[marker + 1].children[0].text, 'c');
+});
+
+test('Rule 24.18 tally then multipurpose punctuation keeps the period', () => {
+  const { document } = replayCells(sourceNotationToCells("_____, ____\"_4 '''"));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const period = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-period');
+  assert.ok(period);
+  assert.equal(period.attrs['data-omniya-nemeth-cells'], '⠸⠲');
+});
+
+test('Rule 24.23 shape then multipurpose number keeps equals after a blank', () => {
+  const { document } = replayCells(sourceNotationToCells('#9$4"14 .k #23'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const equals = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠨⠅');
+  assert.ok(equals);
+  assert.equal(equals.children[0].text, '=');
+});

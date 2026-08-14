@@ -224,9 +224,14 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     const siblings = node.parentElement?.children
       ? [...node.parentElement.children]
       : [...(node.parentNode?.childNodes ?? [])].filter((candidate) => candidate.nodeType === 1);
-    const next = siblings[siblings.indexOf(node) + 1];
+    const index = siblings.indexOf(node);
+    const next = siblings[index + 1];
     const left = node.getAttribute?.('data-omniya-nemeth-cells');
     const right = next?.getAttribute?.('data-omniya-nemeth-cells');
+    // Tally marks are many identical `⠸` siblings. Stripping `⠸⠀⠸` by
+    // indexOf would also erase an authored blank between tally groups
+    // (Rule 23.52 / 24.18). Keep adjacency cleanup for distinct cell pairs.
+    if (left === '⠸' && right === '⠸') return [];
     return left && right ? [[left, right]] : [];
   });
   const directShapeSubscripts = sourceNodes('msub').filter((script) => {
@@ -750,6 +755,14 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠄⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠄');
     braille = braille.replace(/⠄⠄⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠄⠄');
   }
+  // Rule 23.3 caret followed by a lower-cell number omits the number sign.
+  if (sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠸⠣"]') && lowerCellNumeric.length) {
+    braille = braille.replace(/⠸⠣⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠸⠣');
+  }
+  // Multipurpose minus before a lower-cell digit keeps no number sign (`+"-5`).
+  if (sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠬⠐⠤"]') && lowerCellNumeric.length) {
+    braille = braille.replace(/⠐⠤⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '⠐⠤');
+  }
   // Contracted script commas keep the following digit without a number sign.
   if (sourceNodes('[data-omniya-script-comma="true"]').length
     || sourceNodes('mo[data-omniya-nemeth-cells="⠪"]').length) {
@@ -825,17 +838,42 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // every semantic wrapper and omit the baseline return before the following
   // function/operator. The source-marked degree nodes make this correction
   // local and deterministic; ordinary superscripts are untouched.
-  const authoredDegrees = sourceMath.querySelectorAll('[data-mjx-pseudoscript], [data-omniya-nemeth-cells="⠘⠨⠡"]');
+  // xmldom's sourceNodes helper does not accept comma-separated selectors.
+  const authoredDegrees = [
+    ...sourceNodes('[data-mjx-pseudoscript]'),
+    ...sourceNodes('[data-omniya-nemeth-cells="⠘⠨⠡"]')
+  ];
   if (authoredDegrees.length) {
     braille = braille.replace(/⠘+⠨⠡/g, '⠘⠨⠡');
     braille = braille.replace(/(⠘⠨⠡)(?=⠉⠕⠎|⠎⠊⠝)/g, '$1⠐');
     braille = braille.replace(/(⠘⠨⠡⠀)(?=⠬)/g, '$1⠐');
+    // Rule 23.43: degree before minutes restores the baseline return before
+    // the following lower-cell number.
+    if (lowerCellNumeric.length) {
+      braille = braille.replace(/(⠘⠨⠡)(?!⠐)(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1⠐');
+    }
+  }
+  // Rule 23.17/23.20: an integral authored with munderover keeps the
+  // multipurpose/under/over form. SRE often projects the same bounds as an
+  // msubsup reading.
+  const integralUnderOver = [...(sourceMath.querySelectorAll?.('munderover') ?? [])].filter((node) => {
+    const base = [...(node.children ?? [])].find((child) => child.nodeType === 1);
+    return (base?.getAttribute?.('data-omniya-nemeth-cells') || '') === '⠮'
+      || String(base?.textContent ?? '').trim() === '∫';
+  });
+  if (integralUnderOver.length) {
+    braille = braille.replace(/^(?!⠐)⠮/, '⠐⠮');
+    braille = braille.replace(/⠐?⠮⠰([^⠘]+)⠘([^⠐]+)/g, '⠐⠮⠩$1⠣$2⠻');
+    // Under/over form already returns to the baseline before the integrand.
+    braille = braille.replace(/⠻⠐(?=[⠁-⠵])/g, '⠻');
   }
   if (signedNumeric) {
     // SRE can elide the numeric indicator after a minus because MathML only
     // exposes a number node. The guided source explicitly entered BANA's
     // signed-number indicator, so restore it at that bounded local boundary.
-    braille = braille.replace(/⠤(?!⠼)(⠂|⠆|⠒|⠲|⠢|⠔|⠒|⠦|⠖|⠶|⠴)/, '⠤⠼$1');
+    // Multipurpose minus (`⠐⠤`) before a lower-cell digit keeps no number
+    // sign (Rule 24.9); do not reinsert one after that local separator.
+    braille = braille.replace(/(?<!⠐)⠤(?!⠼)(⠂|⠆|⠒|⠲|⠢|⠔|⠒|⠦|⠖|⠶|⠴)/, '⠤⠼$1');
   }
   if (lowerCellNumeric.length) {
     // A lower-cell numeral entered after an explicit mathematical blank is
@@ -2036,6 +2074,20 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         remaining -= 1;
         return '⠸';
       });
+    }
+    // Rule 23.52 / 24.18: authored blanks between tally groups must survive
+    // SRE's concatenated bar projection.
+    if (tallyCount && sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')) {
+      braille = braille.replace(/(⠸{5})(?!⠀)(?=⠸)/g, '$1⠀');
+      braille = braille.replace(/(⠸{4})(?!⠀)(?=⠸)/g, (match, group, offset, value) => {
+        // Prefer restoring the blank after a five-tally group first; only use
+        // the four-tally form when no five-group blank was needed.
+        return value.includes('⠸⠸⠸⠸⠸⠀') ? match : `${group}⠀`;
+      });
+    }
+    // Rule 24.1.h: multipurpose before a punctuation indicator after tallies.
+    if (tallyCount && sourceMath.querySelector?.('[data-omniya-nemeth-intent="punctuation-period"]')) {
+      braille = braille.replace(/(⠸+)(?!⠐)(?=⠸⠲)/g, '$1⠐');
     }
     // Prefixed grouping fences can lose a bold, capital, or enlarged modifier
     // while keeping the remaining fence cells. Replace the longest present
