@@ -4,7 +4,7 @@ Normative source: [BANA Nemeth Code 2022](https://www.brailleauthority.org/sites
 
 This is the contributor-facing source of truth. It is generated from the sequential ledger, not hand-written. Every row is one provision, official example, symbol-table entry, appendix item, or erratum. `open` means engineering or evidence is still required; it is not an unsupported claim.
 
-Total ledger rows: **1846**. Applicable rows: **1568**. Implemented disposition: **1508**.
+Total ledger rows: **1846**. Applicable rows: **1568**. Implemented disposition: **1512**.
 
 ## Rule index and totals
 
@@ -34,7 +34,7 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | [Rule 20](#rule-20) | Operators | 64 | 64 | 63 | 64 | 63 | 1 | 1 | 1 | 1 |
 | [Rule 21](#rule-21) | Comparisons | 54 | 54 | 54 | 52 | 52 | 1 | 1 | 1 | 2 |
 | [Rule 22](#rule-22) | Arrows | 67 | 67 | 67 | 65 | 65 | 2 | 0 | 0 | 2 |
-| [Rule 23](#rule-23) | Special symbols | 81 | 81 | 77 | 81 | 77 | 2 | 2 | 2 | 4 |
+| [Rule 23](#rule-23) | Special symbols | 81 | 81 | 81 | 80 | 80 | 2 | 2 | 2 | 1 |
 | [Rule 24](#rule-24) | Multipurpose indicator | 27 | 27 | 26 | 27 | 26 | 0 | 0 | 0 | 1 |
 | [Rule 25](#rule-25) | Spatial arrangements | 131 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 49 |
 | [Rule 26](#rule-26) | Document formatting | 131 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 50 |
@@ -1813,10 +1813,10 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | 1761 | Rule 15: Modifiers | errata-2025:15.7-15-12 | 15.7 at 15-12 | 15-12 | — | — | unclassified | —  | — | — | — | — | — | open |
 | 1762 | Rule 17: Shapes | errata-2025:17.1-Special-Considerations-c-17-6 | 17.1 Special Considerations: c at 17-6 | 17-6 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
 | 1763 | Rule 20: Operators | errata-2025:20.6-20-9 | 20.6 at 20-9 | 20-9 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 1764 | Rule 23: Special symbols | errata-2025:symbol-list-23-1 | symbol list at 23-1 | 23-1 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 1765 | Rule 23: Special symbols | errata-2025:23.4-23-3 | 23.4 at 23-3 | 23-3 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 1766 | Rule 23: Special symbols | errata-2025:23.13-23-9 | 23.13 at 23-9 | 23-9 | — | — | unclassified | —  | — | — | — | — | — | open |
-| 1767 | Rule 23: Special symbols | errata-2025:23.17-23-13 | 23.17 at 23-13 | 23-13 | — | — | unclassified | —  | — | — | — | — | — | open |
+| 1764 | Rule 23: Special symbols | errata-2025:symbol-list-23-1 | symbol list at 23-1 | 23-1 | — | immediate | implemented-operation | `misc.crossed-d` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
+| 1765 | Rule 23: Special symbols | errata-2025:23.4-23-3 | 23.4 at 23-3 | 23-3 | — | immediate | implemented-operation | `misc.crossed-d` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
+| 1766 | Rule 23: Special symbols | errata-2025:23.13-23-9 | 23.13 at 23-9 | 23-9 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
+| 1767 | Rule 23: Special symbols | errata-2025:23.17-23-13 | 23.17 at 23-13 | 23-13 | — | — | implemented-operation | `quantifier.exists-unique`, `typeform.barred` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
 | 1768 | Rule 24: Multipurpose indicator | errata-2025:24.1.e-24-2 | 24.1.e at 24-2 | 24-2 | — | — | unclassified | —  | — | — | — | — | — | open |
 | 1769 | Rule 25: Spatial arrangements | errata-2025:25.3.3-25-2 | 25.3.3 at 25-2 | 25-2 | — | — | excluded-spatial | —  | — | — | — | — | — | excluded |
 | 1770 | Rule 25: Spatial arrangements | errata-2025:25.3.4-25-8 | 25.3.4 at 25-8 | 25-8 | — | — | excluded-spatial | —  | — | — | — | — | — | excluded |
