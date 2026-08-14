@@ -13,6 +13,7 @@ import { createSixKeyInput } from './braille-input.js';
 import { createEmptyDraftMathDocument } from '../domain/guided-nemeth/index.js';
 import {
   applyNemethCell,
+  applyNemethBoundary,
   applyNemethChoice,
   commitNemethLocalCode,
   cancelReplacement,
@@ -607,7 +608,9 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
 
   const consumeCell = async (cell) => {
     if (!replacementSession) return;
-    const result = applyNemethCell(replacementSession, cell);
+    const result = (cell === ' ' || cell === '⠀')
+      ? applyNemethBoundary(replacementSession, 'space')
+      : applyNemethCell(replacementSession, cell);
     replacementSession = result.session;
     if (result.status === 'applied') {
       editor.value = '';

@@ -147,7 +147,11 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   for (const [cellIndex, cell] of cells.entries()) {
     // The textarea is a one-cell native proxy. Pending bounded prefixes live
     // in NemethState and must never be concatenated into the next fill.
-    await input.fill(cell);
+    // Exercise the renderer's visible boundary transaction exactly as a user
+    // does: an ordinary Space key produces a DOM space input event, while a
+    // six-key/Unicode blank is the literal Braille blank cell.
+    if (cell === ' ') await input.press('Space');
+    else await input.fill(cell);
     if (cellIndex === cells.length - 1 && options.captureInputEvidence) {
       await options.captureInputEvidence();
     }

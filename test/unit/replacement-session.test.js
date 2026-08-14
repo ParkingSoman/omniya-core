@@ -7,6 +7,7 @@ import { findMathNode, parseMathML } from '../../src/domain/math-tree.js';
 import {
   startReplacementSession,
   applyNemethCell,
+  applyNemethBoundary,
   applyNemethChoice,
   commitNemethLocalCode,
   cancelReplacement,
@@ -14,6 +15,10 @@ import {
   setLatexSource,
   setReplacementMethod
 } from '../../src/domain/replacement-session.js';
+
+function replacementSession() {
+  return startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
+}
 
 test('replacement drafts start empty and cancel without mutating the source document', async () => {
   const document = await importLatex('x+x');
@@ -156,4 +161,52 @@ test('a pending operator after a script baseline preserves the returned focus', 
   let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
   for (const cell of ['⠭', '⠘', '⠆', '⠐', '⠤']) session = applyNemethCell(session, cell).session;
   assert.equal(session.draftFocus.nodeId, parseMathML(session.draft.mathml).attrs['data-omniya-id']);
+});
+
+test('a visible blank commits a complete local code and inserts a structural space', () => {
+  let session = replacementSession();
+  for (const cell of ['⠭', '⠬']) session = applyNemethCell(session, cell).session;
+
+  const result = applyNemethBoundary(session, 'space');
+
+  assert.equal(result.status, 'applied');
+  assert.equal(result.session.nemethState.prefix, '');
+  assert.match(result.session.draft.mathml, /<mo[^>]*>\+<\/mo>/);
+  assert.match(result.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
+});
+
+test('a dot-6 punctuation prefix resolves as punctuation at a visible blank', () => {
+  let session = replacementSession();
+  session = applyNemethCell(session, '⠠').session;
+
+  const result = applyNemethBoundary(session, 'space');
+
+  assert.equal(result.status, 'applied');
+  assert.match(result.session.draft.mathml, /<mo[^>]*>‚?<\/mo>|<mo[^>]*>,<\/mo>/);
+  assert.match(result.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
+});
+
+test('a blank does not mutate an incomplete atomic local code', () => {
+  let session = replacementSession();
+  for (const cell of ['⠫', '⠒', '⠒']) session = applyNemethCell(session, cell).session;
+  const before = structuredClone(session);
+
+  const result = applyNemethBoundary(session, 'space');
+
+  assert.equal(result.status, 'rejected');
+  assert.equal(result.session.draft.mathml, before.draft.mathml);
+  assert.deepEqual(result.session.draftFocus, before.draftFocus);
+  assert.deepEqual(result.session.nemethState, before.nemethState);
+});
+
+test('a valid longer prefix remains pending until its next non-space cell', () => {
+  let session = replacementSession();
+  const prefix = applyNemethCell(session, '⠬');
+  assert.equal(prefix.status, 'pending');
+  assert.equal(prefix.session.nemethState.prefix, '⠬');
+
+  const continuation = applyNemethCell(prefix.session, '⠹');
+  assert.equal(continuation.status, 'applied');
+  assert.equal(continuation.session.nemethState.prefix, '');
+  assert.match(continuation.session.draft.mathml, /<mo[^>]*>\+<\/mo>/);
 });

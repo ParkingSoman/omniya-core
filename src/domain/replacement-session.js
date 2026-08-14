@@ -97,8 +97,18 @@ export function applyNemethBoundary(session, boundary = 'space') {
   let current = session;
   if (current.nemethState?.prefix) {
     const committed = commitNemethLocalCode(current);
-    if (committed.status !== 'applied') return committed;
-    current = committed.session;
+    if (committed.status === 'choice' && committed.choices?.some(({ operationId }) => operationId === 'punctuation.comma')) {
+      // Dot-6 is punctuation when the next visible cell is a boundary; the
+      // capital meaning remains available only when a non-space continuation
+      // arrives. Resolve that local context here instead of surfacing a
+      // choice for a boundary that already disambiguates it.
+      const punctuation = applyNemethChoice(current, 'punctuation.comma');
+      if (punctuation.status !== 'applied') return punctuation;
+      current = punctuation.session;
+    } else {
+      if (committed.status !== 'applied') return committed;
+      current = committed.session;
+    }
   }
   return applyNemethCell(current, ' ');
 }
