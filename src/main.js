@@ -10,6 +10,13 @@ const sourceDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rendererFile = path.join(sourceDirectory, 'renderer', 'index.html');
 const rendererUrl = pathToFileURL(rendererFile).href;
 
+const isAutomatedTest = Boolean(process.env.OMNIYA_TEST_USER_DATA_DIR);
+// E2E / corpus runs should not steal focus or flash windows on the desktop.
+// Playwright still drives the hidden BrowserWindow and can capture screenshots.
+// Do not append Chromium --headless here: Playwright's Electron launcher needs
+// a real BrowserWindow + remote debugging, which that switch breaks.
+const runHeadless = isAutomatedTest || process.env.OMNIYA_HEADLESS === '1';
+
 if (process.env.OMNIYA_TEST_USER_DATA_DIR) {
   app.setPath('userData', process.env.OMNIYA_TEST_USER_DATA_DIR);
 }
@@ -42,6 +49,7 @@ function createWindow() {
   const window = new BrowserWindow({
     width: 900,
     height: 700,
+    show: !runHeadless,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -58,6 +66,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  if (runHeadless && app.dock) app.dock.hide();
   const externalFile = process.env.OMNIYA_NAPKIN_FILE
     ? path.resolve(process.env.OMNIYA_NAPKIN_FILE)
     : null;
