@@ -351,6 +351,17 @@ test('Rule 20.1.1 does not move the first number sign onto a plus continuation',
   );
 });
 
+test('function-name cells drop SRE baseline returns between letters', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">5</mn><mo data-omniya-nemeth-cells="⠷">(</mo><mi data-omniya-nemeth-intent="function-name" data-omniya-nemeth-cells="⠍⠕⠙">mod</mi><mn data-omniya-nemeth-intent="numeric-start">3</mn><mo data-omniya-nemeth-cells="⠾">)</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠢⠷⠍⠐⠕⠐⠙⠀⠼⠒⠾', source),
+    '⠼⠢⠷⠍⠕⠙⠀⠼⠒⠾'
+  );
+});
+
 test('Rule 17.10.2 restores a numeric indicator after a new shape and explicit-space boundary', () => {
   const source = new DOMParser().parseFromString(
     '<math><mo data-omniya-nemeth-cells="⠫⠪">∠</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">1</mn><mo data-omniya-nemeth-cells="⠬">+</mo><mn data-omniya-nemeth-intent="numeric-start">2</mn><mo data-omniya-nemeth-cells="⠫⠪">∠</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">3</mn></math>',

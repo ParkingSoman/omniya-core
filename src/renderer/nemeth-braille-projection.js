@@ -1753,12 +1753,20 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (russianCount) {
     braille = braille.replace(/[лш]/, (match) => match === 'л' ? '⠈⠈⠇' : '⠈⠈⠱');
   }
-  for (const name of functionNames) {
-    const cells = [...name].map((letter) => {
-      const map = new Map([['s', '⠎'], ['i', '⠊'], ['n', '⠝'], ['c', '⠉'], ['o', '⠕'], ['s', '⠎'], ['t', '⠞'], ['a', '⠁'], ['l', '⠇'], ['g', '⠛'], ['e', '⠑'], ['x', '⠭'], ['p', '⠏'], ['m', '⠍'], ['d', '⠙'], ['r', '⠗'], ['f', '⠋']]);
-      return map.get(letter) ?? '';
-    }).join('');
-    if (cells && !scriptedFunctionNames.has(name)) {
+  for (const node of functionNodes) {
+    const name = String(node.textContent ?? '').trim();
+    const map = new Map([['s', '⠎'], ['i', '⠊'], ['n', '⠝'], ['c', '⠉'], ['o', '⠕'], ['s', '⠎'], ['t', '⠞'], ['a', '⠁'], ['l', '⠇'], ['g', '⠛'], ['e', '⠑'], ['x', '⠭'], ['p', '⠏'], ['m', '⠍'], ['d', '⠙'], ['r', '⠗'], ['f', '⠋']]);
+    const cells = node.getAttribute?.('data-omniya-nemeth-cells') ||
+      [...name].map((letter) => map.get(letter) ?? '').join('');
+    if (!cells) continue;
+    // SRE can emit each letter of a multi-letter function as its own
+    // identifier and insert baseline returns between them. Collapse only
+    // that local presentation splice back to the authored function cells.
+    const spliced = [...cells].join('⠐');
+    if (spliced !== cells && braille.includes(spliced)) {
+      braille = braille.replace(spliced, cells);
+    }
+    if (!scriptedFunctionNames.has(name)) {
       const escaped = cells.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       braille = braille.replace(new RegExp(`${escaped}(?!⠀)`), `${cells}⠀`);
     }
