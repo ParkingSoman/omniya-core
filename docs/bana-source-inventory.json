@@ -23614,9 +23614,11 @@
       "printedPage": "14-19",
       "pdfPage": 188,
       "auditOrder": 807,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.sup-sup"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23643,9 +23645,11 @@
       "printedPage": "14-20",
       "pdfPage": 189,
       "auditOrder": 808,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.sup-sup-sub"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23672,9 +23676,12 @@
       "printedPage": "14-20",
       "pdfPage": 189,
       "auditOrder": 809,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript",
+        "script.contracted-comma"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23730,9 +23737,11 @@
       "printedPage": "14-20",
       "pdfPage": 189,
       "auditOrder": 811,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23788,9 +23797,12 @@
       "printedPage": "14-20",
       "pdfPage": 189,
       "auditOrder": 813,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "fraction.start.diagonal"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23817,9 +23829,11 @@
       "printedPage": "14-21",
       "pdfPage": 190,
       "auditOrder": 814,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.subscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23846,9 +23860,11 @@
       "printedPage": "14-21",
       "pdfPage": 190,
       "auditOrder": 815,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23875,9 +23891,11 @@
       "printedPage": "14-21",
       "pdfPage": 190,
       "auditOrder": 816,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23904,9 +23922,11 @@
       "printedPage": "14-21",
       "pdfPage": 190,
       "auditOrder": 817,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
@@ -23962,9 +23982,12 @@
       "printedPage": "14-21",
       "pdfPage": 190,
       "auditOrder": 819,
-      "disposition": "unclassified",
+      "disposition": "implemented-operation",
       "inputPolicy": null,
-      "mappingIds": [],
+      "mappingIds": [
+        "script.superscript",
+        "script.baseline"
+      ],
       "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
