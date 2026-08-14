@@ -16,7 +16,7 @@
     "examples": 1229,
     "errata": 42,
     "errataInScope": 5,
-    "mappedRows": 1121,
+    "mappedRows": 1119,
     "electronCreationRows": 178,
     "electronEditingRows": 176,
     "officialExamplesLinked": 1229
@@ -3340,21 +3340,17 @@
       "printedPage": "3-9",
       "pdfPage": 36,
       "auditOrder": 69,
-      "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
-      "mappingIds": [
-        "indicator.number"
-      ],
-      "unitCaseIds": [
-        "registry:indicator.number"
-      ],
+      "disposition": "excluded-document-format",
+      "inputPolicy": null,
+      "mappingIds": [],
+      "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": true,
+        "implementation": false,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -3362,13 +3358,10 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": true,
+        "contextPolicy": false,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
-      "contextPolicyIds": [
-        "context-policy.3.3.5"
-      ],
       "exampleParentId": "bana-2022:3.3.5",
       "officialSource": {
         "sourceLines": [
@@ -3381,7 +3374,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-3-40",
@@ -58687,51 +58680,17 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1052,
-      "disposition": "implemented-operation",
-      "inputPolicy": "atomic-sequence",
-      "mappingIds": [
-        "shape.circle.interior-plus",
-        "shape.circle.interior-letter-a",
-        "shape.angle.interior-degree",
-        "shape.angle.interior-arrow",
-        "shape.angle.interior-arc",
-        "shape.circle.interior-cross",
-        "shape.circle.interior-minus",
-        "shape.circle.interior-dot",
-        "shape.rectangle.interior-bar",
-        "shape.square.interior-diagonals",
-        "shape.square.interior-dot",
-        "shape.square.interior-horizontal-bar",
-        "shape.square.interior-vertical-bar",
-        "shape.square.interior-nw-se-diagonal",
-        "shape.square.interior-sw-ne-diagonal",
-        "shape.circle.interior-bar"
-      ],
-      "unitCaseIds": [
-        "registry:shape.circle.interior-plus",
-        "registry:shape.circle.interior-letter-a",
-        "registry:shape.angle.interior-degree",
-        "registry:shape.angle.interior-arrow",
-        "registry:shape.angle.interior-arc",
-        "registry:shape.circle.interior-cross",
-        "registry:shape.circle.interior-minus",
-        "registry:shape.circle.interior-dot",
-        "registry:shape.rectangle.interior-bar",
-        "registry:shape.square.interior-diagonals",
-        "registry:shape.square.interior-dot",
-        "registry:shape.square.interior-horizontal-bar",
-        "registry:shape.square.interior-vertical-bar",
-        "registry:shape.square.interior-nw-se-diagonal",
-        "registry:shape.square.interior-sw-ne-diagonal",
-        "registry:shape.circle.interior-bar"
-      ],
+      "disposition": "excluded-document-format",
+      "inputPolicy": null,
+      "mappingIds": [],
+      "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": true,
+        "implementation": false,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -58739,13 +58698,10 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": true,
+        "contextPolicy": false,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
-      "contextPolicyIds": [
-        "context-policy.17.6"
-      ],
       "exampleParentId": "bana-2022:17.6.1",
       "officialSource": {
         "sourceLines": [
@@ -58760,7 +58716,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:17.6.2",

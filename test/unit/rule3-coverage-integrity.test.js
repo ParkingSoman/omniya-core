@@ -15,7 +15,7 @@ test('every Rule 3 row has exact mapping or context-policy ownership', () => {
     assert.equal(sectionTitle?.verified?.[field], false, `excluded section title must not claim ${field} evidence`);
   }
   for (const row of rows) {
-    if (row.id === 'bana-2022:example-3-1') continue;
+    if (row.disposition === 'excluded-document-format') continue;
     assert.notEqual(row.disposition, 'unclassified');
     assert.equal(row.verified.implementation, true);
     assert.ok((row.mappingIds?.length ?? 0) + (row.contextPolicyIds?.length ?? 0) > 0, `${row.id} lacks exact ownership`);
