@@ -10,18 +10,18 @@ Generated from `docs/bana-coverage.json`.
 - Blind-contributor reviewed rows: 0
 - Official examples: 1229
 - Official examples with extracted source blocks: 1229
-- Official examples with Electron creation evidence: 120
-- Official examples with Electron editing evidence: 120
+- Official examples with Electron creation evidence: 123
+- Official examples with Electron editing evidence: 123
 - Appendix rows: 66 (63 Appendix D symbols plus A–C policy rows)
-- Electron creation-linked rows: 178
-- Electron editing-linked rows: 176
-- Missing Electron creation evidence: 1184
-- Missing Electron editing evidence: 1186
-- Missing navigation evidence: 1186
-- Missing whole-expression Braille evidence: 1184
-- Missing focused-node Braille evidence: 1186
-- Missing undo/redo evidence: 1200
-- Missing persistence evidence: 1204
+- Electron creation-linked rows: 184
+- Electron editing-linked rows: 182
+- Missing Electron creation evidence: 1178
+- Missing Electron editing evidence: 1180
+- Missing navigation evidence: 1180
+- Missing whole-expression Braille evidence: 1178
+- Missing focused-node Braille evidence: 1180
+- Missing undo/redo evidence: 1194
+- Missing persistence evidence: 1198
 - Missing visual evidence: 1336
 - Pending independent transcriber review: 1546
 - Pending blind-contributor review: 1546
@@ -31,10 +31,10 @@ Generated from `docs/bana-coverage.json`.
 | 1 | 17 | 17 | 17 | 0 | 0 | 0 |
 | 2 | 2 | 2 | 2 | 0 | 0 | 0 |
 | 3 | 155 | 150 | 150 | 24 | 24 | 5 |
-| 4 | 116 | 114 | 114 | 0 | 0 | 2 |
+| 4 | 116 | 114 | 114 | 2 | 2 | 2 |
 | 5 | 14 | 14 | 14 | 10 | 10 | 0 |
-| 6 | 85 | 85 | 85 | 13 | 13 | 0 |
-| 7 | 45 | 45 | 45 | 2 | 2 | 0 |
+| 6 | 85 | 85 | 85 | 15 | 15 | 0 |
+| 7 | 45 | 45 | 45 | 4 | 4 | 0 |
 | 8 | 104 | 101 | 101 | 0 | 0 | 3 |
 | 9 | 16 | 15 | 15 | 11 | 11 | 1 |
 | 10 | 72 | 67 | 67 | 12 | 12 | 5 |
