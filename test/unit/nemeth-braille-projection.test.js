@@ -97,6 +97,127 @@ test('enlarged bracket grouping preserves the Rule 19.12 blank before plus', () 
   );
 });
 
+test('Rule 19.10 restores the leading number sign when SRE omits every isolated <mn> prefix', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="lower-cell-numeric">4</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mo data-omniya-nemeth-cells="⠈⠷">[</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">4</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><mo data-omniya-nemeth-cells="⠈⠾">]</mo><mo data-omniya-nemeth-cells="⠨⠌">÷</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠲⠤⠒⠈⠷⠲⠤⠆⠷⠖⠤⠒⠾⠈⠾⠨⠌⠒', source),
+    '⠼⠲⠤⠒⠈⠷⠲⠤⠆⠷⠖⠤⠒⠾⠈⠾⠨⠌⠒'
+  );
+});
+
+test('horizontal bracket over restores the authored grouping cell SRE dropped from the overscript', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi mathvariant="italic">x</mi><mo data-omniya-nemeth-cells="⠬">+</mo><mi mathvariant="italic">y</mi><mo data-omniya-nemeth-cells="⠈⠷" data-omniya-nemeth-intent="horizontal-bracket-over" data-omniya-role="overscript">⏜</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠐⠭⠬⠽⠣⠻', source),
+    '⠐⠭⠬⠽⠣⠈⠷⠻'
+  );
+});
+
+test('horizontal bracket under restores the authored grouping cell SRE dropped from the underscript', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi mathvariant="italic">x</mi><mo data-omniya-nemeth-cells="⠬">+</mo><mi mathvariant="italic">y</mi><mo data-omniya-nemeth-cells="⠈⠾" data-omniya-nemeth-intent="horizontal-bracket-under" data-omniya-role="underscript">⏝</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠐⠭⠬⠽⠩⠻', source),
+    '⠐⠭⠬⠽⠩⠈⠾⠻'
+  );
+});
+
+test('bold enlarged fences restore the bold prefix SRE dropped from grouping signs', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠸⠈⠷">[</mo><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-cells="⠸⠈⠾">]</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠈⠷⠭⠈⠾', source),
+    '⠸⠈⠷⠭⠸⠈⠾'
+  );
+});
+
+test('bold vertical bars restore the bold prefix SRE dropped from each authored bar', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠸⠳⠸⠳">||</mo><mi data-omniya-nemeth-cells="⠋">f</mi><mo data-omniya-nemeth-cells="⠸⠳⠸⠳">||</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠳⠳⠋⠳⠳', source),
+    '⠸⠳⠸⠳⠋⠸⠳⠸⠳'
+  );
+});
+
+test('transcriber grouping after then/and restores fence cells SRE omitted around the identifier', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠭">x</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">3.5</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mtext data-omniya-nemeth-cells="⠠⠄⠮⠝" data-omniya-nemeth-intent="then-word">then</mtext><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠈⠰⠷">⎣</mo><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-cells="⠈⠰⠾">⎦</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mtext data-omniya-nemeth-cells="⠠⠄⠯" data-omniya-nemeth-intent="and-word">and</mtext><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠈⠘⠷">⎡</mo><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-cells="⠈⠘⠾">⎤</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠭⠀⠨⠅⠀⠼⠒⠨⠢⠠⠀⠠⠄⠮⠝⠀⠭⠀⠨⠅⠀⠼⠒⠀⠠⠄⠯⠀⠭', source),
+    '⠭⠀⠨⠅⠀⠼⠒⠨⠢⠠⠀⠠⠄⠮⠝⠀⠈⠰⠷⠭⠈⠰⠾⠀⠨⠅⠀⠼⠒⠀⠠⠄⠯⠀⠈⠘⠷⠭⠈⠘⠾'
+  );
+});
+
+test('an omitted transcriber close is restored between adjacent authored letter cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msub><mi data-omniya-nemeth-cells="⠠⠁">A</mi><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠝">n</mi></msub><mo data-omniya-nemeth-cells="⠈⠘⠾">⎤</mo><mi data-omniya-nemeth-cells="⠠⠊">I</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠁⠰⠝⠠⠊', source),
+    '⠠⠁⠰⠝⠈⠘⠾⠠⠊'
+  );
+});
+
+test('mixed transcriber grouping restores omitted open and close around a flat sequence', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠈⠘⠷">⎡</mo><mi data-omniya-nemeth-cells="⠁">a</mi><mn data-omniya-nemeth-intent="single-letter-number">1</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠁">a</mi><mn data-omniya-nemeth-intent="single-letter-number">2</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠁">a</mi><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠝">n</mi><mo data-omniya-nemeth-cells="⠈⠰⠾">⎦</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠁⠂⠀⠁⠆⠀⠄⠄⠄⠀⠁⠰⠝⠐', source),
+    '⠈⠘⠷⠁⠂⠀⠁⠆⠀⠄⠄⠄⠀⠁⠰⠝⠐⠈⠰⠾'
+  );
+});
+
+test('an evaluation bar with scripts drops SRE\'s terminal baseline return', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi>f</mi><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mi>x</mi><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><msubsup><mo data-omniya-nemeth-cells="⠳">|</mo><mi>b</mi><mi>a</mi></msubsup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠋⠷⠭⠾⠳⠰⠃⠘⠁⠐', source),
+    '⠋⠷⠭⠾⠳⠰⠃⠘⠁'
+  );
+});
+
+test('capital enlarged grouping restores the capital prefix SRE dropped from each fence', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠈⠠⠷">{</mo><mi>c</mi><mi>o</mi><mi>s</mi><mo data-omniya-nemeth-cells="⠈⠠⠾">}</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠈⠷⠉⠕⠎⠈⠾', source),
+    '⠈⠠⠷⠉⠕⠎⠈⠠⠾'
+  );
+});
+
+test('less-than-or-equal restores the two authored comparison cells SRE collapsed to one glyph', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-cells="⠐⠅">＜</mo><mo data-omniya-nemeth-cells="⠨⠅">=</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠐⠅⠱', source),
+    '⠐⠅⠨⠅'
+  );
+});
+
 test('BANA punctuation comma intent binds directly to the following atom', () => {
   const comma = { nextElementSibling: { localName: 'mi' } };
   const sourceMath = {

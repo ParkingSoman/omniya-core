@@ -498,7 +498,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       const numericNodes = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="numeric-start"], [data-omniya-nemeth-intent="lower-cell-numeric"]')];
       if (numericNodes.length >= 2) {
         let seen = 0;
-        const expectedSigns = numericNodes.filter((node) => node.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start').length;
+        const expectedSigns = Math.max(1, numericNodes.filter((node) => node.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start').length);
         braille = braille.replace(/⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, (cell, offset, value) => {
           // Keep the leading number sign only. The later signs are emitted
           // for isolated semantic <mn> nodes, not authored BANA boundaries.
@@ -829,7 +829,8 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // owned by MathJax. Keystroke labels use this to retain `$k... ]` without
     // serializing the containing calculator sequence.
     let projectionCursor = 0;
-    const projectedShapes = [...sourceMath.querySelectorAll('[data-omniya-shape-kind][data-omniya-projection-cells]')];
+    const projectedShapes = [...sourceMath.querySelectorAll('[data-omniya-shape-kind]')]
+      .filter((node) => node.getAttribute?.('data-omniya-projection-cells'));
     const keystrokeCells = new Set([...sourceMath.querySelectorAll('[data-omniya-shape-kind="keystroke"]')]
       .map((node) => node.getAttribute('data-omniya-nemeth-cells')).filter(Boolean));
     for (const node of projectedShapes) {
@@ -1231,12 +1232,24 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (sourceMath.querySelector?.('[data-omniya-nemeth-intent="horizontal-brace-over"], [data-omniya-nemeth-intent="horizontal-bracket-over"]')) {
     braille = braille.replace(/⠣⠣(?=⠨⠷|⠈⠷)/, '⠣');
   }
+  for (const node of sourceNodes('[data-omniya-nemeth-intent="horizontal-bracket-over"]')) {
+    const cells = node.getAttribute?.('data-omniya-nemeth-cells');
+    if (cells && /⠣⠻/.test(braille) && !braille.includes(`⠣${cells}⠻`)) {
+      braille = braille.replace(/⠣⠻/, `⠣${cells}⠻`);
+    }
+  }
   if (sourceMath.querySelector?.('[data-omniya-nemeth-intent="horizontal-brace-under"], [data-omniya-nemeth-intent="horizontal-bracket-under"]')) {
     braille = braille.replace(/⠩⠩(?=⠨⠾|⠈⠾)/, '⠩');
     // SRE may place the over-level marker between the under-level marker and
     // the authored horizontal-under token. It is the same duplicate
     // presentation artifact, just in the alternate ordering.
     braille = braille.replace(/⠩⠣(?=⠨⠾|⠈⠾)/, '⠩');
+  }
+  for (const node of sourceNodes('[data-omniya-nemeth-intent="horizontal-bracket-under"]')) {
+    const cells = node.getAttribute?.('data-omniya-nemeth-cells');
+    if (cells && /⠩⠻/.test(braille) && !braille.includes(`⠩${cells}⠻`)) {
+      braille = braille.replace(/⠩⠻/, `⠩${cells}⠻`);
+    }
   }
   if (explicitCellNodes.length) {
     const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1340,6 +1353,37 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         return '⠠⠳';
       });
     }
+    // Bold vertical bars are the same local fence artifact with a different
+    // modifier. SRE emits the bare bar glyph; restore each authored ⠸⠳.
+    const boldBarCount = explicitCellNodes.reduce((count, sequence) => (
+      count + [...sequence.matchAll(/⠸⠳/g)].length
+    ), 0);
+    if (boldBarCount) {
+      let remaining = boldBarCount;
+      braille = braille.replace(/(?<!⠸)⠳/g, (cell) => {
+        if (remaining <= 0) return cell;
+        remaining -= 1;
+        return '⠸⠳';
+      });
+    }
+    // Prefixed grouping fences can lose a bold, capital, or enlarged modifier
+    // while keeping the remaining fence cells. Replace the longest present
+    // modifier-stripped variant with the authored sequence.
+    const fenceModifiers = new Set(['⠈', '⠠', '⠸', '⠨', '⠘', '⠰']);
+    for (const sequence of explicitCellNodes) {
+      if (!/[⠷⠾]/.test(sequence) || braille.includes(sequence)) continue;
+      const variants = [];
+      for (let index = 0; index < sequence.length - 1; index += 1) {
+        if (!fenceModifiers.has(sequence[index])) continue;
+        variants.push(`${sequence.slice(0, index)}${sequence.slice(index + 1)}`);
+      }
+      variants.sort((left, right) => right.length - left.length);
+      for (const variant of variants) {
+        if (!variant || !braille.includes(variant)) continue;
+        braille = braille.replace(variant, sequence);
+        break;
+      }
+    }
     // SRE can preserve uppercase glyphs while dropping a dot-6 capital cell
     // on one of the later letters in a bounded word. Recover only authored
     // uppercase <mi> nodes, in source order, and only when the corresponding
@@ -1390,6 +1434,91 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         braille = `${braille.slice(0, open)}${segment.replace(firstUpperCell, `⠠${firstUpperCell}`)}${braille.slice(boundedClose + 1)}`;
       }
     }
+  }
+  const elementNeighbor = (node, direction) => {
+    if (!node) return null;
+    const named = direction === 'next' ? node.nextElementSibling : node.previousElementSibling;
+    if (named) return named;
+    let sibling = direction === 'next' ? node.nextSibling : node.previousSibling;
+    while (sibling && sibling.nodeType !== 1) {
+      sibling = direction === 'next' ? sibling.nextSibling : sibling.previousSibling;
+    }
+    return sibling;
+  };
+  const skipLayout = (node, direction) => {
+    let sibling = node;
+    while (sibling && (sibling.localName === 'mspace' || sibling.nodeName === 'mspace'
+      || sibling.getAttribute?.('data-semantic-added') === 'true')) {
+      sibling = elementNeighbor(sibling, direction);
+    }
+    return sibling;
+  };
+  const elementChildrenOf = (parent) => parent?.children
+    ? [...parent.children]
+    : [...(parent?.childNodes ?? [])].filter((child) => child.nodeType === 1);
+  // Transcriber grouping after a then/and word is not a MathML fence SRE can
+  // recover. Wrap the following identifier with the authored open/close cells.
+  for (const intent of ['then-word', 'and-word']) {
+    const word = sourceNodes(`[data-omniya-nemeth-intent="${intent}"]`)[0];
+    const wordCells = word?.getAttribute?.('data-omniya-nemeth-cells');
+    if (!word || !wordCells || !braille.includes(wordCells)) continue;
+    const open = skipLayout(elementNeighbor(word, 'next'), 'next');
+    const openCells = open?.getAttribute?.('data-omniya-nemeth-cells');
+    if (!openCells || !/[⠷]$/.test(openCells) || braille.includes(openCells)) continue;
+    const inner = skipLayout(elementNeighbor(open, 'next'), 'next');
+    const innerCells = inner?.getAttribute?.('data-omniya-nemeth-cells');
+    const close = skipLayout(elementNeighbor(inner, 'next'), 'next');
+    const closeCells = close?.getAttribute?.('data-omniya-nemeth-cells');
+    if (!innerCells || !closeCells) continue;
+    const needle = `${wordCells}⠀${innerCells}`;
+    if (braille.includes(needle)) {
+      braille = braille.replace(needle, `${wordCells}⠀${openCells}${innerCells}${closeCells}`);
+    }
+  }
+  // When SRE omits a transcriber close entirely, reinsert it against the
+  // neighboring authored letter cells. This is adjacency restoration, not
+  // delimiter parsing.
+  const authoredFences = sourceNodes('mo[data-omniya-nemeth-cells]')
+    .map((node) => ({ node, cells: node.getAttribute('data-omniya-nemeth-cells') }))
+    .filter(({ cells }) => /[⠷⠾]/.test(cells ?? ''));
+  for (const { node, cells } of authoredFences) {
+    if (!cells || braille.includes(cells) || !/[⠾]$/.test(cells)) continue;
+    const previous = skipLayout(elementNeighbor(node, 'previous'), 'previous');
+    const lastAuthoredCells = (root) => {
+      if (!root) return null;
+      const own = root.getAttribute?.('data-omniya-nemeth-cells');
+      if (own) return own;
+      const kids = elementChildrenOf(root);
+      return kids.length ? lastAuthoredCells(kids.at(-1)) : null;
+    };
+    const previousCells = lastAuthoredCells(previous);
+    if (!previousCells || !braille.includes(previousCells)) continue;
+    const withReturn = `${previousCells}⠐`;
+    if (braille.includes(withReturn)) {
+      braille = braille.replace(withReturn, `${withReturn}${cells}`);
+      continue;
+    }
+    braille = braille.replace(previousCells, `${previousCells}${cells}`);
+  }
+  const firstFence = authoredFences[0];
+  const lastFence = authoredFences.at(-1);
+  const mathLeaves = elementChildrenOf(sourceMath);
+  if (firstFence?.cells && /[⠷]$/.test(firstFence.cells) && !braille.includes(firstFence.cells)
+      && mathLeaves[0] === firstFence.node) {
+    braille = `${firstFence.cells}${braille}`;
+  }
+  if (lastFence?.cells && /[⠾]$/.test(lastFence.cells) && !braille.includes(lastFence.cells)
+      && mathLeaves.at(-1) === lastFence.node) {
+    braille = `${braille}${lastFence.cells}`;
+  }
+
+  // BANA encodes less-than-or-equal as the two local comparison cells. SRE
+  // collapses the equals-under half to a single ≤ glyph after the less-than.
+  if (hasSource('mo[data-omniya-nemeth-cells="⠐⠅"]') && hasSource('mo[data-omniya-nemeth-cells="⠨⠅"]') && braille.includes('⠐⠅⠱')) {
+    braille = braille.replace('⠐⠅⠱', '⠐⠅⠨⠅');
+  }
+  if (hasSource('mo[data-omniya-nemeth-cells="⠐⠅⠨⠅"]') && /⠐⠅⠱|⠱/.test(braille) && !braille.includes('⠐⠅⠨⠅')) {
+    braille = braille.replace(/⠐⠅⠱|⠱/, '⠐⠅⠨⠅');
   }
   for (const romanName of romanNames) {
     // The double-capital Roman indicator is not recoverable from an ordinary
@@ -1498,6 +1627,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // for ordinary isolated numbers, but this authored construction is one
     // continuous Nemeth number through nested grouping and division. Keep the
     // first number sign only and restore the enlarged close before division.
+    // SRE may omit every isolated <mn> prefix; the source still authors one
+    // leading number sign for this continuous lower-cell passage.
+    if (!braille.includes('⠼') && /^[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]/.test(braille)) {
+      braille = `⠼${braille}`;
+    }
     let seen = 0;
     braille = braille.replace(/⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, (cell) => (seen++ === 0 ? cell : ''));
     braille = braille.replace(/⠈⠨⠌(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/, '⠈⠾⠨⠌');
@@ -1511,7 +1645,8 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // superscript operand. Remove only that terminal presentation artifact
   // when the source explicitly marks the closing bracket, never from a
   // generic scripted expression.
-  if (hasSource('msubsup > mo[data-omniya-nemeth-cells="⠈⠾"]') && braille.endsWith('⠐')) {
+  if ((hasSource('msubsup > mo[data-omniya-nemeth-cells="⠈⠾"]')
+      || hasSource('msubsup > mo[data-omniya-nemeth-cells="⠳"]')) && braille.endsWith('⠐')) {
     braille = braille.slice(0, -1);
   }
   if (sourceMath.querySelector?.('[data-omniya-shape-kind="keystroke"]')) {
