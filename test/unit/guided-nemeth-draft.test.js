@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 
 import { parseMathML } from '../../src/domain/math-tree.js';
@@ -19,6 +20,38 @@ function focusOf(document) {
 function cell(document, focus, inputState, value) {
   return applyNemethCell({ document, focus, inputState, cell: value });
 }
+
+test('Rule 14 Electron corpus cases 14-3 through 14-11 replay their authored cells', () => {
+  const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
+  const expected = new Map([
+    ['14-3', ['script.superscript']], ['14-4', ['script.superscript']],
+    ['14-5', ['script.superscript']], ['14-6', ['script.superscript']],
+    ['14-7', ['script.subscript']], ['14-8', ['script.subscript']],
+    ['14-9', ['script.sup-sup']], ['14-10', ['script.sup-sup-sub']],
+    ['14-11', ['script.sub-sub-sup']]
+  ]);
+  for (const [exampleNumber, operationIds] of expected) {
+    const entry = corpus.cases.find((candidate) => candidate.exampleNumber === exampleNumber);
+    assert.ok(entry?.executable, `${exampleNumber} must be executable`);
+    assert.deepEqual(entry.operationIds, operationIds);
+    assert.ok(entry.sourceRows.includes(`example-${exampleNumber}`));
+    assert.deepEqual(entry.cells, sourceNotationToCells(entry.sourceNotation));
+    assert.equal(entry.expectedWholeBraille, entry.sourceNotation);
+    let document = createEmptyDraftMathDocument();
+    let focus = focusOf(document);
+    let inputState = { prefix: '', mode: null };
+    for (const authoredCell of entry.cells) {
+      let result = cell(document, focus, inputState, authoredCell);
+      if (result.status === 'choice') {
+        const choice = result.choices.find((candidate) => operationIds.includes(candidate.operationId)) ?? result.choices[0];
+        assert.ok(choice, `${exampleNumber} exposed no usable choice`);
+        result = applyNemethChoice({ document: result.document, focus: result.focus, inputState: result.inputState, operationId: choice.operationId });
+      }
+      assert.notEqual(result.status, 'rejected', `${exampleNumber}: ${result.announcement}`);
+      ({ document, focus, inputState } = result);
+    }
+  }
+});
 
 test('sequential Nemeth cells build a plain MathML row one token at a time', () => {
   let document = createEmptyDraftMathDocument();
