@@ -1,10 +1,13 @@
 import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { appendixDSymbolRefs, contextPolicyRegistry, operationRegistry, parameterizedOperationRefs } from '../src/domain/guided-nemeth/index.js';
+import { applyHumanReviews } from './bana-human-review.mjs';
 
 const inventoryPath = process.argv[2] ?? 'docs/bana-source-inventory.json';
 const corpusPath = process.argv[3] ?? 'docs/bana-electron-corpus.json';
 const outputPath = process.argv[4] ?? 'docs/bana-coverage.json';
 const evidencePath = process.env.BANA_ELECTRON_RESULTS ?? process.argv[5] ?? null;
+const humanReviewPath = process.env.BANA_HUMAN_REVIEWS ?? 'docs/bana-human-reviews.json';
 const inventory = JSON.parse(await readFile(inventoryPath, 'utf8'));
 const corpus = JSON.parse(await readFile(corpusPath, 'utf8'));
 const officialCorpus = JSON.parse(await readFile('docs/bana-electron-official-corpus.json', 'utf8'));
@@ -144,7 +147,7 @@ const rows = inventory.rows.map((row) => {
     verified
   };
 });
-const result = {
+const automatedResult = {
   ...inventory,
   schemaVersion: 2,
   corpus: { path: corpusPath, caseCount: cases.length },
@@ -157,5 +160,9 @@ const result = {
   },
   rows
 };
+const humanReviewLedger = JSON.parse(await readFile(humanReviewPath, 'utf8'));
+const result = await applyHumanReviews(automatedResult, humanReviewLedger, {
+  baseDirectory: path.dirname(path.resolve(humanReviewPath))
+});
 await writeFile(outputPath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
 console.log(`BANA coverage evidence written: ${outputPath}`);

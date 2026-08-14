@@ -20,7 +20,8 @@ const incompleteEvidence = rows.filter((row) => {
   return ['visualEvidence', ...evidenceFields].some((field) => row.verified?.[field] !== true);
 });
 const badExclusions = rows.filter((row) => row.disposition.startsWith('excluded-') && !approvedExclusions.has(row.disposition));
-const pendingReview = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.transcriberReview !== 'reviewed');
+const pendingTranscriberReview = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.humanReview?.transcriber?.status !== 'reviewed');
+const pendingBlindContributorReview = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.humanReview?.blindContributor?.status !== 'reviewed');
 const examplesWithoutSource = rows.filter((row) => row.kind === 'example' && !approvedExclusions.has(row.disposition) && !row.officialSource);
 const requiredFieldsByKind = rows.map((row) => {
   if (row.kind === 'erratum') return ['source', 'implementation', 'creation', 'editing', 'navigation', 'wholeBraille', 'focusedBraille', 'undoRedo', 'persistence'];
@@ -31,7 +32,8 @@ const missingPolicy = rows.filter((row) => !approvedExclusions.has(row.dispositi
 const failures = [
   ...missing.map((row) => `${row.id}: ${row.disposition}`),
   ...incompleteEvidence.map((row) => `${row.id}: incomplete verification fields`),
-  ...pendingReview.map((row) => `${row.id}: transcriber review is ${row.transcriberReview}`),
+  ...pendingTranscriberReview.map((row) => `${row.id}: qualified transcriber review is ${row.humanReview?.transcriber?.status ?? 'missing'}`),
+  ...pendingBlindContributorReview.map((row) => `${row.id}: blind-contributor review is ${row.humanReview?.blindContributor?.status ?? 'missing'}`),
   ...examplesWithoutSource.map((row) => `${row.id}: missing extracted official example source block`),
   ...missingPolicy.map((row) => `${row.id}: missing one of the three input policies`),
   ...badExclusions.map((row) => `${row.id}: invalid exclusion ${row.disposition}`)

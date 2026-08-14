@@ -37,6 +37,16 @@ test('coverage enrichment never credits a static official case as Electron evide
   assert.deepEqual(row.electronCreationCaseIds, []);
 });
 
+test('coverage enrichment applies the empty canonical human-review ledger without claiming review', async () => {
+  const result = await enrich({ schemaVersion: 1, rows: [exampleRow], counts: {} });
+  assert.deepEqual(result.rows[0].humanReview, {
+    transcriber: { status: 'pending', reviewIds: [] },
+    blindContributor: { status: 'pending', reviewIds: [] }
+  });
+  assert.equal(result.rows[0].transcriberReview, 'pending');
+  assert.equal(result.humanReview.acceptedRecords, 0);
+});
+
 test('coverage enrichment overlays only explicit real Electron case results', async () => {
   const result = await enrich(
     { schemaVersion: 1, rows: [exampleRow], counts: {} },

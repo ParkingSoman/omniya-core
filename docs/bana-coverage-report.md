@@ -6,6 +6,8 @@ Generated from `docs/bana-coverage.json`.
 - Numbered provisions: 509
 - Applicable rows: 1546
 - Fully implemented rows: 1546
+- Qualified-transcriber reviewed rows: 0
+- Blind-contributor reviewed rows: 0
 - Official examples: 1229
 - Official examples with extracted source blocks: 1229
 - Official examples with Electron creation evidence: 120
