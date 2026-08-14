@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T15:46:39.812Z",
+  "filter": {
+    "rule": null,
+    "example": "14-99"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-xRaCur",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-14-99",
+      "sourceRows": [
+        "example-14-99",
+        "14.9.1"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-14-99/electron_bana-2022_example-14-99-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"That local Nemeth code is incomplete or invalid. The draft was not changed.\",\"input\":\"\",\"choices\":[],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-0aef80bd-7449-4646-93f8-e3e58ae8b92b\\\" data-semantic-structure=\\\"(2 0 1)\\\"><msup data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-3d4e15da-f45a-41c4-a79b-53b6516278fc\\\" data-semantic-type=\\\"superscript\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-annotation=\\\"depth:1\\\" data-semantic-id=\\\"2\\\" data-semantic-children=\\\"0,1\\\" data-semantic-owns=\\\"0 1\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\"><mi data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-aa730999-a812-4e65-9118-84f7e7b3b316\\\" data-semantic-type=\\\"identifier\\\" data-semantic-role=\\\"latinletter\\\" data-semantic-font=\\\"italic\\\" data-semantic-annotation=\\\"clearspeak:simple;nemeth:number;depth:2\\\" data-semantic-id=\\\"0\\\" data-semantic-parent=\\\"2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">x</mi><mn data-omniya-nemeth-intent=\\\"lower-cell-numeric\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-1444e5d8-d05e-477d-9285-aee513e46656\\\" data-semantic-type=\\\"number\\\" data-semantic-role=\\\"integer\\\" data-semantic-font=\\\"normal\\\" data-semantic-annotation=\\\"clearspeak:simple;depth:2\\\" data-semantic-id=\\\"1\\\" data-semantic-parent=\\\"2\\\" data-semantic-level-number=\\\"1\\\" data-speech-node=\\\"true\\\">2</mn></msup></math>\"}"
+    }
+  ]
+}
