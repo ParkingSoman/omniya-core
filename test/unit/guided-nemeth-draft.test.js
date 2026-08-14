@@ -370,6 +370,22 @@ test('BANA signed numeric construction accepts a local digit after plus', () => 
   assert.match(document.mathml, />\+<\/mo>[\s\S]*>3<\/mn>/);
 });
 
+test('BANA lower-cell digit after an authored subtraction stays lower-cell', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  for (const cell of ['⠭', '⠤', '⠂']) {
+    const result = applyNemethCell({ document, focus, inputState, cell });
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  const tree = parseMathML(document.mathml);
+  assert.deepEqual(tree.children.map((node) => [node.name, node.children[0]?.text]), [
+    ['mi', 'x'], ['mo', '−'], ['mn', '1']
+  ]);
+  assert.equal(tree.children[2].attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+});
+
 test('BANA signed numeric indicator intent survives explicit number sign before a digit', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;

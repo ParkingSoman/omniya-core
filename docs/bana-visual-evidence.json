@@ -2,6 +2,74 @@
   "schemaVersion": 1,
   "cases": [
     {
+      "id": "electron:bana-2022:example-5-3",
+      "sourceRows": ["example-5-3", "5.2"],
+      "rule": "5",
+      "example": "5-3",
+      "artifact": "electron-evidence/example-5-3.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases; the lowercase sentence-opening expression and edited first identifier retain one visible canonical source tree without a synthetic number indicator."
+      },
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-5-3/input.png", "claim": "The completed x minus lower-cell 1 draft is visible before submission." },
+        { "phase": "committed", "path": "electron-screenshots/rule-5-3/committed.png", "claim": "The committed x minus 1 expression is visibly rendered as one canonical MathML tree." },
+        { "phase": "focused", "path": "electron-screenshots/rule-5-3/focused.png", "claim": "MathJax Explorer visibly selects the first identifier before replacement." },
+        { "phase": "editing", "path": "electron-screenshots/rule-5-3/editing.png", "claim": "The exact-node replacement is visibly rendered as y minus 1." }
+      ] }
+    },
+    {
+      "id": "electron:bana-2022:example-5-4",
+      "sourceRows": ["example-5-4", "5.3.1"],
+      "rule": "5",
+      "example": "5-4",
+      "artifact": "electron-evidence/example-5-4.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases; the capital-letter sequence remains visible and editable with one canonical source tree."
+      },
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-5-4/input.png", "claim": "The completed capital-letter sequence draft is visible before submission." },
+        { "phase": "committed", "path": "electron-screenshots/rule-5-4/committed.png", "claim": "The committed expression is visibly rendered as one canonical MathML tree." },
+        { "phase": "focused", "path": "electron-screenshots/rule-5-4/focused.png", "claim": "MathJax Explorer visibly selects the exact replacement scope." },
+        { "phase": "editing", "path": "electron-screenshots/rule-5-4/editing.png", "claim": "The exact-node replacement remains visibly integrated with the surrounding capitals." }
+      ] }
+    },
+    {
+      "id": "electron:bana-2022:example-5-5",
+      "sourceRows": ["example-5-5", "5.3.2"],
+      "rule": "5",
+      "example": "5-5",
+      "artifact": "electron-evidence/example-5-5.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases; the double-capital Roman expression, relation, and numeral remain visible with one canonical source tree."
+      },
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-5-5/input.png", "claim": "The completed Roman-capital and numeric draft is visible before submission." },
+        { "phase": "committed", "path": "electron-screenshots/rule-5-5/committed.png", "claim": "The committed expression is visibly rendered as one canonical MathML tree." },
+        { "phase": "focused", "path": "electron-screenshots/rule-5-5/focused.png", "claim": "MathJax Explorer visibly selects the leading Roman-capital scope." },
+        { "phase": "editing", "path": "electron-screenshots/rule-5-5/editing.png", "claim": "The exact-node replacement remains visibly integrated with the relation and numeral." }
+      ] }
+    },
+    {
+      "id": "electron:bana-2022:example-5-6",
+      "sourceRows": ["example-5-6", "5.3.2"],
+      "rule": "5",
+      "example": "5-6",
+      "artifact": "electron-evidence/example-5-6.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases after inspecting the final edited render; the Roman III plus capital V expression remains legible, in viewport, and represented by one canonical source tree."
+      },
+      "evidenceSet": { "screenshots": [
+        { "phase": "input", "path": "electron-screenshots/rule-5-6/input.png", "claim": "The completed Roman III plus capital V draft is visible before submission." },
+        { "phase": "committed", "path": "electron-screenshots/rule-5-6/committed.png", "claim": "The committed Roman expression is visibly rendered as one canonical MathML tree." },
+        { "phase": "focused", "path": "electron-screenshots/rule-5-6/focused.png", "claim": "MathJax Explorer visibly selects the leading Roman numeral before replacement." },
+        { "phase": "editing", "path": "electron-screenshots/rule-5-6/editing.png", "claim": "The inspected final render visibly shows y plus capital V after exact-node replacement." }
+      ] }
+    },
+    {
       "id": "electron:bana-2022:example-5-2",
       "sourceRows": ["example-5-2", "5.1.1"],
       "rule": "5",

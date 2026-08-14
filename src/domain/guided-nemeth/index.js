@@ -3547,7 +3547,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         return applyNemethCell({
           document: applied.document,
           focus: applied.focus,
-          inputState: { ...applied.inputState, mode: 'signed-numeric' },
+          inputState: applied.inputState,
           cell: normalized
         });
       }
