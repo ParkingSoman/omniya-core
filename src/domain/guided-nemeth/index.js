@@ -671,6 +671,66 @@ function openLeftScript(tree, focus, direction) {
 // operation as opening an ordinary msub/msup, but it fills the first missing
 // post-script pair before the `mprescripts` marker.  It never searches for an
 // operand or interprets a surrounding passage.
+// BANA 14.3–14.4 counts superscript/subscript indicators from the item's
+// baseline, not as relative wraps. Grouping and radicals occupy a script
+// level without adding another one; only msup/msub/msubsup slots increment.
+function isInScriptSlot(tree, slot, node) {
+  let current = node;
+  while (current) {
+    if (current === slot) return true;
+    current = isElement(current) ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
+  }
+  return false;
+}
+
+function scriptSlot(parent, direction) {
+  if (parent?.name === 'msup' && direction === 'sup') return parent.children[1];
+  if (parent?.name === 'msub' && direction === 'sub') return parent.children[1];
+  if (parent?.name === 'msubsup') return parent.children[direction === 'sub' ? 1 : 2];
+  return null;
+}
+
+function scriptDepth(tree, node, direction) {
+  let depth = 0;
+  let current = node;
+  while (current && current.name !== 'math') {
+    const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+    if (!parent) break;
+    const slot = scriptSlot(parent, direction);
+    if (slot && isInScriptSlot(tree, slot, current)) depth += 1;
+    current = parent;
+  }
+  return depth;
+}
+
+function returnToScriptLevel(tree, focus, targetDepth, direction) {
+  let node = currentNode(tree, focus);
+  while (node) {
+    const parent = findMathParent(tree, node.attrs?.['data-omniya-id']);
+    if (!parent) return { tree, focus: focusNode(node) };
+    const slot = scriptSlot(parent, direction);
+    if (slot && isInScriptSlot(tree, slot, node) && scriptDepth(tree, parent, direction) <= targetDepth) {
+      return { tree, focus: focusNode(parent) };
+    }
+    node = parent;
+  }
+  return { tree, focus };
+}
+
+function applyAbsoluteScriptLevel(tree, focus, direction, targetDepth) {
+  const current = currentNode(tree, focus);
+  const depth = scriptDepth(tree, current, direction);
+  if (isHole(current) && current.attrs?.['data-omniya-role'] === (direction === 'sub' ? 'subscript' : 'superscript') &&
+    targetDepth <= depth) {
+    return { tree, focus };
+  }
+  if (targetDepth < depth && targetDepth > 1) return returnToScriptLevel(tree, focus, targetDepth, direction);
+  if (targetDepth === depth && targetDepth > 1 && current.name !== 'math' && !isHole(current)) {
+    return { tree, focus };
+  }
+  return null;
+}
+
 function openScriptSlot(tree, focus, elementName, role) {
   const current = currentNode(tree, focus);
   const multiscripts = ancestor(tree, current, ['mmultiscripts']);
@@ -747,6 +807,24 @@ function openScriptChain(tree, focus, directions) {
     throw new RangeError('A script chain needs at least two registered levels.');
   }
   const current = currentNode(tree, focus);
+  const same = directions.every((direction) => direction === directions[0]);
+  let chain = directions;
+  if (same) {
+    const direction = directions[0];
+    const currentDepth = scriptDepth(tree, current, direction);
+    const target = directions.length;
+    const absolute = applyAbsoluteScriptLevel(tree, focus, direction, target);
+    if (absolute) return absolute;
+    const delta = target - currentDepth;
+    if (currentDepth > 0 && delta > 0) {
+      if (delta === 1) {
+        return wrapCurrent(tree, focus, direction === 'sub' ? 'msub' : 'msup',
+          ['base', direction === 'sub' ? 'subscript' : 'superscript'], {},
+          direction === 'sub' ? 'subscript' : 'superscript');
+      }
+      chain = Array.from({ length: delta }, () => direction);
+    }
+  }
   const inheritedId = current.name !== 'math' ? current.attrs?.['data-omniya-id'] : null;
   const base = current.name !== 'math' && !isHole(current)
     ? structuredClone(current)
@@ -754,8 +832,8 @@ function openScriptChain(tree, focus, directions) {
   if (base !== current && base.attrs && !isHole(base)) base.attrs['data-omniya-id'] = id();
   let nested = base ?? element('mrow', []);
   const slots = [];
-  for (let index = directions.length - 1; index >= 0; index -= 1) {
-    const direction = directions[index];
+  for (let index = chain.length - 1; index >= 0; index -= 1) {
+    const direction = chain[index];
     if (direction !== 'sup' && direction !== 'sub') {
       throw new RangeError(`Unknown script direction: ${direction}`);
     }
@@ -2697,6 +2775,20 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'modifier.terminate.under') return Boolean(hasAncestor(context.tree, context.node, ['munder', 'munderover']));
   if (mapping.id === 'modifier.terminate.simultaneous') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
   if (mapping.action === 'close-structure' && mapping.args?.element === 'munderover') return Boolean(hasAncestor(context.tree, context.node, 'munderover'));
+  // `⠾` closes a round group only when that group is actually open. Mixed
+  // grouping such as `[a)` must commit the parenthesis token instead of
+  // offering a close-structure choice that cannot apply.
+  if (mapping.id === 'group.round.end') {
+    let current = context.node;
+    while (current) {
+      if (current.name === 'mrow' && current.attrs?.['data-omniya-group'] === 'round'
+        && current.attrs?.['data-omniya-role'] !== 'closed-group') {
+        return true;
+      }
+      current = isElement(current) ? findMathParent(context.tree, current.attrs?.['data-omniya-id']) : null;
+    }
+    return false;
+  }
   if (mapping.id === 'indicator.multipurpose') return true;
   if (mapping.id === 'indicator.number' && fraction) {
     if (!contains(context.tree, fraction.children[1], context.node)) return true;
@@ -2870,6 +2962,11 @@ const TREE_OPERATIONS = Object.freeze({
     const attrs = radicalOrder && ['msqrt', 'mroot'].includes(args.element)
       ? { ...(args.attrs ?? {}), 'data-omniya-radical-order': radicalOrder }
       : args.attrs;
+    if (['msup', 'msub'].includes(args.element)) {
+      const direction = args.element === 'msub' || args.initialSlot === 'subscript' ? 'sub' : 'sup';
+      const absolute = applyAbsoluteScriptLevel(tree, focus, direction, 1);
+      if (absolute) return absolute;
+    }
     if (!primeWrapped && ['msup', 'msub'].includes(args.element) && !(node.name === 'math' || isHole(node))) {
       const result = openScriptSlot(tree, focus, args.element, args.initialSlot);
       return result;
@@ -4635,6 +4732,32 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       cell: normalized
     });
     if (replay.status !== 'rejected') return { ...replay, announcement: `Stayed at the current script level; ${replay.announcement}` };
+  }
+  // BANA 14.4: a single superscript indicator names absolute level 1. After
+  // a nested (level 2+) script, `~` followed by a non-level cell returns to
+  // that first superscript rather than wrapping another empty hole.
+  if (state.mode === null && state.prefix === '⠘' &&
+    hasAncestor(context.tree, context.node, ['msup', 'msub', 'msubsup', 'mmultiscripts']) &&
+    !LETTERS.has(normalized) && !DIGITS.has(normalized) &&
+    normalized !== '⠼' && normalized !== '⠘' && normalized !== '⠰') {
+    const depth = scriptDepth(context.tree, context.node, 'sup');
+    const returned = depth > 1
+      ? returnToScriptLevel(context.tree, focus, 1, 'sup')
+      : { tree: context.tree, focus };
+    const replay = applyNemethCell({
+      document,
+      focus: returned.focus,
+      inputState: { ...state, prefix: '' },
+      cell: normalized
+    });
+    if (replay.status !== 'rejected') {
+      return {
+        ...replay,
+        announcement: depth > 1
+          ? `Returned to the first superscript level; ${replay.announcement}`
+          : `Stayed at the current script level; ${replay.announcement}`
+      };
+    }
   }
   // The same dot-6 prefix followed by a letter is the ordinary Rule 14
   // subscript transition whenever the current focus is a populated atom.

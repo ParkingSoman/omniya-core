@@ -556,6 +556,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       if (pattern.test(braille)) braille = braille.replace(pattern, `⠼${cells}`);
     }
   }
+  // A plus keeps Nemeth numeric mode. The isolated-number restore above can
+  // stamp an earlier `numeric-start` digit onto a later plus-operand of the
+  // same value; drop only that immediate `+number-sign` artifact.
+  if (sourceMath.querySelector?.('mo[data-omniya-nemeth-cells="⠬"]')) {
+    braille = braille.replace(/⠬⠼(?=[⠂⠆⠒⠲⠢⠔⠦⠖⠴])/g, '⠬');
+  }
   if (numericStarts.length && sourceMath.querySelector('mover')) {
     braille = braille.replace(/^⠐(?=⠼)/, '');
     braille = braille.replace(/⠣⠱⠻$/, '⠱');

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-import { parseMathML } from '../../src/domain/math-tree.js';
+import { completionReport, parseMathML } from '../../src/domain/math-tree.js';
 import {
   applyNemethCell,
   applyNemethChoice,
@@ -20,6 +20,85 @@ function focusOf(document) {
 function cell(document, focus, inputState, value) {
   return applyNemethCell({ document, focus, inputState, cell: value });
 }
+
+function replayCells(cells, choiceOperationIds = {}) {
+  let document = createEmptyDraftMathDocument();
+  let focus = focusOf(document);
+  let inputState = { prefix: '', mode: null };
+  for (const authoredCell of cells) {
+    let result = cell(document, focus, inputState, authoredCell);
+    if (result.status === 'choice') {
+      const operationId = choiceOperationIds[inputState.prefix + authoredCell]
+        ?? result.choices.find((choice) => choice.operationId === 'script.superscript')?.operationId
+        ?? result.choices[0].operationId;
+      result = applyNemethChoice({
+        document: result.document, focus: result.focus, inputState: result.inputState, operationId
+      });
+    }
+    if (result.status === 'rejected') {
+      throw new Error(`${authoredCell}: ${result.announcement}`);
+    }
+    ({ document, focus, inputState } = result);
+  }
+  if (inputState.prefix) {
+    const committed = commitNemethLocalCode({ document, focus, inputState });
+    if (committed.status === 'applied') ({ document, focus, inputState } = committed);
+  }
+  return { document, focus, inputState };
+}
+
+test('Rule 14.4 absolute ~~ after a first-level superscript fills one nested hole', () => {
+  const { document } = replayCells(sourceNotationToCells('n~x~~y'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'n');
+  assert.equal(tree.children[0].children[1].name, 'msup');
+  assert.equal(tree.children[0].children[1].children[0].children[0].text, 'x');
+  assert.equal(tree.children[0].children[1].children[1].children[0].text, 'y');
+});
+
+test('Rule 14.9 grouped ~~n~ returns to the enclosing superscript instead of wrapping a hole', () => {
+  const { document } = replayCells(sourceNotationToCells('x~(m~~n~)'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  const group = tree.children[0].children[1];
+  const inner = (node) => {
+    if (node?.name === 'msup' && node.children?.[0]?.children?.[0]?.text === 'm') return node;
+    for (const child of node?.children ?? []) {
+      const found = inner(child);
+      if (found) return found;
+    }
+    return null;
+  };
+  const nested = inner(group);
+  assert.ok(nested, 'grouped superscript should contain m^n');
+  assert.equal(nested.children[1].children[0].text, 'n');
+  assert.equal(nested.children[1].attrs?.['data-omniya-hole'], undefined);
+});
+
+test('Rule 14.9 level-1 ~ after a nested radical superscript continues the radicand', () => {
+  const { document } = replayCells(sourceNotationToCells('e~>x~~2~+y~~2~]'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'e');
+  const radical = tree.children[0].children[1];
+  assert.equal(radical.name, 'msqrt');
+  const names = [];
+  const visit = (node) => {
+    if (node?.name) names.push(node.name);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(radical);
+  assert.equal(names.filter((name) => name === 'msup').length, 2);
+  assert.ok(names.includes('mo'));
+});
 
 test('Rule 14 corpus operation IDs remain declared in the authoritative generator', () => {
   const generator = fs.readFileSync(new URL('../../scripts/bana-example-corpus-generate.mjs', import.meta.url), 'utf8');
@@ -886,6 +965,63 @@ test('locally ambiguous grouping cells wait for an explicit operation choice', (
   });
   assert.equal(chosen.status, 'applied');
   assert.match(chosen.document.mathml, /data-omniya-group="round"/);
+});
+
+test('a mixed square bracket and round close commits the parenthesis token', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = document.focus;
+  let inputState = { prefix: '', mode: null };
+  let result = null;
+  for (const value of ['⠈', '⠷']) {
+    result = cell(document, focus, inputState, value);
+    assert.notEqual(result.status, 'rejected', result.announcement);
+    ({ document, focus, inputState } = result);
+  }
+  if (result.status === 'pending') {
+    result = commitNemethLocalCode({ document, focus, inputState });
+  }
+  assert.equal(result.status, 'applied', result.announcement);
+  ({ document, focus, inputState } = result);
+  let letter = cell(document, focus, inputState, '⠁');
+  if (letter.status === 'pending') {
+    letter = commitNemethLocalCode({ document: letter.document, focus: letter.focus, inputState: letter.inputState });
+  }
+  assert.equal(letter.status, 'applied', letter.announcement);
+  ({ document, focus, inputState } = letter);
+  let close = cell(document, focus, inputState, '⠾');
+  assert.notEqual(close.status, 'choice', `mixed close remained a choice: ${JSON.stringify(close.choices)}`);
+  if (close.status === 'pending') {
+    close = commitNemethLocalCode({ document: close.document, focus: close.focus, inputState: close.inputState });
+  }
+  assert.equal(close.status, 'applied', close.announcement);
+  assert.match(close.document.mathml, />\)<\/mo>/);
+  assert.doesNotMatch(close.document.mathml, /data-omniya-group="round"/);
+});
+
+test('a round group close still applies when that group is open', () => {
+  const document = createEmptyDraftMathDocument();
+  const pending = cell(document, document.focus, { prefix: '', mode: null }, '⠷');
+  assert.equal(pending.status, 'choice');
+  const opened = applyNemethChoice({
+    document,
+    focus: document.focus,
+    inputState: pending.inputState,
+    operationId: 'group.round'
+  });
+  assert.equal(opened.status, 'applied');
+  const letter = cell(opened.document, opened.focus, opened.inputState, '⠁');
+  assert.equal(letter.status, 'applied', letter.announcement);
+  const close = cell(letter.document, letter.focus, letter.inputState, '⠾');
+  const resolved = close.status === 'choice'
+    ? applyNemethChoice({
+      document: close.document,
+      focus: close.focus,
+      inputState: close.inputState,
+      operationId: 'group.round.end'
+    })
+    : close;
+  assert.equal(resolved.status, 'applied', resolved.announcement);
+  assert.match(resolved.document.mathml, /data-omniya-role="closed-group"/);
 });
 
 test('computer-Braille and Unicode blanks create the same explicit MathML space', () => {

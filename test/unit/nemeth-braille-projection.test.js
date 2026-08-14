@@ -258,7 +258,7 @@ test('an explicit blank after a superscript drops SRE\'s extra baseline return b
   ).documentElement;
   assert.equal(
     applyNemethSourceIntentToBraille('⠼⠒⠀⠋⠞⠘⠆⠀⠐⠬⠒', source),
-    '⠼⠒⠀⠋⠞⠘⠆⠀⠬⠼⠒'
+    '⠼⠒⠀⠋⠞⠘⠆⠀⠬⠒'
   );
 });
 
