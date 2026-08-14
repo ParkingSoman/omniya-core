@@ -1077,8 +1077,11 @@ function fillEmptyLeftScript(tree, focus, direction) {
 function isAbsorbableBaselineSibling(node) {
   if (!node) return false;
   if (node.name === 'mspace') return true;
-  return node.name === 'mo' && (node.children?.[0]?.text === '…'
-    || node.attrs?.['data-omniya-nemeth-intent'] === 'ellipsis');
+  if (node.name !== 'mo') return false;
+  const intent = node.attrs?.['data-omniya-nemeth-intent'];
+  return node.children?.[0]?.text === '…'
+    || intent === 'ellipsis'
+    || intent === 'comma-ellipsis';
 }
 
 // Rule 14.9.3/14.9.5: a space returns to baseline, then the next level
@@ -4045,6 +4048,22 @@ const TREE_OPERATIONS = Object.freeze({
       const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === args.initialSlot);
       return { tree, focus: focusNode(first ?? inserted) };
     }
+    // A radical after a baseline operator is a sibling operand, not a wrap of
+    // that operator (`>x+.>x+y.]+z]`). Mirror openFixedRoot's local rule.
+    if (['msqrt', 'mroot'].includes(args.element) && node.name === 'mo'
+      && ['+', '−', '-', '±', '×', '·', '÷'].includes(node.children?.[0]?.text)) {
+      const radicalOrder = inputState.mode?.startsWith?.('radical-order:')
+        ? inputState.mode.slice('radical-order:'.length)
+        : null;
+      const attrs = radicalOrder
+        ? { ...(args.attrs ?? {}), 'data-omniya-radical-order': radicalOrder }
+        : args.attrs;
+      const wrapper = element(args.element, [], attrs ?? {});
+      for (const role of args.slots ?? []) wrapper.children.push(hole(wrapper, role));
+      insertAfter(tree, focus, wrapper);
+      const first = wrapper.children.find((child) => child.attrs?.['data-omniya-role'] === args.initialSlot);
+      return { tree, focus: focusNode(first ?? wrapper.children[0]) };
+    }
     const primeWrapped = ['msup', 'msub', 'msubsup'].includes(args.element)
       ? wrapScriptAfterPrime(tree, focus, args.element, args.slots, args.attrs, args.initialSlot)
       : null;
@@ -5897,7 +5916,14 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       };
     }
   }
-  const atomicContinuation = state.mode === null && !existingComparison && !exactImmediate && MATCHABLE_MAPPINGS.some((mapping) =>
+  // Five-step `"…]` may begin with `<lim` / `%lim` before any base atom has
+  // been collected (`"<lim%n $o ,=]`). Allow that registry row to keep holding
+  // while multipurpose is active but modifierScope is still empty. Once a
+  // base atom exists, ordinary `"x<bar]` still resolves `⠣` via the
+  // multipurpose+modifierScope path below.
+  const atomicContinuation = (state.mode === null
+      || (state.mode === 'multipurpose' && !state.modifierScope))
+    && !existingComparison && !exactImmediate && MATCHABLE_MAPPINGS.some((mapping) =>
     mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE &&
     mapping.cells.length > sequence.length &&
     mapping.cells.slice(0, sequence.length).join('') === sequence &&
@@ -5910,7 +5936,9 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     mapping.cells.length > sequence.length &&
     mapping.cells.slice(0, sequence.length).join('') === sequence &&
     mappingApplies(mapping, context));
-  const immediateBeforeContinuation = state.mode === null && (PREFIXES.get(sequence)?.mappings ?? [])
+  const immediateBeforeContinuation = (state.mode === null
+      || (state.mode === 'multipurpose' && !state.modifierScope))
+    && (PREFIXES.get(sequence)?.mappings ?? [])
     .filter((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mapping.args?.allowImmediateBeforeContinuation)
     .filter((mapping) => !mapping.args?.deferForAtomicContinuation)
     .filter((mapping) => mappingApplies(mapping, context));
@@ -6879,6 +6907,44 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       if (spacing) {
         return applyMapping(document, focusNode(diagonal), { ...state, mode: null }, spacing);
       }
+    }
+  }
+  // The same closer-less diagonal boundary applies to a following plus or
+  // minus: `1_/2+1_/3` is two sibling fractions, not a nested denominator.
+  if (!state.prefix && (normalized === '⠬' || normalized === '⠤') && !isHole(context.node)) {
+    const diagonal = ancestor(context.tree, context.node, 'mfrac');
+    const denominator = diagonal?.children?.[1];
+    if (diagonal?.attrs?.bevelled === 'true' && denominator &&
+      !isHole(denominator) && contains(context.tree, denominator, context.node)) {
+      return applyNemethCell({
+        document,
+        focus: focusNode(diagonal),
+        inputState: { ...state, mode: null, prefix: '' },
+        cell: normalized
+      });
+    }
+  }
+  // Rule 14.8.6: spaces around an ellipsis preserve the current script level.
+  // After a blank (and optional ellipsis) that temporarily sat on the baseline,
+  // a following digit or arithmetic sign re-enters the preceding script slot
+  // without requiring another level indicator.
+  if (!state.prefix
+    && (DIGITS.has(normalized) || normalized === '⠬' || normalized === '⠤')
+    && (context.node.name === 'math' || context.node.name === 'mspace'
+      || isAbsorbableBaselineSibling(context.node))) {
+    for (const direction of ['sup', 'sub']) {
+      const reentered = reenterAdjacentScript(context.tree, focus, direction);
+      if (!reentered) continue;
+      return applyNemethCell({
+        document: {
+          formatVersion: MATH_FORMAT_VERSION,
+          mathml: serializeMathML(reentered.tree),
+          focus: reentered.focus
+        },
+        focus: reentered.focus,
+        inputState: { ...state, mode: null, prefix: '' },
+        cell: normalized
+      });
     }
   }
   if (state.mode?.startsWith?.('numeric') && !state.prefix && normalized === '⠱' &&
@@ -7862,6 +7928,13 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
     const ditto = mappings.find((mapping) => mapping.id === 'misc.ditto')
       ?? MAPPINGS.find((mapping) => mapping.id === 'misc.ditto');
     if (ditto) return applyMapping(document, focus, { ...inputState, prefix: '' }, ditto);
+  }
+  // Absolute-value / grouping bars are the equation-workflow reading of a
+  // bare vertical bar. Prefer that on Enter so `|x|` does not stall on a
+  // meaning choice after the closing bar is complete (19-26 / 19-27).
+  if (prefix === '⠳' && mappings.length > 1) {
+    const grouping = mappings.find((mapping) => mapping.id === 'group.vertical-bar');
+    if (grouping) return applyMapping(document, focus, { ...inputState, prefix: '' }, grouping);
   }
   if (!mappings.length) return {
     status: 'rejected', document, focus, inputState,

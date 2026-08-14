@@ -830,6 +830,43 @@ test('Rule 14.8.6 comma ellipsis restores three literary commas', () => {
   );
 });
 
+test('Rule 14.8.6 raised diagonal series strips capital and multipurpose artifacts', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <msup>
+        <mi data-omniya-nemeth-cells="⠭">x</mi>
+        <mrow>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+          <mo>+</mo>
+          <mfrac data-omniya-fraction-kind="simple" bevelled="true">
+            <mn data-omniya-nemeth-intent="numeric-start">1</mn>
+            <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+          </mfrac>
+          <mo>+</mo>
+          <mfrac data-omniya-fraction-kind="simple" bevelled="true">
+            <mn data-omniya-nemeth-intent="numeric-start">1</mn>
+            <mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn>
+          </mfrac>
+          <mo>+</mo>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mo>+</mo>
+          <mfrac data-omniya-fraction-kind="simple" bevelled="true">
+            <mn data-omniya-nemeth-intent="numeric-start">1</mn>
+            <mi>n</mi>
+          </mfrac>
+        </mrow>
+      </msup>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠭⠘⠂⠬⠠⠂⠠⠸⠌⠆⠐⠬⠂⠸⠌⠒⠬⠠⠀⠄⠄⠄⠀⠬⠂⠸⠌⠝', source),
+    '⠭⠘⠂⠬⠂⠸⠌⠆⠬⠂⠸⠌⠒⠬⠀⠄⠄⠄⠀⠬⠂⠸⠌⠝'
+  );
+});
+
 test('Rule 14.8 English-letter after a subscript blank restores the indicator', () => {
   const source = new DOMParser().parseFromString(
     '<math><msub><mo data-omniya-shape-kind="triangle" data-omniya-nemeth-cells="⠫⠞">△</mo><mrow><mi>regular</mi><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠏">p</mi><mi>olygon</mi></mrow></msub></math>',

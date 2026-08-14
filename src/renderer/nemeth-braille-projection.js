@@ -1329,6 +1329,34 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (sourceMath.querySelector?.('msup') && sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')) {
     braille = braille.replace(/⠘⠆⠀⠐⠬/g, '⠘⠆⠀⠬');
   }
+  // Rule 14.8.6 raised diagonal series (`x~1+1_/2+1_/3+ ''' +1_/n`): SRE may
+  // insert capital/multipurpose cells around lower-cell numerators and before
+  // preserved blanks. Strip only those artifacts when bevelled fractions sit
+  // inside a superscript with authored blanks.
+  const raisedDiagonalSeries = [...(sourceMath.getElementsByTagName?.('mfrac') ?? [])].some((node) => {
+    if (node.getAttribute?.('bevelled') !== 'true') return false;
+    let parent = node.parentNode;
+    let inSup = false;
+    while (parent) {
+      if (parent.localName === 'msup' || parent.nodeName === 'msup') inSup = true;
+      parent = parent.parentNode;
+    }
+    return inSup;
+  }) && sourceNodes('[data-omniya-nemeth-intent="explicit-space"]').some((node) => {
+    let parent = node.parentNode;
+    while (parent) {
+      if (parent.localName === 'msup' || parent.nodeName === 'msup') return true;
+      parent = parent.parentNode;
+    }
+    return false;
+  });
+  if (raisedDiagonalSeries) {
+    braille = braille.replace(/⠬⠠([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠠⠸⠌/g, '⠬$1⠸⠌');
+    braille = braille.replace(/⠘([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠬⠠([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠠⠸⠌/g, '⠘$1⠬$2⠸⠌');
+    braille = braille.replace(/⠸⠌([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠐⠬/g, '⠸⠌$1⠬');
+    braille = braille.replace(/⠬⠠⠀/g, '⠬⠀');
+    braille = braille.replace(/⠄⠄⠄⠀⠘⠬/g, '⠄⠄⠄⠀⠬');
+  }
   // The equality relation inside a superscript is a normal baseline relation;
   // SRE may expose the baseline-return cell before it. The authored Rule 11
   // local sequence has already supplied the script transition, so remove only
