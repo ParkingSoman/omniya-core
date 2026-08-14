@@ -1043,6 +1043,26 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   collectFlatLeaves(sourceMath);
   const hasNestedStructure = ['mfrac', 'msub', 'msup', 'msubsup', 'mmultiscripts', 'mroot', 'mover', 'munder', 'munderover']
     .some((name) => sourceMath.querySelector?.(name));
+  // Fractions retain structural markers from SRE, but their child leaf spans
+  // can lose authored source cells (notably an English indicator on an mi
+  // immediately followed by a numeric mn). Rebuild only each bounded mfrac
+  // interior by node identity; never serialize unrelated siblings.
+  for (const fraction of sourceNodes('mfrac')) {
+    const direct = [...(fraction.children ?? [])].filter((node) => node?.nodeType === 1);
+    if (direct.length !== 2) continue;
+    const leaves = (node) => {
+      const children = [...(node.children ?? [])].filter((child) => child?.nodeType === 1);
+      if (!children.length) return node.getAttribute?.('data-omniya-nemeth-cells') || '';
+      return children.map(leaves).join('');
+    };
+    const numerator = leaves(direct[0]);
+    const denominator = leaves(direct[1]);
+    if (!numerator || !denominator) continue;
+    const marker = /⠹[^⠾]*⠾/.exec(braille);
+    if (!marker) continue;
+    const replacement = `⠹${numerator}⠌${denominator}⠾`;
+    braille = `${braille.slice(0, marker.index)}${replacement}${braille.slice(marker.index + marker[0].length)}`;
+  }
   if (flatComplete && !hasNestedStructure && flatLeaves.length >= 5 && flatLeaves.filter(({ cells }) => cells === '⠀').length >= 2 &&
       flatLeaves.every(({ cells }) => cells)) {
     return flatLeaves.map(({ cells }) => cells).join('');

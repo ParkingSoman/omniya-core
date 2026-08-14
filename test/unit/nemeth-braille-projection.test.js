@@ -46,6 +46,13 @@ test('without source intent the independent MathJax Braille projection is unchan
   assert.equal(applyNemethSourceIntentToBraille('⠼⠂⠨⠁', sourceMath), '⠼⠂⠨⠁');
 });
 
+test('fraction projection restores authored child leaf cells by node identity', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mfrac><mrow><mi data-omniya-nemeth-cells="⠠⠺">w</mi><mn data-omniya-nemeth-cells="⠼⠲">4</mn></mrow><mrow><mi data-omniya-nemeth-cells="⠠⠧">v</mi><mn data-omniya-nemeth-cells="⠼⠲">4</mn></mrow></mfrac></math>', 'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠹⠺⠲⠌⠧⠲⠾', source), '⠹⠠⠺⠼⠲⠌⠠⠧⠼⠲⠾');
+});
+
 test('a grouped superscript does not receive a synthetic trailing close fence', () => {
   const source = new DOMParser().parseFromString(
     '<math><msup><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mrow><mi>s</mi><mi>e</mi><mi>v</mi><mi>e</mi><mi>n</mi></mrow><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>1</mn></math>',
