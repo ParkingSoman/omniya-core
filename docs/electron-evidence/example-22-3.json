@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T15:20:29.174Z",
+  "filter": {
+    "rule": null,
+    "example": "22-3"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-F5nFNT",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-22-3",
+      "sourceRows": [
+        "example-22-3",
+        "22.3"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-22-3/electron_bana-2022_example-22-3-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "22-3 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-028760d4-0070-499a-9e2f-9965b81c5511\" data-semantic-structure=\"0\"><mo data-omniya-nemeth-intent=\"arrow-northwest-blunted-double-shaft\" data-omniya-nemeth-cells=\"⠫⠘⠿⠶⠶\" data-omniya-=\"\" id=\"omniya-source-omniya-343e7488-96c0-4f7f-a9cc-dc09f7b51662\" data-semantic-type=\"relation\" data-semantic-role=\"arrow\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">↖</mo></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-028760d4-0070-499a-9e2f-9965b81c5511\" data-semantic-structure=\"0\"><mo data-omniya-nemeth-intent=\"arrow-northwest-blunted-double-shaft\" data-omniya-nemeth-cells=\"⠫⠘⠿⠶⠶\" data-omniya-=\"\" id=\"omniya-source-omniya-343e7488-96c0-4f7f-a9cc-dc09f7b51662\" data-semantic-type=\"relation\" data-semantic-role=\"arrow\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">↖</mo></math>\n\n'⠫⠘⠪⠒⠒' !== '⠫⠘⠿⠶⠶'\n"
+    }
+  ]
+}

@@ -33,6 +33,10 @@ const DIGITS = new Map([
   ['⠂', '1'], ['⠆', '2'], ['⠒', '3'], ['⠲', '4'], ['⠢', '5'], ['⠖', '6'],
   ['⠶', '7'], ['⠦', '8'], ['⠔', '9'], ['⠴', '0']
 ]);
+// Baseline arithmetic signs that keep a following lower-cell numeral in the
+// same local numeric item (`#1.2+1.4`, `#1.4709`*10`). Leading signed-number
+// mode stays plus/minus only.
+const BASELINE_ARITHMETIC_SIGNS = Object.freeze(['+', '−', '-', '±', '×', '÷']);
 const GREEK_SMALL = [
   ['⠨⠁', 'α', '.a'], ['⠨⠃', 'β', '.b'], ['⠨⠛', 'γ', '.g'], ['⠨⠙', 'δ', '.d'], ['⠨⠑', 'ϵ', '.e'],
   ['⠨⠵', 'ζ', '.z'], ['⠨⠱', 'η', '.:'], ['⠨⠹', 'θ', '.?'], ['⠨⠊', 'ι', '.i'], ['⠨⠅', 'κ', '.k'],
@@ -1232,7 +1236,7 @@ const CONTEXT_POLICY_REFS = [
   ...['1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.3', '1.3.1', '1.3.2', '1.4', '1.4.1', '1.4.2', '1.4.3', '1.4.4', '1.4.5', '1.4.6', '1.4.7'],
   ...['2.1'],
   ...['10.1', '10.5', '10.1.2', '10.2', '10.4', '10.6', '10.6.1', '10.6.2', '10.6.3'],
-  ...['5.2', '5.3', '5.3.1', '5.3.2'],
+  ...['5.1', '5.1.2', '5.1.3', '5.2', '5.3', '5.3.1', '5.3.2'],
   ...['6.6', '6.7'],
   ...['7.4', '7.4.1', '7.4.2', '7.4.3', '7.4.4', '7.5', '7.5.1', '7.5.2'],
   ...['errata-2025:24.1.e-24-2'],
@@ -1242,7 +1246,7 @@ const CONTEXT_POLICY_REFS = [
   // authored cells: switch scope, function-name continuation, degree-letter
   // context, and omission punctuation.
   ...['errata-2025:4.2-4-1', 'errata-2025:4.6.8.c-4-16', 'errata-2025:6.4.2-6-9', 'errata-2025:10.6.3-10-11', 'errata-2025:11.1.4-11-3'],
-  ...['9.3', '9.3.1', '9.3.2', '9.3.3'],
+  ...['9.1', '9.3', '9.3.1', '9.3.2', '9.3.3', 'errata-2025:9.1-9-1'],
   ...['15.5', '15.7', '15.8', '15.14'],
   ...['13.3', '13.3.1', '13.3.2', '13.3.3', '13.9', '13.10', '13.10.1', '13.10.2', '13.10.3', '13.10.4', '13.10.5'],
   ...['12.1', '12.1.2'],
@@ -2985,12 +2989,12 @@ function applyMapping(document, focus, inputState, mapping) {
     ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
     : inputState.modifierScope;
   // BANA numeric mode remains active across a baseline arithmetic operator.
-  // This is the local rule that permits `#1.2+1.4` without a second number
-  // sign. It is not a passage parser: only the immediately following local
-  // digit/decimal transition can consume the retained mode.
+  // This is the local rule that permits `#1.2+1.4` and `#1.4709`*10` without
+  // a second number sign. It is not a passage parser: only the immediately
+  // following local digit/decimal transition can consume the retained mode.
   const retainNumericAfterOperator = inputState.mode?.startsWith?.('numeric') &&
     mapping.action === 'insert-token' && args.name === 'mo' &&
-    ['+', '−', '-', '±'].includes(args.value);
+    BASELINE_ARITHMETIC_SIGNS.includes(args.value);
   const beginSignedNumeric = inputState.mode === null &&
     mapping.action === 'insert-token' && args.name === 'mo' &&
     ['+', '−', '-', '±'].includes(args.value) &&
@@ -3692,16 +3696,26 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // BANA Rule 9.2's general reference indicator is a one-symbol local
   // follow-up: @] is followed immediately by one letter or numeral. It does
   // not open a passage buffer or infer a footnote number; it inserts exactly
-  // that next local atom and annotates the source role.
-  if (state.mode === 'reference' && (!state.prefix || state.prefix === '⠰')) {
-    if (LETTERS.has(normalized)) {
+  // that next local atom and annotates the source role. A following number
+  // sign belongs to that same reference atom (`]#1`), never a new numeric
+  // passage.
+  if (state.mode === 'reference' && !state.prefix && normalized === '⠼') {
+    return {
+      status: 'pending', document, focus,
+      inputState: { ...state, prefix: '⠼' },
+      announcement: 'Nemeth general reference numeric indicator pending.'
+    };
+  }
+  if (state.mode === 'reference' && (!state.prefix || state.prefix === '⠰' || state.prefix === '⠼')) {
+    const referencePrefix = state.prefix === '⠰' || state.prefix === '⠼' ? state.prefix : '';
+    if (LETTERS.has(normalized) && state.prefix !== '⠼') {
       return applyMapping(document, focus, { ...state, mode: null }, {
         id: `reference.letter.${LETTERS.get(normalized)}`,
         cells: [normalized],
         banaRefs: ['9.2', '6.3'],
         action: 'insert-token',
         commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': `⠈⠻${state.prefix === '⠰' ? '⠰' : ''}${normalized}` } }
+        args: { name: 'mi', value: LETTERS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': `⠈⠻${referencePrefix}${normalized}` } }
       });
     }
     if (DIGITS.has(normalized)) {
@@ -3711,7 +3725,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         banaRefs: ['9.2', '3.1.2'],
         action: 'insert-numeric',
         commitPolicy: LOCAL_COMMIT_POLICIES.IMMEDIATE,
-        args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': `⠈⠻${state.prefix === '⠰' ? '⠰' : ''}${normalized}` } }
+        args: { value: DIGITS.get(normalized), dataAttributes: { 'data-omniya-nemeth-intent': 'general-reference', 'data-omniya-nemeth-cells': `⠈⠻${referencePrefix}${normalized}` } }
       });
     }
   }
@@ -4034,7 +4048,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // it for the source-intent Braille projection; no surrounding operands are
   // inferred.
   if (state.mode === null && !state.prefix && DIGITS.has(normalized) &&
-    context.node.name === 'mo' && ['+', '−', '-', '±'].includes(context.node.children?.[0]?.text)) {
+    context.node.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(context.node.children?.[0]?.text)) {
     const digit = digitMapping(normalized);
     digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
     return applyMapping(document, focus, { ...state, mode: 'numeric' }, digit);
@@ -4168,8 +4182,8 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       // the source intent so MathJax cannot reintroduce a second number sign.
       const parent = context.node.name !== 'math' ? findMathParent(context.tree, context.node.attrs?.['data-omniya-id']) : null;
       const preceding = parent?.children?.[Math.max(0, parent.children.indexOf(context.node) - 1)];
-      if ((context.node.name === 'mo' && ['+', '−', '-', '±', '÷'].includes(context.node.children?.[0]?.text)) ||
-          (preceding?.name === 'mo' && ['+', '−', '-', '±', '÷'].includes(preceding.children?.[0]?.text))) {
+      if ((context.node.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(context.node.children?.[0]?.text)) ||
+          (preceding?.name === 'mo' && BASELINE_ARITHMETIC_SIGNS.includes(preceding.children?.[0]?.text))) {
         digit.args = { ...digit.args, dataAttributes: { 'data-omniya-nemeth-intent': 'lower-cell-numeric' } };
       }
       return applyMapping(document, focus, state, digit);
