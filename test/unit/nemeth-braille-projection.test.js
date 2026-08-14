@@ -990,6 +990,17 @@ test('Rule 15 contracted over-bar and stacked dots collapse SRE five-step forms'
   assert.equal(applyNemethSourceIntentToBraille('⠐⠭⠣⠐⠔⠔⠣⠔⠔⠻⠻', dots), '⠐⠭⠣⠡⠡⠻');
 });
 
+test('Rule 15-19 five-step bar over a closed group keeps the terminator', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mover><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mrow><mover><mi>a</mi><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠱">¯</mo></mover><mi mathvariant="bold" data-omniya-nemeth-intent="typeform-bold" data-omniya-nemeth-cells="⠸⠰⠠⠁">A</mi></mrow><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠱">¯</mo></mover></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠐⠷⠁⠱⠸⠰⠠⠁⠾⠣⠱⠻', source),
+    '⠐⠷⠁⠱⠸⠰⠠⠁⠾⠣⠱⠻'
+  );
+});
+
 test('Rule 15.16.1 decimal overdot rebuilds multipurpose cells from the authored mover', () => {
   const source = new DOMParser().parseFromString(
     '<math><mover><mn data-omniya-nemeth-intent="lower-cell-numeric">.3</mn><mo data-omniya-role="overscript" data-omniya-nemeth-cells="⠡">•</mo></mover></math>',

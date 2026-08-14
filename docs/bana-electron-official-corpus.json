@@ -29277,19 +29277,16 @@
       "exampleNumber": "15-72",
       "printedPage": null,
       "pdfPage": 219,
-      "sourceNotation": "\"x% 15-17",
+      "sourceNotation": "\"x%_%]",
       "cells": [
         "⠐",
         "⠭",
         "⠩",
-        "⠀",
-        "⠂",
-        "⠢",
-        "⠤",
-        "⠂",
-        "⠶"
+        "⠸",
+        "⠩",
+        "⠻"
       ],
-      "expectedWholeBraille": "\"x% 15-17",
+      "expectedWholeBraille": "\"x%_%]",
       "candidateBrailleLines": [
         "_% \"x%_%] _:"
       ],

@@ -1320,12 +1320,22 @@ function addHigherOrderModifier(tree, focus, direction) {
   // exact local target and is therefore safe to recover without broadening.
   if (current.name === 'math' || current.name === 'mrow') {
     const candidate = [...(current.children ?? [])].reverse().find((child) =>
-      child.name === (direction === 'under' ? 'munder' : 'mover'));
+      child.name === (direction === 'under' ? 'munder' : 'mover') || child.name === 'munderover');
     if (candidate) current = candidate;
   }
+  // Rule 15.3 / 15.38: after a simultaneous munderover, a same-side higher
+  // indicator wraps that whole local structure rather than searching for a
+  // one-sided mover/munder.
   const inner = ancestor(tree, current, direction === 'under' ? ['munder', 'munderover'] : ['mover', 'munderover']);
-  if (!inner || inner.name === 'munderover') {
+  if (!inner) {
     throw new RangeError('A higher-order modifier requires an existing same-side modifier.');
+  }
+  if (inner.name === 'munderover') {
+    const overFilled = !isHole(inner.children?.[2]);
+    const underFilled = !isHole(inner.children?.[1]);
+    if ((direction === 'over' && !overFilled) || (direction === 'under' && !underFilled)) {
+      throw new RangeError('A higher-order modifier requires an existing same-side modifier.');
+    }
   }
   const parent = findMathParent(tree, inner.attrs?.['data-omniya-id']);
   if (!parent) throw new RangeError('The higher-order modifier has no local parent.');
@@ -1337,6 +1347,66 @@ function addHigherOrderModifier(tree, focus, direction) {
   wrapper.children.push(inner, hole(wrapper, direction === 'under' ? 'underscript' : 'overscript'));
   parent.children[index] = wrapper;
   return { tree, focus: focusNode(wrapper.children[1]) };
+}
+
+function modifierScriptContainer(tree, node) {
+  let current = node;
+  while (current) {
+    const role = current.attrs?.['data-omniya-role'];
+    if (role === 'overscript' || role === 'underscript') {
+      const parent = findMathParent(tree, current.attrs?.['data-omniya-id']);
+      if (parent && ['mover', 'munder', 'munderover'].includes(parent.name)) return parent;
+    }
+    const parent = isElement(current) ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
+    // A promoted script mrow may lose the role attribute while remaining the
+    // non-base child of mover/munder/munderover (Rule 15.3 content such as a=3).
+    if (parent && ['mover', 'munder', 'munderover'].includes(parent.name) && parent.children?.[0] !== current) {
+      return parent;
+    }
+    current = parent;
+  }
+  return null;
+}
+
+function binomialUpperContains(tree, node) {
+  const table = hasAncestor(tree, node, 'mtable');
+  if (table?.attrs?.['data-omniya-role'] !== 'binomial-table') return false;
+  const upper = table.children?.[0]?.children?.[0]?.children?.[0];
+  return Boolean(upper && (upper === node || contains(tree, upper, node)));
+}
+
+function convertRoundGroupToBinomial(tree, focus) {
+  const current = currentNode(tree, focus);
+  let group = current;
+  while (group) {
+    if (group.name === 'mrow' && group.attrs?.['data-omniya-group'] === 'round'
+      && group.attrs?.['data-omniya-role'] !== 'closed-group') break;
+    group = isElement(group) ? findMathParent(tree, group.attrs?.['data-omniya-id']) : null;
+  }
+  if (!group) throw new RangeError('A binomial separator requires an open round group.');
+  const content = group.children?.find((child) => child.name === 'mrow' && !child.attrs?.['data-omniya-role'])
+    ?? group.children?.[1];
+  if (!content || isHole(content)) throw new RangeError('A binomial separator needs upper content.');
+  const wrapper = element('mrow', [], {
+    'data-omniya-id': group.attrs?.['data-omniya-id'] ?? id(),
+    'data-omniya-binomial': 'true',
+    intent: 'binomial($upper,$lower)'
+  });
+  const table = element('mtable', [], { 'data-omniya-role': 'binomial-table' });
+  const upperContent = structuredClone(content);
+  upperContent.attrs = { ...(upperContent.attrs ?? {}), 'data-omniya-id': id() };
+  const lowerHole = hole(table, 'binomial-lower');
+  table.children.push(
+    element('mtr', [element('mtd', [upperContent])]),
+    element('mtr', [element('mtd', [lowerHole])])
+  );
+  wrapper.children.push(atom('mo', '('), table, atom('mo', ')'));
+  const parent = findMathParent(tree, group.attrs?.['data-omniya-id']);
+  if (!parent) throw new RangeError('The binomial group has no parent.');
+  const index = parent.children.indexOf(group);
+  if (index < 0) throw new RangeError('The binomial group is unavailable.');
+  parent.children[index] = wrapper;
+  return { tree, focus: focusNode(lowerHole) };
 }
 
 // Rule 15.6's binomial is represented as an explicit two-row MathML table.
@@ -1577,6 +1647,31 @@ function insertModifier(tree, focus, value, modeValue = null, scope = null, data
       parent.children.push(atom('mo', value, { 'data-omniya-role': role, ...dataAttributes }));
       const wrapper = findMathParent(tree, parent.attrs?.['data-omniya-id']);
       return { tree, focus: focusNode(parent.children.at(-1)), wrapper };
+    }
+  }
+  // Rule 15.66 / 15.2.1: an already-filled overscript/underscript may continue
+  // as a local expression row (f ∘ g). Append mixed tokens into that slot
+  // instead of nesting another mover around the prior cell.
+  if (modeValue?.startsWith?.('modifier-')) {
+    const current = currentNode(tree, focus);
+    const role = current.attrs?.['data-omniya-role'];
+    const parent = current.name !== 'math' ? findMathParent(tree, current.attrs?.['data-omniya-id']) : null;
+    if (parent && ['mover', 'munder', 'munderover'].includes(parent.name) &&
+      ['overscript', 'underscript'].includes(role) && !isHole(current)) {
+      const next = atom('mo', value, { 'data-omniya-role': role, ...dataAttributes });
+      if (current.name === 'mrow') {
+        current.children.push(next);
+        return { tree, focus: focusNode(next), wrapper: parent };
+      }
+      const row = element('mrow', [current, next], { 'data-omniya-role': role });
+      parent.children[parent.children.indexOf(current)] = row;
+      return { tree, focus: focusNode(next), wrapper: parent };
+    }
+    if (parent?.name === 'mrow' && ['overscript', 'underscript'].includes(role) && !isHole(current)) {
+      const next = atom('mo', value, { 'data-omniya-role': role, ...dataAttributes });
+      parent.children.push(next);
+      const wrapper = findMathParent(tree, parent.attrs?.['data-omniya-id']);
+      return { tree, focus: focusNode(next), wrapper };
     }
   }
   // When the expression starts in an empty replacement root, the
@@ -3294,15 +3389,20 @@ function mappingApplies(mapping, context) {
   if (mapping.action === 'higher-order-modifier') {
     let node = context.node;
     if (node.name === 'math' || node.name === 'mrow') {
-      node = [...(node.children ?? [])].reverse().find((child) => child.name === (mapping.args.direction === 'under' ? 'munder' : 'mover')) ?? node;
+      node = [...(node.children ?? [])].reverse().find((child) =>
+        child.name === (mapping.args.direction === 'under' ? 'munder' : 'mover') || child.name === 'munderover') ?? node;
     }
-    const container = hasAncestor(context.tree, node, mapping.args.direction === 'under' ? ['munder'] : ['mover']);
-    return Boolean(container && container.name !== 'munderover');
+    const container = hasAncestor(context.tree, node, mapping.args.direction === 'under' ? ['munder', 'munderover'] : ['mover', 'munderover']);
+    if (!container) return false;
+    if (container.name === 'munderover') {
+      return mapping.args.direction === 'over'
+        ? !isHole(container.children?.[2])
+        : !isHole(container.children?.[1]);
+    }
+    return true;
   }
   if (mapping.action === 'move-binomial-lower') {
-    const table = hasAncestor(context.tree, context.node, 'mtable');
-    return Boolean(table?.attrs?.['data-omniya-role'] === 'binomial-table' &&
-      table.children?.[0]?.children?.[0]?.children?.[0] === context.node);
+    return binomialUpperContains(context.tree, context.node);
   }
   if (mapping.action === 'close-binomial') {
     const table = hasAncestor(context.tree, context.node, 'mtable');
@@ -3852,9 +3952,24 @@ function applyMapping(document, focus, inputState, mapping) {
   const insertedAction = ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'open-structure', 'open-script-chain', 'open-fixed-root', 'open-function-limit', 'insert-contracted-script-comma', 'insert-structured-token', 'open-binomial', 'wrap-script-token', 'open-left-script', 'extend-integral', 'superpose-token'].includes(mapping.action);
   const collectingModifierScope = inputState.mode === 'multipurpose' ||
     (inputState.mode?.startsWith?.('modifier-') && inputState.mode !== 'modifier-parallel');
-  const nextModifierScope = collectingModifierScope && insertedAction
+  let nextModifierScope = collectingModifierScope && insertedAction
     ? extendModifierScope(result.tree, result.focus, inputState.modifierScope)
     : inputState.modifierScope;
+  // Rule 15-19: once a fenced group inside multipurpose closes, the five-step
+  // modifier applies to that whole group, not only its interior content.
+  if (mapping.id === 'group.round.end' && inputState.mode === 'multipurpose' && result.focus) {
+    const group = currentNode(result.tree, result.focus);
+    if (group?.attrs?.['data-omniya-role'] === 'closed-group') {
+      const parent = findMathParent(result.tree, group.attrs['data-omniya-id']);
+      if (parent?.attrs?.['data-omniya-id']) {
+        nextModifierScope = {
+          parentNodeId: parent.attrs['data-omniya-id'],
+          firstNodeId: group.attrs['data-omniya-id'],
+          lastNodeId: group.attrs['data-omniya-id']
+        };
+      }
+    }
+  }
   // Five-step Rule 15 keeps collecting the modified expression across local
   // scripts, groups, and the baseline return that leaves those scripts.
   const retainCollectedModifierMode = collectingModifierScope && (
@@ -3901,6 +4016,10 @@ function applyMapping(document, focus, inputState, mapping) {
       ? inputState.mode
     : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'multipurpose'
         ? 'multipurpose'
+    : ['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action)
+      && inputState.mode?.startsWith?.('typeform:')
+      && inputState.modifierScope
+        ? 'multipurpose'
     : retainCollectedModifierMode
       ? inputState.mode
     : (['insert-token', 'insert-numeric', 'insert-numeric-decimal', 'wrap-script-token'].includes(mapping.action) && inputState.mode === 'ueb-word'
@@ -3918,9 +4037,19 @@ function applyMapping(document, focus, inputState, mapping) {
     inputState: {
       prefix: '',
       mode: nextMode,
-      modifierScope: mapping.action === 'insert-modifier' || mapping.action === 'simultaneous-modifier'
+      // Contracted bars and other insert-modifier tokens that appear while the
+      // five-step expression is still being collected must keep the multipurpose
+      // scope so a later `<:]` can wrap the whole expression (Rule 15-19).
+      modifierScope: (mapping.action === 'insert-modifier' || mapping.action === 'simultaneous-modifier')
+        && inputState.mode !== 'multipurpose'
+        && args.nextMode !== 'multipurpose'
         ? null
-        : (inputState.mode === 'multipurpose' || inputState.mode?.startsWith?.('modifier-')) ? nextModifierScope : null
+        : (inputState.mode === 'multipurpose'
+          || inputState.mode?.startsWith?.('modifier-')
+          || inputState.mode?.startsWith?.('typeform:')
+          || args.nextMode === 'multipurpose')
+          ? (nextModifierScope ?? inputState.modifierScope)
+          : null
     },
     announcement: mapping.id
   };
@@ -4108,27 +4237,43 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // Rule 15 contracted bar after an ordinary letter/number (example 8-15).
   // Keep following operators/punctuation on the surrounding row: only the
   // bar itself uses the parallel-modifier continuation, and arithmetic or
-  // Rule 8 punctuation must clear that mode before insertion.
+  // Rule 8 punctuation must clear that mode before insertion. Inside an
+  // active multipurpose five-step expression the same contracted form still
+  // decorates only the focused atom (Rule 15-19) and resumes multipurpose
+  // collection afterward.
   if (!state.prefix && normalized === '⠱' &&
     (context.node.name === 'mi' || context.node.name === 'mn') &&
     !isHole(context.node) &&
-    state.mode !== 'multipurpose' &&
     !state.mode?.startsWith?.('modifier-')) {
     const bar = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');
     if (bar && mappingApplies(bar, context)) {
-      return applyMapping(document, focus, { ...state, mode: null }, bar);
+      return applyMapping(document, focus, {
+        ...state,
+        mode: null,
+        modifierScope: state.modifierScope ?? null
+      }, {
+        ...bar,
+        args: {
+          ...bar.args,
+          ...(state.mode === 'multipurpose' ? { nextMode: 'multipurpose' } : {})
+        }
+      });
     }
   }
   // Rule 15.2.3 contracted under: after a letter or digit, `%` plus the
   // modifier symbol wraps only that atom. Do not steal Rule 15.6's binomial
   // lower-cell move, and do not open five-step mode without a multipurpose.
+  // Inside an existing over/underscript, `%` begins a higher-order indicator
+  // sequence (15.3) rather than contracting the script content itself.
   const binomialLower = MAPPINGS.find((candidate) => candidate.id === 'binomial.lower');
   const binomialTable = hasAncestor(context.tree, context.node, 'mtable');
+  const insideModifierScript = Boolean(modifierScriptContainer(context.tree, context.node));
   if (!state.prefix && normalized === '⠩' &&
     (context.node.name === 'mi' || context.node.name === 'mn') &&
     !isHole(context.node) &&
     state.mode !== 'multipurpose' &&
     !state.mode?.startsWith?.('modifier-') &&
+    !insideModifierScript &&
     binomialTable?.attrs?.['data-omniya-role'] !== 'binomial-table' &&
     !(binomialLower && mappingApplies(binomialLower, context))) {
     return {
@@ -4142,6 +4287,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     !isHole(context.node) &&
     state.mode !== 'multipurpose' &&
     !state.mode?.startsWith?.('modifier-') &&
+    !insideModifierScript &&
     binomialTable?.attrs?.['data-omniya-role'] !== 'binomial-table' &&
     (normalized === '⠱' || LETTERS.has(normalized) || DIGITS.has(normalized))) {
     const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
@@ -4164,12 +4310,18 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       announcement: 'modifier.contracted-under'
     };
   }
-  if (state.mode === 'modifier-parallel' && !state.prefix &&
+  if ((state.mode === 'modifier-parallel' || state.mode === 'modifier-complete') && !state.prefix &&
     (normalized === '⠬' || normalized === '⠤' || normalized === '⠸' || normalized === '⠲')) {
+    // Contracted and five-step-complete modifiers still allow the following
+    // expression token (plus, typeform, period) to continue the surrounding
+    // row. Keep the terminator/higher-order paths for ⠣/⠩/⠻ elsewhere.
+    const resumeMode = state.mode === 'modifier-complete' && state.modifierScope
+      ? 'multipurpose'
+      : null;
     return applyNemethCell({
       document,
       focus,
-      inputState: { ...state, mode: null, modifierScope: null },
+      inputState: { ...state, mode: resumeMode, modifierScope: resumeMode ? state.modifierScope : null },
       cell: normalized
     });
   }
@@ -6105,8 +6257,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // symbol is the modifier itself. It is still one local structural edit,
   // not a second operand parser. Reuse the generic modifier insertion for
   // letters and digits so `lim%x` composes the underscript from the same
-  // guided tree operation as a bar, arc, or other modifier.
-  if ((state.mode === 'modifier-under' || state.mode === 'modifier-over') &&
+  // guided tree operation as a bar, arc, or other modifier. The same path
+  // continues an already-open overscript/underscript expression such as
+  // Rule 15.66's `f.*g`.
+  if ((state.mode === 'modifier-under' || state.mode === 'modifier-over' ||
+      ((state.mode === 'modifier-complete' || state.mode === 'modifier-parallel') &&
+        ['overscript', 'underscript'].includes(context.node.attrs?.['data-omniya-role']))) &&
     !state.prefix && (LETTERS.has(normalized) || DIGITS.has(normalized))) {
     const value = LETTERS.has(normalized) ? LETTERS.get(normalized) : DIGITS.get(normalized);
     return applyMapping(document, focus, state, {
@@ -6198,8 +6354,10 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // transition; the state carries only the local modifier phase.
   if (state.mode === 'modifier-complete' && !state.prefix && (normalized === '⠣' || normalized === '⠩')) {
     const container = hasAncestor(context.tree, context.node, ['mover', 'munder', 'munderover']);
-    const sameSide = (normalized === '⠣' && container?.name === 'mover')
-      || (normalized === '⠩' && container?.name === 'munder');
+    const sameSide = (normalized === '⠣' && (container?.name === 'mover'
+        || (container?.name === 'munderover' && !isHole(container.children?.[2]))))
+      || (normalized === '⠩' && (container?.name === 'munder'
+        || (container?.name === 'munderover' && !isHole(container.children?.[1]))));
     if (sameSide) {
       return {
         status: 'pending', document, focus,
@@ -6211,13 +6369,91 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const mapping = MAPPINGS.find((candidate) => candidate.id === operationId);
     return applyMapping(document, focus, state, mapping);
   }
-  if (state.mode === 'modifier-complete' && state.prefix === '⠣' && normalized === '⠣') {
-    const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.directly-over.higher');
-    if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+  // Rule 15.3 spells order N with N same-side indicators. Hold `%%` / `<<`
+  // until the next non-indicator proves whether a third-order `%%%` / `<<<`
+  // is arriving, then apply one higher-order wrap.
+  if (state.mode === 'modifier-complete' && (state.prefix === '⠣' || state.prefix === '⠩') &&
+    normalized === state.prefix) {
+    return {
+      status: 'pending', document, focus,
+      inputState: { ...state, prefix: state.prefix + normalized },
+      announcement: 'Higher-order modifier may continue.'
+    };
   }
-  if (state.mode === 'modifier-complete' && state.prefix === '⠩' && normalized === '⠩') {
-    const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.directly-under.higher');
-    if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+  if (state.mode === 'modifier-complete' && (state.prefix === '⠣⠣' || state.prefix === '⠩⠩') &&
+    normalized === state.prefix[0]) {
+    return {
+      status: 'pending', document, focus,
+      inputState: { ...state, prefix: state.prefix + normalized },
+      announcement: 'Higher-order modifier may continue.'
+    };
+  }
+  if (state.mode === 'modifier-complete' &&
+    (state.prefix === '⠣⠣' || state.prefix === '⠩⠩' || state.prefix === '⠣⠣⠣' || state.prefix === '⠩⠩⠩') &&
+    normalized !== state.prefix[0]) {
+    const mapping = MAPPINGS.find((candidate) => candidate.id === (state.prefix[0] === '⠣'
+      ? 'modifier.directly-over.higher'
+      : 'modifier.directly-under.higher'));
+    if (mapping) {
+      const applied = applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+      if (applied.status === 'rejected') return applied;
+      return applyNemethCell({
+        document: applied.document,
+        focus: applied.focus,
+        inputState: applied.inputState,
+        cell: normalized
+      });
+    }
+  }
+  // Rule 15.3 from inside script content after mode was cleared by spacing:
+  // restart the higher-order indicator hold when focus remains in an
+  // over/underscript of an existing modified structure.
+  if (!state.mode?.startsWith?.('modifier-') && !state.prefix && (normalized === '⠣' || normalized === '⠩') &&
+    modifierScriptContainer(context.tree, context.node)) {
+    const direction = normalized === '⠣' ? 'over' : 'under';
+    const container = hasAncestor(context.tree, context.node, ['mover', 'munder', 'munderover']);
+    const canHigher = container && (
+      (direction === 'over' && (container.name === 'mover' || (container.name === 'munderover' && !isHole(container.children?.[2]))))
+      || (direction === 'under' && (container.name === 'munder' || (container.name === 'munderover' && !isHole(container.children?.[1]))))
+    );
+    if (canHigher) {
+      return {
+        status: 'pending', document, focus,
+        inputState: { ...state, prefix: normalized, mode: 'modifier-complete' },
+        announcement: 'Higher-order modifier may continue.'
+      };
+    }
+  }
+  // Rule 15.6 / 15.44: after a scripted upper binomial item, multipurpose then
+  // `%` moves to the lower cell. The same `"%` sequence converts an ordinary
+  // open round group that is being used as a binomial into the table form.
+  if (((state.mode === null && state.prefix === '⠐') || (state.mode === 'multipurpose' && !state.prefix) ||
+      (state.prefix === '⠐')) && normalized === '⠩') {
+    if (binomialUpperContains(context.tree, context.node)) {
+      const mapping = MAPPINGS.find((candidate) => candidate.id === 'binomial.lower');
+      if (mapping) return applyMapping(document, focus, { ...state, prefix: '' }, mapping);
+    }
+    let group = context.node;
+    while (group) {
+      if (group.name === 'mrow' && group.attrs?.['data-omniya-group'] === 'round'
+        && group.attrs?.['data-omniya-role'] !== 'closed-group') break;
+      group = isElement(group) ? findMathParent(context.tree, group.attrs?.['data-omniya-id']) : null;
+    }
+    if (group) {
+      try {
+        const converted = convertRoundGroupToBinomial(context.tree, focus);
+        return {
+          status: 'applied',
+          localCommitPolicy: LOCAL_COMMIT_POLICIES.STRUCTURAL_FOLLOWUP,
+          document: { formatVersion: MATH_FORMAT_VERSION, mathml: serializeMathML(converted.tree), focus: converted.focus },
+          focus: converted.focus,
+          inputState: { prefix: '', mode: null, modifierScope: null },
+          announcement: 'binomial.lower'
+        };
+      } catch {
+        // Fall through to ordinary baseline/under handling.
+      }
+    }
   }
   if (state.mode === 'modifier-under' && !state.prefix && normalized === '⠱') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'modifier.bar-over');

@@ -824,7 +824,34 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     }
   }
   if (sourceMath.querySelector?.('[data-omniya-group="round"]') && braille.endsWith('⠻')) {
-    braille = braille.slice(0, -1);
+    // Keep an authored five-step terminator when the closed group itself is
+    // the base of a mover/munder (Rule 15-19). Strip only the spurious closer
+    // SRE emits after an ordinary unadorned group.
+    const wrapsClosedGroup = [...sourceNodes('mover'), ...sourceNodes('munder'), ...sourceNodes('munderover')].some((node) => {
+      const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+      const base = kids[0];
+      return base?.getAttribute?.('data-omniya-group') === 'round'
+        || base?.getAttribute?.('data-omniya-role') === 'closed-group';
+    });
+    if (!wrapsClosedGroup) {
+      braille = braille.slice(0, -1);
+    }
+  }
+  // Rule 15-19: SRE may omit the five-step terminator when a closed group is
+  // the mover/munder base. Restore `⠻` after the authored over/under bar.
+  {
+    const wrapsClosedGroup = [...sourceNodes('mover'), ...sourceNodes('munder')].some((node) => {
+      const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+      if (kids.length !== 2) return false;
+      const base = kids[0];
+      const bar = kids[1];
+      return (base?.getAttribute?.('data-omniya-group') === 'round'
+        || base?.getAttribute?.('data-omniya-role') === 'closed-group')
+        && String(bar?.textContent ?? '').trim() === '¯';
+    });
+    if (wrapsClosedGroup && /[⠣⠩]⠱$/.test(braille) && !braille.endsWith('⠻')) {
+      braille = `${braille}⠻`;
+    }
   }
   // A closed guided group is an explicit BANA boundary. MathJax can flatten
   // the final fence into a semantic wrapper and emit an extra closing cell;
@@ -1678,7 +1705,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     return ['mi', 'mn'].includes(base.localName);
   });
   if (contractedBars.length && /^⠐/.test(braille) && /[⠣⠩]⠱⠻$/.test(braille)) {
-    braille = braille.replace(/^⠐/, '').replace(/[⠣⠩]⠱⠻$/, '⠱');
+    // Nested contracted bars inside a five-step group wrap (Rule 15-19) must
+    // not collapse the outer multipurpose terminator.
+    const fiveStepGroupWrap = [...sourceNodes('mover'), ...sourceNodes('munder')].some((node) => {
+      const kids = [...(node.children ?? [])].filter((child) => child.nodeType === 1);
+      if (kids.length !== 2) return false;
+      const base = kids[0];
+      return base?.getAttribute?.('data-omniya-group') === 'round'
+        || base?.getAttribute?.('data-omniya-role') === 'closed-group';
+    });
+    if (!fiveStepGroupWrap) {
+      braille = braille.replace(/^⠐/, '').replace(/[⠣⠩]⠱⠻$/, '⠱');
+    }
   }
   if (contractedBars.length) {
     braille = braille.replace(/^⠐([⠁-⠵])[⠣⠩]⠱⠄⠻$/, '$1⠱⠄');

@@ -17,6 +17,10 @@ const headings = [];
 // strings come from the corresponding printed example blocks below.
 const reviewedSourceNotation = new Map([
   ['15-8', ';"x<`:]",a1'],
+  // PDF text extracts `"x%_%]` incorrectly because the inverted-caret code
+  // embeds `_%` inside the payload and the page footer `15-17` contaminates
+  // the candidate line.
+  ['15-72', '"x%_%]'],
   ['20-49', '#g_/#d_/#gf']
 ]);
 let currentRule = null;

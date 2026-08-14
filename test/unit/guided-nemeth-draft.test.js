@@ -2249,6 +2249,61 @@ test('Rule 15.16 stacked dots stay in one overscript row', () => {
   assert.equal(threeTree.children[0].children[1].children.length, 3);
 });
 
+test('Rule 15-19 keeps contracted bars inside a five-step grouped expression', () => {
+  const { document } = replayCells(sourceNotationToCells('"(a:_;,a+b:_;,b)<:]'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].children[0].attrs?.['data-omniya-group'], 'round');
+  assert.equal(tree.children[0].children[1].children[0].text, '¯');
+});
+
+test('Rule 15-35 third-order under holds %%% before content', () => {
+  const { document } = replayCells(sourceNotationToCells('"x+y%:%%a .k #3%%%b .k #2]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[0].children[0].name, 'munder');
+  assert.equal(tree.children[0].children[0].children[0].name, 'munder');
+});
+
+test('Rule 15-38 simultaneous then higher over nests after under hierarchy', () => {
+  const { document } = replayCells(sourceNotationToCells('"x+y%:%%a .k #3<:<<b .k #2]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.ok(['munder', 'munderover'].includes(tree.children[0].children[0].name));
+});
+
+test('Rule 15-44 binomial with scripted upper converts on multipurpose under', () => {
+  const { document } = replayCells(sourceNotationToCells('(g;j"%a;j")'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].attrs?.['data-omniya-binomial'], 'true');
+});
+
+test('Rule 15-66 arrow overscript keeps f.*g as one expression row', () => {
+  const { document } = replayCells(sourceNotationToCells(',x "$33o<f.*g] ,y'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const arrow = tree.children.find((node) => node.name === 'mover');
+  assert.ok(arrow);
+  assert.equal(arrow.children[1].name, 'mrow');
+  assert.deepEqual(
+    arrow.children[1].children.map((node) => node.children[0].text),
+    ['f', '∘', 'g']
+  );
+});
+
+test('Rule 15-72 inverted caret under completes from corrected source', () => {
+  const { document } = replayCells(sourceNotationToCells('"x%_%]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[0].children[1].children[0].text, '∨');
+});
+
 test('Rule 15.16.1 multipurpose after a decimal opens a five-step overdot', () => {
   const { document } = replayCells(sourceNotationToCells('#."3<*]'));
   const tree = parseMathML(document.mathml);

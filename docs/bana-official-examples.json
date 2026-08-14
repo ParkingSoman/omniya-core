@@ -26008,8 +26008,8 @@
       "candidateBrailleLines": [
         "_% \"x%_%] _:"
       ],
-      "expectedWholeBraille": "\"x% 15-17",
-      "sourceNotation": "\"x% 15-17",
+      "expectedWholeBraille": "\"x%_%]",
+      "sourceNotation": "\"x%_%]",
       "inputPolicy": null,
       "sourceRows": [
         "15.15"
