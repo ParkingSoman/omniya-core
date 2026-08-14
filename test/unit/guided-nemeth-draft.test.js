@@ -23,14 +23,14 @@ function cell(document, focus, inputState, value) {
 
 test('Rule 14 corpus operation IDs remain declared in the authoritative generator', () => {
   const generator = fs.readFileSync(new URL('../../scripts/bana-example-corpus-generate.mjs', import.meta.url), 'utf8');
-  for (const number of [...Array.from({ length: 11 }, (_, index) => index + 12), ...Array.from({ length: 22 }, (_, index) => index + 34)]) {
+  for (const number of [...Array.from({ length: 11 }, (_, index) => index + 12), ...Array.from({ length: 33 }, (_, index) => index + 34)]) {
     assert.match(generator, new RegExp(`['"]14-${number}['"]\\s*:`), `14-${number} must remain generator-owned rather than generated-only`);
   }
 });
 
-test('Rule 14 corpus cases 14-45 through 14-55 retain source-grounded subscript operations', () => {
+test('Rule 14 corpus cases 14-45 through 14-66 retain source-grounded script operations', () => {
   const corpus = JSON.parse(fs.readFileSync(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url)));
-  for (let number = 45; number <= 55; number += 1) {
+  for (let number = 45; number <= 66; number += 1) {
     const entry = corpus.cases.find((candidate) => candidate.exampleNumber === `14-${number}`);
     assert.ok(entry?.executable, `14-${number} must be executable`);
     assert.ok(entry.operationIds?.length, `14-${number} needs reviewed operation IDs`);
