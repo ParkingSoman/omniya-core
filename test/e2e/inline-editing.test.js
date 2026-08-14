@@ -4,12 +4,17 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { _electron as electron } from 'playwright';
+import { electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 
 async function launch(prefix = 'omniya-replacement-') {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), prefix));
-  const app = await electron.launch({ args: ['.'], cwd: projectRoot, env: { ...process.env, OMNIYA_TEST_USER_DATA_DIR: dataDirectory } });
+  const app = await electron.launch({
+    args: ['.'],
+    cwd: projectRoot,
+    env: electronLaunchEnv({ OMNIYA_TEST_USER_DATA_DIR: dataDirectory })
+  });
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
   await page.locator('#app-shell[aria-busy="false"]').waitFor();

@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { _electron as electron } from 'playwright';
+import { electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 const corpus = JSON.parse(await readFile(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url), 'utf8'));
@@ -16,7 +17,11 @@ function selectedCases() {
 
 async function launch(existingDataDirectory = null) {
   const dataDirectory = existingDataDirectory ?? await mkdtemp(path.join(os.tmpdir(), 'omniya-bana-official-'));
-  const app = await electron.launch({ args: ['.'], cwd: projectRoot, env: { ...process.env, OMNIYA_TEST_USER_DATA_DIR: dataDirectory, OMNIYA_REPLACEMENT_TRACE: '1' } });
+  const app = await electron.launch({
+    args: ['.'],
+    cwd: projectRoot,
+    env: electronLaunchEnv({ OMNIYA_TEST_USER_DATA_DIR: dataDirectory, OMNIYA_REPLACEMENT_TRACE: '1' })
+  });
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
   await page.locator('#app-shell[aria-busy="false"]').waitFor();

@@ -20,18 +20,22 @@ if (!cases.length) throw new Error('No executable official Electron cases matche
 const runOne = (entry) => new Promise((resolve, reject) => {
   const safe = entry.exampleNumber.replace(/[^a-z0-9_-]/gi, '_');
   const resultPath = path.join(os.tmpdir(), `omniya-bana-${safe}-${process.pid}-${Date.now()}.json`);
+  const childEnv = {
+    ...process.env,
+    BANA_ELECTRON_OFFICIAL: '1',
+    BANA_ELECTRON_EXAMPLE: entry.exampleNumber,
+    BANA_ELECTRON_RESULTS: resultPath,
+    // The test itself still performs a real relaunch persistence check.
+    // Keep the process to one official case so Electron/MathJax state from
+    // another example can never truncate this one.
+    BANA_ELECTRON_ISOLATE_CASES: '0'
+  };
+  // Cursor and some shells set ELECTRON_RUN_AS_NODE=1; that makes Electron
+  // reject Playwright's --remote-debugging-port and abort launch.
+  delete childEnv.ELECTRON_RUN_AS_NODE;
   const child = spawn(process.execPath, ['--test', 'test/e2e/bana-official-corpus.test.js'], {
     cwd: root,
-    env: {
-      ...process.env,
-      BANA_ELECTRON_OFFICIAL: '1',
-      BANA_ELECTRON_EXAMPLE: entry.exampleNumber,
-      BANA_ELECTRON_RESULTS: resultPath,
-      // The test itself still performs a real relaunch persistence check.
-      // Keep the process to one official case so Electron/MathJax state from
-      // another example can never truncate this one.
-      BANA_ELECTRON_ISOLATE_CASES: '0'
-    },
+    env: childEnv,
     stdio: ['ignore', 'pipe', 'pipe']
   });
   let stdout = '';

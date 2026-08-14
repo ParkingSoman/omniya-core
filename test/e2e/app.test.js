@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import axe from 'axe-core';
 import { _electron as electron } from 'playwright';
+import { electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const artifactDirectory = path.join(projectRoot, 'test', 'artifacts', 'latest');
@@ -31,7 +32,7 @@ async function launch(dataDirectory) {
   const electronApp = await electron.launch({
     args: ['.'],
     cwd: projectRoot,
-    env: { ...process.env, OMNIYA_TEST_USER_DATA_DIR: dataDirectory }
+    env: electronLaunchEnv({ OMNIYA_TEST_USER_DATA_DIR: dataDirectory })
   });
   const page = await electronApp.firstWindow();
   const externalRequests = [];
