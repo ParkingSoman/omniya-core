@@ -1872,9 +1872,15 @@ test('BANA 7.3.5 expression typeforms use bounded MathML scope operations', () =
       assert.notEqual(result.status, 'rejected', result.announcement);
       ({ document, focus, inputState } = result);
     }
-    committed = commitNemethLocalCode({ document, focus, inputState });
-    assert.equal(committed.status, 'applied');
-    const closed = parseMathML(committed.document.mathml);
+    // Typeform closers are immediate once the local code is complete; Enter is
+    // only needed when a prefix is still held.
+    let closedDocument = document;
+    if (inputState.prefix) {
+      committed = commitNemethLocalCode({ document, focus, inputState });
+      assert.equal(committed.status, 'applied');
+      closedDocument = committed.document;
+    }
+    const closed = parseMathML(closedDocument.mathml);
     assert.equal(closed.children[0].name, 'mstyle');
     assert.equal(closed.children[0].children[0].children[0].children[0].text, 'a');
     assert.equal(closed.children[0].children[0].children[2].children[0].text, 'b');
@@ -3221,4 +3227,61 @@ test('Rule 24-22 adjacent bars then subscripted bar stay siblings', () => {
   assert.equal(tree.children[2].attrs['data-omniya-nemeth-cells'], '⠳');
   assert.equal(tree.children[3].name, 'msub');
   assert.equal(tree.children[3].children[0].attrs['data-omniya-nemeth-cells'], '⠐⠳');
+});
+
+test('Rule 19-30 number then enlarged brace close is not a decimal', () => {
+  const { document } = replayCells(sourceNotationToCells('.,(x .k #2.,)'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const number = tree.children.find((node) => node.name === 'mn');
+  assert.equal(number?.children?.[0]?.text, '2');
+  assert.notEqual(number?.attrs?.['data-omniya-nemeth-intent'], 'numeric-decimal');
+  assert.equal(tree.children.at(-1).attrs['data-omniya-nemeth-cells'], '⠨⠠⠾');
+});
+
+test('Rule 19-31 blank before enlarged brace close still commits the closer', () => {
+  const { document } = replayCells(sourceNotationToCells('.,(x+y .k #6 .,)'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠨⠠⠷');
+  assert.equal(tree.children.at(-1).attrs['data-omniya-nemeth-cells'], '⠨⠠⠾');
+});
+
+test('Rule 16-16 nested order-1 indexed radical closes the outer square root', () => {
+  const { document } = replayCells(sourceNotationToCells('>.<3>x.]] .k <3>.>x.]]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msqrt');
+  assert.equal(tree.children[0].children[0].name, 'mroot');
+  assert.equal(tree.children[0].children[0].attrs['data-omniya-radical-order'], '1');
+  const equals = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠨⠅');
+  assert.ok(equals, 'equals must be a sibling after the closed outer radical');
+  assert.equal(tree.children.some((node) => node.name === 'mroot' || (node.name === 'msqrt' && node !== tree.children[0])), true);
+});
+
+test('Rule 13-32 spatial hypercomplex bar draft completes with empty denominator', () => {
+  const { document } = replayCells(sourceNotationToCells(',?1_?1/4_#,/1_?3/5_#,# ,,?3333333333333333333333,,# #5'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const hyper = tree.children.find((node) => node.attrs?.['data-omniya-fraction-kind'] === 'hypercomplex');
+  assert.ok(hyper);
+  assert.equal(hyper.children[1].attrs?.['data-omniya-hole'], undefined);
+});
+
+test('Rule 3-27 complex then spatial hypercomplex draft completes', () => {
+  const { document } = replayCells(sourceNotationToCells(
+    ",?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,?3333333333333333333333333333333,,# #1+(?2X/1-X#)^2"
+  ));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'complex');
+});
+
+test('Rule 13-35 fully linear hypercomplex draft completes', () => {
+  const { document } = replayCells(sourceNotationToCells(
+    ",,?,?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,/1+(?2X/1-X#)^2\",,#"
+  ));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'hypercomplex');
 });

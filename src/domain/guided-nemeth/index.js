@@ -2176,7 +2176,11 @@ const typeformScope = (id, sourceNotation, banaRefs, mathvariant, options = {}) 
   cells: sourceCells(sourceNotation),
   banaRefs,
   action: options.close ? 'close-typeform-scope' : 'open-typeform-scope',
-  commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
+  // Closers are unambiguous once complete (`.,'` / `_,'`). Keep them
+  // immediate so a trailing phrase scope (7-18) does not stay pending at
+  // end-of-input waiting for Enter. Openers remain atomic so a following
+  // blank or atom can finish the local code.
+  commitPolicy: options.close ? LOCAL_COMMIT_POLICIES.IMMEDIATE : LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
   args: { mathvariant, sourceNotation },
   ...(options.errataRefs ? { errataRefs: options.errataRefs } : {}),
   ...(options.sourceKind ? { sourceKind: options.sourceKind } : {})
@@ -3594,7 +3598,15 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.id === 'radical.next.radicand') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
   if (mapping.id === 'radical.end') return Boolean(hasAncestor(context.tree, context.node, 'msqrt'));
-  if (mapping.id === 'radical.indexed.end') return Boolean(hasAncestor(context.tree, context.node, 'mroot'));
+  if (mapping.id === 'radical.indexed.end') {
+    const root = hasAncestor(context.tree, context.node, 'mroot');
+    if (!root) return false;
+    // After an order terminator closes an indexed radical, focus rests on that
+    // completed mroot. The next bare `⠻` belongs to an outer square-root end
+    // (16-16), not a second indexed close of the same node.
+    if (context.node === root) return false;
+    return true;
+  }
   if (mapping.args?.radicalOrder) {
     const radical = hasAncestor(context.tree, context.node, mapping.args.element ?? ['msqrt', 'mroot']);
     return Boolean(radical && radical.attrs?.['data-omniya-radical-order'] === String(mapping.args.radicalOrder));
@@ -3839,6 +3851,12 @@ function mappingApplies(mapping, context) {
   }
   if (mapping.id === 'punctuation.literary-period') {
     if (context.node.name === 'math' || isHole(context.node) || context.node.name === 'mn') return false;
+    // Rule 8-38: an indicated closing quote may be followed immediately by a
+    // literary period (`_04`). Keep that local punctuation pair available.
+    if (context.node.name === 'mo' &&
+      context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-right-double-quote') {
+      return true;
+    }
     return context.node.name === 'mi' || context.node.name === 'mtext' ||
       (context.node.name === 'mo' && context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-literary-period');
   }
@@ -6713,6 +6731,18 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     if (allowed.length === 1) {
       return applyMapping(document, focus, { ...state, prefix: '', mode: null }, allowed[0]);
     }
+    // Enlarged brace/bracket closes begin `⠨⠠…` and share the decimal's first
+    // cell. Hold only that capital follow-up (`#2.,)`) — not multipurpose
+    // `#."3` or other `⠨*` codes that must still commit the decimal point.
+    if (normalized === '⠠') {
+      return {
+        status: 'pending',
+        document,
+        focus,
+        inputState: { ...state, prefix: '⠨⠠', mode: null },
+        announcement: 'Nemeth sequence may continue.'
+      };
+    }
     const decimal = numericPunctuationMapping('⠨', '.', '3.2.3');
     const decimalMode = state.mode?.startsWith?.('numeric:') ? state.mode : 'numeric';
     const committed = applyMapping(document, focus, { ...state, prefix: '', mode: decimalMode }, decimal);
@@ -6795,6 +6825,20 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       // non-decimal digit. `#2A` still uses insertBaseDigit because the
       // numeric indicator marked that atom numeric-start.
       if (context.node.attrs?.['data-omniya-nemeth-intent'] === 'lower-cell-numeric') {
+        return applyNemethCell({
+          document,
+          focus,
+          inputState: { ...state, mode: null },
+          cell: normalized
+        });
+      }
+      // Rule 8-64 matrix indices (`a;1n`) place a letter after a digit in the
+      // same script slot. That is juxtaposition of a numeral and an identifier,
+      // not Rule 3.6's non-decimal base digit inside one <mn>.
+      if (hasAncestor(context.tree, context.node, 'msub')
+        || hasAncestor(context.tree, context.node, 'msup')
+        || hasAncestor(context.tree, context.node, 'msubsup')
+        || hasAncestor(context.tree, context.node, 'mmultiscripts')) {
         return applyNemethCell({
           document,
           focus,
@@ -8058,8 +8102,13 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     }
   }
   if (normalized === '⠻' && hasAncestor(context.tree, context.node, 'mroot')) {
-    const radicalEnd = MAPPINGS.find((mapping) => mapping.id === 'radical.indexed.end');
-    if (radicalEnd) return applyMapping(document, focus, { ...state, prefix: '' }, radicalEnd);
+    const root = ancestor(context.tree, context.node, 'mroot');
+    // When focus is already the completed indexed radical, an outer square-root
+    // terminator owns this cell (16-16 `>.<3>x.]]`).
+    if (context.node !== root) {
+      const radicalEnd = MAPPINGS.find((mapping) => mapping.id === 'radical.indexed.end');
+      if (radicalEnd) return applyMapping(document, focus, { ...state, prefix: '' }, radicalEnd);
+    }
   }
   // A structural follow-up that is valid at the current MathML node wins
   // over unrelated longer prefixes.  This keeps the established one-cell
