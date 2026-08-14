@@ -4257,11 +4257,32 @@ function applyMapping(document, focus, inputState, mapping) {
       }
     }
   }
+  // Rule 14.8.7/14.8.8: a level-preserving indicator before a comparison keeps
+  // that comparison at the current script level. Stamp the authored level cell
+  // onto the relation so projection can restore it after an explicit blank.
+  let stampedArgs = args;
+  if (inputState.mode === 'script-level-preserved'
+    && mapping.id === 'operator.equals'
+    && mapping.action === 'insert-token') {
+    const level = ancestor(tree, node, ['msub']) ? '⠰'
+      : ancestor(tree, node, ['msup']) ? '⠘'
+        : '';
+    if (level) {
+      stampedArgs = {
+        ...args,
+        dataAttributes: {
+          ...(args.dataAttributes ?? {}),
+          'data-omniya-nemeth-intent': 'level-preserved-equals',
+          'data-omniya-nemeth-cells': `${level}⠨⠅`
+        }
+      };
+    }
+  }
   const operation = TREE_OPERATIONS[mapping.action];
   if (!operation) return { status: 'rejected', document, focus, inputState, announcement: `Unknown local operation: ${mapping.action}` };
   let result;
   try {
-    result = operation({ document, tree, node, focus, inputState, args, mapping });
+    result = operation({ document, tree, node, focus, inputState, args: stampedArgs, mapping });
   } catch (error) {
     return { status: 'rejected', document, focus, inputState, announcement: error.message };
   }

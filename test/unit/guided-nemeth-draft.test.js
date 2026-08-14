@@ -540,6 +540,18 @@ test('Rule 14.8.6 raised diagonal fractions stay siblings inside one superscript
   assert.ok(slot.children.some((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠄⠄⠄'));
 });
 
+test('Rule 14.8.7 integral subscript equals keeps the level indicator after a blank', () => {
+  const { document } = replayCells(sourceNotationToCells('!;u ;.k a'), { '⠨⠅': 'operator.equals' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  const equals = tree.children[0].children[1].children.find((node) => node.children?.[0]?.text === '=');
+  assert.ok(equals);
+  assert.equal(equals.attrs?.['data-omniya-nemeth-intent'], 'level-preserved-equals');
+  assert.equal(equals.attrs?.['data-omniya-nemeth-cells'], '⠰⠨⠅');
+});
+
 test('Rule 15.7 a five-step tilde stays inside the subscript slot', () => {
   const { document } = replayCells(sourceNotationToCells(',a;"x<`:]'), { '⠈⠱': 'modifier.tilde.simple' });
   const tree = parseMathML(document.mathml);

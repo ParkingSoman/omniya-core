@@ -1324,6 +1324,38 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     }
     braille = braille.replace(/(⠘[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠀/, `$1⠀${cells}⠀`);
   }
+  // Rule 14.8.7: a level-preserving indicator before equals inside a script
+  // must survive the blank. SRE emits bare ⠨⠅; restore stamped or structural
+  // level cells.
+  for (const equals of sourceNodes('[data-omniya-nemeth-intent="level-preserved-equals"]')) {
+    const cells = equals.getAttribute('data-omniya-nemeth-cells');
+    if (!cells || braille.includes(cells)) continue;
+    if (cells.endsWith('⠨⠅') && /⠀⠨⠅/.test(braille)) {
+      braille = braille.replace(/⠀⠨⠅/, `⠀${cells}`);
+    }
+  }
+  for (const equals of [...(sourceMath.getElementsByTagName?.('mo') ?? [])]) {
+    const cells = equals.getAttribute?.('data-omniya-nemeth-cells') || '';
+    const text = equals.textContent ?? '';
+    if (text !== '=' && cells !== '⠨⠅') continue;
+    if (equals.getAttribute?.('data-omniya-nemeth-intent') === 'level-preserved-equals') continue;
+    let prev = equals.previousSibling;
+    while (prev && prev.nodeType !== 1) prev = prev.previousSibling;
+    if (prev?.localName !== 'mspace' && prev?.nodeName !== 'mspace'
+      && prev?.getAttribute?.('data-omniya-nemeth-intent') !== 'explicit-space') continue;
+    let scriptKind = null;
+    let parent = equals.parentNode;
+    while (parent) {
+      if (parent.localName === 'msub' || parent.nodeName === 'msub') { scriptKind = 'sub'; break; }
+      if (parent.localName === 'msup' || parent.nodeName === 'msup') { scriptKind = 'sup'; break; }
+      if (parent.localName === 'math' || parent.nodeName === 'math') break;
+      parent = parent.parentNode;
+    }
+    if (!scriptKind) continue;
+    const indicator = scriptKind === 'sub' ? '⠰' : '⠘';
+    if (braille.includes(`⠀${indicator}⠨⠅`)) continue;
+    if (/⠀⠨⠅/.test(braille)) braille = braille.replace(/⠀⠨⠅/, `⠀${indicator}⠨⠅`);
+  }
   // An explicit mathematical blank already returns to the baseline. SRE may
   // still announce a script-return cell before the following plus.
   if (sourceMath.querySelector?.('msup') && sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')) {
