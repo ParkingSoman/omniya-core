@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T19:35:31.467Z",
+  "startedAt": "2026-08-14T20:27:19.139Z",
   "filter": {
     "rule": null,
     "example": "21-6"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-MGgDip",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-a2t27F",
   "cases": [
     {
       "id": "electron:bana-2022:example-21-6",
@@ -26,7 +26,7 @@
         "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-21-6/electron_bana-2022_example-21-6-input.png",
         "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
       },
-      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Choose the meaning for this local Nemeth code.\",\"input\":\"\",\"choices\":[\"operator.equals\",\"greek.κ\"],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-ace48f3e-2edc-4b7c-afed-a13f5f944ae5\\\" data-semantic-structure=\\\"0\\\"><mo data-omniya-nemeth-cells=\\\"⠌⠨⠂\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-8bb81b49-283c-4e22-9d15-b5e3f29ed18b\\\" data-semantic-type=\\\"relation\\\" data-semantic-role=\\\"inequality\\\" data-semantic-annotation=\\\"nemeth:number;depth:1\\\" data-semantic-id=\\\"0\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\">≯</mo></math>\"}"
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('#replacement-dock') to be hidden\n    14 × locator resolved to visible <section id=\"replacement-dock\" aria-labelledby=\"replacement-heading\">…</section>\n; replacement diagnostic={\"status\":\"Choose the meaning for this local Nemeth code.\",\"input\":\"\",\"choices\":[\"operator.equals\",\"greek.κ\"],\"submitDisabled\":false,\"math\":\"<math xmlns=\\\"http://www.w3.org/1998/Math/MathML\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-1b87dd8c-1dc2-40cf-b853-1726fa6cc2d3\\\" data-semantic-structure=\\\"0\\\"><mo data-omniya-nemeth-cells=\\\"⠌⠨⠂\\\" data-omniya-=\\\"\\\" id=\\\"omniya-source-omniya-4fabccb6-756c-4480-a087-2189d055e0f0\\\" data-semantic-type=\\\"relation\\\" data-semantic-role=\\\"inequality\\\" data-semantic-annotation=\\\"nemeth:number;depth:1\\\" data-semantic-id=\\\"0\\\" data-semantic-level-number=\\\"0\\\" data-speech-node=\\\"true\\\">≯</mo></math>\"}"
     }
   ]
 }
