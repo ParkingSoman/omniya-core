@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T16:27:25.241Z",
+  "filter": {
+    "rule": null,
+    "example": "15-19"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Q8nqyE",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-15-19",
+      "sourceRows": [
+        "example-15-19",
+        "15.2.2"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "error": "cell 7 ⠁ rejected: That Nemeth cell is not valid at this draft focus.; prefix=; choices="
+    }
+  ]
+}
