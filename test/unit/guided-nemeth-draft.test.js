@@ -1899,3 +1899,135 @@ test('Rule 8.3 apostrophe-capital English letter is one identifier', () => {
   assert.equal(english.children[0].text, 'J');
   assert.equal(english.attrs['data-omniya-nemeth-cells'], '⠠⠄⠠⠚');
 });
+
+function countNodes(node, name) {
+  let count = node?.name === name ? 1 : 0;
+  for (const child of node?.children ?? []) count += countNodes(child, name);
+  return count;
+}
+
+function findFirst(node, predicate) {
+  if (predicate(node)) return node;
+  for (const child of node?.children ?? []) {
+    const found = findFirst(child, predicate);
+    if (found) return found;
+  }
+  return null;
+}
+
+test('Rule 7.2 italic typeform number at an empty root is not the Rule 20.3 operator', () => {
+  const italic = replayCells(sourceNotationToCells('.#3.5'));
+  const italicTree = parseMathML(italic.document.mathml);
+  assert.equal(completionReport(italicTree).complete, true);
+  assert.equal(italicTree.children[0].name, 'mn');
+  assert.equal(italicTree.children[0].children[0].text, '3.5');
+  assert.equal(italicTree.children[0].attrs.mathvariant, 'italic');
+
+  const mixed = replayCells(sourceNotationToCells('.#43#56'));
+  const mixedTree = parseMathML(mixed.document.mathml);
+  assert.equal(completionReport(mixedTree).complete, true);
+  assert.equal(mixedTree.children[0].name, 'mn');
+  assert.equal(mixedTree.children[0].children[0].text, '43');
+  assert.equal(mixedTree.children[0].attrs.mathvariant, 'italic');
+  assert.equal(mixedTree.children[1].name, 'mn');
+  assert.equal(mixedTree.children[1].children[0].text, '56');
+  assert.notEqual(mixedTree.children[1].attrs?.mathvariant, 'italic');
+
+  const chained = replayCells(sourceNotationToCells('.#3_#4`#5'));
+  const chainedTree = parseMathML(chained.document.mathml);
+  assert.equal(completionReport(chainedTree).complete, true);
+  assert.equal(chainedTree.children.map((node) => node.children[0].text).join(''), '345');
+  assert.equal(chainedTree.children[0].attrs.mathvariant, 'italic');
+  assert.equal(chainedTree.children[1].attrs.mathvariant, 'bold');
+  assert.equal(chainedTree.children[2].attrs.mathvariant, 'script');
+});
+
+test('Rule 13 simple fraction after an identifier or numeral is a sibling, not a wrap', () => {
+  const afterLetter = replayCells(sourceNotationToCells('x?3/8#'));
+  const letterTree = parseMathML(afterLetter.document.mathml);
+  assert.equal(completionReport(letterTree).complete, true, `holes=${completionReport(letterTree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(letterTree.children[0].name, 'mi');
+  assert.equal(letterTree.children[0].children[0].text, 'x');
+  assert.equal(letterTree.children[1].name, 'mfrac');
+  assert.equal(letterTree.children[1].children[0].children[0].text, '3');
+  assert.equal(letterTree.children[1].children[1].children[0].text, '8');
+
+  const afterNumber = replayCells(sourceNotationToCells('#3?1/y#'));
+  const numberTree = parseMathML(afterNumber.document.mathml);
+  assert.equal(completionReport(numberTree).complete, true, `holes=${completionReport(numberTree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(numberTree.children[0].name, 'mn');
+  assert.equal(numberTree.children[0].children[0].text, '3');
+  assert.equal(numberTree.children[1].name, 'mfrac');
+  assert.equal(numberTree.children[1].children[0].children[0].text, '1');
+  assert.equal(numberTree.children[1].children[1].children[0].text, 'y');
+});
+
+test('Rule 3.3 space after a superscripted numerator stays inside the simple fraction', () => {
+  const { document } = replayCells(sourceNotationToCells('?sin~2 x/cos #2x#'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const fraction = findFirst(tree, (node) => node.name === 'mfrac');
+  assert.ok(fraction);
+  const numeratorText = [];
+  const visit = (node) => {
+    if (node?.text) numeratorText.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(fraction.children[0]);
+  assert.equal(numeratorText.includes('x'), true);
+  const denominatorText = [];
+  const visitDen = (node) => {
+    if (node?.text) denominatorText.push(node.text);
+    for (const child of node?.children ?? []) visitDen(child);
+  };
+  visitDen(fraction.children[1]);
+  assert.equal(denominatorText.join('').includes('cos'), true);
+});
+
+test('Rule 13.2 diagonal line inside an open simple fraction is the fraction line', () => {
+  const { document } = replayCells(sourceNotationToCells('?a+b_/c+d#'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(countNodes(tree, 'mfrac'), 1);
+  const fraction = findFirst(tree, (node) => node.name === 'mfrac');
+  assert.equal(fraction.attrs['data-omniya-fraction-kind'], 'simple');
+});
+
+test('Rule 3.6 letters after a numeric indicator are digits, not a rejected function prefix', () => {
+  const hex = replayCells(sourceNotationToCells('#t2e4'));
+  const hexTree = parseMathML(hex.document.mathml);
+  assert.equal(completionReport(hexTree).complete, true);
+  assert.equal(hexTree.children[0].name, 'mn');
+  assert.equal(hexTree.children[0].children[0].text, 't2e4');
+
+  const dotted = replayCells(sourceNotationToCells('#3t.t8'));
+  const dottedTree = parseMathML(dotted.document.mathml);
+  assert.equal(completionReport(dottedTree).complete, true);
+  assert.equal(dottedTree.children[0].name, 'mn');
+  assert.equal(dottedTree.children[0].children[0].text, '3t.t8');
+
+  const coefficient = replayCells(sourceNotationToCells('#2sin'));
+  const coefficientTree = parseMathML(coefficient.document.mathml);
+  assert.equal(completionReport(coefficientTree).complete, true);
+  assert.equal(coefficientTree.children[0].children[0].text, '2');
+  assert.equal(coefficientTree.children[1].attrs?.['data-omniya-nemeth-intent'], 'function-name');
+  assert.equal(coefficientTree.children[1].children[0].text, 'sin');
+});
+
+test('Rule 8 punctuation after a numeric item is colon or question, not a modifier', () => {
+  const colon = replayCells(sourceNotationToCells('#2_3#30'));
+  const colonTree = parseMathML(colon.document.mathml);
+  assert.equal(completionReport(colonTree).complete, true);
+  const colonNode = findFirst(colonTree, (node) => node.name === 'mo' && node.children?.[0]?.text === ':');
+  assert.ok(colonNode);
+  assert.equal(colonNode.attrs['data-omniya-nemeth-cells'], '⠸⠒');
+
+  const question = replayCells(sourceNotationToCells('?1/2#_8'));
+  const questionTree = parseMathML(question.document.mathml);
+  assert.equal(completionReport(questionTree).complete, true);
+  assert.equal(countNodes(questionTree, 'mover'), 0);
+  const mark = findFirst(questionTree, (node) => node.name === 'mo' && node.children?.[0]?.text === '?');
+  assert.ok(mark);
+  assert.equal(mark.attrs['data-omniya-nemeth-cells'], '⠸⠦');
+});

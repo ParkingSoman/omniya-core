@@ -628,6 +628,13 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // the number sign belonging to an earlier ordinary decimal item.
     braille = braille.replace(/⠬⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/g, '⠬');
     braille = braille.replace(/⠨⠌⠼(?=⠂|⠆|⠒|⠲|⠢|⠔|⠦|⠖|⠶|⠴)/g, '⠨⠌');
+    // Enclosed lists and grouped continuations omit the number sign after an
+    // open fence or punctuation comma. Grouped thousands also omit it after a
+    // digit+blank when the next atom is lower-cell; letter/equals blanks keep
+    // `⠼`, and hyphen+blank divided long numbers keep `⠼` as well.
+    braille = braille.replace(/⠷⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠷');
+    braille = braille.replace(/⠠⠀⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠠⠀');
+    braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠀⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1⠀');
     // Rule 19.10 nests lower-cell numerals inside enlarged grouping signs
     // and ends the group immediately before division. MathJax enriches those
     // isolated numbers as ordinary <mn> nodes and moves the prefixed close
@@ -2023,6 +2030,27 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         String(node.textContent ?? '').trim() === '20' && node.parentElement?.localName !== 'msup');
     if (degreeWithFollowingNumber && !value.includes('⠘⠨⠡⠐⠆⠴')) {
       value = value.replace('⠘⠨⠡⠆⠴', '⠘⠨⠡⠐⠆⠴');
+    }
+    // SRE may project an indicated colon as digit 3. Restore only when the
+    // source stamped colon cells and the digit sits before a following number.
+    const colonCount = sourceNodes('mo[data-omniya-nemeth-cells="⠸⠒"]').length
+      || sourceNodes('[data-omniya-nemeth-intent="punctuation-colon"]').length;
+    let colonsNeeded = colonCount - [...value.matchAll(/⠸⠒/g)].length;
+    if (colonsNeeded > 0) {
+      value = value.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠒(?=⠼)/g, (match, digit) => {
+        if (colonsNeeded <= 0) return match;
+        colonsNeeded -= 1;
+        return `${digit}⠸⠒`;
+      });
+    }
+    // Italic typeform numbers keep `⠨⠼` on the source atom. SRE often emits
+    // an ordinary number sign; restore only the authored typeform prefix.
+    for (const node of sourceNodes('[data-omniya-nemeth-intent="typeform-italic-number"]')) {
+      const cells = node.getAttribute?.('data-omniya-nemeth-cells');
+      if (!cells?.startsWith('⠨⠼') || value.includes(cells)) continue;
+      const rest = cells.slice(2);
+      if (rest && value.includes(`⠼${rest}`)) value = value.replace(`⠼${rest}`, cells);
+      else if (rest && value.includes(rest)) value = value.replace(rest, cells);
     }
     const englishCells = [...sourceMath.querySelectorAll('[data-omniya-nemeth-intent="english-letter"][data-omniya-nemeth-cells]')]
       .map((node) => node.getAttribute('data-omniya-nemeth-cells')).filter(Boolean);

@@ -10,7 +10,8 @@ import {
   createEmptyDraftMathDocument,
   inputRegistry,
   operationRegistry,
-  registryDiagnostics
+  registryDiagnostics,
+  sourceNotationToCells
 } from '../../src/domain/guided-nemeth/index.js';
 
 // These cells are independently checked against BANA Appendix D and the
@@ -304,10 +305,52 @@ test('Rules 20, 21, and 23 table literals remain independently source-linked', (
     const entry = registry.get(id);
     assert.ok(entry, id);
     assert.equal(entry.cells.join(''), cells, id);
-    const tree = applyFixture(id, cells);
+    // Rule 20.3's number-sign shares `.#' with italic typeform numbers. At an
+    // empty root the typeform wins; seed a numeral so the operator remains
+    // independently reachable in its BANA context (`#2.##3`).
+    let document = createEmptyDraftMathDocument();
+    let focus = document.focus;
+    let inputState = { prefix: '', mode: null };
+    if (id === 'operator.number-sign') {
+      for (const cell of sourceNotationToCells('#2')) {
+        let result = applyNemethCell({ document, focus, inputState, cell });
+        assert.notEqual(result.status, 'rejected', `${id} seed: ${result.announcement}`);
+        ({ document, focus, inputState } = result);
+      }
+    }
+    const tree = applyFixtureFrom(document, focus, inputState, id, cells);
     assert.equal(tree.children.at(-1)?.children?.[0]?.text, expected, id);
   }
 });
+
+function applyFixtureFrom(document, focus, inputState, id, cells) {
+  const registryEntry = operationRegistry().find((entry) => entry.id === id);
+  if (registryEntry?.commitPolicy === 'atomic-sequence' && cells.length > 1) {
+    inputState = { ...inputState, prefix: [...cells].slice(0, -1).join('') };
+    cells = cells.slice(-1);
+  }
+  for (const cell of [...cells]) {
+    let result = applyNemethCell({ document, focus, inputState, cell });
+    if (result.status === 'choice') {
+      const choice = result.choices.find((entry) => entry.operationId === id);
+      assert.ok(choice, `${id} did not expose its BANA mapping choice`);
+      result = applyNemethChoice({
+        document,
+        focus,
+        inputState: result.inputState,
+        operationId: choice.operationId
+      });
+    }
+    assert.notEqual(result.status, 'rejected', `${id}: ${result.announcement}`);
+    ({ document, focus, inputState } = result);
+  }
+  if (inputState.prefix) {
+    const choice = applyNemethChoice({ document, focus, inputState, operationId: id });
+    assert.notEqual(choice.status, 'rejected', `${id}: ${choice.announcement}`);
+    ({ document, focus, inputState } = choice);
+  }
+  return parseMathML(document.mathml);
+}
 
 test('BANA Rule 20.9 tilde operation is distinct from the comparison tilde by local focus context', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));

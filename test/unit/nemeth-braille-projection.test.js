@@ -800,3 +800,47 @@ test('Rule 23 restores a displaced integral close before dx and a following equa
     '⠣⠮⠰⠁⠘⠃⠐⠋⠷⠭⠾⠙⠭⠀⠨⠅⠀⠼⠴'
   );
 });
+
+test('enclosed-list lower-cell numerals omit the number sign after a fence or comma', () => {
+  const afterFence = new DOMParser().parseFromString(
+    '<math><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">0</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mo data-omniya-nemeth-cells="⠨⠅">=</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠷⠼⠴⠀⠨⠅⠀⠭⠾', afterFence), '⠷⠴⠀⠨⠅⠀⠭⠾');
+
+  const afterComma = new DOMParser().parseFromString(
+    '<math><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mi data-omniya-nemeth-cells="⠁">a</mi><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mi data-omniya-nemeth-cells="⠃">b</mi><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠷⠁⠠⠀⠼⠆⠭⠠⠀⠃⠾', afterComma), '⠷⠁⠠⠀⠆⠭⠠⠀⠃⠾');
+});
+
+test('grouped lower-cell numbers omit a later number sign, but divided long numbers keep it', () => {
+  const grouped = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">149</mn><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="lower-cell-numeric">600</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠂⠲⠔⠀⠼⠖⠴⠴', grouped), '⠼⠂⠲⠔⠀⠖⠴⠴');
+
+  const divided = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">76</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mspace data-omniya-nemeth-intent="explicit-space"/><mn data-omniya-nemeth-intent="numeric-start">543</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠶⠖⠤⠀⠼⠢⠲⠒', divided), '⠼⠶⠖⠤⠀⠼⠢⠲⠒');
+});
+
+test('Rule 8 colon cells are restored when SRE emits a digit 3', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn data-omniya-nemeth-intent="numeric-start">2</mn><mo data-omniya-nemeth-cells="⠸⠒">:</mo><mn data-omniya-nemeth-intent="numeric-start">30</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠆⠒⠼⠒⠴', source), '⠼⠆⠸⠒⠼⠒⠴');
+});
+
+test('Rule 7.2 italic typeform number cells are restored when SRE omits the typeform prefix', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mn mathvariant="italic" data-omniya-nemeth-intent="typeform-italic-number" data-omniya-nemeth-cells="⠨⠼⠒⠨⠢">3.5</mn></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠼⠒⠨⠢', source), '⠨⠼⠒⠨⠢');
+});

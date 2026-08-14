@@ -3124,20 +3124,30 @@ function mappingApplies(mapping, context) {
     ['superscript', 'subscript', 'left-superscript', 'left-subscript'].includes(context.node.attrs?.['data-omniya-role'])) {
     return false;
   }
-  // Typeform number modes start a fresh numeric passage. After an existing
+  // Typeform number modes start a fresh numeric passage. After an ordinary
   // identifier or numeral they yield to the shared Rule 20 operation rows
-  // (`⠈⠼` asterisk, `⠨⠼` number-sign).
+  // (`⠈⠼` asterisk, `⠨⠼` number-sign). After an existing typeform numeral,
+  // another typeform number mode may begin (`.#3_#4`#5`).
   if ((mapping.id === 'typeform.script.number' || mapping.id === 'typeform.italic.number') &&
     (context.node.name === 'mi' || context.node.name === 'mn')) {
+    if (TYPEFORM_NUMBER_PREFIXES[context.node.attrs?.mathvariant]) return true;
     return false;
   }
   // At an empty root, hole, or authored blank, `.#` is Rule 7.2's italic
-  // numeric typeform. Rule 20.3's number-sign follows an existing atom.
+  // numeric typeform. Rule 20.3's number-sign follows an ordinary atom.
+  // After a typeform numeral the same cells continue the decimal passage.
   if (mapping.id === 'operator.number-sign') {
     if ((context.node.name === 'math' && !(context.node.children?.length > 0)) ||
-      isHole(context.node) || context.node.name === 'mspace') {
+      isHole(context.node) || context.node.name === 'mspace' ||
+      TYPEFORM_NUMBER_PREFIXES[context.node.attrs?.mathvariant]) {
       return false;
     }
+  }
+  // After a typeform numeral, `` `# `` is the next typeform number mode, not
+  // Rule 20.3's asterisk.
+  if ((mapping.id === 'operator.asterisk' || mapping.id === 'reference.asterisk') &&
+    TYPEFORM_NUMBER_PREFIXES[context.node.attrs?.mathvariant]) {
+    return false;
   }
   // After a hex-style numeric atom, `.t` is a decimal plus digit, not theta.
   if (mapping.id.startsWith('greek.') && context.node.name === 'mn') {
@@ -3266,8 +3276,17 @@ const TREE_OPERATIONS = Object.freeze({
     if (['.', ','].includes(args.value) && !inputState.mode?.startsWith?.('numeric') && node.name === 'mn') {
       return insertToken(tree, focus, 'mo', args.value, { dataAttributes: args.dataAttributes ?? {} });
     }
-    if (node.name === 'mn' && node.children?.length === 1) {
-      return insertNumeric(tree, focus, args.value, { mathvariant: numericVariant, dataAttributes: args.dataAttributes ?? {} });
+    // A fresh number indicator or typeform numeral after a different typeform
+    // atom starts a sibling numeric item (`.#43#56`, `.#3_#4`#5`), not an
+    // extension of the previous typeform atom.
+    const startNewNumericItem = node.name === 'mn' && node.children?.length === 1
+      && Boolean(TYPEFORM_NUMBER_PREFIXES[node.attrs?.mathvariant])
+      && node.attrs?.mathvariant !== numericVariant
+      && (args.dataAttributes?.['data-omniya-nemeth-intent'] === 'numeric-start' || Boolean(numericVariant));
+    if (node.name === 'mn' && node.children?.length === 1 && !startNewNumericItem) {
+      const extended = insertNumeric(tree, focus, args.value, { mathvariant: numericVariant, dataAttributes: args.dataAttributes ?? {} });
+      stampTypeformNumber(currentNode(extended.tree, extended.focus));
+      return extended;
     }
     const inserted = atom('mn', args.value, {
       ...(numericVariant ? { mathvariant: numericVariant } : {}),
@@ -3276,12 +3295,19 @@ const TREE_OPERATIONS = Object.freeze({
       ...(args.dataAttributes ?? {}),
       ...(['signed-numeric', 'signed-numeric-indicator'].includes(inputState.mode) ? { 'data-omniya-nemeth-intent': 'signed-numeric-indicator' } : {})
     });
-    const target = (node.name === 'math' && node.children.length === 0) || isHole(node)
-      ? replaceCurrent(tree, focus, inserted)
-      : insertAfter(tree, focus, inserted);
+    stampTypeformNumber(inserted);
+    const target = startNewNumericItem
+      ? insertAfter(tree, focus, inserted)
+      : ((node.name === 'math' && node.children.length === 0) || isHole(node)
+        ? replaceCurrent(tree, focus, inserted)
+        : insertAfter(tree, focus, inserted));
     return { tree, focus: focusNode(target) };
   },
-  'insert-numeric-decimal': ({ tree, focus, args }) => insertNumericDecimal(tree, focus, args.value, args.dataAttributes ?? {}),
+  'insert-numeric-decimal': ({ tree, focus, args }) => {
+    const result = insertNumericDecimal(tree, focus, args.value, args.dataAttributes ?? {});
+    stampTypeformNumber(currentNode(result.tree, result.focus));
+    return result;
+  },
   'insert-decimal-nonnumeric': ({ tree, focus, args }) => insertDecimalNonnumeric(tree, focus, args.value, args.dataAttributes ?? {}),
   'insert-composite': ({ tree, focus, args }) => insertComposite(tree, focus, args.parts, args.dataAttributes),
   'open-left-script': ({ tree, focus, args }) => openLeftScript(tree, focus, args.direction),
@@ -3324,7 +3350,10 @@ const TREE_OPERATIONS = Object.freeze({
       if (punctuated) return punctuated;
     }
     if (args.element === 'mfrac' && node.name !== 'math' && !isHole(node) &&
+      args.attrs?.bevelled !== true && args.attrs?.bevelled !== 'true' &&
       (findMathParent(tree, node.attrs?.['data-omniya-id'])?.name === 'mrow' ||
+        findMathParent(tree, node.attrs?.['data-omniya-id'])?.name === 'math' ||
+        ['mi', 'mn', 'mo', 'mtext'].includes(node.name) ||
         (args.attrs?.['data-omniya-fraction-kind'] === 'mixed' && node.name === 'mn'))) {
       const wrapper = element(args.element, [], args.attrs ?? {});
       for (const role of args.slots ?? []) wrapper.children.push(hole(wrapper, role));
@@ -3465,6 +3494,18 @@ const TREE_OPERATIONS = Object.freeze({
         // focus stayed on the msup, a following radical opener could be
         // interpreted as its exponent, corrupting nested-root structure.
         return { tree, focus: focusNode(row) };
+      }
+      // A lone scripted numerator/denominator must remain inside that fraction
+      // slot after baseline return. Promote the script to an mrow so a blank
+      // or following identifier stays in the same slot rather than becoming a
+      // sibling of the whole fraction.
+      if (script && scriptParent?.name === 'mfrac') {
+        const index = scriptParent.children.indexOf(script);
+        if (index >= 0) {
+          const row = element('mrow', [script]);
+          scriptParent.children[index] = row;
+          return { tree, focus: focusNode(row) };
+        }
       }
       const promoted = promoteScriptToPrescript(tree, focus, script?.name === 'msub' ? 'sub' : 'sup');
       if (promoted) return promoted;
@@ -4217,7 +4258,7 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       if (replay.status !== 'rejected') return replay;
     }
   }
-  if (state.prefix && (normalized === '⠨' || normalized === '⠠') && [...state.prefix].every((prefixCell) =>
+  if (state.mode !== 'numeric-function-prefix' && state.prefix && (normalized === '⠨' || normalized === '⠠') && [...state.prefix].every((prefixCell) =>
     (PREFIXES.get(prefixCell)?.mappings ?? []).some((mapping) => mapping.commitPolicy === LOCAL_COMMIT_POLICIES.IMMEDIATE && mappingApplies(mapping, context))) &&
     !(PREFIXES.get(state.prefix)?.mappings ?? []).some((mapping) =>
       mapping.commitPolicy === LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE && mappingApplies(mapping, context)) &&
@@ -4789,10 +4830,6 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       }
     }
     const current = contextFor(document, focus);
-    if (current.node.name !== 'mn') return {
-      status: 'rejected', document, focus, inputState: state,
-      announcement: 'That local function prefix is invalid at this numeric focus.'
-    };
     let fallbackTree = current.tree;
     let fallbackFocus = focus;
     for (const prefixCell of [...state.prefix]) {
@@ -4801,7 +4838,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         status: 'rejected', document, focus, inputState: state,
         announcement: 'That local numeric/function prefix is invalid.'
       };
-      const inserted = insertBaseDigit(fallbackTree, fallbackFocus, letter);
+      const inserted = insertBaseDigit(
+        fallbackTree,
+        fallbackFocus,
+        letter,
+        current.node.name === 'mn' ? {} : { 'data-omniya-nemeth-intent': 'numeric-start' }
+      );
       fallbackTree = inserted.tree;
       fallbackFocus = inserted.focus;
     }
@@ -5021,12 +5063,15 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       return applyMapping(document, focus, { ...state, prefix: '', mode: null }, nonnumeric[0]);
     }
     const decimal = numericPunctuationMapping('⠨', '.', '3.2.3');
-    const committed = applyMapping(document, focus, { ...state, prefix: '', mode: 'numeric' }, decimal);
+    const decimalMode = state.mode?.startsWith?.('numeric:') ? state.mode : 'numeric';
+    const committed = applyMapping(document, focus, { ...state, prefix: '', mode: decimalMode }, decimal);
     if (committed.status !== 'rejected') {
       return applyNemethCell({
         document: committed.document,
         focus: committed.focus,
-        inputState: committed.inputState,
+        inputState: committed.inputState.mode?.startsWith?.('numeric')
+          ? committed.inputState
+          : { ...committed.inputState, mode: decimalMode },
         cell: normalized
       });
     }
@@ -5126,9 +5171,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       };
     }
   }
-  if (state.mode?.startsWith?.('numeric') && state.prefix === '⠸' && normalized === '⠲') {
-    const punctuation = MAPPINGS.find((mapping) => mapping.id === 'punctuation.period');
-    if (punctuation) return applyMapping(document, focus, { ...state, prefix: '', mode: null }, punctuation);
+  if (state.mode?.startsWith?.('numeric') && state.prefix === '⠸') {
+    const punctuation = MATCHABLE_MAPPINGS.filter((mapping) =>
+      mapping.id.startsWith('punctuation.') &&
+      mapping.cells.length === 2 &&
+      mapping.cells[0] === '⠸' &&
+      mapping.cells[1] === normalized &&
+      mappingApplies(mapping, context));
+    if (punctuation.length === 1) {
+      return applyMapping(document, focus, { ...state, prefix: '', mode: null }, punctuation[0]);
+    }
   }
   if (state.mode === 'signed-numeric-indicator' && !state.prefix) {
     if (DIGITS.has(normalized)) {
