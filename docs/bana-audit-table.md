@@ -4,7 +4,7 @@ Normative source: [BANA Nemeth Code 2022](https://www.brailleauthority.org/sites
 
 This is the contributor-facing source of truth. It is generated from the sequential ledger, not hand-written. Every row is one provision, official example, symbol-table entry, appendix item, or erratum. `open` means engineering or evidence is still required; it is not an unsupported claim.
 
-Total ledger rows: **1846**. Applicable rows: **1549**. Implemented disposition: **1549**.
+Total ledger rows: **1846**. Applicable rows: **1548**. Implemented disposition: **1548**.
 
 ## Rule index and totals
 
@@ -14,32 +14,32 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | [Rule 1](#rule-1) | General provisions | 17 | 17 | 17 | 0 | 0 | 0 | 0 | 0 | 17 |
 | [Rule 2](#rule-2) | Nemeth/UEB boundaries and indicators | 2 | 2 | 2 | 0 | 1 | 0 | 0 | 0 | 2 |
-| [Rule 3](#rule-3) | Numbers and arithmetic | 155 | 152 | 152 | 74 | 74 | 24 | 24 | 24 | 27 |
-| [Rule 4](#rule-4) | Fractions and numeric context | 116 | 114 | 114 | 3 | 5 | 0 | 0 | 0 | 44 |
+| [Rule 3](#rule-3) | Numbers and arithmetic | 155 | 151 | 151 | 73 | 73 | 24 | 24 | 24 | 24 |
+| [Rule 4](#rule-4) | Fractions and numeric context | 116 | 114 | 114 | 3 | 5 | 0 | 0 | 0 | 42 |
 | [Rule 5](#rule-5) | Letters and capitalization | 14 | 14 | 14 | 4 | 6 | 10 | 10 | 10 | 10 |
 | [Rule 6](#rule-6) | Alphabets and special letterforms | 85 | 85 | 85 | 80 | 82 | 13 | 13 | 13 | 5 |
 | [Rule 7](#rule-7) | Typeforms | 45 | 45 | 45 | 29 | 29 | 2 | 2 | 2 | 11 |
-| [Rule 8](#rule-8) | Punctuation | 104 | 101 | 101 | 83 | 84 | 0 | 0 | 0 | 8 |
-| [Rule 9](#rule-9) | Reference symbols | 16 | 15 | 15 | 7 | 7 | 11 | 11 | 11 | 5 |
-| [Rule 10](#rule-10) | Abbreviations | 72 | 67 | 67 | 23 | 23 | 12 | 12 | 12 | 15 |
+| [Rule 8](#rule-8) | Punctuation | 104 | 101 | 101 | 83 | 84 | 0 | 0 | 0 | 5 |
+| [Rule 9](#rule-9) | Reference symbols | 16 | 15 | 15 | 7 | 7 | 11 | 11 | 11 | 4 |
+| [Rule 10](#rule-10) | Abbreviations | 72 | 67 | 67 | 23 | 23 | 12 | 12 | 12 | 10 |
 | [Rule 11](#rule-11) | Omissions | 34 | 34 | 34 | 12 | 12 | 0 | 0 | 0 | 7 |
 | [Rule 12](#rule-12) | Cancellation | 9 | 9 | 9 | 6 | 6 | 1 | 1 | 1 | 2 |
 | [Rule 13](#rule-13) | Fractions | 62 | 62 | 62 | 36 | 36 | 1 | 1 | 1 | 11 |
 | [Rule 14](#rule-14) | Superscripts and subscripts | 181 | 179 | 179 | 158 | 158 | 3 | 3 | 3 | 21 |
 | [Rule 15](#rule-15) | Modifiers | 116 | 116 | 116 | 104 | 104 | 1 | 1 | 1 | 5 |
 | [Rule 16](#rule-16) | Radicals | 22 | 22 | 22 | 22 | 22 | 2 | 2 | 2 | 0 |
-| [Rule 17](#rule-17) | Shapes | 83 | 82 | 82 | 61 | 61 | 79 | 79 | 79 | 7 |
-| [Rule 18](#rule-18) | Function names | 30 | 29 | 29 | 27 | 28 | 2 | 2 | 2 | 2 |
-| [Rule 19](#rule-19) | Grouping signs | 60 | 45 | 45 | 40 | 45 | 11 | 11 | 11 | 10 |
-| [Rule 20](#rule-20) | Operators | 64 | 63 | 63 | 63 | 63 | 1 | 1 | 1 | 1 |
+| [Rule 17](#rule-17) | Shapes | 83 | 82 | 82 | 61 | 61 | 79 | 79 | 79 | 6 |
+| [Rule 18](#rule-18) | Function names | 30 | 29 | 29 | 27 | 27 | 2 | 2 | 2 | 2 |
+| [Rule 19](#rule-19) | Grouping signs | 60 | 45 | 45 | 40 | 45 | 11 | 11 | 11 | 5 |
+| [Rule 20](#rule-20) | Operators | 64 | 63 | 63 | 63 | 63 | 1 | 1 | 1 | 0 |
 | [Rule 21](#rule-21) | Comparisons | 54 | 54 | 54 | 52 | 52 | 1 | 1 | 1 | 2 |
 | [Rule 22](#rule-22) | Arrows | 67 | 67 | 67 | 65 | 65 | 2 | 0 | 0 | 2 |
 | [Rule 23](#rule-23) | Special symbols | 81 | 81 | 81 | 80 | 80 | 2 | 2 | 2 | 1 |
 | [Rule 24](#rule-24) | Multipurpose indicator | 27 | 27 | 27 | 26 | 26 | 0 | 0 | 0 | 1 |
-| [Rule 25](#rule-25) | Spatial arrangements | 131 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 49 |
-| [Rule 26](#rule-26) | Document formatting | 131 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 50 |
+| [Rule 25](#rule-25) | Spatial arrangements | 131 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| [Rule 26](#rule-26) | Document formatting | 131 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | [Rule 27](#rule-27) | Other | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
-| [Rule 32](#rule-32) | Other | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
+| [Rule 32](#rule-32) | Other | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | [Rule Appendix A](#rule-Appendix A) | Other | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
 | [Rule Appendix B](#rule-Appendix B) | Other | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
 | [Rule Appendix C](#rule-Appendix C) | Other | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
@@ -69,7 +69,7 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | 17 | <a id="rule-2"></a>Rule 2: Nemeth/UEB boundaries and indicators | [2.1](bana-coverage.json#bana-2022-2-1) | Concept of Braille Indicators | 2-5 | — | immediate | implemented-context-policy | `space` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | pass |
 | 18 | <a id="rule-3"></a>Rule 3: Numbers and arithmetic | [3.1](bana-coverage.json#bana-2022-3-1) | Representation of Arabic Numerals | 3-1 | — | immediate | implemented-operation | `indicator.number` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
 | 19 | Rule 3: Numbers and arithmetic | [3.1.1](bana-coverage.json#bana-2022-3-1-1) | Use of UEB Numerals. The digits in Unified English Braille | 3-1 | — | immediate | implemented-operation | `indicator.number` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
-| 20 | Rule 3: Numbers and arithmetic | [example-3-1](bana-coverage.json#bana-2022-example-3-1) | Section Title | 3-1 | — | immediate | implemented-operation | `indicator.number` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
+| 20 | Rule 3: Numbers and arithmetic | [example-3-1](bana-coverage.json#bana-2022-example-3-1) | Section Title | 3-1 | — | — | excluded-document-format | —  | — | — | — | — | — | excluded |
 | 21 | Rule 3: Numbers and arithmetic | [3.1.2](bana-coverage.json#bana-2022-3-1-2) | Nemeth Numerals. The digits in the Nemeth Code are | 3-1 | — | immediate | implemented-operation | `indicator.number` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (2) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (1) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) | — | open |
 | 22 | Rule 3: Numbers and arithmetic | [3.2](bana-coverage.json#bana-2022-3-2) | Comma, Decimal Point | 3-1 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
 | 23 | Rule 3: Numbers and arithmetic | [3.2.1](bana-coverage.json#bana-2022-3-2-1) | Variant Forms. Variant forms of the comma and decimal | 3-2 | — | context policy | implemented-context-policy | —  | — | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (2) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (2) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) | — | pass |
@@ -1159,7 +1159,7 @@ This index is the fast audit surface. The row-level table below is canonical: ev
 | 1107 | <a id="rule-18"></a>Rule 18: Function names | [18.1](bana-coverage.json#bana-2022-18-1) | Transcribe in Nemeth Code | 18-2 | — | — | implemented-operation | `function.amp`, `function.antilog`, `function.arc`, `function.arg` +34 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (1) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (1) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) | — | open |
 | 1108 | Rule 18: Function names | [example-18-1](bana-coverage.json#bana-2022-example-18-1) | Function Name | 18-2 | source: `sine x`<br>cells: `⠎⠊⠝⠑⠀⠭` | — | implemented-operation | `function.amp`, `function.antilog`, `function.arc`, `function.arg` +34 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
 | 1109 | Rule 18: Function names | [example-18-2](bana-coverage.json#bana-2022-example-18-2) | Abbreviated Function Name | 18-3 | source: `sin x`<br>cells: `⠎⠊⠝⠀⠭` | — | implemented-operation | `function.amp`, `function.antilog`, `function.arc`, `function.arg` +34 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |
-| 1110 | Rule 18: Function names | [example-18-3](bana-coverage.json#bana-2022-example-18-3) | Function Name in Non-Mathematical Context | 18-3 | — | — | excluded-document-format | `function.amp`, `function.antilog`, `function.arc`, `function.arg` +34 [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | excluded |
+| 1110 | Rule 18: Function names | [example-18-3](bana-coverage.json#bana-2022-example-18-3) | Function Name in Non-Mathematical Context | 18-3 | — | — | excluded-document-format | —  | — | — | — | — | — | excluded |
 | 1111 | Rule 18: Function names | [18.2](bana-coverage.json#bana-2022-18-2) | Numeric Subscripts with Function Names and Their | 18-3 | — | context policy | implemented-context-policy | —  | — | — | — | — | — | pass |
 | 1112 | Rule 18: Function names | [18.3](bana-coverage.json#bana-2022-18-3) | Modifiers with Function Names and Their Abbreviated | 18-3 | — | atomic-sequence | implemented-operation | `function.limit.upper`, `function.limit.lower` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (1) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) (1) | [Electron corpus](../test/e2e/bana-official-corpus.test.js) | — | open |
 | 1113 | Rule 18: Function names | [example-18-4](bana-coverage.json#bana-2022-example-18-4) | Modified Upper Limit Function | 18-3 | source: `"<lim%n $o ,=] f;n"(x)`<br>cells: `⠐⠣⠇⠊⠍⠩⠝⠀⠫⠕⠀⠠⠿⠻⠀⠋⠰⠝⠐⠷⠭⠾` | atomic-sequence | implemented-operation | `function.limit.upper`, `function.limit.lower` [guided transition registry](../src/domain/guided-nemeth/index.js) | [unit coverage](../test/unit/guided-nemeth-bana-mappings.test.js) | — | — | — | — | open |

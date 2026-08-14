@@ -75,14 +75,18 @@ const rows = inventory.rows.map((row) => {
     : null;
   const appendixRefs = row.kind === 'appendix' ? (appendixDRefs.get(ref) ?? []) : [];
   const sourceRefs = sourceRefsFor(row, example);
+  const excludedDocument = row.disposition.startsWith('excluded-') ||
+    row.disposition === 'document-context-exclusion' ||
+    row.disposition === 'superseded-by-errata';
   // Preserve explicit authoritative overlays from the source inventory (for
   // context-sensitive examples whose BANA provision is shared by multiple
   // operations); otherwise derive mappings from source references as usual.
-  const mappingIds = row.mappingIds?.length
-    ? [...row.mappingIds]
-    : registry.filter((mapping) => [...sourceRefs].some((sourceRef) => mapping.banaRefs?.includes(sourceRef)) || appendixRefs.some((sourceRef) => mapping.banaRefs?.includes(sourceRef))).map((mapping) => mapping.id);
+  const mappingIds = excludedDocument
+    ? []
+    : row.mappingIds?.length
+      ? [...row.mappingIds]
+      : registry.filter((mapping) => [...sourceRefs].some((sourceRef) => mapping.banaRefs?.includes(sourceRef)) || appendixRefs.some((sourceRef) => mapping.banaRefs?.includes(sourceRef))).map((mapping) => mapping.id);
   const contextRefs = [...sourceRefs, policyRef];
-  const excludedDocument = row.disposition === 'excluded-document-format' || row.disposition === 'document-context-exclusion';
   const contextPolicyIds = excludedDocument ? [] : contextPolicies.filter((policy) => contextRefs.some((sourceRef) => policy.banaRefs.includes(sourceRef))).map((policy) => policy.id);
   // An official example is not credited merely because its parent provision
   // has a family test. It needs its own Electron case ID. Provision-level
@@ -101,16 +105,20 @@ const rows = inventory.rows.map((row) => {
   // application cannot meaningfully demonstrate. Equation provisions and
   // executable examples retain the full renderer evidence contract.
   const documentContextExample = isExample && ['example-10-15', 'example-10-16', 'example-10-17'].includes(ref);
-  const requiresEquationEvidence = (isExample && !documentContextExample) || mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy');
+  const requiresEquationEvidence = !excludedDocument && ((isExample && !documentContextExample) || mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy'));
   const disposition = row.disposition === 'unclassified' && (mappingIds.length > 0 || contextPolicyIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
       ? (contextPolicyIds.length > 0 && mappingIds.length === 0 || mappings.some((mapping) => mapping.args?.sourceKind === 'context-policy') ? 'implemented-context-policy' : 'implemented-operation')
       : row.disposition;
   for (const field of ['creation', 'editing', 'navigation', 'wholeBraille', 'focusedBraille', 'undoRedo', 'persistence']) {
-    verified[field] = requiresEquationEvidence ? matched.some((entry) => entry[field] === true) : true;
+    verified[field] = excludedDocument
+      ? false
+      : requiresEquationEvidence ? matched.some((entry) => entry[field] === true) : true;
   }
-  verified.visualEvidence = requiresEquationEvidence
-    ? visualSatisfies(visual, matched.some((entry) => entry.editing === true))
-    : true;
+  verified.visualEvidence = excludedDocument
+    ? false
+    : requiresEquationEvidence
+      ? visualSatisfies(visual, matched.some((entry) => entry.editing === true))
+      : true;
   return {
     ...row,
     disposition,

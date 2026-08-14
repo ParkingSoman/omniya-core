@@ -312,6 +312,11 @@ for (const [suffix, mappingIds] of Object.entries(rule21ExampleMappings)) {
 // document-format exclusions rather than claiming a context-policy operation.
 const rule14Example1 = rows.find((row) => row.id === 'bana-2022:example-14-1');
 if (rule14Example1) rule14Example1.disposition = 'excluded-document-format';
+// Example 3-1 demonstrates the printed section-title layout ("Section
+// 1.3.4"), not a standalone mathematical expression. Its extracted source
+// block intentionally has no local Nemeth notation.
+const rule3SectionTitle = rows.find((row) => row.id === 'bana-2022:example-3-1');
+if (rule3SectionTitle) rule3SectionTitle.disposition = 'excluded-document-format';
 const rule17_8 = rows.find((row) => row.id === 'bana-2022:17.8');
 if (rule17_8) rule17_8.disposition = 'excluded-document-format';
 // Rule 19.7–19.9 and Examples 19-36–19-45 are layout/spacing prose and

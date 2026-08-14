@@ -16,7 +16,7 @@
     "examples": 1229,
     "errata": 42,
     "errataInScope": 5,
-    "mappedRows": 1123,
+    "mappedRows": 1121,
     "electronCreationRows": 178,
     "electronEditingRows": 176,
     "officialExamplesLinked": 1229
@@ -752,21 +752,17 @@
       "printedPage": "3-1",
       "pdfPage": 28,
       "auditOrder": 20,
-      "disposition": "implemented-operation",
-      "inputPolicy": "immediate",
-      "mappingIds": [
-        "indicator.number"
-      ],
-      "unitCaseIds": [
-        "registry:indicator.number"
-      ],
+      "disposition": "excluded-document-format",
+      "inputPolicy": null,
+      "mappingIds": [],
+      "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": true,
+        "implementation": false,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -774,13 +770,10 @@
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
-        "contextPolicy": true,
+        "contextPolicy": false,
         "visualEvidence": false
       },
       "transcriberReview": "pending",
-      "contextPolicyIds": [
-        "context-policy.3.1.1"
-      ],
       "exampleParentId": "bana-2022:3.1.1",
       "officialSource": {
         "sourceLines": [
@@ -793,7 +786,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:3.1.2",
@@ -32603,15 +32596,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:10.2",
@@ -32647,15 +32640,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:10.2",
@@ -32691,15 +32684,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:10.2",
@@ -40213,7 +40206,7 @@
         "sourceNotation": "x2",
         "brailleCells": "⠭⠆"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-14-2",
@@ -40259,7 +40252,7 @@
         "sourceNotation": ".*",
         "brailleCells": "⠨⠡"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:14.2",
@@ -60074,15 +60067,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -62503,93 +62496,15 @@
       "auditOrder": 1110,
       "disposition": "excluded-document-format",
       "inputPolicy": null,
-      "mappingIds": [
-        "function.amp",
-        "function.antilog",
-        "function.arc",
-        "function.arg",
-        "function.colog",
-        "function.cos",
-        "function.cosh",
-        "function.cot",
-        "function.coth",
-        "function.covers",
-        "function.csc",
-        "function.csch",
-        "function.ctn",
-        "function.ctnh",
-        "function.det",
-        "function.erf",
-        "function.exp",
-        "function.exsec",
-        "function.grad",
-        "function.hav",
-        "function.im",
-        "function.inf",
-        "function.lim",
-        "function.ln",
-        "function.log",
-        "function.max",
-        "function.min",
-        "function.mod",
-        "function.re",
-        "function.sec",
-        "function.sech",
-        "function.sin",
-        "function.sinh",
-        "function.sup",
-        "function.tan",
-        "function.tanh",
-        "function.vers",
-        "operator.sum"
-      ],
-      "unitCaseIds": [
-        "registry:function.amp",
-        "registry:function.antilog",
-        "registry:function.arc",
-        "registry:function.arg",
-        "registry:function.colog",
-        "registry:function.cos",
-        "registry:function.cosh",
-        "registry:function.cot",
-        "registry:function.coth",
-        "registry:function.covers",
-        "registry:function.csc",
-        "registry:function.csch",
-        "registry:function.ctn",
-        "registry:function.ctnh",
-        "registry:function.det",
-        "registry:function.erf",
-        "registry:function.exp",
-        "registry:function.exsec",
-        "registry:function.grad",
-        "registry:function.hav",
-        "registry:function.im",
-        "registry:function.inf",
-        "registry:function.lim",
-        "registry:function.ln",
-        "registry:function.log",
-        "registry:function.max",
-        "registry:function.min",
-        "registry:function.mod",
-        "registry:function.re",
-        "registry:function.sec",
-        "registry:function.sech",
-        "registry:function.sin",
-        "registry:function.sinh",
-        "registry:function.sup",
-        "registry:function.tan",
-        "registry:function.tanh",
-        "registry:function.vers",
-        "registry:operator.sum"
-      ],
+      "mappingIds": [],
+      "unitCaseIds": [],
       "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
-        "implementation": true,
+        "implementation": false,
         "creation": false,
         "editing": false,
         "navigation": false,
@@ -62616,7 +62531,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:18.2",
@@ -68946,15 +68861,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -69003,7 +68918,7 @@
         "sourceNotation": "(?x+y/u+v#)^2",
         "brailleCells": "⠷⠹⠭⠬⠽⠌⠥⠬⠧⠼⠾⠘⠆"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-19-37",
@@ -69049,7 +68964,7 @@
         "sourceNotation": "a .k `(,?b,/c+?d/e#,#`)",
         "brailleCells": "⠁⠀⠨⠅⠀⠈⠷⠠⠹⠃⠠⠌⠉⠬⠹⠙⠌⠑⠼⠠⠼⠈⠾"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-19-38",
@@ -69095,7 +69010,7 @@
         "sourceNotation": "(n+k%k)",
         "brailleCells": "⠷⠝⠬⠅⠩⠅⠾"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-19-39",
@@ -69141,7 +69056,7 @@
         "sourceNotation": ">.>x.}}",
         "brailleCells": "⠜⠨⠜⠭⠨⠻⠻"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-19-40",
@@ -69187,7 +69102,7 @@
         "sourceNotation": "!?f(x)dx/(x-t)^n\"#",
         "brailleCells": "⠮⠹⠋⠷⠭⠾⠙⠭⠌⠷⠭⠤⠞⠾⠘⠝⠐⠼"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:19.8",
@@ -69208,15 +69123,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -69266,7 +69181,7 @@
         "sourceNotation": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
         "brailleCells": "⠠⠁⠀⠨⠅⠀⠹⠠⠭⠬⠠⠽⠌⠠⠭⠤⠠⠽⠼⠠⠄⠾⠀⠤⠼⠂⠀⠐⠅⠀⠠⠭⠀⠐⠅⠀⠼⠂⠠⠀⠠⠃⠀⠨⠅⠀⠹⠠⠭⠤⠠⠽⠌⠠⠭⠬⠠⠽⠼⠠⠄⠾⠀⠤⠼⠂⠀⠐⠅⠀⠠⠽⠀⠐⠅⠀⠼⠂"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-19-42",
@@ -69313,7 +69228,7 @@
         "sourceNotation": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
         "brailleCells": "⠠⠁⠀⠨⠅⠀⠹⠠⠭⠬⠠⠽⠌⠠⠭⠤⠠⠽⠼⠠⠄⠾⠀⠤⠼⠂⠀⠐⠅⠀⠠⠭⠀⠐⠅⠀⠼⠂⠠⠀⠠⠃⠀⠨⠅⠀⠹⠠⠭⠤⠠⠽⠌⠠⠭⠬⠠⠽⠼⠠⠄⠾⠀⠤⠼⠂⠀⠐⠅⠀⠠⠽⠀⠐⠅⠀⠼⠂"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:19.9",
@@ -69334,15 +69249,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -69366,15 +69281,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -69424,7 +69339,7 @@
         "sourceNotation": ".,(12X+ Y .K #9.,) .,( 2X-3Y .K #11.,)",
         "brailleCells": "⠨⠠⠷⠂⠆⠠⠭⠬⠀⠠⠽⠀⠨⠅⠀⠼⠔⠨⠠⠾⠀⠨⠠⠷⠀⠆⠠⠭⠤⠒⠠⠽⠀⠨⠅⠀⠼⠂⠂⠨⠠⠾"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-19-44",
@@ -69471,7 +69386,7 @@
         "sourceNotation": "`,(x-5y .k #7 `,) `,(2x+3y .k #30`,)",
         "brailleCells": "⠈⠠⠷⠭⠤⠢⠽⠀⠨⠅⠀⠼⠶⠀⠈⠠⠾⠀⠈⠠⠷⠆⠭⠬⠒⠽⠀⠨⠅⠀⠼⠒⠴⠈⠠⠾"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:19.9.2",
@@ -69492,15 +69407,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -69553,7 +69468,7 @@
         "sourceNotation": ".( .)",
         "brailleCells": "⠨⠷⠀⠨⠾"
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:20.1",
@@ -85744,15 +85659,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -85776,15 +85691,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -85808,15 +85723,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -85840,15 +85755,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -85872,15 +85787,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -85904,15 +85819,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -85962,7 +85877,7 @@
         "sourceNotation": "21.94 - 3.23967 33333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.3.4",
@@ -85983,15 +85898,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -86041,7 +85956,7 @@
         "sourceNotation": "508 8876 259 + 427 3333333 10070",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-3",
@@ -86088,7 +86003,7 @@
         "sourceNotation": "35.50 +77.25 33333333 112.75",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-4",
@@ -86135,7 +86050,7 @@
         "sourceNotation": "3.704 - .915 33333333 2.789",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-5",
@@ -86182,7 +86097,7 @@
         "sourceNotation": "?5/8# +?3/4# 33333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-6",
@@ -86229,7 +86144,7 @@
         "sourceNotation": "1_?7/8_# +6_?4/7_# 33333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-7",
@@ -86276,7 +86191,7 @@
         "sourceNotation": "3 LB4 12 OZ4 +1 LB4 8 OZ4 333333333333333 4 LB4 20 OZ4 .K #5 LB4 #4 OZ4",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-8",
@@ -86323,7 +86238,7 @@
         "sourceNotation": "4X+14Y- 3Z 17X- 9Y+20Z - 6X - 2Z 33333333333333 15X+ 5Y+15Z",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-9",
@@ -86370,7 +86285,7 @@
         "sourceNotation": "@S9.00 1.00 333333333 @S10.00",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-10",
@@ -86417,7 +86332,7 @@
         "sourceNotation": "@S 7.45 10.92 +84.00 3333333333 @S102.37",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-11",
@@ -86464,7 +86379,7 @@
         "sourceNotation": "@S10,000 - 9,000 3333333333 @S 1,000",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.3.5",
@@ -86485,15 +86400,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -86543,7 +86458,7 @@
         "sourceNotation": "11 <777777 254 +176 333333 430",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-13",
@@ -86591,7 +86506,7 @@
         "sourceNotation": "79 214 + 18 %777777 12 333333 311",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.3.6",
@@ -86612,15 +86527,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -86644,15 +86559,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -86702,7 +86617,7 @@
         "sourceNotation": "?3/8# +?4/8# 33333333 ?7/8#",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-15",
@@ -86749,7 +86664,7 @@
         "sourceNotation": "?11/16# +? 1/2 # 3333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-16",
@@ -86796,7 +86711,7 @@
         "sourceNotation": "?1/5 # -?1/10# 333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.3.8",
@@ -86817,15 +86732,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -86875,7 +86790,7 @@
         "sourceNotation": "1_?5/6 _# 12_?2/3 _# + ?7/12 # 3333333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.3.9",
@@ -86896,15 +86811,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -86954,7 +86869,7 @@
         "sourceNotation": "10_?2/3_# + 4_?1/3_# 333333333333 14_?3/3_# .K #15",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.3.10",
@@ -86975,15 +86890,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87033,7 +86948,7 @@
         "sourceNotation": "2X^3\"- X^2\"+ X+ 1 3X^3\"+4X^2\"-10X+ 7 5X^2\" +12 -2X^3\" - 6X 333333333333333333333 3X^3\"+8X^2\"-15X+20",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.4",
@@ -87054,15 +86969,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87086,15 +87001,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87118,15 +87033,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87150,15 +87065,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87182,15 +87097,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87214,15 +87129,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87272,7 +87187,7 @@
         "sourceNotation": "23 @*54 333333 92 115 333333 1242",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-21",
@@ -87319,7 +87234,7 @@
         "sourceNotation": "1704 @*5 333333 8520",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-22",
@@ -87366,7 +87281,7 @@
         "sourceNotation": "132 @*300 3333333 39600",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-23",
@@ -87413,7 +87328,7 @@
         "sourceNotation": "2 GAL 3 QT @*2 333333333333 4 GAL 6 QT",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-24",
@@ -87460,7 +87375,7 @@
         "sourceNotation": "2 gal 3 qt `*4 3333333333333 8 gal 12 qt",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-25",
@@ -87507,7 +87422,7 @@
         "sourceNotation": "75 @*2_?3/4_# 333333333333 56_?1/4_# 150 333333333333 206_?1/4_#",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.4.6",
@@ -87528,15 +87443,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87586,7 +87501,7 @@
         "sourceNotation": "34;SEVEN @*12;SEVEN 333333333333 101;SEVEN 34 ;SEVEN 333333333333 441;SEVEN",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.4.7",
@@ -87607,15 +87522,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87665,7 +87580,7 @@
         "sourceNotation": "345.7 @*2.77 333333333 24 199 241 99 691 4 333333333 957.589",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-28",
@@ -87712,7 +87627,7 @@
         "sourceNotation": "@S18.24 @*65 333333333333 91 20 1 094 4 333333333333 @S1,185.60",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-29",
@@ -87759,7 +87674,7 @@
         "sourceNotation": "1705.00 @*4 3333333333 6,820.00",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.4.8",
@@ -87780,15 +87695,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87838,7 +87753,7 @@
         "sourceNotation": "2 <777777 24 @*16 333333 240 144 333333 384",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-31",
@@ -87887,7 +87802,7 @@
         "sourceNotation": "12 <777777 124 @*26 333333 2480 744 333333 3224 %777777 11",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.5",
@@ -87908,15 +87823,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87940,15 +87855,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -87997,7 +87912,7 @@
         "sourceNotation": "#6o48",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-33",
@@ -88043,7 +87958,7 @@
         "sourceNotation": "#7o104.58",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-34",
@@ -88089,7 +88004,7 @@
         "sourceNotation": "#5o`s125",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-35",
@@ -88135,7 +88050,7 @@
         "sourceNotation": "x+7ox~2\"+10x+21",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-36",
@@ -88182,7 +88097,7 @@
         "sourceNotation": "3333333333333 6O1 FT4 6 IN4",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.5.2",
@@ -88203,15 +88118,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -88235,15 +88150,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -88267,15 +88182,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -88325,7 +88240,7 @@
         "sourceNotation": "8 3333 6O48",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-38",
@@ -88372,7 +88287,7 @@
         "sourceNotation": "3333 6O48[8",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-39",
@@ -88419,7 +88334,7 @@
         "sourceNotation": "6O636 33333 106",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-40",
@@ -88466,7 +88381,7 @@
         "sourceNotation": "106 33333 6_636",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-41",
@@ -88513,7 +88428,7 @@
         "sourceNotation": "644 333333 4O2576 24 333333 17 16 333333 16 16 333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-42",
@@ -88560,7 +88475,7 @@
         "sourceNotation": "X+ 6 3333333333333 X+5_X^2\"+11X+30 X^2\"+ 5X 3333333333333 6X+30 6X+30 3333333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-43",
@@ -88607,7 +88522,7 @@
         "sourceNotation": "X+8 3333333333333 X+4_X^2\"+12X+32 X^2\"+ 4X 3333333333333 8X+32 8X+32 3333333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.5.5",
@@ -88628,15 +88543,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -88686,7 +88601,7 @@
         "sourceNotation": "@S 5.00 333333333 5O@S25.00",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-45",
@@ -88733,7 +88648,7 @@
         "sourceNotation": "5,080.09 33333333333 18O91,441.62 90 33333333333 1 44 1 44 33333333333 1 62 1 62 33333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-46",
@@ -88781,7 +88696,7 @@
         "sourceNotation": "1 2 .5 333333333 6.3_<O78.7_<5 63 333333333 15 7 12 6 333333333 3 1 5 3 1 5 333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.5.6",
@@ -88802,15 +88717,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -88860,7 +88775,7 @@
         "sourceNotation": "373 3333333 29o10817 - 87 3333333 211 -203 3333333 87 -87 3333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.5.7",
@@ -88881,15 +88796,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -88939,7 +88854,7 @@
         "sourceNotation": "181 ,R\"4 33333333333 25O4529 25 33333333333 202 200 33333333333 29 25 33333333333 4",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.5.8",
@@ -88960,15 +88875,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89018,7 +88933,7 @@
         "sourceNotation": "3333333333 6O414 _ 60 _ 10 33333_ 354 _ 120 _ 20 33333_ 234 _ 180 _ 30 33333_ 54 _ 54 _ 9 33333_3333 _ 69",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-50",
@@ -89065,7 +88980,7 @@
         "sourceNotation": "33333 6O78 _ 30 _ 5 3333_ 48 _ 24 _ 4 3333_ 24 _ 24 _ 4 3333_3333 0 _ 13",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.5.9",
@@ -89086,15 +89001,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89145,7 +89060,7 @@
         "sourceNotation": "2 4 33333 3O7 2 %77777 1",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-52",
@@ -89193,7 +89108,7 @@
         "sourceNotation": "7 6 9 33333333 7o53 8 3 %77777777 4 6",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-53",
@@ -89240,7 +89155,7 @@
         "sourceNotation": "1 3 2 <7777777777 4o9 5 0. 0 3333333333 2 3 7. 5",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.6",
@@ -89261,15 +89176,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89319,7 +89234,7 @@
         "sourceNotation": "5. 4 8 3333333333 >30.00 00 25 3333333333 104_ 5 00 @*4_ 4 16 3333333333 1087_ 84 00 @*7_ 76 09 33333333 7 91",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-55",
@@ -89366,7 +89281,7 @@
         "sourceNotation": "2. 4 3 333333333 >5.90 49 4 333333333 _1 90 44@*4_1 76 333333333 _14 49 483@*3_14 49 3333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.7",
@@ -89387,15 +89302,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89419,15 +89334,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89451,15 +89366,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89509,7 +89424,7 @@
         "sourceNotation": "2_1 -3 2 _ 2 -2 333333333 1 -1_ 0",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-57",
@@ -89556,7 +89471,7 @@
         "sourceNotation": "1 -3 2_2 2 -2_ 333333333 1 -1_ 0",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-58",
@@ -89603,7 +89518,7 @@
         "sourceNotation": "+2_1 +6 - 1 -30 _ +2 +16 +30 33333333333333 1 +8 +15 + 0",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-59",
@@ -89650,7 +89565,7 @@
         "sourceNotation": "1 -3 +4 +5_+2 +2 -2 +4_ 333333333333 1 -1 +2_+9",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.8",
@@ -89671,15 +89586,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89703,15 +89618,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89762,7 +89677,7 @@
         "sourceNotation": "`,(a1 b1`,)`*`,(a2 b2`,) `,(c1 d1`,) `,(c2 d2`,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.8.2",
@@ -89783,15 +89698,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -89841,7 +89756,7 @@
         "sourceNotation": ",(?1/,A# #0 #0 ,) ,(#0 ?1/,A -?COS .B/,A ,) ,( SIN^2 .B# SIN^2 .B# ,) ,(#0 -?COS .B/,A ?1/,C# ,) ,( SIN^2 .B# +?COS^2 .B ,) ,( /,ASIN^2 .b#,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-61",
@@ -89888,7 +89803,7 @@
         "sourceNotation": "@,(COS A SIN A #0@,) @,(-SIN A COS A #0@,) @,(#0 #0 #1@,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-63",
@@ -89935,7 +89850,7 @@
         "sourceNotation": ",\\,B'11- ,B'12 ,B'13 ,\\ ,B'14 ,\\(,E- ,\\ ,\\,E1^0\") ,\\ ,\\ ,\\ ,\\,B'21 ,B'22- ,B'23 ,B'24 ,\\ ,\\ (,E- ,\\ ,\\ ,E2^0\") ,\\ ,\\ ,\\ ,\\,B'31 ,B'32 ,B'33- ,B'34 ,\\ ,\\ (,E- ,\\ ,\\ ,E3^0\") ,\\ ,\\ ,\\ ,\\,B'41 ,B'42 ,B'43 ,B'44- ,\\ ,\\ (,E-,E4^0\"),\\",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-64",
@@ -89983,7 +89898,7 @@
         "sourceNotation": ",( #1 #0 #0 ,) ,(?33# ,) ,( ,A ,) ,( ,) ,(#0 #1 COS .B ,) ,( ?3333333333# ?3333333333#,) ,( ,ASIN^2 .B ,ASIN^2 .B ,) ,( ,) ,(#0 COS .B COS^2 .B ,) ,( ?3333333333# ?3333333333#,) ,( ,ASIN^2 .B ,ASIN^2 .B ,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.8.3",
@@ -90004,15 +89919,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -90062,7 +89977,7 @@
         "sourceNotation": ",\\A11 A12 ''' A;1N\",\\ ,\\A21 A22 ''' A;2N\",\\ ,\\* * ''' * ,\\ ,\\A;N1 A;N2 ''' A;NN\",\\",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-66",
@@ -90109,7 +90024,7 @@
         "sourceNotation": "@,(A11 A12 ''' A;1N\"@,) @,(A21 A22 ''' A;2N\"@,) @,('''''''''''''''''''@,) @,(A;N1 A;N2 ''' A;NN\"@,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-67",
@@ -90157,7 +90072,7 @@
         "sourceNotation": ",\\A11 A12 ''' A;1N\",\\ ,\\A21 A22 ''' A;2N\",\\ ,\\%'' -- -- %'' ,| ,|A;M1 A;M2 ''' A;MN\",\\",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-68",
@@ -90205,7 +90120,7 @@
         "sourceNotation": ",a .k `,(a11 a12 ''' `,) `,(%'' ;'' -- `,) `,(a;,k1 -- a;,k,k\"`,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-69",
@@ -90253,7 +90168,7 @@
         "sourceNotation": "@,(A #0 ''' #0 @,) @,(#0 #1 ''' #0 @,) @,(%'' %'' ;'' %''`,) @,(#0 #0 ''' #1 @,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-70",
@@ -90301,7 +90216,7 @@
         "sourceNotation": "`,(#0 #0 ''' #0 #1 `,) `,(#0 #0 ''' #1 #0 `,) `,(%'' %'' ~'' %'' %''`,) `,(#0 #1 ''' #0 #0 `,) `,(#1 #0 ''' #0 #0 `,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.8.4",
@@ -90322,15 +90237,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -90380,7 +90295,7 @@
         "sourceNotation": "`,(#2 -#3 | #10`,) `,(#2 #2 | #5 `,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.9",
@@ -90401,15 +90316,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -90459,7 +90374,7 @@
         "sourceNotation": "#1_4 x .k -#2y x+4y .k #2",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-73",
@@ -90506,7 +90421,7 @@
         "sourceNotation": "x+y .k #4 #2x-y .k #5",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-74",
@@ -90553,7 +90468,7 @@
         "sourceNotation": "#2x+ 2y .k #1,100 #45x+80y .k #22,750",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-75",
@@ -90600,7 +90515,7 @@
         "sourceNotation": "-45x-45y .k -15,750 45x+80y .k 22,750 333333333333333333333 35y .k 7,000",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.10",
@@ -90621,15 +90536,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -90679,7 +90594,7 @@
         "sourceNotation": ".,(4X-Y .K #3.,) .,(3X-Y .K #1.,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-77",
@@ -90726,7 +90641,7 @@
         "sourceNotation": ".,(3X+15Y-2Z .K #64.,) .,( X+12Y+ Z .K #51.,) .,(7X- 8Y+2Z .K -#16.,)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-78",
@@ -90773,7 +90688,7 @@
         "sourceNotation": ".,( 3x-4y .k #11 .,(-3x+2y .k -#7",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-79",
@@ -90820,7 +90735,7 @@
         "sourceNotation": ".,(x+y .k #6 .,(y .k #2x",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:25.10.1",
@@ -90841,15 +90756,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -90899,7 +90814,7 @@
         "sourceNotation": "A .K ?X+Y/X-Y#,') -#1 \"K X \"K #1, B .K ?X-Y/X+Y#,') -#1 \"K Y \"K #1",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-81",
@@ -90946,7 +90861,7 @@
         "sourceNotation": "#12X-4 .K #12X-4,') ,ALL TRUE #12X .K #12X ,') statements4 #0 .K #0 ,')",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-25-82",
@@ -90995,7 +90910,7 @@
         "sourceNotation": ".,(X .1: #0,') ;X, Y .,(Y .1: #0,') .K NONNEGATIVE ,') VARIABLES",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.1",
@@ -91016,15 +90931,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -91048,15 +90963,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -91109,7 +91024,7 @@
         "sourceNotation": "X+2 ,'& x+5",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-2",
@@ -91157,7 +91072,7 @@
         "sourceNotation": "F(X) .K X^2_/3",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.1.2",
@@ -91178,15 +91093,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -91239,7 +91154,7 @@
         "sourceNotation": "#50@0 ,'& #75@0",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-4",
@@ -91287,7 +91202,7 @@
         "sourceNotation": "(y-3)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-5",
@@ -91340,7 +91255,7 @@
         "sourceNotation": ";A_4 ,',ADD3 (X^2\"-4X)+(4X-16)_4 ;B_4 ,',SUBTRACT3 (X^2\"-4X)-(4X-16)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-6",
@@ -91387,7 +91302,7 @@
         "sourceNotation": "AB+C^2\"+AC+BC",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-7",
@@ -91434,7 +91349,7 @@
         "sourceNotation": ";A_4 (3@*5)@*2 .K #3@*(,N@*2) ;B_4 #3@*(5@*2) .K (3@*5)@*,N",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-8",
@@ -91481,7 +91396,7 @@
         "sourceNotation": ";A_4 #118+37+66 ;B_4 #123+159+92 ;C_4 #146+192",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-9",
@@ -91529,7 +91444,7 @@
         "sourceNotation": ";a_4 X(A+1)-Y(A+1) ;b_4 X^2\"-2X+1-4A^2\"-12a-9",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-10",
@@ -91578,7 +91493,7 @@
         "sourceNotation": "?1/x#+?1/2x# .k ?9/2#",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-11",
@@ -91626,7 +91541,7 @@
         "sourceNotation": "x~2 `$p #14_4 x+y",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.1.3",
@@ -91647,15 +91562,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -91679,15 +91594,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -91737,7 +91652,7 @@
         "sourceNotation": "#1_4 #6+10+14+18 #2_4 a1b1+a2b2+a3b3 #3_4 x1^2\"+x2^2\"+x3^2\"+x4^2\"+x5^2",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-13",
@@ -91784,7 +91699,7 @@
         "sourceNotation": ";A) ,z(x, y) .K X^2\"+3y^2\"-3xy ;B) ,w(x, y, z) .K #29-(x^2\"+y^2\"+z^2\")",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-14",
@@ -91831,7 +91746,7 @@
         "sourceNotation": "#1_4 X+Y .K #3 X-Y .K #1 #2_4 X+Y .K #2 X-Y .K #4",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.1.5",
@@ -91852,15 +91767,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -91884,15 +91799,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -91942,7 +91857,7 @@
         "sourceNotation": ";A ;B #1_4 #1745-431 .K ,N ,N .K -#5+2 #2_4 ,N .K #18+(-9) -#7+14 .K ,N",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-16",
@@ -91989,7 +91904,7 @@
         "sourceNotation": ";A ;B ;C #1_4 4396 6010 73.01 + 873 - 809 @*.62 3333333 3333333 3333333 #2_4 37,285 48,063 69.35 + 9,476 - 1,741 @*.04 333333333 333333333 3333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-17",
@@ -92037,7 +91952,7 @@
         "sourceNotation": "#1_4 ;A (X-Y)^2\"-(A+B)^2 ;B M(P-Q)-N(Q-P) #2_4 ;A #1-(X+1)^2 ;B #4AB+4X^2\"-A^2\"-4B^2",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-18",
@@ -92085,7 +92000,7 @@
         "sourceNotation": "#1_4 ;A 7238 ;B 4231 + 457 +1389 3333333 3333333 ;C 2643 ;D 75,011 + 52 + 96 3333333 333333333",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.2",
@@ -92106,15 +92021,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -92161,7 +92076,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-20",
@@ -92210,7 +92125,7 @@
         "sourceNotation": ",v .k \"lim%.,dx $o #0} \".,s%i .k #1<n} .p`(f(x;I\")`)~2\".,dx",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-21",
@@ -92257,7 +92172,7 @@
         "sourceNotation": ",b .k ?7&/5&(7-5)&#(x~2\")~7-5 \"(-?y/2#)~5",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-22",
@@ -92305,7 +92220,7 @@
         "sourceNotation": ".((1, 3), (2, 6), (3, 9), (4, 12), (5, 15).) #1_4 ''' #2_4 '''",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.3",
@@ -92326,15 +92241,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -92358,15 +92273,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -92390,15 +92305,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -92449,7 +92364,7 @@
         "sourceNotation": "#2+4+6+ ''' +2n .k n(n+1)+(n-1)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.3.3",
@@ -92470,15 +92385,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -92527,7 +92442,7 @@
         "sourceNotation": "(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-25",
@@ -92574,7 +92489,7 @@
         "sourceNotation": "(10, 11, 12, 13, 14, 15, 16, 17, 18, 19)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.3.4",
@@ -92595,15 +92510,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -92653,7 +92568,7 @@
         "sourceNotation": "\\A@*B\\^2 .K (A2B3-A3B2)^2\"+(A3B1-A1B3)^2 \"+(A1B2-A2B1)^2",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.3.5",
@@ -92674,15 +92589,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -92729,7 +92644,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-28",
@@ -92778,7 +92693,7 @@
         "sourceNotation": "#.4 in",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-29",
@@ -92825,7 +92740,7 @@
         "sourceNotation": "#2.5 HRs",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.3.6",
@@ -92846,15 +92761,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -92901,7 +92816,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-31",
@@ -92947,7 +92862,7 @@
         "sourceNotation": "Xy-plane",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.3.7",
@@ -92968,15 +92883,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93000,15 +92915,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93032,15 +92947,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93064,15 +92979,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93122,7 +93037,7 @@
         "sourceNotation": ",w\"3 .K ,W\"2",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.4.3",
@@ -93143,15 +93058,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93201,7 +93116,7 @@
         "sourceNotation": "(X+2)^2 .K (X+1)^2\"+X^2, ,'IF X .K #3",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-34",
@@ -93249,7 +93164,7 @@
         "sourceNotation": "x^2\"-3x+1 .k #0",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-35",
@@ -93296,7 +93211,7 @@
         "sourceNotation": "(3@*10^4\")+(4@*10^3\")+(5@*10^2\") +(6@*10)+(7@*1)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-36",
@@ -93347,7 +93262,7 @@
         "sourceNotation": "#2@*2",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.4.4",
@@ -93368,15 +93283,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93425,7 +93340,7 @@
         "sourceNotation": "h(x1, x2, ''', x;n\")",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-38",
@@ -93472,7 +93387,7 @@
         "sourceNotation": ".,d,a, ,'is #16-5 .,d,a .k ,a'-,a `:`: #2.a,a.,d,t",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-39",
@@ -93519,7 +93434,7 @@
         "sourceNotation": "\"k ,'& .1",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.4.5",
@@ -93540,15 +93455,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93605,7 +93520,7 @@
         "sourceNotation": "N*48 .K #54",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.5",
@@ -93626,15 +93541,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93658,15 +93573,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93690,15 +93605,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93748,7 +93663,7 @@
         "sourceNotation": "#12.5@0 .k ?1/8#",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-42",
@@ -93794,7 +93709,7 @@
         "sourceNotation": "-#2_/3 \"k x \"k #1_/3",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-43",
@@ -93842,7 +93757,7 @@
         "sourceNotation": "#12.5@0 .k #.125 .k ?125/1000# .k ?5/40# .k ?1/8#",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-44",
@@ -93890,7 +93805,7 @@
         "sourceNotation": "W .K F(Z, W) .K Z^3\"+(A1Z+A2Z^2\")F(Z, W) +(A3+A4Z)F(Z, W)^2\"+A6F(Z, W)^3 .K ''' .K Z^3\"(1+,A1Z+,A2Z^2\"+ ''')",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.5.3",
@@ -93911,15 +93826,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -93969,7 +93884,7 @@
         "sourceNotation": "(3x^2\")^3 .k (3x^2\")(3x^2\")(3x^2\") .k (9x^4\")(3x^2\") .k #27x^6",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-46",
@@ -94018,7 +93933,7 @@
         "sourceNotation": "\"LIM%X $O #0] ?COS X/SIN X-3#_4 \"LIM%X $O #0] ?COS X/SIN X-3# .K -?1/3#",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-47",
@@ -94067,7 +93982,7 @@
         "sourceNotation": "#12_?1/2_#@0 .k #12.5@0 .k #.125 .k ?125/1000# .k ?1/8#",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-48",
@@ -94114,7 +94029,7 @@
         "sourceNotation": "E .K #1+?1/1#+?1/1*2#+?1/1*2*3# +?1/1*2*3*4#+ ''' .k =",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-49",
@@ -94163,7 +94078,7 @@
         "sourceNotation": "#8x^3\"+125y^3",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-50",
@@ -94211,7 +94126,7 @@
         "sourceNotation": "#1.1^5",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-51",
@@ -94258,7 +94173,7 @@
         "sourceNotation": "?9&/3&6&#",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-52",
@@ -94306,7 +94221,7 @@
         "sourceNotation": "#8x~2\"y",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.5.4",
@@ -94327,15 +94242,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -94385,7 +94300,7 @@
         "sourceNotation": "#97_4 (?Y^2\"Y^5\"/Y^4\"#)^3 .K (?Y^2+5\"/Y^4\"#)^3 .K (?Y^7\"/Y^4\"#)^3 .K (Y^7-4\")^3 .K (Y^3\")^3 .K Y^3*3 .K Y^9",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.6",
@@ -94406,15 +94321,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -94438,15 +94353,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -94493,7 +94408,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.6.2",
@@ -94514,15 +94429,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -94569,7 +94484,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-56",
@@ -94613,7 +94528,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-57",
@@ -94657,7 +94572,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-58",
@@ -94701,7 +94616,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-59",
@@ -94745,7 +94660,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-60",
@@ -94789,7 +94704,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-61",
@@ -94833,7 +94748,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-62",
@@ -94877,7 +94792,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-63",
@@ -94921,7 +94836,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-64",
@@ -94965,7 +94880,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.6.3",
@@ -94986,15 +94901,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95041,7 +94956,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-66",
@@ -95085,7 +95000,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-67",
@@ -95129,7 +95044,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-68",
@@ -95173,7 +95088,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-69",
@@ -95217,7 +95132,7 @@
         "sourceNotation": null,
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.6.4",
@@ -95238,15 +95153,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95296,7 +95211,7 @@
         "sourceNotation": ",m .k @(#3 -#1@)",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.6.5",
@@ -95317,15 +95232,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95375,7 +95290,7 @@
         "sourceNotation": "x+y .k #3 y .k x+5",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-72",
@@ -95422,7 +95337,7 @@
         "sourceNotation": ",A .K @,(#1 #0 ?1/2#@,) @,(-#3 #5 #2 @,) @,(#0 #0 #4 @,) #1_4 ,M11, ,A11 #2_4 ,M33, ,A33 #3_4 ,M12, ,A12",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.7",
@@ -95443,15 +95358,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95475,15 +95390,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95539,7 +95454,7 @@
         "sourceNotation": ",A,B ,'& ,C,D",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.7.2",
@@ -95560,15 +95475,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95621,7 +95536,7 @@
         "sourceNotation": ",D,E ,'BISECTS $[ ,A,C,B_4 #1,R_4 ,',GIV54 #2,S_4 m$[ A .K m$[ B",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.7.3",
@@ -95642,15 +95557,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95701,7 +95616,7 @@
         "sourceNotation": "AB .K AC",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.8",
@@ -95722,15 +95637,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95754,15 +95669,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95786,15 +95701,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95818,15 +95733,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95850,15 +95765,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95912,7 +95827,7 @@
         "sourceNotation": "VTA \"\"\"\" V .K V0+AT \"\"\"\"\"\"\"\"\"\"\" #2-7 IFV \"\"\"\" V;AV .K ?1/2#(V0+V) \"\" #2-9 PTV \"\"\"\" X .K X0+?1/2#(V0+V)T #2-10 PTA \"\"\"\" X .K X0+V0T+?1/2#AT^2 #2-11 VPA \"\"\"\" V^2 .K V0\"^2\"+2A(X-X0) #2-12 .K V0\"^2\"+2A.,DX",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.10",
@@ -95933,15 +95848,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95965,15 +95880,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -95997,15 +95912,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96029,15 +95944,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96087,7 +96002,7 @@
         "sourceNotation": "1 _ 2 .K #12 ,stEM _ ,LeaF \"3333 _ \"33333333333333333333333 1 _ 222344555556677778899999 2 _ 01112668 3 _ 0",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-78",
@@ -96137,7 +96052,7 @@
         "sourceNotation": "2 _ 2",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-79",
@@ -96184,7 +96099,7 @@
         "sourceNotation": "5 _ 8.3 .K #58.3 ,stEM _ ,LeaF \"3333 _ \"33333333333333333333333333 5 _ 8.3 6 _ 4.3 5.1 5.5 6.7 7.0 8.7 9.3 7 _ 0.0 2.8 3.2 5.8 7.4 7.4",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:example-26-80",
@@ -96234,7 +96149,7 @@
         "sourceNotation": "0 _ 5 _",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "bana-2022:26.10.4",
@@ -96255,15 +96170,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96313,7 +96228,7 @@
         "sourceNotation": "95 _ ,M 96 _ 97 _ ,M 98 _ ,M 99 _ ,M,M,A,M",
         "brailleCells": null
       },
-      "evidenceScope": "equation-workflow"
+      "evidenceScope": "source-policy"
     },
     {
       "id": "errata-2025:3.3.1-3-4",
@@ -96370,15 +96285,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96402,15 +96317,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96434,15 +96349,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96501,15 +96416,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96568,15 +96483,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96778,15 +96693,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96810,15 +96725,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96842,15 +96757,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96910,15 +96825,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96942,15 +96857,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -96974,15 +96889,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97192,15 +97107,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97404,15 +97319,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97436,15 +97351,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97468,15 +97383,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97500,15 +97415,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97532,15 +97447,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97564,15 +97479,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97596,15 +97511,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97628,15 +97543,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"
@@ -97731,15 +97646,15 @@
       "verified": {
         "source": true,
         "implementation": false,
-        "creation": true,
-        "editing": true,
-        "navigation": true,
-        "wholeBraille": true,
-        "focusedBraille": true,
-        "undoRedo": true,
-        "persistence": true,
+        "creation": false,
+        "editing": false,
+        "navigation": false,
+        "wholeBraille": false,
+        "focusedBraille": false,
+        "undoRedo": false,
+        "persistence": false,
         "contextPolicy": false,
-        "visualEvidence": true
+        "visualEvidence": false
       },
       "transcriberReview": "pending",
       "evidenceScope": "source-policy"

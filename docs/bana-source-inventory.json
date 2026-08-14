@@ -606,7 +606,7 @@
       "printedPage": "3-1",
       "pdfPage": 28,
       "auditOrder": 20,
-      "disposition": "unclassified",
+      "disposition": "excluded-document-format",
       "inputPolicy": null,
       "mappingIds": [],
       "unitCaseIds": [],
