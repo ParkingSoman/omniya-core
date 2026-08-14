@@ -108,10 +108,24 @@ const rows = inventory.rows.map((row) => {
   // application cannot meaningfully demonstrate. Equation provisions and
   // executable examples retain the full renderer evidence contract.
   const documentContextExample = isExample && ['example-10-15', 'example-10-16', 'example-10-17'].includes(ref);
-  const requiresEquationEvidence = !excludedDocument && ((isExample && !documentContextExample) || mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy'));
-  const disposition = row.disposition === 'unclassified' && (mappingIds.length > 0 || contextPolicyIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
-      ? (contextPolicyIds.length > 0 && mappingIds.length === 0 || mappings.some((mapping) => mapping.args?.sourceKind === 'context-policy') ? 'implemented-context-policy' : 'implemented-operation')
-      : row.disposition;
+  // Context-policy provisions are normative but do not construct equation
+  // nodes. Even when an operation also cites the same BANA ref for ledger
+  // ownership, the provision itself remains source-policy coverage: Electron
+  // creation belongs to the official examples that exercise those cells.
+  const requiresEquationEvidence = !excludedDocument && (
+    isExample
+      ? !documentContextExample
+      : contextPolicyIds.length === 0 && mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy')
+  );
+  const disposition = excludedDocument
+    ? row.disposition
+    : contextPolicyIds.length > 0 && !isExample
+      ? 'implemented-context-policy'
+      : (mappingIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
+        ? 'implemented-operation'
+        : row.disposition === 'unclassified'
+          ? row.disposition
+          : row.disposition;
   for (const field of ['creation', 'editing', 'navigation', 'wholeBraille', 'focusedBraille', 'undoRedo', 'persistence']) {
     verified[field] = excludedDocument
       ? false
