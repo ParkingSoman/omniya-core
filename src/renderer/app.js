@@ -238,8 +238,15 @@ async function renderEquation(container, item, version) {
     }
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
-    if (item.math?.focus && activeNapkin()?.selectedItemId === item.id) {
-      setTimeout(() => void restoreExplorerFocus(articleForContainer(container), item.math.focus), 0);
+    // Only restore explorer focus if that equation is still being explored.
+    // A selected equation with saved math.focus must not auto-enter explorer
+    // after ArrowDown, or a late restore will steal focus back from Escape.
+    if (item.math?.focus && exploringEquationItemId === item.id) {
+      const itemId = item.id;
+      setTimeout(() => {
+        if (exploringEquationItemId !== itemId || !container.isConnected) return;
+        void restoreExplorerFocus(articleForContainer(container), item.math.focus);
+      }, 0);
     }
   } catch {
     if (version !== transcriptRenderVersion || !container.isConnected) return;
@@ -825,9 +832,9 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
 // expression is being explored. Keep Escape reliable even in that case.
 document.addEventListener('keydown', (event) => {
   if (!exploringEquationItemId) return;
-  const focused = document.activeElement;
-  if (!focused?.matches?.('mjx-container, math, mjx-focus') &&
-      !focused?.closest?.('mjx-container, math, mjx-focus')) return;
+  const focused = event.target instanceof Element ? event.target : document.activeElement;
+  if (!focused?.matches?.('mjx-container, math, mjx-focus, mjx-speech') &&
+      !focused?.closest?.('mjx-container, math, mjx-focus, mjx-speech')) return;
   const article = elements['transcript'].querySelector(
     `article.napkin-article[data-item-id="${CSS.escape(exploringEquationItemId)}"]`
   );
@@ -1305,6 +1312,7 @@ elements['composer-form'].addEventListener('submit', (event) => {
 // leaves the dock). Scope to add/edit and skip foreign chrome.
 document.addEventListener('keydown', (event) => {
   if (mode !== 'add' && mode !== 'edit') return;
+  if (exploringEquationItemId) return;
   if (elements['keyboard-help']?.open) return;
   if (event.target?.closest?.('#replacement-dock, #new-napkin-form, #napkin-rail, dialog')) return;
   handleComposerCommandKey(event);
@@ -1323,7 +1331,7 @@ elements['transcript'].addEventListener('keydown', (event) => {
   const article = event.target.closest('.napkin-article');
   if (!article) return;
 
-  const math = event.target.closest('mjx-container, math, mjx-focus');
+  const math = event.target.closest('mjx-container, math, mjx-focus, mjx-speech');
   if (math) {
     if (event.key === 'Escape') {
       event.preventDefault();

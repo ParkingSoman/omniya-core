@@ -95,4 +95,46 @@ test('command e cycles authoring method while the composer is empty', { timeout:
     await page.evaluate(() => document.querySelector('#replacement-method input:checked')?.value),
     'latex'
   );
+
+  await page.keyboard.press('Escape');
+  await page.keyboard.type('e');
+  await page.waitForFunction(() => {
+    const status = document.querySelector('#save-status')?.textContent ?? '';
+    const method = document.querySelector('#replacement-method input:checked')?.value;
+    return /Nemeth/i.test(status) && method === 'nemeth';
+  });
+  assert.equal(
+    await page.evaluate(() => document.querySelector('#replacement-method input:checked')?.value),
+    'nemeth'
+  );
+});
+
+test('command ? opens contextual help and the status live region updates', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-ueb-help-live-');
+  t.after(() => app.close().catch(() => {}));
+
+  const live = await page.locator('#save-status').evaluate((el) => ({
+    role: el.getAttribute('role'),
+    live: el.getAttribute('aria-live'),
+    atomic: el.getAttribute('aria-atomic')
+  }));
+  assert.equal(live.role, 'status');
+  assert.equal(live.live, 'polite');
+  assert.equal(live.atomic, 'true');
+
+  await openComposer(page);
+  await enterCommand(page);
+  const commandStatus = await page.locator('#save-status').textContent();
+  assert.match(commandStatus ?? '', /Command/i);
+
+  await page.keyboard.type('?');
+  const dialog = page.getByRole('dialog', { name: 'Keyboard help' });
+  await dialog.waitFor();
+  const help = await page.locator('#keyboard-help [data-command-help]').innerText();
+  assert.match(help ?? '', /Command · Text · UEB G2/i);
+  assert.match(help ?? '', /toggle UEB grade \/ G1 passage/i);
+  assert.match(help ?? '', /make Equation \(Nemeth\)/i);
+  assert.match(help ?? '', /n\s+submit/i);
+  await page.getByRole('button', { name: 'Close' }).click();
+  await dialog.waitFor({ state: 'hidden' });
 });

@@ -57,3 +57,10 @@ test('t refuses when equation has content', () => {
   assert.equal(r.state.itemKind, 'equation');
   assert.match(r.announcement, /Can’t switch to Text|Cannot switch to Text/i);
 });
+
+test('question mark requests contextual help', () => {
+  const s = enterCommand(createCommandState({ itemKind: 'text', uebGrade: 'g2' }));
+  const r = applyCommandKey(s, '?');
+  assert.equal(r.action, 'help');
+  assert.match(r.announcement, /Command/i);
+});

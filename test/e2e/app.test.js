@@ -137,6 +137,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
   assert.equal(await page.evaluate(() => document.activeElement?.closest?.('mjx-container')?.localName), 'mjx-container');
   await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.activeElement?.tagName === 'ARTICLE');
   assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
   await page.keyboard.press('e');
   assert.equal(await page.getByRole('heading', { name: 'Replace focused mathematics' }).count(), 1);
