@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "runKind": "official-electron-corpus",
+  "startedAt": "2026-08-14T18:27:36.468Z",
+  "filter": {
+    "rule": null,
+    "example": "3-92"
+  },
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-EmiEPa",
+  "cases": [
+    {
+      "id": "electron:bana-2022:example-3-92",
+      "sourceRows": [
+        "example-3-92",
+        "3.6.3"
+      ],
+      "creation": false,
+      "editing": false,
+      "navigation": false,
+      "wholeBraille": false,
+      "focusedBraille": false,
+      "undoRedo": false,
+      "persistence": false,
+      "visualInput": {
+        "phase": "input",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-3-92/electron_bana-2022_example-3-92-input.png",
+        "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
+      },
+      "error": "3-92 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-29dc4f32-9b46-45c6-a9b0-1706d2591be8\" data-semantic-structure=\"0\"><mn data-omniya-nemeth-intent=\"numeric-start\" data-omniya-=\"\" id=\"omniya-source-omniya-eddfcbce-12fb-49c9-bca3-0229ebf153f0\" data-semantic-type=\"number\" data-semantic-role=\"othernumber\" data-semantic-font=\"normal\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">3t.t8</mn></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-29dc4f32-9b46-45c6-a9b0-1706d2591be8\" data-semantic-structure=\"0\"><mn data-omniya-nemeth-intent=\"numeric-start\" data-omniya-=\"\" id=\"omniya-source-omniya-eddfcbce-12fb-49c9-bca3-0229ebf153f0\" data-semantic-type=\"number\" data-semantic-role=\"othernumber\" data-semantic-font=\"normal\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">3t.t8</mn></math>\n\n'⠼⠒⠞⠲⠞⠦' !== '⠼⠒⠞⠨⠞⠦'\n"
+    }
+  ]
+}
