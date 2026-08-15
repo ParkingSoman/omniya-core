@@ -198,7 +198,7 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
       await resolveChoices(cells[cellIndex + 1] ?? null);
     }
     const status = await page.locator('#replacement-status').textContent();
-    assert.doesNotMatch(status ?? '', /That Nemeth cell is not valid at this draft focus/i, `cell ${cellIndex} ${cell} rejected: ${status}; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
+    assert.doesNotMatch(status ?? '', /That Nemeth cell is not valid at this draft focus|incomplete or invalid/i, `cell ${cellIndex} ${cell} rejected: ${status}; prefix=${await input.inputValue()}; choices=${await page.locator('#replacement-choices .replacement-choice').allTextContents()}`);
   }
   // Enter commits only a still-pending bounded local code. A second Enter is
   // the ordinary replacement transaction, never a passage-sized parse.
@@ -276,15 +276,19 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
 }
 
 /**
- * Official focused edits must freeze an exact MathJax speech atom. Token
- * leaves (mi/mn/mo) qualify, and so do SRE speech-atomic function mrows
- * (lim/sin/…) whose letter children have no semantic ids of their own.
- * Empty mspaces are never edit targets.
+ * Official focused edits must freeze an exact MathJax speech atom. Prefer
+ * letter/number leaves (mi/mn) so replacement with `⠽` stays a one-node
+ * transaction. Operator leaves (mo) and SRE speech-atomic function mrows
+ * (lim/sin/…) are acceptable when no identifier exists. Empty mspaces and
+ * containers (fenced/infixop/appl) are never edit targets.
  */
-function isOfficialAtomicCanonicalTarget(target) {
+function isOfficialAtomicCanonicalTarget(target, { allowOperator = true } = {}) {
   if (!target?.nodeName || !target.text) return false;
   const name = String(target.nodeName).replace(/^mjx-/, '');
-  if (/^m[ino]$/.test(name)) return true;
+  if (/^m[in]$/.test(name)) return true;
+  if (allowOperator && name === 'mo' && target.text.trim() && !/^[\u2062\u2063\u2064]$/.test(target.text)) {
+    return true;
+  }
   if (name === 'mrow' && (
     target.semanticType === 'function'
     || /limit function|simple function/i.test(target.semanticRole || '')
@@ -299,15 +303,41 @@ async function readOfficialEditTarget(page) {
     const semanticId = current?.getAttribute('data-semantic-id');
     const source = semanticId && [...document.querySelectorAll('[id^="omniya-source-"][data-semantic-id]')]
       .find((node) => node.getAttribute('data-semantic-id') === semanticId);
+    const node = source || current;
+    const rawName = node?.localName || node?.tagName || '';
     return {
       semanticId,
-      text: source?.textContent?.trim() ?? '',
-      nodeName: source?.localName ?? '',
-      childElements: source?.children?.length ?? -1,
+      text: (source?.textContent ?? current?.textContent ?? '').trim(),
+      nodeName: rawName,
+      childElements: source?.children?.length ?? current?.childElementCount ?? -1,
       semanticType: source?.getAttribute('data-semantic-type') || current?.getAttribute('data-semantic-type') || '',
       semanticRole: source?.getAttribute('data-semantic-role') || current?.getAttribute('data-semantic-role') || '',
       intent: source?.getAttribute('data-omniya-nemeth-intent') || ''
     };
+  });
+}
+
+/** Prefer a real mi/mn leaf via MathJax setNode when keyboard depth-first fails. */
+async function focusPreferredOfficialAtomicTarget(page) {
+  return page.evaluate(() => {
+    const explorer = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech;
+    if (!explorer?.setNode) return null;
+    const sources = [...document.querySelectorAll('[id^="omniya-source-"][data-semantic-id]')];
+    const prefer = (predicate) => {
+      for (const node of sources) {
+        const name = node.localName || '';
+        const text = (node.textContent || '').trim();
+        if (!predicate(name, text, node)) continue;
+        const semanticId = node.getAttribute('data-semantic-id');
+        if (!semanticId) continue;
+        explorer.setNode(semanticId);
+        return semanticId;
+      }
+      return null;
+    };
+    return prefer((name, text) => /^m[in]$/.test(name) && text && !/^[\u2062\u2063\u2064]$/.test(text))
+      || prefer((name, text) => name === 'mo' && text && !/^[\u2062\u2063\u2064]$/.test(text)
+        && !/mspace/i.test(name));
   });
 }
 
@@ -320,18 +350,28 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   await page.waitForTimeout(60);
   let selectedTarget = null;
   let previousId = null;
-  for (let depth = 0; depth < 24; depth += 1) {
+  const visited = new Set();
+  for (let depth = 0; depth < 32; depth += 1) {
     selectedTarget = await readOfficialEditTarget(page);
-    if (isOfficialAtomicCanonicalTarget(selectedTarget)) break;
+    if (isOfficialAtomicCanonicalTarget(selectedTarget, { allowOperator: false })) break;
+    if (isOfficialAtomicCanonicalTarget(selectedTarget) && depth > 8) break;
     // Empty mspaces and other non-atoms often cannot deepen. Prefer a sibling
     // step when focus did not move or landed on mspace; otherwise keep
     // descending. Never invent an ancestor range — only move MathJax focus.
-    const stuck = !selectedTarget.semanticId || selectedTarget.semanticId === previousId;
+    const stuck = !selectedTarget.semanticId || selectedTarget.semanticId === previousId
+      || visited.has(selectedTarget.semanticId);
+    if (selectedTarget.semanticId) visited.add(selectedTarget.semanticId);
     const onSpace = /mspace$/i.test(selectedTarget.nodeName || '');
-    const key = stuck || onSpace || !selectedTarget.text ? 'ArrowRight' : 'ArrowDown';
+    const onContainer = /^(fenced|infixop|appl|punctuated|relseq|multirel)$/i.test(selectedTarget.semanticType || '');
+    const key = stuck || onSpace || onContainer || !selectedTarget.text ? 'ArrowRight' : 'ArrowDown';
     previousId = selectedTarget.semanticId;
     await page.keyboard.press(key);
     await page.waitForTimeout(60);
+  }
+  if (!isOfficialAtomicCanonicalTarget(selectedTarget, { allowOperator: false })) {
+    await focusPreferredOfficialAtomicTarget(page);
+    await page.waitForTimeout(60);
+    selectedTarget = await readOfficialEditTarget(page);
   }
   assert.ok(isOfficialAtomicCanonicalTarget(selectedTarget),
     `official edit must select an atomic canonical target: ${JSON.stringify(selectedTarget)}`);
@@ -347,7 +387,9 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   await page.waitForTimeout(500);
   if (options.originalElementCount) {
-    const editedElementCount = await article.locator('math *').count();
+    // Count authored Omniya nodes, not every SRE enrichment leaf. Invisible
+    // times and speech wrappers fluctuate across focused replacements.
+    const editedElementCount = await article.locator('math [data-omniya-id]').count();
     // Replacing an operator-like icon with an identifier can legitimately
     // remove a small semantic wrapper, but must retain the surrounding tree.
     assert.ok(editedElementCount >= options.originalElementCount - 3,
@@ -518,7 +560,7 @@ test('official BANA examples execute through the real Nemeth replacement rendere
       // identifier so undo/redo proves a real structural transaction rather
       // than accidentally exercising a no-op replacement.
       const replacementCells = actual.startsWith('⠽') ? ['⠵'] : ['⠽'];
-      const originalElementCount = await created.article.locator('math *').count();
+      const originalElementCount = await created.article.locator('math [data-omniya-id]').count();
       const edited = await replaceFocusedEquationWithNemeth(page, replacementCells, {
         originalElementCount,
         captureFocusedEvidence: async () => captureInteractionScreenshot(

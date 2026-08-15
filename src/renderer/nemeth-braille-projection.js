@@ -1410,23 +1410,24 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   }
   // Rule 14.8.7: a level-preserving indicator before equals inside a script
   // must survive the blank. SRE emits bare ⠨⠅ or the wrong script level;
-  // restore stamped cells in source order without rewriting earlier stamps.
+  // restore stamped cells onto successive relation slots in source order.
+  // Do not skip a slot just because the stamp string appears later — SRE may
+  // swap levels (14-112: first slot ⠘⠨⠅, later slot ⠰⠨⠅).
   {
     const levelEquals = sourceNodes('[data-omniya-nemeth-intent="level-preserved-equals"]')
       .map((node) => node.getAttribute('data-omniya-nemeth-cells'))
       .filter((cells) => cells && cells.endsWith('⠨⠅'));
     let searchFrom = 0;
     for (const cells of levelEquals) {
-      const already = braille.indexOf(`⠀${cells}`, searchFrom);
-      if (already >= 0) {
-        searchFrom = already + cells.length + 1;
-        continue;
-      }
       const relative = braille.slice(searchFrom).search(/⠀[⠰⠘⠐]?⠨⠅/);
       if (relative < 0) break;
       const at = searchFrom + relative;
       const match = braille.slice(at).match(/^⠀[⠰⠘⠐]?⠨⠅/)?.[0];
       if (!match) break;
+      if (match === `⠀${cells}`) {
+        searchFrom = at + match.length;
+        continue;
+      }
       braille = `${braille.slice(0, at)}⠀${cells}${braille.slice(at + match.length)}`;
       searchFrom = at + cells.length + 1;
     }

@@ -2328,6 +2328,11 @@ test('Rule 14-112 restores level-preserved equals and subscripted closer order',
     applyNemethSourceIntentToBraille('⠰⠞⠈⠾⠞⠀⠰⠨⠅⠀⠁⠰⠘⠞⠰⠀⠰⠨⠅⠀⠃⠀⠐⠨⠅⠀⠃⠤⠁', source),
     '⠞⠈⠾⠰⠞⠀⠰⠨⠅⠀⠁⠘⠞⠀⠘⠨⠅⠀⠃⠀⠨⠅⠀⠃⠤⠁'
   );
+  // SRE may swap script levels across slots; assign stamps LTR by slot.
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠰⠞⠈⠾⠞⠀⠘⠨⠅⠀⠁⠰⠘⠞⠰⠀⠰⠨⠅⠀⠃⠀⠐⠨⠅⠀⠃⠤⠁', source),
+    '⠞⠈⠾⠰⠞⠀⠰⠨⠅⠀⠁⠘⠞⠀⠘⠨⠅⠀⠃⠀⠨⠅⠀⠃⠤⠁'
+  );
 });
 
 test('Rule 16-16 keeps blank after equals and nests order-1 inside indexed radical', () => {
