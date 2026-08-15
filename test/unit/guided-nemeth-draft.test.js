@@ -3285,3 +3285,57 @@ test('Rule 13-35 fully linear hypercomplex draft completes', () => {
   assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
   assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'hypercomplex');
 });
+
+test('Rule 8-53 literary word endings prefer letter.s over plural.s', () => {
+  const { document, inputState } = replayCells(sourceNotationToCells(
+    '#2,375.4 #2, 375 .4 thousands ones tenths'
+  ));
+  assert.equal(inputState.prefix, '');
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const letters = [];
+  const walk = (node) => {
+    if (node.name === 'mi' && node.children?.[0]?.text) letters.push(node.children[0].text);
+    for (const child of node.children ?? []) walk(child);
+  };
+  walk(tree);
+  assert.equal(letters.join(''), 'thousandsonestenths');
+  assert.equal(letters.filter((value) => value === 's').length, 4);
+});
+
+test('Rule 8-64 script digit then letter stays sibling identifiers', () => {
+  const { document } = replayCells(sourceNotationToCells('a;1n'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msub');
+  const script = tree.children[0].children[1];
+  const leaves = script.name === 'mrow' ? script.children : [script];
+  assert.equal(leaves[0].name, 'mn');
+  assert.equal(leaves[0].children[0].text, '1');
+  assert.equal(leaves[1].name, 'mi');
+  assert.equal(leaves[1].children[0].text, 'n');
+});
+
+test('Rule 7-18 italic typeform scope closes immediately at end of phrase', () => {
+  const { document, inputState } = replayCells(sourceNotationToCells(
+    "#6 pieces of pizza./2 people .k #3 ,'. pieces per person .,'"
+  ));
+  assert.equal(inputState.prefix, '');
+  const tree = parseMathML(document.mathml);
+  const scope = findFirst(tree, (node) => node.attrs?.['data-omniya-nemeth-intent'] === 'typeform-scope');
+  assert.ok(scope);
+  assert.equal(scope.attrs['data-omniya-typeform-close-cells'], '⠨⠠⠄');
+  assert.match(scope.attrs['data-omniya-nemeth-cells'] ?? '', /⠠⠄⠨/);
+});
+
+test('Rule 8-38 literary period follows an indicated right quote', () => {
+  const { document } = replayCells(sourceNotationToCells('8#100`0_04 #1000`0'));
+  const tree = parseMathML(document.mathml);
+  const intents = [];
+  const walk = (node) => {
+    if (node.attrs?.['data-omniya-nemeth-intent']) intents.push(node.attrs['data-omniya-nemeth-intent']);
+    for (const child of node.children ?? []) walk(child);
+  };
+  walk(tree);
+  assert.ok(intents.includes('punctuation-right-double-quote'));
+  assert.ok(intents.includes('punctuation-literary-period'));
+});

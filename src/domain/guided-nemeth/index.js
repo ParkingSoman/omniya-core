@@ -4671,6 +4671,7 @@ function letterMapping(cell, inputState) {
         : typeform === 'double-struck'
           ? (inputState.omitTypeformLetterIndicator ? '⠠⠸' : '⠠⠸⠰')
           : '';
+  const stampedCells = `${typeformPrefix}${capital ? '⠠' : ''}${cell}`;
   return {
     id: `letter.${value}`,
     cells: [cell],
@@ -4679,18 +4680,19 @@ function letterMapping(cell, inputState) {
     args: {
       name: 'mi',
       value: capital ? value.toUpperCase() : value,
-      ...(inputState.mode?.startsWith?.('english-letter') ? {
-        dataAttributes: {
+      dataAttributes: {
+        // Always retain the authored letter cell so function-prefix replay
+        // (`ers` → e,r,s) matches registry letter tokens (7-18 phrase scopes).
+        'data-omniya-nemeth-cells': stampedCells,
+        ...(inputState.mode?.startsWith?.('english-letter') ? {
           'data-omniya-nemeth-intent': 'english-letter',
           'data-omniya-nemeth-cells': `⠰${capital ? '⠠' : ''}${cell}`
-        }
-      } : {}),
-      ...(typeform ? {
-        dataAttributes: {
+        } : {}),
+        ...(typeform ? {
           'data-omniya-nemeth-intent': `typeform-${typeform}`,
-          'data-omniya-nemeth-cells': `${typeformPrefix}${capital ? '⠠' : ''}${cell}`
-        }
-      } : {})
+          'data-omniya-nemeth-cells': stampedCells
+        } : {})
+      }
     }
   };
 }
@@ -8033,6 +8035,30 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         }
       }
     }
+    // A plain `⠎` is both an identifier letter and BANA's plural ending.
+    // When a following cell proves the short code is done mid-word (or at a
+    // literary blank), prefer the letter and continue. Plural remains an
+    // Enter-time choice when `⠎` is held alone (8-53 thousands/ones/tenths).
+    if (previousMappings.length > 1 && state.prefix === '⠎' &&
+      !hasApplicableContinuation(state.prefix, normalized, context)) {
+      const letterS = previousMappings.find((mapping) => mapping.id === 'letter.s');
+      const pluralS = previousMappings.find((mapping) => mapping.id === 'plural.s');
+      if (letterS && pluralS && (LETTERS.has(normalized) || normalized === '⠀' || normalized === ' ')) {
+        const first = applyMapping(document, focus, { ...state, prefix: '' }, letterS);
+        if (first.status !== 'rejected') {
+          const second = applyNemethCell({
+            document: first.document,
+            focus: first.focus,
+            inputState: first.inputState,
+            cell: normalized
+          });
+          if (second.status !== 'rejected') {
+            return { ...second, announcement: `${first.announcement}; ${second.announcement}` };
+          }
+          return first;
+        }
+      }
+    }
     if (previousMappings.length > 1 && !hasApplicableContinuation(state.prefix, normalized, context)) {
       return {
         status: 'choice',
@@ -8302,11 +8328,26 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
     status: 'rejected', document, focus, inputState,
     announcement: 'That local Nemeth code is incomplete or invalid. The draft was not changed.'
   };
-  if (mappings.length > 1) return {
-    status: 'choice', document, focus, inputState,
-    choices: mappings.map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
-    announcement: 'Choose the meaning for this local Nemeth code.'
-  };
+  if (mappings.length > 1) {
+    // Literary multi-letter words end in an ordinary `s` (8-53). Prefer the
+    // letter when the focused atom already continues a letter sibling; keep
+    // the plural/letter choice after a lone identifier (`x` + `s`).
+    const letterS = mappings.find((mapping) => mapping.id === 'letter.s');
+    const pluralS = mappings.find((mapping) => mapping.id === 'plural.s');
+    if (letterS && pluralS && prefix === '⠎') {
+      const parent = findMathParent(context.tree, context.node.attrs?.['data-omniya-id']);
+      const index = parent?.children?.indexOf(context.node) ?? -1;
+      const previous = index > 0 ? parent.children[index - 1] : null;
+      if (isLatinLetterMi(context.node) && isLatinLetterMi(previous)) {
+        return applyMapping(document, focus, { ...inputState, prefix: '' }, letterS);
+      }
+    }
+    return {
+      status: 'choice', document, focus, inputState,
+      choices: mappings.map(({ id, banaRefs }) => ({ operationId: id, label: id, banaRefs })),
+      announcement: 'Choose the meaning for this local Nemeth code.'
+    };
+  }
   const mapping = mappings[0];
   return applyMapping(document, focus, { ...inputState, prefix: '' }, mapping);
 }
