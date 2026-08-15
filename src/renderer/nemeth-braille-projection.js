@@ -90,6 +90,7 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // Rule 15/21 superposed comparisons are all authored as one local sequence.
   if (standaloneCells && (
     standaloneAuthored.getAttribute?.('data-omniya-shape-kind') ||
+    standaloneIntent === 'radical-sign' ||
     standaloneIntent.startsWith('arrow-') ||
     standaloneIntent.startsWith('comparison.superposed') ||
     standaloneIntent.startsWith('comparison.equals') ||
@@ -2898,51 +2899,69 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // can lose authored source cells (notably an English indicator on an mi
   // immediately followed by a numeric mn). Rebuild only each bounded mfrac
   // interior by node identity; never serialize unrelated siblings.
-  for (const fraction of sourceNodes('mfrac')) {
-    // Complex/hypercomplex interiors keep their own openers/terminators; do
-    // not rebuild them from leaf cells (13-25 / 23-30).
-    const kind = fraction.getAttribute?.('data-omniya-fraction-kind');
-    if (kind === 'complex' || kind === 'hypercomplex') continue;
-    // Nested simples inside a higher-order fraction share the first `⠹…⠼`
-    // span with the outer opener; rebuilding that span from leaf cells eats
-    // grouped numerators such as `(1-X)?D/DX#` (13-33).
-    let higherHost = fraction.parentElement ?? fraction.parentNode;
-    let nestedInHigherOrder = false;
-    while (higherHost && higherHost !== sourceMath) {
-      const hostKind = higherHost.getAttribute?.('data-omniya-fraction-kind');
-      if (hostKind === 'complex' || hostKind === 'hypercomplex') {
-        nestedInHigherOrder = true;
-        break;
+  {
+    let fractionCursor = 0;
+    for (const fraction of sourceNodes('mfrac')) {
+      // Complex/hypercomplex interiors keep their own openers/terminators; do
+      // not rebuild them from leaf cells (13-25 / 23-30).
+      const kind = fraction.getAttribute?.('data-omniya-fraction-kind');
+      if (kind === 'complex' || kind === 'hypercomplex') continue;
+      // Nested simples inside a higher-order fraction share the first `⠹…⠼`
+      // span with the outer opener; rebuilding that span from leaf cells eats
+      // grouped numerators such as `(1-X)?D/DX#` (13-33).
+      let higherHost = fraction.parentElement ?? fraction.parentNode;
+      let nestedInHigherOrder = false;
+      while (higherHost && higherHost !== sourceMath) {
+        const hostKind = higherHost.getAttribute?.('data-omniya-fraction-kind');
+        if (hostKind === 'complex' || hostKind === 'hypercomplex') {
+          nestedInHigherOrder = true;
+          break;
+        }
+        higherHost = higherHost.parentElement ?? higherHost.parentNode;
       }
-      higherHost = higherHost.parentElement ?? higherHost.parentNode;
+      if (nestedInHigherOrder) continue;
+      const direct = [...(fraction.children ?? [])].filter((node) => node?.nodeType === 1);
+      if (direct.length !== 2) continue;
+      const leaves = (node) => {
+        const children = [...(node.children ?? [])].filter((child) => child?.nodeType === 1);
+        if (!children.length) return node.getAttribute?.('data-omniya-nemeth-cells') || '';
+        return children.map(leaves).join('');
+      };
+      const numerator = leaves(direct[0]);
+      const denominator = leaves(direct[1]);
+      if (!numerator || !denominator) continue;
+      // Prefer the ordinary terminator `⠼`. Matching through `⠾` swallows a
+      // following grouped function argument (`f(x, y)` in 23-30). When SRE still
+      // emits a grouped close, fall back to that local terminator only.
+      // Advance past earlier fractions so a later simple (10-23's second
+      // `?cm/mm#`) cannot rewrite the first span.
+      const fromCursor = braille.slice(fractionCursor);
+      const local = /⠹[^⠼]*⠼/.exec(fromCursor) || /⠹[^⠾]*⠾/.exec(fromCursor);
+      if (!local) continue;
+      const markerIndex = fractionCursor + local.index;
+      const markerText = local[0];
+      // Skip rebuilds that would erase an already-spaced authored row.
+      if (markerText.includes('⠀')) {
+        fractionCursor = markerIndex + markerText.length;
+        continue;
+      }
+      // The first `⠹…⠼` span in a higher-order expression may be the complex
+      // opener through an inner simple closer. Rebuilding that from a later
+      // simple's leaves eats `(1-X)?D/DX#` (13-33). Only rewrite a span that
+      // is already one simple fraction (single opener) and not a complex open.
+      if ((markerText.match(/⠹/g) || []).length !== 1) {
+        fractionCursor = markerIndex + markerText.length;
+        continue;
+      }
+      if (markerIndex > 0 && braille[markerIndex - 1] === '⠠') {
+        fractionCursor = markerIndex + markerText.length;
+        continue;
+      }
+      const close = markerText.endsWith('⠼') ? '⠼' : '⠾';
+      const replacement = `⠹${numerator}⠌${denominator}${close}`;
+      braille = `${braille.slice(0, markerIndex)}${replacement}${braille.slice(markerIndex + markerText.length)}`;
+      fractionCursor = markerIndex + replacement.length;
     }
-    if (nestedInHigherOrder) continue;
-    const direct = [...(fraction.children ?? [])].filter((node) => node?.nodeType === 1);
-    if (direct.length !== 2) continue;
-    const leaves = (node) => {
-      const children = [...(node.children ?? [])].filter((child) => child?.nodeType === 1);
-      if (!children.length) return node.getAttribute?.('data-omniya-nemeth-cells') || '';
-      return children.map(leaves).join('');
-    };
-    const numerator = leaves(direct[0]);
-    const denominator = leaves(direct[1]);
-    if (!numerator || !denominator) continue;
-    // Prefer the ordinary terminator `⠼`. Matching through `⠾` swallows a
-    // following grouped function argument (`f(x, y)` in 23-30). When SRE still
-    // emits a grouped close, fall back to that local terminator only.
-    const marker = /⠹[^⠼]*⠼/.exec(braille) || /⠹[^⠾]*⠾/.exec(braille);
-    if (!marker) continue;
-    // Skip rebuilds that would erase an already-spaced authored row.
-    if (marker[0].includes('⠀')) continue;
-    // The first `⠹…⠼` span in a higher-order expression may be the complex
-    // opener through an inner simple closer. Rebuilding that from a later
-    // simple's leaves eats `(1-X)?D/DX#` (13-33). Only rewrite a span that
-    // is already one simple fraction (single opener) and not a complex open.
-    if ((marker[0].match(/⠹/g) || []).length !== 1) continue;
-    if (marker.index > 0 && braille[marker.index - 1] === '⠠') continue;
-    const close = marker[0].endsWith('⠼') ? '⠼' : '⠾';
-    const replacement = `⠹${numerator}⠌${denominator}${close}`;
-    braille = `${braille.slice(0, marker.index)}${replacement}${braille.slice(marker.index + marker[0].length)}`;
   }
   if (flatComplete && !hasNestedStructure && flatLeaves.length >= 5 && flatLeaves.filter(({ cells }) => cells === '⠀').length >= 2 &&
       flatLeaves.every(({ cells }) => cells)) {
@@ -4522,7 +4541,9 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         && right?.localName !== 'mspace';
     });
     if (unspacedFractionOps.length) {
-      braille = braille.replace(/⠼⠀+(⠡|⠨⠌)⠀+⠹/g, '⠼$1⠹');
+      // SRE may blank only before the operator (`⠼⠀⠡⠹`, 3-101) or on both
+      // sides (`⠼⠀⠡⠀⠹`). Strip either form when the source has no spaces.
+      braille = braille.replace(/⠼⠀+(⠡|⠨⠌)⠀*⠹/g, '⠼$1⠹');
     }
   }
   // Rule 3.9 interior numbers keep the number sign after the interior-shape

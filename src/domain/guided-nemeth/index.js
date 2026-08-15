@@ -7729,6 +7729,18 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
         operationId: 'script.left-subscript'
       });
     }
+    // Rule 10.3 / 10-23: inside a fraction hole, `;letter` is the English-
+    // letter abbreviation indicator (`?;m/cm#`), not a left-subscript on an
+    // empty numerator base. Auto-resolve like the open-fence / blank cases.
+    if (isHole(context.node) && hasAncestor(context.tree, context.node, 'mfrac')) {
+      const indicator = MAPPINGS.find((candidate) => candidate.id === 'indicator.english-letter');
+      const activated = applyMapping(document, focus, { ...state, prefix: '' }, indicator);
+      if (activated.status !== 'rejected') {
+        return applyNemethCell({
+          document: activated.document, focus: activated.focus, inputState: activated.inputState, cell: normalized
+        });
+      }
+    }
     // Prefer left-subscript first so one-cell Electron choice resolution and
     // first-choice corpus replay keep Rule 14.5 constructions at an empty root.
     return {

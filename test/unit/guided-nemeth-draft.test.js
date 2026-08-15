@@ -3392,6 +3392,17 @@ test('Rule 7-18 italic typeform scope closes immediately at end of phrase', () =
   assert.match(scope.attrs['data-omniya-nemeth-cells'] ?? '', /⠠⠄⠨/);
 });
 
+test('Rule 10-23 english-letter abbreviation inside a fraction completes without a left-subscript hole', () => {
+  const { document, inputState } = replayCells(sourceNotationToCells('?;m/cm#@*?cm/mm#'));
+  assert.equal(inputState.prefix, '');
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mfrac');
+  assert.equal(tree.children[0].children[0].attrs?.['data-omniya-nemeth-intent'], 'english-letter');
+  assert.equal(tree.children[0].children[0].attrs?.['data-omniya-nemeth-cells'], '⠰⠍');
+});
+
 test('Rule 7-13/7-18 keep an explicit blank between per and person', () => {
   for (const source of [
     '#6 .pieces of pizza./2 people .k #3 .pieces per person',

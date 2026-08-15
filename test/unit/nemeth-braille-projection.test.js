@@ -2814,4 +2814,83 @@ test('Rule 3-101/3-102 roman and english-letter identifiers restore local indica
     applyNemethSourceIntentToBraille('⠹⠲⠌⠔⠼⠀⠡⠀⠹⠂⠌⠖⠼⠀⠹⠲⠌⠔⠼⠀⠨⠌⠀⠹⠂⠌⠖⠼', flanking),
     '⠹⠲⠌⠔⠼⠡⠹⠂⠌⠖⠼⠀⠹⠲⠌⠔⠼⠨⠌⠹⠂⠌⠖⠼'
   );
+  // SRE may blank only before ·/÷ (`⠼⠀⠡⠹`), not on both sides.
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠹⠲⠌⠔⠼⠀⠡⠹⠂⠌⠖⠼⠀⠹⠲⠌⠔⠼⠀⠨⠌⠹⠂⠌⠖⠼', flanking),
+    '⠹⠲⠌⠔⠼⠡⠹⠂⠌⠖⠼⠀⠹⠲⠌⠔⠼⠨⠌⠹⠂⠌⠖⠼'
+  );
+});
+
+test('Rule 16-8 lone radical-sign restores authored cells when SRE emits null', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mo data-omniya-nemeth-intent="radical-sign" data-omniya-nemeth-cells="⠜">√</mo></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille(null, source), '⠜');
+  assert.equal(applyNemethSourceIntentToBraille('', source), '⠜');
+});
+
+test('Rule 10-23 adjacent simple fractions keep english-letter in the first numerator', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mfrac data-omniya-fraction-kind="simple">
+        <mi data-omniya-nemeth-intent="english-letter" data-omniya-nemeth-cells="⠰⠍">m</mi>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠉">c</mi>
+          <mi data-omniya-nemeth-cells="⠍">m</mi>
+        </mrow>
+      </mfrac>
+      <mo data-omniya-nemeth-cells="⠈⠡">×</mo>
+      <mfrac data-omniya-fraction-kind="simple">
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠉">c</mi>
+          <mi data-omniya-nemeth-cells="⠍">m</mi>
+        </mrow>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠍">m</mi>
+          <mi data-omniya-nemeth-cells="⠍">m</mi>
+        </mrow>
+      </mfrac>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠹⠍⠌⠉⠍⠼⠈⠡⠹⠉⠍⠌⠍⠍⠼', source),
+    '⠹⠰⠍⠌⠉⠍⠼⠈⠡⠹⠉⠍⠌⠍⠍⠼'
+  );
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠹⠰⠍⠌⠉⠍⠼⠈⠡⠹⠉⠍⠌⠍⠍⠼', source),
+    '⠹⠰⠍⠌⠉⠍⠼⠈⠡⠹⠉⠍⠌⠍⠍⠼'
+  );
+});
+
+test('Rule 7-13 restores the blank between per and person from explicit-space', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mn data-omniya-nemeth-intent="numeric-start">3</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠨⠏">π</mi>
+      <mi data-omniya-nemeth-cells="⠊">i</mi>
+      <mi data-omniya-nemeth-cells="⠑">e</mi>
+      <mi data-omniya-nemeth-cells="⠉">c</mi>
+      <mi data-omniya-nemeth-cells="⠑">e</mi>
+      <mi data-omniya-nemeth-cells="⠎">s</mi>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠏">p</mi>
+      <mi data-omniya-nemeth-cells="⠑">e</mi>
+      <mi data-omniya-nemeth-cells="⠗">r</mi>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠏">p</mi>
+      <mi data-omniya-nemeth-cells="⠑">e</mi>
+      <mi data-omniya-nemeth-cells="⠗">r</mi>
+      <mi data-omniya-nemeth-cells="⠎">s</mi>
+      <mi data-omniya-nemeth-cells="⠕">o</mi>
+      <mi data-omniya-nemeth-cells="⠝">n</mi>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠼⠒⠀⠨⠏⠊⠑⠉⠑⠎⠀⠏⠑⠗⠏⠑⠗⠎⠕⠝', source),
+    '⠼⠒⠀⠨⠏⠊⠑⠉⠑⠎⠀⠏⠑⠗⠀⠏⠑⠗⠎⠕⠝'
+  );
 });
