@@ -34803,6 +34803,44 @@
           }
         ]
       }
+    },
+    {
+      "id": "electron:bana-2022:example-6-46",
+      "sourceRows": [
+        "example-6-46",
+        "6.4.9"
+      ],
+      "rule": "6",
+      "example": "6-46",
+      "artifact": "electron-evidence/example-6-46.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases for example 6-46; geometry contract passed in-runner and screenshots are non-empty."
+      },
+      "evidenceSet": {
+        "screenshots": [
+          {
+            "phase": "input",
+            "path": "electron-screenshots/rule-6-46/input.png",
+            "claim": "The complete Nemeth draft for example 6-46 is visible before submission."
+          },
+          {
+            "phase": "committed",
+            "path": "electron-screenshots/rule-6-46/committed.png",
+            "claim": "The committed expression for example 6-46 is visibly rendered as one canonical MathML tree."
+          },
+          {
+            "phase": "focused",
+            "path": "electron-screenshots/rule-6-46/focused.png",
+            "claim": "MathJax Explorer visibly selects the exact replacement scope for example 6-46."
+          },
+          {
+            "phase": "editing",
+            "path": "electron-screenshots/rule-6-46/editing.png",
+            "claim": "The exact-node replacement for example 6-46 remains visibly integrated with the surrounding expression."
+          }
+        ]
+      }
     }
   ]
 }
