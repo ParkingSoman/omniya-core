@@ -2748,6 +2748,32 @@ test('Rule 14-62 contracted script comma keeps no multipurpose before a list com
   );
 });
 
+test('Rule 24-18 multipurpose before tally punctuation restores ⠐ before ⠸⠲', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-cells="⠸">|</mo>
+      <mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠐⠸⠲">.</mo>
+      <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo>
+    </math>`,
+    'text/xml'
+  );
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠸⠸⠸⠸⠸⠠⠀⠸⠸⠸⠸⠸⠲⠀⠄⠄⠄', source),
+    '⠸⠸⠸⠸⠸⠠⠀⠸⠸⠸⠸⠐⠸⠲⠀⠄⠄⠄'
+  );
+});
+
 test('Rule 3-101/3-102 roman and english-letter identifiers restore local indicators', () => {
   const roman = new DOMParser().parseFromString(
     `<math>

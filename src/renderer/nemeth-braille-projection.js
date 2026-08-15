@@ -3491,6 +3491,13 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         return '⠸';
       });
     }
+    // Rule 24.1.h / 24-18: multipurpose before a punctuation indicator after
+    // tallies (`"_4`). Insert before blank restoration so a four-tally blank
+    // rule cannot split `⠸⠸⠸⠸⠸⠲` into `⠸⠸⠸⠸⠀⠸⠲` and hide the target.
+    if ((tallyCount || explicitCellNodes.some((sequence) => sequence === '⠐⠸⠲' || sequence === '⠸⠲'))
+      && sourceMath.querySelector?.('[data-omniya-nemeth-intent="punctuation-period"]')) {
+      braille = braille.replace(/(⠸+)(?!⠐)(?=⠸⠲)/g, '$1⠐');
+    }
     // Rule 23.52 / 24.18: authored blanks between tally groups must survive
     // SRE's concatenated bar projection.
     if (tallyCount && sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')) {
@@ -3498,12 +3505,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.replace(/(⠸{4})(?!⠀)(?=⠸)/g, (match, group, offset, value) => {
         // Prefer restoring the blank after a five-tally group first; only use
         // the four-tally form when no five-group blank was needed.
+        // Do not split a multipurpose tally-period cluster (`⠐⠸⠲`).
+        if (value.slice(offset + group.length).startsWith('⠐') || value.slice(offset + group.length).startsWith('⠸⠲')) {
+          return match;
+        }
         return value.includes('⠸⠸⠸⠸⠸⠀') ? match : `${group}⠀`;
       });
-    }
-    // Rule 24.1.h: multipurpose before a punctuation indicator after tallies.
-    if (tallyCount && sourceMath.querySelector?.('[data-omniya-nemeth-intent="punctuation-period"]')) {
-      braille = braille.replace(/(⠸+)(?!⠐)(?=⠸⠲)/g, '$1⠐');
     }
     // Rule 13-34: keep only as many English-capital sequences (`⠰⠠⠙`) as were
     // authored. SRE may decorate later capitals (DX) with the same indicator.

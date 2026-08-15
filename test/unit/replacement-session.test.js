@@ -198,6 +198,8 @@ test('Rule 24-18 submits after blank boundaries flush tally punctuation', async 
   const committed = await submitReplacement(session);
   const tree = parseMathML(committed.document.mathml);
   assert.equal(tree.children.some((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-period'), true);
+  const period = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-period');
+  assert.equal(period?.attrs?.['data-omniya-nemeth-cells'], '⠐⠸⠲');
   assert.equal(tree.children.some((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠄⠄⠄'), true);
 });
 

@@ -3521,12 +3521,18 @@ function mappingApplies(mapping, context) {
     // constructions Rule 14's `;letter` is a subscript of that bar, not an
     // English-letter abbreviation mode. Treat fence bars like populated
     // mathematical atoms so the subscript mapping remains unambiguous.
+    // Closing brackets (`]`, Rule 14.9.5 `t];t`) are likewise script bases:
+    // `;letter` opens a subscript of that closer, not an English-letter mode.
     const verticalBar = current.name === 'mo' && (
       current.children?.[0]?.text === '|'
       || current.attrs?.['data-omniya-nemeth-intent'] === 'adjacent-vertical-bar'
       || /^(⠐)?⠳$/.test(current.attrs?.['data-omniya-nemeth-cells'] || '')
     );
-    const boundary = !verticalBar && (current.name === 'math' || isHole(current) ||
+    const closingBracket = current.name === 'mo' && (
+      current.children?.[0]?.text === ']'
+      || current.attrs?.['data-omniya-nemeth-cells'] === '⠈⠾'
+    );
+    const boundary = !verticalBar && !closingBracket && (current.name === 'math' || isHole(current) ||
       current.name === 'mspace' || current.name === 'mo');
     if (!boundary) return false;
   }
@@ -7110,9 +7116,22 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'punctuation.comma');
     return applyMapping(document, focus, { ...state, prefix: '', mode: null }, mapping);
   }
+  // Rule 24.1.h / 24-18: multipurpose before a punctuation indicator after
+  // tallies (`"_4`) must keep the authored `⠐` on the period token so flat
+  // leaf rebuild and SRE projection both emit `⠸⠸⠸⠸⠐⠸⠲`.
   if (state.mode === 'tally-punctuation' && state.prefix === '⠸' && normalized === '⠲') {
     const mapping = MAPPINGS.find((candidate) => candidate.id === 'punctuation.period');
-    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, mapping);
+    return applyMapping(document, focus, { ...state, prefix: '', mode: null }, {
+      ...mapping,
+      args: {
+        ...(mapping.args ?? {}),
+        dataAttributes: {
+          ...(mapping.args?.dataAttributes ?? {}),
+          'data-omniya-nemeth-intent': 'punctuation-period',
+          'data-omniya-nemeth-cells': '⠐⠸⠲'
+        }
+      }
+    });
   }
   // BANA 24.1.j: dot 5 between a regular-polygon operation symbol and the
   // following numeral is a one-number local transition. The shape remains a
@@ -7692,10 +7711,16 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
   // subscript transition whenever the current focus is a populated atom.
   // Resolve that local structural meaning before the English-letter mode;
   // the latter remains available at an empty/boundary focus.
+  // Closing brackets (`]`, Rule 14.9.5) and integrals are script bases even
+  // though they are MathML operators — treat them like populated atoms.
+  const scriptableOperator = context.node.name === 'mo' && (
+    ['∫', '∬', '∭'].includes(context.node.children?.[0]?.text)
+    || context.node.children?.[0]?.text === ']'
+    || context.node.attrs?.['data-omniya-nemeth-cells'] === '⠈⠾'
+  );
   if (state.mode === null && state.prefix === '⠰' && LETTERS.has(normalized) &&
     context.node.name !== 'math' && !isHole(context.node) &&
-    !(['mspace', 'mo'].includes(context.node.name) &&
-      !(context.node.name === 'mo' && ['∫', '∬', '∭'].includes(context.node.children?.[0]?.text)))) {
+    !(['mspace', 'mo'].includes(context.node.name) && !scriptableOperator)) {
     const multiscript = ancestor(context.tree, context.node, ['mmultiscripts']);
     if (multiscript && multiscript.children?.[0] === context.node) {
       const script = MAPPINGS.find((candidate) => candidate.id === 'script.subscript');

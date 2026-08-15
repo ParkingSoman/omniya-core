@@ -582,6 +582,22 @@ test('Rule 14.9.5 levelled comparisons keep sub/sup equals then baseline equals'
   assert.ok(baselineEquals, 'final blank+.k places equals at the math baseline');
 });
 
+test('Rule 14-112 closing bracket plus ;letter auto-opens a subscript without English-letter choice', () => {
+  // Electron choice resolution prefers english-letter when the next cell is a
+  // blank. The draft must resolve `];t` as a structural subscript of `]` so a
+  // following blank never surfaces that literary alternative.
+  const { document } = replayCells(sourceNotationToCells('t`);t ;.k a~t ~.k b .k b-a'), {
+    '⠨⠅': 'operator.equals'
+  });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[1].name, 'msub');
+  assert.equal(tree.children[1].children[0].children?.[0]?.text ?? tree.children[1].children[0].text, ']');
+  assert.ok(!document.mathml.includes('mmultiscripts'), 'must not fall into left-scripts');
+  assert.ok(!document.mathml.includes('english-letter'), '];t must not stamp an English-letter indicator');
+});
+
 test('Rule 14.9.5 baseline ellipsis after nested scripts keeps multipurpose cells', () => {
   const { document } = replayCells(sourceNotationToCells(",p1~.a~;1 \"''' ,p;r~.a~;r"), {
     '⠄⠄⠄': 'punctuation.ellipsis',
@@ -3015,7 +3031,8 @@ test('Rule 24.18 tally then multipurpose punctuation keeps the period', () => {
   assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
   const period = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-period');
   assert.ok(period);
-  assert.equal(period.attrs['data-omniya-nemeth-cells'], '⠸⠲');
+  // Rule 24.1.h: `"_4` after tallies keeps the multipurpose cell on the period.
+  assert.equal(period.attrs['data-omniya-nemeth-cells'], '⠐⠸⠲');
 });
 
 test('Rule 24.23 shape then multipurpose number keeps equals after a blank', () => {
