@@ -10,7 +10,7 @@ Three things to learn first:
 
 1. **Keyboard help** — the button labeled **Keyboard help**, next to **Add item**, under the napkin. Open it. That dialog is how you learn reading keys and the keys that work in Command mode. There is no Command-mode button; the keys are in that help (and **?** in Command mode, below).
 2. **Command mode** — while the composer is open (after **Add item**, or while editing), press **Ctrl+[**. The header mode panel should say Command. **Escape** cancels. **?** in Command mode opens the same help, filled in for the current state. Command mode is not the Mac **Cmd** key.
-3. **r on math** — in reading, Up and Down move between items. On an equation, **Enter** explores it. Then **r** replaces the focused node (same composer). On a focused equation *without* exploring, **r** targets the whole expression. To add a sibling term, replace a large enough ancestor and retype. Submit with **n** in Command mode; Escape leaves the item unchanged. **r** on a text item still opens that item for editing.
+3. **r / a / o on math** — in reading, Up and Down move between items. On an equation, **Enter** explores it. Then **r** replaces the focused node, **a** inserts after it, and **o** inserts before it (same composer, same captured node). On a focused equation *without* exploring, those keys target the whole expression. Submit with **n** in Command mode; Escape leaves the item unchanged. **r** on a text item still opens that item for editing.
 
 After **Ctrl+[**, type a Command-mode key, then **i** (or Enter) to type again, or **n** to submit:
 
@@ -267,7 +267,7 @@ The bullets below are the older reading/add shell. `t` / `x` in Command mode rep
 - In Read mode, Up and Down move between items. Home and End move to the first and last item; on compact Mac keyboards these are commonly Fn+Left Arrow and Fn+Right Arrow.
 - Press Enter on a focused text item to edit it.
 - Press Enter on a focused equation to enter MathJax’s expression explorer. MathJax handles movement through the expression; Escape returns to the item.
-- Press `r` on a focused equation to replace it (or the explorer focus). On a text item, `r` opens it for editing. To add a sibling term, replace a large enough ancestor and retype.
+- Press `r` on a focused equation to replace it (or the explorer focus). `a` inserts after that same node; `o` inserts before it. On a text item, `r` opens it for editing.
 - Press Backspace on a focused item to delete it; focus moves to a nearby remaining item.
 - Activate `Add item` to enter Add mode and focus the Content field.
 - In Add mode, Enter adds the item, Shift+Enter inserts a new line, and Escape discards the draft.

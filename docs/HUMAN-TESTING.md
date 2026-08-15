@@ -31,8 +31,8 @@ equations, offline autosave.
 - One unified composer field for text, new equations, and subtree **r** replace
   (Nemeth / LaTeX in `#composer-source`; no separate replacement-dock chrome)
 - MathJax explorer: Enter to explore, arrows through hierarchy, **r** to
-  replace the focused subtree in that same composer. To add a sibling term,
-  replace a large enough ancestor and retype.
+  replace the focused subtree, **a** to insert after it, **o** to insert
+  before it — same captured node, same composer.
 - Insert / Command mode: `Ctrl+[` → Command mode; Escape cancels;
   `i` / Enter → Insert. Command mode is not the Mac **Cmd** key.
 - Notes UI hidden; Text / Equation / Nemeth / LaTeX via `t` / `x` in Command mode

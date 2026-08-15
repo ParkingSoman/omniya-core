@@ -410,17 +410,22 @@ function renderMode() {
   elements['composer-dock'].hidden = reading;
   elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
-    ? 'Up and Down arrows move between items. Enter explores an equation; r replaces the focus.'
+    ? 'Up and Down arrows move between items. Enter explores an equation; r replaces, a inserts after, o inserts before the focus.'
     : 'Reading remains available above. Ctrl+[ enters Command mode · Escape cancels.';
 }
 
-function placementVerb(_placement) {
+function placementVerb(placement) {
+  if (placement === 'append') return 'Appending after';
+  if (placement === 'prepend') return 'Prepending before';
   return 'Replacing';
 }
 
 function mathPlacementFromKey(event) {
   if (event.altKey || event.ctrlKey || event.metaKey) return null;
-  if (event.key.toLowerCase() === 'r') return 'replace';
+  const key = event.key.toLowerCase();
+  if (key === 'r') return 'replace';
+  if (key === 'a') return 'append';
+  if (key === 'o') return 'prepend';
   return null;
 }
 
@@ -453,7 +458,7 @@ function renderComposer() {
       ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
       : `Adding to ${activeNapkin().name}`;
   elements['composer-submit'].textContent = mathReplace
-    ? 'Replace'
+    ? (commandState.placement === 'replace' ? 'Replace' : 'Insert')
     : editing ? 'Save changes' : 'Add item';
   elements['composer-discard'].hidden = editing || mathReplace;
   elements['composer-cancel'].hidden = !(editing || mathReplace);
