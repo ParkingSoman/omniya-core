@@ -395,7 +395,11 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('ArrowDown');
-  await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.includes('Radicand y to the z-th power'));
+  await page.waitForFunction(() =>
+    document.querySelector('article.napkin-article:last-of-type mjx-speech')
+      ?.getAttribute('aria-label')
+      ?.includes('Radicand y to the z-th power')
+  );
   // SRE's focused-radicand projection includes the level-return indicators
   // needed to describe the nested y^z scope in isolation.
   assert.equal(await page.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠽⠘⠘⠵⠘');
