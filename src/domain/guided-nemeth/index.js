@@ -2920,7 +2920,7 @@ const MAPPINGS = [
   Object.assign(token('reference.checkmark', ['⠨', '⠿', '⠈', '⠫', '⠉', '⠍'], ['9.1'], '✓', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '.=`$cm' }), {
     errataRefs: ['Rule 9.1 (approved August 2024; included in October 2025 errata)']
   }),
-  token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { preferLonger: true, sourceNotation: '$c' }),
+  token('shape.circle', ['⠫', '⠉'], ['17.1'], '○', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$c' }),
   token('shape.diamond', ['⠫', '⠙'], ['17.1'], '◊', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$d' }),
   token('shape.ellipse', ['⠫', '⠑'], ['17.1'], '⬭', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$e' }),
   token('shape.regular-hexagon', ['⠫', '⠖'], ['17.1'], '⬡', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$6' }),
@@ -2931,7 +2931,7 @@ const MAPPINGS = [
   token('shape.star', ['⠫', '⠎'], ['17.1'], '☆', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$s' }),
   token('shape.trapezoid', ['⠫', '⠵'], ['17.1'], '⏢', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$z' }),
   token('shape.inverted-triangle', ['⠨', '⠫'], ['17.1'], '▽', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '.$' }),
-  token('shape.square', ['⠫', '⠲'], ['17.1'], '□', 'mo', { preferLonger: true, sourceNotation: '$4' }),
+  token('shape.square', ['⠫', '⠲'], ['17.1'], '□', 'mo', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, preferLonger: true, sourceNotation: '$4' }),
   shapeToken('shape.filled-circle', ['⠫', '⠸', '⠉'], ['17.3'], '●', 'filled-circle', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_c' }),
   shapeToken('shape.filled-ellipse', ['⠫', '⠸', '⠑'], ['17.3'], '◉', 'filled-ellipse', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_e' }),
   shapeToken('shape.filled-square', ['⠫', '⠸', '⠲'], ['17.3'], '■', 'filled-square', { commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE, sourceNotation: '$_4' }),

@@ -174,6 +174,9 @@ test('renderer applies immediate, structural-followup, and atomic Nemeth codes i
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await integralArticle.locator('mjx-container').waitFor();
+  await page.waitForFunction(() =>
+    document.querySelector('article.napkin-article mjx-speech[aria-braillelabel]')
+  );
   assert.equal(await integralArticle.locator('mjx-speech[aria-braillelabel]').count() > 0, true);
   assert.equal(await integralArticle.locator('math mo').textContent(), '∫');
 
@@ -385,6 +388,10 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   await page.getByRole('button', { name: 'Replace' }).click();
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
   await article.locator('mjx-container').waitFor();
+  await page.waitForFunction(() => {
+    const label = document.querySelector('article.napkin-article:last-of-type mjx-speech')?.getAttribute('aria-label') ?? '';
+    return /raised to|square root/i.test(label);
+  });
 
   // Root -> exponent -> radicand is the real MathJax Explorer path. At this
   // point the semantic focus is the inner y^z node, not its containing radical
@@ -393,7 +400,17 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
   await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(() =>
+    document.querySelector('article.napkin-article:last-of-type mjx-speech')
+      ?.getAttribute('aria-label')
+      ?.includes('Base')
+  );
   await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() =>
+    document.querySelector('article.napkin-article:last-of-type mjx-speech')
+      ?.getAttribute('aria-label')
+      ?.includes('Exponent')
+  );
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() =>
     document.querySelector('article.napkin-article:last-of-type mjx-speech')

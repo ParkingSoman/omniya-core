@@ -229,6 +229,22 @@ test('less-than-or-equal restores the two authored comparison cells SRE collapse
   );
 });
 
+test('function-name keeps a BANA blank before its argument', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-intent="function-name" data-omniya-nemeth-cells="⠎⠊⠝">sin</mi><mi data-omniya-nemeth-cells="⠭">x</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠎⠊⠝⠭', source), '⠎⠊⠝⠀⠭');
+});
+
+test('comparison keeps BANA blanks around the relation between operands', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-cells="⠭">x</mi><mo data-omniya-nemeth-cells="⠐⠅">&lt;</mo><mi data-omniya-nemeth-cells="⠽">y</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠭⠐⠅⠽', source), '⠭⠀⠐⠅⠀⠽');
+});
+
 test('Rule 19.10 restores the inner round close when SRE duplicates the enlarged terminator', () => {
   const source = new DOMParser().parseFromString(
     '<math><mn data-omniya-nemeth-intent="lower-cell-numeric">4</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mo data-omniya-nemeth-cells="⠈⠷">[</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">4</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn><mrow data-omniya-group="round" data-omniya-role="closed-group"><mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">6</mn><mo data-omniya-nemeth-cells="⠤">−</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn><mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo></mrow><mo data-omniya-nemeth-cells="⠈⠾">]</mo><mo data-omniya-nemeth-cells="⠨⠌">÷</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn></math>',

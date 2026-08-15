@@ -220,11 +220,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     .map((node) => node.getAttribute('data-omniya-nemeth-cells'))
     .filter(Boolean);
   const authoredCellNodes = sourceNodes('[data-omniya-nemeth-cells]');
+  // Rule 17.10.3 only: strip SRE blanks between adjacent *operator* cells
+  // (e.g. shape □ then %). Do not touch function-name→argument or
+  // operand↔relation boundaries — those blanks are BANA-required.
   const authoredAdjacencies = authoredCellNodes.flatMap((node) => {
     const siblings = node.parentElement?.children
       ? [...node.parentElement.children]
       : [...(node.parentNode?.childNodes ?? [])].filter((candidate) => candidate.nodeType === 1);
     const next = siblings[siblings.indexOf(node) + 1];
+    const leftName = (node.localName || node.nodeName || '').toLowerCase();
+    const rightName = (next?.localName || next?.nodeName || '').toLowerCase();
+    if (leftName !== 'mo' || rightName !== 'mo') return [];
+    if (node.getAttribute?.('data-omniya-nemeth-intent') === 'function-name') return [];
     const left = node.getAttribute?.('data-omniya-nemeth-cells');
     const right = next?.getAttribute?.('data-omniya-nemeth-cells');
     return left && right ? [[left, right]] : [];
@@ -2357,10 +2364,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       if (!/^⠠⠄⠠[⠁-⠵]$/.test(sequence ?? '')) continue;
       value = value.replace(new RegExp(`${sequence}⠠⠀+`), `${sequence}⠀`);
     }
-    // Two source siblings with explicit authored cell sequences have no
-    // mathematical blank between them. Semantic relation/operator layout may
-    // insert one visually; remove only the blank anchored by those two local
-    // sequences, in source order.
+    // Two adjacent *operator* cells (Rule 17.10.3 shape then %) have no
+    // mathematical blank between them. Semantic layout may insert one
+    // visually; remove only blanks anchored by those mo–mo sequences.
+    // Operand↔relation and function-name→argument blanks are BANA-required
+    // and are restored below — do not strip them here.
     let adjacencyCursor = 0;
     for (const [left, right] of authoredAdjacencies) {
       const spaced = `${left}⠀${right}`;
@@ -2368,6 +2376,33 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       if (index < 0) continue;
       value = `${value.slice(0, index)}${left}${right}${value.slice(index + spaced.length)}`;
       adjacencyCursor = index + left.length + right.length;
+    }
+    // BANA Rule 21.13: restore blanks around comparison / relation symbols
+    // when an operand is present. Do not insert blanks between adjacent
+    // relation cells that form one local compound (e.g. ＜ then = → ⠐⠅⠨⠅).
+    const relationText = new Set(['<', '>', '=', '≤', '≥', '≠', '≈', '≺', '≻', '∈', '∋', '⊂', '⊃', '⊆', '⊇', '＜', '＞']);
+    const isOperandNeighbor = (n) => {
+      if (!n) return false;
+      const name = (n.localName || n.nodeName || '').toLowerCase();
+      return ['mi', 'mn', 'mtext', 'mrow', 'msup', 'msub', 'msubsup', 'mfrac', 'msqrt', 'mroot', 'mover', 'munder'].includes(name);
+    };
+    for (const node of sourceNodes('mo[data-omniya-nemeth-cells]')) {
+      const cells = node.getAttribute?.('data-omniya-nemeth-cells');
+      if (!cells) continue;
+      const intent = node.getAttribute?.('data-omniya-nemeth-intent') || '';
+      const text = String(node.textContent ?? '').trim();
+      const isRelation = intent.startsWith('comparison') || relationText.has(text);
+      if (!isRelation) continue;
+      const previous = skipLayout(elementNeighbor(node, 'previous'), 'previous');
+      const next = skipLayout(elementNeighbor(node, 'next'), 'next');
+      const left = previous?.getAttribute?.('data-omniya-nemeth-cells');
+      const right = next?.getAttribute?.('data-omniya-nemeth-cells');
+      if (left && isOperandNeighbor(previous) && value.includes(`${left}${cells}`) && !value.includes(`${left}⠀${cells}`)) {
+        value = value.replace(`${left}${cells}`, `${left}⠀${cells}`);
+      }
+      if (right && isOperandNeighbor(next) && value.includes(`${cells}${right}`) && !value.includes(`${cells}⠀${right}`)) {
+        value = value.replace(`${cells}${right}`, `${cells}⠀${right}`);
+      }
     }
     if (mixedFractions.length) {
       // A mixed-fraction mfrac is one bounded `_? numerator / denominator
