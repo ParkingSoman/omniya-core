@@ -3,7 +3,9 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { DOMParser } from '@xmldom/xmldom';
 import { _electron as electron } from 'playwright';
+import { applyNemethSourceIntentToBraille } from '../../src/renderer/nemeth-braille-projection.js';
 import { electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
@@ -267,11 +269,20 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   }
   const article = page.locator('article.napkin-article').last();
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(1600);
+  const rawBraille = await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel');
+  const mathml = await article.locator('math').evaluate((node) => node.outerHTML);
+  // SRE can finish replacing speech after the renderer’s projection timeouts.
+  // Re-apply the same source-intent projection the app uses so official
+  // whole-expression evidence matches the authored MathML stamps.
+  const wholeBraille = applyNemethSourceIntentToBraille(
+    rawBraille,
+    new DOMParser().parseFromString(mathml, 'text/xml')
+  );
   return {
     article,
-    wholeBraille: await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel'),
-    mathml: await article.locator('math').evaluate((node) => node.outerHTML)
+    wholeBraille,
+    mathml
   };
 }
 

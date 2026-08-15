@@ -227,26 +227,15 @@ async function renderEquation(container, item, version) {
         if (projected && projected !== current) latest.setAttribute('aria-braillelabel', projected);
       };
       // SRE may replace the speech node more than once while explorer
-      // enrichment settles. Reapply the source-scoped projection at the two
-      // renderer boundaries without retaining an observer or touching the
-      // canonical tree.
+      // enrichment settles. Reapply the source-scoped projection at fixed
+      // boundaries without retaining an observer (observers on speech churn
+      // can re-enter when projection itself writes aria-braillelabel).
       setTimeout(refreshBrailleProjection, 0);
       setTimeout(refreshBrailleProjection, 80);
       setTimeout(refreshBrailleProjection, 250);
       setTimeout(refreshBrailleProjection, 500);
       setTimeout(refreshBrailleProjection, 900);
-      // Rule 14.7 lists can finish enrichment after the fixed timeouts. Watch
-      // speech-label churn briefly and re-stamp from authored source intents.
-      const observer = new MutationObserver(() => {
-        refreshBrailleProjection();
-      });
-      observer.observe(container, {
-        subtree: true,
-        childList: true,
-        attributes: true,
-        attributeFilter: ['aria-braillelabel']
-      });
-      setTimeout(() => observer.disconnect(), 2000);
+      setTimeout(refreshBrailleProjection, 1500);
     }
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
