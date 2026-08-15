@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-14T23:16:43.691Z",
+  "startedAt": "2026-08-15T00:03:41.242Z",
   "filter": {
     "rule": null,
     "example": "16-14"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-8BmpHC",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-8yes4e",
   "cases": [
     {
       "id": "electron:bana-2022:example-16-14",
@@ -14,19 +14,58 @@
         "example-16-14",
         "16.3"
       ],
-      "creation": false,
-      "editing": false,
-      "navigation": false,
-      "wholeBraille": false,
-      "focusedBraille": false,
-      "undoRedo": false,
-      "persistence": false,
+      "creation": true,
+      "editing": true,
+      "navigation": true,
+      "wholeBraille": true,
+      "focusedBraille": true,
+      "undoRedo": true,
+      "persistence": true,
       "visualInput": {
         "phase": "input",
         "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-14/electron_bana-2022_example-16-14-input.png",
         "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
       },
-      "error": "cell 12 ⠻ rejected: That Nemeth cell is not valid at this draft focus.; prefix=; choices="
+      "creationWholeBraille": "⠜⠭⠬⠨⠜⠭⠬⠽⠨⠻⠬⠵⠻",
+      "creationMathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-daf94799-1baf-4855-b199-5126765da6b8\" data-semantic-structure=\"(10 (9 0 1 (6 (5 2 3 4)) 7 8))\"><msqrt data-omniya-=\"\" id=\"omniya-source-omniya-12afe51e-0188-4e8a-aca9-f5e2dd9593e5\" data-semantic-type=\"sqrt\" data-semantic-role=\"unknown\" data-semantic-annotation=\"depth:1\" data-semantic-id=\"10\" data-semantic-children=\"9\" data-semantic-owns=\"9\" data-semantic-level-number=\"0\" data-speech-node=\"true\"><mrow data-omniya-=\"\" id=\"omniya-source-omniya-19273e84-cb98-49cd-bbe0-0b995ae6a7fd\" data-semantic-type=\"infixop\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:2\" data-semantic-id=\"9\" data-semantic-children=\"0,6,8\" data-semantic-content=\"1,7\" data-semantic-parent=\"10\" data-semantic-owns=\"0 1 6 7 8\" data-semantic-level-number=\"1\" data-speech-node=\"true\"><mi data-omniya-nemeth-cells=\"⠭\" data-omniya-=\"\" id=\"omniya-source-omniya-b35f5f99-dd20-4d5f-8043-45c27db33af8\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:3\" data-semantic-id=\"0\" data-semantic-parent=\"9\" data-semantic-level-number=\"2\" data-speech-node=\"true\">x</mi><mo data-omniya-nemeth-cells=\"⠬\" data-omniya-=\"\" id=\"omniya-source-omniya-f8f2ad7a-ce99-4109-bec3-c5f97e02946f\" data-semantic-type=\"operator\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:3\" data-semantic-id=\"1\" data-semantic-parent=\"9\" data-semantic-operator=\"infixop,+\" data-semantic-level-number=\"2\" data-speech-node=\"true\">+</mo><msqrt data-omniya-radical-order=\"1\" data-omniya-=\"\" id=\"omniya-source-omniya-54fd5e8e-a027-4aeb-b2b0-ce12db0d68d3\" data-semantic-type=\"sqrt\" data-semantic-role=\"unknown\" data-semantic-annotation=\"depth:3\" data-semantic-id=\"6\" data-semantic-children=\"5\" data-semantic-parent=\"9\" data-semantic-owns=\"5\" data-semantic-level-number=\"2\" data-speech-node=\"true\"><mrow data-omniya-=\"\" id=\"omniya-source-omniya-a417c1ee-71f1-4120-b55d-c27b4f82e4f7\" data-semantic-type=\"infixop\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:4\" data-semantic-id=\"5\" data-semantic-children=\"2,4\" data-semantic-content=\"3\" data-semantic-parent=\"6\" data-semantic-owns=\"2 3 4\" data-semantic-level-number=\"3\" data-speech-node=\"true\"><mi data-omniya-nemeth-cells=\"⠭\" data-omniya-=\"\" id=\"omniya-source-omniya-91de6483-6493-4ec9-a5e8-08b463078206\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;depth:5\" data-semantic-id=\"2\" data-semantic-parent=\"5\" data-semantic-level-number=\"4\" data-speech-node=\"true\">x</mi><mo data-omniya-nemeth-cells=\"⠬\" data-omniya-=\"\" id=\"omniya-source-omniya-5e38e66a-3ca6-4c6e-89f3-ae1d723628ab\" data-semantic-type=\"operator\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:5\" data-semantic-id=\"3\" data-semantic-parent=\"5\" data-semantic-operator=\"infixop,+\" data-semantic-level-number=\"4\" data-speech-node=\"true\">+</mo><mi data-omniya-nemeth-cells=\"⠽\" data-omniya-=\"\" id=\"omniya-source-omniya-280d879c-8306-4f19-81d8-ce5f045d7fa5\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;depth:5\" data-semantic-id=\"4\" data-semantic-parent=\"5\" data-semantic-level-number=\"4\" data-speech-node=\"true\">y</mi></mrow></msqrt><mo data-omniya-nemeth-cells=\"⠬\" data-omniya-=\"\" id=\"omniya-source-omniya-ccea65a5-769b-460d-b0ef-79c4f8b38c27\" data-semantic-type=\"operator\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:3\" data-semantic-id=\"7\" data-semantic-parent=\"9\" data-semantic-operator=\"infixop,+\" data-semantic-level-number=\"2\" data-speech-node=\"true\">+</mo><mi data-omniya-nemeth-cells=\"⠵\" data-omniya-=\"\" id=\"omniya-source-omniya-3788d69f-ffe6-4ab7-b272-a903415098de\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;depth:3\" data-semantic-id=\"8\" data-semantic-parent=\"9\" data-semantic-level-number=\"2\" data-speech-node=\"true\">z</mi></mrow></msqrt></math>",
+      "visualCreation": {
+        "phase": "committed",
+        "geometry": {
+          "mathJaxContainers": 1,
+          "sourceMathRoots": 1,
+          "sourceElementChildren": 1,
+          "visualSpaces": [],
+          "containerWidth": 145.4453125,
+          "containerHeight": 22.5,
+          "containerText": "√𝑥+√𝑥+𝑦+𝑧x+x+y+z",
+          "containerInViewport": true
+        },
+        "claim": "Committed whole expression is rendered as one source MathML tree with no visible source blanks.",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-14/electron_bana-2022_example-16-14-committed.png"
+      },
+      "expectedPersistedBraille": "⠜⠽⠬⠨⠜⠭⠬⠽⠨⠻⠬⠵⠻",
+      "replacementWholeBraille": "⠜⠽⠬⠨⠜⠭⠬⠽⠨⠻⠬⠵⠻",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-daf94799-1baf-4855-b199-5126765da6b8\" data-semantic-structure=\"(10 (9 0 1 (6 (5 2 3 4)) 7 8))\"><msqrt data-omniya-=\"\" id=\"omniya-source-omniya-12afe51e-0188-4e8a-aca9-f5e2dd9593e5\" data-semantic-type=\"sqrt\" data-semantic-role=\"unknown\" data-semantic-annotation=\"depth:1\" data-semantic-id=\"10\" data-semantic-children=\"9\" data-semantic-owns=\"9\" data-semantic-level-number=\"0\" data-speech-node=\"true\"><mrow data-omniya-=\"\" id=\"omniya-source-omniya-19273e84-cb98-49cd-bbe0-0b995ae6a7fd\" data-semantic-type=\"infixop\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:2\" data-semantic-id=\"9\" data-semantic-children=\"0,6,8\" data-semantic-content=\"1,7\" data-semantic-parent=\"10\" data-semantic-owns=\"0 1 6 7 8\" data-semantic-level-number=\"1\" data-speech-node=\"true\"><mi data-omniya-nemeth-cells=\"⠽\" data-omniya-=\"\" id=\"omniya-source-omniya-b35f5f99-dd20-4d5f-8043-45c27db33af8\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:3\" data-semantic-id=\"0\" data-semantic-parent=\"9\" data-semantic-level-number=\"2\" data-speech-node=\"true\">y</mi><mo data-omniya-nemeth-cells=\"⠬\" data-omniya-=\"\" id=\"omniya-source-omniya-f8f2ad7a-ce99-4109-bec3-c5f97e02946f\" data-semantic-type=\"operator\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:3\" data-semantic-id=\"1\" data-semantic-parent=\"9\" data-semantic-operator=\"infixop,+\" data-semantic-level-number=\"2\" data-speech-node=\"true\">+</mo><msqrt data-omniya-radical-order=\"1\" data-omniya-=\"\" id=\"omniya-source-omniya-54fd5e8e-a027-4aeb-b2b0-ce12db0d68d3\" data-semantic-type=\"sqrt\" data-semantic-role=\"unknown\" data-semantic-annotation=\"depth:3\" data-semantic-id=\"6\" data-semantic-children=\"5\" data-semantic-parent=\"9\" data-semantic-owns=\"5\" data-semantic-level-number=\"2\" data-speech-node=\"true\"><mrow data-omniya-=\"\" id=\"omniya-source-omniya-a417c1ee-71f1-4120-b55d-c27b4f82e4f7\" data-semantic-type=\"infixop\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:4\" data-semantic-id=\"5\" data-semantic-children=\"2,4\" data-semantic-content=\"3\" data-semantic-parent=\"6\" data-semantic-owns=\"2 3 4\" data-semantic-level-number=\"3\" data-speech-node=\"true\"><mi data-omniya-nemeth-cells=\"⠭\" data-omniya-=\"\" id=\"omniya-source-omniya-91de6483-6493-4ec9-a5e8-08b463078206\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;depth:5\" data-semantic-id=\"2\" data-semantic-parent=\"5\" data-semantic-level-number=\"4\" data-speech-node=\"true\">x</mi><mo data-omniya-nemeth-cells=\"⠬\" data-omniya-=\"\" id=\"omniya-source-omniya-5e38e66a-3ca6-4c6e-89f3-ae1d723628ab\" data-semantic-type=\"operator\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:5\" data-semantic-id=\"3\" data-semantic-parent=\"5\" data-semantic-operator=\"infixop,+\" data-semantic-level-number=\"4\" data-speech-node=\"true\">+</mo><mi data-omniya-nemeth-cells=\"⠽\" data-omniya-=\"\" id=\"omniya-source-omniya-280d879c-8306-4f19-81d8-ce5f045d7fa5\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;depth:5\" data-semantic-id=\"4\" data-semantic-parent=\"5\" data-semantic-level-number=\"4\" data-speech-node=\"true\">y</mi></mrow></msqrt><mo data-omniya-nemeth-cells=\"⠬\" data-omniya-=\"\" id=\"omniya-source-omniya-ccea65a5-769b-460d-b0ef-79c4f8b38c27\" data-semantic-type=\"operator\" data-semantic-role=\"addition\" data-semantic-annotation=\"depth:3\" data-semantic-id=\"7\" data-semantic-parent=\"9\" data-semantic-operator=\"infixop,+\" data-semantic-level-number=\"2\" data-speech-node=\"true\">+</mo><mi data-omniya-nemeth-cells=\"⠵\" data-omniya-=\"\" id=\"omniya-source-omniya-3788d69f-ffe6-4ab7-b272-a903415098de\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;depth:3\" data-semantic-id=\"8\" data-semantic-parent=\"9\" data-semantic-level-number=\"2\" data-speech-node=\"true\">z</mi></mrow></msqrt></math>",
+      "visualEditing": {
+        "phase": "editing",
+        "geometry": {
+          "mathJaxContainers": 1,
+          "sourceMathRoots": 1,
+          "sourceElementChildren": 1,
+          "visualSpaces": [],
+          "containerWidth": 143.8828125,
+          "containerHeight": 22.5,
+          "containerText": "√𝑦+√𝑥+𝑦+𝑧y+x+y+z",
+          "containerInViewport": true
+        },
+        "claim": "The exact replacement is rendered while the surrounding expression remains present.",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-14/electron_bana-2022_example-16-14-editing.png"
+      },
+      "visualFocused": {
+        "phase": "focused",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-14/electron_bana-2022_example-16-14-focused.png",
+        "claim": "MathJax Explorer has selected the exact scope immediately before E; this image is the navigation-to-edit handoff."
+      }
     }
   ]
 }
