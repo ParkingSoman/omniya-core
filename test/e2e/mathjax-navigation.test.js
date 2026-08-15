@@ -292,7 +292,7 @@ test('r opens the exact replacement even during the explorer focus handoff', { t
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
 });
 
-test('switches input type without visible radios and submits a text item with Command or Control+Enter', { timeout: 60_000 }, async (t) => {
+test('switches input type without visible radios and submits a text item with Cmd+Enter or Ctrl+Enter', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-keyboard-input-e2e-');
   await page.getByRole('button', { name: 'Add item' }).click();
 

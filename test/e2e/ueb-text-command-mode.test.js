@@ -169,7 +169,7 @@ test('composer Escape cancels equation; lowercase a rejected in Nemeth', { timeo
   await page.keyboard.type('a'); // lowercase — not an ASCII braille cell
   assert.equal(await page.locator('#composer-source').inputValue(), '');
   assert.equal(await page.locator('#composer-source').getAttribute('aria-invalid'), 'true');
-  assert.match(await page.locator('#composer-error').textContent(), /braille cells only|LaTeX|Command x/i);
+  assert.match(await page.locator('#composer-error').textContent(), /braille cells only|LaTeX|x in Command mode/i);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 
   await page.keyboard.press('Escape');

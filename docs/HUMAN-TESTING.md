@@ -33,9 +33,9 @@ equations, offline autosave.
 - MathJax explorer: Enter to explore, arrows through hierarchy, **r** to
   replace the focused subtree in that same composer (**a** appends after,
   **p** prepends before)
-- Insert / Command: `Ctrl+[` → Command; Escape cancels;
-  `i` / Enter → Insert
-- Notes UI hidden; Text / Equation / Nemeth / LaTeX via Command `t` / `x`
+- Insert / Command mode: `Ctrl+[` → Command mode; Escape cancels;
+  `i` / Enter → Insert. Command mode is not the Mac **Cmd** key.
+- Notes UI hidden; Text / Equation / Nemeth / LaTeX via `t` / `x` in Command mode
 - Literary UEB G1 / G2 text via native liblouis (`lou_translate`)
 - Backspace undoes the last Nemeth draft step (not the whole equation)
 - Headed thought-stream demo scripts (`npm run test:demo:thought`)
@@ -71,19 +71,19 @@ npm run test:demo:thought
 ## Sighted PM checklist
 
 1. Launch with `npm start`. Confirm notes / type radios are not visible chrome.
-2. Add item → `Ctrl+[` enters Command; Escape cancels
+2. Add item → `Ctrl+[` enters Command mode; Escape cancels
    authoring. `#mode-panel` shows Command / Insert / Text / Equation / UEB /
-   Nemeth (focus with Command `s`; not a live region).
-3. Command `t` → Insert → type print text → `Ctrl+[` → `n` to submit. Confirm
+   Nemeth (focus with `s` in Command mode; not a live region).
+3. `t` in Command mode → Insert → type print text → `Ctrl+[` → `n` to submit. Confirm
    the article has a UEB `aria-braillelabel` (inspect or AT).
-4. Add item → Command `x` for Equation / Nemeth → Insert → author cells in the
+4. Add item → `x` in Command mode for Equation / Nemeth → Insert → author cells in the
    same `#composer-source` → `Ctrl+[` → `n`. Non-cell QWERTY shows a field
    error. Empty equation submit refuses (no second dock).
 5. Enter explorer → arrow to a term → **r** → same composer opens (status
-   shows replacing scope); Command `t` is refused; Escape cancels unchanged.
+   shows replacing scope); `t` in Command mode is refused; Escape cancels unchanged.
 6. Cmd/Ctrl+Z undoes a submitted replacement; Shift+Z redoes.
 7. Backspace in an open Nemeth draft undoes the last accepted step.
-8. `?` in Command opens contextual help for the current state.
+8. `?` in Command mode opens contextual help for the current state.
 9. Quit, reopen, confirm the napkin persisted.
 
 More detail: [`guided-nemeth-user-guide.md`](guided-nemeth-user-guide.md).
@@ -103,12 +103,12 @@ source before the task. Full protocol:
 **Core AT path to try:**
 
 1. Create a napkin; Add item.
-2. `Ctrl+[` enters Command; Escape cancels. Command `s`
+2. `Ctrl+[` enters Command mode; Escape cancels. `s` in Command mode
    focuses the authoring mode panel on demand (not live).
-3. Command `t` / `x` to choose Text vs Equation (not radios).
+3. `t` / `x` in Command mode to choose Text vs Equation (not radios).
 4. For an equation: author cells in the unified composer from the braille
    display; Nemeth rejects non-cell keys with a field error; submit with
-   Command `n` (or Enter when ready).
+   `n` in Command mode (or Enter when ready).
 5. Enter explorer; arrow to a subexpression; press **r**; author in the same
    composer; submit.
 6. Confirm the focused braille matches the **subtree**, not only the whole

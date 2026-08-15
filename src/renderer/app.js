@@ -389,7 +389,7 @@ function renderMode() {
   elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
     ? 'Up and Down arrows move between items. Enter explores an equation; r replaces, a appends after, p prepends before the focus.'
-    : 'Reading remains available above. Ctrl+[ enters Command · Escape cancels.';
+    : 'Reading remains available above. Ctrl+[ enters Command mode · Escape cancels.';
 }
 
 function placementVerb(placement) {
@@ -468,12 +468,12 @@ function renderComposer() {
     || document.querySelector('label[for="composer-source"]');
   if (sourceLabel) sourceLabel.textContent = mathReplace ? 'Replacement input' : 'Content';
   elements['composer-help'].textContent = mathReplace
-    ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command · Escape cancels · Replace commits'
+    ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command mode · Escape cancels · Replace commits'
     : editing
-      ? 'Save changes commits the item · Ctrl+[ enters Command · Escape cancels'
+      ? 'Save changes commits the item · Ctrl+[ enters Command mode · Escape cancels'
       : values.type === 'equation'
-        ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command · Escape cancels'
-        : 'Enter adds · Shift+Enter makes a new line · Ctrl+[ enters Command · Escape cancels';
+        ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command mode · Escape cancels'
+        : 'Enter adds · Shift+Enter makes a new line · Ctrl+[ enters Command mode · Escape cancels';
   // Unified composer: Equation keeps #composer-source visible (Nemeth/LaTeX styling only).
   elements['composer-source'].hidden = false;
   elements['composer-source'].required = values.type === 'text' && !mathReplace;
@@ -1121,7 +1121,7 @@ function openContextualHelp() {
     const shortcuts = document.createElement('p');
     shortcuts.append(document.createElement('kbd'));
     shortcuts.children[0].textContent = 'Ctrl+[';
-    shortcuts.append(' enters Command · ');
+    shortcuts.append(' enters Command mode · ');
     shortcuts.append(document.createElement('kbd'));
     shortcuts.children[1].textContent = 'Escape';
     shortcuts.append(' cancels · ');
@@ -1256,7 +1256,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
           clearComposerNemethChoices();
           setComposerMathStatus(`Local code committed: ${local.announcement}`);
           // Atomic / bounded local codes: Enter commits the construction only;
-          // the next Enter / Command n submits the equation. Release the submit
+          // the next Enter / n in Command mode submits the equation. Release the submit
           // guard before draft preview so a follow-up Enter is not dropped.
           if (local.localCommitPolicy !== 'immediate' && !allowAtomicSubmit) {
             submittingComposerEquation = false;
@@ -1644,7 +1644,7 @@ elements['composer-source'].addEventListener('keydown', (event) => {
         setFieldError(
           elements['composer-source'],
           elements['composer-error'],
-          'Nemeth mode accepts braille cells only. Switch to LaTeX with Command x while the draft is empty, or enter cells.'
+          'Nemeth mode accepts braille cells only. Switch to LaTeX with x in Command mode while the draft is empty, or enter cells.'
         );
         return;
       }
@@ -1739,8 +1739,8 @@ elements['composer-form'].addEventListener('submit', (event) => {
   void submitComposer({ allowAtomicSubmit: true });
 });
 
-// Command keys must keep working when focus leaves the composer/replacement
-// field (e.g. Command s → #mode-panel). Replacement textarea has its own
+// Command-mode keys must keep working when focus leaves the composer/replacement
+// field (e.g. s in Command mode → #mode-panel). Replacement textarea has its own
 // keyHandler; skip it here to avoid double-handling.
 document.addEventListener('keydown', (event) => {
   const inReplacement = Boolean(replacementSession) && !elements['replacement-dock']?.hidden;

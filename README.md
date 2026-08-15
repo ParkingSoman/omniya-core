@@ -8,11 +8,11 @@ The usage notes below apply to **`testing` only**. They are not on `main`. This 
 
 Three things to learn first:
 
-1. **Keyboard help** — the button labeled **Keyboard help**, next to **Add item**, under the napkin. Open it. That dialog is how you learn reading keys and Command keys. There is no Command button; the keys are in that help (and in Command `?`, below).
-2. **Command mode** — while the composer is open (after **Add item**, or while editing), press **Ctrl+[**. The header mode panel should say Command. **Escape** cancels. **?** in Command opens the same help, filled in for the current state.
-3. **r / a / p on math** — in reading, Up and Down move between items. On an equation, **Enter** explores it. Then **r** replaces the focused node, **a** appends after it, **p** prepends before it (same composer). On a focused equation *without* exploring, those keys target the whole expression. Submit with Command **n**; Escape leaves the item unchanged. **r** on a text item still opens that item for editing.
+1. **Keyboard help** — the button labeled **Keyboard help**, next to **Add item**, under the napkin. Open it. That dialog is how you learn reading keys and the keys that work in Command mode. There is no Command-mode button; the keys are in that help (and **?** in Command mode, below).
+2. **Command mode** — while the composer is open (after **Add item**, or while editing), press **Ctrl+[**. The header mode panel should say Command. **Escape** cancels. **?** in Command mode opens the same help, filled in for the current state. Command mode is not the Mac **Cmd** key.
+3. **r / a / p on math** — in reading, Up and Down move between items. On an equation, **Enter** explores it. Then **r** replaces the focused node, **a** appends after it, **p** prepends before it (same composer). On a focused equation *without* exploring, those keys target the whole expression. Submit with **n** in Command mode; Escape leaves the item unchanged. **r** on a text item still opens that item for editing.
 
-After **Ctrl+[**, type a Command key, then **i** (or Enter) to type again, or **n** to submit:
+After **Ctrl+[**, type a Command-mode key, then **i** (or Enter) to type again, or **n** to submit:
 
 - **t** — Text (UEB). Press again on empty text to toggle G1/G2.
 - **x** — Equation. On an empty equation, press again to cycle Nemeth / LaTeX.
@@ -142,7 +142,7 @@ The point of the Electron app is to make these hypotheses testable. The architec
 
 This section is the **alpha** on `testing`, not the signed-off `main` snapshot. Humans have not completely verified it. The practical checklist is [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
-On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); enter Command with `Ctrl+[`; choose Text vs Equation with Command `t` / `x`; author Nemeth cells or LaTeX; explore MathML and press **r** to replace a subtree (**a** append after, **p** prepend before) in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden behind Command.
+On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); enter Command mode with `Ctrl+[`; choose Text vs Equation with `t` / `x` in Command mode; author Nemeth cells or LaTeX; explore MathML and press **r** to replace a subtree (**a** append after, **p** prepend before) in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden behind Command mode.
 
 The interface uses semantic HTML, native form controls, labeled fields, visible focus indicators, a narrow preload bridge, context isolation, a sandboxed renderer, and a restrictive content-security policy.
 
@@ -244,9 +244,9 @@ By default, committed state is stored as `napkins.json` under Electron’s platf
 
 ## Keyboard interaction
 
-On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In the app, **Keyboard help** (next to **Add item**) is the live list; **Ctrl+[** then **?** refreshes it for Command.
+On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In the app, **Keyboard help** (next to **Add item**) is the live list; **Ctrl+[** then **?** refreshes it for Command mode.
 
-The bullets below are the older reading/add shell. Command `t` / `x` replace the on-screen type radios.
+The bullets below are the older reading/add shell. `t` / `x` in Command mode replace the on-screen type radios.
 
 - Use Tab and Shift+Tab to move through ordinary controls.
 - In the napkin sidebar, focus a napkin and press Backspace to delete it after confirmation.
