@@ -3027,3 +3027,66 @@ test('Rule 7-13 restores the blank between per and person from explicit-space', 
     '⠼⠒⠀⠨⠏⠊⠑⠉⠑⠎⠀⠏⠑⠗⠀⠏⠑⠗⠎⠕⠝'
   );
 });
+
+test('Example 3-16 keeps SRE fraction spans and does not invent closes before equals', () => {
+  const source = new DOMParser().parseFromString(
+    `<math xmlns="http://www.w3.org/1998/Math/MathML">
+      <mi data-omniya-nemeth-cells="⠠⠓">H</mi>
+      <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠨⠅">=</mo>
+      <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="simple">
+        <mn data-omniya-nemeth-intent="numeric-start">12</mn>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠠⠝">N</mi>
+          <mrow data-omniya-group="round" data-omniya-role="closed-group">
+            <mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo>
+            <mrow><mi data-omniya-nemeth-cells="⠠⠝">N</mi><mo data-omniya-nemeth-cells="⠬">+</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn></mrow>
+            <mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo>
+          </mrow>
+        </mrow>
+      </mfrac>
+      <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+      <mrow data-omniya-group="round" data-omniya-role="closed-group">
+        <mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo>
+        <mrow>
+          <mfrac data-omniya-fraction-kind="simple">
+            <mrow><mi data-omniya-nemeth-cells="⠗">r</mi><msup><mn data-omniya-nemeth-intent="single-letter-number">1</mn><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup></mrow>
+            <mrow><mi data-omniya-nemeth-cells="⠝">n</mi><mn data-omniya-nemeth-intent="single-letter-number">1</mn></mrow>
+          </mfrac>
+          <mo data-omniya-nemeth-cells="⠬">+</mo>
+          <mfrac data-omniya-fraction-kind="simple">
+            <mrow><mi data-omniya-nemeth-cells="⠠⠗">R</mi><msup><mn data-omniya-nemeth-intent="single-letter-number">2</mn><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msup></mrow>
+            <mrow><mi data-omniya-nemeth-cells="⠝">n</mi><mn data-omniya-nemeth-intent="single-letter-number">2</mn></mrow>
+          </mfrac>
+          <mo data-omniya-nemeth-cells="⠬">+</mo>
+          <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+          <mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo>
+          <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+          <mo data-omniya-nemeth-cells="⠬">+</mo>
+          <mfrac data-omniya-fraction-kind="simple">
+            <msubsup><mi data-omniya-nemeth-cells="⠠⠗">R</mi><mi data-omniya-nemeth-cells="⠅">k</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn></msubsup>
+            <msub><mi data-omniya-nemeth-cells="⠝">n</mi><mi data-omniya-nemeth-cells="⠅">k</mi></msub>
+          </mfrac>
+        </mrow>
+        <mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo>
+      </mrow>
+      <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠤">−</mo>
+      <mn data-omniya-nemeth-intent="signed-numeric-indicator">3</mn>
+      <mrow data-omniya-group="round" data-omniya-role="closed-group">
+        <mo data-omniya-role="open-fence" data-omniya-nemeth-cells="⠷">(</mo>
+        <mrow><mi data-omniya-nemeth-cells="⠠⠝">N</mi><mo data-omniya-nemeth-cells="⠬">+</mo><mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn></mrow>
+        <mo data-omniya-role="close-fence" data-omniya-nemeth-cells="⠾">)</mo>
+      </mrow>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠠⠓⠀⠀⠨⠅⠀⠀⠹⠂⠆⠌⠠⠝⠷⠠⠝⠬⠂⠾⠼⠀⠷⠹⠗⠂⠘⠆⠐⠌⠝⠐⠂⠼⠬⠹⠠⠗⠆⠘⠆⠐⠌⠝⠐⠆⠼⠬⠀⠄⠄⠄⠀⠀⠬⠹⠠⠗⠰⠅⠐⠘⠆⠐⠌⠝⠰⠅⠐⠼⠾⠀⠤⠒⠷⠠⠝⠬⠂⠾',
+      source
+    ),
+    '⠠⠓⠀⠨⠅⠀⠹⠂⠆⠌⠠⠝⠷⠠⠝⠬⠂⠾⠼⠀⠷⠹⠗⠂⠘⠆⠐⠌⠝⠂⠼⠬⠹⠠⠗⠆⠘⠆⠐⠌⠝⠆⠼⠬⠀⠄⠄⠄⠀⠬⠹⠠⠗⠰⠅⠘⠆⠐⠌⠝⠰⠅⠐⠼⠾⠀⠤⠼⠒⠷⠠⠝⠬⠂⠾'
+  );
+});

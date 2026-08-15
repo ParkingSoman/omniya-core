@@ -3487,3 +3487,22 @@ test('Rule 8-38 literary period follows an indicated right quote', () => {
   assert.ok(intents.includes('punctuation-right-double-quote'));
   assert.ok(intents.includes('punctuation-literary-period'));
 });
+
+test('Example 3-16 series keeps plus/ellipsis terms inside the fenced content row', () => {
+  const { document } = replayCells(
+    sourceNotationToCells("(?r1~2\"/n1#+?,r2~2\"/n2#+ ''' +?,r;k~2\"/n;k\"#)"),
+    { '⠠⠗': 'letter.capital-r' }
+  );
+  const tree = parseMathML(document.mathml);
+  const group = tree.children[0];
+  assert.equal(group.name, 'mrow');
+  assert.equal(group.attrs['data-omniya-group'], 'round');
+  const content = group.children.find((child) => child.name === 'mrow' && child.attrs?.['data-omniya-role'] === 'content');
+  assert.ok(content, 'group content row keeps its content role after materialize');
+  const kinds = content.children.map((child) => child.name === 'mfrac' ? 'frac'
+    : child.name === 'mo' && child.children?.[0]?.text === '+' ? 'plus'
+    : child.name === 'mo' && child.children?.[0]?.text === '…' ? 'ellipsis'
+    : child.name === 'mspace' ? 'space'
+    : child.name);
+  assert.deepEqual(kinds, ['frac', 'plus', 'frac', 'plus', 'space', 'ellipsis', 'space', 'plus', 'frac']);
+});

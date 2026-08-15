@@ -187,7 +187,11 @@ function materializeHoleContainer(node) {
   if (!isHole(node) || node.name !== 'mrow') return;
   delete node.attrs['data-omniya-hole'];
   delete node.attrs['data-omniya-owner'];
-  delete node.attrs['data-omniya-role'];
+  // Keep a fenced group's content role so later inserts stay inside that row
+  // (`frac+frac+…` in 3-16). Other hole roles still clear on materialize.
+  if (node.attrs?.['data-omniya-role'] !== 'content') {
+    delete node.attrs['data-omniya-role'];
+  }
 }
 function focusNode(node) { return { kind: 'node', nodeId: node.attrs['data-omniya-id'] }; }
 function currentNode(tree, focus) { return findMathNode(tree, focus?.nodeId) ?? tree; }
@@ -311,6 +315,12 @@ function insertAfter(tree, focus, replacement) {
     // A token focused inside a fenced group's content row stays in that row.
     // A token focused on the still-open group wrapper is inserted before the
     // close fence so the group can keep collecting local content.
+    // When focus is the content row itself (fraction.end returns here), append
+    // into that row rather than splicing a sibling beside it (3-16 series).
+    if (parent.attrs?.['data-omniya-group'] && current.attrs?.['data-omniya-role'] === 'content') {
+      current.children.push(replacement);
+      return replacement;
+    }
     if (parent.attrs?.['data-omniya-group'] && current.attrs?.['data-omniya-role'] !== 'content') {
       const last = parent.children?.at(-1);
       if (last && isElement(last) && last.name === 'mo' && last.attrs?.['data-omniya-role'] === 'close-fence') {

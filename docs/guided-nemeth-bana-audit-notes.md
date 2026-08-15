@@ -225,23 +225,27 @@ following plus. Whole-expression, focused-subscript, and focused-term output
 are compared with SRE in the Rule 15.7 accuracy fixture. This is a reusable
 contracted-modifier boundary, not a Rule 15.7-specific parser.
 
-## Example 3-16 (open): why a whole-expression parser is required
+## Example 3-16 (closed): local draft + projection fixes
 
 BANA Example 3-16 (`Number Preceded by a Space and a Minus Sign`) authors one
 multi-part identity:
 
 `,h .k ?12/,n(,n+1)# (?r1~2"/n1#+?,r2~2"/n2#+ ''' +?,r;k~2"/n;k"#) -#3(,n+1)`
 
-The guided writer can stamp local intents for the leading capital, the simple
-fraction, the scripted series terms, and the trailing spaced minus-plus-number
-group. MathJax/SRE's enriched projection, however, does not preserve that
-authored grouping: it rewrites the numerator/denominator shape (`12/N(N+1)`
-becomes an `R/n`-like fragment), moves parentheses and ellipsis relative to
-fraction closers, and reorders scripted `R_k` / `R_2` terms. Closing the gap
-would require reconstructing the whole authored Braille passage from the
-semantic tree (or replacing SRE's projection for this expression), which is
-expressly out of scope for the source-intent projector. Local fixes that only
-restore number signs, blanks, or stamped cells cannot recover the correct
-fraction and series layout once SRE has reshaped the MathML. Keep 3-16 open
-until an approved whole-expression strategy exists; do not add a passage
-parser to close it.
+Three local defects, not a whole-expression parser, blocked the authored cells:
+
+1. Materializing a fenced group's content row cleared `data-omniya-role="content"`,
+   so a later `+` escaped beside that row and `+ '''` re-entered the first term,
+   reordering the series. The content role is retained, and inserts focused on
+   the content row append inside it.
+2. The projector’s `closedGroups.length >= 3` heuristic inserted `⠾` before every
+   first `⠀⠨⠅` / `⠀⠬`, including a top-level equals and an in-group ellipsis
+   plus. It now restores a close only when that spaced operator is followed by
+   another open fence.
+3. Fraction leaf rebuild skipped the unstamped leading `12/N(N+1)` without
+   advancing its cursor, then rewrote that SRE span from later stamped `r`/`n`
+   letters, and also flattened scripted interiors. Unstamped fractions advance
+   the cursor; scripted `mfrac` interiors are left to SRE.
+
+With those bounds, SRE plus signed-numeric / single-letter-number intents match
+the authored whole-Braille cells without a passage serializer.

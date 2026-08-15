@@ -2052,11 +2052,23 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // Skip when enlarged capital brackets are present: their `⠈⠠⠾` cells also
   // contain `⠾`, and continuing `⠀⠬` inside divided rows is not a missing
   // round close (14-119).
+  // Only restore a close when the spaced operator is immediately followed by
+  // another open fence (`⠷…⠀⠬⠷`). A top-level `⠀⠨⠅` before any group, or
+  // an in-group `⠀⠬⠹` after an ellipsis (3-16), must not grow a spurious `⠾`.
   if (closedGroups.length >= 3 && !hasSource('mo[data-omniya-nemeth-cells="⠈⠠⠷"]')) {
     for (const boundary of ['⠀⠬', '⠀⠨⠅']) {
-      const index = braille.indexOf(boundary);
-      if (index >= 0 && braille[index - 1] !== '⠾' && braille[index - 1] !== '⠼') {
-        braille = `${braille.slice(0, index)}⠾${braille.slice(index)}`;
+      let searchFrom = 0;
+      while (searchFrom < braille.length) {
+        const index = braille.indexOf(boundary, searchFrom);
+        if (index < 0) break;
+        const after = braille.slice(index + boundary.length).replace(/^⠀+/, '');
+        const nextOpensGroup = after.startsWith('⠷');
+        if (nextOpensGroup && braille[index - 1] !== '⠾' && braille[index - 1] !== '⠼') {
+          braille = `${braille.slice(0, index)}⠾${braille.slice(index)}`;
+          searchFrom = index + boundary.length + 1;
+          continue;
+        }
+        searchFrom = index + boundary.length;
       }
     }
     let closeCount = [...braille].filter((cell) => cell === '⠾').length;
@@ -2949,6 +2961,21 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       if (nestedInHigherOrder) continue;
       const direct = [...(fraction.children ?? [])].filter((node) => node?.nodeType === 1);
       if (direct.length !== 2) continue;
+      // Scripted interiors need SRE's level markers (`⠘`/`⠰`/`⠐`). Rebuilding
+      // from stamped letter cells alone drops those markers and can rewrite an
+      // earlier unstamped fraction (3-16 series terms). Keep rebuilds for flat
+      // letter+digit interiors that only need restored English indicators.
+      // Query each script kind separately: xmldom fixtures do not accept
+      // comma-joined CSS selectors.
+      const hasScriptedInterior = ['msup', 'msub', 'msubsup', 'mmultiscripts']
+        .some((name) => Boolean(fraction.getElementsByTagName?.(name)?.length
+          || fraction.querySelector?.(name)));
+      if (hasScriptedInterior) {
+        const fromCursor = braille.slice(fractionCursor);
+        const local = /⠹[^⠼]*⠼/.exec(fromCursor) || /⠹[^⠾]*⠾/.exec(fromCursor);
+        if (local) fractionCursor += local.index + local[0].length;
+        continue;
+      }
       const leaves = (node) => {
         const children = [...(node.children ?? [])].filter((child) => child?.nodeType === 1);
         if (!children.length) return node.getAttribute?.('data-omniya-nemeth-cells') || '';
@@ -2956,17 +2983,22 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       };
       const numerator = leaves(direct[0]);
       const denominator = leaves(direct[1]);
-      if (!numerator || !denominator) continue;
       // Prefer the ordinary terminator `⠼`. Matching through `⠾` swallows a
       // following grouped function argument (`f(x, y)` in 23-30). When SRE still
       // emits a grouped close, fall back to that local terminator only.
       // Advance past earlier fractions so a later simple (10-23's second
-      // `?cm/mm#`) cannot rewrite the first span.
+      // `?cm/mm#`) cannot rewrite the first span. Also advance when this
+      // fraction has no stamped leaf cells: otherwise a later stamped
+      // series term (3-16's `r/n`) rewrites the earlier unstamped `12/N(N+1)`.
       const fromCursor = braille.slice(fractionCursor);
       const local = /⠹[^⠼]*⠼/.exec(fromCursor) || /⠹[^⠾]*⠾/.exec(fromCursor);
       if (!local) continue;
       const markerIndex = fractionCursor + local.index;
       const markerText = local[0];
+      if (!numerator || !denominator) {
+        fractionCursor = markerIndex + markerText.length;
+        continue;
+      }
       // Skip rebuilds that would erase an already-spaced authored row.
       if (markerText.includes('⠀')) {
         fractionCursor = markerIndex + markerText.length;
