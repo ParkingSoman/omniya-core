@@ -17,7 +17,7 @@
     "errata": 42,
     "errataInScope": 5,
     "mappedRows": 1135,
-    "electronCreationRows": 1170,
+    "electronCreationRows": 1169,
     "electronEditingRows": 1157,
     "officialExamplesLinked": 1229
   },
@@ -75733,7 +75733,6 @@
         "registry:script.baseline"
       ],
       "electronCreationCaseIds": [
-        "electron:bana-2022:example-14-67",
         "electron:bana-2022:example-14-68",
         "electron:bana-2022:example-14-69",
         "electron:bana-2022:example-14-70",
@@ -75834,19 +75833,17 @@
         "registry:script.superscript",
         "registry:script.baseline"
       ],
-      "electronCreationCaseIds": [
-        "electron:bana-2022:example-14-67"
-      ],
+      "electronCreationCaseIds": [],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": true,
+        "creation": false,
         "editing": false,
         "navigation": false,
-        "wholeBraille": true,
+        "wholeBraille": false,
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
