@@ -5667,6 +5667,23 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
     // signed-number transition as a committed plus followed by that digit.
     // Resolve only this one-cell suffix; do not retain an expression buffer.
     if ((state.prefix === '⠬' || state.prefix === '⠤') && DIGITS.has(normalized)) {
+      // Rule 3.3.8: a hyphen after a mark of punctuation uses a fresh numeric
+      // indicator. Digit-8 after that hyphen is the left double quote of the
+      // next quoted numeral (`"3.5"-"4.5"`), not a lower-cell 8.
+      if (state.prefix === '⠤' && normalized === '⠦' &&
+        context.node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-right-double-quote') {
+        const minus = MAPPINGS.find((candidate) => candidate.id === 'operator.minus');
+        const quote = MAPPINGS.find((candidate) => candidate.id === 'punctuation.left-double-quote');
+        const appliedMinus = applyMapping(document, focus, { ...state, prefix: '' }, minus);
+        if (appliedMinus.status !== 'rejected' && quote) {
+          return applyMapping(
+            appliedMinus.document,
+            appliedMinus.focus,
+            appliedMinus.inputState,
+            quote
+          );
+        }
+      }
       const operator = MAPPINGS.find((candidate) => candidate.id === (state.prefix === '⠬' ? 'operator.plus' : 'operator.minus'));
       const applied = applyMapping(document, focus, { ...state, prefix: '' }, operator);
       if (applied.status !== 'rejected') {
@@ -6811,8 +6828,12 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       // fresh numeric-start item. Continuations without `#` (`#1+2`) arrive
       // with the operator held as prefix and are handled earlier. Digits that
       // extend an already-focused <mn> keep that atom's authored intent.
+      // Rule 3.3.9 runovers type `#` while focus is still on the authored blank
+      // after the hyphen (`#12- #34`); that blank must not be treated as the
+      // after-operator lower-cell path.
       const afterOperator = context.node.name !== 'mo' &&
         context.node.name !== 'mn' &&
+        context.node.name !== 'mspace' &&
         preceding?.name === 'mo' &&
         BASELINE_ARITHMETIC_SIGNS.includes(preceding.children?.[0]?.text);
       const continuingLowerCell = context.node.name === 'mn' &&

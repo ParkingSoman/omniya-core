@@ -3277,6 +3277,71 @@ test('Rule 3-27 complex then spatial hypercomplex draft completes', () => {
   assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'complex');
 });
 
+test('Rule 3-45 hyphen after a closing quote keeps the next 8 as a left quote', () => {
+  const { document } = replayCells(sourceNotationToCells('8#3.5_0-8#4.5_0'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const intents = [];
+  const texts = [];
+  const walk = (node) => {
+    if (node.attrs?.['data-omniya-nemeth-intent']) intents.push(node.attrs['data-omniya-nemeth-intent']);
+    if ((node.name === 'mn' || node.name === 'mo') && node.children?.[0]?.text) texts.push(node.children[0].text);
+    for (const child of node.children ?? []) walk(child);
+  };
+  walk(tree);
+  assert.deepEqual(
+    intents.filter((intent) => intent.includes('quote') || intent.includes('numeric')),
+    [
+      'punctuation-left-double-quote',
+      'numeric-start',
+      'punctuation-right-double-quote',
+      'punctuation-left-double-quote',
+      'numeric-start',
+      'punctuation-right-double-quote'
+    ]
+  );
+  assert.ok(!texts.includes('84.5'), `unexpected merged numeral in ${texts.join('|')}`);
+  assert.ok(texts.includes('4.5'), `missing second quoted numeral in ${texts.join('|')}`);
+});
+
+test('Rule 3-47/3-48 hyphen-blank runover keeps a fresh numeric-start after #', () => {
+  const divided = replayCells(sourceNotationToCells('#12- #34'));
+  const dividedTree = parseMathML(divided.document.mathml);
+  const dividedNumbers = [];
+  const walkDivided = (node) => {
+    if (node.name === 'mn') {
+      dividedNumbers.push({
+        text: node.children?.[0]?.text,
+        intent: node.attrs?.['data-omniya-nemeth-intent']
+      });
+    }
+    for (const child of node.children ?? []) walkDivided(child);
+  };
+  walkDivided(dividedTree);
+  assert.deepEqual(dividedNumbers, [
+    { text: '12', intent: 'numeric-start' },
+    { text: '34', intent: 'numeric-start' }
+  ]);
+
+  const commas = replayCells(sourceNotationToCells('y .k #123,456,- #789'));
+  const commaTree = parseMathML(commas.document.mathml);
+  const commaNumbers = [];
+  const walkCommas = (node) => {
+    if (node.name === 'mn') {
+      commaNumbers.push({
+        text: node.children?.[0]?.text,
+        intent: node.attrs?.['data-omniya-nemeth-intent']
+      });
+    }
+    for (const child of node.children ?? []) walkCommas(child);
+  };
+  walkCommas(commaTree);
+  assert.deepEqual(commaNumbers, [
+    { text: '123,456', intent: 'numeric-start' },
+    { text: '789', intent: 'numeric-start' }
+  ]);
+});
+
 test('Rule 13-35 fully linear hypercomplex draft completes', () => {
   const { document } = replayCells(sourceNotationToCells(
     ",,?,?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,/1+(?2X/1-X#)^2\",,#"
