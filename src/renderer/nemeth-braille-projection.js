@@ -4459,19 +4459,26 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // whose print text still carries them when SRE emitted bare digits or
   // replaced numeric commas with digit-one cells. Accept a mix of `⠠` and
   // digit-one stand-ins at comma slots (3-48 keeps trailing `⠠` before `-`).
+  // Decimal points in the same <mn> (`2,375.4`, 8-53) map to `⠨`.
   {
     const digitCells = {
       '0': '⠴', '1': '⠂', '2': '⠆', '3': '⠒', '4': '⠲',
       '5': '⠢', '6': '⠖', '7': '⠶', '8': '⠦', '9': '⠔'
     };
     const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const encode = (ch) => {
+      if (ch === ',') return '⠠';
+      if (ch === '.') return '⠨';
+      return digitCells[ch] || '';
+    };
     for (const node of [...(sourceMath.getElementsByTagName?.('mn') ?? [])]) {
       const text = String(node.textContent ?? '').trim();
       if (!text.includes(',')) continue;
-      const withCommas = [...text].map((ch) => (ch === ',' ? '⠠' : digitCells[ch] || '')).join('');
+      const withCommas = [...text].map(encode).join('');
       if (!withCommas || braille.includes(`⠼${withCommas}`) || braille.includes(withCommas)) continue;
       const flexible = [...text].map((ch) => {
         if (ch === ',') return '[⠠⠂]';
+        if (ch === '.') return '[⠨⠲]';
         return escape(digitCells[ch] || '');
       }).join('');
       const withNumber = new RegExp(`⠼${flexible}`);
@@ -4710,6 +4717,14 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (hasSource('[data-omniya-nemeth-intent="punctuation-comma"]')) {
     braille = braille.replace(/(?<=⠠⠀)⠼(?=⠨[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '');
     braille = braille.replace(/(?<=⠠⠀⠨)⠼(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '');
+  }
+  // Rule 8-53: after a thousands explanation (`#2, 375 , .4`), a leading
+  // decimal following lower-cell digits+blank keeps no number sign.
+  if (hasSource('[data-omniya-nemeth-intent="punctuation-comma"]')
+    && [...sourceNodes('[data-omniya-nemeth-intent="numeric-decimal"]')]
+      .some((node) => String(node.textContent ?? '').trim().startsWith('.'))
+    && explicitSpaces) {
+    braille = braille.replace(/([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]⠀)⠼(?=⠨[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1');
   }
   if (!decimalNonnumeric.length && !numericDecimal.length) {
     // Capitalized identifiers before an authored blank+equals can keep a

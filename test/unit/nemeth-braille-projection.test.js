@@ -2589,6 +2589,31 @@ test('Rule 13-34 spatial bars keep glued short simples and spaced higher-order o
   );
 });
 
+test('Rule 8-53 thousands explanation restores the comma and bare leading decimal', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mn data-omniya-nemeth-intent="numeric-start">2,375.4</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-start">2</mn>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="lower-cell-numeric">375</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-decimal">.4</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠞">t</mi>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠼⠆⠂⠒⠶⠢⠨⠲⠀⠼⠆⠠⠀⠒⠶⠢⠀⠼⠨⠲⠀⠞',
+      source
+    ),
+    '⠼⠆⠠⠒⠶⠢⠨⠲⠀⠼⠆⠠⠀⠒⠶⠢⠀⠨⠲⠀⠞'
+  );
+});
+
 test('Rule 3-101/3-102 roman and english-letter identifiers restore local indicators', () => {
   const roman = new DOMParser().parseFromString(
     `<math>
