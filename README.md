@@ -21,6 +21,20 @@ After **Ctrl+[**, type a Command-mode key, then **i** (or Enter) to type again, 
 - **i** or **Enter** — Insert (back to typing).
 - **?** — Help.
 
+### How Braille typing feels here
+
+Nemeth in this alpha is not a Braille line you type into. On a display or in a usual Braille editor, cells stay in a buffer: the string grows, and Backspace deletes the last cell. Here a cell is usually an **operation** on a math tree. When the code is accepted, the composer field often goes empty again and the status says something like **Draft updated: letter.y**. The Braille did not remain in the box; it was applied to the draft.
+
+That is why the cadence is different from ordinary authoring:
+
+- Many letters and operators land **immediately** as one object.
+- Some symbols (an arrow is the usual example) are **held** until their registered cells are complete; **Enter** then commits that one symbol, not the whole equation.
+- Fraction openers, scripts, and similar signs are **follow-ups**: they open or move among slots in something already in the draft, rather than appending characters to a line.
+
+**Backspace** undoes the last accepted operation in this composing session, one step at a time. It is not “delete the last character in the text field.” **Escape** discards the whole session. **n** in Command mode submits the draft.
+
+Literary UEB text is closer to ordinary typing (cells become print). Nemeth is this guided, operation-by-operation path. It is an alpha experiment, not a finished transcriber editor.
+
 **Add item** (under the napkin, beside Keyboard help) opens a blank composer for a new thought.
 
 Clone and run: [Run this alpha](#run-this-alpha). Longer walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
