@@ -6,7 +6,7 @@ The usage notes below apply to **`testing` only**. They are not on `main`. This 
 
 ## How to use this alpha
 
-Most of the authoring language is hidden on purpose. Three things to learn first:
+Three things to learn first:
 
 1. **Keyboard help** — the button labeled **Keyboard help**, next to **Add item**, under the napkin. Open it. That dialog is how you learn reading keys and Command keys. There is no Command button; the keys are in that help (and in Command `?`, below).
 2. **Command mode** — while the composer is open (after **Add item**, or while editing), press **Ctrl+[**. The header mode panel should say Command. **Escape** cancels. **?** in Command opens the same help, filled in for the current state.
