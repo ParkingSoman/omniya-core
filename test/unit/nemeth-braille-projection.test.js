@@ -2614,6 +2614,49 @@ test('Rule 8-53 thousands explanation restores the comma and bare leading decima
   );
 });
 
+test('Rule 6-46 roman R restores the double-capital indicator', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mi data-omniya-nemeth-intent="roman">R</mi>
+      <msubsup>
+        <mo data-omniya-nemeth-cells="⠈⠾">]</mo>
+        <mi data-omniya-nemeth-cells="⠁">a</mi>
+        <mi data-omniya-nemeth-cells="⠃">b</mi>
+      </msubsup>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠗⠈⠾⠰⠁⠘⠃', source),
+    '⠠⠠⠗⠈⠾⠰⠁⠘⠃'
+  );
+});
+
+test('Rule 14-62 contracted script comma keeps no multipurpose before a list comma', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <msub>
+        <mi data-omniya-nemeth-cells="⠭">x</mi>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠝">n</mi>
+          <mo data-omniya-nemeth-cells="⠤">−</mo>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+          <mo data-omniya-nemeth-cells="⠪">,</mo>
+          <mi data-omniya-nemeth-cells="⠝">n</mi>
+        </mrow>
+      </msub>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠭">x</mi>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠭⠰⠝⠤⠂⠪⠝⠐⠠⠀⠭', source),
+    '⠭⠰⠝⠤⠂⠪⠝⠠⠀⠭'
+  );
+});
+
 test('Rule 3-101/3-102 roman and english-letter identifiers restore local indicators', () => {
   const roman = new DOMParser().parseFromString(
     `<math>
@@ -2655,5 +2698,34 @@ test('Rule 3-101/3-102 roman and english-letter identifiers restore local indica
   assert.equal(
     applyNemethSourceIntentToBraille('⠹⠂⠌⠆⠼⠿⠀⠰⠊⠸⠲⠀⠰⠊⠰⠊⠸⠲⠀⠊⠊⠊⠸⠲', lower),
     '⠹⠂⠌⠆⠼⠸⠦⠀⠰⠊⠸⠲⠀⠰⠊⠊⠸⠲⠀⠰⠊⠊⠊⠸⠲'
+  );
+
+  const flanking = new DOMParser().parseFromString(
+    `<math>
+      <mfrac data-omniya-fraction-kind="simple">
+        <mn data-omniya-nemeth-intent="numeric-start">4</mn>
+        <mn data-omniya-nemeth-intent="numeric-start">9</mn>
+      </mfrac>
+      <mo data-omniya-nemeth-cells="⠡">·</mo>
+      <mfrac data-omniya-fraction-kind="simple">
+        <mn data-omniya-nemeth-intent="numeric-start">1</mn>
+        <mn data-omniya-nemeth-intent="numeric-start">6</mn>
+      </mfrac>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="simple">
+        <mn data-omniya-nemeth-intent="numeric-start">4</mn>
+        <mn data-omniya-nemeth-intent="numeric-start">9</mn>
+      </mfrac>
+      <mo data-omniya-nemeth-cells="⠨⠌">÷</mo>
+      <mfrac data-omniya-fraction-kind="simple">
+        <mn data-omniya-nemeth-intent="numeric-start">1</mn>
+        <mn data-omniya-nemeth-intent="numeric-start">6</mn>
+      </mfrac>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠹⠲⠌⠔⠼⠀⠡⠀⠹⠂⠌⠖⠼⠀⠹⠲⠌⠔⠼⠀⠨⠌⠀⠹⠂⠌⠖⠼', flanking),
+    '⠹⠲⠌⠔⠼⠡⠹⠂⠌⠖⠼⠀⠹⠲⠌⠔⠼⠨⠌⠹⠂⠌⠖⠼'
   );
 });

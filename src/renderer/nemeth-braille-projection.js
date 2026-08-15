@@ -3633,7 +3633,8 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // MathML identifier. Restore one local indicator for the authored Roman
     // node at the accessibility boundary.
     const cells = [...romanName.toLowerCase()].map((letter) => new Map([
-      ['i', '⠊'], ['v', '⠧'], ['x', '⠭'], ['l', '⠇'], ['c', '⠉'], ['d', '⠙'], ['m', '⠍'], ['s', '⠎']
+      ['i', '⠊'], ['v', '⠧'], ['x', '⠭'], ['l', '⠇'], ['c', '⠉'], ['d', '⠙'], ['m', '⠍'], ['s', '⠎'],
+      ['r', '⠗']
     ]).get(letter) ?? '').join('');
     if (cells) {
       const escaped = cells.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -4396,6 +4397,27 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       braille = braille.endsWith('⠀') ? `${braille}${close}` : `${braille}⠀${close}`;
     }
   }
+  // Rule 3-101: adjacent simple fractions joined by · or ÷ keep no blanks when
+  // the source has no explicit space around that operator.
+  {
+    const unspacedFractionOps = [...(sourceMath.getElementsByTagName?.('mo') ?? [])].filter((node) => {
+      const cells = node.getAttribute?.('data-omniya-nemeth-cells') || '';
+      if (cells !== '⠡' && cells !== '⠨⠌') return false;
+      const previous = skipLayout(elementNeighbor(node, 'previous'), 'previous');
+      const next = skipLayout(elementNeighbor(node, 'next'), 'next');
+      const isFrac = (candidate) => (candidate?.localName || candidate?.nodeName || '').toLowerCase() === 'mfrac';
+      if (!isFrac(previous) || !isFrac(next)) return false;
+      const left = elementNeighbor(node, 'previous');
+      const right = elementNeighbor(node, 'next');
+      return left?.getAttribute?.('data-omniya-nemeth-intent') !== 'explicit-space'
+        && right?.getAttribute?.('data-omniya-nemeth-intent') !== 'explicit-space'
+        && left?.localName !== 'mspace'
+        && right?.localName !== 'mspace';
+    });
+    if (unspacedFractionOps.length) {
+      braille = braille.replace(/⠼⠀+(⠡|⠨⠌)⠀+⠹/g, '⠼$1⠹');
+    }
+  }
   // Rule 3.9 interior numbers keep the number sign after the interior-shape
   // indicator (`⠸⠫⠼⠢`). SRE may emit the bare lower-cell digit.
   if (shapeCells.some((cells) => /⠸⠫⠼/.test(cells))) {
@@ -4515,6 +4537,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       needed -= 1;
       return `${digit}⠠`;
     });
+  }
+  // Rule 14-62: contracted script commas before an authored list comma keep no
+  // multipurpose separator (`⠪⠝⠐⠠⠀` → `⠪⠝⠠⠀`).
+  if (boundCommas && /⠪[⠁-⠵]⠐⠠⠀/.test(braille)) {
+    braille = braille.replace(/(⠪[⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵])⠐(?=⠠⠀)/g, '$1');
   }
   // Bevelled fractions that carry literary periods keep the diagonal line
   // indicator. SRE can emit a plain slash after the period cell.
