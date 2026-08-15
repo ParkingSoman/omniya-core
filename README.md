@@ -2,13 +2,41 @@
 
 A research prototype exploring screen-reader-first mathematical workspaces.
 
-Omniya Core is an experimental, local-first workspace for blind mathematicians, blind STEM students, screen-reader users, and accessibility researchers to create, revisit, organize, and navigate mathematical thought.
+## What the app is
 
-The repository contains a deliberately small Electron prototype for local mathematical documents, casually called “math napkins” in the UI. The client is ground-up scratchwork that makes design hypotheses concrete and testable; it is meant to generate conversation, not prescribe a product architecture. It is not a finished mathematical editor, and the automated test suite is not evidence that the workflow is usable without feedback from blind users.
+Omniya Core is a small **local Electron app** for writing and reading mathematics with a screen reader and a keyboard. You create named documents the interface calls **napkins**, add text and equations, explore equation structure, and save the work as JSON on your computer. There is no account, no cloud, and no installer.
+
+It is an experimental workspace for blind mathematicians, blind STEM students, screen-reader users, and accessibility researchers. It is not a finished editor. Automated tests are not evidence that the workflow is usable without feedback from blind users.
+
+This GitHub page is **`main`**: the last snapshot a human has signed off. Newer work lives on **`testing`** and has **not** been completely verified by humans. If you want to try the current app, that is the branch to use.
+
+## Which branch should I use?
+
+- **`main` (default).** Last human-signed-off snapshot. `git clone` lands here. You get the napkin read / add / edit shell, local MathJax, LaTeX equations, and offline save. Later experiments are not on this branch.
+- **`testing` (alpha).** The current product assembly. Unified composer, literary UEB, Nemeth authoring, and BANA evidence grind. This functionality has not been completely verified by humans. It is not a BANA conformance release.
+- **Feature / `codex/…` lanes.** Experimental work. Not for running the app.
+
+## Run the alpha (`testing`)
+
+You need [Node.js](https://nodejs.org/) and git. Do not open `src/renderer/index.html` in a browser; the app has to run through Electron.
+
+```bash
+git clone https://github.com/ParkingSoman/omniya-core.git
+cd omniya-core
+git checkout testing
+npm install
+npm start
+```
+
+Literary UEB labels on `testing` need Homebrew [liblouis](https://liblouis.io/) (`lou_translate` on your PATH, or set `OMNIYA_LOU_TRANSLATE`). A walkthrough for humans lives on that branch at [`docs/HUMAN-TESTING.md`](https://github.com/ParkingSoman/omniya-core/blob/testing/docs/HUMAN-TESTING.md).
+
+To run **this** signed-off snapshot instead, skip `git checkout testing` and use `npm install` then `npm start` on `main`. More detail is in [Run from source](#run-from-source).
 
 ## At a glance
 
-- **Status:** Early research prototype
+The bullets below describe **`main`**, not the alpha.
+
+- **Status:** Early research prototype (signed-off snapshot)
 - **Platform:** Electron, vanilla HTML/CSS/JavaScript
 - **Storage:** Local JSON files
 - **Math:** LaTeX converted to native MathML and rendered with local MathJax
@@ -18,6 +46,9 @@ The repository contains a deliberately small Electron prototype for local mathem
 
 ## Contents
 
+- [What the app is](#what-the-app-is)
+- [Which branch should I use?](#which-branch-should-i-use)
+- [Run the alpha (`testing`)](#run-the-alpha-testing)
 - [Why this exists](#why-this-exists)
 - [The document model](#the-document-model)
 - [Current capabilities](#current-prototype-capabilities)
@@ -76,6 +107,8 @@ The intended process is to:
 The point of the Electron app is to make these hypotheses testable. The architecture is provisional and may be replaced when research with blind users exposes a better model. Major decisions should be discussed, tested, and revised with the people who rely on the resulting experience—not inferred by sighted developers from visual convenience alone.
 
 ## Current prototype capabilities
+
+The following describes **`main`**. For the alpha, check out `testing` and read `docs/HUMAN-TESTING.md` on that branch.
 
 The current Electron app can create, switch between, and delete named napkins; add text, equations, and notes; navigate and edit earlier items; explore semantic MathML; regenerate equations; save and recover local JSON state; and open existing napkin files. Equation conversion happens in the main process and rendering uses a bundled MathJax 4 runtime with semantic, speech, Braille, and expression-explorer support. The automated Electron workflow runs offline.
 
