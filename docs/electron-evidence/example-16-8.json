@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "runKind": "official-electron-corpus",
-  "startedAt": "2026-08-15T00:24:14.842Z",
+  "startedAt": "2026-08-15T00:47:50.695Z",
   "filter": {
     "rule": null,
     "example": "16-8"
   },
-  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-Ep9nny",
+  "dataDirectory": "/var/folders/vj/7yrr02jx0jn3rw9sxr_bj4x80000gn/T/omniya-bana-official-v1hRVq",
   "cases": [
     {
       "id": "electron:bana-2022:example-16-8",
@@ -14,19 +14,58 @@
         "example-16-8",
         "16.1.2"
       ],
-      "creation": false,
-      "editing": false,
-      "navigation": false,
-      "wholeBraille": false,
-      "focusedBraille": false,
-      "undoRedo": false,
-      "persistence": false,
+      "creation": true,
+      "editing": true,
+      "navigation": true,
+      "wholeBraille": true,
+      "focusedBraille": true,
+      "undoRedo": true,
+      "persistence": true,
       "visualInput": {
         "phase": "input",
         "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-8/electron_bana-2022_example-16-8-input.png",
         "claim": "The completed cell-by-cell Nemeth draft is visibly rendered before submission; the empty proxy confirms the final bounded cell was consumed."
       },
-      "error": "16-8 whole-expression Braille differs from the authored BANA cells; math=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-798616d7-a88d-4b74-a463-f018e402c98a\" data-semantic-structure=\"0\"><mo data-omniya-=\"\" data-omniya-nemeth-intent=\"radical-sign\" data-omniya-nemeth-cells=\"⠜\" id=\"omniya-source-omniya-2a88e605-5fba-45e1-8472-3c575c5c5998\" data-semantic-type=\"operator\" data-semantic-role=\"prefix operator\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">√</mo></math>; source=<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-798616d7-a88d-4b74-a463-f018e402c98a\" data-semantic-structure=\"0\"><mo data-omniya-=\"\" data-omniya-nemeth-intent=\"radical-sign\" data-omniya-nemeth-cells=\"⠜\" id=\"omniya-source-omniya-2a88e605-5fba-45e1-8472-3c575c5c5998\" data-semantic-type=\"operator\" data-semantic-role=\"prefix operator\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">√</mo></math>\n\n'null' !== '⠜'\n"
+      "creationWholeBraille": "⠜",
+      "creationMathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-9dd4f3c2-50f1-4175-82be-a26e7b5c10ce\" data-semantic-structure=\"0\"><mo data-omniya-=\"\" data-omniya-nemeth-intent=\"radical-sign\" data-omniya-nemeth-cells=\"⠜\" id=\"omniya-source-omniya-0f00c232-5ec9-4675-a68c-d93a43f4439b\" data-semantic-type=\"operator\" data-semantic-role=\"prefix operator\" data-semantic-annotation=\"nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">√</mo></math>",
+      "visualCreation": {
+        "phase": "committed",
+        "geometry": {
+          "mathJaxContainers": 1,
+          "sourceMathRoots": 1,
+          "sourceElementChildren": 1,
+          "visualSpaces": [],
+          "containerWidth": 16.234375,
+          "containerHeight": 22.5,
+          "containerText": "√√",
+          "containerInViewport": true
+        },
+        "claim": "Committed whole expression is rendered as one source MathML tree with no visible source blanks.",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-8/electron_bana-2022_example-16-8-committed.png"
+      },
+      "expectedPersistedBraille": "⠽",
+      "replacementWholeBraille": "⠽",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-omniya-=\"\" id=\"omniya-source-omniya-9dd4f3c2-50f1-4175-82be-a26e7b5c10ce\" data-semantic-structure=\"0\"><mi data-omniya-nemeth-cells=\"⠽\" data-omniya-=\"\" id=\"omniya-source-omniya-0f00c232-5ec9-4675-a68c-d93a43f4439b\" data-semantic-type=\"identifier\" data-semantic-role=\"latinletter\" data-semantic-font=\"italic\" data-semantic-annotation=\"clearspeak:simple;nemeth:number;depth:1\" data-semantic-id=\"0\" data-semantic-level-number=\"0\" data-speech-node=\"true\">y</mi></math>",
+      "visualEditing": {
+        "phase": "editing",
+        "geometry": {
+          "mathJaxContainers": 1,
+          "sourceMathRoots": 1,
+          "sourceElementChildren": 1,
+          "visualSpaces": [],
+          "containerWidth": 9.328125,
+          "containerHeight": 22.5,
+          "containerText": "𝑦y",
+          "containerInViewport": true
+        },
+        "claim": "The exact replacement is rendered while the surrounding expression remains present.",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-8/electron_bana-2022_example-16-8-editing.png"
+      },
+      "visualFocused": {
+        "phase": "focused",
+        "screenshotPath": "/Users/shonusengupta/omniya-core/.worktrees/persistent-math-tree-nemeth/docs/electron-screenshots/rule-16-8/electron_bana-2022_example-16-8-focused.png",
+        "claim": "MathJax Explorer has selected the exact scope immediately before E; this image is the navigation-to-edit handoff."
+      }
     }
   ]
 }
