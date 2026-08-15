@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 5,
     "mappedRows": 1135,
-    "electronCreationRows": 1158,
-    "electronEditingRows": 1149,
+    "electronCreationRows": 1161,
+    "electronEditingRows": 1151,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -64580,7 +64580,8 @@
         "electron:bana-2022:example-13-26",
         "electron:bana-2022:example-13-27",
         "electron:bana-2022:example-13-28",
-        "electron:bana-2022:example-13-29"
+        "electron:bana-2022:example-13-29",
+        "electron:bana-2022:example-13-30"
       ],
       "electronEditingCaseIds": [
         "electron:bana-2022:example-13-23",
@@ -65457,17 +65458,19 @@
         "registry:fraction.next.denominator.complex.diagonal",
         "registry:fraction.end.complex"
       ],
-      "electronCreationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-13-30"
+      ],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
+        "creation": true,
         "editing": false,
         "navigation": false,
-        "wholeBraille": false,
+        "wholeBraille": true,
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
@@ -65779,25 +65782,69 @@
         "registry:fraction.end.hypercomplex"
       ],
       "electronCreationCaseIds": [
+        "electron:bana-2022:example-13-32",
+        "electron:bana-2022:example-13-33",
         "electron:bana-2022:example-13-35"
       ],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-13-32"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-13-32"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
         "creation": true,
-        "editing": false,
-        "navigation": false,
+        "editing": true,
+        "navigation": true,
         "wholeBraille": true,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-13-32",
+        "sourceRows": [
+          "example-13-32",
+          "13.8.1"
+        ],
+        "rule": "13",
+        "example": "13-32",
+        "artifact": "electron-evidence/example-13-32.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 13-32; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-13-32/input.png",
+              "claim": "The complete Nemeth draft for example 13-32 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-13-32/committed.png",
+              "claim": "The committed expression for example 13-32 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-13-32/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 13-32."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-13-32/editing.png",
+              "claim": "The exact-node replacement for example 13-32 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
+      },
       "evidenceScope": "equation-workflow",
       "humanReview": {
         "transcriber": {
@@ -65832,22 +65879,28 @@
         "registry:fraction.next.denominator.hypercomplex.diagonal",
         "registry:fraction.end.hypercomplex"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-13-32"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-13-32"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-13-32"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:13.8.1",
@@ -65864,6 +65917,44 @@
         "expectedWholeBraille": ",?1_?1/4_#,/1_?3/5_#,# ,,?3333333333333333333333,,# #5",
         "sourceNotation": ",?1_?1/4_#,/1_?3/5_#,# ,,?3333333333333333333333,,# #5",
         "brailleCells": "⠠⠹⠂⠸⠹⠂⠌⠲⠸⠼⠠⠌⠂⠸⠹⠒⠌⠢⠸⠼⠠⠼⠀⠠⠠⠹⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠠⠠⠼⠀⠼⠢"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-13-32",
+        "sourceRows": [
+          "example-13-32",
+          "13.8.1"
+        ],
+        "rule": "13",
+        "example": "13-32",
+        "artifact": "electron-evidence/example-13-32.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 13-32; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-13-32/input.png",
+              "claim": "The complete Nemeth draft for example 13-32 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-13-32/committed.png",
+              "claim": "The committed expression for example 13-32 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-13-32/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 13-32."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-13-32/editing.png",
+              "claim": "The exact-node replacement for example 13-32 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -65899,17 +65990,19 @@
         "registry:fraction.next.denominator.hypercomplex.diagonal",
         "registry:fraction.end.hypercomplex"
       ],
-      "electronCreationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-13-33"
+      ],
       "electronEditingCaseIds": [],
       "navigationCaseIds": [],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
+        "creation": true,
         "editing": false,
         "navigation": false,
-        "wholeBraille": false,
+        "wholeBraille": true,
         "focusedBraille": false,
         "undoRedo": false,
         "persistence": false,
