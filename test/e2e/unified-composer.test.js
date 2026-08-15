@@ -155,25 +155,14 @@ test('r opens unified composer for subtree replace', { timeout: 90_000 }, async 
   assert.equal(afterTokens, 'x|+|1');
 });
 
-test('a appends after the focused equation without rewriting it', { timeout: 90_000 }, async (t) => {
+test('a does not open append composer on a focused equation', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-unified-append-');
   t.after(() => app.close().catch(() => {}));
   const article = await addEquationViaComposer(page, { method: 'latex', source: 'x^3' });
   await article.focus();
   await page.keyboard.press('a');
-  await page.locator('#composer-dock').waitFor();
-  assert.match(await page.locator('#mode-panel').textContent() ?? '', /appending after/i);
-  await chooseMethod(page, 'latex');
-  await page.locator('#composer-source').fill('+3');
-  await page.getByRole('button', { name: 'Append' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
-  const tokens = await article.locator('math').evaluate((node) =>
-    [...node.querySelectorAll('mi, mn, mo')].map((el) => el.textContent).join('|')
-  );
-  assert.match(tokens, /x/);
-  assert.match(tokens, /3/);
-  assert.match(tokens, /\+/);
-  assert.ok(tokens.indexOf('x') < tokens.indexOf('+'), `expected x before plus in ${tokens}`);
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
 });
 
 test('Backspace undoes the last applied Nemeth draft cell while the composer stays open', { timeout: 90_000 }, async (t) => {

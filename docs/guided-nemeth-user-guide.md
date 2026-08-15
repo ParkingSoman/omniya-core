@@ -1,10 +1,9 @@
 # Writing mathematics with guided Nemeth
 
 Omniya lets you read an equation with MathJax and edit the exact place you are
-reading. Press **r** while MathJax has the expression you want focused (**a**
-appends after that focus, **o** prepends before it). The
+reading. Press **r** while MathJax has the expression you want focused. The
 replacement starts empty, so the original equation is unchanged until you
-submit it.
+submit it. To add a sibling term, replace a large enough ancestor and retype.
 
 Nemeth is the default writing method when the app starts. Type one Braille
 cell at a time. Ordinary, complete codes appear in the replacement immediately.

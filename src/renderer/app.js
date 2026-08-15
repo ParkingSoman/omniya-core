@@ -71,11 +71,6 @@ let uebCellChain = Promise.resolve();
 let composerMathInputProcessing = Promise.resolve();
 let submittingComposerEquation = false;
 const mathHistory = new Map();
-// MathJax changes the visual and speech nodes in a short asynchronous handoff
-// after an arrow key. Keep the last successfully resolved *exact* address so
-// E remains reliable during that handoff. This is a runtime cache only; the
-// persisted cursor is still the canonical MathFocus on the equation item.
-const explorerFocusCache = new Map();
 
 function activeNapkin() {
   return state.napkins.find(({ id }) => id === state.activeNapkinId) ?? null;
@@ -291,6 +286,7 @@ async function captureExplorerFocusWithRetry(article) {
       return captureExplorerFocus(article);
     } catch (error) {
       lastError = error;
+      if (/not a MathML element/i.test(error?.message)) throw error;
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
   }
@@ -317,8 +313,33 @@ function stampCanonicalIds(container) {
   }
 }
 
+function clearTranscriptMath() {
+  const host = elements['transcript'];
+  const mj = globalThis.MathJax;
+  if (!host || !mj) return;
+  try {
+    if (typeof mj.typesetClear === 'function') {
+      mj.typesetClear([host]);
+      return;
+    }
+    const doc = mj.startup?.document;
+    if (typeof doc?.clearMathItemsWithin === 'function') {
+      doc.clearMathItemsWithin([host]);
+      return;
+    }
+    const items = typeof doc?.getMathItemsWithin === 'function' ? [...doc.getMathItemsWithin(host)] : [];
+    for (const item of items) {
+      if (typeof doc?.removeMath === 'function') doc.removeMath(item);
+      else item.Clear?.();
+    }
+  } catch (error) {
+    console.warn('[omniya] MathJax typesetClear failed', error);
+  }
+}
+
 function renderTranscript() {
   const version = ++transcriptRenderVersion;
+  clearTranscriptMath();
   const napkin = activeNapkin();
   elements['transcript'].replaceChildren();
   if (!napkin) {
@@ -389,22 +410,17 @@ function renderMode() {
   elements['composer-dock'].hidden = reading;
   elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
-    ? 'Up and Down arrows move between items. Enter explores an equation; r replaces, a appends after, o prepends before the focus.'
+    ? 'Up and Down arrows move between items. Enter explores an equation; r replaces the focus.'
     : 'Reading remains available above. Ctrl+[ enters Command mode · Escape cancels.';
 }
 
-function placementVerb(placement) {
-  if (placement === 'append') return 'Appending after';
-  if (placement === 'prepend') return 'Prepending before';
+function placementVerb(_placement) {
   return 'Replacing';
 }
 
 function mathPlacementFromKey(event) {
   if (event.altKey || event.ctrlKey || event.metaKey) return null;
-  const key = event.key.toLowerCase();
-  if (key === 'r') return 'replace';
-  if (key === 'a') return 'append';
-  if (key === 'o') return 'prepend';
+  if (event.key.toLowerCase() === 'r') return 'replace';
   return null;
 }
 
@@ -437,7 +453,7 @@ function renderComposer() {
       ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
       : `Adding to ${activeNapkin().name}`;
   elements['composer-submit'].textContent = mathReplace
-    ? (commandState.placement === 'append' ? 'Append' : commandState.placement === 'prepend' ? 'Prepend' : 'Replace')
+    ? 'Replace'
     : editing ? 'Save changes' : 'Add item';
   elements['composer-discard'].hidden = editing || mathReplace;
   elements['composer-cancel'].hidden = !(editing || mathReplace);
@@ -539,14 +555,11 @@ async function enterEquation(article) {
   }
   math.focus();
   exploringEquationItemId = article.dataset.itemId;
-  explorerFocusCache.delete(exploringEquationItemId);
   elements['save-status'].textContent = 'Equation entered. Use arrow keys to explore it. Escape returns to the item.';
-  void cacheExplorerFocus(article);
   return true;
 }
 
 function clearExploringEquation() {
-  if (exploringEquationItemId) explorerFocusCache.delete(exploringEquationItemId);
   exploringEquationItemId = null;
 }
 
@@ -571,19 +584,6 @@ function articleForMathEditKey(focused) {
     return focusedArticle;
   }
   return focusedArticle || exploringArticle;
-}
-
-async function cacheExplorerFocus(article) {
-  if (!article?.isConnected || exploringEquationItemId !== article.dataset.itemId) return null;
-  try {
-    const focus = await captureExplorerFocusWithRetry(article);
-    if (exploringEquationItemId === article.dataset.itemId) explorerFocusCache.set(article.dataset.itemId, focus);
-    return focus;
-  } catch {
-    // A later navigation event or the E handler will retry. Never publish a
-    // user-facing "unsafe" state for this transient DOM handoff.
-    return null;
-  }
 }
 
 function closeReplacementEditor() {
@@ -650,15 +650,12 @@ async function resolveMathReplaceFocus(article, item, startingFocus = null, isNe
       await new Promise((resolve) => setTimeout(resolve, 20));
       math = article.querySelector('mjx-container, math');
     }
-    if (!math) return null;
+    if (!math) {
+      elements['save-status'].textContent = 'Equation is unavailable.';
+      return null;
+    }
   }
-  // The persisted equation is validated canonical MathML. It is therefore
-  // always an exact replacement target, even during the short interval in
-  // which MathJax is handing focus between its explorer and the browser. Keep
-  // this as the last-resort target for a *missing* explorer snapshot only. A
-  // settled descendant that cannot be mapped is still an internal bridge bug
-  // and must never be widened silently here.
-  const canonicalRootFocus = () => {
+  const equationFocus = () => {
     const source = item.math?.mathml
       ? new DOMParser().parseFromString(item.math.mathml, 'application/xml').documentElement
       : null;
@@ -667,49 +664,24 @@ async function resolveMathReplaceFocus(article, item, startingFocus = null, isNe
       ? { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' }
       : null;
   };
-  let focus;
+  if (startingFocus) return { target: startingFocus, speech: '', nemeth: '' };
+  if (exploringEquationItemId !== article.dataset.itemId) return equationFocus();
   try {
-    if (startingFocus) {
-      focus = { target: startingFocus, speech: '', nemeth: '' };
-    } else if (exploringEquationItemId === article.dataset.itemId) {
-      try {
-        focus = await captureExplorerFocusWithRetry(article);
-      } catch {
-        // MathJax can briefly expose neither its visual nor speech focus while
-        // handing control back to the browser. The last bridge result, the
-        // persisted focus, or the canonical equation root are all exact
-        // application-owned targets. This path never publishes an unsafe
-        // focus error to the user.
-        focus = explorerFocusCache.get(article.dataset.itemId) || canonicalRootFocus();
-        if (!focus) focus = canonicalRootFocus();
-      }
-      explorerFocusCache.set(article.dataset.itemId, focus);
-    } else {
-      focus = canonicalRootFocus();
-    }
-  } catch (error) {
-    // The source MathML is application-owned and structurally valid. This is
-    // an internal diagnostic only; no "focus cannot be edited safely" state is
-    // exposed in the editing workflow.
-    console.error('MathJax focus bridge could not resolve the active node', error);
-    focus = canonicalRootFocus();
+    return await captureExplorerFocusWithRetry(article);
+  } catch {
+    elements['save-status'].textContent = 'This focus cannot be replaced.';
+    return null;
   }
-  return focus;
 }
 
-/** Open the unified composer to replace, append after, or prepend before a focused math node. */
+/** Open the unified composer to replace the focused MathML slot. */
 async function openComposerForMathReplace(article, startingFocus = null, isNew = false, placement = 'replace') {
   if (replacementSession) return;
   const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
   if (!item) return;
   const focus = await resolveMathReplaceFocus(article, item, startingFocus, isNew);
-  if (!focus?.target) {
-    console.error('Validated equation has no canonical replacement root');
-    elements['save-status'].textContent = 'Equation is unavailable.';
-    return;
-  }
+  if (!focus?.target) return;
   exploringEquationItemId = null;
-  explorerFocusCache.delete(article.dataset.itemId);
   state = selectItem(state, article.dataset.itemId);
   mode = 'edit';
   editingItemId = article.dataset.itemId;
@@ -735,12 +707,13 @@ async function openComposerForMathReplace(article, startingFocus = null, isNew =
     replaceScopeLabel: scopeLabel,
     placement
   });
-  // Keep scope metadata for e2es / Task 7 cleanup; product chrome is the composer.
   if (elements['replacement-scope']) {
     elements['replacement-scope'].textContent = focus.speech ? `Selected: ${focus.speech}` : 'Selected mathematical scope';
     elements['replacement-scope'].dataset.targetId = focus.target.kind === 'node'
       ? focus.target.nodeId
       : focus.target.firstNodeId;
+    delete elements['replacement-scope'].dataset.widened;
+    delete elements['replacement-scope'].dataset.fallbackReason;
   }
   elements['replacement-dock'].hidden = true;
   elements['replacement-method']?.querySelectorAll('input').forEach((input) => {
@@ -749,7 +722,7 @@ async function openComposerForMathReplace(article, startingFocus = null, isNew =
   clearComposerNemethChoices();
   setComposerMathStatus(preferredAuthoringMethod === 'nemeth'
     ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
-    : `Enter LaTeX for the ${placement === 'append' ? 'appended' : placement === 'prepend' ? 'prepended' : 'replacement'} expression.`);
+    : 'Enter LaTeX for the replacement expression.');
   renderAll();
   applyCommandStateToChrome(commandState);
   elements['composer-source'].value = '';
@@ -764,7 +737,7 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
   await openComposerForMathReplace(article, startingFocus, isNew);
 }
 
-// MathJax swallows unmapped keys (r/a/o) on the explorer node. Handle them in
+// MathJax swallows unmapped keys (r) on the explorer node. Handle them in
 // capture, but always on the article that currently has focus — a stale
 // exploringEquationItemId from an earlier equation must not win.
 document.addEventListener('keydown', (event) => {
@@ -783,10 +756,6 @@ document.addEventListener('keydown', (event) => {
   }
   const inMath = focused instanceof Element && focused.closest('mjx-container, math, mjx-focus, mjx-speech');
   if (!inMath && focused !== article) return;
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
-    explorerFocusCache.delete(article.dataset.itemId);
-    setTimeout(() => void cacheExplorerFocus(article), 0);
-  }
   if (event.key !== 'Escape') return;
   event.preventDefault();
   event.stopImmediatePropagation();

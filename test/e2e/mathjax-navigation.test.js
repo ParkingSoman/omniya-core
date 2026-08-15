@@ -55,25 +55,35 @@ async function enterEquation(page, article) {
   await article.focus();
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+  const itemId = await article.getAttribute('data-item-id');
+  await page.waitForFunction((id) => {
+    const el = document.querySelector(`article.napkin-article[data-item-id="${id}"]`);
+    return Boolean(globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(el)?.[0]?.explorers?.speech?.current);
+  }, itemId);
 }
 
 async function speechLabel(article) {
-  return article.evaluate(() => {
-    const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+  return article.evaluate((el) => {
+    const current = globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(el)?.[0]?.explorers?.speech?.current;
     return current?.getAttribute('data-semantic-speech-none')
       || current?.getAttribute('data-speech')
       || current?.getAttribute('aria-label')
-      || document.querySelector('article.napkin-article mjx-speech:last-of-type')?.getAttribute('aria-label');
+      || el.querySelector('mjx-speech')?.getAttribute('aria-label');
   });
 }
 
 async function waitForSpeechChange(page, article, previous) {
+  const itemId = await article.getAttribute('data-item-id');
   await page.waitForFunction(
-    ({ previousLabel }) => {
-      const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
-      return current?.getAttribute('data-semantic-speech-none') !== previousLabel;
+    ({ id, previousLabel }) => {
+      const el = document.querySelector(`article.napkin-article[data-item-id="${id}"]`);
+      const current = globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(el)?.[0]?.explorers?.speech?.current;
+      const label = current?.getAttribute('data-semantic-speech-none')
+        || current?.getAttribute('data-speech')
+        || current?.getAttribute('aria-label');
+      return Boolean(label) && label !== previousLabel;
     },
-    { previousLabel: previous }
+    { id: itemId, previousLabel: previous }
   );
 }
 
@@ -90,6 +100,11 @@ async function resetExplorer(page, article) {
   await article.focus();
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+  const itemId = await article.getAttribute('data-item-id');
+  await page.waitForFunction((id) => {
+    const el = document.querySelector(`article.napkin-article[data-item-id="${id}"]`);
+    return Boolean(globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(el)?.[0]?.explorers?.speech?.current);
+  }, itemId);
 }
 
 test('renders accessible MathML and supports complete tree navigation', { timeout: 60_000 }, async (t) => {
@@ -251,9 +266,11 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
   await resetExplorer(page, article);
   await page.keyboard.press('ArrowDown');
   await page.waitForTimeout(100);
-  const focusedTargetId = await page.evaluate(() => {
-    const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
-    return current?.getAttribute('data-omniya-id');
+  const focusedTargetId = await article.evaluate((el) => {
+    const current = globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(el)?.[0]?.explorers?.speech?.current;
+    return current?.getAttribute('data-omniya-id')
+      || current?.id?.replace(/^omniya-source-/, '')
+      || null;
   });
   assert.ok(focusedTargetId, 'MathJax focus must map to a canonical Omniya node');
   await page.keyboard.press('r');
@@ -275,7 +292,7 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
   await assertCurrentFocusCanBeReplaced(page);
 });
 
-test('Enter then r a o open the composer while MathJax explorer is focused', { timeout: 60_000 }, async (t) => {
+test('Enter then r opens replace; a and o do not open the composer', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-enter-edit-e2e-');
   const article = await addEquation(page, 'a+b');
   await enterEquation(page, article);
@@ -291,19 +308,15 @@ test('Enter then r a o open the composer while MathJax explorer is focused', { t
   await enterEquation(page, article);
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('a');
-  await page.locator('#composer-dock').waitFor();
-  assert.match(await page.locator('#composer-heading').textContent(), /Appending after/i);
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
 
-  await enterEquation(page, article);
-  await page.keyboard.press('ArrowDown');
   await page.keyboard.press('o');
-  await page.locator('#composer-dock').waitFor();
-  assert.match(await page.locator('#composer-heading').textContent(), /Prepending before/i);
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
 });
 
-test('r a o still edit after explorer navigation moves focus off the math node', { timeout: 60_000 }, async (t) => {
+test('r still replaces after explorer navigation moves focus off the math node', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-edit-keys-e2e-');
   const article = await addEquation(page, 'a+b');
   await enterEquation(page, article);
@@ -314,26 +327,6 @@ test('r a o still edit after explorer navigation moves focus off the math node',
   await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#composer-heading').textContent(), /Replacing/i);
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
-
-  await enterEquation(page, article);
-  await page.keyboard.press('ArrowDown');
-  await page.waitForTimeout(100);
-  await page.evaluate(() => document.body.focus());
-  await page.keyboard.press('a');
-  await page.locator('#composer-dock').waitFor();
-  assert.match(await page.locator('#composer-heading').textContent(), /Appending after/i);
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
-
-  await enterEquation(page, article);
-  await page.keyboard.press('ArrowDown');
-  await page.waitForTimeout(100);
-  await page.evaluate(() => document.body.focus());
-  await page.keyboard.press('o');
-  await page.locator('#composer-dock').waitFor();
-  assert.match(await page.locator('#composer-heading').textContent(), /Prepending before/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
 });
@@ -355,21 +348,84 @@ test('r opens the exact replacement even during the explorer focus handoff', { t
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
 });
 
-test('o prepends the equation under focus, not a previously explored one', { timeout: 60_000 }, async (t) => {
+test('r replaces the x^4 term, not the whole x^4+x^3 equation', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-x4-term-e2e-');
+  const article = await addEquation(page, 'x^4+x^3');
+  await enterEquation(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(150);
+  const rootId = await article.evaluate((el) => {
+    const math = [...el.querySelectorAll('math')].find((node) => node.id?.startsWith('omniya-source-') || node.getAttribute('data-omniya-id'));
+    return (math?.getAttribute('data-omniya-id') || math?.id || '').replace(/^omniya-source-/, '');
+  });
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor();
+  const heading = await page.locator('#composer-heading').textContent();
+  assert.match(heading, /fourth/i);
+  assert.doesNotMatch(heading, /whole equation/i);
+  const targetId = await page.locator('#replacement-scope').getAttribute('data-target-id');
+  assert.ok(targetId);
+  assert.notEqual(targetId, rootId);
+  await chooseMethod(page, 'latex');
+  await page.getByLabel('Replacement input', { exact: true }).fill('y');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await article.locator('mjx-container math').waitFor();
+  const text = await article.evaluate((el) => (el.querySelector('math')?.textContent || '').replace(/\s+/g, ''));
+  assert.match(text, /x3/);
+  assert.doesNotMatch(text, /x4/);
+  assert.doesNotMatch(text, /^y$/);
+});
+
+test('r on a later equation does not steal the first fraction superscript', { timeout: 90_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-multi-eq-e2e-');
+  await addEquation(page, '\\frac{a^{2}+\\sqrt{b+c^{3}}}{x^{4}+x^{3}+y}');
+  await addEquation(page, '(x^{2}+y^{2})^{n}+\\frac{1}{z_{i}^{2}}');
+  await addEquation(page, 'x^{4}+x^{3}');
+  const first = page.locator('article.napkin-article').nth(0);
+  const third = page.locator('article.napkin-article').nth(2);
+
+  await enterEquation(page, third);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor();
+  await chooseMethod(page, 'latex');
+  await page.getByLabel('Replacement input', { exact: true }).fill('y');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+
+  await enterEquation(page, first);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(200);
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor();
+  const heading = await page.locator('#composer-heading').textContent();
+  assert.match(heading, /a squared/i);
+  assert.doesNotMatch(heading, /whole equation/i);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+
+  const mathCount = await page.evaluate(() => {
+    const math = globalThis.MathJax?.startup?.document?.math;
+    return typeof math?.length === 'number' ? math.length : Array.from(math || []).length;
+  });
+  assert.ok(mathCount <= 12, `MathJax item leak: ${mathCount} items for 3 equations`);
+});
+
+test('o does not open the composer on a second equation', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-second-eq-e2e-');
   await addEquation(page, 'x^4+x^4+x^3');
   const second = await addEquation(page, 'y^4+3');
-  const first = page.locator('article.napkin-article').first();
+  const first = page.locator('article.napkin-article').nth(0);
 
   await enterEquation(page, first);
   await page.keyboard.press('ArrowDown');
   await second.locator('mjx-container').first().focus();
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('o');
-  await page.locator('#composer-dock').waitFor();
-  const heading = await page.locator('#composer-heading').textContent();
-  assert.match(heading, /y/i);
-  assert.doesNotMatch(heading, /x to the fourth power plus x to the fourth/i);
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
 });
 
 test('switches input type without visible radios and submits a text item with Cmd+Enter or Ctrl+Enter', { timeout: 60_000 }, async (t) => {
