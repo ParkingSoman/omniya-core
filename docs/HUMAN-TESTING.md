@@ -3,9 +3,10 @@
 This branch is the unbroken product build humans should run before anything
 lands on `main`. It is **not** a BANA conformance release.
 
-Freeze tip: `testing-freeze-20260814` (includes the latest committed Nemeth /
-BANA evidence through Rule 20 Electron shards, plus UEB command-mode and
-paper-writing UX).
+Freeze tip: `testing-freeze-20260814` (tag is behind tip `2ef0efb`).
+Current tip includes the Nemeth engineering-gate coverage refresh at
+`011f226` (944 official examples with Electron creation/editing
+evidence), plus UEB command-mode, unified composer, and paper-writing UX.
 
 ## Branch convention
 
@@ -38,7 +39,7 @@ equations, offline autosave.
 - Backspace undoes the last Nemeth draft step (not the whole equation)
 - Headed thought-stream demo scripts (`npm run test:demo:thought`)
 - BANA audit ledger, Electron evidence shards, and coverage reports as of
-  the freeze tip
+  merge `2ef0efb` (Nemeth gate pass `011f226`)
 
 **Explicit non-claim:** coverage status is **implementation-complete;
 evidence-incomplete**. Human review ledgers are empty (0 transcriber / 0
