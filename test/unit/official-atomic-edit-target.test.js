@@ -72,4 +72,10 @@ test('official atomic edit targets reject empty spaces and non-function rows', (
   assert.equal(isOfficialAtomicCanonicalTarget({
     nodeName: '', text: '', semanticType: 'fenced', childElements: -1
   }), false);
+  assert.equal(isOfficialAtomicCanonicalTarget({
+    nodeName: '', text: '', semanticType: 'infixop', childElements: -1
+  }), false);
+  assert.equal(isOfficialAtomicCanonicalTarget({
+    nodeName: '', text: '', semanticType: 'appl', childElements: -1
+  }), false);
 });

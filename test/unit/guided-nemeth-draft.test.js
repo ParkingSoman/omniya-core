@@ -3218,15 +3218,22 @@ test('Rule 24-19 adjacent bars keep multipurpose without a choice dock', () => {
 });
 
 test('Rule 24-22 adjacent bars then subscripted bar stay siblings', () => {
-  const { document } = replayCells(sourceNotationToCells('\\x\\"\\;x ;.k #0'), {
-    '⠰⠭': 'script.subscript'
-  });
+  const { document } = replayCells(sourceNotationToCells('\\x\\"\\;x ;.k #0'));
   const tree = parseMathML(document.mathml);
   assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
   assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠳');
   assert.equal(tree.children[2].attrs['data-omniya-nemeth-cells'], '⠳');
   assert.equal(tree.children[3].name, 'msub');
   assert.equal(tree.children[3].children[0].attrs['data-omniya-nemeth-cells'], '⠐⠳');
+});
+
+test('Rule 24-22 semicolon after an adjacent bar is subscript not English letter', () => {
+  const { document, inputState } = replayCells(sourceNotationToCells('\\x\\"\\;x'));
+  assert.equal(inputState.prefix, '');
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.at(-1).name, 'msub');
+  assert.equal(tree.children.at(-1).children[0].attrs?.['data-omniya-nemeth-intent'], 'adjacent-vertical-bar');
+  assert.equal(tree.children.at(-1).children[1].children[0].text, 'x');
 });
 
 test('Rule 19-30 number then enlarged brace close is not a decimal', () => {

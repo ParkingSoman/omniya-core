@@ -163,16 +163,42 @@ test('a pending operator after a script baseline preserves the returned focus', 
   assert.equal(session.draftFocus.nodeId, parseMathML(session.draft.mathml).attrs['data-omniya-id']);
 });
 
-test('a visible blank commits a complete local code and inserts a structural space', () => {
+test('a visible blank flushes tally marks held with a comma indicator', () => {
   let session = replacementSession();
-  for (const cell of ['⠭', '⠬']) session = applyNemethCell(session, cell).session;
+  for (const cell of ['⠸', '⠸', '⠸', '⠸', '⠸', '⠠']) {
+    session = applyNemethCell(session, cell).session;
+  }
+  assert.equal(session.nemethState.prefix, '⠸⠠');
 
   const result = applyNemethBoundary(session, 'space');
 
-  assert.equal(result.status, 'applied');
+  assert.equal(result.status, 'applied', result.announcement);
   assert.equal(result.session.nemethState.prefix, '');
-  assert.match(result.session.draft.mathml, /<mo[^>]*>\+<\/mo>/);
-  assert.match(result.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
+  const kids = parseMathML(result.session.draft.mathml).children;
+  assert.equal(kids.filter((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠸').length, 5);
+  assert.ok(kids.some((node) => node.children?.[0]?.text === ','));
+  assert.ok(kids.some((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'explicit-space'));
+});
+
+test('Rule 24-18 submits after blank boundaries flush tally punctuation', async () => {
+  let session = replacementSession();
+  const cells = ['⠸', '⠸', '⠸', '⠸', '⠸', '⠠', '⠀', '⠸', '⠸', '⠸', '⠸', '⠐', '⠸', '⠲', '⠀', '⠄', '⠄', '⠄'];
+  for (const cell of cells) {
+    let result = (cell === '⠀' || cell === ' ')
+      ? applyNemethBoundary(session, 'space')
+      : applyNemethCell(session, cell);
+    if (result.status === 'choice') {
+      const picked = result.choices.find((choice) => choice.operationId === 'punctuation.ellipsis')
+        ?? result.choices[0];
+      result = applyNemethChoice(result.session, picked.operationId);
+    }
+    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
+    session = result.session;
+  }
+  const committed = await submitReplacement(session);
+  const tree = parseMathML(committed.document.mathml);
+  assert.equal(tree.children.some((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-period'), true);
+  assert.equal(tree.children.some((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠄⠄⠄'), true);
 });
 
 test('a boundary held behind an equality code commits equals then inserts the blank', () => {

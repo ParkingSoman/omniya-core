@@ -105,12 +105,17 @@ export function applyNemethBoundary(session, boundary = 'space') {
       const punctuation = applyNemethChoice(current, 'punctuation.comma');
       if (punctuation.status !== 'applied') return punctuation;
       current = punctuation.session;
-    } else {
-      if (committed.status === 'choice') {
-        return { ...committed, session: { ...committed.session, pendingNemethBoundary: boundary } };
-      }
-      if (committed.status !== 'applied') return committed;
+    } else if (committed.status === 'choice') {
+      return { ...committed, session: { ...committed.session, pendingNemethBoundary: boundary } };
+    } else if (committed.status === 'applied') {
       current = committed.session;
+    } else {
+      // Commit alone cannot flush every mixed local prefix (for example
+      // tally marks held with a following comma indicator: `⠸⠠`). The
+      // ordinary space cell path already knows how to split and replay that
+      // bounded prefix; falling through here keeps blank boundaries aligned
+      // with direct `⠀` / Space cell entry instead of rejecting the draft.
+      return applyNemethCell(current, ' ');
     }
   }
   return applyNemethCell(current, ' ');

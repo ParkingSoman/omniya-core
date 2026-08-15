@@ -3517,8 +3517,17 @@ function mappingApplies(mapping, context) {
   // in both BANA families without a passage parser or a global key override.
   if (mapping.id === 'indicator.english-letter') {
     const current = context.node;
-    const boundary = current.name === 'math' || isHole(current) ||
-      current.name === 'mspace' || current.name === 'mo';
+    // Vertical bars are MathML operators, but after `|x|` / adjacent-bar
+    // constructions Rule 14's `;letter` is a subscript of that bar, not an
+    // English-letter abbreviation mode. Treat fence bars like populated
+    // mathematical atoms so the subscript mapping remains unambiguous.
+    const verticalBar = current.name === 'mo' && (
+      current.children?.[0]?.text === '|'
+      || current.attrs?.['data-omniya-nemeth-intent'] === 'adjacent-vertical-bar'
+      || /^(⠐)?⠳$/.test(current.attrs?.['data-omniya-nemeth-cells'] || '')
+    );
+    const boundary = !verticalBar && (current.name === 'math' || isHole(current) ||
+      current.name === 'mspace' || current.name === 'mo');
     if (!boundary) return false;
   }
   if (mapping.id === 'operator.integral') {

@@ -317,27 +317,51 @@ async function readOfficialEditTarget(page) {
   });
 }
 
-/** Prefer a real mi/mn leaf via MathJax setNode when keyboard depth-first fails. */
+/**
+ * Prefer a real authored leaf via MathJax setCurrent/setNode when keyboard
+ * depth-first lands on mspace or a virtual container (fenced/infixop/appl).
+ * Uses the source node itself so focus stays on that exact atom rather than a
+ * broadened semantic range.
+ */
 async function focusPreferredOfficialAtomicTarget(page) {
   return page.evaluate(() => {
     const explorer = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech;
-    if (!explorer?.setNode) return null;
-    const sources = [...document.querySelectorAll('[id^="omniya-source-"][data-semantic-id]')];
+    if (!explorer) return null;
+    const focusNode = (node) => {
+      const semanticId = node.getAttribute('data-semantic-id');
+      if (!semanticId) return null;
+      if (typeof explorer.setCurrent === 'function') explorer.setCurrent(node);
+      else if (typeof explorer.setNode === 'function') explorer.setNode(semanticId);
+      else return null;
+      const current = explorer.current;
+      const currentId = current?.getAttribute?.('data-semantic-id');
+      return currentId === semanticId || current === node ? semanticId : null;
+    };
+    const seen = new Set();
+    const sources = [];
+    for (const node of document.querySelectorAll('[id^="omniya-source-"][data-semantic-id], mjx-assistive-mml [data-semantic-id]')) {
+      const semanticId = node.getAttribute('data-semantic-id');
+      if (!semanticId || seen.has(semanticId)) continue;
+      seen.add(semanticId);
+      sources.push(node);
+    }
     const prefer = (predicate) => {
       for (const node of sources) {
-        const name = node.localName || '';
+        const name = String(node.localName || '').replace(/^mjx-/, '');
         const text = (node.textContent || '').trim();
         if (!predicate(name, text, node)) continue;
-        const semanticId = node.getAttribute('data-semantic-id');
-        if (!semanticId) continue;
-        explorer.setNode(semanticId);
-        return semanticId;
+        const focused = focusNode(node);
+        if (focused) return focused;
       }
       return null;
     };
     return prefer((name, text) => /^m[in]$/.test(name) && text && !/^[\u2062\u2063\u2064]$/.test(text))
-      || prefer((name, text) => name === 'mo' && text && !/^[\u2062\u2063\u2064]$/.test(text)
-        && !/mspace/i.test(name));
+      || prefer((name, text, node) => name === 'mrow' && text && (
+        node.getAttribute('data-semantic-type') === 'function'
+        || /limit function|simple function/i.test(node.getAttribute('data-semantic-role') || '')
+        || node.getAttribute('data-omniya-nemeth-intent') === 'function-name'
+      ))
+      || prefer((name, text) => name === 'mo' && text && !/^[\u2062\u2063\u2064]$/.test(text));
   });
 }
 
@@ -346,14 +370,14 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   await article.focus();
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
-  await page.keyboard.press('ArrowDown');
+  // Jump to an authored atom before arrow walking. Keyboard depth-first often
+  // settles on SRE virtual containers or blank mspaces that have no Omniya id.
+  await focusPreferredOfficialAtomicTarget(page);
   await page.waitForTimeout(60);
-  let selectedTarget = null;
+  let selectedTarget = await readOfficialEditTarget(page);
   let previousId = null;
   const visited = new Set();
-  for (let depth = 0; depth < 32; depth += 1) {
-    selectedTarget = await readOfficialEditTarget(page);
-    if (isOfficialAtomicCanonicalTarget(selectedTarget, { allowOperator: false })) break;
+  for (let depth = 0; depth < 32 && !isOfficialAtomicCanonicalTarget(selectedTarget, { allowOperator: false }); depth += 1) {
     if (isOfficialAtomicCanonicalTarget(selectedTarget) && depth > 8) break;
     // Empty mspaces and other non-atoms often cannot deepen. Prefer a sibling
     // step when focus did not move or landed on mspace; otherwise keep
@@ -367,6 +391,7 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
     previousId = selectedTarget.semanticId;
     await page.keyboard.press(key);
     await page.waitForTimeout(60);
+    selectedTarget = await readOfficialEditTarget(page);
   }
   if (!isOfficialAtomicCanonicalTarget(selectedTarget, { allowOperator: false })) {
     await focusPreferredOfficialAtomicTarget(page);
@@ -378,10 +403,25 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   const focusedEvidence = options.captureFocusedEvidence
     ? await options.captureFocusedEvidence()
     : null;
+  const selectedSemanticId = selectedTarget.semanticId;
   await page.keyboard.press('e');
   await page.locator('#replacement-dock').waitFor();
   const targetId = await page.locator('#replacement-scope').getAttribute('data-target-id');
   assert.ok(targetId, 'official edit must freeze a canonical MathJax descendant or range');
+  // The frozen Omniya id must belong to the exact focused atom (or its source
+  // twin), never a broadened container that would discard sibling structure.
+  const frozenMatchesSelection = await page.evaluate(({ targetId: frozenId, semanticId }) => {
+    const nodes = [...document.querySelectorAll('[data-omniya-id], [id^="omniya-source-"]')];
+    const frozen = nodes.find((node) => (node.getAttribute('data-omniya-id') || node.id?.replace(/^omniya-source-/, '')) === frozenId);
+    if (!frozen) return false;
+    if (!semanticId) return Boolean(frozen.getAttribute('data-omniya-id') || frozen.id);
+    if (frozen.getAttribute('data-semantic-id') === semanticId) return true;
+    const source = nodes.find((node) => node.getAttribute('data-semantic-id') === semanticId);
+    const sourceId = source?.getAttribute('data-omniya-id') || source?.id?.replace(/^omniya-source-/, '');
+    return sourceId === frozenId;
+  }, { targetId, semanticId: selectedSemanticId });
+  assert.ok(frozenMatchesSelection,
+    `official edit broadened beyond the selected atom: selected=${JSON.stringify(selectedTarget)} targetId=${targetId}`);
   const input = page.getByLabel('Replacement input', { exact: true });
   await feedLocalCode(page, input, cells);
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
