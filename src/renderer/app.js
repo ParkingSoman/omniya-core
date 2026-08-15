@@ -660,17 +660,7 @@ async function resolveMathReplaceFocus(article, item, startingFocus = null, isNe
       return null;
     }
   }
-  const equationFocus = () => {
-    const source = item.math?.mathml
-      ? new DOMParser().parseFromString(item.math.mathml, 'application/xml').documentElement
-      : null;
-    const rootId = source?.getAttribute('data-omniya-id');
-    return rootId
-      ? { target: { kind: 'node', nodeId: rootId }, speech: 'whole equation', nemeth: '' }
-      : null;
-  };
   if (startingFocus) return { target: startingFocus, speech: '', nemeth: '' };
-  if (exploringEquationItemId !== article.dataset.itemId) return equationFocus();
   try {
     return await captureExplorerFocusWithRetry(article);
   } catch {
@@ -869,7 +859,6 @@ function returnToRead({ discardDraft = true } = {}) {
   const wasMathReplace = Boolean(session && (session.originalDocument || wasNew || commandState.replaceScopeLabel));
   const itemId = editingItemId;
   const restoreTarget = session?.target;
-  const restoreExplorer = session?.originalExplorerFocus;
   clearComposerMathSession();
   if (discardDraft) resetDraft();
   if (uebBuffer.pending) announce('Discarded pending UEB cells');
@@ -878,16 +867,22 @@ function returnToRead({ discardDraft = true } = {}) {
   mode = 'read';
   editingItemId = null;
   commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
-  renderAll();
-  syncModePanel(commandState);
+  // Cancelling changes nothing in the document. Rebuilding the transcript
+  // would discard MathJax's MathItem, and with it the explorer node the
+  // reader is on, so only the composer chrome is re-rendered here.
   if (wasMathReplace && !wasNew && itemId && restoreTarget) {
-    const restored = elements['transcript'].querySelector(
+    renderMode();
+    syncModePanel(commandState);
+    const article = elements['transcript'].querySelector(
       `article.napkin-article[data-item-id="${CSS.escape(itemId)}"]`
     );
-    if (restored) setTimeout(() => void restoreExplorerFocus(restored, restoreTarget, restoreExplorer), 0);
+    (article?.querySelector('mjx-container') ?? article)?.focus();
+    exploringEquationItemId = itemId;
     elements['save-status'].textContent = 'Replacement cancelled';
     return;
   }
+  renderAll();
+  syncModePanel(commandState);
   if (wasNew) {
     void saveState().catch(() => {});
     focusSelectedArticle();

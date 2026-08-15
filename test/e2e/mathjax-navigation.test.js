@@ -359,6 +359,32 @@ test('r opens the exact replacement even during the explorer focus handoff', { t
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
 });
 
+test('r on highlighted y^2 replaces that term, not the whole equation', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-y2-term-e2e-');
+  const article = await addEquation(page, 'y^2+x^2+z^2');
+  await enterEquation(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(200);
+  const rootId = await article.evaluate((el) => {
+    const math = [...el.querySelectorAll('math')].find((node) => node.id?.startsWith('omniya-source-') || node.getAttribute('data-omniya-id'));
+    return (math?.getAttribute('data-omniya-id') || math?.id || '').replace(/^omniya-source-/, '');
+  });
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor();
+  const heading = await page.locator('#composer-heading').textContent();
+  assert.doesNotMatch(heading, /whole equation/i);
+  assert.match(heading, /y squared/i);
+  const targetId = await page.locator('#replacement-scope').getAttribute('data-target-id');
+  assert.ok(targetId);
+  assert.notEqual(targetId, rootId);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  const survived = await article.evaluate((el) => Boolean(
+    globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(el)?.[0]?.explorers?.speech
+  ));
+  assert.ok(survived, 'cancelling must not tear down the equation MathItem');
+});
+
 test('r replaces the x^4 term, not the whole x^4+x^3 equation', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-x4-term-e2e-');
   const article = await addEquation(page, 'x^4+x^3');
