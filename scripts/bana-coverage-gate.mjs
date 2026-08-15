@@ -27,7 +27,16 @@ const badExclusions = rows.filter((row) => row.disposition.startsWith('excluded-
 const pendingTranscriberReview = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.humanReview?.transcriber?.status !== 'reviewed');
 const pendingBlindContributorReview = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.humanReview?.blindContributor?.status !== 'reviewed');
 const examplesWithoutSource = rows.filter((row) => row.kind === 'example' && !approvedExclusions.has(row.disposition) && !row.officialSource);
-const missingPolicy = rows.filter((row) => !approvedExclusions.has(row.disposition) && row.kind !== 'erratum' && row.kind !== 'example' && row.disposition !== 'implemented-context-policy' && !['immediate', 'atomic-sequence', 'structural-followup'].includes(row.inputPolicy ?? ''));
+const missingPolicy = rows.filter((row) => {
+  if (approvedExclusions.has(row.disposition)) return false;
+  if (row.kind === 'erratum' || row.kind === 'example' || row.kind === 'appendix') return false;
+  if (row.disposition === 'implemented-context-policy' || row.evidenceScope === 'source-policy') return false;
+  if (['immediate', 'atomic-sequence', 'structural-followup'].includes(row.inputPolicy ?? '')) return false;
+  // Mixed-policy provisions own multiple mappings; the three policies live on
+  // those mappings rather than a single provision-level inputPolicy field.
+  if ((row.mappingIds ?? []).length > 0) return false;
+  return true;
+});
 const failures = [
   ...missing.map((row) => `${row.id}: ${row.disposition}`),
   ...incompleteEvidence.map((row) => `${row.id}: incomplete verification fields`),
