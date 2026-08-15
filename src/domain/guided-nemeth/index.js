@@ -744,12 +744,14 @@ function openFixedRoot(tree, focus, index, indexText, radicalOrder = null, index
     ...(authoredIndex ? { 'data-omniya-nemeth-index-prefix': '⠼', 'data-omniya-nemeth-index-cells': sourceNotationToCells(indexText).join('') } : {}),
     ...(radicalOrder ? { 'data-omniya-radical-order': String(radicalOrder) } : {})
   });
-  // A radical opener following a baseline operator starts a new sibling
-  // expression. The operator is not the radicand. This is the same local
-  // insertion rule used by fractions and scripts, expressed here because a
-  // fixed-index root owns its index child immediately.
+  // A radical opener following a baseline operator or an explicit blank
+  // starts a new sibling expression. The operator/blank is not the radicand
+  // (`… .k <3>…` must keep the blank before the indexed root).
   const startsAfterOperator = current.name === 'mo' && ['+', '−', '-', '±'].includes(current.children?.[0]?.text);
-  const radicand = !authoredIndex && current.name !== 'math' && !isHole(current) && !startsAfterOperator
+  const startsAfterSpace = current.name === 'mspace'
+    || current.attrs?.['data-omniya-nemeth-intent'] === 'explicit-space';
+  const startsAfterSiblingBoundary = startsAfterOperator || startsAfterSpace;
+  const radicand = !authoredIndex && current.name !== 'math' && !isHole(current) && !startsAfterSiblingBoundary
     ? structuredClone(current)
     : hole(wrapper, 'radicand');
   if (radicand !== current && radicand.attrs) radicand.attrs['data-omniya-id'] = id();
@@ -758,7 +760,7 @@ function openFixedRoot(tree, focus, index, indexText, radicalOrder = null, index
     : atom(indexKind, indexText, { 'data-omniya-role': 'index' });
   rootIndex.attrs['data-omniya-role'] = 'index';
   wrapper.children.push(radicand, rootIndex);
-  if (startsAfterOperator) insertAfter(tree, focus, wrapper);
+  if (startsAfterSiblingBoundary) insertAfter(tree, focus, wrapper);
   else replaceCurrent(tree, focus, wrapper);
   return { tree, focus: focusNode(radicand) };
 }

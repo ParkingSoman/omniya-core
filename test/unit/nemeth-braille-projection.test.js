@@ -2291,6 +2291,92 @@ test('Rule 7-18 wraps a trailing italic typeform phrase without nesting opens', 
   );
 });
 
+test('Rule 14-67 keeps unspaced adjacent letters inside one superscript', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><msup><mi data-omniya-nemeth-cells="⠁">a</mi><mrow><mi data-omniya-nemeth-cells="⠍">m</mi><mi data-omniya-nemeth-cells="⠝">n</mi></mrow></msup></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠁⠘⠍⠀⠝', source), '⠁⠘⠍⠝');
+});
+
+test('Rule 14-112 restores level-preserved equals and subscripted closer order', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mi data-omniya-nemeth-cells="⠞">t</mi>
+      <msub>
+        <mo data-omniya-nemeth-cells="⠈⠾">]</mo>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠞">t</mi>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mo data-omniya-nemeth-intent="level-preserved-equals" data-omniya-nemeth-cells="⠰⠨⠅">=</mo>
+          <msup><mi data-omniya-nemeth-cells="⠁">a</mi><mi data-omniya-nemeth-cells="⠞">t</mi></msup>
+          <mspace data-omniya-nemeth-intent="explicit-space"/>
+          <mo data-omniya-nemeth-intent="level-preserved-equals" data-omniya-nemeth-cells="⠘⠨⠅">=</mo>
+          <mi data-omniya-nemeth-cells="⠃">b</mi>
+        </mrow>
+      </msub>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠨⠅">=</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠃">b</mi>
+      <mo data-omniya-nemeth-cells="⠤">−</mo>
+      <mi data-omniya-nemeth-cells="⠁">a</mi>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠰⠞⠈⠾⠞⠀⠰⠨⠅⠀⠁⠰⠘⠞⠰⠀⠰⠨⠅⠀⠃⠀⠐⠨⠅⠀⠃⠤⠁', source),
+    '⠞⠈⠾⠰⠞⠀⠰⠨⠅⠀⠁⠘⠞⠀⠘⠨⠅⠀⠃⠀⠨⠅⠀⠃⠤⠁'
+  );
+});
+
+test('Rule 16-16 keeps blank after equals and nests order-1 inside indexed radical', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <msqrt><mroot data-omniya-radical-order="1"><mi>x</mi><mn data-omniya-nemeth-intent="lower-cell-numeric">3</mn></mroot></msqrt>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠨⠅">=</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mroot data-omniya-nemeth-intent="indexed-radical" data-omniya-nemeth-cells="⠣⠒⠜">
+        <msqrt data-omniya-radical-order="1"><mi>x</mi></msqrt>
+        <mn>3</mn>
+      </mroot>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠜⠨⠣⠒⠜⠭⠨⠻⠻⠀⠨⠅⠣⠒⠜⠀⠨⠜⠭⠨⠻⠻', source),
+    '⠜⠨⠣⠒⠜⠭⠨⠻⠻⠀⠨⠅⠀⠣⠒⠜⠨⠜⠭⠨⠻⠻'
+  );
+});
+
+test('Rule 23-48 restores double-struck capital from stamped cells', () => {
+  const source = new DOMParser().parseFromString(
+    '<math><mi data-omniya-nemeth-intent="typeform-double-struck" data-omniya-nemeth-cells="⠠⠸⠠⠝">N</mi></math>',
+    'text/xml'
+  ).documentElement;
+  assert.equal(applyNemethSourceIntentToBraille('⠈⠰⠠⠝', source), '⠠⠸⠠⠝');
+});
+
+test('Rule 23-7 restores ditto cells and number sign after capital PER', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mi data-omniya-nemeth-cells="⠠⠏">P</mi>
+      <mi data-omniya-nemeth-cells="⠠⠑">E</mi>
+      <mi data-omniya-nemeth-cells="⠠⠗">R</mi>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-start">100</mn>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠠⠄">〃</mo>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠠⠏⠠⠑⠠⠗⠀⠂⠴⠴⠀〃', source),
+    '⠠⠏⠠⠑⠠⠗⠀⠼⠂⠴⠴⠀⠠⠄'
+  );
+});
+
 test('Rule 8-20 indicated quotes restore number-sign around a decimal', () => {
   const source = new DOMParser().parseFromString(
     '<math><mo data-omniya-nemeth-cells="⠷">(</mo><mo data-omniya-nemeth-intent="punctuation-left-double-quote" data-omniya-nemeth-cells="⠸⠦">“</mo><mn data-omniya-nemeth-intent="numeric-decimal">.8</mn><mo data-omniya-nemeth-intent="punctuation-right-double-quote" data-omniya-nemeth-cells="⠸⠴">”</mo><mo data-omniya-nemeth-cells="⠾">)</mo></math>',

@@ -3392,6 +3392,54 @@ test('Rule 7-18 italic typeform scope closes immediately at end of phrase', () =
   assert.match(scope.attrs['data-omniya-nemeth-cells'] ?? '', /⠠⠄⠨/);
 });
 
+test('Rule 7-13/7-18 keep an explicit blank between per and person', () => {
+  for (const source of [
+    '#6 .pieces of pizza./2 people .k #3 .pieces per person',
+    "#6 pieces of pizza./2 people .k #3 ,'. pieces per person .,'"
+  ]) {
+    const { document } = replayCells(sourceNotationToCells(source));
+    const tree = parseMathML(document.mathml);
+    const leaves = [];
+    const walk = (node) => {
+      if (['mi', 'mspace'].includes(node.name)) {
+        leaves.push({
+          name: node.name,
+          text: node.children?.[0]?.text ?? '',
+          intent: node.attrs?.['data-omniya-nemeth-intent'] ?? ''
+        });
+      }
+      for (const child of node.children ?? []) walk(child);
+    };
+    walk(tree);
+    const letters = leaves
+      .filter((leaf) => leaf.name === 'mi')
+      .map((leaf) => leaf.text)
+      .join('');
+    assert.match(letters, /perperson$/, `missing trailing per/person letters in ${letters}`);
+    const perEnd = leaves.findIndex((leaf, index) =>
+      leaf.name === 'mi' && leaf.text === 'r'
+      && leaves[index - 1]?.text === 'e'
+      && leaves[index - 2]?.text === 'p'
+      && leaves[index + 1]?.name === 'mspace');
+    assert.ok(perEnd >= 0, `expected explicit-space after per in ${source}`);
+    assert.equal(leaves[perEnd + 1].intent, 'explicit-space');
+    assert.equal(leaves[perEnd + 2]?.text, 'p');
+  }
+});
+
+test('Rule 16-16 keeps the blank before an indexed radical as a sibling', () => {
+  const { document } = replayCells(sourceNotationToCells('>.<3>x.]] .k <3>.>x.]]'));
+  const tree = parseMathML(document.mathml);
+  const equals = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠨⠅');
+  assert.ok(equals);
+  const equalsIndex = tree.children.indexOf(equals);
+  assert.equal(tree.children[equalsIndex + 1]?.attrs?.['data-omniya-nemeth-intent'], 'explicit-space');
+  const root = tree.children[equalsIndex + 2];
+  assert.equal(root?.name, 'mroot');
+  assert.equal(root.attrs?.['data-omniya-nemeth-intent'], 'indexed-radical');
+  assert.notEqual(root.children?.[0]?.attrs?.['data-omniya-nemeth-intent'], 'explicit-space');
+});
+
 test('Rule 8-38 literary period follows an indicated right quote', () => {
   const { document } = replayCells(sourceNotationToCells('8#100`0_04 #1000`0'));
   const tree = parseMathML(document.mathml);

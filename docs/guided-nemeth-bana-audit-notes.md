@@ -224,3 +224,24 @@ returns focus to its wrapper. It therefore composes `A` with `x`-bar and
 following plus. Whole-expression, focused-subscript, and focused-term output
 are compared with SRE in the Rule 15.7 accuracy fixture. This is a reusable
 contracted-modifier boundary, not a Rule 15.7-specific parser.
+
+## Example 3-16 (open): why a whole-expression parser is required
+
+BANA Example 3-16 (`Number Preceded by a Space and a Minus Sign`) authors one
+multi-part identity:
+
+`,h .k ?12/,n(,n+1)# (?r1~2"/n1#+?,r2~2"/n2#+ ''' +?,r;k~2"/n;k"#) -#3(,n+1)`
+
+The guided writer can stamp local intents for the leading capital, the simple
+fraction, the scripted series terms, and the trailing spaced minus-plus-number
+group. MathJax/SRE's enriched projection, however, does not preserve that
+authored grouping: it rewrites the numerator/denominator shape (`12/N(N+1)`
+becomes an `R/n`-like fragment), moves parentheses and ellipsis relative to
+fraction closers, and reorders scripted `R_k` / `R_2` terms. Closing the gap
+would require reconstructing the whole authored Braille passage from the
+semantic tree (or replacing SRE's projection for this expression), which is
+expressly out of scope for the source-intent projector. Local fixes that only
+restore number signs, blanks, or stamped cells cannot recover the correct
+fraction and series layout once SRE has reshaped the MathML. Keep 3-16 open
+until an approved whole-expression strategy exists; do not add a passage
+parser to close it.

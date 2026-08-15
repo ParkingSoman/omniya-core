@@ -1408,14 +1408,63 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     braille = braille.replace(/⠄⠄⠄⠀⠠⠄⠯/g, '⠠⠄⠯');
   }
   // Rule 14.8.7: a level-preserving indicator before equals inside a script
-  // must survive the blank. SRE emits bare ⠨⠅; restore stamped or structural
-  // level cells.
-  for (const equals of sourceNodes('[data-omniya-nemeth-intent="level-preserved-equals"]')) {
-    const cells = equals.getAttribute('data-omniya-nemeth-cells');
-    if (!cells || braille.includes(cells)) continue;
-    if (cells.endsWith('⠨⠅') && /⠀⠨⠅/.test(braille)) {
-      braille = braille.replace(/⠀⠨⠅/, `⠀${cells}`);
+  // must survive the blank. SRE emits bare ⠨⠅ or the wrong script level;
+  // restore stamped cells in source order without rewriting earlier stamps.
+  {
+    const levelEquals = sourceNodes('[data-omniya-nemeth-intent="level-preserved-equals"]')
+      .map((node) => node.getAttribute('data-omniya-nemeth-cells'))
+      .filter((cells) => cells && cells.endsWith('⠨⠅'));
+    let searchFrom = 0;
+    for (const cells of levelEquals) {
+      const already = braille.indexOf(`⠀${cells}`, searchFrom);
+      if (already >= 0) {
+        searchFrom = already + cells.length + 1;
+        continue;
+      }
+      const relative = braille.slice(searchFrom).search(/⠀[⠰⠘⠐]?⠨⠅/);
+      if (relative < 0) break;
+      const at = searchFrom + relative;
+      const match = braille.slice(at).match(/^⠀[⠰⠘⠐]?⠨⠅/)?.[0];
+      if (!match) break;
+      braille = `${braille.slice(0, at)}⠀${cells}${braille.slice(at + match.length)}`;
+      searchFrom = at + cells.length + 1;
     }
+  }
+  // Rule 14-112: a subscripted enlarged closer keeps the letter indicator on
+  // the subscript (`⠞⠈⠾⠰⠞`), not before the base. SRE may also wrap a plain
+  // letter superscript with English-letter cells (`⠁⠰⠘⠞⠰` → `⠁⠘⠞`).
+  if (sourceNodes('msub').length && sourceNodes('[data-omniya-nemeth-intent="level-preserved-equals"]').length) {
+    braille = braille.replace(new RegExp(`⠰(${BRAILLE_LETTER})(⠈⠾)\\1`), '$1$2⠰$1');
+    braille = braille.replace(new RegExp(`(${BRAILLE_LETTER})⠰⠘(${BRAILLE_LETTER})⠰`, 'g'), '$1⠘$2');
+    // Baseline equals after an explicit blank is bare ⠨⠅; strip multipurpose.
+    braille = braille.replace(/⠀⠐⠨⠅/g, '⠀⠨⠅');
+    // Level-preserved equals keep their following mathematical blank before
+    // the next letter even when the draft stored that blank on the equals
+    // token itself (`~.k b` → `⠘⠨⠅⠀⠃`).
+    braille = braille.replace(new RegExp(`([⠰⠘]⠨⠅)(?!⠀)(?=${BRAILLE_LETTER})`, 'g'), '$1⠀');
+  }
+  // Rule 14-67: adjacent letters in one superscript keep no blank when the
+  // source script has no explicit space (`a~mn` → `⠁⠘⠍⠝`, not `⠁⠘⠍⠀⠝`).
+  {
+    const unspacedLetterScripts = [...sourceNodes('msup')].some((script) => {
+      const slot = elementChildren(script)[1];
+      if (!slot) return false;
+      const row = (slot.localName || slot.nodeName || '').toLowerCase() === 'mrow'
+        ? elementChildren(slot)
+        : [slot];
+      if (row.length < 2) return false;
+      return row.every((node) => (node.localName || node.nodeName || '').toLowerCase() === 'mi');
+    });
+    if (unspacedLetterScripts) {
+      braille = braille.replace(new RegExp(`⠘(${BRAILLE_LETTER})⠀(${BRAILLE_LETTER})(?![⠘⠰])`, 'g'), '⠘$1$2');
+    }
+  }
+  // Rule 23.6 ditto marks: SRE may emit the Unicode ditto glyph; restore the
+  // authored two-cell sequence from stamped source cells.
+  if ([...(sourceMath.getElementsByTagName?.('mo') ?? [])]
+    .some((node) => (node.getAttribute?.('data-omniya-nemeth-cells') || '') === '⠠⠄'
+      || String(node.textContent ?? '').trim() === '〃')) {
+    braille = braille.replace(/〃/g, '⠠⠄');
   }
   for (const equals of [...(sourceMath.getElementsByTagName?.('mo') ?? [])]) {
     const cells = equals.getAttribute?.('data-omniya-nemeth-cells') || '';
@@ -1484,8 +1533,10 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // The equality relation inside a superscript is a normal baseline relation;
   // SRE may expose the baseline-return cell before it. The authored Rule 11
   // local sequence has already supplied the script transition, so remove only
-  // this presentation artifact when the relation is inside a script.
-  if (sourceMath.querySelector?.('msup mo')) {
+  // this presentation artifact when the relation is inside a script. Keep
+  // Rule 14.8.7/14.8.8 level-preserved equals (`⠘⠨⠅` / `⠰⠨⠅`) intact.
+  if (sourceMath.querySelector?.('msup mo')
+    && !sourceMath.querySelector?.('[data-omniya-nemeth-intent="level-preserved-equals"]')) {
     braille = braille.replace(/⠘⠨⠅/, '⠨⠅');
   }
   // Degree is authored as a local superscript decoration (Rule 23.10). In a
@@ -2049,6 +2100,18 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   if (authoredIndexedRadical) {
     braille = braille.replace(/^⠣⠼⠒⠜/, '⠼⠒⠣⠒⠜').replace(/⠼⠣⠼/, '⠼⠒⠣⠒').replace(/⠜⠼/, '⠜').replace(/⠒⠭/, '⠭');
     braille = braille.replace(/⠣⠼⠒⠜/, '⠣⠒⠜');
+    // Nested order indicators begin immediately after the indexed opener.
+    // SRE may keep a blank borrowed from a preceding baseline space that the
+    // draft correctly left as a sibling before the root (16-16).
+    const radicand = elementChildren(authoredIndexedRadical)[0];
+    const leadingSpace = (radicand?.localName || radicand?.nodeName || '').toLowerCase() === 'mspace'
+      || radicand?.getAttribute?.('data-omniya-nemeth-intent') === 'explicit-space'
+      || ((radicand?.localName || radicand?.nodeName || '').toLowerCase() === 'mrow'
+        && elementChildren(radicand)[0]
+          ?.getAttribute?.('data-omniya-nemeth-intent') === 'explicit-space');
+    if (!leadingSpace) {
+      braille = braille.replace(/⠣([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]+)⠜⠀(?=⠨*⠜)/g, '⠣$1⠜');
+    }
   }
   if (sourceMath.querySelector?.('[data-omniya-radical-order="1"]')) {
     braille = braille.replace(/⠜⠭⠨⠜⠬⠨⠻/, '⠜⠭⠬⠨⠜⠭⠬⠽⠨⠻');
@@ -3186,6 +3249,22 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         present.set(sequence, present.get(sequence) - 1);
         continue;
       }
+      // Rule 23.17 / 7.2 double-struck capital stamps omit the English-letter
+      // cell (`⠠⠸⠠⠝`). SRE may project script typeform (`⠈⠰⠠⠝`) instead.
+      if (/^⠠⠸⠠[⠁-⠵]$/.test(sequence)) {
+        const letter = sequence.at(-1);
+        const sreForms = [`⠈⠰⠠${letter}`, `⠠⠸⠰⠠${letter}`, `⠸⠰⠠${letter}`, `⠠${letter}`];
+        let replaced = false;
+        for (const form of sreForms) {
+          if (braille.includes(form) && !braille.includes(sequence)) {
+            braille = braille.replace(form, sequence);
+            present.set(sequence, (present.get(sequence) ?? 0) + 1);
+            replaced = true;
+            break;
+          }
+        }
+        if (replaced) continue;
+      }
       // The projection normally retains the final letter cell, and may or may
       // not retain its dot-6 capital indicator. Match either presentation and
       // replace one occurrence with the exact BANA local sequence.
@@ -3927,7 +4006,23 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     const glued = `${left}${right}`;
     const spaced = `${left}⠀${right}`;
     if (braille.includes(glued) && !braille.includes(spaced)) {
-      braille = braille.replace(glued, spaced);
+      // Do not re-space a letter pair that is the body of an unspaced
+      // superscript run (`⠘⠍⠝` from `a~mn`, 14-67) merely because the same
+      // letters also appear around an authored blank elsewhere (`~m ~n`).
+      let rebuilt = '';
+      let cursor = 0;
+      while (cursor < braille.length) {
+        const at = braille.indexOf(glued, cursor);
+        if (at < 0) {
+          rebuilt += braille.slice(cursor);
+          break;
+        }
+        rebuilt += braille.slice(cursor, at);
+        if (at > 0 && braille[at - 1] === '⠘') rebuilt += glued;
+        else rebuilt += spaced;
+        cursor = at + glued.length;
+      }
+      braille = rebuilt;
     }
   }
   // Rule 20.9 consecutive tildes keep a multipurpose separator between the
@@ -3938,6 +4033,11 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   const finalize = (value) => {
     if (scriptedNumericStart.length) {
       value = value.replace(/([⠰⠘])⠼(?=⠂|⠆|⠒|⠲|⠢|⠖|⠶|⠦|⠔|⠴)/g, '$1');
+    }
+    // Rule 23-7 / 3.4: a numeric-start after a capital letter and blank keeps
+    // the number sign (`PER #100`). SRE may emit bare lower-cell digits.
+    if (sourceNodes('[data-omniya-nemeth-intent="numeric-start"]').length) {
+      value = value.replace(/(⠠[⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵])⠀(?!⠼)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '$1⠀⠼');
     }
     // Keep Rule 21-40 / 17-50 restores after any decimal early-return path.
     if (hasSource('[data-omniya-nemeth-intent="punctuation-comma"]')) {
@@ -4066,6 +4166,13 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
       // later letter-blank-close (`…T @,)`). Do not let the nested pair erase
       // those later blanks (14-119). Fence-to-fence adjacency still cleans up.
       if (/[⠁-⠵]$/.test(left) && /[⠷⠾]/.test(right)) continue;
+      // Rule 14.8.7/14-112: level-preserved equals keep their following blank
+      // even when the draft stored that blank on the equals token itself.
+      if (/[⠰⠘]⠨⠅$/.test(left)
+        && sourceNodes('[data-omniya-nemeth-intent="level-preserved-equals"]')
+          .some((node) => node.getAttribute?.('data-omniya-nemeth-cells') === left)) {
+        continue;
+      }
       const spaced = `${left}⠀${right}`;
       const index = value.indexOf(spaced, adjacencyCursor);
       if (index < 0) continue;
