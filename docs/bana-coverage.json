@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 5,
     "mappedRows": 1135,
-    "electronCreationRows": 1196,
-    "electronEditingRows": 1195,
+    "electronCreationRows": 1197,
+    "electronEditingRows": 1196,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -857,7 +857,7 @@
       "printedPage": "3-1",
       "pdfPage": 28,
       "auditOrder": 18,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -906,7 +906,7 @@
       "printedPage": "3-1",
       "pdfPage": 28,
       "auditOrder": 19,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -1010,7 +1010,7 @@
       "printedPage": "3-1",
       "pdfPage": 28,
       "auditOrder": 21,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -1607,7 +1607,7 @@
       "printedPage": "3-2",
       "pdfPage": 29,
       "auditOrder": 28,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "omission.decimal-long-dash",
@@ -2381,7 +2381,7 @@
       "printedPage": "3-3",
       "pdfPage": 30,
       "auditOrder": 35,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -2430,7 +2430,7 @@
       "printedPage": "3-3",
       "pdfPage": 30,
       "auditOrder": 36,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -2444,6 +2444,7 @@
         "electron:bana-2022:example-3-13",
         "electron:bana-2022:example-3-14",
         "electron:bana-2022:example-3-15",
+        "electron:bana-2022:example-3-16",
         "electron:bana-2022:example-3-17",
         "electron:bana-2022:example-3-18",
         "electron:bana-2022:example-3-19",
@@ -2462,6 +2463,7 @@
         "electron:bana-2022:example-3-13",
         "electron:bana-2022:example-3-14",
         "electron:bana-2022:example-3-15",
+        "electron:bana-2022:example-3-16",
         "electron:bana-2022:example-3-17",
         "electron:bana-2022:example-3-18",
         "electron:bana-2022:example-3-19",
@@ -2480,6 +2482,7 @@
         "electron:bana-2022:example-3-13",
         "electron:bana-2022:example-3-14",
         "electron:bana-2022:example-3-15",
+        "electron:bana-2022:example-3-16",
         "electron:bana-2022:example-3-17",
         "electron:bana-2022:example-3-18",
         "electron:bana-2022:example-3-19",
@@ -2512,39 +2515,39 @@
         "context-policy.3.3.1"
       ],
       "visualEvidence": {
-        "id": "electron:bana-2022:example-3-27",
+        "id": "electron:bana-2022:example-3-16",
         "sourceRows": [
-          "example-3-27",
+          "example-3-16",
           "3.3.1"
         ],
         "rule": "3",
-        "example": "3-27",
-        "artifact": "electron-evidence/example-3-27.json",
+        "example": "3-16",
+        "artifact": "electron-evidence/example-3-16.json",
         "review": {
           "reviewer": "evidence-steward",
-          "conclusion": "Accepted all four real Electron phases for example 3-27; geometry contract passed in-runner and screenshots are non-empty."
+          "conclusion": "Accepted all four real Electron phases for example 3-16; geometry contract passed in-runner and screenshots are non-empty."
         },
         "evidenceSet": {
           "screenshots": [
             {
               "phase": "input",
-              "path": "electron-screenshots/rule-3-27/input.png",
-              "claim": "The complete Nemeth draft for example 3-27 is visible before submission."
+              "path": "electron-screenshots/rule-3-16/input.png",
+              "claim": "The complete Nemeth draft for example 3-16 is visible before submission."
             },
             {
               "phase": "committed",
-              "path": "electron-screenshots/rule-3-27/committed.png",
-              "claim": "The committed expression for example 3-27 is visibly rendered as one canonical MathML tree."
+              "path": "electron-screenshots/rule-3-16/committed.png",
+              "claim": "The committed expression for example 3-16 is visibly rendered as one canonical MathML tree."
             },
             {
               "phase": "focused",
-              "path": "electron-screenshots/rule-3-27/focused.png",
-              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 3-27."
+              "path": "electron-screenshots/rule-3-16/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 3-16."
             },
             {
               "phase": "editing",
-              "path": "electron-screenshots/rule-3-27/editing.png",
-              "claim": "The exact-node replacement for example 3-27 remains visibly integrated with the surrounding expression."
+              "path": "electron-screenshots/rule-3-16/editing.png",
+              "claim": "The exact-node replacement for example 3-16 remains visibly integrated with the surrounding expression."
             }
           ]
         }
@@ -3117,22 +3120,28 @@
       "unitCaseIds": [
         "registry:indicator.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-3-16"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-3-16"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-3-16"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": true,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "contextPolicyIds": [
@@ -3153,6 +3162,44 @@
         "expectedWholeBraille": ",h .k ?12/,n(,n+1)# (?r1~2\"/n1#+?,r2~2\"/n2#+ ''' +?,r;k~2\"/n;k\"#) -#3(,n+1)",
         "sourceNotation": ",h .k ?12/,n(,n+1)# (?r1~2\"/n1#+?,r2~2\"/n2#+ ''' +?,r;k~2\"/n;k\"#) -#3(,n+1)",
         "brailleCells": "⠠⠓⠀⠨⠅⠀⠹⠂⠆⠌⠠⠝⠷⠠⠝⠬⠂⠾⠼⠀⠷⠹⠗⠂⠘⠆⠐⠌⠝⠂⠼⠬⠹⠠⠗⠆⠘⠆⠐⠌⠝⠆⠼⠬⠀⠄⠄⠄⠀⠬⠹⠠⠗⠰⠅⠘⠆⠐⠌⠝⠰⠅⠐⠼⠾⠀⠤⠼⠒⠷⠠⠝⠬⠂⠾"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-3-16",
+        "sourceRows": [
+          "example-3-16",
+          "3.3.1"
+        ],
+        "rule": "3",
+        "example": "3-16",
+        "artifact": "electron-evidence/example-3-16.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 3-16; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-3-16/input.png",
+              "claim": "The complete Nemeth draft for example 3-16 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-3-16/committed.png",
+              "claim": "The committed expression for example 3-16 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-3-16/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 3-16."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-3-16/editing.png",
+              "claim": "The exact-node replacement for example 3-16 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
@@ -4364,7 +4411,7 @@
       "printedPage": "3-6",
       "pdfPage": 33,
       "auditOrder": 54,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -4900,7 +4947,7 @@
       "printedPage": "3-7",
       "pdfPage": 34,
       "auditOrder": 59,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -5215,7 +5262,7 @@
       "printedPage": "3-8",
       "pdfPage": 35,
       "auditOrder": 62,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -5639,7 +5686,7 @@
       "printedPage": "3-8",
       "pdfPage": 35,
       "auditOrder": 66,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -6117,7 +6164,7 @@
       "printedPage": "3-9",
       "pdfPage": 36,
       "auditOrder": 71,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -6167,7 +6214,7 @@
       "printedPage": "3-9",
       "pdfPage": 36,
       "auditOrder": 72,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -6480,7 +6527,7 @@
       "printedPage": "3-9",
       "pdfPage": 36,
       "auditOrder": 75,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -7016,7 +7063,7 @@
       "printedPage": "3-10",
       "pdfPage": 37,
       "auditOrder": 80,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.number"
@@ -12635,7 +12682,7 @@
       "printedPage": "3-21",
       "pdfPage": 48,
       "auditOrder": 142,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "ordinal.st",
@@ -12892,7 +12939,7 @@
       "printedPage": "3-21",
       "pdfPage": 48,
       "auditOrder": 145,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-number-5",
@@ -13033,7 +13080,7 @@
       "printedPage": "3-22",
       "pdfPage": 49,
       "auditOrder": 148,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "misc.and",
@@ -15263,7 +15310,7 @@
       "printedPage": "4-2",
       "pdfPage": 55,
       "auditOrder": 175,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "misc.and"
@@ -21226,7 +21273,7 @@
       "printedPage": "5-1",
       "pdfPage": 84,
       "auditOrder": 281,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "indicator.capital",
@@ -21327,7 +21374,7 @@
       "printedPage": "5-1",
       "pdfPage": 84,
       "auditOrder": 282,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "german.capital-a",
@@ -23043,7 +23090,7 @@
       "printedPage": "6-1",
       "pdfPage": 86,
       "auditOrder": 295,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "indicator.capital",
@@ -23144,7 +23191,7 @@
       "printedPage": "6-1",
       "pdfPage": 86,
       "auditOrder": 296,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "german.a",
@@ -23350,7 +23397,7 @@
       "printedPage": "6-2",
       "pdfPage": 87,
       "auditOrder": 297,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "hebrew.aleph",
@@ -23454,7 +23501,7 @@
       "printedPage": "6-2",
       "pdfPage": 87,
       "auditOrder": 298,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "russian.ell",
@@ -23564,7 +23611,7 @@
       "printedPage": "6-2",
       "pdfPage": 87,
       "auditOrder": 299,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "operator.sum",
@@ -23764,7 +23811,7 @@
       "printedPage": "6-3",
       "pdfPage": 88,
       "auditOrder": 300,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "greek.variant-ϐ",
@@ -23874,7 +23921,7 @@
       "printedPage": "6-4",
       "pdfPage": 89,
       "auditOrder": 301,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "operator.sum",
@@ -23925,7 +23972,7 @@
       "printedPage": "6-4",
       "pdfPage": 89,
       "auditOrder": 302,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "german.a",
@@ -25524,7 +25571,7 @@
       "printedPage": "6-5",
       "pdfPage": 90,
       "auditOrder": 307,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "operator.sum",
@@ -25746,7 +25793,7 @@
       "printedPage": "6-5",
       "pdfPage": 90,
       "auditOrder": 309,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "operator.sum",
@@ -26067,7 +26114,7 @@
       "printedPage": "6-5",
       "pdfPage": 90,
       "auditOrder": 312,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -26179,7 +26226,7 @@
       "printedPage": "6-6",
       "pdfPage": 91,
       "auditOrder": 313,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -26480,7 +26527,7 @@
       "printedPage": "6-6",
       "pdfPage": 91,
       "auditOrder": 315,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -26948,7 +26995,7 @@
       "printedPage": "6-7",
       "pdfPage": 92,
       "auditOrder": 318,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -27251,7 +27298,7 @@
       "printedPage": "6-8",
       "pdfPage": 93,
       "auditOrder": 320,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -27716,7 +27763,7 @@
       "printedPage": "6-8",
       "pdfPage": 93,
       "auditOrder": 323,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -27815,7 +27862,7 @@
       "printedPage": "6-8",
       "pdfPage": 93,
       "auditOrder": 324,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -28117,7 +28164,7 @@
       "printedPage": "6-9",
       "pdfPage": 94,
       "auditOrder": 326,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -28741,7 +28788,7 @@
       "printedPage": "6-9",
       "pdfPage": 94,
       "auditOrder": 330,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -29365,7 +29412,7 @@
       "printedPage": "6-10",
       "pdfPage": 95,
       "auditOrder": 334,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -29830,7 +29877,7 @@
       "printedPage": "6-11",
       "pdfPage": 96,
       "auditOrder": 337,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -30454,7 +30501,7 @@
       "printedPage": "6-11",
       "pdfPage": 96,
       "auditOrder": 341,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "letter.a",
@@ -30929,7 +30976,7 @@
       "printedPage": "6-12",
       "pdfPage": 97,
       "auditOrder": 344,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "letter.a",
@@ -33385,7 +33432,7 @@
       "printedPage": "6-14",
       "pdfPage": 99,
       "auditOrder": 359,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -33849,7 +33896,7 @@
       "printedPage": "6-14",
       "pdfPage": 99,
       "auditOrder": 362,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -34474,7 +34521,7 @@
       "printedPage": "6-15",
       "pdfPage": 100,
       "auditOrder": 366,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -34776,7 +34823,7 @@
       "printedPage": "6-15",
       "pdfPage": 100,
       "auditOrder": 368,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -35723,7 +35770,7 @@
       "printedPage": "6-16",
       "pdfPage": 101,
       "auditOrder": 374,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "letter.a",
@@ -36025,7 +36072,7 @@
       "printedPage": "6-16",
       "pdfPage": 101,
       "auditOrder": 376,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "indicator.roman"
@@ -36164,7 +36211,7 @@
       "printedPage": "7-2",
       "pdfPage": 104,
       "auditOrder": 379,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.bold",
@@ -36233,7 +36280,7 @@
       "printedPage": "7-2",
       "pdfPage": 104,
       "auditOrder": 380,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.bold",
@@ -36300,7 +36347,7 @@
       "printedPage": "7-2",
       "pdfPage": 104,
       "auditOrder": 381,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.bold",
@@ -37184,7 +37231,7 @@
       "printedPage": "7-3",
       "pdfPage": 105,
       "auditOrder": 388,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.bold",
@@ -38060,7 +38107,7 @@
       "printedPage": "7-4",
       "pdfPage": 106,
       "auditOrder": 395,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.terminate"
@@ -38109,7 +38156,7 @@
       "printedPage": "7-5",
       "pdfPage": 107,
       "auditOrder": 396,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.terminate"
@@ -38159,7 +38206,7 @@
       "printedPage": "7-5",
       "pdfPage": 107,
       "auditOrder": 397,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.terminate"
@@ -38362,7 +38409,7 @@
       "printedPage": "7-5",
       "pdfPage": 107,
       "auditOrder": 399,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "typeform.terminate"
@@ -38892,7 +38939,7 @@
       "printedPage": "7-6",
       "pdfPage": 108,
       "auditOrder": 404,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "typeform.terminate",
@@ -39114,7 +39161,7 @@
       "printedPage": "7-6",
       "pdfPage": 108,
       "auditOrder": 406,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "typeform.terminate",
@@ -45398,7 +45445,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 465,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.literary-period"
@@ -45447,7 +45494,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 466,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.literary-period"
@@ -45649,7 +45696,7 @@
       "printedPage": "8-8",
       "pdfPage": 119,
       "auditOrder": 468,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.literary-period"
@@ -46406,7 +46453,7 @@
       "printedPage": "8-9",
       "pdfPage": 120,
       "auditOrder": 475,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.literary-period"
@@ -46941,7 +46988,7 @@
       "printedPage": "8-10",
       "pdfPage": 121,
       "auditOrder": 480,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.literary-period"
@@ -48517,7 +48564,7 @@
       "printedPage": "8-12",
       "pdfPage": 123,
       "auditOrder": 495,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.semicolon"
@@ -48566,7 +48613,7 @@
       "printedPage": "8-12",
       "pdfPage": 123,
       "auditOrder": 496,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.semicolon"
@@ -48616,7 +48663,7 @@
       "printedPage": "8-12",
       "pdfPage": 123,
       "auditOrder": 497,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.semicolon"
@@ -49147,7 +49194,7 @@
       "printedPage": "8-13",
       "pdfPage": 124,
       "auditOrder": 502,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "punctuation.short-dash"
@@ -49196,7 +49243,7 @@
       "printedPage": "8-13",
       "pdfPage": 124,
       "auditOrder": 503,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.long-dash",
@@ -49249,7 +49296,7 @@
       "printedPage": "8-13",
       "pdfPage": 124,
       "auditOrder": 504,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.long-dash",
@@ -49571,7 +49618,7 @@
       "printedPage": "8-14",
       "pdfPage": 125,
       "auditOrder": 507,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.long-dash",
@@ -52232,7 +52279,7 @@
       "printedPage": "10-1",
       "pdfPage": 132,
       "auditOrder": 536,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "misc.vs"
@@ -58848,7 +58895,7 @@
       "printedPage": "11-1",
       "pdfPage": 143,
       "auditOrder": 605,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-general",
@@ -59846,7 +59893,7 @@
       "printedPage": "11-2",
       "pdfPage": 144,
       "auditOrder": 614,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "omission.long-dash"
@@ -61918,7 +61965,7 @@
       "printedPage": "12-1",
       "pdfPage": 151,
       "auditOrder": 638,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "cancellation.start",
@@ -62776,7 +62823,7 @@
       "printedPage": "13-2",
       "pdfPage": 156,
       "auditOrder": 646,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "fraction.start.simple"
@@ -62825,7 +62872,7 @@
       "printedPage": "13-2",
       "pdfPage": 156,
       "auditOrder": 647,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.simple",
@@ -62892,7 +62939,7 @@
       "printedPage": "13-2",
       "pdfPage": 156,
       "auditOrder": 648,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.simple",
@@ -63592,7 +63639,7 @@
       "printedPage": "13-3",
       "pdfPage": 157,
       "auditOrder": 654,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.simple",
@@ -65680,7 +65727,7 @@
       "printedPage": "13-7",
       "pdfPage": 161,
       "auditOrder": 677,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.complex",
@@ -66933,7 +66980,7 @@
       "printedPage": "13-9",
       "pdfPage": 163,
       "auditOrder": 689,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.hypercomplex",
@@ -66988,7 +67035,7 @@
       "printedPage": "13-9",
       "pdfPage": 163,
       "auditOrder": 690,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.hypercomplex",
@@ -67552,7 +67599,7 @@
       "printedPage": "13-11",
       "pdfPage": 165,
       "auditOrder": 695,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "fraction.start.hypercomplex",
@@ -68760,7 +68807,7 @@
       "printedPage": "14-2",
       "pdfPage": 171,
       "auditOrder": 712,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.superscript",
@@ -68820,7 +68867,7 @@
       "printedPage": "14-2",
       "pdfPage": 171,
       "auditOrder": 713,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.superscript"
@@ -68882,7 +68929,7 @@
       "printedPage": "14-3",
       "pdfPage": 172,
       "auditOrder": 714,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.superscript"
@@ -69633,7 +69680,7 @@
       "printedPage": "14-3",
       "pdfPage": 172,
       "auditOrder": 721,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "script.superscript",
@@ -70192,7 +70239,7 @@
       "printedPage": "14-4",
       "pdfPage": 173,
       "auditOrder": 726,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "script.superscript",
@@ -71182,7 +71229,7 @@
       "printedPage": "14-6",
       "pdfPage": 175,
       "auditOrder": 735,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "script.superscript",
@@ -71569,7 +71616,7 @@
       "printedPage": "14-7",
       "pdfPage": 176,
       "auditOrder": 739,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-subscript"
@@ -72886,7 +72933,7 @@
       "printedPage": "14-9",
       "pdfPage": 178,
       "auditOrder": 751,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.left-superscript"
@@ -76445,7 +76492,7 @@
       "printedPage": "14-15",
       "pdfPage": 184,
       "auditOrder": 784,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
@@ -76496,7 +76543,7 @@
       "printedPage": "14-16",
       "pdfPage": 185,
       "auditOrder": 785,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
@@ -76924,7 +76971,7 @@
       "printedPage": "14-16",
       "pdfPage": 185,
       "auditOrder": 789,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
@@ -77574,7 +77621,7 @@
       "printedPage": "14-17",
       "pdfPage": 186,
       "auditOrder": 795,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
@@ -78226,7 +78273,7 @@
       "printedPage": "14-18",
       "pdfPage": 187,
       "auditOrder": 801,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
@@ -79210,7 +79257,7 @@
       "printedPage": "14-20",
       "pdfPage": 189,
       "auditOrder": 810,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
@@ -79412,7 +79459,7 @@
       "printedPage": "14-20",
       "pdfPage": 189,
       "auditOrder": 812,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "punctuation.comma-ellipsis",
@@ -80059,7 +80106,7 @@
       "printedPage": "14-21",
       "pdfPage": 190,
       "auditOrder": 818,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
@@ -80596,7 +80643,7 @@
       "printedPage": "14-22",
       "pdfPage": 191,
       "auditOrder": 823,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "script.subscript",
@@ -87287,7 +87334,7 @@
       "printedPage": "15-2",
       "pdfPage": 204,
       "auditOrder": 889,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over",
@@ -87340,7 +87387,7 @@
       "printedPage": "15-2",
       "pdfPage": 204,
       "auditOrder": 890,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over",
@@ -87403,7 +87450,7 @@
       "printedPage": "15-3",
       "pdfPage": 205,
       "auditOrder": 891,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over",
@@ -88517,7 +88564,7 @@
       "printedPage": "15-4",
       "pdfPage": 206,
       "auditOrder": 900,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over",
@@ -90385,7 +90432,7 @@
       "printedPage": "15-6",
       "pdfPage": 208,
       "auditOrder": 916,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over",
@@ -91667,7 +91714,7 @@
       "printedPage": "15-8",
       "pdfPage": 210,
       "auditOrder": 927,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over.higher",
@@ -91718,7 +91765,7 @@
       "printedPage": "15-8",
       "pdfPage": 210,
       "auditOrder": 928,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over.higher",
@@ -92034,7 +92081,7 @@
       "printedPage": "15-9",
       "pdfPage": 211,
       "auditOrder": 931,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over.higher",
@@ -92086,7 +92133,7 @@
       "printedPage": "15-9",
       "pdfPage": 211,
       "auditOrder": 932,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.directly-over.higher",
@@ -94699,7 +94746,7 @@
       "printedPage": "15-14",
       "pdfPage": 216,
       "auditOrder": 956,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.triangle"
@@ -96716,7 +96763,7 @@
       "printedPage": "15-16",
       "pdfPage": 218,
       "auditOrder": 973,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.bar-over"
@@ -96765,7 +96812,7 @@
       "printedPage": "15-16",
       "pdfPage": 218,
       "auditOrder": 974,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.bar-over"
@@ -97185,7 +97232,7 @@
       "printedPage": "15-17",
       "pdfPage": 219,
       "auditOrder": 978,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.bar-over"
@@ -97235,7 +97282,7 @@
       "printedPage": "15-17",
       "pdfPage": 219,
       "auditOrder": 979,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.bar-over"
@@ -97988,7 +98035,7 @@
       "printedPage": "15-18",
       "pdfPage": 220,
       "auditOrder": 987,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.dot"
@@ -98037,7 +98084,7 @@
       "printedPage": "15-18",
       "pdfPage": 220,
       "auditOrder": 988,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.dot"
@@ -98567,7 +98614,7 @@
       "printedPage": "15-18",
       "pdfPage": 220,
       "auditOrder": 993,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.dot"
@@ -99493,7 +99540,7 @@
       "printedPage": "15-19",
       "pdfPage": 221,
       "auditOrder": 1002,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "structural-followup",
       "mappingIds": [
         "modifier.tilde.extended",
@@ -99544,7 +99591,7 @@
       "printedPage": "16-1",
       "pdfPage": 222,
       "auditOrder": 1003,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "radical.square"
@@ -99603,7 +99650,7 @@
       "printedPage": "16-1",
       "pdfPage": 222,
       "auditOrder": 1004,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "radical.square",
@@ -100479,7 +100526,7 @@
       "printedPage": "16-2",
       "pdfPage": 223,
       "auditOrder": 1012,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "radical.square"
@@ -101950,7 +101997,7 @@
       "printedPage": "17-5",
       "pdfPage": 231,
       "auditOrder": 1025,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "misc.angle",
@@ -103194,7 +103241,7 @@
       "printedPage": "17-7",
       "pdfPage": 233,
       "auditOrder": 1034,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "misc.parallel",
@@ -104579,7 +104626,7 @@
       "printedPage": "17-10",
       "pdfPage": 236,
       "auditOrder": 1047,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-number-5",
@@ -105335,7 +105382,7 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1053,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-arrows-horizontal"
@@ -105535,7 +105582,7 @@
       "printedPage": "17-11",
       "pdfPage": 237,
       "auditOrder": 1055,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.circle.interior-arrows-vertical"
@@ -105735,7 +105782,7 @@
       "printedPage": "17-12",
       "pdfPage": 238,
       "auditOrder": 1057,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.keystroke.plus",
@@ -107718,7 +107765,7 @@
       "printedPage": "17-15",
       "pdfPage": 241,
       "auditOrder": 1074,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.angle.interior-arrow"
@@ -111008,7 +111055,7 @@
       "printedPage": "17-19",
       "pdfPage": 245,
       "auditOrder": 1105,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "shape.keystroke.ee-arrow"
@@ -111211,7 +111258,7 @@
       "printedPage": "18-2",
       "pdfPage": 247,
       "auditOrder": 1107,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "function.amp",
@@ -112267,7 +112314,7 @@
       "printedPage": "18-4",
       "pdfPage": 249,
       "auditOrder": 1116,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.amp",
@@ -112388,7 +112435,7 @@
       "printedPage": "18-4",
       "pdfPage": 249,
       "auditOrder": 1117,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.amp",
@@ -113460,7 +113507,7 @@
       "printedPage": "18-4",
       "pdfPage": 249,
       "auditOrder": 1123,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.amp",
@@ -113986,7 +114033,7 @@
       "printedPage": "18-5",
       "pdfPage": 250,
       "auditOrder": 1126,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "function.amp",
@@ -115808,7 +115855,7 @@
       "printedPage": "19-2",
       "pdfPage": 254,
       "auditOrder": 1137,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "group.round",
@@ -115907,7 +115954,7 @@
       "printedPage": "19-2",
       "pdfPage": 254,
       "auditOrder": 1138,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "group.round",
@@ -117968,7 +118015,7 @@
       "printedPage": "19-4",
       "pdfPage": 256,
       "auditOrder": 1151,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "group.round",
@@ -119862,7 +119909,7 @@
       "printedPage": "19-6",
       "pdfPage": 258,
       "auditOrder": 1167,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "group.round",
@@ -119923,7 +119970,7 @@
       "printedPage": "19-6",
       "pdfPage": 258,
       "auditOrder": 1168,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "group.round",
@@ -120147,7 +120194,7 @@
       "printedPage": "19-6",
       "pdfPage": 258,
       "auditOrder": 1170,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "group.round",
@@ -122491,7 +122538,7 @@
       "printedPage": "20-3",
       "pdfPage": 268,
       "auditOrder": 1197,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "operator.plus",
@@ -122560,7 +122607,7 @@
       "printedPage": "20-3",
       "pdfPage": 268,
       "auditOrder": 1198,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "operator.plus",
@@ -123498,7 +123545,7 @@
       "printedPage": "20-4",
       "pdfPage": 269,
       "auditOrder": 1206,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "operator.plus",
@@ -129642,7 +129689,7 @@
       "printedPage": "21-9",
       "pdfPage": 285,
       "auditOrder": 1260,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "operator.equals",
@@ -133390,7 +133437,7 @@
       "printedPage": "21-14",
       "pdfPage": 290,
       "auditOrder": 1293,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "comparison.equivalence",
@@ -135669,7 +135716,7 @@
       "printedPage": "22-2",
       "pdfPage": 295,
       "auditOrder": 1314,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "arrow.right",
@@ -136190,7 +136237,7 @@
       "printedPage": "22-4",
       "pdfPage": 297,
       "auditOrder": 1320,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "arrow.up",
@@ -136251,7 +136298,7 @@
       "printedPage": "22-4",
       "pdfPage": 297,
       "auditOrder": 1321,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "arrow.up",
@@ -136841,7 +136888,7 @@
       "printedPage": "22-4",
       "pdfPage": 297,
       "auditOrder": 1326,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "arrow.up",
@@ -137309,7 +137356,7 @@
       "printedPage": "22-5",
       "pdfPage": 298,
       "auditOrder": 1330,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "arrow.up",
@@ -138227,7 +138274,7 @@
       "printedPage": "22-6",
       "pdfPage": 299,
       "auditOrder": 1337,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.up",
@@ -138288,7 +138335,7 @@
       "printedPage": "22-6",
       "pdfPage": 299,
       "auditOrder": 1338,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.up",
@@ -138640,7 +138687,7 @@
       "printedPage": "22-6",
       "pdfPage": 299,
       "auditOrder": 1341,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.up",
@@ -139124,7 +139171,7 @@
       "printedPage": "22-7",
       "pdfPage": 300,
       "auditOrder": 1345,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.up",
@@ -140497,7 +140544,7 @@
       "printedPage": "22-9",
       "pdfPage": 302,
       "auditOrder": 1357,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.blunted.right",
@@ -141737,7 +141784,7 @@
       "printedPage": "22-10",
       "pdfPage": 303,
       "auditOrder": 1367,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "atomic-sequence",
       "mappingIds": [
         "arrow.upper-left",
@@ -143567,7 +143614,7 @@
       "printedPage": "23-2",
       "pdfPage": 307,
       "auditOrder": 1381,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "misc.angstrom"
@@ -144155,7 +144202,7 @@
       "printedPage": "23-3",
       "pdfPage": 308,
       "auditOrder": 1387,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "misc.crossed-d",
@@ -144681,7 +144728,7 @@
       "printedPage": "23-4",
       "pdfPage": 309,
       "auditOrder": 1392,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": "immediate",
       "mappingIds": [
         "misc.ditto"
@@ -146189,7 +146236,7 @@
       "printedPage": "23-7",
       "pdfPage": 312,
       "auditOrder": 1407,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "operator.integral",
@@ -151833,7 +151880,7 @@
       "printedPage": "24-1",
       "pdfPage": 320,
       "auditOrder": 1458,
-      "disposition": "implemented-operation",
+      "disposition": "implemented-context-policy",
       "inputPolicy": null,
       "mappingIds": [
         "omission.decimal-long-dash",

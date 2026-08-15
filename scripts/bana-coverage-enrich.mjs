@@ -123,7 +123,14 @@ const rows = inventory.rows.map((row) => {
         && mappings.some((mapping) => mapping.args?.sourceKind !== 'context-policy')
   );
   const disposition = row.disposition === 'unclassified' && (mappingIds.length > 0 || contextPolicyIds.length > 0 || parameterizedRefs.has(ref) || appendixRefs.length > 0)
-      ? (contextPolicyIds.length > 0 && mappingIds.length === 0 || mappings.some((mapping) => mapping.args?.sourceKind === 'context-policy') ? 'implemented-context-policy' : 'implemented-operation')
+      // Documentary / context-policy provisions stay context-policy even when
+      // operations also cite the same BANA ref for ledger ownership. Electron
+      // evidence belongs to official examples, not to the prose headings.
+      ? ((!isExample && contextPolicyIds.length > 0)
+        || (contextPolicyIds.length > 0 && mappingIds.length === 0)
+        || mappings.some((mapping) => mapping.args?.sourceKind === 'context-policy')
+          ? 'implemented-context-policy'
+          : 'implemented-operation')
       : row.disposition;
   for (const field of ['creation', 'editing', 'navigation', 'wholeBraille', 'focusedBraille', 'undoRedo', 'persistence']) {
     verified[field] = excludedDocument
