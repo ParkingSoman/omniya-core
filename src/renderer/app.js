@@ -388,8 +388,23 @@ function renderMode() {
   elements['composer-dock'].hidden = reading;
   elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
-    ? 'Up and Down arrows move between items. Enter explores an equation; E replaces the exact focus.'
+    ? 'Up and Down arrows move between items. Enter explores an equation; r replaces, a appends after, p prepends before the focus.'
     : 'Reading remains available above. Ctrl+[ enters Command · Escape cancels.';
+}
+
+function placementVerb(placement) {
+  if (placement === 'append') return 'Appending after';
+  if (placement === 'prepend') return 'Prepending before';
+  return 'Replacing';
+}
+
+function mathPlacementFromKey(event) {
+  if (event.altKey || event.ctrlKey || event.metaKey) return null;
+  const key = event.key.toLowerCase();
+  if (key === 'r') return 'replace';
+  if (key === 'a') return 'append';
+  if (key === 'p') return 'prepend';
+  return null;
 }
 
 function isMathReplaceAuthoring() {
@@ -415,12 +430,14 @@ function renderComposer() {
 
   elements['composer-heading'].textContent = mathReplace
     ? (commandState.replaceScopeLabel
-      ? `Replacing: ${commandState.replaceScopeLabel}`
+      ? `${placementVerb(commandState.placement)}: ${commandState.replaceScopeLabel}`
       : 'Replace focused mathematics')
     : editing
       ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
       : `Adding to ${activeNapkin().name}`;
-  elements['composer-submit'].textContent = mathReplace ? 'Replace' : editing ? 'Save changes' : 'Add item';
+  elements['composer-submit'].textContent = mathReplace
+    ? (commandState.placement === 'append' ? 'Append' : commandState.placement === 'prepend' ? 'Prepend' : 'Replace')
+    : editing ? 'Save changes' : 'Add item';
   elements['composer-discard'].hidden = editing || mathReplace;
   elements['composer-cancel'].hidden = !(editing || mathReplace);
   elements['editing-indicator'].textContent = mathReplace
@@ -658,8 +675,8 @@ async function resolveMathReplaceFocus(article, item, startingFocus = null, isNe
   return focus;
 }
 
-/** Open the unified composer to replace a focused math subtree (explorer/article E). */
-async function openComposerForMathReplace(article, startingFocus = null, isNew = false) {
+/** Open the unified composer to replace, append after, or prepend before a focused math node. */
+async function openComposerForMathReplace(article, startingFocus = null, isNew = false, placement = 'replace') {
   if (replacementSession) return;
   const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
   if (!item) return;
@@ -680,7 +697,8 @@ async function openComposerForMathReplace(article, startingFocus = null, isNew =
     document: item.math,
     target: focus.target,
     explorerFocus: focus,
-    method: preferredAuthoringMethod
+    method: preferredAuthoringMethod,
+    placement
   });
   replacementSession.isNew = isNew;
   replacementEditor = null;
@@ -692,7 +710,8 @@ async function openComposerForMathReplace(article, startingFocus = null, isNew =
     equationMethod: preferredAuthoringMethod,
     contentEmpty: true,
     interaction: 'insert',
-    replaceScopeLabel: scopeLabel
+    replaceScopeLabel: scopeLabel,
+    placement
   });
   // Keep scope metadata for e2es / Task 7 cleanup; product chrome is the composer.
   if (elements['replacement-scope']) {
@@ -708,7 +727,7 @@ async function openComposerForMathReplace(article, startingFocus = null, isNew =
   clearComposerNemethChoices();
   setComposerMathStatus(preferredAuthoringMethod === 'nemeth'
     ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
-    : 'Enter LaTeX for the replacement expression.');
+    : `Enter LaTeX for the ${placement === 'append' ? 'appended' : placement === 'prepend' ? 'prepended' : 'replacement'} expression.`);
   renderAll();
   applyCommandStateToChrome(commandState);
   elements['composer-source'].value = '';
@@ -734,10 +753,11 @@ document.addEventListener('keydown', (event) => {
     `article.napkin-article[data-item-id="${CSS.escape(exploringEquationItemId)}"]`
   );
   if (!article) return;
-  if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
+  const explorerPlacement = mathPlacementFromKey(event);
+  if (explorerPlacement) {
     event.preventDefault();
     event.stopImmediatePropagation();
-    void openComposerForMathReplace(article);
+    void openComposerForMathReplace(article, null, false, explorerPlacement);
     return;
   }
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
@@ -1752,9 +1772,10 @@ elements['transcript'].addEventListener('keydown', (event) => {
       event.preventDefault();
       leaveEquation(article);
     }
-    if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
+    const mathPlacement = mathPlacementFromKey(event);
+    if (mathPlacement) {
       event.preventDefault();
-      void openComposerForMathReplace(article);
+      void openComposerForMathReplace(article, null, false, mathPlacement);
     }
     return;
   }
@@ -1769,11 +1790,12 @@ elements['transcript'].addEventListener('keydown', (event) => {
     }
     return;
   }
-  if (event.key.toLowerCase() === 'e' && !event.altKey && !event.ctrlKey && !event.metaKey) {
+  const itemPlacement = mathPlacementFromKey(event);
+  if (itemPlacement) {
     event.preventDefault();
     if (activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId)?.type === 'equation') {
-      void openComposerForMathReplace(article);
-    } else {
+      void openComposerForMathReplace(article, null, false, itemPlacement);
+    } else if (itemPlacement === 'replace') {
       openEditMode(article.dataset.itemId);
     }
     return;

@@ -1,6 +1,7 @@
 import {
   canonicalizeMathML,
   completionReport,
+  insertMathRelative,
   parseMathML,
   replaceMathTarget,
   serializeMathML
@@ -46,15 +47,17 @@ function sessionStateChanged(session, result, next) {
   return true;
 }
 
-export function startReplacementSession({ document = null, target, explorerFocus = null, method = 'nemeth' }) {
+export function startReplacementSession({ document = null, target, explorerFocus = null, method = 'nemeth', placement = 'replace' }) {
   if (!target?.kind) throw new TypeError('A replacement target is required');
   if (!['nemeth', 'latex'].includes(method)) throw new TypeError('Unknown authoring method');
+  if (!['replace', 'append', 'prepend'].includes(placement)) throw new TypeError('Unknown placement');
   const draft = emptyDraft();
   return {
     originalDocument: document ? structuredClone(document) : null,
     target: structuredClone(target),
     originalExplorerFocus: explorerFocus ? structuredClone(explorerFocus) : null,
     method,
+    placement,
     draft,
     draftFocus: draft.focus,
     nemethState: { prefix: '', mode: null },
@@ -276,8 +279,11 @@ async function materializeDraft(session, convertLatexToMathML) {
   return tree;
 }
 
-function replaceRoot(document, target, tree) {
+function applyDraftToDocument(document, target, tree, placement = 'replace') {
   const current = parseMathML(document.mathml);
+  if (placement === 'append' || placement === 'prepend') {
+    return insertMathRelative(current, target, tree, placement);
+  }
   if (target.kind === 'node' && target.nodeId === current.attrs['data-omniya-id']) {
     const next = structuredClone(current);
     next.children = structuredClone(tree.children);
@@ -297,7 +303,12 @@ export async function submitReplacement(session, { convertLatexToMathML } = {}) 
     };
   }
   const previous = structuredClone(session.originalDocument);
-  const nextTree = replaceRoot(session.originalDocument, session.target, tree);
+  const nextTree = applyDraftToDocument(
+    session.originalDocument,
+    session.target,
+    tree,
+    session.placement ?? 'replace'
+  );
   const document = { ...previous, formatVersion: 2, mathml: serializeMathML(nextTree), focus: session.target };
   return {
     document,

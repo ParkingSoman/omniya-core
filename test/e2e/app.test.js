@@ -138,7 +138,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => document.activeElement?.tagName === 'ARTICLE');
   assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   assert.equal(await page.locator('#composer-dock').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
   assert.match(await page.locator('#mode-panel').textContent() ?? '', /replacing/i);

@@ -248,7 +248,7 @@ async function openIntegrandReplacement(page, article) {
   const speech = await seekSpeech(page, INTEGRAND_X, ['ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown', 'ArrowRight']);
   assert.ok(matchesSpeech(speech, INTEGRAND_X), `expected integrand x, got ${JSON.stringify(speech)}`);
   await pause(page, BEAT_MS);
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#replacement-dock').waitFor();
   const scope = await page.locator('#replacement-scope').textContent();
   assert.match(scope ?? '', /x/i);
@@ -278,7 +278,7 @@ async function openIntegralBoundReplacement(page, article, which) {
   } else {
     assert.ok(matchesSpeech(speech, UPPER_BOUND), `expected upper bound, got ${JSON.stringify(speech)}`);
   }
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#replacement-dock').waitFor();
   const scope = await page.locator('#replacement-scope').textContent();
   if (which === 'lower') assert.match(scope ?? '', /lower|underscript|a|0/i);

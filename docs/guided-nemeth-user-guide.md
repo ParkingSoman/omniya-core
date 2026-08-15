@@ -1,7 +1,8 @@
 # Writing mathematics with guided Nemeth
 
 Omniya lets you read an equation with MathJax and edit the exact place you are
-reading. Press **E** while MathJax has the expression you want focused. The
+reading. Press **r** while MathJax has the expression you want focused (**a**
+appends after that focus, **p** prepends before it). The
 replacement starts empty, so the original equation is unchanged until you
 submit it.
 

@@ -423,7 +423,7 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
     ? await options.captureFocusedEvidence()
     : null;
   const selectedSemanticId = selectedTarget.semanticId;
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   const targetId = await page.locator('#replacement-scope').getAttribute('data-target-id');
   assert.ok(targetId, 'official edit must freeze a canonical MathJax descendant or range');

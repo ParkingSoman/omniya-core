@@ -10,7 +10,7 @@ Three things to learn first:
 
 1. **Keyboard help** — the button labeled **Keyboard help**, next to **Add item**, under the napkin. Open it. That dialog is how you learn reading keys and Command keys. There is no Command button; the keys are in that help (and in Command `?`, below).
 2. **Command mode** — while the composer is open (after **Add item**, or while editing), press **Ctrl+[**. The header mode panel should say Command. **Escape** cancels. **?** in Command opens the same help, filled in for the current state.
-3. **Editing with E** — in reading, Up and Down move between items. **E** on a focused *item* opens that whole item in the composer. On an equation, **Enter** first to explore, arrow to a subexpression, then **E** to replace *only that piece* in the same composer (the mode panel shows the replacing scope). Submit with Command **n**; Escape leaves the item unchanged.
+3. **r / a / p on math** — in reading, Up and Down move between items. On an equation, **Enter** explores it. Then **r** replaces the focused node, **a** appends after it, **p** prepends before it (same composer). On a focused equation *without* exploring, those keys target the whole expression. Submit with Command **n**; Escape leaves the item unchanged. **r** on a text item still opens that item for editing.
 
 After **Ctrl+[**, type a Command key, then **i** (or Enter) to type again, or **n** to submit:
 
@@ -142,7 +142,7 @@ The point of the Electron app is to make these hypotheses testable. The architec
 
 This section is the **alpha** on `testing`, not the signed-off `main` snapshot. Humans have not completely verified it. The practical checklist is [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
-On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); enter Command with `Ctrl+[`; choose Text vs Equation with Command `t` / `x`; author Nemeth cells or LaTeX; explore MathML and press **E** to replace a subtree in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden behind Command.
+On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); enter Command with `Ctrl+[`; choose Text vs Equation with Command `t` / `x`; author Nemeth cells or LaTeX; explore MathML and press **r** to replace a subtree (**a** append after, **p** prepend before) in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden behind Command.
 
 The interface uses semantic HTML, native form controls, labeled fields, visible focus indicators, a narrow preload bridge, context isolation, a sandboxed renderer, and a restrictive content-security policy.
 
@@ -253,7 +253,7 @@ The bullets below are the older reading/add shell. Command `t` / `x` replace the
 - In Read mode, Up and Down move between items. Home and End move to the first and last item; on compact Mac keyboards these are commonly Fn+Left Arrow and Fn+Right Arrow.
 - Press Enter on a focused text item to edit it.
 - Press Enter on a focused equation to enter MathJax’s expression explorer. MathJax handles movement through the expression; Escape returns to the item.
-- Press `E` on a focused item to edit it.
+- Press `r` on a focused equation to replace it (or the explorer focus). `a` appends after; `p` prepends before. On a text item, `r` opens it for editing.
 - Press Backspace on a focused item to delete it; focus moves to a nearby remaining item.
 - Activate `Add item` to enter Add mode and focus the Content field.
 - In Add mode, Enter adds the item, Shift+Enter inserts a new line, and Escape discards the draft.

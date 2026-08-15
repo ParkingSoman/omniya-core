@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { addEquationViaComposer, chooseType, electronLaunchEnv } from './launch-electron.js';
+import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -126,7 +126,7 @@ test('composer shows Nemeth choice buttons for left-subscript ambiguity', { time
   await page.waitForFunction(() => /letter\.x|Draft updated/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
 });
 
-test('E opens unified composer for subtree replace', { timeout: 90_000 }, async (t) => {
+test('r opens unified composer for subtree replace', { timeout: 90_000 }, async (t) => {
   const { app, page } = await launch('omniya-unified-e-');
   t.after(() => app.close().catch(() => {}));
   const article = await addEquationViaComposer(page, { method: 'latex', source: 'x+1' });
@@ -136,7 +136,7 @@ test('E opens unified composer for subtree replace', { timeout: 90_000 }, async 
   await article.focus();
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   assert.equal(await page.locator('#composer-source').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
@@ -153,4 +153,25 @@ test('E opens unified composer for subtree replace', { timeout: 90_000 }, async 
   );
   assert.equal(afterTokens, beforeTokens);
   assert.equal(afterTokens, 'x|+|1');
+});
+
+test('a appends after the focused equation without rewriting it', { timeout: 90_000 }, async (t) => {
+  const { app, page } = await launch('omniya-unified-append-');
+  t.after(() => app.close().catch(() => {}));
+  const article = await addEquationViaComposer(page, { method: 'latex', source: 'x^3' });
+  await article.focus();
+  await page.keyboard.press('a');
+  await page.locator('#composer-dock').waitFor();
+  assert.match(await page.locator('#mode-panel').textContent() ?? '', /appending after/i);
+  await chooseMethod(page, 'latex');
+  await page.locator('#composer-source').fill('+3');
+  await page.getByRole('button', { name: 'Append' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  const tokens = await article.locator('math').evaluate((node) =>
+    [...node.querySelectorAll('mi, mn, mo')].map((el) => el.textContent).join('|')
+  );
+  assert.match(tokens, /x/);
+  assert.match(tokens, /3/);
+  assert.match(tokens, /\+/);
+  assert.ok(tokens.indexOf('x') < tokens.indexOf('+'), `expected x before plus in ${tokens}`);
 });

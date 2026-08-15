@@ -33,13 +33,13 @@ test('the Electron evidence ledger names real creation and editing workflows for
     const editing = testBody(source, family.editingTest);
     assert.match(creation, /getByLabel\('Replacement input'/, `${family.id} creation must use the renderer replacement input`);
     assert.match(creation, /fill\(['"][^'"]*[\u2800-\u28ff]|fill\(cell\)|keyboard\.down\(['"]f['"]/, `${family.id} creation must feed actual Nemeth or six-key input`);
-    assert.match(editing, /Arrow(Down|Up|Left|Right)|keyboard\.press\(['"]e['"]/, `${family.id} editing must use MathJax navigation and E`);
+    assert.match(editing, /Arrow(Down|Up|Left|Right)|keyboard\.press\(['"]r['"]/, `${family.id} editing must use MathJax navigation and r`);
     assert.match(editing, /getByRole\(['"]button['"], \{ name: ['"]Replace['"]|press\(['"]Enter['"]\)/, `${family.id} editing must submit through the replacement transaction`);
     assert.match(editing, /aria-braillelabel/, `${family.id} editing must assert focused or whole-expression Braille`);
     assert.ok(family.nemethCells?.length > 0 || family.inputGesture, `verified ${family.id} needs concrete Nemeth input evidence`);
     for (const cells of family.nemethCells ?? []) assert.ok(source.includes(cells), `${family.id} is missing cells ${cells}`);
     if (family.inputGesture) assert.match(source, new RegExp(family.inputGesture));
-    if (family.editingGesture) assert.match(editing, /Arrow(Down|Up|Left|Right)[\s\S]+keyboard\.press\(['"]e['"]\)[\s\S]+keyboard\.down/, `${family.id} needs a concrete editing input gesture`);
+    if (family.editingGesture) assert.match(editing, /Arrow(Down|Up|Left|Right)[\s\S]+keyboard\.press\(['"]r['"]\)[\s\S]+keyboard\.down/, `${family.id} needs a concrete editing input gesture`);
     assert.equal(family.requiresExplorerNavigation, true, `${family.id} must document Explorer navigation for editing`);
     assert.ok(family.assertions.includes('whole-expression-braille'), `${family.id} needs whole-expression Braille evidence`);
     assert.ok(family.assertions.includes('focused-braille'), `${family.id} needs focused Braille evidence`);

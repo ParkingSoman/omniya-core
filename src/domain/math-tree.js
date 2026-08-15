@@ -204,6 +204,56 @@ export function insertMathChild(tree, parentNodeId, child, index = null) {
   return next;
 }
 
+const FLEXIBLE_MATH_PARENTS = new Set(['math', 'mrow']);
+
+function mathElementChildren(node) {
+  return (node?.children ?? []).filter((child) => child.text === undefined);
+}
+
+/**
+ * Insert the children of incomingMath (a math root) before or after target.
+ * Flexible parents (math, mrow) gain siblings. Fixed-arity parents wrap the
+ * focused node in an mrow so msup/mfrac/etc. keep their required shape.
+ */
+export function insertMathRelative(tree, target, incomingMath, where) {
+  if (where !== 'append' && where !== 'prepend') {
+    throw new TypeError('insertMathRelative where must be append or prepend');
+  }
+  const next = structuredClone(tree);
+  const pieces = mathElementChildren(incomingMath).map((child) => structuredClone(child));
+  if (!pieces.length) throw new Error('Incoming math is empty');
+  const targetId = target?.kind === 'node'
+    ? target.nodeId
+    : (where === 'append' ? target?.lastNodeId : target?.firstNodeId);
+  if (!targetId) throw new TypeError('A math insertion target is required');
+
+  if (targetId === next.attrs['data-omniya-id']) {
+    next.children = where === 'append' ? [...next.children, ...pieces] : [...pieces, ...next.children];
+    return next;
+  }
+
+  const node = findMathNode(next, targetId);
+  if (!node) throw new RangeError('Math node not found');
+  const parent = findMathParent(next, targetId);
+  if (!parent) throw new RangeError('Cannot insert relative to the math root without a root target');
+
+  const idx = parent.children.findIndex((child) => child === node);
+  if (idx < 0) throw new RangeError('Math node is not a child of its parent');
+
+  if (FLEXIBLE_MATH_PARENTS.has(parent.name)) {
+    parent.children.splice(where === 'append' ? idx + 1 : idx, 0, ...pieces);
+    return next;
+  }
+
+  const kept = structuredClone(node);
+  parent.children[idx] = {
+    name: 'mrow',
+    attrs: { 'data-omniya-id': id() },
+    children: where === 'append' ? [kept, ...pieces] : [...pieces, kept]
+  };
+  return next;
+}
+
 export function removeMathNode(tree, nodeId, { replaceRequiredWithHole = true } = {}) {
   const next = structuredClone(tree);
   const index = parentIndex(next);

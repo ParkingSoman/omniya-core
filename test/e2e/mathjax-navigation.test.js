@@ -78,7 +78,7 @@ async function waitForSpeechChange(page, article, previous) {
 }
 
 async function assertCurrentFocusCanBeReplaced(page) {
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   const status = await page.locator('#composer-status').textContent();
   assert.doesNotMatch(status, /cannot|unsafe|safe/i);
@@ -171,7 +171,7 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   assert.equal(await article.locator('.item-note').count(), 0);
 
   await article.focus();
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'latex');
   const source = page.getByLabel('Replacement input', { exact: true });
@@ -186,7 +186,7 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
 
   await article.focus();
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('x^3');
@@ -256,7 +256,7 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
     return current?.getAttribute('data-omniya-id');
   });
   assert.ok(focusedTargetId, 'MathJax focus must map to a canonical Omniya node');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id'), focusedTargetId);
   await page.getByRole('button', { name: 'Cancel' }).click();
@@ -275,7 +275,7 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
   await assertCurrentFocusCanBeReplaced(page);
 });
 
-test('E opens the exact replacement even during the explorer focus handoff', { timeout: 60_000 }, async (t) => {
+test('r opens the exact replacement even during the explorer focus handoff', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-focus-handoff-e2e-');
   const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}');
 
@@ -284,7 +284,7 @@ test('E opens the exact replacement even during the explorer focus handoff', { t
   // Deliberately do not wait for a speech-region mutation here. This models
   // the real VoiceOver timing where E can arrive while MathJax is handing the
   // current node from the visual explorer to its speech proxy.
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id') !== null, true);
   assert.doesNotMatch(await page.locator('#save-status').textContent(), /cannot be edited safely|unsafe/i);

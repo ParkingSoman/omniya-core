@@ -97,6 +97,25 @@ test('formatStatus includes replacing scope label', () => {
   assert.match(formatStatus(s), /replacing: integral/i);
 });
 
+test('formatStatus names append and prepend placements', () => {
+  const append = createCommandState({
+    itemKind: 'equation',
+    equationMethod: 'latex',
+    contentEmpty: true,
+    replaceScopeLabel: 'x cubed',
+    placement: 'append'
+  });
+  assert.match(formatStatus(append), /appending after: x cubed/i);
+  const prepend = createCommandState({
+    itemKind: 'equation',
+    equationMethod: 'latex',
+    contentEmpty: true,
+    replaceScopeLabel: 'x cubed',
+    placement: 'prepend'
+  });
+  assert.match(formatStatus(prepend), /prepending before: x cubed/i);
+});
+
 test('t refuses when replaceScopeLabel is set', () => {
   const s = enterCommand(createCommandState({
     itemKind: 'equation',

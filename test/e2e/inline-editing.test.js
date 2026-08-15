@@ -145,7 +145,7 @@ test('BANA Rule 3 numeric decimals are authored cell by cell and edited at a Mat
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
   await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   const replacementInput = page.getByLabel('Replacement input', { exact: true });
   for (const cell of ['⠼', '⠶', '⠨', '⠴']) {
@@ -242,7 +242,7 @@ test('Nemeth integral creation and MathJax sign navigation edit preserve the loc
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.toLowerCase().includes('integral'));
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠮⠮');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠮');
@@ -289,7 +289,7 @@ test('Nemeth integral bounds are created locally and MathJax navigation edits on
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.toLowerCase().includes('underscript'));
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠁');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /lower|a/i);
   await chooseMethod(page, 'nemeth');
@@ -338,7 +338,7 @@ test('Nemeth degree decoration is created as one local code and MathJax edits it
   await page.waitForFunction(() => Boolean(document.querySelector('mjx-speech')?.getAttribute('aria-label')));
   const focusedDegreeChild = await article.locator('mjx-speech').last().getAttribute('aria-label');
   assert.match(focusedDegreeChild, /90|base|degree|superscript/i);
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /base|90/i);
   await chooseMethod(page, 'nemeth');
@@ -420,7 +420,7 @@ test('MathJax navigation edits a nested Nemeth subexpression without widening th
   // SRE's focused-radicand projection includes the level-return indicators
   // needed to describe the nested y^z scope in isolation.
   assert.equal(await page.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠽⠘⠘⠵⠘');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   const scope = await page.locator('#replacement-scope').textContent();
   assert.match(scope, /Radicand y to the z-th power/);
@@ -471,7 +471,7 @@ test('Nemeth modifier creation and MathJax base navigation edit preserve the ove
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Base x');
   assert.equal(await page.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /Base x/);
 
@@ -516,7 +516,7 @@ test('Nemeth function creation and MathJax argument navigation edit preserve app
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#replacement-scope').textContent(), /x/);
   await chooseMethod(page, 'nemeth');
@@ -554,7 +554,7 @@ test('Nemeth geometry atom creation and MathJax whole-scope editing preserve the
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label')?.includes('lozenge'));
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠫⠙');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠫⠲');
@@ -593,7 +593,7 @@ test('Nemeth cancellation owns its content and MathJax edits only the canceled t
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
@@ -627,7 +627,7 @@ test('Nemeth fraction creation and MathJax numerator navigation edit preserve th
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Numerator x');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
@@ -669,7 +669,7 @@ test('Nemeth left-subscript choice creates multiscripts and MathJax edits the ow
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Base n');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠝');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
@@ -708,7 +708,7 @@ test('Nemeth typeform scope creation and MathJax inner editing preserve the bold
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'a');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠁');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
@@ -744,7 +744,7 @@ test('Nemeth comparison creation and MathJax relation navigation edit preserve b
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'y');
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠽');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await input.fill('⠵');
@@ -775,7 +775,7 @@ test('MathJax-focused Nemeth editing replaces only the selected subtree with an 
   });
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').count() > 0, true);
   assert.equal(await article.locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel'), '⠭');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   const input = page.getByLabel('Replacement input', { exact: true });
@@ -808,7 +808,7 @@ test('MathJax-selected duplicate subexpressions replace only the selected node',
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'plus');
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'x');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await page.getByLabel('Replacement input', { exact: true }).fill('⠵');
@@ -828,7 +828,7 @@ test('nested numerator replacement preserves the containing fraction', { timeout
   await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('mjx-speech')?.getAttribute('aria-label') === 'Numerator a plus b');
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'nemeth');
   await page.getByLabel('Replacement input', { exact: true }).fill('⠵');
@@ -844,7 +844,7 @@ test('LaTeX is an alternate replacement draft and cancel or invalid input leaves
   const article = await addBlankEquation(page);
   await commitDraft(page, 'a+b', 'latex');
   await article.focus();
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('x^2+\\sqrt{y}');
@@ -854,7 +854,7 @@ test('LaTeX is an alternate replacement draft and cancel or invalid input leaves
   assert.match(await article.locator('mjx-container').textContent(), /b/);
 
   await article.focus();
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await chooseMethod(page, 'latex');
   const input = page.getByLabel('Replacement input', { exact: true });
@@ -899,7 +899,7 @@ test('six-key input feeds the same Nemeth draft transition as Unicode cells', { 
       || current?.getAttribute('data-speech') === 'l'
       || current?.getAttribute('aria-label') === 'l';
   });
-  await page.keyboard.press('e');
+  await page.keyboard.press('r');
   await page.locator('#composer-dock').waitFor();
   await page.keyboard.down('f');
   await page.keyboard.down('s');

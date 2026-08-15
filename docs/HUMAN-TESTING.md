@@ -28,10 +28,11 @@ equations, offline autosave.
 
 **New on `testing`:**
 
-- One unified composer field for text, new equations, and subtree **E** edits
+- One unified composer field for text, new equations, and subtree **r** / **a** / **p** edits
   (Nemeth / LaTeX in `#composer-source`; no separate replacement-dock chrome)
-- MathJax explorer: Enter to explore, arrows through hierarchy, **E** to
-  replace the focused subtree in that same composer
+- MathJax explorer: Enter to explore, arrows through hierarchy, **r** to
+  replace the focused subtree in that same composer (**a** appends after,
+  **p** prepends before)
 - Insert / Command: `Ctrl+[` → Command; Escape cancels;
   `i` / Enter → Insert
 - Notes UI hidden; Text / Equation / Nemeth / LaTeX via Command `t` / `x`
@@ -78,7 +79,7 @@ npm run test:demo:thought
 4. Add item → Command `x` for Equation / Nemeth → Insert → author cells in the
    same `#composer-source` → `Ctrl+[` → `n`. Non-cell QWERTY shows a field
    error. Empty equation submit refuses (no second dock).
-5. Enter explorer → arrow to a term → **E** → same composer opens (status
+5. Enter explorer → arrow to a term → **r** → same composer opens (status
    shows replacing scope); Command `t` is refused; Escape cancels unchanged.
 6. Cmd/Ctrl+Z undoes a submitted replacement; Shift+Z redoes.
 7. Backspace in an open Nemeth draft undoes the last accepted step.
@@ -108,7 +109,7 @@ source before the task. Full protocol:
 4. For an equation: author cells in the unified composer from the braille
    display; Nemeth rejects non-cell keys with a field error; submit with
    Command `n` (or Enter when ready).
-5. Enter explorer; arrow to a subexpression; press **E**; author in the same
+5. Enter explorer; arrow to a subexpression; press **r**; author in the same
    composer; submit.
 6. Confirm the focused braille matches the **subtree**, not only the whole
    expression.

@@ -5,9 +5,10 @@ export function createCommandState({
   uebGrade = 'g2', // whole-item grade when contentEmpty started as text
   g1Passage = false, // mid-block pending G1 passage
   contentEmpty = true,
-  replaceScopeLabel = null
+  replaceScopeLabel = null,
+  placement = 'replace' // 'replace' | 'append' | 'prepend'
 } = {}) {
-  return { interaction, itemKind, equationMethod, uebGrade, g1Passage, contentEmpty, replaceScopeLabel };
+  return { interaction, itemKind, equationMethod, uebGrade, g1Passage, contentEmpty, replaceScopeLabel, placement };
 }
 
 export function enterCommand(state) {
@@ -28,7 +29,12 @@ export function formatStatus(state) {
   }
   if (state.itemKind === 'equation') {
     const fill = state.contentEmpty ? 'empty' : 'editing';
-    const scope = state.replaceScopeLabel ? ` · replacing: ${state.replaceScopeLabel}` : '';
+    const scopeVerb = state.placement === 'append'
+      ? 'appending after'
+      : state.placement === 'prepend'
+        ? 'prepending before'
+        : 'replacing';
+    const scope = state.replaceScopeLabel ? ` · ${scopeVerb}: ${state.replaceScopeLabel}` : '';
     return `${mode} · Equation · ${state.equationMethod === 'latex' ? 'LaTeX' : 'Nemeth'} · ${fill}${scope}`;
   }
   return `${mode} · (choosing)`;

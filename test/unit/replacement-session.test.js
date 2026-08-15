@@ -83,6 +83,71 @@ test('whole-equation replacement preserves the canonical math root identity', as
   assert.deepEqual(committed.focus, target);
 });
 
+test('append after the math root keeps the original expression and adds siblings', async () => {
+  const document = await importLatex('x^3');
+  const root = parseMathML(document.mathml);
+  const session = setLatexSource(startReplacementSession({
+    document,
+    target: { kind: 'node', nodeId: root.attrs['data-omniya-id'] },
+    method: 'latex',
+    placement: 'append'
+  }), '+3');
+  const committed = await submitReplacement(session, { convertLatexToMathML });
+  const tree = parseMathML(committed.document.mathml);
+  assert.equal(tree.attrs['data-omniya-id'], root.attrs['data-omniya-id']);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
+  assert.equal(tree.children[0].children[1].children[0].text, '3');
+  const texts = [];
+  const walk = (node) => {
+    if (node.text !== undefined) texts.push(node.text);
+    node.children?.forEach(walk);
+  };
+  walk(tree);
+  assert.equal(texts.join(''), 'x^3+3'.replace('^', ''));
+  assert.ok(texts.includes('+'));
+  assert.equal(texts.at(-1), '3');
+});
+
+test('prepend before a flexible mrow sibling inserts to the left', async () => {
+  const document = await importLatex('x+y');
+  const tree = parseMathML(document.mathml);
+  const yId = tree.children.at(-1).attrs['data-omniya-id'];
+  const session = setLatexSource(startReplacementSession({
+    document,
+    target: { kind: 'node', nodeId: yId },
+    method: 'latex',
+    placement: 'prepend'
+  }), 'z');
+  const committed = await submitReplacement(session, { convertLatexToMathML });
+  const next = parseMathML(committed.document.mathml);
+  assert.equal(next.children[0].children[0].text, 'x');
+  assert.equal(next.children[1].children[0].text, '+');
+  assert.equal(next.children[2].children[0].text, 'z');
+  assert.equal(next.children[3].children[0].text, 'y');
+  assert.equal(next.children[3].attrs['data-omniya-id'], yId);
+});
+
+test('append beside a superscript wraps that node instead of breaking msup', async () => {
+  const document = await importLatex('x^3');
+  const tree = parseMathML(document.mathml);
+  const expId = tree.children[0].children[1].attrs['data-omniya-id'];
+  const session = setLatexSource(startReplacementSession({
+    document,
+    target: { kind: 'node', nodeId: expId },
+    method: 'latex',
+    placement: 'append'
+  }), '+1');
+  const committed = await submitReplacement(session, { convertLatexToMathML });
+  const next = parseMathML(committed.document.mathml);
+  const msup = next.children[0];
+  assert.equal(msup.name, 'msup');
+  assert.equal(msup.children[0].children[0].text, 'x');
+  assert.equal(msup.children[1].name, 'mrow');
+  assert.equal(msup.children[1].children[0].attrs['data-omniya-id'], expId);
+  assert.equal(msup.children[1].children[0].children[0].text, '3');
+});
+
 test('incomplete or empty replacement drafts cannot commit', async () => {
   const document = await importLatex('x');
   const tree = parseMathML(document.mathml);
