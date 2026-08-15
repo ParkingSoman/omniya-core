@@ -2,6 +2,29 @@
 
 A research prototype exploring screen-reader-first mathematical workspaces.
 
+The usage notes below apply to **`testing` only**. They are not on `main`. This page is the alpha branch.
+
+## How to use this alpha
+
+Most of the authoring language is hidden on purpose. Three things to learn first:
+
+1. **Keyboard help** — the button labeled **Keyboard help**, next to **Add item**, under the napkin. Open it. That dialog is how you learn reading keys and Command keys. There is no Command button; the keys are in that help (and in Command `?`, below).
+2. **Command mode** — while the composer is open (after **Add item**, or while editing), press **Ctrl+[**. The header mode panel should say Command. **Escape** cancels. **?** in Command opens the same help, filled in for the current state.
+3. **Editing with E** — in reading, Up and Down move between items. **E** on a focused *item* opens that whole item in the composer. On an equation, **Enter** first to explore, arrow to a subexpression, then **E** to replace *only that piece* in the same composer (the mode panel shows the replacing scope). Submit with Command **n**; Escape leaves the item unchanged.
+
+After **Ctrl+[**, type a Command key, then **i** (or Enter) to type again, or **n** to submit:
+
+- **t** — Text (UEB). Press again on empty text to toggle G1/G2.
+- **x** — Equation. On an empty equation, press again to cycle Nemeth / LaTeX.
+- **s** — Focus the mode panel (Command / Insert / Text / Equation).
+- **n** — Submit the item.
+- **i** or **Enter** — Insert (back to typing).
+- **?** — Help.
+
+**Add item** (under the napkin, beside Keyboard help) opens a blank composer for a new thought.
+
+Clone and run: [Run this alpha](#run-this-alpha). Longer walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
+
 ## What the app is
 
 Omniya Core is a small **local Electron app** for writing and reading mathematics with a screen reader, a keyboard, and (on this branch) a Braille display. You create named documents the interface calls **napkins**, add text and equations, explore equation structure, and save the work as JSON on your computer. There is no account, no cloud, and no installer.
@@ -54,6 +77,7 @@ The bullets below describe **this alpha**, not the signed-off `main` snapshot. N
 
 ## Contents
 
+- [How to use this alpha](#how-to-use-this-alpha)
 - [What the app is](#what-the-app-is)
 - [Which branch should I use?](#which-branch-should-i-use)
 - [Run this alpha](#run-this-alpha)
@@ -219,6 +243,10 @@ The renderer and MathJax assets are installed locally. The application is design
 By default, committed state is stored as `napkins.json` under Electron’s platform-specific `app.getPath("userData")` directory. The `OMNIYA_TEST_USER_DATA_DIR` environment variable is reserved for isolated automated tests.
 
 ## Keyboard interaction
+
+On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In the app, **Keyboard help** (next to **Add item**) is the live list; **Ctrl+[** then **?** refreshes it for Command.
+
+The bullets below are the older reading/add shell. Command `t` / `x` replace the on-screen type radios.
 
 - Use Tab and Shift+Tab to move through ordinary controls.
 - In the napkin sidebar, focus a napkin and press Backspace to delete it after confirmation.
