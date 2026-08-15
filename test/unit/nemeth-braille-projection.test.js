@@ -2548,6 +2548,47 @@ test('Rule 3-27 spatial hypercomplex bar restores ,,? / ,,# and the following nu
   );
 });
 
+test('Rule 13-34 spatial bars keep glued short simples and spaced higher-order openers', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mi data-omniya-nemeth-cells="⠠⠭">X</mi>
+      <mo data-semantic-added="true">⁢</mo>
+      <mfrac data-omniya-fraction-kind="simple">
+        <mn data-omniya-nemeth-intent="numeric-start">33</mn>
+        <mrow><mspace/></mrow>
+      </mfrac>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mi data-omniya-nemeth-cells="⠠⠭">X</mi>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="complex">
+        <mn data-omniya-nemeth-intent="numeric-start">33333</mn>
+        <mrow><mspace/></mrow>
+      </mfrac>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <msup>
+        <mi data-omniya-nemeth-cells="⠠⠭">X</mi>
+        <mn data-omniya-nemeth-intent="lower-cell-numeric">2</mn>
+      </msup>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mfrac data-omniya-fraction-kind="hypercomplex">
+        <mn data-omniya-nemeth-intent="numeric-start">333333</mn>
+        <mrow><mspace/></mrow>
+      </mfrac>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <mn data-omniya-nemeth-intent="numeric-start">1</mn>
+      <mo data-omniya-nemeth-cells="⠬">+</mo>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠠⠭⠀⠹⠒⠒⠼⠀⠠⠭⠠⠹⠒⠒⠒⠒⠒⠼⠘⠆⠠⠠⠹⠒⠒⠒⠒⠒⠒⠼⠀⠂⠬',
+      source
+    ),
+    '⠠⠭⠹⠒⠒⠼⠀⠠⠭⠀⠠⠹⠒⠒⠒⠒⠒⠠⠼⠘⠆⠀⠠⠠⠹⠒⠒⠒⠒⠒⠒⠠⠠⠼⠀⠼⠂⠬'
+  );
+});
+
 test('Rule 3-101/3-102 roman and english-letter identifiers restore local indicators', () => {
   const roman = new DOMParser().parseFromString(
     `<math>

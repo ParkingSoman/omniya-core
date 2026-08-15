@@ -2764,11 +2764,12 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     for (const { kind, bars } of barFractions) {
       const wrapped = kind === 'hypercomplex' ? `⠠⠠⠹${bars}⠠⠠⠼` : `⠠⠹${bars}⠠⠼`;
       const escapeBars = bars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Rewrite any capital-degree variant of this exact bar length.
-      const anyDegree = new RegExp(`⠠{0,3}⠹${escapeBars}⠠{0,3}⠼`);
-      if (anyDegree.test(braille) && !braille.includes(wrapped)) {
-        braille = braille.replace(anyDegree, wrapped);
-      }
+      // Prefer capital-prefixed openers so a bare-`⠹` rewrite cannot leave
+      // stray capitals in front of the restored wrapper.
+      const withCaps = new RegExp(`⠠{1,3}⠹${escapeBars}⠠{0,3}⠼`);
+      const bare = new RegExp(`⠹${escapeBars}⠼`);
+      if (withCaps.test(braille)) braille = braille.replace(withCaps, wrapped);
+      else if (bare.test(braille) && !braille.includes(wrapped)) braille = braille.replace(bare, wrapped);
     }
     if (barFractions.length) {
       // Collapse blanks or duplicated capitals before fraction openers.
@@ -2783,6 +2784,51 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     if (barFractions.some((entry) => entry.kind === 'hypercomplex')
       || sourceNodes('mfrac[data-omniya-fraction-kind="hypercomplex"]').length) {
       braille = braille.replace(/⠠⠠⠼⠀(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠠⠠⠼⠀⠼');
+    }
+    // Rule 13-34 spatial layout around alignment bars:
+    // - short simple `33` bars stay glued after a letter factor (`X?33`);
+    // - complex/hypercomplex bars keep an authored blank when the source has
+    //   an explicit space before that fraction;
+    // - numeric-start items after those blanks keep `#`.
+    const simpleBarWithoutSpace = sourceNodes('mfrac[data-omniya-fraction-kind="simple"]').some((node) => {
+      const text = String(node.textContent ?? '').replace(/\s+/g, '');
+      if (!/^3{2,4}$/.test(text)) return false;
+      let previous = node.previousElementSibling ?? node.previousSibling;
+      while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+      // Semantic-added invisible times sits between the letter and the bar.
+      while (previous && previous.getAttribute?.('data-semantic-added') === 'true'
+        && !String(previous.textContent ?? '').trim()) {
+        previous = previous.previousElementSibling ?? previous.previousSibling;
+        while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+      }
+      return previous
+        && previous.getAttribute?.('data-omniya-nemeth-intent') !== 'explicit-space'
+        && previous.localName !== 'mspace';
+    });
+    if (simpleBarWithoutSpace) {
+      braille = braille.replace(
+        /(⠠?[⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵])⠀(?=⠹⠒{1,4}⠼)/g,
+        '$1'
+      );
+    }
+    const spacedHigherBar = [...sourceNodes('mfrac[data-omniya-fraction-kind="complex"]'),
+      ...sourceNodes('mfrac[data-omniya-fraction-kind="hypercomplex"]')]
+      .some((node) => {
+        let previous = node.previousElementSibling ?? node.previousSibling;
+        while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+        return previous?.getAttribute?.('data-omniya-nemeth-intent') === 'explicit-space'
+          || previous?.localName === 'mspace';
+      });
+    if (spacedHigherBar) {
+      // Do not use `[⠁-⠵]`: that range includes the capital indicator `⠠`
+      // and would split `⠠⠠⠹` into `⠠⠀⠠⠹` (3-27).
+      braille = braille.replace(
+        /((?:⠘)?[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]|⠠?[⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵])(?!⠀)(?=⠠{1,2}⠹)/g,
+        '$1⠀'
+      );
+    }
+    if (barFractions.length && explicitSpaces) {
+      braille = braille.replace(/⠀(?!⠼)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴][⠬⠤])/g, '⠀⠼');
     }
   }
   // Fractions retain structural markers from SRE, but their child leaf spans
@@ -4102,11 +4148,35 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         const bars = '⠒'.repeat(String(node.textContent ?? '').replace(/\s+/g, '').length);
         const wrapped = kind === 'hypercomplex' ? `⠠⠠⠹${bars}⠠⠠⠼` : `⠠⠹${bars}⠠⠼`;
         const escapeBars = bars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const anyDegree = new RegExp(`⠠{0,3}⠀*⠠{0,3}⠹${escapeBars}⠠{0,3}⠼`);
-        if (anyDegree.test(value)) value = value.replace(anyDegree, wrapped);
+        // Prefer a capital-prefixed opener so we do not leave stray `⠠` cells
+        // in front of a bare-`⠹` rewrite (`⠠⠠` + `⠠⠠⠹` → `⠠⠠⠠⠠⠹`).
+        const withCaps = new RegExp(`⠠{1,3}⠀*⠹${escapeBars}(?:⠠{1,3})?⠼`);
+        const bare = new RegExp(`⠹${escapeBars}⠼`);
+        if (withCaps.test(value)) value = value.replace(withCaps, wrapped);
+        else if (bare.test(value)) value = value.replace(bare, wrapped);
       }
       if (sourceNodes('mfrac[data-omniya-fraction-kind="hypercomplex"]').length) {
         value = value.replace(/⠠⠠⠼⠀(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠠⠠⠼⠀⠼');
+      }
+      const spacedHigherBar = [...sourceNodes('mfrac[data-omniya-fraction-kind="complex"]'),
+        ...sourceNodes('mfrac[data-omniya-fraction-kind="hypercomplex"]')]
+        .some((node) => {
+          let previous = node.previousElementSibling ?? node.previousSibling;
+          while (previous && previous.nodeType !== 1) previous = previous.previousSibling;
+          return previous?.getAttribute?.('data-omniya-nemeth-intent') === 'explicit-space'
+            || previous?.localName === 'mspace';
+        });
+      if (spacedHigherBar) {
+        value = value.replace(
+          /((?:⠘)?[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]|⠠?[⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵])(?!⠀)(?=⠠{1,2}⠹)/g,
+          '$1⠀'
+        );
+      }
+      if (sourceNodes('mfrac').some((node) => {
+        const text = String(node.textContent ?? '').replace(/\s+/g, '');
+        return /^3{5,}$/.test(text);
+      }) && explicitSpaces) {
+        value = value.replace(/⠀(?!⠼)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴][⠬⠤])/g, '⠀⠼');
       }
     }
     // Rule 3.11.1: one English-letter indicator covers a same-letter run
