@@ -267,7 +267,7 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   }
   const article = page.locator('article.napkin-article').last();
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1000);
   return {
     article,
     wholeBraille: await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel'),

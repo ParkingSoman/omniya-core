@@ -147,26 +147,44 @@ async function renderEquation(container, item, version) {
     if (!await waitForMathJax()) throw new Error('MathJax accessibility runtime unavailable');
     const source = document.createElement('span');
     const persistedMathML = item.math?.mathml || item.mathml;
-    if (persistedMathML) source.innerHTML = persistedMathML;
-    else source.textContent = `\\[${item.source}\\]`;
+    if (persistedMathML) {
+      // Prefer XML parsing so MathML data-* source stamps (script-comma,
+      // nemeth-cells, intents) are not dropped by HTML innerHTML rules.
+      const parsed = new DOMParser().parseFromString(persistedMathML, 'application/xml');
+      const mathRoot = parsed.documentElement;
+      if (mathRoot && mathRoot.localName === 'math' && !parsed.querySelector('parsererror')) {
+        source.appendChild(document.importNode(mathRoot, true));
+      } else {
+        source.innerHTML = persistedMathML;
+      }
+    } else source.textContent = `\\[${item.source}\\]`;
     // MathJax's assistive clone sanitizes unknown data attributes. Keep a
     // runtime-only identity token on the source element so the bridge can
     // recover the application node from any semantic focus, including virtual
     // SRE groupings. This never enters persisted MathML.
     const intentById = new Map([...source.querySelectorAll('[data-omniya-id][data-omniya-nemeth-intent]')]
       .map((node) => [node.getAttribute('data-omniya-id'), node.getAttribute('data-omniya-nemeth-intent')]));
+    const scriptCommaIds = new Set([...source.querySelectorAll('[data-omniya-id][data-omniya-script-comma="true"]')]
+      .map((node) => node.getAttribute('data-omniya-id')));
     for (const node of source.querySelectorAll('[data-omniya-id]')) {
       node.id = `omniya-source-${node.getAttribute('data-omniya-id')}`;
     }
-    const authoredSourceMath = persistedMathML
-      ? (() => {
-        const holder = document.createElement('div');
-        holder.innerHTML = persistedMathML;
-        return holder.querySelector('math');
-      })()
-      : null;
+    // Keep the application-owned MathML node that already carries Omnia
+    // source stamps. A second innerHTML clone can drop MathML data attrs in
+    // Chromium and would make Braille projection fall back to SRE alone.
+    const authoredSourceMath = source.querySelector('math');
     container.replaceChildren(source);
     await globalThis.MathJax.typesetPromise([container]);
+    stampCanonicalIds(container);
+    // MathJax sanitizes application attributes on its assistive clone. Copy
+    // the small set of source-intent markers onto the matching runtime nodes
+    // by stable ID so Braille projection can remain exact without a parser.
+    for (const [nodeId, intent] of intentById) {
+      container.querySelector(`#omniya-source-${CSS.escape(nodeId)}`)?.setAttribute('data-omniya-nemeth-intent', intent);
+    }
+    for (const nodeId of scriptCommaIds) {
+      container.querySelector(`#omniya-source-${CSS.escape(nodeId)}`)?.setAttribute('data-omniya-script-comma', 'true');
+    }
     // MathJax/SRE remains the independent projection. The guided writer may
     // retain a small, source-linked BANA distinction that MathML alone cannot
     // express, so apply it only to the already-rendered ARIA Braille labels.
@@ -184,13 +202,6 @@ async function renderEquation(container, item, version) {
         const projected = applyNemethSourceIntentToBraille(braille, authoredSourceMath || renderedMath);
         if (projected) node.setAttribute('aria-braillelabel', projected);
       });
-    }
-    stampCanonicalIds(container);
-    // MathJax sanitizes application attributes on its assistive clone. Copy
-    // the small set of source-intent markers onto the matching runtime nodes
-    // by stable ID so Braille projection can remain exact without a parser.
-    for (const [nodeId, intent] of intentById) {
-      container.querySelector(`#omniya-source-${CSS.escape(nodeId)}`)?.setAttribute('data-omniya-nemeth-intent', intent);
     }
     const speech = container.querySelector('mjx-speech');
     // Prefer the untouched application-owned MathML source for Nemeth intent
@@ -222,6 +233,7 @@ async function renderEquation(container, item, version) {
       setTimeout(refreshBrailleProjection, 80);
       setTimeout(refreshBrailleProjection, 250);
       setTimeout(refreshBrailleProjection, 500);
+      setTimeout(refreshBrailleProjection, 900);
     }
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');

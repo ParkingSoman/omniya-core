@@ -1350,14 +1350,19 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   // Rule 14.7 contracted script comma is dots 2-4-6. SRE may spell the same
   // comma as literary comma plus a blank; restore only source-marked commas.
   // Some already-correct ⠪ cells must not block restoring the remaining ones.
+  // Prefer the explicit script-comma stamp; fall back to authored ⠪ cells when
+  // HTML MathML parsing drops the boolean attribute from the source clone.
   const scriptCommas = sourceNodes('[data-omniya-script-comma="true"]');
-  if (scriptCommas.length) {
+  const scriptCommaMarks = scriptCommas.length
+    ? scriptCommas
+    : sourceNodes('mo[data-omniya-nemeth-cells="⠪"]');
+  if (scriptCommaMarks.length) {
     // Misplaced ⠪ immediately before a new scripted base is a baseline list
     // comma that SRE contracted. Demote those before counting restores.
     if (sourceNodes('[data-omniya-nemeth-intent="punctuation-comma"]').length) {
       braille = braille.replace(new RegExp(`⠪(?=${BRAILLE_LETTER}⠰)`, 'g'), '⠠⠀');
     }
-    let remaining = scriptCommas.length - (braille.match(/⠪/g) || []).length;
+    let remaining = scriptCommaMarks.length - (braille.match(/⠪/g) || []).length;
     if (remaining > 0) {
       // Do not convert a baseline list comma that precedes the next msub base.
       braille = braille.replace(
