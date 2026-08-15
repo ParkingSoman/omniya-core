@@ -224,3 +224,28 @@ returns focus to its wrapper. It therefore composes `A` with `x`-bar and
 following plus. Whole-expression, focused-subscript, and focused-term output
 are compared with SRE in the Rule 15.7 accuracy fixture. This is a reusable
 contracted-modifier boundary, not a Rule 15.7-specific parser.
+
+## Example 3-16 (closed): local draft + projection fixes
+
+BANA Example 3-16 (`Number Preceded by a Space and a Minus Sign`) authors one
+multi-part identity:
+
+`,h .k ?12/,n(,n+1)# (?r1~2"/n1#+?,r2~2"/n2#+ ''' +?,r;k~2"/n;k"#) -#3(,n+1)`
+
+Three local defects, not a whole-expression parser, blocked the authored cells:
+
+1. Materializing a fenced group's content row cleared `data-omniya-role="content"`,
+   so a later `+` escaped beside that row and `+ '''` re-entered the first term,
+   reordering the series. The content role is retained, and inserts focused on
+   the content row append inside it.
+2. The projector’s `closedGroups.length >= 3` heuristic inserted `⠾` before every
+   first `⠀⠨⠅` / `⠀⠬`, including a top-level equals and an in-group ellipsis
+   plus. It now restores a close only when that spaced operator is followed by
+   another open fence.
+3. Fraction leaf rebuild skipped the unstamped leading `12/N(N+1)` without
+   advancing its cursor, then rewrote that SRE span from later stamped `r`/`n`
+   letters, and also flattened scripted interiors. Unstamped fractions advance
+   the cursor; scripted `mfrac` interiors are left to SRE.
+
+With those bounds, SRE plus signed-numeric / single-letter-number intents match
+the authored whole-Braille cells without a passage serializer.

@@ -64,7 +64,7 @@ function semanticDescendants(node, bySemanticId, seen = new Set()) {
   return seen;
 }
 
-function targetForCanonicalIds(sourceRoot, ids) {
+function targetForCanonicalIds(sourceRoot, ids, options = {}) {
   const wanted = new Set(ids);
   const nodes = [sourceRoot, ...sourceRoot.querySelectorAll('[data-omniya-id], [id^="omniya-source-"]')]
     .filter((node) => wanted.has(canonicalId(node)));
@@ -73,6 +73,20 @@ function targetForCanonicalIds(sourceRoot, ids) {
   // the ancestor is the exact target and is preferable to a range below it.
   const selected = nodes.filter((node) => !nodes.some((other) => other !== node && other.contains(node)));
   if (selected.length === 1) return { kind: 'node', nodeId: canonicalId(selected[0]) };
+  // Virtual SRE containers (fenced / infixop / appl / …) often own every
+  // canonical child beneath them. Freezing that whole range replaces siblings
+  // the author did not select. Prefer the first authored token leaf so the
+  // edit stays on an exact Omniya atom without inventing a larger ancestor.
+  if (options.preferAtomicLeaf) {
+    const leaf = selected.find((node) => {
+      const name = String(node.localName || '').replace(/^mjx-/, '');
+      const text = (node.textContent || '').trim();
+      if (/^m[in]$/.test(name) && text) return true;
+      if (name === 'mo' && text && !/^[\u2062\u2063\u2064]$/.test(text)) return true;
+      return false;
+    });
+    if (leaf) return { kind: 'node', nodeId: canonicalId(leaf) };
+  }
   // Semantic virtual groups often sit inside MathJax-generated, noncanonical
   // mrow wrappers. Walk each selected source node to its nearest canonical
   // ancestor first, then resolve the exact contiguous range among that
@@ -168,12 +182,16 @@ export function captureExplorerFocus(article) {
     const bySemanticId = new Map(semanticNodes.map((node) => [node.getAttribute('data-semantic-id'), node]));
     const virtualNode = bySemanticId.get(semanticId) || focused;
     if (!sourceRoot || !virtualNode) return null;
+    const semanticType = virtualNode.getAttribute?.('data-semantic-type')
+      || focused.getAttribute?.('data-semantic-type')
+      || '';
+    const preferAtomicLeaf = /^(fenced|infixop|appl|punctuated|relseq|multirel)$/i.test(semanticType);
     const semanticIds = semanticDescendants(virtualNode, bySemanticId);
     const canonicalIds = [...semanticIds]
       .map((id) => bySemanticId.get(id))
       .map((node) => canonicalId(node))
       .filter(Boolean);
-    return targetForCanonicalIds(sourceRoot, canonicalIds);
+    return targetForCanonicalIds(sourceRoot, canonicalIds, { preferAtomicLeaf });
   })();
   if (!target) throw new Error('Explorer focus cannot resolve to a canonical node or range');
   // MathJax keeps the focused Nemeth string on the transient explorer speech

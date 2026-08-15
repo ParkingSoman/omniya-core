@@ -166,26 +166,44 @@ async function renderEquation(container, item, version) {
     if (!await waitForMathJax()) throw new Error('MathJax accessibility runtime unavailable');
     const source = document.createElement('span');
     const persistedMathML = item.math?.mathml || item.mathml;
-    if (persistedMathML) source.innerHTML = persistedMathML;
-    else source.textContent = `\\[${item.source}\\]`;
+    if (persistedMathML) {
+      // Prefer XML parsing so MathML data-* source stamps (script-comma,
+      // nemeth-cells, intents) are not dropped by HTML innerHTML rules.
+      const parsed = new DOMParser().parseFromString(persistedMathML, 'application/xml');
+      const mathRoot = parsed.documentElement;
+      if (mathRoot && mathRoot.localName === 'math' && !parsed.querySelector('parsererror')) {
+        source.appendChild(document.importNode(mathRoot, true));
+      } else {
+        source.innerHTML = persistedMathML;
+      }
+    } else source.textContent = `\\[${item.source}\\]`;
     // MathJax's assistive clone sanitizes unknown data attributes. Keep a
     // runtime-only identity token on the source element so the bridge can
     // recover the application node from any semantic focus, including virtual
     // SRE groupings. This never enters persisted MathML.
     const intentById = new Map([...source.querySelectorAll('[data-omniya-id][data-omniya-nemeth-intent]')]
       .map((node) => [node.getAttribute('data-omniya-id'), node.getAttribute('data-omniya-nemeth-intent')]));
+    const scriptCommaIds = new Set([...source.querySelectorAll('[data-omniya-id][data-omniya-script-comma="true"]')]
+      .map((node) => node.getAttribute('data-omniya-id')));
     for (const node of source.querySelectorAll('[data-omniya-id]')) {
       node.id = `omniya-source-${node.getAttribute('data-omniya-id')}`;
     }
-    const authoredSourceMath = persistedMathML
-      ? (() => {
-        const holder = document.createElement('div');
-        holder.innerHTML = persistedMathML;
-        return holder.querySelector('math');
-      })()
-      : null;
+    // Keep the application-owned MathML node that already carries Omnia
+    // source stamps. A second innerHTML clone can drop MathML data attrs in
+    // Chromium and would make Braille projection fall back to SRE alone.
+    const authoredSourceMath = source.querySelector('math');
     container.replaceChildren(source);
     await globalThis.MathJax.typesetPromise([container]);
+    stampCanonicalIds(container);
+    // MathJax sanitizes application attributes on its assistive clone. Copy
+    // the small set of source-intent markers onto the matching runtime nodes
+    // by stable ID so Braille projection can remain exact without a parser.
+    for (const [nodeId, intent] of intentById) {
+      container.querySelector(`#omniya-source-${CSS.escape(nodeId)}`)?.setAttribute('data-omniya-nemeth-intent', intent);
+    }
+    for (const nodeId of scriptCommaIds) {
+      container.querySelector(`#omniya-source-${CSS.escape(nodeId)}`)?.setAttribute('data-omniya-script-comma', 'true');
+    }
     // MathJax/SRE remains the independent projection. The guided writer may
     // retain a small, source-linked BANA distinction that MathML alone cannot
     // express, so apply it only to the already-rendered ARIA Braille labels.
@@ -204,13 +222,6 @@ async function renderEquation(container, item, version) {
         if (projected) node.setAttribute('aria-braillelabel', projected);
       });
     }
-    stampCanonicalIds(container);
-    // MathJax sanitizes application attributes on its assistive clone. Copy
-    // the small set of source-intent markers onto the matching runtime nodes
-    // by stable ID so Braille projection can remain exact without a parser.
-    for (const [nodeId, intent] of intentById) {
-      container.querySelector(`#omniya-source-${CSS.escape(nodeId)}`)?.setAttribute('data-omniya-nemeth-intent', intent);
-    }
     const speech = container.querySelector('mjx-speech');
     // Prefer the untouched application-owned MathML source for Nemeth intent
     // projection. MathJax's assistive clone intentionally sanitizes unknown
@@ -228,19 +239,22 @@ async function renderEquation(container, item, version) {
       const refreshBrailleProjection = () => {
         const latest = container.querySelector('mjx-speech');
         if (!latest) return;
+        const current = latest.getAttribute('aria-braillelabel') || undefined;
         const projected = applyNemethSourceIntentToBraille(
-          latest.getAttribute('aria-braillelabel') || undefined, authoredSourceMath || container
+          current, authoredSourceMath || container
         );
-        if (projected) latest.setAttribute('aria-braillelabel', projected);
+        if (projected && projected !== current) latest.setAttribute('aria-braillelabel', projected);
       };
       // SRE may replace the speech node more than once while explorer
-      // enrichment settles. Reapply the source-scoped projection at the two
-      // renderer boundaries without retaining an observer or touching the
-      // canonical tree.
+      // enrichment settles. Reapply the source-scoped projection at fixed
+      // boundaries without retaining an observer (observers on speech churn
+      // can re-enter when projection itself writes aria-braillelabel).
       setTimeout(refreshBrailleProjection, 0);
       setTimeout(refreshBrailleProjection, 80);
       setTimeout(refreshBrailleProjection, 250);
       setTimeout(refreshBrailleProjection, 500);
+      setTimeout(refreshBrailleProjection, 900);
+      setTimeout(refreshBrailleProjection, 1500);
     }
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
@@ -815,11 +829,13 @@ function clearComposerNemethChoices() {
   if (!box) return;
   box.replaceChildren();
   box.hidden = true;
+  delete box.dataset.prefix;
 }
 
-function renderComposerNemethChoices(choices = []) {
+function renderComposerNemethChoices(choices = [], prefix = '') {
   const box = elements['composer-choices'];
   if (!box) return;
+  box.dataset.prefix = prefix;
   box.replaceChildren(...choices.map((choice) => {
     const button = document.createElement('button');
     button.type = 'button';
@@ -1231,7 +1247,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
           await renderComposerDraftPreview();
         } else if (local.status === 'choice') {
           setComposerMathStatus(local.announcement);
-          renderComposerNemethChoices(local.choices);
+          renderComposerNemethChoices(local.choices, local.inputState?.prefix ?? replacementSession.nemethState?.prefix ?? '');
           elements['composer-source'].focus();
           return;
         } else {
@@ -1497,7 +1513,12 @@ async function consumeComposerNemethCell(cell) {
     setComposerMathStatus(result.announcement);
     editor.removeAttribute('aria-invalid');
     setFieldError(editor, elements['composer-error']);
-    if (result.status === 'choice') renderComposerNemethChoices(result.choices);
+    if (result.status === 'choice') {
+      renderComposerNemethChoices(
+        result.choices,
+        result.inputState?.prefix ?? replacementSession.nemethState?.prefix ?? ''
+      );
+    }
     else clearComposerNemethChoices();
   } else {
     editor.value = replacementSession.nemethState?.prefix || '';
@@ -1530,7 +1551,12 @@ async function chooseComposerNemethOperation(event) {
   if (result.status === 'applied') replacementHasContent = true;
   editor.value = result.status === 'pending' ? (replacementSession.nemethState.prefix || '') : '';
   draft.source = editor.value;
-  if (result.status === 'choice') renderComposerNemethChoices(result.choices);
+  if (result.status === 'choice') {
+    renderComposerNemethChoices(
+      result.choices,
+      result.inputState?.prefix ?? replacementSession.nemethState?.prefix ?? ''
+    );
+  }
   setComposerMathStatus(`Draft updated: ${result.announcement}`);
   syncCommandContentEmpty();
   await renderComposerDraftPreview();

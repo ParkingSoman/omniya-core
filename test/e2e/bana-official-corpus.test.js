@@ -3,11 +3,31 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { DOMParser } from '@xmldom/xmldom';
 import { _electron as electron } from 'playwright';
+import { applyNemethSourceIntentToBraille } from '../../src/renderer/nemeth-braille-projection.js';
 import { electronLaunchEnv, openReplacementDockOnNewEquation } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 const corpus = JSON.parse(await readFile(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url), 'utf8'));
+
+function projectWholeBraille(rawBraille, mathml) {
+  if (!rawBraille || !mathml) return rawBraille;
+  return applyNemethSourceIntentToBraille(
+    rawBraille,
+    new DOMParser().parseFromString(mathml, 'text/xml')
+  );
+}
+
+async function readProjectedWholeBraille(article) {
+  const rawBraille = await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel');
+  const mathml = await article.evaluate((node) => (
+    node.querySelector('span math')?.outerHTML
+    || node.querySelector('math')?.outerHTML
+    || ''
+  ));
+  return { wholeBraille: projectWholeBraille(rawBraille, mathml), mathml };
+}
 
 function selectedCases() {
   if (process.env.BANA_ELECTRON_EXAMPLE) return corpus.cases.filter((entry) => entry.exampleNumber === process.env.BANA_ELECTRON_EXAMPLE);
@@ -114,7 +134,10 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
     for (let attempt = 0; attempt < 6; attempt += 1) {
       const choices = page.locator('#composer-choices .replacement-choice');
       if (!(await choices.count())) return;
-      const prefix = (await input.inputValue()).trimEnd();
+      // The textarea is a one-cell proxy; the bounded Nemeth prefix lives in
+      // NemethState and is mirrored on the choices container for harness lookup.
+      const prefix = (await page.locator('#composer-choices').getAttribute('data-prefix'))?.trimEnd?.()
+        ?? (await input.inputValue()).trimEnd();
       const requested = choiceOperationIds[`${prefix}${nextCell ?? ''}`]
         ?? choiceOperationIds[prefix]
         ?? Object.entries(choiceOperationIds).find(([localPrefix]) => prefix.endsWith(localPrefix))?.[1]
@@ -125,9 +148,36 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
       const inferredReferenceAsterisk = !requested && prefix.includes('⠈⠼')
         ? page.locator('#composer-choices .replacement-choice[data-operation-id="reference.asterisk"]')
         : null;
+      const letterOverPlural = !requested
+        && (await page.locator('#composer-choices .replacement-choice[data-operation-id="letter.s"]').count())
+        && (await page.locator('#composer-choices .replacement-choice[data-operation-id="plural.s"]').count())
+        ? page.locator('#composer-choices .replacement-choice[data-operation-id="letter.s"]')
+        : null;
+      // Rule 14.5: when the next authored cell is multipurpose (base promotion),
+      // prefer left-script over English-letter / ordinary script at empty root.
+      const leftScriptPreferred = !requested && nextCell === '⠐'
+        ? (
+          (await page.locator('#composer-choices .replacement-choice[data-operation-id="script.left-subscript"]').count())
+            ? page.locator('#composer-choices .replacement-choice[data-operation-id="script.left-subscript"]')
+            : (await page.locator('#composer-choices .replacement-choice[data-operation-id="script.left-superscript"]').count())
+              ? page.locator('#composer-choices .replacement-choice[data-operation-id="script.left-superscript"]')
+              : null
+        )
+        : null;
+      // Literary `;letter` lists (8-63) and set-builder `;x` (8-46) need the
+      // English-letter indicator when the following cell is comma/space/colon.
+      const englishOverScript = !requested && !leftScriptPreferred
+        && (await page.locator('#composer-choices .replacement-choice[data-operation-id="indicator.english-letter"]').count())
+        && (
+          (await page.locator('#composer-choices .replacement-choice[data-operation-id="script.left-subscript"]').count())
+          || (await page.locator('#composer-choices .replacement-choice[data-operation-id="script.subscript"]').count())
+        )
+        && (nextCell === '⠠' || nextCell === '⠀' || nextCell === '⠸' || nextCell === '⠨')
+        ? page.locator('#composer-choices .replacement-choice[data-operation-id="indicator.english-letter"]')
+        : null;
       const selected = requested
         ? page.locator(`#composer-choices .replacement-choice[data-operation-id="${requested}"]`)
-        : inferredReferenceAsterisk || contextChoice || choices.first();
+        : inferredReferenceAsterisk || leftScriptPreferred || englishOverScript || contextChoice || letterOverPlural || choices.first();
       const selectedCount = await selected.count();
       if (requested && !selectedCount) {
         const available = await choices.evaluateAll((nodes) => nodes.map((node) => ({ id: node.dataset.operationId, text: node.textContent })));
@@ -166,7 +216,7 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
       await resolveChoices(cells[cellIndex + 1] ?? null);
     }
     const status = await page.locator('#composer-status').textContent();
-    assert.doesNotMatch(status ?? '', /That Nemeth cell is not valid at this draft focus/i, `cell ${cellIndex} ${cell} rejected: ${status}; prefix=${await input.inputValue()}; choices=${await page.locator('#composer-choices .replacement-choice').allTextContents()}`);
+    assert.doesNotMatch(status ?? '', /That Nemeth cell is not valid at this draft focus|incomplete or invalid/i, `cell ${cellIndex} ${cell} rejected: ${status}; prefix=${await input.inputValue()}; choices=${await page.locator('#composer-choices .replacement-choice').allTextContents()}`);
   }
   // Enter commits only a still-pending bounded local code. A second Enter is
   // the ordinary replacement transaction, never a passage-sized parse.
@@ -175,7 +225,16 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   if (await page.locator('#composer-choices .replacement-choice').count()) {
     const choices = page.locator('#composer-choices .replacement-choice');
     const omission = choices.filter({ hasText: 'omission.long-dash' });
-    await (await omission.count() ? omission.first() : choices.first()).click();
+    const possessive = page.locator('#composer-choices .replacement-choice[data-operation-id="script.possessive"]');
+    const letterS = page.locator('#composer-choices .replacement-choice[data-operation-id="letter.s"]');
+    // Literary labels and unfinished apostrophe-s drafts often leave an empty
+    // proxy with letter.s/plural.s (or script.possessive). Prefer the exact
+    // local meaning before falling back to the first button.
+    const preferred = (await omission.count()) ? omission.first()
+      : (await possessive.count()) ? possessive.first()
+      : (await letterS.count()) ? letterS.first()
+      : choices.first();
+    await preferred.click();
     await page.waitForTimeout(40);
     await resolveChoices();
   }
@@ -226,12 +285,103 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   }
   const article = page.locator('article.napkin-article').last();
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1600);
+  const { wholeBraille, mathml } = await readProjectedWholeBraille(article);
   return {
     article,
-    wholeBraille: await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel'),
-    mathml: await article.locator('math').evaluate((node) => node.outerHTML)
+    wholeBraille,
+    mathml
   };
+}
+
+/**
+ * Official focused edits must freeze an exact MathJax speech atom. Prefer
+ * letter/number leaves (mi/mn) so replacement with `⠽` stays a one-node
+ * transaction. Operator leaves (mo) and SRE speech-atomic function mrows
+ * (lim/sin/…) are acceptable when no identifier exists. Empty mspaces and
+ * containers (fenced/infixop/appl) are never edit targets.
+ */
+function isOfficialAtomicCanonicalTarget(target, { allowOperator = true } = {}) {
+  if (!target?.nodeName || !target.text) return false;
+  const name = String(target.nodeName).replace(/^mjx-/, '');
+  if (/^m[in]$/.test(name)) return true;
+  if (allowOperator && name === 'mo' && target.text.trim() && !/^[\u2062\u2063\u2064]$/.test(target.text)) {
+    return true;
+  }
+  if (name === 'mrow' && (
+    target.semanticType === 'function'
+    || /limit function|simple function/i.test(target.semanticRole || '')
+    || target.intent === 'function-name'
+  )) return true;
+  return false;
+}
+
+async function readOfficialEditTarget(page) {
+  return page.evaluate(() => {
+    const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
+    const semanticId = current?.getAttribute('data-semantic-id');
+    const source = semanticId && [...document.querySelectorAll('[id^="omniya-source-"][data-semantic-id]')]
+      .find((node) => node.getAttribute('data-semantic-id') === semanticId);
+    const node = source || current;
+    const rawName = node?.localName || node?.tagName || '';
+    return {
+      semanticId,
+      text: (source?.textContent ?? current?.textContent ?? '').trim(),
+      nodeName: rawName,
+      childElements: source?.children?.length ?? current?.childElementCount ?? -1,
+      semanticType: source?.getAttribute('data-semantic-type') || current?.getAttribute('data-semantic-type') || '',
+      semanticRole: source?.getAttribute('data-semantic-role') || current?.getAttribute('data-semantic-role') || '',
+      intent: source?.getAttribute('data-omniya-nemeth-intent') || ''
+    };
+  });
+}
+
+/**
+ * Prefer a real authored leaf via MathJax setCurrent/setNode when keyboard
+ * depth-first lands on mspace or a virtual container (fenced/infixop/appl).
+ * Uses the source node itself so focus stays on that exact atom rather than a
+ * broadened semantic range.
+ */
+async function focusPreferredOfficialAtomicTarget(page) {
+  return page.evaluate(() => {
+    const explorer = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech;
+    if (!explorer) return null;
+    const focusNode = (node) => {
+      const semanticId = node.getAttribute('data-semantic-id');
+      if (!semanticId) return null;
+      if (typeof explorer.setCurrent === 'function') explorer.setCurrent(node);
+      else if (typeof explorer.setNode === 'function') explorer.setNode(semanticId);
+      else return null;
+      const current = explorer.current;
+      const currentId = current?.getAttribute?.('data-semantic-id');
+      return currentId === semanticId || current === node ? semanticId : null;
+    };
+    const seen = new Set();
+    const sources = [];
+    for (const node of document.querySelectorAll('[id^="omniya-source-"][data-semantic-id], mjx-assistive-mml [data-semantic-id]')) {
+      const semanticId = node.getAttribute('data-semantic-id');
+      if (!semanticId || seen.has(semanticId)) continue;
+      seen.add(semanticId);
+      sources.push(node);
+    }
+    const prefer = (predicate) => {
+      for (const node of sources) {
+        const name = String(node.localName || '').replace(/^mjx-/, '');
+        const text = (node.textContent || '').trim();
+        if (!predicate(name, text, node)) continue;
+        const focused = focusNode(node);
+        if (focused) return focused;
+      }
+      return null;
+    };
+    return prefer((name, text) => /^m[in]$/.test(name) && text && !/^[\u2062\u2063\u2064]$/.test(text))
+      || prefer((name, text, node) => name === 'mrow' && text && (
+        node.getAttribute('data-semantic-type') === 'function'
+        || /limit function|simple function/i.test(node.getAttribute('data-semantic-role') || '')
+        || node.getAttribute('data-omniya-nemeth-intent') === 'function-name'
+      ))
+      || prefer((name, text) => name === 'mo' && text && !/^[\u2062\u2063\u2064]$/.test(text));
+  });
 }
 
 async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
@@ -239,35 +389,66 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
   await article.focus();
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
-  await page.keyboard.press('ArrowDown');
+  // Jump to an authored atom before arrow walking. Keyboard depth-first often
+  // settles on SRE virtual containers or blank mspaces that have no Omniya id.
+  await focusPreferredOfficialAtomicTarget(page);
   await page.waitForTimeout(60);
-  let selectedTarget = null;
-  for (let depth = 0; depth < 12; depth += 1) {
-    selectedTarget = await page.evaluate(() => {
-      const current = globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current;
-      const semanticId = current?.getAttribute('data-semantic-id');
-      const source = semanticId && [...document.querySelectorAll('[id^="omniya-source-"][data-semantic-id]')]
-        .find((node) => node.getAttribute('data-semantic-id') === semanticId);
-      return { semanticId, text: source?.textContent?.trim() ?? '', nodeName: source?.localName ?? '', childElements: source?.children?.length ?? -1 };
-    });
-    if (/^(?:mjx-)?m[ino]$/.test(selectedTarget.nodeName) && selectedTarget.text) break;
-    await page.keyboard.press('ArrowDown');
+  let selectedTarget = await readOfficialEditTarget(page);
+  let previousId = null;
+  const visited = new Set();
+  for (let depth = 0; depth < 32 && !isOfficialAtomicCanonicalTarget(selectedTarget, { allowOperator: false }); depth += 1) {
+    if (isOfficialAtomicCanonicalTarget(selectedTarget) && depth > 8) break;
+    // Empty mspaces and other non-atoms often cannot deepen. Prefer a sibling
+    // step when focus did not move or landed on mspace; otherwise keep
+    // descending. Never invent an ancestor range — only move MathJax focus.
+    const stuck = !selectedTarget.semanticId || selectedTarget.semanticId === previousId
+      || visited.has(selectedTarget.semanticId);
+    if (selectedTarget.semanticId) visited.add(selectedTarget.semanticId);
+    const onSpace = /mspace$/i.test(selectedTarget.nodeName || '');
+    const onContainer = /^(fenced|infixop|appl|punctuated|relseq|multirel)$/i.test(selectedTarget.semanticType || '');
+    const key = stuck || onSpace || onContainer || !selectedTarget.text ? 'ArrowRight' : 'ArrowDown';
+    previousId = selectedTarget.semanticId;
+    await page.keyboard.press(key);
     await page.waitForTimeout(60);
+    selectedTarget = await readOfficialEditTarget(page);
   }
-  assert.match(selectedTarget.nodeName, /^(?:mjx-)?m[ino]$/, `official edit must select an atomic canonical target: ${JSON.stringify(selectedTarget)}`);
+  if (!isOfficialAtomicCanonicalTarget(selectedTarget, { allowOperator: false })) {
+    await focusPreferredOfficialAtomicTarget(page);
+    await page.waitForTimeout(60);
+    selectedTarget = await readOfficialEditTarget(page);
+  }
+  assert.ok(isOfficialAtomicCanonicalTarget(selectedTarget),
+    `official edit must select an atomic canonical target: ${JSON.stringify(selectedTarget)}`);
   const focusedEvidence = options.captureFocusedEvidence
     ? await options.captureFocusedEvidence()
     : null;
+  const selectedSemanticId = selectedTarget.semanticId;
   await page.keyboard.press('e');
   await page.locator('#composer-dock').waitFor();
   const targetId = await page.locator('#replacement-scope').getAttribute('data-target-id');
   assert.ok(targetId, 'official edit must freeze a canonical MathJax descendant or range');
+  // The frozen Omniya id must belong to the exact focused atom (or its source
+  // twin), never a broadened container that would discard sibling structure.
+  const frozenMatchesSelection = await page.evaluate(({ targetId: frozenId, semanticId }) => {
+    const nodes = [...document.querySelectorAll('[data-omniya-id], [id^="omniya-source-"]')];
+    const frozen = nodes.find((node) => (node.getAttribute('data-omniya-id') || node.id?.replace(/^omniya-source-/, '')) === frozenId);
+    if (!frozen) return false;
+    if (!semanticId) return Boolean(frozen.getAttribute('data-omniya-id') || frozen.id);
+    if (frozen.getAttribute('data-semantic-id') === semanticId) return true;
+    const source = nodes.find((node) => node.getAttribute('data-semantic-id') === semanticId);
+    const sourceId = source?.getAttribute('data-omniya-id') || source?.id?.replace(/^omniya-source-/, '');
+    return sourceId === frozenId;
+  }, { targetId, semanticId: selectedSemanticId });
+  assert.ok(frozenMatchesSelection,
+    `official edit broadened beyond the selected atom: selected=${JSON.stringify(selectedTarget)} targetId=${targetId}`);
   const input = page.getByLabel('Replacement input', { exact: true });
   await feedLocalCode(page, input, cells);
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   await page.waitForTimeout(500);
   if (options.originalElementCount) {
-    const editedElementCount = await article.locator('math *').count();
+    // Count authored Omniya nodes, not every SRE enrichment leaf. Invisible
+    // times and speech wrappers fluctuate across focused replacements.
+    const editedElementCount = await article.locator('math [data-omniya-id]').count();
     // Replacing an operator-like icon with an identifier can legitimately
     // remove a small semantic wrapper, but must retain the surrounding tree.
     assert.ok(editedElementCount >= options.originalElementCount - 3,
@@ -324,11 +505,12 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
     throw new Error(`focused Braille mismatch: expected=${cells.join('')} actual=${focusedBraille} diagnostic=${JSON.stringify(focusDiagnostic)}`);
   }
   await page.keyboard.press('Escape');
+  const { wholeBraille, mathml } = await readProjectedWholeBraille(article);
   return {
-    wholeBraille: await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel'),
+    wholeBraille,
     focusedBraille,
     targetId,
-    mathml: await article.locator('math').evaluate((node) => node.outerHTML),
+    mathml,
     focusedEvidence
   };
 }
@@ -337,7 +519,7 @@ async function undoRedo(page, originalBraille, replacementBraille) {
   const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
   const article = page.locator('article.napkin-article').last();
   const wholeSpeech = article.locator('mjx-speech[aria-braillelabel]').last();
-  const readWhole = async () => article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel');
+  const readWhole = async () => (await readProjectedWholeBraille(article)).wholeBraille;
   // Undo is an explorer command in the application, so re-enter MathJax
   // exploration after the replacement helper's Escape has returned focus to
   // the article. This also proves the persisted transaction is reachable from
@@ -347,9 +529,11 @@ async function undoRedo(page, originalBraille, replacementBraille) {
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
   await page.keyboard.press(`${modifier}+z`);
   await wholeSpeech.waitFor();
+  await page.waitForTimeout(400);
   const afterUndo = await readWhole();
   await page.keyboard.press(`${modifier}+Shift+z`);
   await wholeSpeech.waitFor();
+  await page.waitForTimeout(400);
   const afterRedo = await readWhole();
   return { ok: afterUndo === originalBraille && afterRedo === replacementBraille, afterUndo, afterRedo, originalBraille, replacementBraille };
 }
@@ -438,7 +622,7 @@ test('official BANA examples execute through the real Nemeth replacement rendere
       // identifier so undo/redo proves a real structural transaction rather
       // than accidentally exercising a no-op replacement.
       const replacementCells = actual.startsWith('⠽') ? ['⠵'] : ['⠽'];
-      const originalElementCount = await created.article.locator('math *').count();
+      const originalElementCount = await created.article.locator('math [data-omniya-id]').count();
       const edited = await replaceFocusedEquationWithNemeth(page, replacementCells, {
         originalElementCount,
         captureFocusedEvidence: async () => captureInteractionScreenshot(
@@ -488,7 +672,7 @@ test('official BANA examples execute through the real Nemeth replacement rendere
       const persisted = page.locator('article.napkin-article');
       const saved = results.cases.at(-1);
       if (saved?.creation && !saved.incompleteDraft) {
-        const braille = await persisted.first().locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+        const { wholeBraille: braille } = await readProjectedWholeBraille(persisted.first());
         assert.equal(braille, saved.expectedPersistedBraille, `${saved.id} isolated relaunch changed persisted Braille`);
         saved.persistence = true;
         await persistResults();
@@ -516,7 +700,9 @@ test('official BANA examples execute through the real Nemeth replacement rendere
     const persisted = app.firstWindow ? await app.firstWindow() : page;
     const saved = results.cases.at(-1);
     if (saved?.creation && !saved.incompleteDraft) {
-      const braille = await persisted.locator('article.napkin-article').first().locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+      const article = persisted.locator('article.napkin-article').first();
+      await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+      const { wholeBraille: braille } = await readProjectedWholeBraille(article);
       assert.equal(braille, saved.expectedPersistedBraille, `${saved.id} isolated relaunch changed persisted Braille`);
       saved.persistence = true;
       await persistResults();
@@ -533,7 +719,9 @@ test('official BANA examples execute through the real Nemeth replacement rendere
   const executableResults = results.cases.filter((entry) => entry.creation === true && !entry.incompleteDraft);
   assert.equal(await persistedArticles.count(), executableResults.length, 'relaunch did not restore every committed official equation');
   for (const [index, evidence] of executableResults.entries()) {
-    const actual = await persistedArticles.nth(index).locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+    const article = persistedArticles.nth(index);
+    await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+    const { wholeBraille: actual } = await readProjectedWholeBraille(article);
     assert.equal(actual, evidence.expectedPersistedBraille, `${evidence.id} persisted Braille differs after relaunch`);
     evidence.persistence = true;
   }

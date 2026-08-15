@@ -165,6 +165,7 @@ test('Rule 14.11.2 empty-base opposite scripts promote to complete left scripts'
   const report = completionReport(tree);
   assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
   assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].attrs?.['data-omniya-nemeth-intent'], 'left-scripts:sup-first');
   assert.equal(tree.children[0].children[0].children[0].text, 'x');
   const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
   assert.equal(tree.children[0].children[marker + 1].children[0].text, 'b');
@@ -181,6 +182,63 @@ test('Rule 14.11.2 left-subscript then left-superscript then base stays one tens
   const marker = tree.children[0].children.findIndex((child) => child.name === 'mprescripts');
   assert.equal(tree.children[0].children[marker + 1].children[0].text, 'b');
   assert.equal(tree.children[0].children[marker + 2].children[0].text, 'a');
+});
+
+test('Rule 14-54 leading decimal numeric subscript after a letter completes', () => {
+  const { document } = replayCells(sourceNotationToCells('X.6'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].children[0].text, 'X');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '.6');
+  assert.equal(tree.children[1].attrs?.['data-omniya-nemeth-intent'], 'numeric-subscript');
+});
+
+test('Rule 14-20 absolute ;;; nests a third subscript level', () => {
+  const { document } = replayCells(sourceNotationToCells('n;x;;y;;;z'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  assert.equal(tree.children[0].children[0].children[0].text, 'n');
+  assert.equal(tree.children[0].children[1].name, 'msub');
+  assert.equal(tree.children[0].children[1].children[1].name, 'msub');
+  assert.equal(tree.children[0].children[1].children[1].children[0].children[0].text, 'y');
+  assert.equal(tree.children[0].children[1].children[1].children[1].children[0].text, 'z');
+});
+
+test('Rule 14-105 multipurpose then ;digit opens a left-subscript sibling', () => {
+  const { document } = replayCells(sourceNotationToCells(',p1";2",q'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].children[0].text, 'P');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '1');
+  const tensor = tree.children.find((node) => node.name === 'mmultiscripts');
+  assert.ok(tensor, 'left-subscript after multipurpose must open a sibling mmultiscripts');
+  assert.equal(tensor.children[0].children[0].text, 'Q');
+  const marker = tensor.children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tensor.children[marker + 1].children[0].text, '2');
+});
+
+test('Rule 14-55 sigma numeric limit and scripts complete without an open hole', () => {
+  const { document } = replayCells(sourceNotationToCells('.,S0~N"A;K'), { '⠨⠠⠎': 'operator.sum' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mo');
+  assert.equal(tree.children[0].children[0].text, '∑');
+  assert.match(document.mathml, /<msup[\s\S]*?>0<\/mn>[\s\S]*?>N<\/mi>/);
+  assert.match(document.mathml, /<msub[\s\S]*?>A<\/mi>[\s\S]*?>k<\/mi>/);
+});
+
+test('sourceNotationToCells does not double-capitalize after an explicit comma', () => {
+  assert.deepEqual(sourceNotationToCells('.,S'), ['⠨', '⠠', '⠎']);
+  assert.deepEqual(sourceNotationToCells(',A'), ['⠠', '⠁']);
 });
 
 test('Rule 14-27 raised left superscript sits inside the right superscript', () => {
@@ -267,6 +325,42 @@ test('Rule 14-32 left subscript with right subscript stays one tensor', () => {
   assert.equal(leftSub.name, 'msub');
   assert.equal(leftSub.children[0].children[0].text, 'x');
   assert.equal(leftSub.children[1].children[0].text, 'y');
+});
+
+test('Rule 14 empty-root left-script choices prefer left-script over English-letter', () => {
+  let document = createEmptyDraftMathDocument();
+  let focus = focusOf(document);
+  let inputState = { prefix: '', mode: null };
+  let result = cell(document, focus, inputState, '⠰');
+  result = cell(result.document, result.focus, result.inputState, '⠭');
+  assert.equal(result.status, 'choice');
+  assert.equal(result.choices[0].operationId, 'script.left-subscript');
+  result = applyNemethChoice({
+    document: result.document, focus: result.focus, inputState: result.inputState, operationId: result.choices[0].operationId
+  });
+  assert.equal(result.status, 'applied');
+  assert.match(result.document.mathml, /mmultiscripts/);
+});
+
+test('Rule 14-38 German capital with numeric subscript keeps the digit sibling', () => {
+  const { document } = replayCells(sourceNotationToCells('_,a1'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].attrs?.['data-omniya-nemeth-intent'], 'german-fraktur');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '1');
+  assert.equal(tree.children[1].attrs?.['data-omniya-nemeth-intent'], 'numeric-subscript');
+});
+
+test('Rule 14-127 first-choice left-subscript builds opposite left scripts', () => {
+  const { document } = replayCells(sourceNotationToCells(';b"~a"x'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mmultiscripts');
+  assert.equal(tree.children[0].children[0].children[0].text, 'x');
 });
 
 test('Rule 14-33 nested left subscript inside left subscript completes', () => {
@@ -397,6 +491,139 @@ test('Rule 14.7 contracted comma then a digit stays in the same subscript', () =
   };
   visit(slot);
   assert.deepEqual(texts, ['1', ',', '2']);
+});
+
+test('Rule 14.7 punctuation comma after a contracted script list returns to baseline', () => {
+  const { document } = replayCells(sourceNotationToCells('x;n-1[n-1, x'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  const slotTexts = [];
+  const visit = (node) => {
+    if (node?.text) slotTexts.push(node.text);
+    for (const child of node?.children ?? []) visit(child);
+  };
+  visit(tree.children[0].children[1]);
+  assert.deepEqual(slotTexts, ['n', '−', '1', ',', 'n', '−', '1']);
+  const comma = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-comma');
+  assert.ok(comma, 'baseline punctuation comma must be a sibling of the subscript');
+  assert.equal(tree.children.at(-1).name, 'mi');
+  assert.equal(tree.children.at(-1).children[0].text, 'x');
+});
+
+test('Rule 14.8.6 comma ellipsis keeps three literary commas', () => {
+  const { document } = replayCells(sourceNotationToCells("x~2 ,,, ,'& y~2"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const ellipsis = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'comma-ellipsis');
+  assert.ok(ellipsis, 'comma ellipsis token must be present');
+  assert.equal(ellipsis.attrs['data-omniya-nemeth-cells'], '⠠⠠⠠');
+  const andWord = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'and-word');
+  assert.ok(andWord);
+  assert.equal(tree.children.filter((node) => node.name === 'msup').length, 2);
+});
+
+test('Rule 14.8.6 raised diagonal fractions stay siblings inside one superscript', () => {
+  const { document } = replayCells(sourceNotationToCells("x~1+1_/2+1_/3+ ''' +1_/n"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children.length, 1);
+  assert.equal(tree.children[0].name, 'msup');
+  const slot = tree.children[0].children[1];
+  assert.equal(slot.name, 'mrow');
+  const fractions = slot.children.filter((node) => node.name === 'mfrac');
+  assert.equal(fractions.length, 3);
+  assert.ok(fractions.every((node) => node.attrs?.bevelled === 'true'));
+  assert.ok(slot.children.some((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠄⠄⠄'));
+});
+
+test('Rule 14.8.7 integral subscript equals keeps the level indicator after a blank', () => {
+  const { document } = replayCells(sourceNotationToCells('!;u ;.k a'), { '⠨⠅': 'operator.equals' });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  const equals = tree.children[0].children[1].children.find((node) => node.children?.[0]?.text === '=');
+  assert.ok(equals);
+  assert.equal(equals.attrs?.['data-omniya-nemeth-intent'], 'level-preserved-equals');
+  assert.equal(equals.attrs?.['data-omniya-nemeth-cells'], '⠰⠨⠅');
+});
+
+test('Rule 14.9.5 levelled comparisons keep sub/sup equals then baseline equals', () => {
+  const { document } = replayCells(sourceNotationToCells('t`);t ;.k a~t ~.k b .k b-a'), {
+    '⠨⠅': 'operator.equals',
+    '⠰⠞': 'script.subscript'
+  });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[0].children[0].text, 't');
+  assert.equal(tree.children[1].name, 'msub');
+  const subSlot = tree.children[1].children[1];
+  const slotChildren = subSlot.name === 'mrow' ? subSlot.children.flatMap((node) => (
+    node.name === 'mrow' ? node.children : [node]
+  )) : [subSlot];
+  const subEquals = slotChildren.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'level-preserved-equals'
+    && node.attrs?.['data-omniya-nemeth-cells'] === '⠰⠨⠅');
+  assert.ok(subEquals, 'subscript-level equals stays inside the bracket subscript');
+  const raised = slotChildren.find((node) => node.name === 'msup');
+  assert.ok(raised, 'a~t remains a superscript inside the subscript row');
+  const supEquals = slotChildren.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'level-preserved-equals'
+    && node.attrs?.['data-omniya-nemeth-cells'] === '⠘⠨⠅');
+  assert.ok(supEquals, 'superscript-level equals is a sibling after a~t, not a left-script');
+  assert.ok(!slotChildren.some((node) => node.name === 'mmultiscripts'),
+    'level-preserved ~.k must not open left-scripts');
+  const baselineEquals = tree.children.find((node) => node.name === 'mo' && node.children?.[0]?.text === '='
+    && node.attrs?.['data-omniya-nemeth-intent'] !== 'level-preserved-equals');
+  assert.ok(baselineEquals, 'final blank+.k places equals at the math baseline');
+});
+
+test('Rule 14-112 closing bracket plus ;letter auto-opens a subscript without English-letter choice', () => {
+  // Electron choice resolution prefers english-letter when the next cell is a
+  // blank. The draft must resolve `];t` as a structural subscript of `]` so a
+  // following blank never surfaces that literary alternative.
+  const { document } = replayCells(sourceNotationToCells('t`);t ;.k a~t ~.k b .k b-a'), {
+    '⠨⠅': 'operator.equals'
+  });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[1].name, 'msub');
+  assert.equal(tree.children[1].children[0].children?.[0]?.text ?? tree.children[1].children[0].text, ']');
+  assert.ok(!document.mathml.includes('mmultiscripts'), 'must not fall into left-scripts');
+  assert.ok(!document.mathml.includes('english-letter'), '];t must not stamp an English-letter indicator');
+});
+
+test('Rule 14.9.5 baseline ellipsis after nested scripts keeps multipurpose cells', () => {
+  const { document } = replayCells(sourceNotationToCells(",p1~.a~;1 \"''' ,p;r~.a~;r"), {
+    '⠄⠄⠄': 'punctuation.ellipsis',
+    '⠰⠗': 'script.subscript'
+  });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mi');
+  assert.equal(tree.children[1].name, 'msup');
+  assert.equal(tree.children[1].children[0].attrs?.['data-omniya-nemeth-intent'], 'single-letter-number');
+  assert.equal(tree.children[1].children[1].name, 'msub');
+  const ellipsis = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'multipurpose-ellipsis');
+  assert.ok(ellipsis);
+  assert.equal(ellipsis.attrs?.['data-omniya-nemeth-cells'], '⠐⠄⠄⠄');
+});
+
+test('Rule 14.11 multipurpose before superscript stamps the opened msup', () => {
+  const { document } = replayCells(sourceNotationToCells('x1"~2'));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const raised = tree.children.find((node) => node.name === 'msup');
+  assert.ok(raised);
+  assert.equal(raised.attrs?.['data-omniya-nemeth-intent'], 'multipurpose-superscript');
+  assert.equal(raised.attrs?.['data-omniya-nemeth-cells'], '⠐⠘');
 });
 
 test('Rule 15.7 a five-step tilde stays inside the subscript slot', () => {
@@ -544,7 +771,10 @@ test('Rule 14 corpus cases 14-45 through 14-66 retain source-grounded script ope
       const empty = createEmptyDraftMathDocument();
       const chosen = applyNemethChoice({ document: empty, focus: focusOf(empty), inputState: { prefix, mode: null }, operationId });
       assert.equal(chosen.status, 'applied', `14-${number} ${operationId} choice must apply`);
-      assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+      // Left-script choices open mmultiscripts; base operators (e.g. 14-55 sum) do not.
+      if (operationId.startsWith('script.')) {
+        assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+      }
     }
   }
 });
@@ -639,7 +869,10 @@ test('Rule 14 corpus cases 14-100 through 14-110 retain exact boundary and left-
       const empty = createEmptyDraftMathDocument();
       const chosen = applyNemethChoice({ document: empty, focus: focusOf(empty), inputState: { prefix, mode: null }, operationId });
       assert.equal(chosen.status, 'applied', `14-${number} ${operationId} choice must apply`);
-      assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+      // Left-script choices open mmultiscripts; base operators (e.g. 14-55 sum) do not.
+      if (operationId.startsWith('script.')) {
+        assert.match(chosen.document.mathml, /<mmultiscripts[\s\S]*<mprescripts(?:\s[^>]*)?\/>[\s\S]*<none(?:\s[^>]*)?\/>/);
+      }
     }
   }
 });
@@ -670,7 +903,7 @@ test('Rule 14 corpus cases 14-122 through 14-141 retain exact prime and script o
   const expected = new Map(Object.entries({
     '14-122': ['script.sub-sup'], '14-123': ['script.superscript'],
     '14-124': ['script.sup-sub'], '14-125': ['script.sub-sup'],
-    '14-126': ['script.sup-sub'], '14-127': ['script.sub-sup'],
+    '14-126': ['script.sup-sub'], '14-127': ['script.left-subscript', 'script.left-superscript'],
     '14-128': ['script.superscript', 'script.baseline'],
     '14-129': ['misc.prime', 'script.sub-sup'], '14-130': ['misc.prime'],
     '14-131': ['misc.prime', 'script.subscript'],
@@ -1207,6 +1440,33 @@ test('Rule 12 adjacent cancellations keep later uncancelled letters as siblings'
   assert.equal(tree.children.at(-1).children[0].text, 'z');
 });
 
+test('Rule 12-4 spatial digit-8 after empty root is a lower-cell numeral, not a quote', () => {
+  const { document } = replayCells(sourceNotationToCells('8 9 9 12 [9][0][0][ 2] - 3'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '8');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+  assert.equal(tree.children.filter((node) => node.name === 'menclose').length, 4);
+});
+
+test('Rule 12-5 cancellation without replacement keeps both cancelled pairs and the separator', () => {
+  const { document } = replayCells(sourceNotationToCells('[x][y] ?3333333# [x][y]z'));
+  const tree = parseMathML(document.mathml);
+  const cancellations = tree.children.filter((node) => node.name === 'menclose');
+  assert.equal(cancellations.length, 4);
+  assert.equal(tree.children.some((node) => node.name === 'mfrac'), true);
+  assert.equal(tree.children.at(-1).name, 'mi');
+  assert.equal(tree.children.at(-1).children[0].text, 'z');
+});
+
+test('Rule 12-3 cancelled grouped factors keep the spatial fraction separator', () => {
+  const { document } = replayCells(sourceNotationToCells('[(x+y)] ?333333333333# .k ?1/y+z# [(x+y)](y+z)'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children.filter((node) => node.name === 'menclose').length, 2);
+  assert.equal(tree.children.filter((node) => node.name === 'mfrac').length, 2);
+});
+
 test('Rule 8.7 short dash waits for its complete local code', () => {
   let document = createEmptyDraftMathDocument();
   let focus = document.focus;
@@ -1371,6 +1631,18 @@ test('Rule 8.4 plural and possessive endings append to the focused local express
   assert.equal(tree.children.at(-1).name, 'mi');
   assert.equal(tree.children.at(-1).children[0].text, 's');
   assert.equal(tree.children.at(-2).name, 'msup');
+});
+
+test('Rule 8.4 apostrophe-s attaches after a completed five-step modifier', () => {
+  // Example 8-39: `"x<@:]_'s`. Terminating the five-step tilde must leave
+  // focus on the mover so `_'s` remains one atomic possessive sequence.
+  const { document } = replayCells(sourceNotationToCells(`"x<@:]_'s`));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(tree.children[1].attrs?.['data-omniya-nemeth-intent'], 'possessive-apostrophe');
+  assert.equal(tree.children[2].attrs?.['data-omniya-nemeth-intent'], 'possessive-s');
+  assert.equal(tree.children[2].children[0].text, 's');
 });
 
 test('Rule 16.3 nested radical order builds and closes a local inner radical', () => {
@@ -1616,9 +1888,15 @@ test('BANA 7.3.5 expression typeforms use bounded MathML scope operations', () =
       assert.notEqual(result.status, 'rejected', result.announcement);
       ({ document, focus, inputState } = result);
     }
-    committed = commitNemethLocalCode({ document, focus, inputState });
-    assert.equal(committed.status, 'applied');
-    const closed = parseMathML(committed.document.mathml);
+    // Typeform closers are immediate once the local code is complete; Enter is
+    // only needed when a prefix is still held.
+    let closedDocument = document;
+    if (inputState.prefix) {
+      committed = commitNemethLocalCode({ document, focus, inputState });
+      assert.equal(committed.status, 'applied');
+      closedDocument = committed.document;
+    }
+    const closed = parseMathML(closedDocument.mathml);
     assert.equal(closed.children[0].name, 'mstyle');
     assert.equal(closed.children[0].children[0].children[0].children[0].text, 'a');
     assert.equal(closed.children[0].children[0].children[2].children[0].text, 'b');
@@ -2072,6 +2350,39 @@ test('Rule 8.3 apostrophe-capital English letter is one identifier', () => {
   assert.equal(english.attrs['data-omniya-nemeth-cells'], '⠠⠄⠠⠚');
 });
 
+test('Rule 8-25 comma then indicated right quote after a numeric letter completes', () => {
+  const { document } = replayCells(sourceNotationToCells("#3y,_0 '''"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const quote = findFirst(tree, (node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-right-double-quote');
+  assert.ok(quote);
+  assert.equal(quote.attrs['data-omniya-nemeth-cells'], '⠸⠴');
+});
+
+test('Rule 3.9 numbers within circle and square complete as interior shapes', () => {
+  for (const source of ['$c_$#5]', '$4_$#5]']) {
+    const { document } = replayCells(sourceNotationToCells(source));
+    const tree = parseMathML(document.mathml);
+    const report = completionReport(tree);
+    assert.equal(report.complete, true, `${source} holes=${report.holes.map((hole) => hole.role).join(',')}`);
+    const shape = tree.children[0];
+    assert.equal(shape.attrs?.['data-omniya-shape-modification'], 'interior-number-5');
+    assert.match(shape.attrs?.['data-omniya-nemeth-cells'] ?? '', /⠼⠢/);
+  }
+});
+
+test('Rule 7.3.5 bold typeform scope stamps open and close cells', () => {
+  const { document } = replayCells(sourceNotationToCells(",'_ #59`0 _,'"));
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  const scope = findFirst(tree, (node) => node.attrs?.['data-omniya-nemeth-intent'] === 'typeform-scope');
+  assert.ok(scope);
+  assert.equal(scope.attrs.mathvariant, 'bold');
+  assert.equal(scope.attrs['data-omniya-nemeth-cells'], '⠠⠄⠸|⠸⠠⠄');
+});
+
 function countNodes(node, name) {
   let count = node?.name === name ? 1 : 0;
   for (const child of node?.children ?? []) count += countNodes(child, name);
@@ -2277,10 +2588,35 @@ test('Rule 15-38 simultaneous then higher over nests after under hierarchy', () 
 });
 
 test('Rule 15-44 binomial with scripted upper converts on multipurpose under', () => {
-  const { document } = replayCells(sourceNotationToCells('(g;j"%a;j")'));
+  const { document } = replayCells(sourceNotationToCells('(g;j"%a;j")'), { '⠷': 'binomial.open' });
   const tree = parseMathML(document.mathml);
   assert.equal(completionReport(tree).complete, true);
   assert.equal(tree.children[0].attrs?.['data-omniya-binomial'], 'true');
+  assert.equal(tree.children[0].attrs?.['data-omniya-nemeth-intent'], 'binomial-multipurpose');
+  const rows = tree.children[0].children.find((node) => node.name === 'mtable').children;
+  assert.equal(rows[0].children[0].children[0].name, 'msub');
+  assert.equal(rows[1].children[0].children[0].name, 'msub');
+  assert.equal(rows[1].children[0].children.length, 1);
+});
+
+test('Rule 15-37 five-step sum keeps the following sibling fraction', () => {
+  const { document } = replayCells(sourceNotationToCells('".,s%n .k #1<,=]?1/2~n"# .k #1'), {
+    '⠨⠠⠎': 'operator.sum',
+    '⠣⠠': 'modifier.simultaneous.over'
+  });
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].name, 'munderover');
+  assert.equal(tree.children[0].children[0].children[0].text, '∑');
+  assert.equal(tree.children[1].name, 'mfrac');
+});
+
+test('Rule 15-33 contracted under allows a decimal continuation', () => {
+  const { document } = replayCells(sourceNotationToCells('#94,237%:.1'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'munder');
+  assert.equal(tree.children[1].name, 'mn');
+  assert.equal(tree.children[1].children[0].text, '.1');
 });
 
 test('Rule 15-66 arrow overscript keeps f.*g as one expression row', () => {
@@ -2457,6 +2793,16 @@ test('Rule 23.17 double-struck capital uses the barred typeform without an Engli
   assert.equal(tree.children[0].children[0].text, 'N');
   assert.equal(tree.children[0].attrs.mathvariant, 'double-struck');
   assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠠⠸⠠⠝');
+});
+
+test('Rule 7.2 barred typeform capital keeps the letter indicator cell', () => {
+  const { document } = replayCells(sourceNotationToCells(',_;,r'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].children[0].text, 'R');
+  assert.equal(tree.children[0].attrs.mathvariant, 'double-struck');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'typeform-double-struck');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠠⠸⠰⠠⠗');
 });
 
 test('Rule 23.6 a leading decimal after equals is a number, not radical order', () => {
@@ -2639,4 +2985,524 @@ test('Rule 6.4.11 a comma-space after a letter subscript returns to baseline', (
   const subscript = scripts.find((node) => node.name === 'msub');
   assert.equal(countNodes(subscript, 'msup'), 0);
   assert.equal(countNodes(subscript, 'mover'), 0);
+});
+
+test('Rule 24.5 numeric subscript then multipurpose baseline number stays siblings', () => {
+  const { document } = replayCells(sourceNotationToCells('C0"10^2"+c1"10+c2'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].children[0].text, 'C');
+  assert.equal(tree.children[1].children[0].text, '0');
+  assert.equal(tree.children[2].name, 'msup');
+  assert.equal(tree.children[2].children[0].children[0].text, '10');
+  assert.equal(tree.children[4].children[0].text, 'c');
+  assert.equal(tree.children[5].children[0].text, '1');
+  assert.equal(tree.children[6].children[0].text, '10');
+});
+
+test('Rule 24.7 right superscript then left superscript keeps both bases', () => {
+  const { document } = replayCells(sourceNotationToCells('p~b"~c"x'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'p');
+  assert.equal(tree.children[0].children[1].children[0].text, 'b');
+  assert.equal(tree.children[1].name, 'mmultiscripts');
+  assert.equal(tree.children[1].children[0].children[0].text, 'x');
+  const marker = tree.children[1].children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tree.children[1].children[marker + 2].children[0].text, 'c');
+});
+
+test('Rule 24.8 right superscript then left subscript splits onto the following base', () => {
+  const { document } = replayCells(sourceNotationToCells('p~b";c"x'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msup');
+  assert.equal(tree.children[0].children[0].children[0].text, 'p');
+  assert.equal(tree.children[1].name, 'mmultiscripts');
+  assert.equal(tree.children[1].children[0].children[0].text, 'x');
+  const marker = tree.children[1].children.findIndex((child) => child.name === 'mprescripts');
+  assert.equal(tree.children[1].children[marker + 1].children[0].text, 'c');
+});
+
+test('Rule 24.18 tally then multipurpose punctuation keeps the period', () => {
+  const { document } = replayCells(sourceNotationToCells("_____, ____\"_4 '''"));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const period = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-period');
+  assert.ok(period);
+  // Rule 24.1.h: `"_4` after tallies keeps the multipurpose cell on the period.
+  assert.equal(period.attrs['data-omniya-nemeth-cells'], '⠐⠸⠲');
+});
+
+test('Rule 24.23 shape then multipurpose number keeps equals after a blank', () => {
+  const { document } = replayCells(sourceNotationToCells('#9$4"14 .k #23'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const equals = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠨⠅');
+  assert.ok(equals);
+  assert.equal(equals.children[0].text, '=');
+});
+
+test('Rule 15-68 five-step decimal bar stamps five-step intent on the mover', () => {
+  const { document } = replayCells(sourceNotationToCells('#."7128<:]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mover');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(tree.children[0].children[0].children[0].text, '.7128');
+});
+
+test('Rule 15-77 mid-number multipurpose splits the unmodified decimal prefix', () => {
+  const { document } = replayCells(sourceNotationToCells('#.13"5<*]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'mn');
+  assert.equal(tree.children[0].children[0].text, '.13');
+  assert.equal(tree.children[1].name, 'mover');
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(tree.children[1].children[0].children[0].text, '5');
+});
+
+test('Rule 15-78 adjacent mid-number overdots keep separate numeric bases', () => {
+  const { document } = replayCells(sourceNotationToCells('#.1"3<*]5"6<*]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.map((node) => node.name).join(','), 'mn,mover,mn,mover');
+  assert.equal(tree.children[0].children[0].text, '.1');
+  assert.equal(tree.children[1].children[0].children[0].text, '3');
+  assert.equal(tree.children[2].children[0].text, '5');
+  assert.equal(tree.children[3].children[0].children[0].text, '6');
+});
+
+test('Rule 15-48 integral rectangle superposition stamps the full local cells', () => {
+  const { document } = replayCells(sourceNotationToCells('!`$r]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].children[0].text, '∯');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠮⠈⠫⠗⠻');
+});
+
+test('Rule 15-52 angle with superposed capital keeps one authored atom', () => {
+  const { document } = replayCells(sourceNotationToCells('$[`$A]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.length, 1);
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠫⠪⠈⠫⠠⠁⠻');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-intent'], 'shape-superposed-capital');
+});
+
+test('Rule 10 measurement abbreviation ending in r keeps a literary period', () => {
+  const { document } = replayCells(sourceNotationToCells('#60 mi4_/hr4'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const fraction = tree.children.find((node) => node.name === 'mfrac');
+  assert.ok(fraction);
+  const denominator = fraction.children[1];
+  const intents = [];
+  const visit = (node) => {
+    if (node.attrs?.['data-omniya-nemeth-intent']) intents.push(node.attrs['data-omniya-nemeth-intent']);
+    for (const child of node.children ?? []) visit(child);
+  };
+  visit(denominator);
+  assert.ok(intents.includes('punctuation-literary-period'), `denominator intents=${intents.join(',')}`);
+  assert.equal(intents.includes('numeric-start') || intents.includes('single-letter-number'), false);
+});
+
+test('Rule 3 hyphen plus number indicator starts a fresh numeric item', () => {
+  const word = replayCells(sourceNotationToCells(",guanosine-#5'-,diphosphate"));
+  const wordTree = parseMathML(word.document.mathml);
+  const wordNumber = (() => {
+    const visit = (node) => {
+      if (node.name === 'mn') return node;
+      for (const child of node.children ?? []) {
+        const found = visit(child);
+        if (found) return found;
+      }
+      return null;
+    };
+    return visit(wordTree);
+  })();
+  assert.equal(wordNumber?.children?.[0]?.text, '5');
+  assert.equal(wordNumber?.attrs?.['data-omniya-nemeth-intent'], 'numeric-start');
+
+  const range = replayCells(sourceNotationToCells('#4.5 m,l-#5.3 m,l'));
+  const rangeTree = parseMathML(range.document.mathml);
+  const numbers = [];
+  const collect = (node) => {
+    if (node.name === 'mn') numbers.push(node);
+    for (const child of node.children ?? []) collect(child);
+  };
+  collect(rangeTree);
+  assert.equal(numbers.length, 2);
+  assert.equal(numbers[0].attrs['data-omniya-nemeth-intent'], 'numeric-start');
+  assert.equal(numbers[1].attrs['data-omniya-nemeth-intent'], 'numeric-start');
+});
+
+test('Rule 15-46 keeps a second five-step tilde inside the same subscript after +', () => {
+  const { document } = replayCells(sourceNotationToCells(',a;"x<`:]+;"y<`:]'), {
+    '⠈⠱': 'modifier.tilde.simple'
+  });
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msub');
+  const slot = tree.children[0].children[1];
+  assert.equal(slot.name, 'mrow');
+  assert.equal(slot.children.length, 3);
+  assert.equal(slot.children[0].name, 'mover');
+  assert.equal(slot.children[0].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(slot.children[1].children[0].text, '+');
+  assert.equal(slot.children[2].name, 'mover');
+  assert.equal(slot.children[2].attrs['data-omniya-nemeth-intent'], 'five-step-modifier');
+  assert.equal(slot.children[2].children[0].children[0].text, 'y');
+});
+
+test('Rule 24-14 decimal general omission keeps dot-4 multipurpose cells', () => {
+  const { document } = replayCells(sourceNotationToCells('?1/3# .k ."='));
+  const tree = parseMathML(document.mathml);
+  const omission = tree.children.find((node) => node.name === 'mo'
+    && node.attrs?.['data-omniya-nemeth-intent'] === 'omission-decimal-general');
+  assert.ok(omission, 'expected omission-decimal-general token');
+  assert.equal(omission.attrs['data-omniya-nemeth-cells'], '⠨⠐⠿');
+});
+
+test('Rule 23-7 lower-cell decimal after blank keeps lower-cell intent through the point', () => {
+  const { document } = replayCells(sourceNotationToCells('.k 4.65'));
+  const tree = parseMathML(document.mathml);
+  const numbers = [];
+  const collect = (node) => {
+    if (node.name === 'mn') numbers.push(node);
+    for (const child of node.children ?? []) collect(child);
+  };
+  collect(tree);
+  const decimal = numbers.find((node) => node.children?.[0]?.text === '4.65');
+  assert.ok(decimal, `numbers=${numbers.map((node) => node.children?.[0]?.text).join(',')}`);
+  assert.equal(decimal.attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+});
+
+test('Rule 13-35 blank after nested complex close stays in hypercomplex numerator for ,,/', () => {
+  const cells = [
+    ...sourceNotationToCells(',,?'),
+    ...sourceNotationToCells(',?'),
+    ...sourceNotationToCells('a'),
+    ...sourceNotationToCells(',#'),
+    '⠀',
+    ...sourceNotationToCells(',,/'),
+    ...sourceNotationToCells('b'),
+    ...sourceNotationToCells(',,#')
+  ];
+  const { document } = replayCells(cells);
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'hypercomplex');
+  assert.equal(tree.children[0].children[1].children[0].text, 'b');
+  assert.equal(
+    tree.children.some((node) => node.name === 'mspace'),
+    false,
+    'blank must remain inside the open hypercomplex numerator'
+  );
+});
+
+test('Rule 19-26 absolute-value bars prefer grouping without a mid-letter choice', () => {
+  const { document, status, announcement } = replayCells(['⠳', '⠭', '⠳']);
+  assert.notEqual(status, 'choice', announcement);
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children.map((node) => node.name).join(','), 'mo,mi,mo');
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠳');
+  assert.equal(tree.children[1].children[0].text, 'x');
+  assert.equal(tree.children[2].attrs['data-omniya-nemeth-cells'], '⠳');
+});
+
+test('Rule 24-11 multipurpose less-than then equals keeps literary mins', () => {
+  const { document } = replayCells(sourceNotationToCells(`,d"2 "k".k #5 ,'m1ns ,d"2`));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠠⠙');
+  assert.equal(tree.children[1].attrs['data-omniya-nemeth-intent'], 'lower-cell-numeric');
+  assert.equal(tree.children[3].attrs['data-omniya-nemeth-cells'], '⠐⠅');
+  assert.equal(tree.children[3].children[0].text, '<');
+  assert.equal(tree.children[4].attrs['data-omniya-nemeth-cells'], '⠐⠨⠅');
+  const word = tree.children.filter((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'ueb-word');
+  assert.equal(word.map((node) => node.children[0].text).join(''), 'm1ns');
+  assert.equal(word[0].attrs['data-omniya-nemeth-cells'], '⠠⠄⠍');
+});
+
+test('Rule 24-19 adjacent bars keep multipurpose without a choice dock', () => {
+  const { document } = replayCells(sourceNotationToCells('\\x\\"\\y\\'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children.map((node) => node.name).join(','), 'mo,mi,mo,mo,mi,mo');
+  assert.equal(tree.children[3].attrs['data-omniya-nemeth-cells'], '⠐⠳');
+  assert.equal(tree.children[3].attrs['data-omniya-nemeth-intent'], 'adjacent-vertical-bar');
+});
+
+test('Rule 24-22 adjacent bars then subscripted bar stay siblings', () => {
+  const { document } = replayCells(sourceNotationToCells('\\x\\"\\;x ;.k #0'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠳');
+  assert.equal(tree.children[2].attrs['data-omniya-nemeth-cells'], '⠳');
+  assert.equal(tree.children[3].name, 'msub');
+  assert.equal(tree.children[3].children[0].attrs['data-omniya-nemeth-cells'], '⠐⠳');
+});
+
+test('Rule 24-22 semicolon after an adjacent bar is subscript not English letter', () => {
+  const { document, inputState } = replayCells(sourceNotationToCells('\\x\\"\\;x'));
+  assert.equal(inputState.prefix, '');
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children.at(-1).name, 'msub');
+  assert.equal(tree.children.at(-1).children[0].attrs?.['data-omniya-nemeth-intent'], 'adjacent-vertical-bar');
+  assert.equal(tree.children.at(-1).children[1].children[0].text, 'x');
+});
+
+test('Rule 19-30 number then enlarged brace close is not a decimal', () => {
+  const { document } = replayCells(sourceNotationToCells('.,(x .k #2.,)'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const number = tree.children.find((node) => node.name === 'mn');
+  assert.equal(number?.children?.[0]?.text, '2');
+  assert.notEqual(number?.attrs?.['data-omniya-nemeth-intent'], 'numeric-decimal');
+  assert.equal(tree.children.at(-1).attrs['data-omniya-nemeth-cells'], '⠨⠠⠾');
+});
+
+test('Rule 19-31 blank before enlarged brace close still commits the closer', () => {
+  const { document } = replayCells(sourceNotationToCells('.,(x+y .k #6 .,)'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  assert.equal(tree.children[0].attrs['data-omniya-nemeth-cells'], '⠨⠠⠷');
+  assert.equal(tree.children.at(-1).attrs['data-omniya-nemeth-cells'], '⠨⠠⠾');
+});
+
+test('Rule 16-16 nested order-1 indexed radical closes the outer square root', () => {
+  const { document } = replayCells(sourceNotationToCells('>.<3>x.]] .k <3>.>x.]]'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'msqrt');
+  assert.equal(tree.children[0].children[0].name, 'mroot');
+  assert.equal(tree.children[0].children[0].attrs['data-omniya-radical-order'], '1');
+  const equals = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠨⠅');
+  assert.ok(equals, 'equals must be a sibling after the closed outer radical');
+  assert.equal(tree.children.some((node) => node.name === 'mroot' || (node.name === 'msqrt' && node !== tree.children[0])), true);
+});
+
+test('Rule 13-32 spatial hypercomplex bar draft completes with empty denominator', () => {
+  const { document } = replayCells(sourceNotationToCells(',?1_?1/4_#,/1_?3/5_#,# ,,?3333333333333333333333,,# #5'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  const hyper = tree.children.find((node) => node.attrs?.['data-omniya-fraction-kind'] === 'hypercomplex');
+  assert.ok(hyper);
+  assert.equal(hyper.children[1].attrs?.['data-omniya-hole'], undefined);
+});
+
+test('Rule 3-27 complex then spatial hypercomplex draft completes', () => {
+  const { document } = replayCells(sourceNotationToCells(
+    ",?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,?3333333333333333333333333333333,,# #1+(?2X/1-X#)^2"
+  ));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'complex');
+});
+
+test('Rule 3-45 hyphen after a closing quote keeps the next 8 as a left quote', () => {
+  const { document } = replayCells(sourceNotationToCells('8#3.5_0-8#4.5_0'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const intents = [];
+  const texts = [];
+  const walk = (node) => {
+    if (node.attrs?.['data-omniya-nemeth-intent']) intents.push(node.attrs['data-omniya-nemeth-intent']);
+    if ((node.name === 'mn' || node.name === 'mo') && node.children?.[0]?.text) texts.push(node.children[0].text);
+    for (const child of node.children ?? []) walk(child);
+  };
+  walk(tree);
+  assert.deepEqual(
+    intents.filter((intent) => intent.includes('quote') || intent.includes('numeric')),
+    [
+      'punctuation-left-double-quote',
+      'numeric-start',
+      'punctuation-right-double-quote',
+      'punctuation-left-double-quote',
+      'numeric-start',
+      'punctuation-right-double-quote'
+    ]
+  );
+  assert.ok(!texts.includes('84.5'), `unexpected merged numeral in ${texts.join('|')}`);
+  assert.ok(texts.includes('4.5'), `missing second quoted numeral in ${texts.join('|')}`);
+});
+
+test('Rule 3-47/3-48 hyphen-blank runover keeps a fresh numeric-start after #', () => {
+  const divided = replayCells(sourceNotationToCells('#12- #34'));
+  const dividedTree = parseMathML(divided.document.mathml);
+  const dividedNumbers = [];
+  const walkDivided = (node) => {
+    if (node.name === 'mn') {
+      dividedNumbers.push({
+        text: node.children?.[0]?.text,
+        intent: node.attrs?.['data-omniya-nemeth-intent']
+      });
+    }
+    for (const child of node.children ?? []) walkDivided(child);
+  };
+  walkDivided(dividedTree);
+  assert.deepEqual(dividedNumbers, [
+    { text: '12', intent: 'numeric-start' },
+    { text: '34', intent: 'numeric-start' }
+  ]);
+
+  const commas = replayCells(sourceNotationToCells('y .k #123,456,- #789'));
+  const commaTree = parseMathML(commas.document.mathml);
+  const commaNumbers = [];
+  const walkCommas = (node) => {
+    if (node.name === 'mn') {
+      commaNumbers.push({
+        text: node.children?.[0]?.text,
+        intent: node.attrs?.['data-omniya-nemeth-intent']
+      });
+    }
+    for (const child of node.children ?? []) walkCommas(child);
+  };
+  walkCommas(commaTree);
+  assert.deepEqual(commaNumbers, [
+    { text: '123,456', intent: 'numeric-start' },
+    { text: '789', intent: 'numeric-start' }
+  ]);
+});
+
+test('Rule 13-35 fully linear hypercomplex draft completes', () => {
+  const { document } = replayCells(sourceNotationToCells(
+    ",,?,?(1-X)?D/DX#(2X)-2X?D/DX#(1-X) ,/(1-X)^2\",# ,,/1+(?2X/1-X#)^2\",,#"
+  ));
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true, `holes=${completionReport(tree).holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].attrs['data-omniya-fraction-kind'], 'hypercomplex');
+});
+
+test('Rule 8-53 literary word endings prefer letter.s over plural.s', () => {
+  const { document, inputState } = replayCells(sourceNotationToCells(
+    '#2,375.4 #2, 375 .4 thousands ones tenths'
+  ));
+  assert.equal(inputState.prefix, '');
+  const tree = parseMathML(document.mathml);
+  assert.equal(completionReport(tree).complete, true);
+  const letters = [];
+  const walk = (node) => {
+    if (node.name === 'mi' && node.children?.[0]?.text) letters.push(node.children[0].text);
+    for (const child of node.children ?? []) walk(child);
+  };
+  walk(tree);
+  assert.equal(letters.join(''), 'thousandsonestenths');
+  assert.equal(letters.filter((value) => value === 's').length, 4);
+});
+
+test('Rule 8-64 script digit then letter stays sibling identifiers', () => {
+  const { document } = replayCells(sourceNotationToCells('a;1n'));
+  const tree = parseMathML(document.mathml);
+  assert.equal(tree.children[0].name, 'msub');
+  const script = tree.children[0].children[1];
+  const leaves = script.name === 'mrow' ? script.children : [script];
+  assert.equal(leaves[0].name, 'mn');
+  assert.equal(leaves[0].children[0].text, '1');
+  assert.equal(leaves[1].name, 'mi');
+  assert.equal(leaves[1].children[0].text, 'n');
+});
+
+test('Rule 7-18 italic typeform scope closes immediately at end of phrase', () => {
+  const { document, inputState } = replayCells(sourceNotationToCells(
+    "#6 pieces of pizza./2 people .k #3 ,'. pieces per person .,'"
+  ));
+  assert.equal(inputState.prefix, '');
+  const tree = parseMathML(document.mathml);
+  const scope = findFirst(tree, (node) => node.attrs?.['data-omniya-nemeth-intent'] === 'typeform-scope');
+  assert.ok(scope);
+  assert.equal(scope.attrs['data-omniya-typeform-close-cells'], '⠨⠠⠄');
+  assert.match(scope.attrs['data-omniya-nemeth-cells'] ?? '', /⠠⠄⠨/);
+});
+
+test('Rule 10-23 english-letter abbreviation inside a fraction completes without a left-subscript hole', () => {
+  const { document, inputState } = replayCells(sourceNotationToCells('?;m/cm#@*?cm/mm#'));
+  assert.equal(inputState.prefix, '');
+  const tree = parseMathML(document.mathml);
+  const report = completionReport(tree);
+  assert.equal(report.complete, true, `holes=${report.holes.map((hole) => hole.role).join(',')}`);
+  assert.equal(tree.children[0].name, 'mfrac');
+  assert.equal(tree.children[0].children[0].attrs?.['data-omniya-nemeth-intent'], 'english-letter');
+  assert.equal(tree.children[0].children[0].attrs?.['data-omniya-nemeth-cells'], '⠰⠍');
+});
+
+test('Rule 7-13/7-18 keep an explicit blank between per and person', () => {
+  for (const source of [
+    '#6 .pieces of pizza./2 people .k #3 .pieces per person',
+    "#6 pieces of pizza./2 people .k #3 ,'. pieces per person .,'"
+  ]) {
+    const { document } = replayCells(sourceNotationToCells(source));
+    const tree = parseMathML(document.mathml);
+    const leaves = [];
+    const walk = (node) => {
+      if (['mi', 'mspace'].includes(node.name)) {
+        leaves.push({
+          name: node.name,
+          text: node.children?.[0]?.text ?? '',
+          intent: node.attrs?.['data-omniya-nemeth-intent'] ?? ''
+        });
+      }
+      for (const child of node.children ?? []) walk(child);
+    };
+    walk(tree);
+    const letters = leaves
+      .filter((leaf) => leaf.name === 'mi')
+      .map((leaf) => leaf.text)
+      .join('');
+    assert.match(letters, /perperson$/, `missing trailing per/person letters in ${letters}`);
+    const perEnd = leaves.findIndex((leaf, index) =>
+      leaf.name === 'mi' && leaf.text === 'r'
+      && leaves[index - 1]?.text === 'e'
+      && leaves[index - 2]?.text === 'p'
+      && leaves[index + 1]?.name === 'mspace');
+    assert.ok(perEnd >= 0, `expected explicit-space after per in ${source}`);
+    assert.equal(leaves[perEnd + 1].intent, 'explicit-space');
+    assert.equal(leaves[perEnd + 2]?.text, 'p');
+  }
+});
+
+test('Rule 16-16 keeps the blank before an indexed radical as a sibling', () => {
+  const { document } = replayCells(sourceNotationToCells('>.<3>x.]] .k <3>.>x.]]'));
+  const tree = parseMathML(document.mathml);
+  const equals = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠨⠅');
+  assert.ok(equals);
+  const equalsIndex = tree.children.indexOf(equals);
+  assert.equal(tree.children[equalsIndex + 1]?.attrs?.['data-omniya-nemeth-intent'], 'explicit-space');
+  const root = tree.children[equalsIndex + 2];
+  assert.equal(root?.name, 'mroot');
+  assert.equal(root.attrs?.['data-omniya-nemeth-intent'], 'indexed-radical');
+  assert.notEqual(root.children?.[0]?.attrs?.['data-omniya-nemeth-intent'], 'explicit-space');
+});
+
+test('Rule 8-38 literary period follows an indicated right quote', () => {
+  const { document } = replayCells(sourceNotationToCells('8#100`0_04 #1000`0'));
+  const tree = parseMathML(document.mathml);
+  const intents = [];
+  const walk = (node) => {
+    if (node.attrs?.['data-omniya-nemeth-intent']) intents.push(node.attrs['data-omniya-nemeth-intent']);
+    for (const child of node.children ?? []) walk(child);
+  };
+  walk(tree);
+  assert.ok(intents.includes('punctuation-right-double-quote'));
+  assert.ok(intents.includes('punctuation-literary-period'));
+});
+
+test('Example 3-16 series keeps plus/ellipsis terms inside the fenced content row', () => {
+  const { document } = replayCells(
+    sourceNotationToCells("(?r1~2\"/n1#+?,r2~2\"/n2#+ ''' +?,r;k~2\"/n;k\"#)"),
+    { '⠠⠗': 'letter.capital-r' }
+  );
+  const tree = parseMathML(document.mathml);
+  const group = tree.children[0];
+  assert.equal(group.name, 'mrow');
+  assert.equal(group.attrs['data-omniya-group'], 'round');
+  const content = group.children.find((child) => child.name === 'mrow' && child.attrs?.['data-omniya-role'] === 'content');
+  assert.ok(content, 'group content row keeps its content role after materialize');
+  const kinds = content.children.map((child) => child.name === 'mfrac' ? 'frac'
+    : child.name === 'mo' && child.children?.[0]?.text === '+' ? 'plus'
+    : child.name === 'mo' && child.children?.[0]?.text === '…' ? 'ellipsis'
+    : child.name === 'mspace' ? 'space'
+    : child.name);
+  assert.deepEqual(kinds, ['frac', 'plus', 'frac', 'plus', 'space', 'ellipsis', 'space', 'plus', 'frac']);
 });

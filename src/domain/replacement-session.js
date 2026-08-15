@@ -129,12 +129,17 @@ export function applyNemethBoundary(session, boundary = 'space') {
       const punctuation = applyNemethChoice(current, 'punctuation.comma');
       if (punctuation.status !== 'applied') return punctuation;
       current = punctuation.session;
-    } else {
-      if (committed.status === 'choice') {
-        return { ...committed, session: { ...committed.session, pendingNemethBoundary: boundary } };
-      }
-      if (committed.status !== 'applied') return committed;
+    } else if (committed.status === 'choice') {
+      return { ...committed, session: { ...committed.session, pendingNemethBoundary: boundary } };
+    } else if (committed.status === 'applied') {
       current = committed.session;
+    } else {
+      // Commit alone cannot flush every mixed local prefix (for example
+      // tally marks held with a following comma indicator: `⠸⠠`). The
+      // ordinary space cell path already knows how to split and replay that
+      // bounded prefix; falling through here keeps blank boundaries aligned
+      // with direct `⠀` / Space cell entry instead of rejecting the draft.
+      return applyNemethCell(current, ' ');
     }
   }
   return applyNemethCell(current, ' ');
@@ -230,6 +235,29 @@ function replacementNode(tree) {
   };
 }
 
+function promoteLoneEmptyRadical(tree) {
+  // Rule 16-8 authors the radical sign alone (`>`) with no vinculum or
+  // radicand. Guided input opens an msqrt hole for a real square root; when
+  // that hole is the only child and is still empty at submit, promote the
+  // structure to the standalone radical-sign token instead of rejecting.
+  if (tree.children?.length !== 1) return tree;
+  const radical = tree.children[0];
+  if (radical?.name !== 'msqrt' || radical.children?.length !== 1) return tree;
+  const radicand = radical.children[0];
+  if (radicand?.attrs?.['data-omniya-hole'] !== 'true') return tree;
+  const next = structuredClone(tree);
+  next.children = [{
+    name: 'mo',
+    attrs: {
+      'data-omniya-id': radical.attrs?.['data-omniya-id'] ?? `omniya-${globalThis.crypto.randomUUID()}`,
+      'data-omniya-nemeth-intent': 'radical-sign',
+      'data-omniya-nemeth-cells': '⠜'
+    },
+    children: [{ type: 'text', text: '√' }]
+  }];
+  return next;
+}
+
 async function materializeDraft(session, convertLatexToMathML) {
   if (session.method === 'latex') {
     if (!session.latexSource.trim()) throw new Error('Replacement draft is empty.');
@@ -237,8 +265,9 @@ async function materializeDraft(session, convertLatexToMathML) {
     const mathml = canonicalizeMathML(await convertLatexToMathML(session.latexSource));
     return parseMathML(mathml);
   }
-  const tree = parseMathML(session.draft.mathml);
+  let tree = parseMathML(session.draft.mathml);
   if (!tree.children.length) throw new Error('Replacement draft is empty.');
+  tree = promoteLoneEmptyRadical(tree);
   const completion = completionReport(tree);
   if (!completion.complete) {
     const first = completion.holes[0];
