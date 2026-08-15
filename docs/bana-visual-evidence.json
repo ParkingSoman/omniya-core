@@ -33625,6 +33625,44 @@
           }
         ]
       }
+    },
+    {
+      "id": "electron:bana-2022:example-7-2",
+      "sourceRows": [
+        "example-7-2",
+        "7.2.1"
+      ],
+      "rule": "7",
+      "example": "7-2",
+      "artifact": "electron-evidence/example-7-2.json",
+      "review": {
+        "reviewer": "evidence-steward",
+        "conclusion": "Accepted all four real Electron phases for example 7-2; geometry contract passed in-runner and screenshots are non-empty."
+      },
+      "evidenceSet": {
+        "screenshots": [
+          {
+            "phase": "input",
+            "path": "electron-screenshots/rule-7-2/input.png",
+            "claim": "The complete Nemeth draft for example 7-2 is visible before submission."
+          },
+          {
+            "phase": "committed",
+            "path": "electron-screenshots/rule-7-2/committed.png",
+            "claim": "The committed expression for example 7-2 is visibly rendered as one canonical MathML tree."
+          },
+          {
+            "phase": "focused",
+            "path": "electron-screenshots/rule-7-2/focused.png",
+            "claim": "MathJax Explorer visibly selects the exact replacement scope for example 7-2."
+          },
+          {
+            "phase": "editing",
+            "path": "electron-screenshots/rule-7-2/editing.png",
+            "claim": "The exact-node replacement for example 7-2 remains visibly integrated with the surrounding expression."
+          }
+        ]
+      }
     }
   ]
 }

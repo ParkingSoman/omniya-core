@@ -17,8 +17,8 @@
     "errata": 42,
     "errataInScope": 5,
     "mappedRows": 1135,
-    "electronCreationRows": 1145,
-    "electronEditingRows": 1135,
+    "electronCreationRows": 1146,
+    "electronEditingRows": 1136,
     "officialExamplesLinked": 1229
   },
   "rows": [
@@ -35861,6 +35861,7 @@
       ],
       "electronCreationCaseIds": [
         "electron:bana-2022:example-7-1",
+        "electron:bana-2022:example-7-2",
         "electron:bana-2022:example-7-3",
         "electron:bana-2022:example-7-4",
         "electron:bana-2022:example-7-5",
@@ -35868,6 +35869,7 @@
       ],
       "electronEditingCaseIds": [
         "electron:bana-2022:example-7-1",
+        "electron:bana-2022:example-7-2",
         "electron:bana-2022:example-7-3",
         "electron:bana-2022:example-7-4",
         "electron:bana-2022:example-7-5",
@@ -35875,6 +35877,7 @@
       ],
       "navigationCaseIds": [
         "electron:bana-2022:example-7-1",
+        "electron:bana-2022:example-7-2",
         "electron:bana-2022:example-7-3",
         "electron:bana-2022:example-7-4",
         "electron:bana-2022:example-7-5",
@@ -35896,39 +35899,39 @@
       },
       "transcriberReview": "pending",
       "visualEvidence": {
-        "id": "electron:bana-2022:example-7-6",
+        "id": "electron:bana-2022:example-7-2",
         "sourceRows": [
-          "example-7-6",
+          "example-7-2",
           "7.2.1"
         ],
         "rule": "7",
-        "example": "7-6",
-        "artifact": "electron-evidence/example-7-6.json",
+        "example": "7-2",
+        "artifact": "electron-evidence/example-7-2.json",
         "review": {
           "reviewer": "evidence-steward",
-          "conclusion": "Accepted all four real Electron phases for example 7-6; geometry contract passed in-runner and screenshots are non-empty."
+          "conclusion": "Accepted all four real Electron phases for example 7-2; geometry contract passed in-runner and screenshots are non-empty."
         },
         "evidenceSet": {
           "screenshots": [
             {
               "phase": "input",
-              "path": "electron-screenshots/rule-7-6/input.png",
-              "claim": "The complete Nemeth draft for example 7-6 is visible before submission."
+              "path": "electron-screenshots/rule-7-2/input.png",
+              "claim": "The complete Nemeth draft for example 7-2 is visible before submission."
             },
             {
               "phase": "committed",
-              "path": "electron-screenshots/rule-7-6/committed.png",
-              "claim": "The committed expression for example 7-6 is visibly rendered as one canonical MathML tree."
+              "path": "electron-screenshots/rule-7-2/committed.png",
+              "claim": "The committed expression for example 7-2 is visibly rendered as one canonical MathML tree."
             },
             {
               "phase": "focused",
-              "path": "electron-screenshots/rule-7-6/focused.png",
-              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 7-6."
+              "path": "electron-screenshots/rule-7-2/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 7-2."
             },
             {
               "phase": "editing",
-              "path": "electron-screenshots/rule-7-6/editing.png",
-              "claim": "The exact-node replacement for example 7-6 remains visibly integrated with the surrounding expression."
+              "path": "electron-screenshots/rule-7-2/editing.png",
+              "claim": "The exact-node replacement for example 7-2 remains visibly integrated with the surrounding expression."
             }
           ]
         }
@@ -36101,22 +36104,28 @@
         "registry:typeform.script.number",
         "registry:typeform.barred.number"
       ],
-      "electronCreationCaseIds": [],
-      "electronEditingCaseIds": [],
-      "navigationCaseIds": [],
+      "electronCreationCaseIds": [
+        "electron:bana-2022:example-7-2"
+      ],
+      "electronEditingCaseIds": [
+        "electron:bana-2022:example-7-2"
+      ],
+      "navigationCaseIds": [
+        "electron:bana-2022:example-7-2"
+      ],
       "errataRefs": [],
       "verified": {
         "source": true,
         "implementation": true,
-        "creation": false,
-        "editing": false,
-        "navigation": false,
-        "wholeBraille": false,
-        "focusedBraille": false,
-        "undoRedo": false,
-        "persistence": false,
+        "creation": true,
+        "editing": true,
+        "navigation": true,
+        "wholeBraille": true,
+        "focusedBraille": true,
+        "undoRedo": true,
+        "persistence": true,
         "contextPolicy": false,
-        "visualEvidence": false
+        "visualEvidence": true
       },
       "transcriberReview": "pending",
       "exampleParentId": "bana-2022:7.2.1",
@@ -36132,6 +36141,44 @@
         "expectedWholeBraille": ",_;,r",
         "sourceNotation": ",_;,r",
         "brailleCells": "⠠⠸⠰⠠⠗"
+      },
+      "visualEvidence": {
+        "id": "electron:bana-2022:example-7-2",
+        "sourceRows": [
+          "example-7-2",
+          "7.2.1"
+        ],
+        "rule": "7",
+        "example": "7-2",
+        "artifact": "electron-evidence/example-7-2.json",
+        "review": {
+          "reviewer": "evidence-steward",
+          "conclusion": "Accepted all four real Electron phases for example 7-2; geometry contract passed in-runner and screenshots are non-empty."
+        },
+        "evidenceSet": {
+          "screenshots": [
+            {
+              "phase": "input",
+              "path": "electron-screenshots/rule-7-2/input.png",
+              "claim": "The complete Nemeth draft for example 7-2 is visible before submission."
+            },
+            {
+              "phase": "committed",
+              "path": "electron-screenshots/rule-7-2/committed.png",
+              "claim": "The committed expression for example 7-2 is visibly rendered as one canonical MathML tree."
+            },
+            {
+              "phase": "focused",
+              "path": "electron-screenshots/rule-7-2/focused.png",
+              "claim": "MathJax Explorer visibly selects the exact replacement scope for example 7-2."
+            },
+            {
+              "phase": "editing",
+              "path": "electron-screenshots/rule-7-2/editing.png",
+              "claim": "The exact-node replacement for example 7-2 remains visibly integrated with the surrounding expression."
+            }
+          ]
+        }
       },
       "evidenceScope": "equation-workflow",
       "humanReview": {
