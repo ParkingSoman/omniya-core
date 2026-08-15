@@ -1525,9 +1525,7 @@ test('BANA Rule 23 superposed integrals are structural follow-ups to an immediat
 test('BANA Rule 15.9 superposition uses one generic bounded local action', () => {
   const registry = new Map(operationRegistry().map((entry) => [entry.id, entry]));
   for (const [id, notation] of [
-    ['superposition.bar-shape', ':`$4]'],
-    ['superposition.operation-equals', '*`.k]'],
-    ['superposition.comparison', '.K`_"K]']
+    ['superposition.bar-shape', ':`$4]']
   ]) {
     const entry = registry.get(id);
     assert.equal(entry?.args?.sourceNotation, notation, id);

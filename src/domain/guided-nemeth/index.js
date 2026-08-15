@@ -2543,18 +2543,10 @@ const MAPPINGS = [
     commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
     args: { value: '⊟', intent: 'bar-superposed-square', sourceNotation: ':`$4]' }
   },
-  {
-    id: 'superposition.operation-equals', cells: sourceCells('*`.k]'),
-    banaRefs: ['15.9'], action: 'superpose-token',
-    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
-    args: { value: '⊕=', intent: 'operation-superposed-equals', sourceNotation: '*`.k]' }
-  },
-  {
-    id: 'superposition.comparison', cells: sourceCells('.K`_"K]'),
-    banaRefs: ['15.9', '21.12'], action: 'superpose-token',
-    commitPolicy: LOCAL_COMMIT_POLICIES.ATOMIC_SEQUENCE,
-    args: { value: '≟', intent: 'comparison-superposition', sourceNotation: '.K`_"K]' }
-  },
+  // Rule 15.9 §93 fixes the order of a superposed pair by category, so a
+  // superposition sequence has exactly one reading. `*`.k]` and `.k`_"k]` are
+  // already spelled by the Rule 21.12 comparison entries below; duplicating
+  // them here only turned those two sequences into a false choice.
   // The n-ary summation sign is a Greek capital sigma with the Greek
   // alphabet indicator and capitalization indicator (BANA 6.1.4, 6.2,
   // Appendix C). It is not the plain English-letter sequence ⠠⠎.
@@ -3552,8 +3544,7 @@ function mappingApplies(mapping, context) {
   if (mapping.id === 'integral.extend') {
     return context.node.name === 'mo' && ['∫', '∬'].includes(context.node.children?.[0]?.text);
   }
-  if (mapping.id === 'superposition.bar-shape' || mapping.id === 'superposition.operation-equals' ||
-      mapping.id === 'superposition.comparison') {
+  if (mapping.id === 'superposition.bar-shape') {
     return context.node.name === 'math' || isHole(context.node);
   }
   if (mapping.action === 'superpose-token' && mapping.args?.allowedValues) {
@@ -7215,7 +7206,11 @@ export function applyNemethCell({ document, focus, inputState = { prefix: '', mo
       });
     }
   }
-  if ((state.mode === 'multipurpose' || state.mode === null) && state.prefix === '⠨' && normalized === '⠅') {
+  // `.k` is a complete equals sign and also the opening of the Rule 21.12
+  // comparisons compounded by superposition. Take the immediate equals only
+  // when no longer registered code can still continue.
+  if ((state.mode === 'multipurpose' || state.mode === null) && state.prefix === '⠨' && normalized === '⠅' &&
+    !hasApplicableContinuation(state.prefix, normalized, context)) {
     const equals = MAPPINGS.find((candidate) => candidate.id === 'operator.equals');
     if (equals) return applyMapping(document, focus, { ...state, prefix: '', mode: state.mode === 'multipurpose' ? 'multipurpose' : null }, equals);
   }
@@ -8405,6 +8400,14 @@ export function commitNemethLocalCode({ document, focus, inputState = { prefix: 
   if (prefix === '⠳' && mappings.length > 1) {
     const grouping = mappings.find((mapping) => mapping.id === 'group.vertical-bar');
     if (grouping) return applyMapping(document, focus, { ...inputState, prefix: '' }, grouping);
+  }
+  // A held `.k` is the Rule 21.1 equals sign, the same reading applyNemethCell
+  // takes for those cells. It is held rather than immediate only because the
+  // Rule 21.12 superpositions extend it.
+  if (prefix === '⠨⠅' && mappings.length > 1 &&
+    (inputState.mode == null || inputState.mode === 'multipurpose')) {
+    const equals = mappings.find((mapping) => mapping.id === 'operator.equals');
+    if (equals) return applyMapping(document, focus, { ...inputState, prefix: '' }, equals);
   }
   if (!mappings.length) return {
     status: 'rejected', document, focus, inputState,
