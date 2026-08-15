@@ -275,6 +275,69 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
   await assertCurrentFocusCanBeReplaced(page);
 });
 
+test('Enter then r a o open the composer while MathJax explorer is focused', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-enter-edit-e2e-');
+  const article = await addEquation(page, 'a+b');
+  await enterEquation(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(150);
+
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor();
+  assert.match(await page.locator('#composer-heading').textContent(), /Replacing/i);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+
+  await enterEquation(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('a');
+  await page.locator('#composer-dock').waitFor();
+  assert.match(await page.locator('#composer-heading').textContent(), /Appending after/i);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+
+  await enterEquation(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('o');
+  await page.locator('#composer-dock').waitFor();
+  assert.match(await page.locator('#composer-heading').textContent(), /Prepending before/i);
+});
+
+test('r a o still edit after explorer navigation moves focus off the math node', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-edit-keys-e2e-');
+  const article = await addEquation(page, 'a+b');
+  await enterEquation(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(100);
+  await page.evaluate(() => document.body.focus());
+
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor();
+  assert.match(await page.locator('#composer-heading').textContent(), /Replacing/i);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+
+  await enterEquation(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(100);
+  await page.evaluate(() => document.body.focus());
+  await page.keyboard.press('a');
+  await page.locator('#composer-dock').waitFor();
+  assert.match(await page.locator('#composer-heading').textContent(), /Appending after/i);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+
+  await enterEquation(page, article);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(100);
+  await page.evaluate(() => document.body.focus());
+  await page.keyboard.press('o');
+  await page.locator('#composer-dock').waitFor();
+  assert.match(await page.locator('#composer-heading').textContent(), /Prepending before/i);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+});
+
 test('r opens the exact replacement even during the explorer focus handoff', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-mathjax-focus-handoff-e2e-');
   const article = await addEquation(page, '\\frac{a^2+\\sqrt{b}}{c}');
@@ -290,6 +353,23 @@ test('r opens the exact replacement even during the explorer focus handoff', { t
   assert.doesNotMatch(await page.locator('#save-status').textContent(), /cannot be edited safely|unsafe/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+});
+
+test('o prepends the equation under focus, not a previously explored one', { timeout: 60_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-second-eq-e2e-');
+  await addEquation(page, 'x^4+x^4+x^3');
+  const second = await addEquation(page, 'y^4+3');
+  const first = page.locator('article.napkin-article').first();
+
+  await enterEquation(page, first);
+  await page.keyboard.press('ArrowDown');
+  await second.locator('mjx-container').first().focus();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('o');
+  await page.locator('#composer-dock').waitFor();
+  const heading = await page.locator('#composer-heading').textContent();
+  assert.match(heading, /y/i);
+  assert.doesNotMatch(heading, /x to the fourth power plus x to the fourth/i);
 });
 
 test('switches input type without visible radios and submits a text item with Cmd+Enter or Ctrl+Enter', { timeout: 60_000 }, async (t) => {

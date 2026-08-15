@@ -28,11 +28,11 @@ equations, offline autosave.
 
 **New on `testing`:**
 
-- One unified composer field for text, new equations, and subtree **r** / **a** / **p** edits
+- One unified composer field for text, new equations, and subtree **r** / **a** / **o** edits
   (Nemeth / LaTeX in `#composer-source`; no separate replacement-dock chrome)
 - MathJax explorer: Enter to explore, arrows through hierarchy, **r** to
   replace the focused subtree in that same composer (**a** appends after,
-  **p** prepends before)
+  **o** prepends before)
 - Insert / Command mode: `Ctrl+[` → Command mode; Escape cancels;
   `i` / Enter → Insert. Command mode is not the Mac **Cmd** key.
 - Notes UI hidden; Text / Equation / Nemeth / LaTeX via `t` / `x` in Command mode

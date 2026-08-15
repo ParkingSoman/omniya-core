@@ -389,7 +389,7 @@ function renderMode() {
   elements['composer-dock'].hidden = reading;
   elements['open-add-button'].disabled = reading && !activeNapkin();
   elements['reading-help'].textContent = reading
-    ? 'Up and Down arrows move between items. Enter explores an equation; r replaces, a appends after, p prepends before the focus.'
+    ? 'Up and Down arrows move between items. Enter explores an equation; r replaces, a appends after, o prepends before the focus.'
     : 'Reading remains available above. Ctrl+[ enters Command mode · Escape cancels.';
 }
 
@@ -404,7 +404,7 @@ function mathPlacementFromKey(event) {
   const key = event.key.toLowerCase();
   if (key === 'r') return 'replace';
   if (key === 'a') return 'append';
-  if (key === 'p') return 'prepend';
+  if (key === 'o') return 'prepend';
   return null;
 }
 
@@ -545,11 +545,32 @@ async function enterEquation(article) {
   return true;
 }
 
-function leaveEquation(article) {
-  if (article?.dataset.itemId) explorerFocusCache.delete(article.dataset.itemId);
+function clearExploringEquation() {
+  if (exploringEquationItemId) explorerFocusCache.delete(exploringEquationItemId);
   exploringEquationItemId = null;
-  article.focus();
+}
+
+function leaveEquation(article) {
+  clearExploringEquation();
+  article?.focus();
   elements['save-status'].textContent = 'Equation level';
+}
+
+function articleForMathEditKey(focused) {
+  const focusedArticle = focused instanceof Element
+    ? focused.closest('article.napkin-article')
+    : null;
+  const exploringArticle = exploringEquationItemId
+    ? elements['transcript'].querySelector(
+      `article.napkin-article[data-item-id="${CSS.escape(exploringEquationItemId)}"]`
+    )
+    : null;
+  if (focusedArticle && exploringArticle
+      && focusedArticle.dataset.itemId !== exploringArticle.dataset.itemId) {
+    exploringEquationItemId = focusedArticle.dataset.itemId;
+    return focusedArticle;
+  }
+  return focusedArticle || exploringArticle;
 }
 
 async function cacheExplorerFocus(article) {
@@ -743,16 +764,15 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
   await openComposerForMathReplace(article, startingFocus, isNew);
 }
 
-// MathJax may move focus to its short-lived hidden focus element while an
-// expression is being explored. Keep Escape reliable even in that case.
+// MathJax swallows unmapped keys (r/a/o) on the explorer node. Handle them in
+// capture, but always on the article that currently has focus — a stale
+// exploringEquationItemId from an earlier equation must not win.
 document.addEventListener('keydown', (event) => {
-  if (!exploringEquationItemId) return;
   const focused = event.target instanceof Element ? event.target : document.activeElement;
-  if (!focused?.matches?.('mjx-container, math, mjx-focus, mjx-speech') &&
-      !focused?.closest?.('mjx-container, math, mjx-focus, mjx-speech')) return;
-  const article = elements['transcript'].querySelector(
-    `article.napkin-article[data-item-id="${CSS.escape(exploringEquationItemId)}"]`
-  );
+  const composerOpen = (mode === 'add' || mode === 'edit') && !elements['composer-dock']?.hidden;
+  if (composerOpen && focused instanceof Element
+      && focused.closest('#composer-source, #replacement-input, #composer-note')) return;
+  const article = articleForMathEditKey(focused);
   if (!article) return;
   const explorerPlacement = mathPlacementFromKey(event);
   if (explorerPlacement) {
@@ -761,9 +781,9 @@ document.addEventListener('keydown', (event) => {
     void openComposerForMathReplace(article, null, false, explorerPlacement);
     return;
   }
+  const inMath = focused instanceof Element && focused.closest('mjx-container, math, mjx-focus, mjx-speech');
+  if (!inMath && focused !== article) return;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
-    // A navigation key changes the exact scope. Do not let the cache from the
-    // previous node survive a move; refresh it after MathJax settles.
     explorerFocusCache.delete(article.dataset.itemId);
     setTimeout(() => void cacheExplorerFocus(article), 0);
   }
@@ -958,7 +978,9 @@ function navigateItems(key) {
   } else {
     return false;
   }
-  state = selectItem(state, napkin.items[next].id);
+  const nextId = napkin.items[next].id;
+  if (exploringEquationItemId && exploringEquationItemId !== nextId) clearExploringEquation();
+  state = selectItem(state, nextId);
   renderTranscript();
   focusSelectedArticle();
   elements['save-status'].textContent = `Item ${next + 1} of ${napkin.items.length}`;
@@ -1758,6 +1780,9 @@ document.addEventListener('keydown', (event) => {
 elements['transcript'].addEventListener('click', (event) => {
   const article = event.target.closest('.napkin-article');
   if (!article) return;
+  if (exploringEquationItemId && exploringEquationItemId !== article.dataset.itemId) {
+    clearExploringEquation();
+  }
   state = selectItem(state, article.dataset.itemId);
   renderTranscript();
   focusSelectedArticle();
