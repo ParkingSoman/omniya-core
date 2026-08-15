@@ -2774,6 +2774,57 @@ test('Rule 24-18 multipurpose before tally punctuation restores ⠐ before ⠸�
   );
 });
 
+test('Rule 14-62 repairs an SRE-split contracted comma before the next msub', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <msub>
+        <mi data-omniya-nemeth-cells="⠭">x</mi>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠝">n</mi>
+          <mo data-omniya-nemeth-cells="⠤">−</mo>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+          <mo data-omniya-script-comma="true" data-omniya-nemeth-cells="⠪">,</mo>
+          <mi data-omniya-nemeth-cells="⠝">n</mi>
+          <mo data-omniya-nemeth-cells="⠤">−</mo>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+        </mrow>
+      </msub>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <msub>
+        <mi data-omniya-nemeth-cells="⠭">x</mi>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠝">n</mi>
+          <mo data-omniya-nemeth-cells="⠤">−</mo>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+          <mo data-omniya-script-comma="true" data-omniya-nemeth-cells="⠪">,</mo>
+          <mi data-omniya-nemeth-cells="⠝">n</mi>
+        </mrow>
+      </msub>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace data-omniya-nemeth-intent="explicit-space"/>
+      <msub>
+        <mi data-omniya-nemeth-cells="⠭">x</mi>
+        <mrow>
+          <mi data-omniya-nemeth-cells="⠝">n</mi>
+          <mo data-omniya-script-comma="true" data-omniya-nemeth-cells="⠪">,</mo>
+          <mi data-omniya-nemeth-cells="⠝">n</mi>
+          <mo data-omniya-nemeth-cells="⠤">−</mo>
+          <mn data-omniya-nemeth-intent="lower-cell-numeric">1</mn>
+        </mrow>
+      </msub>
+    </math>`,
+    'text/xml'
+  );
+  assert.equal(
+    applyNemethSourceIntentToBraille(
+      '⠭⠰⠝⠤⠂⠠⠀⠝⠤⠂⠠⠀⠭⠰⠝⠤⠂⠪⠝⠠⠀⠭⠰⠝⠪⠝⠤⠂',
+      source
+    ),
+    '⠭⠰⠝⠤⠂⠪⠝⠤⠂⠠⠀⠭⠰⠝⠤⠂⠪⠝⠠⠀⠭⠰⠝⠪⠝⠤⠂'
+  );
+});
+
 test('Rule 3-101/3-102 roman and english-letter identifiers restore local indicators', () => {
   const roman = new DOMParser().parseFromString(
     `<math>

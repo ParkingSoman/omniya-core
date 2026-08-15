@@ -1374,6 +1374,16 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
         }
       );
     }
+    // Rule 14-62: SRE may split the first contracted-comma subscript into a
+    // baseline list (`n-1, n-1` → `n-1` + blank + `n-1`) while later terms
+    // already show ⠪. Repair that exact local split before the next msub.
+    if (sourceNodes('[data-omniya-nemeth-intent="punctuation-comma"]').length
+      && /[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]⠠⠀[⠁-⠵]⠤[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]⠠⠀[⠁-⠵]⠰/.test(braille)) {
+      braille = braille.replace(
+        /([⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠠⠀([⠁-⠵]⠤[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])⠠⠀([⠁-⠵]⠰)/g,
+        '$1⠪$2⠠⠀$3'
+      );
+    }
   }
   // Baseline list commas followed by an authored blank do not keep a
   // multipurpose return before that blank (Rule 14.7 geometry lists).

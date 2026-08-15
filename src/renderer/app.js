@@ -220,10 +220,11 @@ async function renderEquation(container, item, version) {
       const refreshBrailleProjection = () => {
         const latest = container.querySelector('mjx-speech');
         if (!latest) return;
+        const current = latest.getAttribute('aria-braillelabel') || undefined;
         const projected = applyNemethSourceIntentToBraille(
-          latest.getAttribute('aria-braillelabel') || undefined, authoredSourceMath || container
+          current, authoredSourceMath || container
         );
-        if (projected) latest.setAttribute('aria-braillelabel', projected);
+        if (projected && projected !== current) latest.setAttribute('aria-braillelabel', projected);
       };
       // SRE may replace the speech node more than once while explorer
       // enrichment settles. Reapply the source-scoped projection at the two
@@ -234,6 +235,18 @@ async function renderEquation(container, item, version) {
       setTimeout(refreshBrailleProjection, 250);
       setTimeout(refreshBrailleProjection, 500);
       setTimeout(refreshBrailleProjection, 900);
+      // Rule 14.7 lists can finish enrichment after the fixed timeouts. Watch
+      // speech-label churn briefly and re-stamp from authored source intents.
+      const observer = new MutationObserver(() => {
+        refreshBrailleProjection();
+      });
+      observer.observe(container, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ['aria-braillelabel']
+      });
+      setTimeout(() => observer.disconnect(), 2000);
     }
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
