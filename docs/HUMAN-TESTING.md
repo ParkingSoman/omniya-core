@@ -32,7 +32,7 @@ equations, offline autosave.
   (Nemeth / LaTeX in `#composer-source`; no separate replacement-dock chrome)
 - MathJax explorer: Enter to explore, arrows through hierarchy, **E** to
   replace the focused subtree in that same composer
-- Insert / Command: `Ctrl+[` (or Command button) → Command; Escape cancels;
+- Insert / Command: `Ctrl+[` → Command; Escape cancels;
   `i` / Enter → Insert
 - Notes UI hidden; Text / Equation / Nemeth / LaTeX via Command `t` / `x`
 - Literary UEB G1 / G2 text via native liblouis (`lou_translate`)
@@ -70,7 +70,7 @@ npm run test:demo:thought
 ## Sighted PM checklist
 
 1. Launch with `npm start`. Confirm notes / type radios are not visible chrome.
-2. Add item → `Ctrl+[` (or Command button) enters Command; Escape cancels
+2. Add item → `Ctrl+[` enters Command; Escape cancels
    authoring. `#mode-panel` shows Command / Insert / Text / Equation / UEB /
    Nemeth (focus with Command `s`; not a live region).
 3. Command `t` → Insert → type print text → `Ctrl+[` → `n` to submit. Confirm
@@ -102,7 +102,7 @@ source before the task. Full protocol:
 **Core AT path to try:**
 
 1. Create a napkin; Add item.
-2. `Ctrl+[` (or Command button) enters Command; Escape cancels. Command `s`
+2. `Ctrl+[` enters Command; Escape cancels. Command `s`
    focuses the authoring mode panel on demand (not live).
 3. Command `t` / `x` to choose Text vs Equation (not radios).
 4. For an equation: author cells in the unified composer from the braille

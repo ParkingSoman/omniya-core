@@ -58,13 +58,14 @@ test('Ctrl+[ enters Command; Escape cancels composer', { timeout: 60_000 }, asyn
   assert.equal(await page.locator('article.napkin-article').count(), 0);
 });
 
-test('composer has Command button; replacement dock stays hidden', { timeout: 60_000 }, async (t) => {
+test('composer has no Command button; Ctrl+[ still enters Command', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-cmd-btn-');
   t.after(() => app.close().catch(() => {}));
   await openComposer(page);
-  await page.getByRole('button', { name: 'Command' }).waitFor();
+  assert.equal(await page.locator('#composer-command').count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Command' }).count(), 0);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-  await page.getByRole('button', { name: 'Command' }).click();
+  await page.keyboard.press('Control+[');
   await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
 });
 

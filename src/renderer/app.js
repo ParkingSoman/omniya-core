@@ -40,7 +40,7 @@ const elements = Object.fromEntries([
   'mode-panel', 'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions', 'open-add-button',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
-  'composer-form', 'composer-heading', 'composer-command', 'composer-back',
+  'composer-form', 'composer-heading', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
   'composer-help', 'composer-status', 'composer-error', 'composer-choices', 'editing-indicator', 'composer-submit',
   'composer-discard', 'composer-cancel', 'replacement-dock', 'replacement-heading',
@@ -1460,13 +1460,6 @@ elements['replacement-method'].addEventListener('change', () => {
       setFieldError(elements['composer-source'], elements['composer-error'], error.message);
     }
   }
-});
-elements['composer-command'].addEventListener('click', () => {
-  if (mode !== 'add' && mode !== 'edit' && !isDockReplacement()) return;
-  if (commandState.interaction !== 'insert') return;
-  syncCommandContentEmpty();
-  commandState = enterCommand(commandState);
-  syncModePanel(commandState);
 });
 elements['composer-back'].addEventListener('click', () => returnToRead());
 elements['composer-discard'].addEventListener('click', () => returnToRead());

@@ -118,7 +118,7 @@ The point of the Electron app is to make these hypotheses testable. The architec
 
 This section is the **alpha** on `testing`, not the signed-off `main` snapshot. Humans have not completely verified it. The practical checklist is [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
-On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); enter Command with `Ctrl+[` (or the Command button); choose Text vs Equation with Command `t` / `x`; author Nemeth cells or LaTeX; explore MathML and press **E** to replace a subtree in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden behind Command.
+On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); enter Command with `Ctrl+[`; choose Text vs Equation with Command `t` / `x`; author Nemeth cells or LaTeX; explore MathML and press **E** to replace a subtree in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden behind Command.
 
 The interface uses semantic HTML, native form controls, labeled fields, visible focus indicators, a narrow preload bridge, context isolation, a sandboxed renderer, and a restrictive content-security policy.
 
