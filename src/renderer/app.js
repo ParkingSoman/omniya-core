@@ -22,7 +22,8 @@ import {
   setReplacementMethod,
   startReplacementSession,
   submitReplacement,
-  undoNemethStep
+  undoNemethStep,
+  replacementSessionHasDraftMath
 } from '../domain/replacement-session.js';
 import {
   applyCommandKey,
@@ -806,9 +807,9 @@ async function renderComposerDraftPreview() {
   const content = article?.querySelector('.item-content');
   if (!article || !item || !content) return;
   await renderEquation(content, { ...item, math: replacementSession.draft }, ++transcriptRenderVersion);
-  if (replacementSession?.draftFocus) {
-    setTimeout(() => void restoreExplorerFocus(article, replacementSession.draftFocus), 0);
-  }
+  // Keep the composer caret. Restoring explorer focus here steals Backspace
+  // from the draft the author is still editing.
+  elements['composer-source']?.focus();
 }
 
 function clearComposerMathSession() {
@@ -1053,8 +1054,7 @@ function replacementDraftIsEmpty() {
   }
   const prefix = replacementSession.nemethState?.prefix ?? '';
   if (prefix) return false;
-  const draftMathml = replacementSession.draft?.mathml ?? '';
-  if (['<mi>', '<mn>', '<mo>'].some((tag) => draftMathml.includes(tag))) return false;
+  if (replacementSessionHasDraftMath(replacementSession)) return false;
   const field = replacementEditor ?? (isComposerMathAuthoring() ? elements['composer-source'] : null);
   return !(field?.value ?? '').trim();
 }
@@ -1518,6 +1518,7 @@ async function consumeComposerNemethCell(cell) {
     editor.removeAttribute('aria-invalid');
     setFieldError(editor, elements['composer-error']);
     await renderComposerDraftPreview();
+    editor.focus();
   } else if (result.status === 'pending' || result.status === 'choice') {
     const prefix = replacementSession.nemethState?.prefix || '';
     editor.value = prefix;
@@ -1599,6 +1600,8 @@ async function handleComposerMathInput() {
       draft.source = prefix;
       editor.setSelectionRange(prefix.length, prefix.length);
     }
+  }).catch((error) => {
+    console.error('Nemeth composer input failed', error);
   });
   await composerMathInputProcessing;
 }
@@ -1654,7 +1657,7 @@ elements['composer-source'].addEventListener('keydown', (event) => {
     if (event.key === 'Backspace') {
       event.preventDefault();
       event.stopPropagation();
-      void composerMathInputProcessing.then(async () => {
+      composerMathInputProcessing = composerMathInputProcessing.catch(() => {}).then(async () => {
         if (!isComposerMathAuthoring()) return;
         const result = undoNemethStep(replacementSession);
         replacementSession = result.session;
@@ -1666,12 +1669,11 @@ elements['composer-source'].addEventListener('keydown', (event) => {
         setComposerMathStatus(result.announcement);
         elements['composer-source'].toggleAttribute('aria-invalid', result.status === 'rejected');
         if (result.status === 'undone') {
-          const draftMathml = replacementSession.draft?.mathml ?? '';
-          const hasDraftContent = ['<mi>', '<mn>', '<mo>'].some((tag) => draftMathml.includes(tag));
-          if (!hasDraftContent && !prefix) replacementHasContent = false;
+          replacementHasContent = replacementSessionHasDraftMath(replacementSession) || Boolean(prefix);
           await renderComposerDraftPreview();
         }
         syncCommandContentEmpty();
+        elements['composer-source'].focus();
       });
       return;
     }
@@ -1771,6 +1773,12 @@ elements['transcript'].addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       event.preventDefault();
       leaveEquation(article);
+    }
+    if (event.key === 'Backspace' && isComposerMathAuthoring()) {
+      event.preventDefault();
+      event.stopPropagation();
+      elements['composer-source'].dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
+      return;
     }
     const mathPlacement = mathPlacementFromKey(event);
     if (mathPlacement) {

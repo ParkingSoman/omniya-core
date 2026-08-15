@@ -11,6 +11,7 @@ import {
   applyNemethChoice,
   commitNemethLocalCode,
   undoNemethStep,
+  replacementSessionHasDraftMath,
   cancelReplacement,
   submitReplacement,
   setLatexSource,
@@ -409,10 +410,12 @@ test('undoNemethStep removes the last applied immediate cell from the draft', ()
   session = undone.session;
   assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
   assert.equal(session.draft.mathml.includes('>y<'), false);
+  assert.equal(replacementSessionHasDraftMath(session), true);
 
   const emptied = undoNemethStep(session);
   assert.equal(emptied.status, 'undone');
   assert.equal(parseMathML(emptied.session.draft.mathml).children.length, 0);
+  assert.equal(replacementSessionHasDraftMath(emptied.session), false);
 });
 
 test('undoNemethStep clears a pending operator after an applied letter', () => {

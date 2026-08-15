@@ -21,6 +21,18 @@ function emptyDraft() {
   };
 }
 
+function sessionHasDraftMath(session) {
+  try {
+    return parseMathML(session?.draft?.mathml ?? '').children.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+export function replacementSessionHasDraftMath(session) {
+  return sessionHasDraftMath(session);
+}
+
 function cloneSession(session) {
   return structuredClone(session);
 }
@@ -69,7 +81,7 @@ export function startReplacementSession({ document = null, target, explorerFocus
 export function setReplacementMethod(session, method) {
   if (!['nemeth', 'latex'].includes(method)) throw new TypeError('Unknown authoring method');
   const next = cloneSession(session);
-  if (next.latexSource || next.nemethState?.prefix || next.nemethState?.mode || next.draft?.mathml?.includes('<mi>') || next.draft?.mathml?.includes('<mn>') || next.draft?.mathml?.includes('<mo>')) {
+  if (next.latexSource || next.nemethState?.prefix || next.nemethState?.mode || sessionHasDraftMath(next)) {
     throw new Error('Authoring method can only change before entering content.');
   }
   next.method = method;

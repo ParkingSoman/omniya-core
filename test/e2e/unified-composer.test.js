@@ -175,3 +175,26 @@ test('a appends after the focused equation without rewriting it', { timeout: 90_
   assert.match(tokens, /\+/);
   assert.ok(tokens.indexOf('x') < tokens.indexOf('+'), `expected x before plus in ${tokens}`);
 });
+
+test('Backspace undoes the last applied Nemeth draft cell while the composer stays open', { timeout: 90_000 }, async (t) => {
+  const { app, page } = await launch('omniya-unified-backspace-');
+  t.after(() => app.close().catch(() => {}));
+  await openComposer(page);
+  await chooseType(page, 'equation');
+  await page.locator('#composer-source').focus();
+  await page.keyboard.type('⠭');
+  await page.waitForFunction(() => /Draft updated: letter\.x/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  await page.keyboard.type('⠽');
+  await page.waitForFunction(() => /Draft updated: letter\.y/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
+
+  await page.keyboard.press('Backspace');
+  await page.waitForFunction(() => /Undid last Nemeth input/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+
+  await page.keyboard.press('Control+[');
+  await page.keyboard.type('n');
+  const article = page.locator('article.napkin-article').first();
+  await article.waitFor({ timeout: 15_000 });
+  assert.equal(await article.locator('math mi').count(), 1);
+  assert.equal(await article.locator('math mi').textContent(), 'x');
+});
