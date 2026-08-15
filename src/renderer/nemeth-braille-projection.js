@@ -4369,7 +4369,15 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     const text = String(node.textContent ?? '').trim();
     if (text !== '−' && text !== '-') return false;
     const cursor = skipLayout(elementNeighbor(node, 'next'), 'next');
-    return cursor?.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start';
+    if (cursor?.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start') return true;
+    // Semantic enrichment may wrap the runover number (and its blank) in an
+    // added mrow; look inside that wrapper for the numeric-start (3-47).
+    const wrapped = elementNeighbor(node, 'next');
+    if (wrapped?.getAttribute?.('data-semantic-added') === 'true') {
+      return [...(wrapped.getElementsByTagName?.('mn') ?? [])]
+        .some((mn) => mn.getAttribute?.('data-omniya-nemeth-intent') === 'numeric-start');
+    }
+    return false;
   });
   if (hyphenRunoverNumeric) {
     braille = braille.replace(/⠤⠀(?!⠼)(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴])/g, '⠤⠀⠼');
@@ -4722,6 +4730,14 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     const presentDecimalMarks = [...decimalProjected.matchAll(/⠨(?=[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴⠁-⠵])/g)].length;
     if (presentDecimalMarks < authoredDecimalMarks) {
       decimalProjected = decimalProjected.replace(/(⠼[^⠨⠐]*)(⠲)(?![⠨⠠])/, '$1⠨');
+    }
+    // Integer hyphen-blank runovers must not keep a trailing decimal cell that
+    // SRE borrowed from digit-4 (`…⠆⠨⠀⠄⠄⠄` → `…⠆⠲⠀⠄⠄⠄`, 3-47).
+    if (hyphenRunoverNumeric) {
+      decimalProjected = decimalProjected.replace(
+        /(⠤⠀⠼[⠂⠆⠒⠲⠢⠖⠶⠦⠔⠴]+)⠨(?=⠀)/g,
+        '$1⠲'
+      );
     }
     let projected = restorePunctuationPeriods(
       decimalProjected,
