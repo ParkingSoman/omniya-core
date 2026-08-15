@@ -11,6 +11,24 @@ import { electronLaunchEnv } from './launch-electron.js';
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 const corpus = JSON.parse(await readFile(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url), 'utf8'));
 
+function projectWholeBraille(rawBraille, mathml) {
+  if (!rawBraille || !mathml) return rawBraille;
+  return applyNemethSourceIntentToBraille(
+    rawBraille,
+    new DOMParser().parseFromString(mathml, 'text/xml')
+  );
+}
+
+async function readProjectedWholeBraille(article) {
+  const rawBraille = await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel');
+  const mathml = await article.evaluate((node) => (
+    node.querySelector('span math')?.outerHTML
+    || node.querySelector('math')?.outerHTML
+    || ''
+  ));
+  return { wholeBraille: projectWholeBraille(rawBraille, mathml), mathml };
+}
+
 function selectedCases() {
   if (process.env.BANA_ELECTRON_EXAMPLE) return corpus.cases.filter((entry) => entry.exampleNumber === process.env.BANA_ELECTRON_EXAMPLE);
   if (process.env.BANA_RULE) return corpus.cases.filter((entry) => entry.exampleNumber.startsWith(`${process.env.BANA_RULE}-`));
@@ -270,15 +288,7 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
   const article = page.locator('article.napkin-article').last();
   await article.locator('mjx-speech[aria-braillelabel]').waitFor();
   await page.waitForTimeout(1600);
-  const rawBraille = await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel');
-  const mathml = await article.locator('math').evaluate((node) => node.outerHTML);
-  // SRE can finish replacing speech after the renderer’s projection timeouts.
-  // Re-apply the same source-intent projection the app uses so official
-  // whole-expression evidence matches the authored MathML stamps.
-  const wholeBraille = applyNemethSourceIntentToBraille(
-    rawBraille,
-    new DOMParser().parseFromString(mathml, 'text/xml')
-  );
+  const { wholeBraille, mathml } = await readProjectedWholeBraille(article);
   return {
     article,
     wholeBraille,
@@ -497,11 +507,12 @@ async function replaceFocusedEquationWithNemeth(page, cells, options = {}) {
     throw new Error(`focused Braille mismatch: expected=${cells.join('')} actual=${focusedBraille} diagnostic=${JSON.stringify(focusDiagnostic)}`);
   }
   await page.keyboard.press('Escape');
+  const { wholeBraille, mathml } = await readProjectedWholeBraille(article);
   return {
-    wholeBraille: await article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel'),
+    wholeBraille,
     focusedBraille,
     targetId,
-    mathml: await article.locator('math').evaluate((node) => node.outerHTML),
+    mathml,
     focusedEvidence
   };
 }
@@ -510,7 +521,7 @@ async function undoRedo(page, originalBraille, replacementBraille) {
   const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
   const article = page.locator('article.napkin-article').last();
   const wholeSpeech = article.locator('mjx-speech[aria-braillelabel]').last();
-  const readWhole = async () => article.locator('mjx-speech[aria-braillelabel]').last().getAttribute('aria-braillelabel');
+  const readWhole = async () => (await readProjectedWholeBraille(article)).wholeBraille;
   // Undo is an explorer command in the application, so re-enter MathJax
   // exploration after the replacement helper's Escape has returned focus to
   // the article. This also proves the persisted transaction is reachable from
@@ -520,9 +531,11 @@ async function undoRedo(page, originalBraille, replacementBraille) {
   await page.waitForFunction(() => Boolean(globalThis.MathJax?.startup?.document?.activeItem?.explorers?.speech?.current));
   await page.keyboard.press(`${modifier}+z`);
   await wholeSpeech.waitFor();
+  await page.waitForTimeout(400);
   const afterUndo = await readWhole();
   await page.keyboard.press(`${modifier}+Shift+z`);
   await wholeSpeech.waitFor();
+  await page.waitForTimeout(400);
   const afterRedo = await readWhole();
   return { ok: afterUndo === originalBraille && afterRedo === replacementBraille, afterUndo, afterRedo, originalBraille, replacementBraille };
 }
@@ -661,7 +674,7 @@ test('official BANA examples execute through the real Nemeth replacement rendere
       const persisted = page.locator('article.napkin-article');
       const saved = results.cases.at(-1);
       if (saved?.creation && !saved.incompleteDraft) {
-        const braille = await persisted.first().locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+        const { wholeBraille: braille } = await readProjectedWholeBraille(persisted.first());
         assert.equal(braille, saved.expectedPersistedBraille, `${saved.id} isolated relaunch changed persisted Braille`);
         saved.persistence = true;
         await persistResults();
@@ -689,7 +702,9 @@ test('official BANA examples execute through the real Nemeth replacement rendere
     const persisted = app.firstWindow ? await app.firstWindow() : page;
     const saved = results.cases.at(-1);
     if (saved?.creation && !saved.incompleteDraft) {
-      const braille = await persisted.locator('article.napkin-article').first().locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+      const article = persisted.locator('article.napkin-article').first();
+      await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+      const { wholeBraille: braille } = await readProjectedWholeBraille(article);
       assert.equal(braille, saved.expectedPersistedBraille, `${saved.id} isolated relaunch changed persisted Braille`);
       saved.persistence = true;
       await persistResults();
@@ -706,7 +721,9 @@ test('official BANA examples execute through the real Nemeth replacement rendere
   const executableResults = results.cases.filter((entry) => entry.creation === true && !entry.incompleteDraft);
   assert.equal(await persistedArticles.count(), executableResults.length, 'relaunch did not restore every committed official equation');
   for (const [index, evidence] of executableResults.entries()) {
-    const actual = await persistedArticles.nth(index).locator('mjx-speech[aria-braillelabel]').getAttribute('aria-braillelabel');
+    const article = persistedArticles.nth(index);
+    await article.locator('mjx-speech[aria-braillelabel]').waitFor();
+    const { wholeBraille: actual } = await readProjectedWholeBraille(article);
     assert.equal(actual, evidence.expectedPersistedBraille, `${evidence.id} persisted Braille differs after relaunch`);
     evidence.persistence = true;
   }

@@ -2781,11 +2781,22 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
   let flatComplete = true;
   const collectFlatLeaves = (node) => {
     const children = [...(node?.children ?? [])].filter((child) => child?.nodeType === 1);
+    // SRE enrichment inserts invisible operators and empty fence wrappers
+    // around tally marks. Those nodes have no authored Omniya stamps; skip
+    // them so a fully stamped flat row (Rule 24-18) can still rebuild.
+    const enrichmentNoise = node?.getAttribute?.('data-semantic-added') === 'true'
+      && !node?.getAttribute?.('data-omniya-nemeth-cells')
+      && !node?.getAttribute?.('data-omniya-nemeth-intent');
     if (!children.length) {
+      if (enrichmentNoise) return;
       const cells = node?.getAttribute?.('data-omniya-nemeth-cells');
       const explicitSpace = node?.localName === 'mspace' || node?.nodeName === 'mspace';
       if (cells || explicitSpace) flatLeaves.push({ node, cells: cells || '⠀' });
       else if (node?.textContent?.trim()) flatComplete = false;
+      return;
+    }
+    if (enrichmentNoise) {
+      for (const child of children) collectFlatLeaves(child);
       return;
     }
     for (const child of children) collectFlatLeaves(child);
@@ -3509,17 +3520,23 @@ export function applyNemethSourceIntentToBraille(braille, sourceMath) {
     // Rule 24.1.h / 24-18: multipurpose before a punctuation indicator after
     // tallies (`"_4`). Insert before blank restoration so a four-tally blank
     // rule cannot split `⠸⠸⠸⠸⠸⠲` into `⠸⠸⠸⠸⠀⠸⠲` and hide the target.
-    if ((tallyCount || explicitCellNodes.some((sequence) => sequence === '⠐⠸⠲' || sequence === '⠸⠲'))
+    // Require a multi-tally run so ordinary `⠸⠲` decimals (15-33, 3-101) are
+    // not rewritten when a punctuation-period stamp is also present.
+    if (tallyCount >= 2
       && sourceMath.querySelector?.('[data-omniya-nemeth-intent="punctuation-period"]')) {
-      braille = braille.replace(/(⠸+)(?!⠐)(?=⠸⠲)/g, '$1⠐');
+      braille = braille.replace(/(⠸{2,})(?!⠐)(?=⠸⠲)/g, '$1⠐');
+      // SRE may drop the punctuation-indicator cell and emit only `⠲`.
+      braille = braille.replace(/(⠸{2,})(?!⠐⠸)(?=⠲(?:⠀|$))/g, '$1⠐⠸');
+      // A doubled period cluster (`⠲⠸⠲`) collapses to authored `⠐⠸⠲`.
+      braille = braille.replace(/(⠸{2,})⠐?⠲⠸⠲/g, '$1⠐⠸⠲');
     }
     // Rule 23.52 / 24.18: authored blanks between tally groups must survive
     // SRE's concatenated bar projection.
     if (tallyCount && sourceMath.querySelector?.('[data-omniya-nemeth-intent="explicit-space"]')) {
-      braille = braille.replace(/(⠸{5})(?!⠀)(?=⠸)/g, '$1⠀');
-      braille = braille.replace(/(⠸{4})(?!⠀)(?=⠸)/g, (match, group, offset, value) => {
-        // Prefer restoring the blank after a five-tally group first; only use
-        // the four-tally form when no five-group blank was needed.
+      // Require a true group boundary: do not match 4 cells inside a 5-tally
+      // run (`⠸⠸⠸⠸⠸⠠` must stay intact for Rule 24-18).
+      braille = braille.replace(/(?<!⠸)(⠸{5})(?!⠀)(?=⠸)/g, '$1⠀');
+      braille = braille.replace(/(?<!⠸)(⠸{4})(?!⠀)(?=⠸{4})/g, (match, group, offset, value) => {
         // Do not split a multipurpose tally-period cluster (`⠐⠸⠲`).
         if (value.slice(offset + group.length).startsWith('⠐') || value.slice(offset + group.length).startsWith('⠸⠲')) {
           return match;

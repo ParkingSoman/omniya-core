@@ -2774,6 +2774,57 @@ test('Rule 24-18 multipurpose before tally punctuation restores ⠐ before ⠸�
   );
 });
 
+test('Rule 24-18 survives SRE empty-fence enrichment around tallies', () => {
+  const source = new DOMParser().parseFromString(
+    `<math>
+      <mrow data-semantic-added="true">
+        <mrow data-semantic-added="true">
+          <mo data-omniya-nemeth-cells="⠸">|</mo>
+          <mrow data-semantic-added="true"></mrow>
+          <mo data-omniya-nemeth-cells="⠸">|</mo>
+        </mrow>
+        <mo data-semantic-added="true">&#x2062;</mo>
+        <mrow data-semantic-added="true">
+          <mo data-omniya-nemeth-cells="⠸">|</mo>
+          <mrow data-semantic-added="true"></mrow>
+          <mo data-omniya-nemeth-cells="⠸">|</mo>
+        </mrow>
+        <mo data-semantic-added="true">&#x2062;</mo>
+        <mo data-omniya-nemeth-cells="⠸">|</mo>
+      </mrow>
+      <mo data-omniya-nemeth-intent="punctuation-comma" data-omniya-nemeth-cells="⠠">,</mo>
+      <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+      <mrow data-semantic-added="true">
+        <mrow data-semantic-added="true">
+          <mo data-omniya-nemeth-cells="⠸">|</mo>
+          <mrow data-semantic-added="true"></mrow>
+          <mo data-omniya-nemeth-cells="⠸">|</mo>
+        </mrow>
+        <mo data-semantic-added="true">&#x2062;</mo>
+        <mrow data-semantic-added="true">
+          <mo data-omniya-nemeth-cells="⠸">|</mo>
+          <mrow data-semantic-added="true"></mrow>
+          <mo data-omniya-nemeth-cells="⠸">|</mo>
+        </mrow>
+      </mrow>
+      <mo data-omniya-nemeth-intent="punctuation-period" data-omniya-nemeth-cells="⠐⠸⠲">.</mo>
+      <mspace width="1em" data-omniya-nemeth-intent="explicit-space"/>
+      <mo data-omniya-nemeth-cells="⠄⠄⠄">…</mo>
+    </math>`,
+    'text/xml'
+  ).documentElement;
+  const expected = '⠸⠸⠸⠸⠸⠠⠀⠸⠸⠸⠸⠐⠸⠲⠀⠄⠄⠄';
+  assert.equal(applyNemethSourceIntentToBraille(expected, source), expected);
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠳⠳⠳⠳⠳⠠⠀⠳⠳⠳⠳⠲⠀⠄⠄⠄', source),
+    expected
+  );
+  assert.equal(
+    applyNemethSourceIntentToBraille('⠸⠸⠸⠸⠀⠸⠠⠀⠸⠸⠸⠸⠲⠸⠲⠀⠄⠄⠄', source),
+    expected
+  );
+});
+
 test('Rule 14-62 repairs an SRE-split contracted comma before the next msub', () => {
   const source = new DOMParser().parseFromString(
     `<math>
