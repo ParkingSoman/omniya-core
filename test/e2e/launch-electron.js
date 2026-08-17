@@ -43,12 +43,13 @@ export async function chooseMethod(page, method) {
 /** Commit a new equation from the unified composer (no replacement dock). */
 export async function addEquationViaComposer(page, { method = 'latex', source }) {
   await page.locator('#composer-source').waitFor();
-  await chooseType(page, 'equation');
-  if (method === 'latex' || method === 'LaTeX') {
-    await chooseMethod(page, 'latex');
-  }
   const field = page.locator('#composer-source');
   await field.focus();
+  const chord = (method === 'nemeth' || method === 'Nemeth') ? 'Control+e' : 'Control+l';
+  await page.keyboard.press(chord);
+  await page.waitForFunction(() => /Equation · (Nemeth|LaTeX)/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
   if (method === 'nemeth' || method === 'Nemeth') {
     await field.fill('');
     await page.keyboard.type(source);

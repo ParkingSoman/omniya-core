@@ -222,6 +222,259 @@ test('supports a live-text offline napkin workflow', { timeout: 60_000 }, async 
   assert.deepEqual([...session.externalRequests], []);
 });
 
+test('Ctrl+L inserts LaTeX at the caret and Enter returns to text', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-ctrl-l-e2e-'));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  const { page } = session;
+  const source = page.getByLabel('Content', { exact: true });
+  const articles = page.locator('article.napkin-article');
+  await source.waitFor();
+  await source.fill('Let x equal ');
+  await source.focus();
+  await page.keyboard.press('Control+l');
+  await page.waitForFunction(() => /Equation · LaTeX/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  await source.fill('2+2');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  assert.ok(await articles.locator('mjx-container, math').count());
+  assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text/);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+});
+
+test('Ctrl+E opens Nemeth; Escape discards and returns to text', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-ctrl-e-e2e-'));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  const { page } = session;
+  const source = page.getByLabel('Content', { exact: true });
+  await source.waitFor();
+  await source.fill('Before equation');
+  await source.focus();
+  await page.keyboard.press('Control+e');
+  await page.waitForFunction(() => /Equation · Nemeth/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text/);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+});
+
+test('Ctrl+E mid-word does not split HelloWorld until commit; Escape leaves one article', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-defer-split-e2e-'));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  const { page } = session;
+  const source = page.getByLabel('Content', { exact: true });
+  const articles = page.locator('article.napkin-article');
+  await source.waitFor();
+  await source.fill('HelloWorld');
+  await articles.filter({ hasText: 'HelloWorld' }).waitFor();
+  await source.evaluate((el) => el.setSelectionRange(5, 5));
+  await page.keyboard.press('Control+e');
+  await page.waitForFunction(() => /Equation · Nemeth/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  assert.equal(await articles.count(), 1);
+  assert.equal((await articles.locator('.item-text').textContent())?.trim(), 'HelloWorld');
+
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  assert.equal(await articles.count(), 1);
+  assert.equal((await articles.locator('.item-text').textContent())?.trim(), 'HelloWorld');
+  assert.match(await source.inputValue(), /HelloWorld/);
+});
+
+test('Ctrl+L mid-word commits an island and puts the caret at the start of World', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-mid-commit-caret-e2e-'));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  const { page } = session;
+  const source = page.getByLabel('Content', { exact: true });
+  const articles = page.locator('article.napkin-article');
+  await source.waitFor();
+  await source.fill('HelloWorld');
+  await source.evaluate((el) => el.setSelectionRange(5, 5));
+  await page.keyboard.press('Control+l');
+  await page.waitForFunction(() => /Equation · LaTeX/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  await source.fill('x');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+
+  assert.equal(await articles.count(), 3);
+  assert.equal((await articles.nth(0).locator('.item-text').textContent())?.trim(), 'Hello');
+  assert.ok(await articles.nth(1).locator('mjx-container, math').count());
+  assert.equal((await articles.nth(2).locator('.item-text').textContent())?.trim(), 'World');
+  assert.equal(await source.inputValue(), 'World');
+  const caret = await source.evaluate((el) => el.selectionStart);
+  assert.equal(caret, 0);
+  await source.pressSequentially('!');
+  assert.equal((await articles.nth(2).locator('.item-text').textContent())?.trim(), '!World');
+});
+
+test('Escape after Ctrl+E at the start of World does not merge it into Hello', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-escape-split-e2e-'));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  const { page } = session;
+  const source = page.getByLabel('Content', { exact: true });
+  const articles = page.locator('article.napkin-article');
+  await source.waitFor();
+  await source.fill('Hello');
+  await source.focus();
+  await page.keyboard.press('Control+l');
+  await page.waitForFunction(() => /Equation · LaTeX/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  await source.fill('x');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  await source.waitFor();
+  await source.fill('World');
+  await articles.filter({ hasText: 'World' }).waitFor();
+  assert.equal(await articles.count(), 3);
+
+  const equation = articles.nth(1);
+  await equation.click();
+  await equation.focus();
+  await equation.press('Backspace');
+  await articles.filter({ hasText: 'World' }).waitFor();
+  assert.equal(await articles.count(), 2);
+
+  await articles.filter({ hasText: 'World' }).click();
+  await source.waitFor();
+  assert.match(await source.inputValue(), /World/);
+  await source.evaluate((el) => el.setSelectionRange(0, 0));
+  await page.keyboard.press('Control+e');
+  await page.waitForFunction(() => /Equation · Nemeth/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+
+  const texts = articles.locator('.item-text');
+  assert.equal(await texts.count(), 2);
+  assert.equal((await texts.nth(0).textContent())?.trim(), 'Hello');
+  assert.equal((await texts.nth(1).textContent())?.trim(), 'World');
+  assert.equal(await articles.filter({ hasText: 'HelloWorld' }).count(), 0);
+});
+
+test('Escape at the start of World keeps Hello and World on either side of an equation', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-escape-island-e2e-'));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  const { page } = session;
+  const source = page.getByLabel('Content', { exact: true });
+  const articles = page.locator('article.napkin-article');
+  await source.waitFor();
+  await source.fill('Hello');
+  await source.focus();
+  await page.keyboard.press('Control+l');
+  await page.waitForFunction(() => /Equation · LaTeX/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  await source.fill('x');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  await source.fill('World');
+  await articles.filter({ hasText: 'World' }).waitFor();
+  assert.equal(await articles.count(), 3);
+
+  await articles.filter({ hasText: 'World' }).click();
+  await source.waitFor();
+  assert.match(await source.inputValue(), /World/);
+  await source.evaluate((el) => el.setSelectionRange(0, 0));
+  await page.keyboard.press('Control+e');
+  await page.waitForFunction(() => /Equation · Nemeth/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+
+  assert.equal(await articles.count(), 3);
+  assert.equal((await articles.nth(0).locator('.item-text').textContent())?.trim(), 'Hello');
+  assert.ok(await articles.nth(1).locator('mjx-container, math').count());
+  assert.equal((await articles.nth(2).locator('.item-text').textContent())?.trim(), 'World');
+});
+
+test('Ctrl+E after clearing middle live text inserts at the hole', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-middle-hole-e2e-'));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  const { page } = session;
+  const source = page.getByLabel('Content', { exact: true });
+  const articles = page.locator('article.napkin-article');
+  await source.waitFor();
+  await source.fill('Hello');
+  await source.focus();
+  await page.keyboard.press('Control+l');
+  await page.waitForFunction(() => /Equation · LaTeX/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  await source.fill('x');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  await source.fill('World');
+  await articles.filter({ hasText: 'World' }).waitFor();
+
+  await articles.filter({ hasText: 'Hello' }).click();
+  await source.waitFor();
+  assert.match(await source.inputValue(), /Hello/);
+  await source.fill('   ');
+  await page.keyboard.press('Control+l');
+  await page.waitForFunction(() => /Equation · LaTeX/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  await source.fill('y');
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await articles.locator('mjx-container, math').nth(1).waitFor({ timeout: 30_000 });
+
+  assert.equal(await articles.count(), 3);
+  assert.ok(await articles.nth(0).locator('mjx-container, math').count());
+  assert.ok(await articles.nth(1).locator('mjx-container, math').count());
+  assert.equal((await articles.nth(2).locator('.item-text').textContent())?.trim(), 'World');
+});
+
 test('moves left and right between sibling expressions inside MathML', { timeout: 60_000 }, async (t) => {
   await resetArtifactDirectory();
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-horizontal-e2e-'));

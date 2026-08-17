@@ -3,7 +3,9 @@ import {
   createNapkin,
   deleteNapkin,
   deleteItem,
+  insertItemAt,
   selectItem,
+  splitTextItem,
   switchNapkin,
   updateItem
 } from '../domain/model.js';
@@ -72,6 +74,8 @@ let uebBuffer = createUebCellBuffer();
 let uebCellChain = Promise.resolve();
 let composerMathInputProcessing = Promise.resolve();
 let submittingComposerEquation = false;
+let equationCaretSnapshot = null;
+let clearedLiveTextIndex = null;
 const mathHistory = new Map();
 
 function activeNapkin() {
@@ -557,8 +561,8 @@ function renderComposer() {
   elements['composer-help'].textContent = mathReplace
     ? 'Nemeth: type cells · LaTeX: type source · Escape cancels · Replace commits'
     : values.type === 'equation'
-      ? 'Nemeth: type cells · LaTeX: type source · Escape cancels'
-      : 'Type to write. Enter makes a new line.';
+      ? 'Nemeth: type cells · LaTeX: type source · Escape cancels · Ctrl+E / Ctrl+L choose method while empty'
+      : 'Type to write. Enter makes a new line. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX.';
   // Unified composer: Equation keeps #composer-source visible (Nemeth/LaTeX styling only).
   elements['composer-source'].hidden = false;
   elements['composer-source'].required = false;
@@ -929,6 +933,8 @@ function persistLiveTextFromComposer() {
   const source = elements['composer-source'].value;
   const note = elements['composer-note']?.value ?? '';
   if (!source.trim() && liveTextItemId) {
+    const index = activeNapkin()?.items.findIndex(({ id }) => id === liveTextItemId) ?? -1;
+    if (index >= 0) clearedLiveTextIndex = index;
     state = deleteItem(state, liveTextItemId);
     removeLiveTextArticle(liveTextItemId);
     liveTextItemId = null;
@@ -937,6 +943,7 @@ function persistLiveTextFromComposer() {
     return;
   }
   if (source.trim() && !liveTextItemId) {
+    clearedLiveTextIndex = null;
     state = addItem(state, { type: 'text', source, note });
     liveTextItemId = activeItem()?.id ?? null;
     editingItemId = liveTextItemId;
@@ -946,11 +953,102 @@ function persistLiveTextFromComposer() {
     return;
   }
   if (source.trim() && liveTextItemId) {
+    clearedLiveTextIndex = null;
     state = updateItem(state, liveTextItemId, { source, note });
     const item = activeNapkin()?.items.find(({ id }) => id === liveTextItemId);
     if (item) appendOrUpdateLiveTextArticle(item);
     saveSelectionSoon();
   }
+}
+
+function snapshotEquationCaret() {
+  const source = elements['composer-source']?.value ?? '';
+  const note = elements['composer-note']?.value ?? '';
+  const caretOffset = elements['composer-source']?.selectionStart;
+  const itemId = liveTextItemId && activeNapkin()?.items.some(({ id }) => id === liveTextItemId)
+    ? liveTextItemId
+    : null;
+  return {
+    itemId,
+    offset: Number.isInteger(caretOffset) ? caretOffset : source.length,
+    source,
+    note,
+    holeIndex: itemId ? null : clearedLiveTextIndex
+  };
+}
+
+function restoreEquationCaretSnapshot() {
+  const snap = equationCaretSnapshot;
+  equationCaretSnapshot = null;
+  if (!snap) return;
+  const napkin = activeNapkin();
+  const item = snap.itemId ? napkin?.items.find(({ id }) => id === snap.itemId) : null;
+  if (item?.type === 'text') {
+    openEditMode(item.id);
+    if (elements['composer-source']) {
+      elements['composer-source'].value = snap.source;
+      draft.source = snap.source;
+      draft.note = snap.note;
+      const offset = Math.min(snap.source.length, Math.max(0, snap.offset));
+      elements['composer-source'].setSelectionRange(offset, offset);
+    }
+    return;
+  }
+  if (elements['composer-source']) elements['composer-source'].value = snap.source ?? '';
+  draft = { source: snap.source ?? '', note: snap.note ?? '', type: 'text' };
+  liveTextItemId = null;
+  editingItemId = null;
+  clearedLiveTextIndex = snap.holeIndex ?? clearedLiveTextIndex;
+  commandState = createAuthoringState({
+    surface: 'text',
+    contentEmpty: !(snap.source ?? '').trim()
+  });
+  applyCommandStateToChrome(commandState);
+  renderComposer();
+  elements['composer-source']?.focus();
+}
+
+function commitEquationAtSnapshot(note, math) {
+  const snap = equationCaretSnapshot;
+  equationCaretSnapshot = null;
+  let insertAt = activeNapkin()?.items.length ?? 0;
+  let rightId = null;
+  if (snap?.itemId) {
+    const item = activeNapkin()?.items.find(({ id }) => id === snap.itemId);
+    if (item?.type === 'text') {
+      const offset = Math.min(item.source.length, Math.max(0, snap.offset));
+      const split = splitTextItem(state, snap.itemId, offset);
+      state = split.state;
+      rightId = split.rightId;
+      const items = activeNapkin().items;
+      insertAt = split.leftId == null
+        ? items.findIndex(({ id }) => id === split.rightId)
+        : items.findIndex(({ id }) => id === split.leftId) + 1;
+    }
+  } else if (snap?.holeIndex != null) {
+    insertAt = Math.min(snap.holeIndex, activeNapkin().items.length);
+  }
+  clearedLiveTextIndex = null;
+  state = insertItemAt(state, insertAt, { type: 'equation', note, math });
+  return rightId;
+}
+
+function startEquationAtCaret(method) {
+  if (!activeNapkin()) return;
+  if (commandState.replaceScopeLabel || isMathReplaceAuthoring()) return;
+  equationCaretSnapshot = snapshotEquationCaret();
+  liveTextItemId = null;
+  editingItemId = null;
+  if (elements['composer-source']) elements['composer-source'].value = '';
+  draft = { source: '', note: '', type: 'equation' };
+  commandState = { ...commandState, contentEmpty: true };
+  const entered = enterEquationSurface(commandState, method);
+  commandState = entered.state;
+  mode = 'add';
+  ensureComposerMathSession();
+  applyCommandStateToChrome(commandState);
+  renderComposer();
+  elements['composer-source'].focus();
 }
 
 function enterDocumentTextAuthoring({ focus = true, preserveComposer = false } = {}) {
@@ -997,6 +1095,7 @@ function returnToRead({ discardDraft = true } = {}) {
   }
   renderAll();
   enterDocumentTextAuthoring({ focus: Boolean(activeNapkin()) });
+  if (wasNew) restoreEquationCaretSnapshot();
 }
 
 function openEditMode(itemId) {
@@ -1006,10 +1105,15 @@ function openEditMode(itemId) {
   if (!itemId) return;
   const item = napkin.items.find(({ id }) => id === itemId);
   if (item?.type !== 'text') return;
+  if (isComposerMathAuthoring() && replacementSession?.isNew) {
+    clearComposerMathSession();
+    equationCaretSnapshot = null;
+  }
   state = selectItem(state, itemId);
   liveTextItemId = itemId;
   editingItemId = itemId;
   mode = 'read';
+  clearedLiveTextIndex = null;
   uebBuffer = createUebCellBuffer();
   draft = { source: item.source, note: item.note ?? '', type: 'text' };
   commandState = createAuthoringState({
@@ -1188,30 +1292,28 @@ function openContextualHelp() {
     status.textContent = formatStatus(commandState);
     const tHelp = document.createElement('p');
     tHelp.append(document.createElement('kbd'));
-    tHelp.firstChild.textContent = 't';
-    tHelp.append(` — ${commandState.surface === 'text' ? 'toggle UEB grade / G1 passage' : 'make Text (UEB)'}`);
+    tHelp.firstChild.textContent = 'Ctrl+T';
+    tHelp.append(` — ${commandState.surface === 'text' ? 'toggle UEB grade / G1 passage' : 'ignored while authoring an equation'}`);
     const eHelp = document.createElement('p');
     eHelp.append(document.createElement('kbd'));
-    eHelp.firstChild.textContent = 'x';
-    eHelp.append(` — ${commandState.surface === 'equation' && commandState.contentEmpty ? 'cycle Nemeth/LaTeX' : 'make Equation (Nemeth)'}`);
+    eHelp.firstChild.textContent = 'Ctrl+E';
+    eHelp.append(' — insert Nemeth equation at the caret');
+    const lHelp = document.createElement('p');
+    lHelp.append(document.createElement('kbd'));
+    lHelp.firstChild.textContent = 'Ctrl+L';
+    lHelp.append(' — insert LaTeX equation at the caret');
     const sHelp = document.createElement('p');
     sHelp.append(document.createElement('kbd'));
-    sHelp.firstChild.textContent = 's';
-    sHelp.append(' — focus authoring mode panel');
+    sHelp.firstChild.textContent = 'Escape';
+    sHelp.append(' — discard an unfinished equation and return to text');
     const shortcuts = document.createElement('p');
     shortcuts.append(document.createElement('kbd'));
-    shortcuts.children[0].textContent = 'Ctrl+[';
-    shortcuts.append(' enters Command mode · ');
     shortcuts.append(document.createElement('kbd'));
-    shortcuts.children[1].textContent = 'Escape';
-    shortcuts.append(' cancels · ');
-    shortcuts.append(document.createElement('kbd'));
-    shortcuts.children[2].textContent = 'n';
-    shortcuts.append(' submit · ');
-    shortcuts.append(document.createElement('kbd'));
-    shortcuts.children[3].textContent = 'i';
-    shortcuts.append(' insert');
-    el.append(status, tHelp, eHelp, sHelp, shortcuts);
+    shortcuts.children[0].textContent = 'Ctrl+T';
+    shortcuts.append(' toggles UEB grade on text · ');
+    shortcuts.children[1].textContent = 'Enter';
+    shortcuts.append(' commits an equation');
+    el.append(status, tHelp, eHelp, lHelp, sHelp, shortcuts);
   }
   if (typeof box.showModal === 'function') box.showModal();
   else box.hidden = false;
@@ -1219,6 +1321,34 @@ function openContextualHelp() {
 
 function handleComposerCommandKey(event) {
   const inDock = isDockReplacement();
+  const chord = event.ctrlKey || event.metaKey;
+  const key = event.key.toLowerCase();
+
+  if (chord && (key === 'e' || key === 'l' || key === 't')) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (commandState.replaceScopeLabel || isMathReplaceAuthoring()) return true;
+    if (key === 't') {
+      if (!isDocumentTextSurface()) return true;
+      const toggled = toggleUebGrade(commandState);
+      applyCommandStateToChrome(toggled.state);
+      announce(toggled.announcement);
+      return true;
+    }
+    const method = key === 'l' ? 'latex' : 'nemeth';
+    if (isDocumentTextSurface()) {
+      startEquationAtCaret(method);
+      return true;
+    }
+    if (isComposerMathAuthoring() && commandState.contentEmpty) {
+      const entered = enterEquationSurface(commandState, method);
+      applyCommandStateToChrome(entered.state);
+      applyReplacementMethodFromCommand(entered.state.equationMethod);
+      return true;
+    }
+    return true;
+  }
+
   if (!inDock && mode !== 'add' && mode !== 'edit') return false;
 
   if (event.key === 'Escape') {
@@ -1335,13 +1465,17 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         elements['save-status'].textContent = 'Replacement committed';
         await saveState().catch(() => {});
       } else {
-        state = addItem(state, { type: 'equation', note, math: result.document });
+        const followId = commitEquationAtSnapshot(note, result.document);
         clearComposerMathSession();
         resetDraft();
         liveTextItemId = null;
         editingItemId = null;
         renderAll();
         enterDocumentTextAuthoring({ focus: true });
+        if (followId && activeNapkin()?.items.some(({ id }) => id === followId)) {
+          openEditMode(followId);
+          elements['composer-source']?.setSelectionRange(0, 0);
+        }
         elements['save-status'].textContent = 'Added item';
         await saveState().catch(() => {});
       }
@@ -1446,6 +1580,8 @@ elements['napkin-list'].addEventListener('click', async (event) => {
   if (isComposerMathAuthoring() || isMathReplaceAuthoring()) returnToRead();
   liveTextItemId = null;
   editingItemId = null;
+  equationCaretSnapshot = null;
+  clearedLiveTextIndex = null;
   state = switchNapkin(state, button.dataset.napkinId);
   renderAll();
   elements['save-status'].textContent = `Opened ${activeNapkin().name}`;
@@ -1660,6 +1796,10 @@ elements['mode-switch'].addEventListener('change', () => {
     renderComposer();
     return;
   }
+  if (equationCaretSnapshot && replacementSession?.isNew) {
+    returnToRead();
+    return;
+  }
   clearComposerMathSession();
   liveTextItemId = null;
   enterDocumentTextAuthoring({ focus: true });
@@ -1678,7 +1818,7 @@ elements['composer-source'].addEventListener('keydown', (event) => {
         setFieldError(
           elements['composer-source'],
           elements['composer-error'],
-          'Nemeth mode accepts braille cells only. Switch to LaTeX with x in Command mode while the draft is empty, or enter cells.'
+          'Nemeth mode accepts braille cells only. Switch to LaTeX with Ctrl+L while the draft is empty, or enter cells.'
         );
         return;
       }
@@ -1777,7 +1917,8 @@ elements['composer-form'].addEventListener('submit', (event) => {
 // keyHandler; skip it here to avoid double-handling.
 document.addEventListener('keydown', (event) => {
   const inReplacement = Boolean(replacementSession) && !elements['replacement-dock']?.hidden;
-  if (mode !== 'add' && mode !== 'edit' && !inReplacement) return;
+  const napkinAuthoring = Boolean(activeNapkin()) && (mode === 'read' || mode === 'add' || mode === 'edit' || inReplacement);
+  if (!napkinAuthoring) return;
   if (exploringEquationItemId) return;
   if (elements['keyboard-help']?.open) return;
   if (event.target?.closest?.('#new-napkin-form, #napkin-rail, dialog')) return;
