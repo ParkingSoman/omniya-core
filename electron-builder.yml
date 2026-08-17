@@ -17,3 +17,11 @@ win:
         - x64
 directories:
   output: dist
+files:
+  - "**/*"
+  - "!docs{,/**/*}"
+  - "!test{,/**/*}"
+  - "!vendor{,/**/*}"
+  - "!dist{,/**/*}"
+  - "!.github{,/**/*}"
+  - "!scripts{,/**/*}"

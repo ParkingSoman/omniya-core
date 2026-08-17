@@ -1,0 +1,50 @@
+name: testing-app
+
+on:
+  push:
+    branches: [testing]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pack-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: brew install liblouis
+      - run: npm ci
+      - run: npm run dist:mac
+      - name: Publish zip to testing-app prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view testing-app >/dev/null 2>&1 || gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned zips for the testing branch. Re-download after each push. Apple Silicon Mac and Windows x64 only." --target "$GITHUB_SHA"
+          gh release upload testing-app dist/*.zip --clobber
+
+  pack-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run dist:win
+      - name: Publish zip to testing-app prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          gh release view testing-app >$null 2>&1; if ($LASTEXITCODE -ne 0) { gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned zips for the testing branch. Re-download after each push. Apple Silicon Mac and Windows x64 only." --target $env:GITHUB_SHA }
+          $zips = Get-ChildItem -Path dist -Filter *.zip
+          if (-not $zips) { throw "No zip found in dist" }
+          foreach ($zip in @($zips)) {
+            gh release upload testing-app $zip.FullName --clobber
+          }
