@@ -51,7 +51,7 @@ async function assertNoAxeViolations(page) {
   assert.deepEqual(scan.violations, []);
 }
 
-test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async (t) => {
+test('supports a live-text offline napkin workflow', { timeout: 60_000 }, async (t) => {
   await resetArtifactDirectory();
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-e2e-'));
   let session = await launch(dataDirectory);
@@ -62,27 +62,30 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
 
   const { page } = session;
   const napkinRail = page.getByRole('complementary', { name: 'Napkins' });
-  const reading = page.getByRole('region', { name: 'Reading' });
   const articles = page.locator('article.napkin-article');
   const source = page.getByLabel('Content', { exact: true });
 
   await napkinRail.waitFor();
   await page.getByRole('heading', { name: 'Reading' }).waitFor();
-  assert.equal(await page.getByRole('button', { name: 'Add item' }).count(), 1);
-  assert.equal(await page.locator('#composer-dock').isHidden(), true);
+  assert.equal(await page.locator('#open-add-button').count(), 0);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB G2/);
+  assert.equal(await page.locator('#mode-panel').getAttribute('aria-live'), null);
+  assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 1);
   await assertNoAxeViolations(page);
 
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Proof ideas');
   await page.getByRole('button', { name: 'Create napkin' }).click();
   assert.equal(await napkinRail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
-  assert.equal(await page.getByRole('button', { name: 'Add item' }).count(), 1);
-
-  await page.getByRole('button', { name: 'Add item' }).click();
-  assert.equal(await page.getByRole('heading', { name: 'Adding to Proof ideas' }).count(), 1);
+  assert.equal(await page.locator('#open-add-button').count(), 0);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.equal(await page.locator('#reading-actions').isHidden(), true);
-  assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 0);
+  assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB G2/);
+  assert.doesNotMatch(await page.locator('#composer-heading').textContent() ?? '', /Adding to/i);
+  assert.match(await page.locator('#composer-help').textContent() ?? '', /Type to write/i);
+  assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 1);
   await assertNoAxeViolations(page);
   const modeSwitchChrome = await page.locator('#mode-switch').evaluate((el) => {
     const style = getComputedStyle(el);
@@ -94,14 +97,13 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await source.fill('Let a be positive.');
   assert.equal(await page.locator('#note-toggle').isVisible(), false);
   assert.equal(await page.locator('#note-row').isVisible(), false);
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-
+  await articles.first().waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
   assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   assert.equal(await articles.count(), 1);
   assert.match(await articles.first().textContent(), /Let a be positive/);
   assert.equal(await articles.first().locator('.item-note').count(), 0);
 
-  await page.getByRole('button', { name: 'Add item' }).click();
   await chooseType(page, 'equation');
   assert.equal(await page.locator('#note-toggle').isVisible(), false);
   const methodChrome = await page.locator('#replacement-method').evaluate((el) => {
@@ -114,13 +116,13 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await chooseMethod(page, 'latex');
   await page.locator('#composer-source').fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await articles.nth(1).locator('mjx-container').waitFor();
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 
   assert.equal(await articles.count(), 2);
   assert.equal(await articles.nth(1).locator('h4').count(), 0);
   assert.equal(await articles.nth(1).locator('.item-source').count(), 0);
-  await articles.nth(1).locator('mjx-container').waitFor();
   assert.ok(await articles.nth(1).locator('mjx-container').count());
   assert.ok(await articles.nth(1).locator('mjx-container math mfrac').count());
   assert.ok(await articles.nth(1).locator('mjx-container math msubsup').count());
@@ -129,7 +131,10 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   const firstArticle = articles.nth(0);
   const secondArticle = articles.nth(1);
   await firstArticle.click();
-  await firstArticle.press('ArrowDown');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  assert.match(await source.inputValue(), /Let a be positive/);
+  await secondArticle.click();
+  await secondArticle.focus();
   assert.equal(await secondArticle.getAttribute('tabindex'), '0');
   assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
   await page.keyboard.press('Enter');
@@ -146,9 +151,9 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
-  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   await articles.nth(1).locator('mjx-container').waitFor();
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
   assert.ok(await articles.nth(1).locator('mjx-container math').count());
 
   await secondArticle.focus();
@@ -159,14 +164,12 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await firstArticle.press('End');
   assert.equal(await secondArticle.getAttribute('tabindex'), '0');
 
-  await page.getByRole('button', { name: 'Add item' }).click();
-  await source.fill('unfinished draft');
+  await source.focus();
   await source.press('Escape');
-  await source.press('q');
-  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
   assert.equal(await articles.count(), 2);
 
-  await page.getByRole('button', { name: 'Add item' }).click();
   await chooseType(page, 'equation');
   await chooseMethod(page, 'latex');
   await page.locator('#composer-source').fill('\\frac{');
@@ -174,7 +177,8 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   assert.match(await page.locator('#composer-error').textContent(), /convert|incomplete|empty/i);
   await assertNoAxeViolations(page);
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Add item' }).waitFor();
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
 
   await page.getByRole('button', { name: 'Keyboard help' }).click();
   assert.equal(await page.getByRole('dialog', { name: 'Keyboard help' }).count(), 1);
@@ -183,24 +187,23 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Text notes');
   await page.getByRole('button', { name: 'Create napkin' }).click();
-  await page.getByRole('button', { name: 'Add item' }).click();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
   await source.fill('The proof starts here.');
   await source.press('Enter');
-  await page.getByRole('button', { name: 'Add item' }).click();
-  await source.fill('Remove this item.');
-  await source.press('Enter');
+  await source.type('Second line.');
   const textNotesArticles = page.locator('article.napkin-article');
-  assert.equal(await textNotesArticles.count(), 2);
-  await textNotesArticles.nth(1).focus();
-  await textNotesArticles.nth(1).press('Backspace');
+  await textNotesArticles.first().waitFor();
   assert.equal(await textNotesArticles.count(), 1);
-  assert.equal(await textNotesArticles.first().getAttribute('tabindex'), '0');
   assert.match(await textNotesArticles.first().textContent(), /The proof starts here/);
+  assert.match(await textNotesArticles.first().textContent(), /Second line/);
+  await textNotesArticles.first().focus();
   await textNotesArticles.first().press('Backspace');
   assert.equal(await textNotesArticles.count(), 0);
-  assert.equal(await page.getByText('No items yet. Add the first item below.').count(), 1);
+  assert.equal(await page.getByText('No items yet. Start typing.').count(), 1);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
 
   await napkinRail.getByRole('button', { name: 'Proof ideas' }).click();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
   assert.equal(await articles.count(), 2);
   await articles.nth(1).locator('mjx-container').waitFor();
   assert.ok(await articles.nth(1).locator('mjx-container math').count());
@@ -215,6 +218,7 @@ test('supports a read-first offline napkin workflow', { timeout: 60_000 }, async
   await session.page.getByRole('button', { name: 'Proof ideas' }).click();
   await session.page.locator('article mjx-container').waitFor();
   assert.ok(await session.page.locator('article mjx-container math').count());
+  assert.equal(await session.page.evaluate(() => document.activeElement?.id), 'composer-source');
   assert.deepEqual([...session.externalRequests], []);
 });
 
@@ -271,6 +275,8 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
   await page.getByRole('button', { name: 'New napkin' }).click();
   await page.getByLabel('Napkin name').fill('Third napkin');
   await page.getByRole('button', { name: 'Create napkin' }).click();
+  await page.locator('#composer-source').fill('notes on third');
+  await page.locator('article.napkin-article').first().waitFor();
 
   const second = rail.getByRole('button', { name: 'Second napkin' });
   await second.focus();
@@ -292,6 +298,9 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
     third.press('Backspace')
   ]);
   await assert.rejects(() => rail.getByRole('button', { name: 'Third napkin' }).waitFor({ timeout: 250 }));
+  await page.locator('#composer-source').waitFor();
+  await page.locator('#composer-source').fill('still works after delete');
+  await page.locator('article.napkin-article').filter({ hasText: 'still works after delete' }).waitFor();
   const first = rail.getByRole('button', { name: 'Untitled Napkin' });
   let finalMessage = '';
   await Promise.all([

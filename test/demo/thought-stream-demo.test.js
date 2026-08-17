@@ -18,7 +18,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { _electron as electron } from 'playwright';
-import { electronLaunchEnv } from '../e2e/launch-electron.js';
+import { electronLaunchEnv, openReplacementDockOnNewEquation, waitForDocumentComposer } from '../e2e/launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CELL_MS = 550;
@@ -47,12 +47,9 @@ async function launch() {
 }
 
 async function addBlankEquation(page) {
-  await page.getByRole('button', { name: 'Add item' }).click();
-  await page.getByRole('radio', { name: 'Equation' }).check();
-  await page.getByLabel('Content', { exact: true }).press('Enter');
-  await page.locator('#replacement-dock').waitFor();
+  const article = await openReplacementDockOnNewEquation(page);
   await pause(page, BEAT_MS);
-  return page.locator('article.napkin-article').last();
+  return article;
 }
 
 async function resolveChoiceIfNeeded(page, preferredOperationId) {
@@ -95,7 +92,7 @@ async function submitReplacement(page) {
   await pause(page, SUBMIT_MS);
   const input = page.getByLabel('Replacement input', { exact: true });
   await input.press('Enter');
-  await page.locator('#replacement-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
   await pause(page, BEAT_MS);
 }
 
@@ -249,7 +246,7 @@ async function openIntegrandReplacement(page, article) {
   assert.ok(matchesSpeech(speech, INTEGRAND_X), `expected integrand x, got ${JSON.stringify(speech)}`);
   await pause(page, BEAT_MS);
   await page.keyboard.press('r');
-  await page.locator('#replacement-dock').waitFor();
+  await page.getByLabel('Replacement input', { exact: true }).waitFor();
   const scope = await page.locator('#replacement-scope').textContent();
   assert.match(scope ?? '', /x/i);
   assert.equal(
@@ -279,7 +276,7 @@ async function openIntegralBoundReplacement(page, article, which) {
     assert.ok(matchesSpeech(speech, UPPER_BOUND), `expected upper bound, got ${JSON.stringify(speech)}`);
   }
   await page.keyboard.press('r');
-  await page.locator('#replacement-dock').waitFor();
+  await page.getByLabel('Replacement input', { exact: true }).waitFor();
   const scope = await page.locator('#replacement-scope').textContent();
   if (which === 'lower') assert.match(scope ?? '', /lower|underscript|a|0/i);
   else assert.match(scope ?? '', /upper|overscript|b|1/i);

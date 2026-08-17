@@ -96,7 +96,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .item-note { color: var(--muted); font-size: 0.78rem; margin: 0.35rem 0 0; }
 .reading-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
 .reading-actions button, #keyboard-help button { border: 1px solid var(--accent); border-radius: 0.35rem; padding: 0.45rem 0.8rem; }
-#open-add-button { background: var(--accent); color: white; }
 #keyboard-help-button { background: transparent; color: var(--muted); }
 
 #composer-dock { background: #f3f5f6; border-top: 0.25rem solid var(--accent); padding: 0.75rem clamp(1rem, 4vw, 3rem) 1rem; }

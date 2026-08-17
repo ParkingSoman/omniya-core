@@ -25,7 +25,6 @@ async function launch(prefix = 'omniya-ueb-cmd-') {
 }
 
 async function openComposer(page) {
-  await page.getByRole('button', { name: 'Add item' }).click();
   await page.locator('#composer-source').waitFor();
   await page.locator('#composer-source').focus();
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
@@ -53,9 +52,10 @@ test('Ctrl+[ enters Command; Escape cancels composer', { timeout: 60_000 }, asyn
   await page.keyboard.press('Control+[');
   await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
   await page.keyboard.press('Escape');
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
-  await page.getByRole('button', { name: 'Add item' }).waitFor();
-  assert.equal(await page.locator('article.napkin-article').count(), 0);
+  await page.locator('#composer-source').waitFor();
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  assert.equal(await page.locator('article.napkin-article').count(), 1);
 });
 
 test('composer has no Command button; Ctrl+[ still enters Command', { timeout: 60_000 }, async (t) => {
@@ -173,7 +173,8 @@ test('composer Escape cancels equation; lowercase a rejected in Nemeth', { timeo
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Add item' }).waitFor();
-  assert.equal(await page.locator('#composer-dock').isVisible(), false);
+  await page.locator('#composer-source').waitFor();
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 });

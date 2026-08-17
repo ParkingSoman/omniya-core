@@ -40,7 +40,7 @@ const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name', 'item-count',
   'mode-panel', 'save-status', 'reading-section', 'reading-heading', 'reading-help',
-  'empty-message', 'transcript', 'reading-actions', 'open-add-button',
+  'empty-message', 'transcript', 'reading-actions',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
   'composer-form', 'composer-heading', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
@@ -55,6 +55,7 @@ const NOTES_UI_ENABLED = false;
 let state;
 let mode = 'read';
 let editingItemId = null;
+let liveTextItemId = null;
 let noteVisible = false;
 let draft = { source: '', note: '', type: 'text' };
 let selectionSaveTimer;
@@ -338,65 +339,126 @@ function clearTranscriptMath() {
   }
 }
 
+function updateItemCount() {
+  const napkin = activeNapkin();
+  const count = napkin?.items.length ?? 0;
+  elements['item-count'].textContent = `${count} ${count === 1 ? 'item' : 'items'}`;
+}
+
+function syncEmptyMessage() {
+  const napkin = activeNapkin();
+  if (!napkin) {
+    elements['empty-message'].textContent = 'No napkin selected. Create one with New napkin.';
+    elements['empty-message'].hidden = false;
+    return;
+  }
+  elements['empty-message'].textContent = 'No items yet. Start typing.';
+  elements['empty-message'].hidden = napkin.items.length > 0;
+}
+
+function refreshArticleSetSizes() {
+  const articles = [...elements['transcript'].querySelectorAll('article.napkin-article')];
+  articles.forEach((article, index) => {
+    article.setAttribute('aria-posinset', String(index + 1));
+    article.setAttribute('aria-setsize', String(articles.length));
+  });
+}
+
+function applyUebLabel(textNode, source) {
+  if (typeof window.omniya?.translateUeb !== 'function') return;
+  void applyUebBrailleLabel(
+    textNode,
+    source,
+    'g2',
+    (value, grade) => window.omniya.translateUeb(value, grade)
+  );
+}
+
+function buildTranscriptArticle(item, index, count, version) {
+  const napkin = activeNapkin();
+  const article = document.createElement('article');
+  article.className = 'napkin-article';
+  article.tabIndex = item.id === napkin?.selectedItemId ? 0 : -1;
+  article.dataset.itemId = item.id;
+  article.setAttribute('aria-posinset', String(index + 1));
+  article.setAttribute('aria-setsize', String(count));
+
+  const descriptor = document.createElement('span');
+  descriptor.className = 'sr-only';
+  descriptor.id = `item-description-${item.id}`;
+  descriptor.textContent = itemSummary(item, index, count) +
+    (item.type === 'equation' ? '. Press Enter to explore the equation.' : '. Press Enter to edit.');
+  article.setAttribute('aria-describedby', descriptor.id);
+
+  const content = document.createElement('div');
+  content.className = 'item-content';
+  if (item.type === 'equation') {
+    content.setAttribute('aria-busy', 'true');
+    content.textContent = 'Loading equation…';
+    void renderEquation(content, item, version);
+  } else {
+    const text = document.createElement('p');
+    text.className = 'item-text';
+    text.textContent = item.source;
+    content.append(text);
+    applyUebLabel(text, item.source);
+  }
+
+  article.append(descriptor, content);
+  if (NOTES_UI_ENABLED && item.note) {
+    const note = document.createElement('p');
+    note.className = 'item-note';
+    note.textContent = `Note: ${item.note}`;
+    article.append(note);
+  }
+  return article;
+}
+
+function appendOrUpdateLiveTextArticle(item) {
+  const napkin = activeNapkin();
+  if (!napkin) return;
+  const index = napkin.items.findIndex(({ id }) => id === item.id);
+  let article = elements['transcript'].querySelector(
+    `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
+  );
+  if (!article) {
+    article = buildTranscriptArticle(item, index, napkin.items.length, transcriptRenderVersion);
+    elements['transcript'].append(article);
+  } else {
+    const text = article.querySelector('.item-text');
+    if (text) {
+      text.textContent = item.source;
+      applyUebLabel(text, item.source);
+    }
+  }
+  syncEmptyMessage();
+  updateItemCount();
+  refreshArticleSetSizes();
+}
+
+function removeLiveTextArticle(itemId) {
+  elements['transcript'].querySelector(
+    `article.napkin-article[data-item-id="${CSS.escape(itemId)}"]`
+  )?.remove();
+  syncEmptyMessage();
+  updateItemCount();
+  refreshArticleSetSizes();
+}
+
 function renderTranscript() {
   const version = ++transcriptRenderVersion;
   clearTranscriptMath();
   const napkin = activeNapkin();
   elements['transcript'].replaceChildren();
   if (!napkin) {
-    elements['empty-message'].textContent = 'No napkin selected. Create one with New napkin.';
-    elements['empty-message'].hidden = false;
-    elements['item-count'].textContent = '0 items';
+    syncEmptyMessage();
+    updateItemCount();
     return;
   }
-  elements['empty-message'].textContent = 'No items yet. Add the first item below.';
-  elements['empty-message'].hidden = napkin.items.length > 0;
-  elements['item-count'].textContent = `${napkin.items.length} ${napkin.items.length === 1 ? 'item' : 'items'}`;
-
+  syncEmptyMessage();
+  updateItemCount();
   for (const [index, item] of napkin.items.entries()) {
-    const article = document.createElement('article');
-    article.className = 'napkin-article';
-    article.tabIndex = item.id === napkin.selectedItemId ? 0 : -1;
-    article.dataset.itemId = item.id;
-    article.setAttribute('aria-posinset', String(index + 1));
-    article.setAttribute('aria-setsize', String(napkin.items.length));
-
-    const descriptor = document.createElement('span');
-    descriptor.className = 'sr-only';
-    descriptor.id = `item-description-${item.id}`;
-    descriptor.textContent = itemSummary(item, index, napkin.items.length) +
-      (item.type === 'equation' ? '. Press Enter to explore the equation.' : '. Press Enter to edit.');
-    article.setAttribute('aria-describedby', descriptor.id);
-
-    const content = document.createElement('div');
-    content.className = 'item-content';
-    if (item.type === 'equation') {
-      content.setAttribute('aria-busy', 'true');
-      content.textContent = 'Loading equation…';
-      void renderEquation(content, item, version);
-    } else {
-      const text = document.createElement('p');
-      text.className = 'item-text';
-      text.textContent = item.source;
-      content.append(text);
-      if (typeof window.omniya?.translateUeb === 'function') {
-        void applyUebBrailleLabel(
-          text,
-          item.source,
-          'g2',
-          (source, grade) => window.omniya.translateUeb(source, grade)
-        );
-      }
-    }
-
-    article.append(descriptor, content);
-    if (NOTES_UI_ENABLED && item.note) {
-      const note = document.createElement('p');
-      note.className = 'item-note';
-      note.textContent = `Note: ${item.note}`;
-      article.append(note);
-    }
-    elements['transcript'].append(article);
+    elements['transcript'].append(buildTranscriptArticle(item, index, napkin.items.length, version));
   }
 }
 
@@ -406,13 +468,12 @@ function renderHeader() {
 }
 
 function renderMode() {
-  const reading = mode === 'read';
-  elements['reading-actions'].hidden = !reading;
-  elements['composer-dock'].hidden = reading;
-  elements['open-add-button'].disabled = reading && !activeNapkin();
-  elements['reading-help'].textContent = reading
+  const napkin = activeNapkin();
+  elements['reading-actions'].hidden = !napkin;
+  elements['composer-dock'].hidden = !napkin;
+  elements['reading-help'].textContent = napkin
     ? 'Up and Down arrows move between items. Enter explores an equation; r replaces, a inserts after, o inserts before the focus.'
-    : 'Reading remains available above. Ctrl+[ enters Command mode · Escape cancels.';
+    : 'Create a napkin to start writing.';
 }
 
 function placementVerb(placement) {
@@ -451,23 +512,26 @@ function renderComposer() {
     }
     : draft;
 
+  const documentText = Boolean(activeNapkin()) && !mathReplace && values.type === 'text';
   elements['composer-heading'].textContent = mathReplace
     ? (commandState.replaceScopeLabel
       ? `${placementVerb(commandState.placement)}: ${commandState.replaceScopeLabel}`
       : 'Replace focused mathematics')
-    : editing
-      ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
-      : `Adding to ${activeNapkin().name}`;
+    : documentText
+      ? 'Write'
+      : editing
+        ? `Editing item ${activeNapkin().items.findIndex(({ id }) => id === editingItemId) + 1}`
+        : 'Equation';
   elements['composer-submit'].textContent = mathReplace
     ? (commandState.placement === 'replace' ? 'Replace' : 'Insert')
-    : editing ? 'Save changes' : 'Add item';
-  elements['composer-discard'].hidden = editing || mathReplace;
+    : editing ? 'Save changes' : 'Insert equation';
+  elements['composer-submit'].hidden = documentText;
+  elements['composer-back'].hidden = true;
+  elements['composer-discard'].hidden = true;
   elements['composer-cancel'].hidden = !(editing || mathReplace);
   elements['editing-indicator'].textContent = mathReplace
     ? 'Escape cancels without changing the equation.'
-    : editing
-      ? 'Changes are not saved until you choose Save changes.'
-      : '';
+    : '';
   if (!mathReplace || mode === 'add') {
     elements['composer-source'].value = values.source;
   } else if (!replacementHasContent && !(replacementSession?.nemethState?.prefix) && replacementSession?.method !== 'latex') {
@@ -491,15 +555,13 @@ function renderComposer() {
     || document.querySelector('label[for="composer-source"]');
   if (sourceLabel) sourceLabel.textContent = mathReplace ? 'Replacement input' : 'Content';
   elements['composer-help'].textContent = mathReplace
-    ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command mode · Escape cancels · Replace commits'
-    : editing
-      ? 'Save changes commits the item · Ctrl+[ enters Command mode · Escape cancels'
-      : values.type === 'equation'
-        ? 'Nemeth: type cells · LaTeX: type source · Ctrl+[ Command mode · Escape cancels'
-        : 'Enter adds · Shift+Enter makes a new line · Ctrl+[ enters Command mode · Escape cancels';
+    ? 'Nemeth: type cells · LaTeX: type source · Escape cancels · Replace commits'
+    : values.type === 'equation'
+      ? 'Nemeth: type cells · LaTeX: type source · Escape cancels'
+      : 'Type to write. Enter makes a new line.';
   // Unified composer: Equation keeps #composer-source visible (Nemeth/LaTeX styling only).
   elements['composer-source'].hidden = false;
-  elements['composer-source'].required = values.type === 'text' && !mathReplace;
+  elements['composer-source'].required = false;
   const equationMethod = values.type === 'equation'
     ? (commandState.surface === 'equation' ? commandState.equationMethod : preferredAuthoringMethod)
     : null;
@@ -520,7 +582,7 @@ function renderAll() {
   renderHeader();
   renderTranscript();
   renderMode();
-  if (mode !== 'read') renderComposer();
+  if (activeNapkin()) renderComposer();
 }
 
 function focusSelectedArticle() {
@@ -533,7 +595,7 @@ function focusSelectedArticle() {
   const article = item && elements['transcript'].querySelector(
     `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
   );
-  (article ?? elements['open-add-button']).focus();
+  (article ?? elements['composer-source']).focus();
 }
 
 function focusNapkinButton(napkinId) {
@@ -737,9 +799,8 @@ async function openReplacementEditor(article, startingFocus = null, isNew = fals
 // exploringEquationItemId from an earlier equation must not win.
 document.addEventListener('keydown', (event) => {
   const focused = event.target instanceof Element ? event.target : document.activeElement;
-  const composerOpen = (mode === 'add' || mode === 'edit') && !elements['composer-dock']?.hidden;
-  if (composerOpen && focused instanceof Element
-      && focused.closest('#composer-source, #replacement-input, #composer-note')) return;
+  if (focused instanceof Element
+      && focused.closest('#composer-source, #replacement-input, #composer-note, #composer-dock')) return;
   const article = articleForMathEditKey(focused);
   if (!article) return;
   const explorerPlacement = mathPlacementFromKey(event);
@@ -810,7 +871,6 @@ function clearComposerMathSession() {
 function ensureComposerMathSession() {
   if (replacementEditor) return;
   if (replacementSession) return;
-  if (mode !== 'add') return;
   if ((commandState.surface ?? draft.type) !== 'equation') return;
   const empty = createEmptyDraftMathDocument();
   replacementSession = startReplacementSession({
@@ -853,58 +913,90 @@ function renderComposerNemethChoices(choices = [], prefix = '') {
   box.hidden = choices.length === 0;
 }
 
+function isDocumentTextSurface() {
+  return Boolean(activeNapkin())
+    && !isMathReplaceAuthoring()
+    && !isComposerMathAuthoring()
+    && (commandState.surface ?? draft.type) === 'text';
+}
+
+function persistLiveTextFromComposer() {
+  if (!isDocumentTextSurface()) return;
+  if (liveTextItemId && !activeNapkin()?.items.some(({ id }) => id === liveTextItemId)) {
+    liveTextItemId = null;
+    editingItemId = null;
+  }
+  const source = elements['composer-source'].value;
+  const note = elements['composer-note']?.value ?? '';
+  if (!source.trim() && liveTextItemId) {
+    state = deleteItem(state, liveTextItemId);
+    removeLiveTextArticle(liveTextItemId);
+    liveTextItemId = null;
+    editingItemId = null;
+    saveSelectionSoon();
+    return;
+  }
+  if (source.trim() && !liveTextItemId) {
+    state = addItem(state, { type: 'text', source, note });
+    liveTextItemId = activeItem()?.id ?? null;
+    editingItemId = liveTextItemId;
+    const item = activeNapkin()?.items.find(({ id }) => id === liveTextItemId);
+    if (item) appendOrUpdateLiveTextArticle(item);
+    saveSelectionSoon();
+    return;
+  }
+  if (source.trim() && liveTextItemId) {
+    state = updateItem(state, liveTextItemId, { source, note });
+    const item = activeNapkin()?.items.find(({ id }) => id === liveTextItemId);
+    if (item) appendOrUpdateLiveTextArticle(item);
+    saveSelectionSoon();
+  }
+}
+
+function enterDocumentTextAuthoring({ focus = true, preserveComposer = false } = {}) {
+  mode = 'read';
+  editingItemId = liveTextItemId;
+  if (!preserveComposer) {
+    liveTextItemId = null;
+    editingItemId = null;
+    resetDraft();
+    uebBuffer = createUebCellBuffer();
+    if (elements['composer-source']) elements['composer-source'].value = '';
+  }
+  commandState = createAuthoringState({
+    surface: 'text',
+    contentEmpty: !(elements['composer-source']?.value ?? '').trim()
+  });
+  renderMode();
+  if (activeNapkin()) {
+    renderComposer();
+    applyCommandStateToChrome(commandState);
+    if (focus) elements['composer-source'].focus();
+  } else if (focus) {
+    elements['new-napkin-button'].focus();
+  }
+}
 function returnToRead({ discardDraft = true } = {}) {
   const session = (!replacementEditor && replacementSession) ? replacementSession : null;
   const wasNew = Boolean(session?.isNew);
   const wasMathReplace = Boolean(session && (session.originalDocument || wasNew || commandState.replaceScopeLabel));
   const itemId = editingItemId;
-  const restoreTarget = session?.target;
   clearComposerMathSession();
   if (discardDraft) resetDraft();
   if (uebBuffer.pending) announce('Discarded pending UEB cells');
   uebBuffer = createUebCellBuffer();
   if (wasNew && itemId) state = deleteItem(state, itemId);
-  mode = 'read';
+  liveTextItemId = null;
   editingItemId = null;
-  commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
-  // Cancelling changes nothing in the document. Rebuilding the transcript
-  // would discard MathJax's MathItem, and with it the explorer node the
-  // reader is on, so only the composer chrome is re-rendered here.
-  if (wasMathReplace && !wasNew && itemId && restoreTarget) {
-    renderMode();
-    syncModePanel(commandState);
-    const article = elements['transcript'].querySelector(
-      `article.napkin-article[data-item-id="${CSS.escape(itemId)}"]`
-    );
-    (article?.querySelector('mjx-container') ?? article)?.focus();
-    exploringEquationItemId = itemId;
+  if (wasNew) void saveState().catch(() => {});
+  if (wasMathReplace && !wasNew) {
+    renderAll();
+    enterDocumentTextAuthoring({ focus: true });
     elements['save-status'].textContent = 'Replacement cancelled';
     return;
   }
   renderAll();
-  syncModePanel(commandState);
-  if (wasNew) {
-    void saveState().catch(() => {});
-    focusSelectedArticle();
-    return;
-  }
-  focusSelectedArticle();
-}
-
-function openAddMode() {
-  if (!activeNapkin()) return;
-  mode = 'add';
-  editingItemId = null;
-  resetDraft();
-  uebBuffer = createUebCellBuffer();
-  commandState = createAuthoringState({
-    surface: draft.type,
-    contentEmpty: true,
-    equationMethod: preferredAuthoringMethod
-  });
-  renderAll();
-  applyCommandStateToChrome(commandState);
-  elements['composer-source'].focus();
+  enterDocumentTextAuthoring({ focus: Boolean(activeNapkin()) });
 }
 
 function openEditMode(itemId) {
@@ -912,17 +1004,22 @@ function openEditMode(itemId) {
   if (!napkin) return;
   itemId ??= napkin.selectedItemId;
   if (!itemId) return;
-  state = selectItem(state, itemId);
-  mode = 'edit';
-  editingItemId = itemId;
-  uebBuffer = createUebCellBuffer();
   const item = napkin.items.find(({ id }) => id === itemId);
+  if (item?.type !== 'text') return;
+  state = selectItem(state, itemId);
+  liveTextItemId = itemId;
+  editingItemId = itemId;
+  mode = 'read';
+  uebBuffer = createUebCellBuffer();
+  draft = { source: item.source, note: item.note ?? '', type: 'text' };
   commandState = createAuthoringState({
-    surface: item?.type === 'equation' ? 'equation' : 'text',
-    contentEmpty: !(item?.source ?? '').trim(),
-    equationMethod: preferredAuthoringMethod
+    surface: 'text',
+    contentEmpty: !(item.source ?? '').trim()
   });
-  renderAll();
+  renderTranscript();
+  renderMode();
+  if (elements['composer-source']) elements['composer-source'].value = item.source;
+  renderComposer();
   applyCommandStateToChrome(commandState);
   elements['composer-source'].focus();
 }
@@ -989,9 +1086,7 @@ function announce(message) {
 }
 
 function composerIsTextInsert() {
-  if (mode !== 'add' && mode !== 'edit') return false;
-  const kind = commandState.surface ?? draft.type;
-  return kind === 'text';
+  return isDocumentTextSurface();
 }
 
 async function appendUebPrint(printText, { trailingSpace = false } = {}) {
@@ -1133,8 +1228,11 @@ function handleComposerCommandKey(event) {
       void cancelReplacementEditor(findReplacementArticle());
       return true;
     }
-    returnToRead();
-    return true;
+    if (isComposerMathAuthoring() || isMathReplaceAuthoring()) {
+      returnToRead();
+      return true;
+    }
+    return false;
   }
 
   return false;
@@ -1225,11 +1323,10 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         state = updateItem(state, item.id, { note: item.note, math: result.document });
         clearComposerMathSession();
         resetDraft();
-        mode = 'read';
+        liveTextItemId = null;
         editingItemId = null;
-        commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
         renderAll();
-        syncModePanel(commandState);
+        enterDocumentTextAuthoring({ focus: false });
         const replacementArticle = elements['transcript'].querySelector(
           `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
         );
@@ -1241,12 +1338,10 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         state = addItem(state, { type: 'equation', note, math: result.document });
         clearComposerMathSession();
         resetDraft();
-        mode = 'read';
+        liveTextItemId = null;
         editingItemId = null;
-        commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
         renderAll();
-        syncModePanel(commandState);
-        focusSelectedArticle();
+        enterDocumentTextAuthoring({ focus: true });
         elements['save-status'].textContent = 'Added item';
         await saveState().catch(() => {});
       }
@@ -1273,17 +1368,21 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
     state = addItem(state, { type, source, note, mathml: null });
   }
   resetDraft();
-  mode = 'read';
+  liveTextItemId = null;
   editingItemId = null;
-  commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
   renderAll();
-  syncModePanel(commandState);
-  focusSelectedArticle();
+  enterDocumentTextAuthoring({ focus: true });
   elements['save-status'].textContent = editing ? 'Saved item' : 'Added item';
   await saveState().catch(() => {});
 }
 
 async function deleteFocusedItem(itemId) {
+  if (liveTextItemId === itemId) {
+    liveTextItemId = null;
+    editingItemId = null;
+    if (elements['composer-source']) elements['composer-source'].value = '';
+    draft.source = '';
+  }
   state = deleteItem(state, itemId);
   renderAll();
   focusSelectedArticle();
@@ -1297,11 +1396,17 @@ async function deleteFocusedNapkin(napkinId) {
   if (!napkin) return;
   if (!globalThis.confirm(`Delete napkin “${napkin.name}”? This cannot be undone.`)) return;
 
+  const deletingActive = state.activeNapkinId === napkinId;
   const index = state.napkins.findIndex(({ id }) => id === napkinId);
   const remaining = state.napkins.filter(({ id }) => id !== napkinId);
   const focusId = remaining[index]?.id ?? remaining[index - 1]?.id;
   state = deleteNapkin(state, napkinId);
+  if (deletingActive) {
+    liveTextItemId = null;
+    editingItemId = null;
+  }
   renderAll();
+  if (deletingActive) enterDocumentTextAuthoring({ focus: false });
   focusNapkinButton(focusId ?? state.activeNapkinId);
   elements['save-status'].textContent = `Deleted ${napkin.name}`;
   await saveState().catch(() => {});
@@ -1330,20 +1435,21 @@ elements['new-napkin-form'].addEventListener('submit', async (event) => {
     return;
   }
   elements['new-napkin-form'].hidden = true;
-  mode = 'read';
   renderAll();
-  elements['open-add-button'].focus();
+  enterDocumentTextAuthoring({ focus: true });
   await saveState().catch(() => {});
 });
 
 elements['napkin-list'].addEventListener('click', async (event) => {
   const button = event.target.closest('[data-napkin-id]');
   if (!button) return;
-  returnToRead();
+  if (isComposerMathAuthoring() || isMathReplaceAuthoring()) returnToRead();
+  liveTextItemId = null;
+  editingItemId = null;
   state = switchNapkin(state, button.dataset.napkinId);
   renderAll();
   elements['save-status'].textContent = `Opened ${activeNapkin().name}`;
-  focusSelectedArticle();
+  enterDocumentTextAuthoring({ focus: true });
   await saveState().catch(() => {});
 });
 
@@ -1354,7 +1460,6 @@ elements['napkin-list'].addEventListener('keydown', (event) => {
   void deleteFocusedNapkin(button.dataset.napkinId);
 });
 
-elements['open-add-button'].addEventListener('click', openAddMode);
 elements['replacement-submit'].addEventListener('click', () => {
   void replacementEditor?._replacementSubmitHandler?.({ allowAtomicSubmit: true });
 });
@@ -1535,23 +1640,29 @@ elements['composer-source'].addEventListener('input', () => {
   }
   draft.source = elements['composer-source'].value;
   syncCommandContentEmpty();
+  persistLiveTextFromComposer();
 });
 elements['mode-switch'].addEventListener('change', () => {
   draft.type = selectedType();
-  applyCommandStateToChrome({
-    ...commandState,
-    surface: draft.type,
-    equationMethod: draft.type === 'equation' ? preferredAuthoringMethod : commandState.equationMethod,
-    contentEmpty: draft.type === 'equation' ? true : !(elements['composer-source']?.value ?? '').trim()
-  });
   if (draft.type === 'equation') {
+    liveTextItemId = null;
+    editingItemId = null;
+    mode = 'add';
     draft.source = '';
     elements['composer-source'].value = '';
+    applyCommandStateToChrome({
+      ...commandState,
+      surface: 'equation',
+      equationMethod: preferredAuthoringMethod,
+      contentEmpty: true
+    });
     ensureComposerMathSession();
-  } else {
-    clearComposerMathSession();
+    renderComposer();
+    return;
   }
-  if (mode === 'add' || mode === 'edit') renderComposer();
+  clearComposerMathSession();
+  liveTextItemId = null;
+  enterDocumentTextAuthoring({ focus: true });
 });
 
 elements['composer-source'].addEventListener('keydown', (event) => {
@@ -1600,6 +1711,7 @@ elements['composer-source'].addEventListener('keydown', (event) => {
   }
 
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+    if (isDocumentTextSurface()) return;
     event.preventDefault();
     void submitComposer();
   }
@@ -1681,8 +1793,13 @@ elements['transcript'].addEventListener('click', (event) => {
     clearExploringEquation();
   }
   state = selectItem(state, article.dataset.itemId);
+  const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
   renderTranscript();
-  focusSelectedArticle();
+  if (item?.type === 'text') {
+    openEditMode(article.dataset.itemId);
+  } else {
+    focusSelectedArticle();
+  }
   saveSelectionSoon();
 });
 
@@ -1765,6 +1882,7 @@ if (!globalThis.omniya?.loadState) {
     const loaded = await window.omniya.loadState();
     state = loaded.state;
     renderAll();
+    if (activeNapkin()) enterDocumentTextAuthoring({ focus: true });
     if (loaded.warning) showError(loaded.warning);
   } catch {
     showError('The napkins could not be loaded.');

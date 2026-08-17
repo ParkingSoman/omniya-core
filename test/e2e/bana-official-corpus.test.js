@@ -6,7 +6,7 @@ import test from 'node:test';
 import { DOMParser } from '@xmldom/xmldom';
 import { _electron as electron } from 'playwright';
 import { applyNemethSourceIntentToBraille } from '../../src/renderer/nemeth-braille-projection.js';
-import { electronLaunchEnv, openReplacementDockOnNewEquation } from './launch-electron.js';
+import { electronLaunchEnv, openReplacementDockOnNewEquation, waitForDocumentComposer } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 const corpus = JSON.parse(await readFile(new URL('../../docs/bana-electron-official-corpus.json', import.meta.url), 'utf8'));
@@ -272,7 +272,7 @@ async function feedLocalCode(page, input, cells, choiceOperationIds = {}, option
     throw new Error(`official incomplete draft remained after local completion: ${cells.join('')}`);
   }
   try {
-    await page.locator('#composer-dock').waitFor({ state: 'hidden', timeout: 5000 });
+    await waitForDocumentComposer(page);
   } catch (error) {
       const diagnostic = await page.evaluate(() => ({
       status: document.querySelector('#composer-status')?.textContent,

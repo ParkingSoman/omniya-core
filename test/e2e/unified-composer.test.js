@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
+import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv, waitForDocumentComposer } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -25,7 +25,6 @@ async function launch(prefix = 'omniya-unified-') {
 }
 
 async function openComposer(page) {
-  await page.getByRole('button', { name: 'Add item' }).click();
   await page.locator('#composer-source').waitFor();
   await page.locator('#composer-source').focus();
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
@@ -147,7 +146,7 @@ test('r opens unified composer for subtree replace', { timeout: 90_000 }, async 
   await page.waitForFunction(() => /Can't switch to Text|Equation/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
   assert.doesNotMatch(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB/i);
   await page.keyboard.press('Escape');
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
   const afterTokens = await article.locator('math').evaluate((node) =>
     [...node.querySelectorAll('mi, mn, mo')].map((el) => el.textContent).join('|')
   );

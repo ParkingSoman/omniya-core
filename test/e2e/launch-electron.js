@@ -42,7 +42,7 @@ export async function chooseMethod(page, method) {
 
 /** Commit a new equation from the unified composer (no replacement dock). */
 export async function addEquationViaComposer(page, { method = 'latex', source }) {
-  await page.getByRole('button', { name: 'Add item' }).click();
+  await page.locator('#composer-source').waitFor();
   await chooseType(page, 'equation');
   if (method === 'latex' || method === 'LaTeX') {
     await chooseMethod(page, 'latex');
@@ -67,7 +67,6 @@ export async function addEquationViaComposer(page, { method = 'latex', source })
  * Product empty-submit no longer opens a second dock.
  */
 export async function openReplacementDockOnNewEquation(page) {
-  await page.getByRole('button', { name: 'Add item' }).click();
   await page.locator('#composer-source').waitFor();
   await page.evaluate(async () => {
     await globalThis.__omniyaTesting.openNewEquationDock();
@@ -93,4 +92,10 @@ export function mathAuthoringStatus(page) {
 
 export function mathAuthoringSurface(page) {
   return page.locator('#composer-dock');
+}
+
+/** Math replace/add has ended; the always-on composer is document text again. */
+export async function waitForDocumentComposer(page) {
+  await page.locator('#composer-source').waitFor();
+  await page.getByLabel('Content', { exact: true }).waitFor();
 }

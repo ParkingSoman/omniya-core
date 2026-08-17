@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
+import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv, waitForDocumentComposer } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -42,7 +42,7 @@ test('recovers from corrupt local napkin data without leaving the app unusable',
 
   assert.equal(await session.page.getByRole('heading', { name: 'Untitled Napkin' }).count(), 1);
   assert.equal(await session.page.getByRole('alert').filter({ hasText: 'could not be read' }).count(), 1);
-  assert.equal(await session.page.getByRole('button', { name: 'Add item' }).count(), 1);
+  assert.equal(await session.page.getByRole('button', { name: 'Add item' }).count(), 0);
 });
 
 async function addEquation(page, source) {
@@ -93,7 +93,7 @@ async function assertCurrentFocusCanBeReplaced(page) {
   const status = await page.locator('#composer-status').textContent();
   assert.doesNotMatch(status, /cannot|unsafe|safe/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
 }
 
 async function resetExplorer(page, article) {
@@ -196,7 +196,7 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
 
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
   await article.locator('mjx-container math mfrac').waitFor();
   assert.equal(await article.locator('mjx-container math mfrac').count(), 1);
 
@@ -206,7 +206,7 @@ test('replaces a whole focused equation through the LaTeX draft without a linear
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('x^3');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
   await page.locator('article.napkin-article mjx-container').waitFor();
   assert.equal(await page.locator('article.napkin-article math msup').count(), 1);
   assert.equal(await page.locator('article.napkin-article math mfrac').count(), 0);
@@ -277,7 +277,7 @@ test('every navigable nested focus opens the exact replacement draft', { timeout
   await page.locator('#composer-dock').waitFor();
   assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id'), focusedTargetId);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
 
   const matrix = await addEquation(page, '\\begin{matrix}a&b\\\\c&d\\end{matrix}');
   await resetExplorer(page, matrix);
@@ -305,7 +305,7 @@ test('Enter then r, a, and o open the composer on the same focus', { timeout: 60
   const targetId = await page.locator('#replacement-scope').getAttribute('data-target-id');
   assert.ok(targetId);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
 
   await enterEquation(page, article);
   await page.keyboard.press('ArrowDown');
@@ -315,7 +315,7 @@ test('Enter then r, a, and o open the composer on the same focus', { timeout: 60
   assert.match(await page.locator('#composer-heading').textContent(), /Appending after/i);
   assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id'), targetId);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
 
   await enterEquation(page, article);
   await page.keyboard.press('ArrowDown');
@@ -339,7 +339,7 @@ test('r still replaces after explorer navigation moves focus off the math node',
   await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#composer-heading').textContent(), /Replacing/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
 });
 
 test('r opens the exact replacement even during the explorer focus handoff', { timeout: 60_000 }, async (t) => {
@@ -356,7 +356,7 @@ test('r opens the exact replacement even during the explorer focus handoff', { t
   assert.equal(await page.locator('#replacement-scope').getAttribute('data-target-id') !== null, true);
   assert.doesNotMatch(await page.locator('#save-status').textContent(), /cannot be edited safely|unsafe/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
 });
 
 test('r on highlighted y^2 replaces that term, not the whole equation', { timeout: 60_000 }, async (t) => {
@@ -378,7 +378,7 @@ test('r on highlighted y^2 replaces that term, not the whole equation', { timeou
   assert.ok(targetId);
   assert.notEqual(targetId, rootId);
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
   const survived = await article.evaluate((el) => Boolean(
     globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(el)?.[0]?.explorers?.speech
   ));
@@ -406,7 +406,7 @@ test('r replaces the x^4 term, not the whole x^4+x^3 equation', { timeout: 60_00
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('y');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
   await article.locator('mjx-container math').waitFor();
   const text = await article.evaluate((el) => (el.querySelector('math')?.textContent || '').replace(/\s+/g, ''));
   assert.match(text, /x3/);
@@ -424,7 +424,7 @@ test('a inserts after the focused node instead of replacing it', { timeout: 60_0
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('+1');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
   await article.locator('mjx-container math').waitFor();
   const text = await article.evaluate((el) => (el.querySelector('math')?.textContent || '').replace(/\s+/g, ''));
   assert.match(text, /x3/);
@@ -448,7 +448,7 @@ test('r on a later equation does not steal the first fraction superscript', { ti
   await chooseMethod(page, 'latex');
   await page.getByLabel('Replacement input', { exact: true }).fill('y');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await waitForDocumentComposer(page);
 
   await enterEquation(page, first);
   await page.keyboard.press('ArrowDown');
@@ -492,7 +492,8 @@ test('o on a later equation prepends that equation, not the first', { timeout: 6
 
 test('switches input type without visible radios and submits a text item with Cmd+Enter or Ctrl+Enter', { timeout: 60_000 }, async (t) => {
   const { page } = await startSession(t, 'omniya-keyboard-input-e2e-');
-  await page.getByRole('button', { name: 'Add item' }).click();
+  await page.locator('#composer-source').waitFor();
+  await page.locator('#composer-source').focus();
 
   await chooseType(page, 'equation');
   assert.equal(await page.evaluate(() => document.querySelector('#mode-switch input[value="equation"]')?.checked), true);

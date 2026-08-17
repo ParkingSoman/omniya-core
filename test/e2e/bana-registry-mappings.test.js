@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { _electron as electron } from 'playwright';
 import { operationRegistry, LOCAL_COMMIT_POLICIES } from '../../src/domain/guided-nemeth/index.js';
-import { electronLaunchEnv, openReplacementDockOnNewEquation } from './launch-electron.js';
+import { electronLaunchEnv, openReplacementDockOnNewEquation, waitForDocumentComposer } from './launch-electron.js';
 
 const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 
@@ -74,7 +74,7 @@ test('loaded Electron accepts the representative declarative Nemeth registry cor
       await submit.click();
     }
     try {
-      await page.locator('#composer-dock').waitFor({ state: 'hidden', timeout: 2_000 });
+      await waitForDocumentComposer(page);
     } catch (error) {
       const draftValue = await input.inputValue().catch(() => '');
       const choices = await page.locator('#composer-choices').textContent().catch(() => '');
