@@ -7,5 +7,8 @@ contextBridge.exposeInMainWorld('omniya', {
   ,importMath: (source) => ipcRenderer.invoke('math:import', source)
   ,exportMathLatex: (document) => ipcRenderer.invoke('math:export', document),
   translateUeb: (text, grade) => ipcRenderer.invoke('ueb:translate', { text, grade }),
-  backTranslateUeb: (braille, grade) => ipcRenderer.invoke('ueb:backTranslate', { braille, grade })
+  backTranslateUeb: (braille, grade) => ipcRenderer.invoke('ueb:backTranslate', { braille, grade }),
+  onMenuCommand: (cb) => {
+    ipcRenderer.on('menu:command', (_e, payload) => cb(payload));
+  }
 });

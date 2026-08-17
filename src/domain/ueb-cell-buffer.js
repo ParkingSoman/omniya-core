@@ -14,3 +14,7 @@ export function pushUebCell(buffer, cell) {
 export function flushUebBuffer(buffer) {
   return { buffer: { pending: '' }, flush: buffer.pending };
 }
+
+export function isBrailleInsertEquationCell(buffer, cell) {
+  return !buffer.pending && cell === '\u283F';
+}

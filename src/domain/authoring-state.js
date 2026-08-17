@@ -58,6 +58,13 @@ export function enterEquationSurface(state, method) {
   return { state: next, announcement: formatStatus(next) };
 }
 
+export function equationInsertIntent(state, { replacing = false } = {}) {
+  if (replacing || state.replaceScopeLabel) return 'noop';
+  if (state.surface === 'text') return 'start';
+  if (state.surface === 'equation' && state.contentEmpty) return 'switch-method';
+  return 'noop';
+}
+
 export function toggleUebGrade(state) {
   if (state.surface !== 'text') {
     return { state, announcement: formatStatus(state) };

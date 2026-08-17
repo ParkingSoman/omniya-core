@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -78,6 +78,53 @@ function createWindow() {
   void window.loadFile(rendererFile);
 }
 
+function sendMenuCommand(payload) {
+  BrowserWindow.getFocusedWindow()?.webContents.send('menu:command', payload);
+}
+
+function buildApplicationMenu() {
+  const isMac = process.platform === 'darwin';
+  const mod = isMac ? 'Cmd' : 'Ctrl';
+  const template = [];
+  if (isMac) template.push({ role: 'appMenu' });
+  template.push({ role: 'editMenu' });
+  template.push(
+    {
+      label: 'Insert',
+      submenu: [
+        {
+          label: `Equation (Nemeth)\t${mod}+E`,
+          click: () => sendMenuCommand({ action: 'insert-equation', method: 'nemeth' })
+        },
+        {
+          label: `Equation (LaTeX)\t${mod}+L`,
+          click: () => sendMenuCommand({ action: 'insert-equation', method: 'latex' })
+        }
+      ]
+    },
+    {
+      label: 'Format',
+      submenu: [
+        {
+          label: `UEB G2 / G1\t${mod}+T`,
+          click: () => sendMenuCommand({ action: 'toggle-ueb-grade' })
+        }
+      ]
+    },
+    { role: 'windowMenu' },
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Keyboard shortcuts',
+          click: () => sendMenuCommand({ action: 'keyboard-help' })
+        }
+      ]
+    }
+  );
+  return Menu.buildFromTemplate(template);
+}
+
 app.whenReady().then(() => {
   if (runHeadless && app.dock) app.dock.hide();
   const externalFile = process.env.OMNIYA_NAPKIN_FILE
@@ -88,6 +135,7 @@ app.whenReady().then(() => {
     : createStorage(app.getPath('userData'));
   registerIpc(storage);
   createWindow();
+  Menu.setApplicationMenu(buildApplicationMenu());
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

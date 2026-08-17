@@ -8,18 +8,13 @@ The usage notes below apply to **`testing` only**. They are not on `main`. This 
 
 Three things to learn first:
 
-1. **Keyboard help** — the button labeled **Keyboard help**, next to **Add item**, under the napkin. Open it. That dialog is how you learn reading keys and the keys that work in Command mode. There is no Command-mode button; the keys are in that help (and **?** in Command mode, below).
-2. **Command mode** — while the composer is open (after **Add item**, or while editing), press **Ctrl+[**. The header mode panel should say Command. **Escape** cancels. **?** in Command mode opens the same help, filled in for the current state. Command mode is not the Mac **Cmd** key.
-3. **r / a / o on math** — in reading, Up and Down move between items. On an equation, **Enter** explores it. Then **r** replaces the focused node, **a** inserts after it, and **o** inserts before it (same composer, same captured node). On a focused equation *without* exploring, those keys target the whole expression. Submit with **n** in Command mode; Escape leaves the item unchanged. **r** on a text item still opens that item for editing.
+1. **Type in the document** — the composer under the napkin is the notepad. Print text is a UEB document. There is no Add item button and no Command mode (no Ctrl+[, no Command n/i/t/x).
+2. **Equation islands** — **Ctrl+E** (Cmd+E on Mac) inserts a Nemeth equation at the caret; **Ctrl+L** inserts LaTeX. **Enter** commits the equation and returns you to text. **Escape** discards an unfinished equation. **Ctrl+T** toggles UEB G2 / G1 on text. The same actions are in the application menu: Insert → Equation (Nemeth / LaTeX), Format → UEB G2 / G1, Help → Keyboard shortcuts.
+3. **r / a / o on math** — in reading, Up and Down move between items. On an equation, **Enter** explores it. Then **r** replaces the focused node, **a** inserts after it, and **o** inserts before it (same composer, same captured node). On a focused equation *without* exploring, those keys target the whole expression. Escape leaves a replacement unchanged. **r** on a text item still opens that item for editing.
 
-After **Ctrl+[**, type a Command-mode key, then **i** (or Enter) to type again, or **n** to submit:
+On a braille display, with no pending UEB cells, full cell **⠿** inserts a Nemeth equation (same as Ctrl+E). The UEB word “for” is also ⠿ at the start of a word and will do the same; use Ctrl+E or Insert → Equation (Nemeth) if that collides.
 
-- **t** — Text (UEB). Press again on empty text to toggle G1/G2.
-- **x** — Equation. On an empty equation, press again to cycle Nemeth / LaTeX.
-- **s** — Focus the mode panel (Command / Insert / Text / Equation).
-- **n** — Submit the item.
-- **i** or **Enter** — Insert (back to typing).
-- **?** — Help.
+**Keyboard help** (button under the napkin, or Help → Keyboard shortcuts) lists these keys.
 
 ### How Braille typing feels here
 
@@ -31,11 +26,9 @@ That is why the cadence is different from ordinary authoring:
 - Some symbols (an arrow is the usual example) are **held** until their registered cells are complete; **Enter** then commits that one symbol, not the whole equation.
 - Fraction openers, scripts, and similar signs are **follow-ups**: they open or move among slots in something already in the draft, rather than appending characters to a line.
 
-**Backspace** undoes the last accepted operation in this composing session, one step at a time. It is not “delete the last character in the text field.” **Escape** discards the whole session. **n** in Command mode submits the draft.
+**Backspace** undoes the last accepted operation in this composing session, one step at a time. It is not “delete the last character in the text field.” **Escape** discards an unfinished equation. **Enter** commits the equation and returns you to text.
 
 Literary UEB text is closer to ordinary typing (cells become print). Nemeth is this guided, operation-by-operation path. It is an alpha experiment, not a finished transcriber editor.
-
-**Add item** (under the napkin, beside Keyboard help) opens a blank composer for a new thought.
 
 Download the alpha (or run from source): [Run this alpha](#run-this-alpha). Longer walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
@@ -168,7 +161,7 @@ The point of the Electron app is to make these hypotheses testable. The architec
 
 This section is the **alpha** on `testing`, not the signed-off `main` snapshot. Humans have not completely verified it. The practical checklist is [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
-On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); enter Command mode with `Ctrl+[`; choose Text vs Equation with `t` / `x` in Command mode; author Nemeth cells or LaTeX; explore MathML and press **r** to replace a subtree in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden behind Command mode.
+On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); insert Nemeth with Ctrl+E or LaTeX with Ctrl+L; toggle UEB grade with Ctrl+T; explore MathML and press **r** to replace a subtree in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden.
 
 The interface uses semantic HTML, native form controls, labeled fields, visible focus indicators, a narrow preload bridge, context isolation, a sandboxed renderer, and a restrictive content-security policy.
 
@@ -270,21 +263,17 @@ By default, committed state is stored as `napkins.json` under Electron’s platf
 
 ## Keyboard interaction
 
-On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In the app, **Keyboard help** (next to **Add item**) is the live list; **Ctrl+[** then **?** refreshes it for Command mode.
-
-The bullets below are the older reading/add shell. `t` / `x` in Command mode replace the on-screen type radios.
+On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In the app, **Keyboard help** (under the napkin, or Help → Keyboard shortcuts) is the live list.
 
 - Use Tab and Shift+Tab to move through ordinary controls.
 - In the napkin sidebar, focus a napkin and press Backspace to delete it after confirmation.
-- In Read mode, Up and Down move between items. Home and End move to the first and last item; on compact Mac keyboards these are commonly Fn+Left Arrow and Fn+Right Arrow.
+- Up and Down move between items. Home and End move to the first and last item; on compact Mac keyboards these are commonly Fn+Left Arrow and Fn+Right Arrow.
 - Press Enter on a focused text item to edit it.
 - Press Enter on a focused equation to enter MathJax’s expression explorer. MathJax handles movement through the expression; Escape returns to the item.
 - Press `r` on a focused equation to replace it (or the explorer focus). `a` inserts after that same node; `o` inserts before it. On a text item, `r` opens it for editing.
 - Press Backspace on a focused item to delete it; focus moves to a nearby remaining item.
-- Activate `Add item` to enter Add mode and focus the Content field.
-- In Add mode, Enter adds the item, Shift+Enter inserts a new line, and Escape discards the draft.
-- Arrow keys on the Text/Equation radio group switch the input type.
-- In Edit mode, Save changes commits the item. Escape or Cancel returns to reading without saving the draft.
+- Type in the composer to write. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX. Enter commits an equation and returns to text. Escape discards an unfinished equation.
+- Ctrl+T toggles UEB G2 / G1 on text. With no pending UEB cells, full cell ⠿ inserts Nemeth (the UEB word “for” collides; use Ctrl+E or the Insert menu).
 - Arrow keys inside textareas retain normal text-cursor behavior.
 
 Only completed Add and Save actions are persisted. Unfinished drafts are not saved.

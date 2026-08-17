@@ -31,11 +31,12 @@ import {
   createAuthoringState,
   enterEquationSurface,
   enterTextSurface,
+  equationInsertIntent,
   formatStatus,
   gradeForUebBackTranslate,
   toggleUebGrade
 } from '../domain/authoring-state.js';
-import { createUebCellBuffer, pushUebCell } from '../domain/ueb-cell-buffer.js';
+import { createUebCellBuffer, isBrailleInsertEquationCell, pushUebCell } from '../domain/ueb-cell-buffer.js';
 import { isAllowedNemethCellInput } from '../domain/nemeth-cell-input.js';
 
 const elements = Object.fromEntries([
@@ -1033,6 +1034,19 @@ function commitEquationAtSnapshot(note, math) {
   return rightId;
 }
 
+function applyEquationInsert(method) {
+  const intent = equationInsertIntent(commandState, { replacing: isMathReplaceAuthoring() });
+  if (intent === 'start') {
+    startEquationAtCaret(method);
+    return;
+  }
+  if (intent === 'switch-method') {
+    const entered = enterEquationSurface(commandState, method);
+    applyCommandStateToChrome(entered.state);
+    applyReplacementMethodFromCommand(entered.state.equationMethod);
+  }
+}
+
 function startEquationAtCaret(method) {
   if (!activeNapkin()) return;
   if (commandState.replaceScopeLabel || isMathReplaceAuthoring()) return;
@@ -1203,6 +1217,10 @@ async function appendUebPrint(printText, { trailingSpace = false } = {}) {
 
 async function handleComposerUebCell(cell) {
   if (!composerIsTextInsert()) return;
+  if (isBrailleInsertEquationCell(uebBuffer, cell)) {
+    startEquationAtCaret('nemeth');
+    return;
+  }
   const result = pushUebCell(uebBuffer, cell);
   uebBuffer = result.buffer;
   if (!result.flush) {
@@ -1313,7 +1331,13 @@ function openContextualHelp() {
     shortcuts.append(' toggles UEB grade on text · ');
     shortcuts.children[1].textContent = 'Enter';
     shortcuts.append(' commits an equation');
-    el.append(status, tHelp, eHelp, lHelp, sHelp, shortcuts);
+    const brailleHelp = document.createElement('p');
+    brailleHelp.append(document.createElement('kbd'));
+    brailleHelp.firstChild.textContent = '⠿';
+    brailleHelp.append(' — with no pending UEB cells, full cell inserts Nemeth (same as Ctrl+E). The UEB word “for” also uses ⠿ at the start of a word; use Ctrl+E or Insert → Equation (Nemeth) if that collides.');
+    const menuHelp = document.createElement('p');
+    menuHelp.textContent = 'Insert, Format, and Help menus (Alt on Windows; menu bar on Mac) run the same actions.';
+    el.append(status, tHelp, eHelp, lHelp, sHelp, shortcuts, brailleHelp, menuHelp);
   }
   if (typeof box.showModal === 'function') box.showModal();
   else box.hidden = false;
@@ -1335,17 +1359,7 @@ function handleComposerCommandKey(event) {
       announce(toggled.announcement);
       return true;
     }
-    const method = key === 'l' ? 'latex' : 'nemeth';
-    if (isDocumentTextSurface()) {
-      startEquationAtCaret(method);
-      return true;
-    }
-    if (isComposerMathAuthoring() && commandState.contentEmpty) {
-      const entered = enterEquationSurface(commandState, method);
-      applyCommandStateToChrome(entered.state);
-      applyReplacementMethodFromCommand(entered.state.equationMethod);
-      return true;
-    }
+    applyEquationInsert(key === 'l' ? 'latex' : 'nemeth');
     return true;
   }
 
@@ -2014,6 +2028,25 @@ elements['close-keyboard-help'].addEventListener('click', () => {
 });
 
 elements['retry-save'].addEventListener('click', () => void saveState().catch(() => {}));
+
+window.omniya?.onMenuCommand?.((payload) => {
+  if (!payload?.action) return;
+  if (payload.action === 'insert-equation') {
+    applyEquationInsert(payload.method === 'latex' ? 'latex' : 'nemeth');
+    return;
+  }
+  if (payload.action === 'toggle-ueb-grade') {
+    if (!isDocumentTextSurface()) return;
+    if (commandState.replaceScopeLabel || isMathReplaceAuthoring()) return;
+    const toggled = toggleUebGrade(commandState);
+    applyCommandStateToChrome(toggled.state);
+    announce(toggled.announcement);
+    return;
+  }
+  if (payload.action === 'keyboard-help') {
+    openContextualHelp();
+  }
+});
 
 if (!globalThis.omniya?.loadState) {
   disableInteractiveControls();

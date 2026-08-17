@@ -6,6 +6,7 @@ import {
   enterTextSurface,
   formatStatus,
   gradeForUebBackTranslate,
+  equationInsertIntent,
   toggleUebGrade
 } from '../../src/domain/authoring-state.js';
 
@@ -202,6 +203,32 @@ test('toggleUebGrade is a no-op on equation surface', () => {
   assert.equal(r.state.surface, 'equation');
   assert.equal(r.state.uebGrade, 'g2');
   assert.equal(r.state, s);
+});
+
+test('equationInsertIntent starts from text and switches empty equation', () => {
+  assert.equal(equationInsertIntent(createAuthoringState({ surface: 'text' })), 'start');
+  assert.equal(
+    equationInsertIntent(createAuthoringState({ surface: 'equation', contentEmpty: true })),
+    'switch-method'
+  );
+});
+
+test('equationInsertIntent is a no-op when equation has content or replace is active', () => {
+  assert.equal(
+    equationInsertIntent(createAuthoringState({ surface: 'equation', contentEmpty: false })),
+    'noop'
+  );
+  assert.equal(
+    equationInsertIntent(createAuthoringState({
+      surface: 'text',
+      replaceScopeLabel: 'term'
+    })),
+    'noop'
+  );
+  assert.equal(
+    equationInsertIntent(createAuthoringState({ surface: 'text' }), { replacing: true }),
+    'noop'
+  );
 });
 
 test('gradeForUebBackTranslate uses g1 for whole-item g1 or G1 passage', () => {
