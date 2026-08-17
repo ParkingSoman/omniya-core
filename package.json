@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "electron .",
+    "dist:mac": "node scripts/stage-liblouis.mjs && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --publish never",
+    "dist:win": "node scripts/stage-liblouis.mjs && electron-builder --win --x64 --publish never",
     "open:napkin": "node scripts/open-napkin.mjs",
     "test": "node --test 'test/unit/*.test.js'",
     "test:e2e": "node --test --test-concurrency=1 'test/e2e/*.test.js'",
@@ -47,6 +49,7 @@
   "devDependencies": {
     "axe-core": "^4.12.1",
     "electron": "43.2.0",
+    "electron-builder": "^26.15.3",
     "playwright": "^1.62.1",
     "speech-rule-engine": "5.0.0-rc.4"
   }

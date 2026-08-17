@@ -1,0 +1,19 @@
+appId: org.axiya.omniyacore
+productName: Omniya Core
+extraResources:
+  - from: vendor/liblouis
+    to: liblouis
+mac:
+  identity: null
+  target:
+    - target: zip
+      arch:
+        - arm64
+  category: public.app-category.education
+win:
+  target:
+    - target: zip
+      arch:
+        - x64
+directories:
+  output: dist
