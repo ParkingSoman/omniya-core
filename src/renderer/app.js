@@ -26,12 +26,13 @@ import {
   replacementSessionHasDraftMath
 } from '../domain/replacement-session.js';
 import {
-  applyCommandKey,
-  createCommandState,
-  enterCommand,
+  createAuthoringState,
+  enterEquationSurface,
+  enterTextSurface,
   formatStatus,
-  gradeForUebBackTranslate
-} from '../domain/command-mode.js';
+  gradeForUebBackTranslate,
+  toggleUebGrade
+} from '../domain/authoring-state.js';
 import { createUebCellBuffer, pushUebCell } from '../domain/ueb-cell-buffer.js';
 import { isAllowedNemethCellInput } from '../domain/nemeth-cell-input.js';
 
@@ -65,7 +66,7 @@ let replacementSession = null;
 let replacementEditor = null;
 let replacementHasContent = false;
 let preferredAuthoringMethod = 'nemeth';
-let commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+let commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
 let uebBuffer = createUebCellBuffer();
 let uebCellChain = Promise.resolve();
 let composerMathInputProcessing = Promise.resolve();
@@ -500,7 +501,7 @@ function renderComposer() {
   elements['composer-source'].hidden = false;
   elements['composer-source'].required = values.type === 'text' && !mathReplace;
   const equationMethod = values.type === 'equation'
-    ? (commandState.itemKind === 'equation' ? commandState.equationMethod : preferredAuthoringMethod)
+    ? (commandState.surface === 'equation' ? commandState.equationMethod : preferredAuthoringMethod)
     : null;
   elements['composer-source'].className = equationMethod === 'nemeth'
     ? 'nemeth-inline-editor'
@@ -694,11 +695,10 @@ async function openComposerForMathReplace(article, startingFocus = null, isNew =
   replacementHasContent = false;
   composerMathInputProcessing = Promise.resolve();
   const scopeLabel = focus.speech || 'selection';
-  commandState = createCommandState({
-    itemKind: 'equation',
+  commandState = createAuthoringState({
+    surface: 'equation',
     equationMethod: preferredAuthoringMethod,
     contentEmpty: true,
-    interaction: 'insert',
     replaceScopeLabel: scopeLabel,
     placement
   });
@@ -811,7 +811,7 @@ function ensureComposerMathSession() {
   if (replacementEditor) return;
   if (replacementSession) return;
   if (mode !== 'add') return;
-  if ((commandState.itemKind ?? draft.type) !== 'equation') return;
+  if ((commandState.surface ?? draft.type) !== 'equation') return;
   const empty = createEmptyDraftMathDocument();
   replacementSession = startReplacementSession({
     document: null,
@@ -866,7 +866,7 @@ function returnToRead({ discardDraft = true } = {}) {
   if (wasNew && itemId) state = deleteItem(state, itemId);
   mode = 'read';
   editingItemId = null;
-  commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+  commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
   // Cancelling changes nothing in the document. Rebuilding the transcript
   // would discard MathJax's MathItem, and with it the explorer node the
   // reader is on, so only the composer chrome is re-rendered here.
@@ -897,8 +897,8 @@ function openAddMode() {
   editingItemId = null;
   resetDraft();
   uebBuffer = createUebCellBuffer();
-  commandState = createCommandState({
-    itemKind: draft.type,
+  commandState = createAuthoringState({
+    surface: draft.type,
     contentEmpty: true,
     equationMethod: preferredAuthoringMethod
   });
@@ -917,8 +917,8 @@ function openEditMode(itemId) {
   editingItemId = itemId;
   uebBuffer = createUebCellBuffer();
   const item = napkin.items.find(({ id }) => id === itemId);
-  commandState = createCommandState({
-    itemKind: item?.type === 'equation' ? 'equation' : 'text',
+  commandState = createAuthoringState({
+    surface: item?.type === 'equation' ? 'equation' : 'text',
     contentEmpty: !(item?.source ?? '').trim(),
     equationMethod: preferredAuthoringMethod
   });
@@ -969,13 +969,13 @@ function syncModePanel(state = commandState) {
 
 function applyCommandStateToChrome(nextState) {
   commandState = nextState;
-  if (commandState.itemKind === 'text' || commandState.itemKind === 'equation') {
+  if (commandState.surface === 'text' || commandState.surface === 'equation') {
     elements['mode-switch'].querySelectorAll('input').forEach((input) => {
-      input.checked = input.value === commandState.itemKind;
+      input.checked = input.value === commandState.surface;
     });
-    draft.type = commandState.itemKind;
+    draft.type = commandState.surface;
   }
-  if (commandState.itemKind === 'equation') {
+  if (commandState.surface === 'equation') {
     preferredAuthoringMethod = commandState.equationMethod;
     elements['replacement-method']?.querySelectorAll('input').forEach((input) => {
       input.checked = input.value === commandState.equationMethod;
@@ -990,8 +990,7 @@ function announce(message) {
 
 function composerIsTextInsert() {
   if (mode !== 'add' && mode !== 'edit') return false;
-  if (commandState.interaction !== 'insert') return false;
-  const kind = commandState.itemKind ?? draft.type;
+  const kind = commandState.surface ?? draft.type;
   return kind === 'text';
 }
 
@@ -1005,11 +1004,6 @@ async function appendUebPrint(printText, { trailingSpace = false } = {}) {
 
 async function handleComposerUebCell(cell) {
   if (!composerIsTextInsert()) return;
-  if (cell === '⠿' && uebBuffer.pending === '') {
-    commandState = enterCommand(commandState);
-    syncModePanel(commandState);
-    return;
-  }
   const result = pushUebCell(uebBuffer, cell);
   uebBuffer = result.buffer;
   if (!result.flush) {
@@ -1100,11 +1094,11 @@ function openContextualHelp() {
     const tHelp = document.createElement('p');
     tHelp.append(document.createElement('kbd'));
     tHelp.firstChild.textContent = 't';
-    tHelp.append(` — ${commandState.itemKind === 'text' ? 'toggle UEB grade / G1 passage' : 'make Text (UEB)'}`);
+    tHelp.append(` — ${commandState.surface === 'text' ? 'toggle UEB grade / G1 passage' : 'make Text (UEB)'}`);
     const eHelp = document.createElement('p');
     eHelp.append(document.createElement('kbd'));
     eHelp.firstChild.textContent = 'x';
-    eHelp.append(` — ${commandState.itemKind === 'equation' && commandState.contentEmpty ? 'cycle Nemeth/LaTeX' : 'make Equation (Nemeth)'}`);
+    eHelp.append(` — ${commandState.surface === 'equation' && commandState.contentEmpty ? 'cycle Nemeth/LaTeX' : 'make Equation (Nemeth)'}`);
     const sHelp = document.createElement('p');
     sHelp.append(document.createElement('kbd'));
     sHelp.firstChild.textContent = 's';
@@ -1132,17 +1126,6 @@ function handleComposerCommandKey(event) {
   const inDock = isDockReplacement();
   if (!inDock && mode !== 'add' && mode !== 'edit') return false;
 
-  if ((event.ctrlKey || event.metaKey) && event.key === '[') {
-    event.preventDefault();
-    event.stopPropagation();
-    if (commandState.interaction === 'insert') {
-      syncCommandContentEmpty();
-      commandState = enterCommand(commandState);
-      syncModePanel(commandState);
-    }
-    return true;
-  }
-
   if (event.key === 'Escape') {
     event.preventDefault();
     event.stopPropagation();
@@ -1154,59 +1137,7 @@ function handleComposerCommandKey(event) {
     return true;
   }
 
-  if (commandState.interaction !== 'command') return false;
-  const key = event.key;
-  const commandKeys = new Set(['i', 't', 'x', 's', 'n', '?', 'Enter', 'e']);
-  if (!commandKeys.has(key)) return false;
-  event.preventDefault();
-  event.stopPropagation();
-  // While replacing an equation in the dock / subtree path, Text umbrella must
-  // not flip chrome to Text.
-  if (inDock && key === 't') {
-    if (elements['mode-panel']) {
-      elements['mode-panel'].textContent = "Can't switch to Text while replacing an equation.";
-    }
-    return true;
-  }
-  syncCommandContentEmpty();
-  const result = applyCommandKey(commandState, key);
-  commandState = result.state;
-  if (result.action === 'help') openContextualHelp();
-  if (result.action === 'submit') {
-    if (inDock) {
-      void replacementEditor?._replacementSubmitHandler?.();
-      return true;
-    }
-    void submitComposer();
-    return true;
-  }
-  if (result.action === 'set-type' || result.action === 'set-method' || result.action === 'set-grade') {
-    applyCommandStateToChrome(commandState);
-    if (result.action === 'set-type') {
-      if (commandState.itemKind === 'equation') ensureComposerMathSession();
-      else clearComposerMathSession();
-    }
-    if (result.action === 'set-method' && replacementSession) {
-      applyReplacementMethodFromCommand(commandState.equationMethod);
-    }
-    if (!inDock && (mode === 'add' || mode === 'edit')) renderComposer();
-  } else if (key === 'i' || key === 'Enter' || result.action === 'focus-status' || result.action === 'help') {
-    syncModePanel(commandState);
-  } else if (elements['mode-panel'] && result.announcement) {
-    // Refusal / unknown / locked status — show on mode panel, not save-status
-    elements['mode-panel'].textContent = result.announcement;
-  }
-  if (result.action === 'focus-status') {
-    elements['mode-panel']?.focus();
-  } else if (
-    (key === 'i' || key === 'Enter') &&
-    inDock
-  ) {
-    elements['replacement-input']?.focus();
-  } else if ((key === 'i' || key === 'Enter') && (mode === 'add' || mode === 'edit')) {
-    elements['composer-source']?.focus();
-  }
-  return true;
+  return false;
 }
 
 async function submitComposer({ allowAtomicSubmit = false } = {}) {
@@ -1296,7 +1227,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         resetDraft();
         mode = 'read';
         editingItemId = null;
-        commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+        commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
         renderAll();
         syncModePanel(commandState);
         const replacementArticle = elements['transcript'].querySelector(
@@ -1312,7 +1243,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         resetDraft();
         mode = 'read';
         editingItemId = null;
-        commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+        commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
         renderAll();
         syncModePanel(commandState);
         focusSelectedArticle();
@@ -1344,7 +1275,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
   resetDraft();
   mode = 'read';
   editingItemId = null;
-  commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+  commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
   renderAll();
   syncModePanel(commandState);
   focusSelectedArticle();
@@ -1455,7 +1386,7 @@ elements['replacement-method'].addEventListener('change', () => {
     }
     applyCommandStateToChrome({
       ...commandState,
-      itemKind: 'equation',
+      surface: 'equation',
       equationMethod: selected,
       contentEmpty: true
     });
@@ -1609,7 +1540,7 @@ elements['mode-switch'].addEventListener('change', () => {
   draft.type = selectedType();
   applyCommandStateToChrome({
     ...commandState,
-    itemKind: draft.type,
+    surface: draft.type,
     equationMethod: draft.type === 'equation' ? preferredAuthoringMethod : commandState.equationMethod,
     contentEmpty: draft.type === 'equation' ? true : !(elements['composer-source']?.value ?? '').trim()
   });
@@ -1624,8 +1555,6 @@ elements['mode-switch'].addEventListener('change', () => {
 });
 
 elements['composer-source'].addEventListener('keydown', (event) => {
-  if (commandState.interaction === 'command') return;
-
   if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
     if (
       event.key.length === 1 &&
@@ -1699,7 +1628,6 @@ elements['composer-choices']?.addEventListener('click', (event) => {
   });
   elements['composer-source'].addEventListener('keydown', (event) => {
     if (!globalThis.__omniyaBrailleSimulation) return;
-    if (commandState.interaction === 'command') return;
     if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
       composerNemethSixKey.keydown(event);
       return;
@@ -1854,7 +1782,7 @@ globalThis.__omniyaTesting = {
       resetDraft();
       mode = 'read';
       editingItemId = null;
-      commandState = createCommandState({ itemKind: 'text', contentEmpty: true });
+      commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
     }
     if (replacementSession) return;
     state = addItem(state, { type: 'equation', note: '', math: createEmptyDraftMathDocument() });
