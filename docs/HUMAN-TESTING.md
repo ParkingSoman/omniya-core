@@ -51,16 +51,23 @@ automated passes are not AT or transcriber evidence. See
 
 ## Run the build
 
+Prefer the unsigned zip on the
+[testing-app prerelease](https://github.com/ParkingSoman/omniya-core/releases/tag/testing-app)
+(Apple Silicon Mac arm64 zip, or Windows x64 zip). Unzip and open **Omniya
+Core** (macOS) or **Omniya Core.exe** (Windows). The packaged app includes
+liblouis; you do not need Homebrew or Node for that path.
+
+`npm start` remains for contributors. Do **not** open
+`src/renderer/index.html` in a browser. When you run from source, literary
+UEB labels need Homebrew liblouis (`lou_translate` at `/opt/homebrew/bin` or
+`/usr/local/bin`, or set `OMNIYA_LOU_TRANSLATE`).
+
 ```bash
 git fetch origin
 git checkout testing
 npm install
 npm start
 ```
-
-Do **not** open `src/renderer/index.html` in a browser. Literary UEB labels
-need Homebrew liblouis (`lou_translate` at `/opt/homebrew/bin` or
-`/usr/local/bin`, or set `OMNIYA_LOU_TRANSLATE`).
 
 Optional headed writing demo:
 
@@ -70,7 +77,7 @@ npm run test:demo:thought
 
 ## Sighted PM checklist
 
-1. Launch with `npm start`. Confirm notes / type radios are not visible chrome.
+1. Launch the packaged app or `npm start`. Confirm notes / type radios are not visible chrome.
 2. Add item → `Ctrl+[` enters Command mode; Escape cancels
    authoring. `#mode-panel` shows Command / Insert / Text / Equation / UEB /
    Nemeth (focus with `s` in Command mode; not a live region).
@@ -90,9 +97,11 @@ More detail: [`guided-nemeth-user-guide.md`](guided-nemeth-user-guide.md).
 
 ## Blind-contributor brief (shareable)
 
-**Prerequisites:** macOS; Node + `npm install`; VoiceOver (or another screen
-reader) + a braille display; optional `lou_translate` for literary UEB labels.
-There is no installer yet.
+**Prerequisites:** Apple Silicon Mac or Windows x64 zip from
+[testing-app](https://github.com/ParkingSoman/omniya-core/releases/tag/testing-app)
+(Node is not required for that path); VoiceOver (or another screen reader) +
+a braille display. Contributors who run from source still need Node +
+`npm install`, and Homebrew `lou_translate` for literary UEB labels.
 
 **How tasks should be framed** (coordinator → tester): give only the **user
 task**, the **exact Nemeth cells** to enter, and the **BANA citation**. Do

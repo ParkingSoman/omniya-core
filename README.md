@@ -37,11 +37,11 @@ Literary UEB text is closer to ordinary typing (cells become print). Nemeth is t
 
 **Add item** (under the napkin, beside Keyboard help) opens a blank composer for a new thought.
 
-Clone and run: [Run this alpha](#run-this-alpha). Longer walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
+Download the alpha (or run from source): [Run this alpha](#run-this-alpha). Longer walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
 ## What the app is
 
-Omniya Core is a small **local Electron app** for writing and reading mathematics with a screen reader, a keyboard, and (on this branch) a Braille display. You create named documents the interface calls **napkins**, add text and equations, explore equation structure, and save the work as JSON on your computer. There is no account, no cloud, and no installer.
+Omniya Core is a small **local Electron app** for writing and reading mathematics with a screen reader, a keyboard, and (on this branch) a Braille display. You create named documents the interface calls **napkins**, add text and equations, explore equation structure, and save the work as JSON on your computer. There is no account and no cloud. Testers can download an unsigned zip from the [testing prerelease](https://github.com/ParkingSoman/omniya-core/releases/tag/testing-app).
 
 It is an experimental workspace for blind mathematicians, blind STEM students, screen-reader users, and accessibility researchers. It is not a finished editor. Automated tests are not evidence that the workflow is usable without feedback from blind users.
 
@@ -54,6 +54,17 @@ You are on **`testing`**, the alpha. Newer functionality lives here and has **no
 - **Feature / `codex/…` lanes.** Experimental work. Not for running the app.
 
 ## Run this alpha
+
+Open the [testing-app prerelease](https://github.com/ParkingSoman/omniya-core/releases/tag/testing-app).
+
+- **Apple Silicon Mac:** download the arm64 mac zip, unzip, and open **Omniya Core**. If macOS blocks it: System Settings → Privacy & Security → Open Anyway, or right-click the app → Open.
+- **Windows x64:** download the win zip, unzip, and run **Omniya Core.exe**. If SmartScreen: More info → Run anyway.
+
+Literary UEB is bundled in that zip. This path does not need Homebrew liblouis or Node.
+
+Intel Mac is not packaged yet — use [run from source](#run-from-source).
+
+### Run from source
 
 You need [Node.js](https://nodejs.org/) and git. Do not open `src/renderer/index.html` in a browser; the app has to run through Electron.
 
@@ -74,7 +85,7 @@ npm install
 npm start
 ```
 
-Literary UEB labels need Homebrew [liblouis](https://liblouis.io/) (`lou_translate` on your PATH, or set `OMNIYA_LOU_TRANSLATE`). Walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md). More detail is in [Run from source](#run-from-source).
+When you are not using a packaged build, literary UEB labels need Homebrew [liblouis](https://liblouis.io/) (`lou_translate` on your PATH, or set `OMNIYA_LOU_TRANSLATE`). Walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md). More runtime detail is later under [Run and test](#run-and-test).
 
 ## At a glance
 
@@ -95,6 +106,7 @@ The bullets below describe **this alpha**, not the signed-off `main` snapshot. N
 - [What the app is](#what-the-app-is)
 - [Which branch should I use?](#which-branch-should-i-use)
 - [Run this alpha](#run-this-alpha)
+- [Run from source](#run-from-source)
 - [Why this exists](#why-this-exists)
 - [The document model](#the-document-model)
 - [Current capabilities](#current-prototype-capabilities)
@@ -102,7 +114,7 @@ The bullets below describe **this alpha**, not the signed-off `main` snapshot. N
 - [Where help is most useful now](#where-help-is-most-useful-now)
 - [Project direction](#project-direction)
 - [How to contribute](#how-to-contribute)
-- [Run and test](#run-from-source)
+- [Run and test](#run-and-test)
 - [Project status and license](#project-status-stewardship-and-license)
 
 ## Why this exists
@@ -173,7 +185,7 @@ This prototype deliberately does not include:
 - AI features or telemetry;
 - rich text, visual layout editing, or a conventional canvas;
 - item reordering, general import/export, search, or formal proof management;
-- installers, release automation, or production packaging;
+- production-signed installers and Intel Mac zips (the testing prerelease is unsigned alpha packaging only);
 - a claim that the current interaction model is ready for sustained mathematical work.
 
 Keeping these boundaries narrow is intentional. Large features would make it harder to learn whether the core reading, equation exploration, editing, and persistence model is sound.
@@ -238,10 +250,10 @@ Automated tests cover important invariants, but they cannot establish that the w
 
 Pay attention to item type and position announcements, equation structure, focus after every action, save status, and recovery instructions. Record the screen reader, operating system, Electron version, and keyboard used.
 
-## Run from source
+## Run and test
 
 For the human-testing gate build (guided Nemeth + UEB command mode), check out
-the `testing` branch and see [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
+the `testing` branch and see [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md). Clone and `npm start` steps are under [Run from source](#run-from-source).
 
 The prototype requires a current Node.js installation.
 
