@@ -196,8 +196,12 @@ export function deleteNapkin(state, napkinId) {
   return { ...state, activeNapkinId, napkins };
 }
 
-export function addItem(state, input, { idFactory = defaultIdFactory } = {}) {
+export function insertItemAt(state, index, input, { idFactory = defaultIdFactory } = {}) {
   assertValidState(state);
+  const activeNapkin = getActiveNapkin(state);
+  if (!Number.isInteger(index) || index < 0 || index > activeNapkin.items.length) {
+    throw new RangeError('Item index is out of range');
+  }
   const item = normalizeItem(input, idFactory());
   return {
     ...state,
@@ -205,9 +209,63 @@ export function addItem(state, input, { idFactory = defaultIdFactory } = {}) {
       ? {
           ...napkin,
           selectedItemId: item.id,
-          items: [...napkin.items, item]
+          items: [...napkin.items.slice(0, index), item, ...napkin.items.slice(index)]
         }
       : napkin)
+  };
+}
+
+export function addItem(state, input, { idFactory = defaultIdFactory } = {}) {
+  return insertItemAt(state, getActiveNapkin(state).items.length, input, { idFactory });
+}
+
+function persistTextSlice(source, note, id) {
+  if (typeof source !== 'string' || source.trim() === '') return null;
+  return { ...normalizeItem({ type: 'text', source, note, mathml: null }, id), source };
+}
+
+export function splitTextItem(state, itemId, offset, { idFactory = defaultIdFactory } = {}) {
+  assertValidState(state);
+  const activeNapkin = getActiveNapkin(state);
+  const index = activeNapkin.items.findIndex(({ id }) => id === itemId);
+  if (index === -1) throw new RangeError('Item not found');
+  const existing = activeNapkin.items[index];
+  if (existing.type !== 'text') throw new TypeError('Item is not a text item');
+  if (!Number.isInteger(offset) || offset < 0 || offset > existing.source.length) {
+    throw new RangeError('Split offset is out of range');
+  }
+
+  const leftItem = persistTextSlice(existing.source.slice(0, offset), existing.note, existing.id);
+  const rightSource = existing.source.slice(offset);
+  if (!leftItem && rightSource.trim() === '') {
+    throw new TypeError('Item source is required');
+  }
+  if (!leftItem) {
+    return { state, leftId: null, rightId: existing.id };
+  }
+  if (rightSource.trim() === '') {
+    return { state, leftId: existing.id, rightId: null };
+  }
+  const rightItem = persistTextSlice(rightSource, existing.note, idFactory());
+
+  return {
+    state: {
+      ...state,
+      napkins: state.napkins.map((napkin) => napkin.id === state.activeNapkinId
+        ? {
+            ...napkin,
+            selectedItemId: leftItem.id,
+            items: [
+              ...napkin.items.slice(0, index),
+              leftItem,
+              rightItem,
+              ...napkin.items.slice(index + 1)
+            ]
+          }
+        : napkin)
+    },
+    leftId: leftItem.id,
+    rightId: rightItem.id
   };
 }
 

@@ -8,7 +8,9 @@ import {
   deleteNapkin,
   deleteItem,
   getActiveNapkin,
+  insertItemAt,
   selectItem,
+  splitTextItem,
   switchNapkin,
   updateItem,
   validateState
@@ -210,4 +212,164 @@ test('validation rejects unsupported schemas and item invariant violations', () 
     id: 'item-1', type: 'text', source: 'hello', note: '', mathml: '<math/>'
   });
   assert.match(validateState(invalid).issues.join(' '), /Text items cannot contain MathML/);
+});
+
+test('insertItemAt inserts at index, appends at length, and selects the new item without mutating prior state', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const first = addItem(initial, {
+    type: 'text', source: 'first', note: '', mathml: null
+  }, { idFactory: ids('item-1') });
+  const second = addItem(first, {
+    type: 'text', source: 'second', note: '', mathml: null
+  }, { idFactory: ids('item-2') });
+
+  const prepended = insertItemAt(second, 0, {
+    type: 'text', source: '  before  ', note: 'n', mathml: null
+  }, { idFactory: ids('item-0') });
+  assert.notEqual(prepended, second);
+  assert.deepEqual(getActiveNapkin(second).items.map(({ id }) => id), ['item-1', 'item-2']);
+  assert.deepEqual(getActiveNapkin(prepended).items.map(({ id, source }) => ({ id, source })), [
+    { id: 'item-0', source: 'before' },
+    { id: 'item-1', source: 'first' },
+    { id: 'item-2', source: 'second' }
+  ]);
+  assert.equal(getActiveNapkin(prepended).selectedItemId, 'item-0');
+
+  const inserted = insertItemAt(second, 1, {
+    type: 'equation',
+    source: 'x',
+    note: '',
+    mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"><mi>x</mi></math>'
+  }, { idFactory: ids('item-eq') });
+  assert.deepEqual(getActiveNapkin(inserted).items.map(({ id, type }) => ({ id, type })), [
+    { id: 'item-1', type: 'text' },
+    { id: 'item-eq', type: 'equation' },
+    { id: 'item-2', type: 'text' }
+  ]);
+  assert.equal(getActiveNapkin(inserted).selectedItemId, 'item-eq');
+
+  const appended = insertItemAt(second, 2, {
+    type: 'text', source: 'third', note: '', mathml: null
+  }, { idFactory: ids('item-3') });
+  const viaAdd = addItem(second, {
+    type: 'text', source: 'third', note: '', mathml: null
+  }, { idFactory: ids('item-3') });
+  assert.deepEqual(getActiveNapkin(appended).items.map(({ id }) => id), ['item-1', 'item-2', 'item-3']);
+  assert.deepEqual(getActiveNapkin(viaAdd).items.map(({ id }) => id), ['item-1', 'item-2', 'item-3']);
+  assert.equal(getActiveNapkin(appended).selectedItemId, 'item-3');
+});
+
+test('insertItemAt rejects out-of-range indexes and invalid items', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const withItem = addItem(initial, {
+    type: 'text', source: 'hello', note: '', mathml: null
+  }, { idFactory: ids('item-1') });
+
+  assert.throws(() => insertItemAt(withItem, -1, {
+    type: 'text', source: 'x', note: '', mathml: null
+  }, { idFactory: ids('item-x') }), RangeError);
+  assert.throws(() => insertItemAt(withItem, 2, {
+    type: 'text', source: 'x', note: '', mathml: null
+  }, { idFactory: ids('item-x') }), RangeError);
+  assert.throws(() => insertItemAt(initial, 0, {
+    type: 'text', source: '', note: '', mathml: null
+  }, { idFactory: ids('item-x') }), /Item source is required/);
+  assert.throws(() => insertItemAt(initial, 0, {
+    type: 'equation', source: 'x', note: '', mathml: null
+  }, { idFactory: ids('item-x') }), /Equation items require MathML/);
+});
+
+test('splitTextItem splits a text item at a mid offset into left and right pieces', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const first = addItem(initial, {
+    type: 'text', source: 'hello world', note: 'keep', mathml: null
+  }, { idFactory: ids('item-1') });
+  const second = addItem(first, {
+    type: 'text', source: 'after', note: '', mathml: null
+  }, { idFactory: ids('item-2') });
+
+  const { state, leftId, rightId } = splitTextItem(second, 'item-1', 5, { idFactory: ids('item-right') });
+
+  assert.notEqual(state, second);
+  assert.deepEqual(getActiveNapkin(second).items.map(({ source }) => source), ['hello world', 'after']);
+  assert.equal(leftId, 'item-1');
+  assert.equal(rightId, 'item-right');
+  const napkin = getActiveNapkin(state);
+  assert.deepEqual(napkin.items.map(({ id, type, source, note }) => ({ id, type, source, note })), [
+    { id: 'item-1', type: 'text', source: 'hello', note: 'keep' },
+    { id: 'item-right', type: 'text', source: ' world', note: 'keep' },
+    { id: 'item-2', type: 'text', source: 'after', note: '' }
+  ]);
+  assert.equal(napkin.selectedItemId, 'item-1');
+  assert.deepEqual(validateState(state), { ok: true, issues: [] });
+});
+
+test('splitTextItem does not persist empty sides at offset 0 or source.length', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const added = addItem(initial, {
+    type: 'text', source: 'hello', note: '', mathml: null
+  }, { idFactory: ids('item-1') });
+
+  const atStart = splitTextItem(added, 'item-1', 0, { idFactory: ids('item-new') });
+  assert.equal(atStart.state, added);
+  assert.equal(atStart.leftId, null);
+  assert.equal(atStart.rightId, 'item-1');
+  assert.equal(getActiveNapkin(atStart.state).items.length, 1);
+
+  const atEnd = splitTextItem(added, 'item-1', 5, { idFactory: ids('item-new') });
+  assert.equal(atEnd.state, added);
+  assert.equal(atEnd.leftId, 'item-1');
+  assert.equal(atEnd.rightId, null);
+  assert.equal(getActiveNapkin(atEnd.state).items.length, 1);
+});
+
+test('splitTextItem omits a whitespace-only side and keeps the original item id on the remaining side', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const added = addItem(initial, {
+    type: 'text', source: 'hello', note: '', mathml: null
+  }, { idFactory: ids('item-1') });
+  const padded = structuredClone(added);
+  padded.napkins[0].items[0].source = 'hello  ';
+
+  const trailing = splitTextItem(padded, 'item-1', 5, { idFactory: ids('item-right') });
+  assert.equal(trailing.leftId, 'item-1');
+  assert.equal(trailing.rightId, null);
+  assert.deepEqual(getActiveNapkin(trailing.state).items.map(({ id, source }) => ({ id, source })), [
+    { id: 'item-1', source: 'hello  ' }
+  ]);
+
+  const leadingPadded = structuredClone(added);
+  leadingPadded.napkins[0].items[0].source = '  hello';
+  const leading = splitTextItem(leadingPadded, 'item-1', 2, { idFactory: ids('item-right') });
+  assert.equal(leading.leftId, null);
+  assert.equal(leading.rightId, 'item-1');
+  assert.deepEqual(getActiveNapkin(leading.state).items.map(({ id, source }) => ({ id, source })), [
+    { id: 'item-1', source: '  hello' }
+  ]);
+});
+
+test('splitTextItem rejects missing items, non-text items, and out-of-range offsets', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const withText = addItem(initial, {
+    type: 'text', source: 'hello', note: '', mathml: null
+  }, { idFactory: ids('item-1') });
+  const withEquation = addItem(withText, {
+    type: 'equation',
+    source: 'x',
+    note: '',
+    mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"><mi>x</mi></math>'
+  }, { idFactory: ids('item-eq') });
+
+  assert.throws(() => splitTextItem(withEquation, 'missing', 0, { idFactory: ids('x') }), RangeError);
+  assert.throws(() => splitTextItem(withEquation, 'item-eq', 0, { idFactory: ids('x') }), TypeError);
+  assert.throws(() => splitTextItem(withText, 'item-1', -1, { idFactory: ids('x') }), RangeError);
+  assert.throws(() => splitTextItem(withText, 'item-1', 6, { idFactory: ids('x') }), RangeError);
+});
+
+test('validation still requires a non-empty text source', () => {
+  const state = createInitialState({ idFactory: ids('napkin-1') });
+  state.napkins[0].items.push({
+    id: 'item-1', type: 'text', source: '', note: '', mathml: null
+  });
+  assert.match(validateState(state).issues.join(' '), /source is required/);
 });
