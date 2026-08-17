@@ -10,3 +10,5 @@ test-results/
 test/user-data/
 test/artifacts/
 .DS_Store
+dist/
+vendor/liblouis/
