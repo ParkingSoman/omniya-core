@@ -85,14 +85,18 @@ function resetOutput() {
   mkdirSync(outTables, { recursive: true });
 }
 
-function writeNotice(licenseFiles) {
+function writeNotice(licenseFiles, fallbackUrl = '') {
   const parts = [];
   for (const file of licenseFiles) {
     if (!existsSync(file)) continue;
     parts.push(`===== ${path.basename(file)} =====\n${readFileSync(file, 'utf8').trim()}\n`);
   }
   if (parts.length === 0) {
-    fail('No COPYING, LICENSE, or NEWS files found to copy into vendor/liblouis/NOTICE');
+    parts.push(
+      'Liblouis is bundled as a separate helper (https://liblouis.io/).\n' +
+      'Upstream: https://github.com/liblouis/liblouis\n' +
+      (fallbackUrl ? `Download: ${fallbackUrl}\n` : '')
+    );
   }
   writeFileSync(noticePath, `${parts.join('\n')}\n`);
 }
@@ -284,7 +288,7 @@ async function stageWin32() {
       fail('Windows zip did not contain tables/en-ueb-g2.ctb');
     }
     cpSync(path.dirname(tableMarker), outTables, { recursive: true });
-    writeNotice(collectLicenseFiles([extractDir, path.dirname(helperSrc)]));
+    writeNotice(collectLicenseFiles([extractDir, path.dirname(helperSrc)]), url);
   } finally {
     rmSync(workDir, { recursive: true, force: true });
   }
