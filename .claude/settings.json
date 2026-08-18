@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "TaskUpdate",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/commit-on-task-complete.sh\"",
+            "timeout": 120,
+            "statusMessage": "Checkpointing task as a commit"
+          }
+        ]
+      }
+    ]
+  }
+}
