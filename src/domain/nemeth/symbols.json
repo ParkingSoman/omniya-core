@@ -1,0 +1,117 @@
+[
+  {
+    "cells": "⠀",
+    "kind": "blank",
+    "value": " ",
+    "banaRef": null
+  },
+  {
+    "cells": "⠆",
+    "kind": "digit",
+    "value": "2",
+    "banaRef": "3.1.2"
+  },
+  {
+    "cells": "⠶",
+    "kind": "digit",
+    "value": "7",
+    "banaRef": "3.1.2"
+  },
+  {
+    "cells": "⠁",
+    "kind": "letter",
+    "value": "a",
+    "banaRef": null
+  },
+  {
+    "cells": "⠃",
+    "kind": "letter",
+    "value": "b",
+    "banaRef": null
+  },
+  {
+    "cells": "⠉",
+    "kind": "letter",
+    "value": "c",
+    "banaRef": null
+  },
+  {
+    "cells": "⠝",
+    "kind": "letter",
+    "value": "n",
+    "banaRef": null
+  },
+  {
+    "cells": "⠭",
+    "kind": "letter",
+    "value": "x",
+    "banaRef": null
+  },
+  {
+    "cells": "⠽",
+    "kind": "letter",
+    "value": "y",
+    "banaRef": null
+  },
+  {
+    "cells": "⠬",
+    "kind": "op",
+    "value": "+",
+    "role": "binary",
+    "precedence": "additive",
+    "banaRef": "20"
+  },
+  {
+    "cells": "⠼",
+    "kind": "numeric",
+    "value": "#",
+    "banaRef": "3.3",
+    "unlessFollowedByNumeral": {
+      "kind": "fracClose",
+      "value": "#",
+      "banaRef": "13"
+    }
+  },
+  {
+    "cells": "⠹",
+    "kind": "fracOpen",
+    "value": "?",
+    "banaRef": "13"
+  },
+  {
+    "cells": "⠌",
+    "kind": "fracLine",
+    "value": "/",
+    "banaRef": "13"
+  },
+  {
+    "cells": "⠜",
+    "kind": "radOpen",
+    "value": ">",
+    "banaRef": "16.1.1"
+  },
+  {
+    "cells": "⠻",
+    "kind": "radClose",
+    "value": "]",
+    "banaRef": "16.1.1"
+  },
+  {
+    "cells": "⠘",
+    "kind": "level",
+    "value": "^",
+    "banaRef": "2"
+  },
+  {
+    "cells": "⠰",
+    "kind": "level",
+    "value": "_",
+    "banaRef": "2"
+  },
+  {
+    "cells": "⠐",
+    "kind": "baseline",
+    "value": "",
+    "banaRef": "2"
+  }
+]
