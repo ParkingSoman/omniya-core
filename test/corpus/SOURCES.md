@@ -1,11 +1,18 @@
 # BANA source provenance
 
-`test/corpus/sources/` holds the reference documents for the Nemeth Braille
-Code, pinned by SHA-256 so a future re-fetch can be verified against what is
-committed here. These documents are not (yet) parsed into corpus cases --
-they exist for provenance/citation and for manual cross-checking of `ref`
-values in `nemeth-v1.json` -- but their extracted text (`.txt`) is committed
-alongside the PDFs.
+`test/corpus/sources/` holds the reference documents for the **BANA Nemeth
+2022** Braille Code, pinned by SHA-256 so a future re-fetch can be verified
+against what is committed here. These documents are not (yet) parsed into
+corpus cases -- they exist for provenance/citation -- but their extracted
+text (`.txt`) is committed alongside the PDFs.
+
+**Do not use these PDFs to cross-check the `mathcat-rules` cases' `ref`
+values in `nemeth-v1.json`.** Those `ref`s are 1972 Nemeth "green book"
+section numbers (per `rules.rs`'s own header comment), not BANA Nemeth 2022
+rule numbers -- see the `refScheme` field on that source record and the
+caveat in `NOTICE`. BANA Nemeth 2022 (pinned below) has only 26 rules;
+`mathcat-rules` `ref` values run as high as 177, and the two numbering
+schemes are ambiguous for any value below 27.
 
 | File | Official URL | SHA-256 |
 |---|---|---|

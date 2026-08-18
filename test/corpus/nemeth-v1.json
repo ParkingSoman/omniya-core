@@ -9,7 +9,8 @@
       "license": "MIT",
       "path": "tests/braille/Nemeth/rules.rs",
       "caseCount": 273,
-      "notes": "3 <math> literal(s) embedded XML comments (e.g. <mi mathvariant='normal'>#<!-- # --></mi>); comments were stripped for the same reason as the sre-aata source below. One literal (omission_57_3) had a leading space before \"<math>\"; insignificant outer whitespace was trimmed."
+      "refScheme": "nemeth-1972-green-book",
+      "notes": "3 <math> literal(s) embedded XML comments (e.g. <mi mathvariant='normal'>#<!-- # --></mi>); comments were stripped for the same reason as the sre-aata source below. One literal (omission_57_3) had a leading space before \"<math>\"; insignificant outer whitespace was trimmed. Non-null `ref` values are section numbers from the 1972 Nemeth \"green book\" (per rules.rs's own header: \"The numbering refers to the Nemeth green book in most cases\"), with some NFB certification-lesson numbers mixed in for names deriveRef() could not distinguish from a green-book section by pattern alone. They are NOT BANA Nemeth 2022 rule numbers -- BANA Nemeth 2022 has only 26 rules, while these refs run up to 177 (e.g. \"177.2.1\"), and the two numbering schemes are ambiguous (ref could mean either) for any value below 27."
     },
     {
       "id": "sre-aata",
@@ -18,7 +19,8 @@
       "license": "Apache-2.0",
       "path": "testsuite/input/nemeth/aata.json + testsuite/expected/nemeth/rules/aata.json",
       "caseCount": 340,
-      "notes": "Input MathML fragments were wrapped in <math xmlns=\"http://www.w3.org/1998/Math/MathML\">...</math> (the source has no document element); embedded XML comments (e.g. <mo>≡<!-- ≡ --></mo>) were stripped since parseMathML is a regex tokenizer, not an XML parser. The expected file's \"_comment0_\" entry was skipped as it is not a test."
+      "refScheme": null,
+      "notes": "Input MathML fragments were wrapped in <math xmlns=\"http://www.w3.org/1998/Math/MathML\">...</math> (the source has no document element); embedded XML comments (e.g. <mo>≡<!-- ≡ --></mo>) were stripped since parseMathML is a regex tokenizer, not an XML parser. The expected file's \"_comment0_\" entry was skipped as it is not a test. This source carries no `ref` values at all (every case has ref: null) -- refScheme is null because there is no scheme to name."
     }
   ],
   "cases": [

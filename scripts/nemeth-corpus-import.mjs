@@ -72,10 +72,11 @@ function stripXmlComments(s) {
 
 // ---- MathCAT extraction ----
 
-// Tokens that mark a function name as citing something other than a BANA
-// book section -- an NFB lesson number, or the UEB rule book -- even though
-// the name still contains digits. Deriving a ref from these would misattribute
-// a non-BANA citation as a BANA section, which is worse than reporting null.
+// Tokens that mark a function name as citing something other than a 1972
+// Nemeth green-book section -- an NFB certification-lesson number, or the
+// UEB rule book -- even though the name still contains digits. Deriving a
+// ref from these would misattribute a non-green-book citation as a
+// green-book section, which is worse than reporting null.
 const EXCLUDED_REF_TOKENS = new Set(['lesson', 'nfb', 'ueb']);
 
 // Standard (non-empty) lowercase roman numeral, e.g. "iii" in root_104_iii_1.
@@ -88,11 +89,14 @@ function isSectionRunToken(token) {
   return false;
 }
 
-// Derives a BANA section reference (e.g. "9.a.1") from a MathCAT test
-// function name -- num_indicator_9_a_1 -> "9.a.1" -- by taking the longest
-// trailing run of section-shaped tokens (digits, single lowercase letters,
-// or lowercase roman numerals). Returns null, rather than guessing, when:
-//   - the name cites something other than the BANA book (see
+// Derives a 1972 Nemeth "green book" section reference (e.g. "9.a.1") from a
+// MathCAT test function name -- num_indicator_9_a_1 -> "9.a.1" -- by taking
+// the longest trailing run of section-shaped tokens (digits, single
+// lowercase letters, or lowercase roman numerals). This is NOT BANA Nemeth
+// 2022 rule numbering -- see rules.rs's own header comment ("The numbering
+// refers to the Nemeth green book in most cases") and the mathcat-rules
+// source note in the output JSON. Returns null, rather than guessing, when:
+//   - the name cites something other than the green book (see
 //     EXCLUDED_REF_TOKENS above), or
 //   - no such trailing run exists, or the run has no digit in it at all.
 function deriveRef(fnName) {
@@ -243,11 +247,18 @@ const output = {
       license: 'MIT',
       path: MATHCAT_FILE,
       caseCount: mathcatCases.length,
+      refScheme: 'nemeth-1972-green-book',
       notes:
         (commentedMathmlCount > 0
           ? `${commentedMathmlCount} <math> literal(s) embedded XML comments (e.g. <mi mathvariant='normal'>#<!-- # --></mi>); comments were stripped for the same reason as the sre-aata source below. `
           : '') +
-        'One literal (omission_57_3) had a leading space before "<math>"; insignificant outer whitespace was trimmed.'
+        'One literal (omission_57_3) had a leading space before "<math>"; insignificant outer whitespace was trimmed. ' +
+        "Non-null `ref` values are section numbers from the 1972 Nemeth \"green book\" (per rules.rs's own header: " +
+        '"The numbering refers to the Nemeth green book in most cases"), with some NFB certification-lesson numbers ' +
+        'mixed in for names deriveRef() could not distinguish from a green-book section by pattern alone. ' +
+        'They are NOT BANA Nemeth 2022 rule numbers -- BANA Nemeth 2022 has only 26 rules, while these refs run up ' +
+        'to 177 (e.g. "177.2.1"), and the two numbering schemes are ambiguous (ref could mean either) for any ' +
+        'value below 27.'
     },
     {
       id: 'sre-aata',
@@ -256,11 +267,13 @@ const output = {
       license: 'Apache-2.0',
       path: `${SRE_INPUT_FILE} + ${SRE_EXPECTED_FILE}`,
       caseCount: sreCases.length,
+      refScheme: null,
       notes:
         'Input MathML fragments were wrapped in <math xmlns="http://www.w3.org/1998/Math/MathML">...</math>' +
         ' (the source has no document element); embedded XML comments (e.g. <mo>≡<!-- ≡ --></mo>)' +
         ' were stripped since parseMathML is a regex tokenizer, not an XML parser. The expected file\'s' +
-        ' "_comment0_" entry was skipped as it is not a test.'
+        ' "_comment0_" entry was skipped as it is not a test. This source carries no `ref` values at all' +
+        ' (every case has ref: null) -- refScheme is null because there is no scheme to name.'
     }
   ],
   cases: allCases

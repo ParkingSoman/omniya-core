@@ -39,6 +39,19 @@ test('each source\'s declared caseCount matches its actual case count', () => {
   }
 });
 
+test('every source declares a refScheme, so a case\'s `ref` numbering can never be assumed', () => {
+  for (const source of corpus.sources) {
+    assert(
+      Object.prototype.hasOwnProperty.call(source, 'refScheme'),
+      `source "${source.id}" does not declare refScheme (must be a scheme name, or null if the source carries no refs)`
+    );
+    assert(
+      source.refScheme === null || typeof source.refScheme === 'string',
+      `source "${source.id}" refScheme must be a string or null`
+    );
+  }
+});
+
 test('the two verified known-count assertions hold: 273 mathcat-rules, 340 sre-aata', () => {
   const mathcatCount = corpus.cases.filter((c) => c.source === 'mathcat-rules').length;
   const sreCount = corpus.cases.filter((c) => c.source === 'sre-aata').length;

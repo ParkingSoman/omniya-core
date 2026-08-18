@@ -41,6 +41,16 @@ Only the (MathML, Nemeth braille) test pairs in rules.rs were imported --
 see scripts/nemeth-corpus-import.mjs and test/corpus/nemeth-v1.json (source
 id "mathcat-rules"). No MathCAT source/rule code was copied.
 
+CAVEAT on the "mathcat-rules" cases' `ref` field: rules.rs's own header
+states "The numbering refers to the Nemeth green book in most cases" (with
+some newer NFB certification-lesson numbers mixed in). These are 1972
+Nemeth "green book" section numbers (recorded as `refScheme:
+"nemeth-1972-green-book"` on the source record) -- NOT BANA Nemeth 2022
+rule numbers. BANA Nemeth 2022 has only 26 rules, while these `ref` values
+run as high as 177 (e.g. "177.2.1"); the two schemes are ambiguous for any
+value below 27, so do not read a low `ref` (e.g. "9.a.1") as a BANA 2022
+rule without checking which book it actually names.
+
 ================================================================================
 speech-rule-engine
 ================================================================================
