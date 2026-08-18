@@ -12,3 +12,9 @@ test/artifacts/
 .DS_Store
 dist/
 vendor/liblouis/
+
+# Regenerable per-page raster extracts of test/corpus/sources/Nemeth_2022.pdf
+# (see test/corpus/SOURCES.md). The PDFs and their .txt extractions are
+# committed; these page images are not.
+test/corpus/sources/*.png
+test/corpus/sources/*.jpg

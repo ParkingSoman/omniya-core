@@ -1,0 +1,1100 @@
+   Errata for The Nemeth Braille Code for Mathematics and
+                    Science Notation 2022
+            Issued by the Braille Authority of North America
+
+                              October 2025
+
+
+
+This list of errata contains known corrections and clarifications that
+should be made to the publication The Nemeth Braille Code for
+Mathematics and Science Notation 2022 as posted in 2024.
+
+The errata approved in August 2024 has been worked into this
+document, Approved August 2024 precedes the relevant material. In a
+few cases, the format of the previous errata material has been cleaned
+up or expanded to show the entire example so that users may be able
+to cut and paste into printed documents.
+                    Table of Changes
+
+Rule              Page   Change
+
+Rule 3: 3.3.1     3-4    Commentary to Example 3-13 corrected
+                         (Print and BRF)
+Rule 3: 3.3.1     3-4    Braille in Example 3-16 corrected (Print
+                         and BRF)
+Rule 3: 3.4.3     3-14   Print in Example 3-62 corrected (Print)
+Rule 3: 3.5.2     3-16   Heading to Example 3-70 corrected
+                         (Print)
+Rule 3: 3.6.2     3-20   Heading to Example 3-89 corrected
+                         (Print)
+Rule 4: 4.2       4-1    Rule updated and example added (Print
+                         and BRF) Approved August 2024
+Rule 4: 4.5.3     4-8    Braille in Example 4-21 corrected (Print
+                         and BRF) Approved August 2024
+Rule 4: 4.6.8.c   4-16   Rule updated (Print and BRF) Approved
+                         August 2024
+Rule 4: 4.8.2     4-19   Wording clarified and example added.
+                         (Print and BRF)
+Rule 6: 6.4.2     6-9    Wording clarified (Print and BRF)
+Rule 7: 7.2.1     7-2    Cross-reference added (Print and BRF)
+Rule 7: 7.3.3     7-5    Paragraph heading and two examples
+                         added (Print and BRF)
+Rule 7: 7.3.5     7-6    Braille in Example 7-19 corrected (Print
+                         and BRF)
+Rule 8: 8.2.4     8-3    Rule updated (Print and BRF)
+Rule 8: 8.2.13    8-7    Heading to Example 8-21 corrected (Print
+                         and BRF) Approved August 2024
+
+
+                               i           Nemeth Braille Code Errata 2022
+Rule 8: 8.2.16      8-8     Heading and commentary to Example
+                            8-26 corrected (Print and BRF) Approved
+                            August 2024
+Rule 8: 8.8.2       8-15    Heading to Example 8-64 updated (Print
+                            and BRF)
+Rule 8: 8.8.2       8-15    Commentary added to Example 8-65
+                            (Print and BRF)
+Rule 9: 9.1         9-1     Rule edited to add recommendation for a
+                            checkmark (Print and BRF) Approved
+                            August 2024
+Rule 9: 9.3.2       9-3     Braille in Example 9-4 corrected (Print)
+                            Approved August 2024
+Rule 10: 10.1.1.a   10-1    Heading to Example 10-2 corrected (Print
+                            and BRF) Approved August 2024
+                            Remove from approved errata
+Rule 10: 10.1.1.a   10-1    Heading to Example 10-4 corrected (Print
+                            and BRF) Approved August 2024
+                            Remove from approved errata
+Rule 10: 10.6.1     10-9    Commentary to Example 10-49 corrected
+                            (Print and BRF) Approved August 2024
+Rule 10: 10.6.3     10-11   Wording clarified (Print and BRF)
+Rule 11: 11.1.4     11-3    Rule edited Approved August 2024
+Rule 15: 15.2.1     15-4    Print and braille in Example 15-8
+                            corrected (Print and BRF)
+Rule 15: 15.7       15-12   Print in Example 15-45 corrected (Print)
+Rule 15: 15.7       15-12   Print in Example 15-46 corrected (Print)
+Rule 17: 17.1       17-6    Wording clarified (Print and BRF)
+Special                     Approved August 2024
+Considerations c.
+Rule 20: 20.6       20-9    Heading to Example 20-36 corrected
+                            (Print and BRF)
+
+                                  ii          Nemeth Braille Code Errata 2022
+Rule 23: symbol     23-1    Symbol added (Print and BRF)
+list
+Rule 23: 23.4       23-3    Rule edited and example added (Print
+                            and BRF)
+Rule 23: 23.13      23-9    Rule edited (Print and BRF)
+Rule 23: 23.17      23-13   Braille in Example 23-48 corrected (Print
+                            and BRF)
+Rule 24: 24.1.e     24-2    Sub-section and examples deleted (Print
+                            and BRF)
+Rule 25: 25.3.3     25-2    Rule edited and example added (Print
+                            and BRF)
+Rule 25: 25.3.4     25-8    Print in Example 25-11 edited (Print)
+Rule 25: 25.8.2.b   25-43   Example cross-reference corrected (Print
+                            and BRF)
+Rule 25: 25.8.2.c   25-43   Example cross-reference corrected (Print
+                            and BRF)
+Rule 25: 25.10      25-55   Print in Example 25-77 corrected (Print)
+Rule 26: 26.1.4.b   26-8    Braille in Example 26-13 corrected;
+                            commentary added (Print and BRF)
+Rule 26: 26.3.5     26-17   Commentary to Example 26-28 updated
+                            (Print and BRF)
+Rule 26: 26.5.3.b   26-29   Print in Example 26-50 corrected (Print)
+Appendix B          B-1     Rule edited (Print and BRF)
+Appendix D          D-27    Symbol added (Print and BRF)
+Appendix D          D-32    Symbol removed (Print and BRF)
+
+
+
+
+                                 iii          Nemeth Braille Code Errata 2022
+                           Rule 3
+                 Numeric Signs and Symbols
+Location: P. 3-4, §3.3.1, Example 3-13 – Print and BRF
+
+Rationale: The commentary to Example 3-13 is missing the closing
+parenthesis after the word “symbol”. Change the commentary to:
+
+          Example 3-13: Number Not Requiring a Numeric Indicator
+
+           +3
+           _% +3 _:
+           (numeric indicator is not used with a number preceded by a plus
+           symbol)
+
+
+
+
+Location: P. 3-4, §3.3.1, Example 3-16 – Print and BRF
+
+Rationale: In the braille, the R in the numerator of the first fraction
+inside of the parentheses should be capitalized. Change the braille to:
+
+          Example 3-16: Number Preceded by a Space and a Minus Sign
+
+                     12      R12   R22         Rk2 
+            H=              |     +     +     +       − 3 ( N + 1)
+                                                nk 
+                                          ...
+                 N ( N + 1) | n1   n2
+                                                    
+           _%
+           ,h
+                .k ?12/,n(,n+1)#
+                (?,r1~2"/n1#+?,r2~2"/n2#+ '''
+                +?,r;k~2"/n;k"#)
+                -#3(,n+1) _:
+
+
+
+
+                                           1                Nemeth Braille Code Errata 2022
+Location: P. 3-14, §3.4.3, Example 3-62 – Print Only
+
+Rationale: In the print, there should be 10 partitioned sets of zeros
+rather than 11. Change the print to:
+
+          Example 3-62: Partitioned Number with a Runover
+
+           The distance from Earth to the sun is 149 600 000 000 m. The mass of an
+           electron is 0.000 000 000 000 000 000 000 000 000 000 910 9 kg.
+               ,! 4t.e f ,e>? to ! sun is
+           _% #149 600 000 000 ;m _:4 ,! mass ( an
+           electron is _% #0.000 000 000 000 000
+           000 000 000 000 000 910 9 kg _:4
+           (partitioned numbers are transcribed in Nemeth Code)
+
+
+
+
+Location: P. 3-16, §3.5.2, Example 3-70 – Print Only
+
+Rationale: In the example heading, the word “Runover” is misspelled.
+Change the heading to:
+
+          Example 3-70: Enclosed List with Runover
+
+           (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+           _% (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+               12) _:
+           (the numeric indicator is not required before 12 even though 12
+           begins a new line)
+
+
+
+
+                                             2         Nemeth Braille Code Errata 2022
+Location: P. 3-20, §3.6.2, Example 3-89 – Print Only
+
+Rationale: In the example heading, the E should be the el (E) symbol.
+Change the heading to:
+
+         Example 3-89: A Base-12 Numeral Using X and E
+
+           13 x E 7
+           _% #13de7 _:
+           (a base-12 numeral in which x represents ten and E represents
+           eleven. Here the transcriber has assigned d to x and e to E)
+
+
+
+
+                                     3             Nemeth Braille Code Errata 2022
+                               Rule 4
+                           Code Switching
+Approved August 2024
+
+Location: P. 4-1, §4.2 – Print and BRF
+
+Rationale: It is not stated in the updated Code that no contractions
+should be used within the switches. The following correction is made:
+
+4.2       Code Switch Indicators
+          The purpose of code switching is to indicate text which is
+          transcribed in a braille code other than UEB. The opening
+          Nemeth Code indicator followed by a space is placed before
+          the math symbol, expression, or passage to which it applies.
+          Its effect is terminated by the Nemeth Code Terminator
+          preceded by a space. No contractions are used within the
+          switch indicators except when following, and part of, a
+          single-word switch. Use of the single-word switch indicator
+          allows a single UEB word to be within a Nemeth passage
+          without the need to explicitly terminate Nemeth Code. See
+          4.6.8c for rules regarding use of the single-word switch
+          indicator. UEB symbols are not used within the switch
+          indicators for Nemeth Code. Nemeth symbols are not used
+          outside the switches.
+
+          Example
+
+           x + 6 and x – 6 are opposites
+           _% x+6 ,'& x-6 _: >e opposites
+
+
+
+
+                                           4   Nemeth Braille Code Errata 2022
+Approved August 2024
+
+Location: P. 4-8, §4.5.3, Example 4-21 – Print and BRF
+
+Rationale: Line 3: the contraction for "sion" in "expression" should be
+(46, 1345), not (56, 1345).
+
+          Example 4-21: Transcriber's Note
+
+           13 does not divide 24 because 24 divided by 13 does not leave a remainder
+           of 0.
+               13 ⫮ 24
+             #ac does n divide #bd 2c #bd divid$ by
+           #ac does n l1ve a rema9d} ( #j4
+                     `.<,9 ! expres.n 2l1 ! MA? SYMBOL
+                  = 8DOES N DIVIDE0 is repres5t$ by
+                  _% /\ _:4`.>
+              _% #13/|24 _:
+
+
+
+
+                                        5              Nemeth Braille Code Errata 2022
+Approved August 2024
+
+Location: P. 4-16, §4.6.8.c – Print and BRF
+
+Rationale: It is not stated in the updated Code that no contractions
+should be used within the switches. The following correction is made:
+
+4.6.8     Words.
+          c. The Single-Word Switch Indicator. When only one
+             narrative word, hyphenated word, or abbreviation occurs
+             between two Nemeth expressions or symbols, the single-
+             word switch indicator (,') is used to indicate that the
+             word is in UEB. This is also applied within an
+             uncontracted transcription. The indicator is unspaced
+             from the affected word. Contractions are used in the
+             subsequent word as needed. The indicator is used
+             whether or not the word contains contractions. A UEB
+             typeform indicator may be used with a word that is
+             preceded by the single-word switch indicator. The effect
+             of the single-word switch indicator is terminated by a
+             space.
+
+             The single-word switch indicator cannot be used on words
+             joined by a slash or separated by a dash. See examples
+             4-41 and 4-42. The single-word switch cannot be used
+             immediately before a UEB grouping symbol or quotation
+             mark. See example 4-52.
+
+
+
+
+                                   6           Nemeth Braille Code Errata 2022
+Location: P. 4-19, §4.8.2 – Print and BRF
+
+Rationale: Wording has been added to 4.8.2 to further clarify the
+placement of Nemeth Code switch indicators with embedded
+mathematical material. An example has also been added.
+
+4.8.2    Placement of Switches with Embedded Mathematical
+         Material. If the mathematical material and its switch
+         indicators with any attached punctuation will fit on one
+         braille line within current margins, this is the preferred
+         layout. If not, the priority is to not divide the math
+         expression. When only one code switch indicator will fit on
+         the line with the math expression, either indicator may be
+         placed on the line with the math. That is, the opening
+         Nemeth Code indicator may be placed on the previous line,
+         and/or the Nemeth Code terminator may be placed on the
+         following line in the runover position. The terminator and
+         related punctuation may be placed on the following line if
+         there is not room on the line with the math expression.
+         Text and switch indicators are aligned with the main line in
+         an embedded spatial expression. See 26.6.2 for details.
+
+         Example: Placement of Terminator in Runover Position
+
+           The set of integers from –4 to 5: {–4, –3, –2, –1, 0, 1, 2, 3, 4, 5}
+           #a4 ,! SET ( 9TEG]S F _% -#4 ,'TO #5_3
+              .(-4, -3, -2, -1, 0, 1, 2, 3, 4, 5.)
+              _:
+
+
+
+
+                                          7                Nemeth Braille Code Errata 2022
+                              Rule 6
+                            Alphabets
+Location: P. 6-9, §6.4.2 – Print and BRF
+
+Rationale: Wording has been clarified to reflect the correct
+terminology for the abbreviation of a function name; change to:
+
+6.4.2     Function Names. An English-letter indicator is not used
+          with a letter that follows a function name or its abbreviated
+          form.
+
+
+
+
+                                   8            Nemeth Braille Code Errata 2022
+                              Rule 7
+                            Typeforms
+Location: P. 7-2, §7.2.1 – Print and BRF
+
+Rationale: A cross-reference to 7.3.3 for letter(s) in a hyphenated
+expression has been added to the end of the paragraph. Change to:
+
+7.2.1     Letters. Subject to the provisions of 7.4, if typeform is
+          retained, the appropriate typeform indicator is used to
+          express the typeform of a letter. The typeform indicator for
+          a letter must always be followed by an alphabetic indicator.
+          When a typeform indicator is used with letters, its
+          effectiveness extends only to the letter which follows it.
+          Thus, except for regular type, a typeform indicator is used
+          with each individual letter of a sequence of letters. See
+          7.3.3 for letter(s) as part of a hyphenated expression.
+
+
+
+
+                                   9            Nemeth Braille Code Errata 2022
+Location: P. 7-5, §7.3.3 – Print and BRF
+
+Rationale: The paragraph heading Hyphenated Expressions has
+been added to the section. Two examples of letter(s) in a hyphenated
+expression are added.
+
+7.3.3     Hyphenated Expressions. A hyphen does not terminate
+          typeform in a hyphenated expression. If there is a change in
+          typeform after the hyphen to regular type, the hyphen must
+          be preceded by the typeform termination symbol. If there is
+          a change in typeform after the hyphen to non-regular type,
+          only the appropriate typeform indicator must be used after
+          the hyphen.
+
+          Example: Bold Letter in a Bold Hyphenated Expression
+
+           ζ-function
+           _% _.z-function _:
+
+          Example: Bold Letters in a Hyphenated Expression
+
+           xy-coordinate system
+           _% _;x_;y,'-coordinate _: sy/em
+
+
+
+
+Location: P. 7-6, §7.3.5, Example 7-19 – Print and BRF
+
+Rationale: 1) The brailled sentence should begin in cell 3, not cell 4.
+2) The boldface word indicator before “median” was corrected. Change
+braille to:
+
+          Example 7-19: Expression in Boldface Type
+
+           The median score was only 59%.
+              ,! ~1m$ian score 0 only
+           _% ,'_ #59`0 _,' _:4
+           (retain if typeform of a math expression is considered to be
+           significant)
+
+                                      10             Nemeth Braille Code Errata 2022
+                         Rule 8
+             Punctuation Signs and Symbols
+Approved August 2024 – However, it appears that critical wording was
+omitted, we request this section to be reapproved.
+
+Location: P. 8-3, §8.2.4 – Print and BRF
+
+Rationale: The wording “The punctuation indicator is used” was left
+out of the previously approved correction, change this section to read:
+
+8.2.4     The punctuation indicator is used after a long dash or ellipsis
+          in a mathematical context, regardless of what they
+          represent.
+
+
+
+
+Approved August 2024
+
+Location: P. 8-7, §8.2.13, Example 8-21 – Print and BRF
+
+Rationale: Example heading corrected, change “Closing Parenthesis”
+to “Right Parenthesis”.
+
+          Example 8-21: Period Following Right Parenthesis
+
+           (five + seven).
+           _% (five+seven)_4 ''' _:
+           (the ellipsis indicates that technical material continues following the
+           period)
+
+
+
+
+                                       11              Nemeth Braille Code Errata 2022
+Approved August 2024
+
+Location: P. 8-8, §8.2.16, Example 8-26 – Print and BRF
+
+Rationale: Example heading corrected, change “Closing Quotation” to
+“Opening Quotation”. The commentary was also corrected.
+
+         Example 8-26: Opening Quotation Mark Following a Dash
+
+           (—".2")
+           _% (--_8#.2_0) ''' _:
+           (the ellipsis indicates that technical material continues following the
+           right parenthesis)
+
+
+
+
+Location: P. 8-15, §8.8.2, Example 8-64 – Print and BRF
+
+Rationale: The example heading is misleading as the matrix contains
+both traditional ellipses and one printed across the array. Change
+heading to:
+
+         Example 8-64: Matrix with Ellipsis Across All Columns
+
+            a11 a12      a1n 
+           a    a 22     a 2n 
+            21                 
+           . . . . . .    . .
+                               
+           a n1 a n 2    a nn 
+
+           _%
+
+
+           @,(a11       a12         ''' a;1n"@,)
+           @,(a21       a22         ''' a;2n"@,)
+           @,('''''''''''''''''''@,)
+           @,(a;n1 a;n2 ''' a;nn"@,)
+
+           _:
+
+
+                                       12              Nemeth Braille Code Errata 2022
+Location: P. 8-15, §8.8.2, Example 8-65 – Print and BRF
+
+Rationale: Commentary has been added to the example explaining
+the presence of the second ellipsis.
+
+         Example 8-65: Period Applies to the Ellipsis
+
+          x + y + ….
+          _% x+y+ '''_4 ''' _:
+          (the second ellipsis indicates that technical material continues
+          following the period)
+
+
+
+
+                                      13             Nemeth Braille Code Errata 2022
+                      Rule 9
+        Reference Signs, Symbols, and Icons
+Approved August 2024
+
+Location: P. 9-1, §9.1 – Print and BRF
+
+Rationale: The original Nemeth Code provided for a checkmark in
+Rule 23 Miscellaneous Signs and Symbols. When the Nemeth
+Code update was created, this symbol was inadvertently omitted. The
+question arose: should the checkmark be reinstated? Use of a
+checkmark symbol might entail a necessary switch in and out of
+Nemeth Code. In order to avoid frequent switching to accommodate a
+checkmark symbol, the following decision was made:
+
+9.1      Reference Signs and Symbols
+         Within the Nemeth Code switches, the reference signs of this
+         section must be represented by the symbols listed above
+         and Unified English Braille symbols must not be used. Some
+         of these signs are also used as signs of operation and in that
+         case the rules governing signs of operation apply (see Rule
+         20). When it is certain that a symbol in the above list is to
+         be used for reference purposes, the superscript position, if
+         indicated in print, must be ignored in the transcription.
+
+         When a reference sign occurs for which no provision exists in
+         this Code, such as pictures, icons, etc., the transcriber must
+         devise a suitable symbol with an explanatory transcriber's
+         note or a listing in the Special Symbols list. Whether a
+         reference symbol exists in the Nemeth Code or has been
+         devised by the transcriber, such symbols are subject to the
+         rules for signs and symbols of reference. If an icon is
+         created, it would be used in all contexts and the UEB symbol
+         would not be used.
+
+         Note: There is no listed symbol for a checkmark. It is
+         recommended that this print sign be represented by a shape
+         indicator followed by the letters “cm” (.=`$cm). This
+                                  14           Nemeth Braille Code Errata 2022
+         symbol does not require a Nemeth Code switch indicator
+         when used in either Nemeth or UEB. See 9.4.
+
+         The reference symbol used with the note must be the same
+         reference symbol used in the body of the text.
+
+
+
+
+Approved August 2024
+
+Location: P. 9-3, §9.3.2, Example 9-4 – Print Only
+
+Rationale: Example 9-4, misplaced asterisk. The entire example
+should be in a single box. Change to:
+
+         Example 9-4: Asterisk Precedes Marked Nemeth Item
+
+           1. ____
+           *2. ____
+           _%
+           #1_4 ----
+           `# #2_4 ---- _:
+           (asterisk denotes a problem for extra study and is followed by the
+           problem number)
+
+
+
+
+                                      15             Nemeth Braille Code Errata 2022
+                             Rule 10
+                           Abbreviations
+Approved August 2024 – Remove the following item from the
+approved errata as the requested wording is how it already appears in
+the Code.
+
+Location: P. 10-1, §10.1.1.a, Example 10-2 – Print and BRF
+
+Rationale: Change inaccurate "Acronym" to “Initialism”
+
+          Example 10-2: Literary Initialism for "Side-Angle-Side"
+
+           SAS
+           ,,sas
+
+
+
+
+Approved August 2024 – Remove the following item from the
+approved errata as the requested wording is how it already appears in
+the Code.
+
+Location: P. 10-1, §10.1.1.a, Example 10-4 – Print and BRF
+
+Rationale: Change inaccurate "Acronym" to “Initialism”
+
+          Example 10-4: Literary Initialism in Math Context
+
+           SD = Standard Deviation
+           _% ,,sd .k ,standard ,deviation _:
+
+
+
+
+                                     16          Nemeth Braille Code Errata 2022
+Approved August 2024
+
+Location: P. 10-9, §10.6.1, Example 10-49 – Print and BRF
+
+Rationale: Correct the commentary to reflect the accurate name of
+the right parenthesis.
+
+          Example 10-49: Spacing of Abbreviation Following Parenthesis
+
+           (2x – 3y) mi.
+           _% (2x-3y) mi4 _:
+           (the right parenthesis does not apply to the abbreviation; the
+           abbreviation must be preceded by a space)
+
+
+
+
+Location: P. 10-11, §10.6.3 – Print and BRF
+
+Rationale: Wording has been clarified to reflect the non-use of the
+English-letter indicator when C or F are unspaced from the degree
+symbol. Change to:
+
+10.6.3    Follow print spacing for representation of degrees Celsius
+          and degrees Fahrenheit. When unspaced from the degree
+          symbol, C and F do not require an English-letter indicator
+          (10.3) and are punctuated mathematically.
+
+
+
+
+                                      17             Nemeth Braille Code Errata 2022
+                            Rule 11
+                           Omissions
+Approved August 2024
+
+Location: P. 11-3, §11.1.4 – Print and BRF
+
+Rationale: Remove the redundant wording “inside the switches” from
+the last sentence.
+
+11.1.4   Spacing and Punctuation. An omission symbol should be
+         spaced in the same manner as the material which it
+         replaces. Other omission symbols must be spaced in
+         accordance with the rules governing the spacing of those
+         symbols, such as an ellipsis or long dash. An omission
+         symbol is punctuated mathematically.
+
+
+
+
+                                 18          Nemeth Braille Code Errata 2022
+                                 Rule 15
+                                 Modifiers
+Location: P. 15-4, §15.2.1, Example 15-8 – Print and BRF
+
+Rationale: 1) In both the print and BRF files, the Nemeth Code switch
+indicators were left off the example. 2) In the print file, the tilde over
+the subscripted x did not convert when the PDF was created. Change
+example to:
+
+          Example 15-8: Termination of Modified Expression
+
+            x A1
+            
+
+            _% ;"x<`:]",a1 _:
+            (modified expression x is terminated at the subscript level; a
+            baseline indicator terminates the subscript level and returns A to the
+            baseline)
+
+
+
+
+Location: P. 15-12, §15.7, Example 15-45 – Print Only
+
+Rationale: The tilde over the subscripted x did not convert over when
+the PDF was created. Change print to:
+
+          Example 15-45: A with Modified Subscript Expression
+
+            A x
+            _% ,a;"x<`:] _:
+            (A carries a subscript of x with superscribed tilde)
+
+
+
+
+                                        19              Nemeth Braille Code Errata 2022
+Location: P. 15-12, §15.7, Example 15-46 – Print Only
+
+Rationale: The tildes over the x and y in the subscripted x plus y did
+not convert over when the PDF was created. Change print to:
+
+          Example 15-46: A with Modified Subscript Expression
+
+           A x +y
+           _% ,a;"x<`:]+;"y<`:] _:
+           (A carries a subscript of x with superscribed tilde plus y with
+           superscribed tilde; the subscript level after the plus sign is restated
+           before the multipurpose indicator)
+
+
+
+
+                                       20              Nemeth Braille Code Errata 2022
+                             Rule 17
+                             Shapes
+Approved August 2024
+
+Location: P. 17-6, §17.1 Special Considerations: c. – Print and BRF
+
+Rationale: Wording changed to specify standard bullets. Change to:
+
+17.1      Basic Shapes
+          Special Considerations:
+
+          c. Standard bullets (_4) are not considered to be shapes
+             and may be transcribed in either UEB or Nemeth context
+             without the use of switch indicators.
+
+
+
+
+                                  21           Nemeth Braille Code Errata 2022
+                       Rule 20
+            Signs and Symbols of Operation
+Location: P. 20-9, §20.6, Example 20-36 – Print and BRF
+
+Rationale: The example heading has been edited to accurately reflect
+the order of the operation signs. Change heading to:
+
+         Example 20-36: Minus and Plus Combined Horizontally
+
+           +2 − +3
+           _% +2-"+3 _:
+
+
+
+
+                                 22           Nemeth Braille Code Errata 2022
+                       Rule 23
+           Miscellaneous Signs and Symbols
+Location: P. 23-1, symbol list – Print and BRF
+
+Rationale: At the time of publication, it was the Nemeth Code
+Technical Committee’s observation that the crossed d (d-bar) is very
+rarely used and therefore it was removed from the code. In hindsight,
+we suggest returning the following symbol to the list of Miscellaneous
+Signs and Symbols found on page 23-1:
+
+Crossed d (d-bar)                          đ            `$
+
+
+
+
+Location: P. 23-3, §23.4 – Print and BRF
+
+Rationale: Change the heading of section 23.4 to include “Crossed d”
+and add the following example.
+
+23.4      Crossed d, Crossed h, Crossed Lambda, Crossed R
+          These symbols are unspaced from each other and from other
+          mathematical symbols and symbols of grouping unless rules
+          which govern these other symbols require a space.
+
+          Example: Crossed d
+           đQ = dU − đW
+           _% @$,Q .K d,u-@$,w _:
+
+
+
+
+                                  23             Nemeth Braille Code Errata 2022
+Location: P. 23-9, §23.13 – Print and BRF
+
+Rationale: Section 23.13 Monetary Units does not make note of
+exceptions to the spacing of monetary symbols in spatially arranged
+material. Add the following sentence to the second sentence of the
+paragraph:
+
+          (Exceptions occur in spatially arranged problems. See
+          25.3.3.)
+
+23.13     Monetary Units
+          A switch to Nemeth Code is required, but the symbols used
+          are the same as the UEB symbols for monetary units.
+          Monetary symbols are unspaced from the material to which
+          they apply. (Exceptions occur in spatially arranged
+          problems. See 25.3.3.) A numeric indicator is not inserted
+          between a monetary symbol and the number which
+          immediately follows it.
+
+
+
+
+Location: P. 23-13, §23.17, Example 23-48 – Print and BRF
+
+Rationale: An English-letter indicator is needed in the formation of
+the barred letter N. Change the braille to:
+
+          Example 23-48: Exclamation Point: "there exists uniquely one"
+           !n   (n − 2 = 4)
+           _% `=|n `e ,_;,n (n-2 .k #4) _:
+           (there is exactly one natural number n such that n-2 = 4)
+
+
+
+
+                                     24             Nemeth Braille Code Errata 2022
+                          Rule 24
+                   Multipurpose Indicator
+Location: P. 24-2, §24.1.e – Print and BRF
+
+Rationale: The Nemeth Code Technical Committee recommends that
+24.1.e be removed from the Nemeth Code. 1) The fraction line is no
+longer considered an operation symbol. 2) The multipurpose indicator
+is not used between every consecutive sign of operation; it is only
+used between plus and minus signs when they are combined either
+vertically or horizontally. See 20.6. Delete subsection 24.1.e and the
+accompanying examples.
+
+24.1      Use of the Multipurpose Indicator
+          e. (Section and examples deleted).
+
+
+
+
+                                  25            Nemeth Braille Code Errata 2022
+                            Rule 25
+                     Spatial Arrangements
+Location: P. 25-2, §25.3.3 – Print and BRF
+
+Rationale: Wording has been added to 25.3.3 to clarify the
+placement of monetary symbols when printed to the right of numbers.
+An example has been added.
+
+25.3.3   Plus, minus, or monetary symbols that are typically printed
+         to the left of numbers (e.g., $100 or ¥5000) are placed one
+         column of cells to the left of the left-most column of numeric
+         symbols or indicators which appear in the part of the
+         arrangement above the separation line.
+         Monetary symbols that are typically printed to the right of a
+         number (e.g., 5¢ or 100€) are placed one column of cells to
+         the right of the right-most column of numeric symbols or
+         indicators which appear in the part of the arrangement
+         above the separation line.
+
+         Example: Monetary Sign Printed to the Right
+             7 12
+            8 2¢
+           −47¢
+            3 5¢
+           _%
+
+                 7 12
+                [8][ 2]@c
+            - 4   7 @c
+           333333333333
+                 3   5 @c
+
+
+           _:
+
+
+
+                                  26           Nemeth Braille Code Errata 2022
+Location: P. 25-8, §25.3.4, Example 25-11 – Print and BRF
+
+Rationale: The print example has been modified so that the dollar
+signs are not aligned in print. Change print to:
+
+          Example 25-11: Subtraction with Dollar Sign
+
+           $10,000
+           − 9,000
+            $1,000
+           _%
+
+            @S10,000
+             - 9,000
+           3333333333
+            @S 1,000
+
+
+           _:
+           (in print, the dollar signs and the minus sign occupy the same
+           position as in braille)
+
+
+
+
+Location: P. 25-43, §25.8.2.b – Print and BRF
+
+Rationale: The referenced example is incorrect. Change the example
+number in the parenthetical reference at the end of the paragraph to:
+(See example 25-62).
+
+          b. An entry may be run over to other braille lines and each
+             continuation indented two cells from the column margin.
+             When space saving is a factor, runovers may be made
+             without regard to any hierarchy preferences (as listed in
+             26.9.1). Successive rows in a column are transcribed
+             without skipping a line between them. (See example
+             25-62.)
+
+
+                                      27             Nemeth Braille Code Errata 2022
+Location: P. 25-43, §25.8.2.c – Print and BRF
+
+Rationale: The referenced example is incorrect. Change the example
+number in the parenthetical reference at the end of the paragraph to:
+(See example 25-63).
+
+          c. An entry may be run over to other braille lines and each
+             continuation left-justified in its column. When space
+             saving is a factor, runovers may be made without regard
+             to any hierarchy preferences. Successive rows in a
+             column must be transcribed with a skipped line between
+             them. When the technique described in a above is
+             effective in providing the required space, it is used in
+             preference to the technique described here. (See
+             example 25-63.)
+
+
+
+
+Location: P. 25-55, §25.10, Example 25-77 – Print Only
+
+Rationale: The first two equations of the system are not accurately
+aligned in print. All values after the equals signs should be aligned by
+value. Change print to:
+
+          Example 25-77: Aligned System of Three Equations
+
+            3x + 15y − 2z = 64 
+                               
+             x + 12y + z = 51 
+            7x − 8y + 2z = −16 
+                               
+           _%
+
+
+           .,(3X+15Y-2Z .K           #64.,)
+           .,( X+12Y+ Z .K           #51.,)
+           .,(7X- 8Y+2Z .K -#16.,)
+
+
+           _:
+
+                                    28           Nemeth Braille Code Errata 2022
+                                   Rule 26
+                                   Format
+Location: P. 26-8, §26.1.4.b, Example 26-13 – Print and BRF
+
+Rationale: 1) In the braille of item b), a left parenthesis is missing
+before x2+y2+z2. 2) Example 26-13 does not correctly apply 4.8.2.
+The expression following b) is moved to the next line where it will fit
+on the line with the Nemeth Code terminator. Commentary has been
+added to the example. Change to:
+
+          Example 26-13: Instructions Following a Cell-7 Heading
+
+               Exercise 12
+               Determine the values of x and y in the following functions.
+           a) Z(x, y) = x2 + 3y2 – 3xy
+           b) W(x, y, z) = 29 – (x2 + y2 + z2)
+
+
+                    ,EX]CISE #AB
+                  ,DET]M9E ! VALUES ( ;X & ;Y 9 !
+             FOLL[+ FUNC;NS4 _%
+           ;A) ,z(x, y) .K X^2"+3y^2"-3xy
+           ;B)
+             ,w(x, y, z) .K #29-(x^2"+y^2"+z^2") _:
+           (the Nemeth Code terminator is placed on the same line as the math,
+           see 4.8.2)
+
+
+
+
+                                         29             Nemeth Braille Code Errata 2022
+Location: P. 26-28, §26.3.5, Example 26-28 – Print and BRF
+
+Rationale: Commentary is updated to reflect the non-use of an
+English-letter indicator in 30°C. Change the commentary to:
+
+         Example 26-28: Abbreviations in Nemeth Code
+
+          .4 in         _% #.4 in _:
+          2.5 cm        _% #2.5 cm _:
+          30°C          _% #30^.*",c _:
+          N 30° W       _% ;,n #30^.* ;,w _:
+          (abbreviations for degrees Celsius and Fahrenheit are spaced as in
+          print and do not require an English-letter indicator; 10.3 and
+          10.6.3)
+
+
+
+
+                                    30              Nemeth Braille Code Errata 2022
+Location: P. 26-29, §26.5.3.b, Example 26-50 – Print Only
+
+Rationale: In converting the Word document to PDF format, a box
+was inadvertently added to the end of the print example. Change print
+to:
+
+         Example 26-50: Nested Links Displayed to Main Item
+
+           33. Using the binomial theorem to find 1.1 5 to three decimal places, we
+               see that
+
+                        (1 + 0.1)
+                                   5
+               1.15 =
+                    = 15 +5 (14 ) ( 0.1) +10 (13 ) ( 0.1) +10 (12 ) ( 0.1 )
+                                                         2                  3
+
+
+
+                      +5 (1) ( 0.1) + ( 0.1)
+                                     4        5
+
+
+                    = 1 + 0.5 + 0.1 + 0.01 + 0.0005 + 0.00001
+                    = 1.61051
+           #cc4 ,us+ ! b9omial !orem to f9d
+              _% #1.1^5 _: to ?ree decimal places1
+              we see t _%
+                  #1.1^5
+                     .k (1+0.1)^5
+                     .k #1^5"+5(1^4")(0.1)
+                         +10(1^3")(0.1)^2
+                         "+10(1^2")(0.1)^3
+                       "+5(1)(0.1)^4"+(0.1)^5
+                     .k #1+0.5+0.1+0.01+0.0005+0.00001
+                     .k #1.61051 _:
+           (the margins for the nested displayed material are 5-9, 7-9)
+
+
+
+
+                                            31                  Nemeth Braille Code Errata 2022
+                     Appendix B
+         Placement of Code Switch Indicators
+Location: P. B-2 – Print and BRF
+
+Rationale: Regarding switch indicators with itemized material, it was
+requested that the exceptions of the opening Nemeth Code switch
+indicator placement following transcriber’s notes and centered
+headings be more clearly stated in Appendix B. Replace the fourth
+sentence with:
+
+          Exceptions: The opening Nemeth Code indicator cannot be
+          placed in the runover position of a transcriber's note or at
+          the end of a centered heading.
+
+Switch Indicators with Itemized Material
+Identifiers are transcribed according to the rules for the code in use at
+the time. All identifiers in a section do not need to be transcribed in
+the same code. To ensure that all identifiers begin in the same cell, the
+opening Nemeth Code indicator is placed at the end of the line of text
+that precedes the itemized material unless there is no room on that
+line, in which case it is placed in the runover position. Exceptions:
+The opening Nemeth Code indicator cannot be placed in the runover
+position of a transcriber's note or at the end of a centered heading. A
+code switch indicator does not take the place of the blank line that
+may be required preceding the itemized material.
+
+
+
+
+                                   32            Nemeth Braille Code Errata 2022
+                     Appendix D
+           Index of Nemeth Braille Symbols
+Location: P. D-27 – Print and BRF
+
+Rationale: Add the crossed d (d-bar) symbol to the Index of
+Nemeth Braille Symbols.
+
+        Braille               Meaning            Print          Page
+@$                      crossed d (d-bar)           đ        23-1,
+                                                             23-3
+
+
+
+
+Location: P. D-32 – Print and BRF
+
+Rationale: Delete the opening Nemeth Code indicator from the Index
+of Nemeth Braille Symbols, this is a UEB symbol.
+
+
+
+
+                                    33       Nemeth Braille Code Errata 2022
+

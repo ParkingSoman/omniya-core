@@ -1,0 +1,4317 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "scripts/nemeth-corpus-import.mjs",
+  "sources": [
+    {
+      "id": "mathcat-rules",
+      "repo": "https://github.com/daisy/MathCAT",
+      "commit": "2e2c19cf9532af816d488fa00b8e5cb7a71ce679",
+      "license": "MIT",
+      "path": "tests/braille/Nemeth/rules.rs",
+      "caseCount": 273,
+      "notes": "3 <math> literal(s) embedded XML comments (e.g. <mi mathvariant='normal'>#<!-- # --></mi>); comments were stripped for the same reason as the sre-aata source below. One literal (omission_57_3) had a leading space before \"<math>\"; insignificant outer whitespace was trimmed."
+    },
+    {
+      "id": "sre-aata",
+      "repo": "https://github.com/Speech-Rule-Engine/speech-rule-engine",
+      "commit": "b298fa8866599b2809e6816c7a46ba76161404dd",
+      "license": "Apache-2.0",
+      "path": "testsuite/input/nemeth/aata.json + testsuite/expected/nemeth/rules/aata.json",
+      "caseCount": 340,
+      "notes": "Input MathML fragments were wrapped in <math xmlns=\"http://www.w3.org/1998/Math/MathML\">...</math> (the source has no document element); embedded XML comments (e.g. <mo>≡<!-- ≡ --></mo>) were stripped since parseMathML is a regex tokenizer, not an XML parser. The expected file's \"_comment0_\" entry was skipped as it is not a test."
+    }
+  ],
+  "cases": [
+    {
+      "id": "mathcat-rules:above_and_below_88_2",
+      "source": "mathcat-rules",
+      "cells": "⠐⠨⠠⠎⠩⠝⠀⠨⠅⠀⠼⠂⠣⠠⠿⠻⠹⠂⠌⠆⠘⠝⠐⠼⠀⠨⠅⠀⠼⠂",
+      "mathml": "<math><munderover><mo>&#x2211;</mo><mrow><mi>n</mi><mo>=</mo><mn>1</mn></mrow><mo>&#x221E;</mo></munderover>\n                            <mfrac><mn>1</mn><msup><mn>2</mn><mi>n</mi></msup></mfrac><mo>=</mo><mn>1</mn></math>",
+      "ref": "88.2"
+    },
+    {
+      "id": "mathcat-rules:arrow_96_1",
+      "source": "mathcat-rules",
+      "cells": "⠐⠠⠁⠠⠃⠣⠫⠕⠻",
+      "mathml": "<math>\n        <mover>\n        <mrow><mi mathvariant='normal'>A</mi> <mi mathvariant='normal'>B</mi></mrow>\n        <mo>→</mo>\n        </mover>\n    </math>",
+      "ref": "96.1"
+    },
+    {
+      "id": "mathcat-rules:arrow_96_10",
+      "source": "mathcat-rules",
+      "cells": "⠠⠭⠀⠐⠫⠒⠒⠕⠣⠋⠨⠡⠛⠻⠀⠠⠽",
+      "mathml": "<math>\n        <mi>X</mi>\n        <mover>\n        <mo>→</mo>\n        <mrow><mi>f</mi> <mo>∘</mo><mi>g</mi></mrow>\n        </mover>\n        <mi>Y</mi>\n    </math>",
+      "ref": "96.10"
+    },
+    {
+      "id": "mathcat-rules:arrow_lesson_9_5_1",
+      "source": "mathcat-rules",
+      "cells": "⠠⠁⠀⠫⠕⠀⠠⠃",
+      "mathml": "<math><mi>A</mi><mo>→</mo><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:as_multiscript_nested_sub_sup_74_c_5",
+      "source": "mathcat-rules",
+      "cells": "⠝⠘⠭⠘⠰⠁⠘⠰⠰⠚",
+      "mathml": "<math><mmultiscripts><mi>n</mi><none/><msub><mi>x</mi><msub><mi>a</mi><mi>j</mi></msub></msub></mmultiscripts></math>",
+      "ref": "74.c.5"
+    },
+    {
+      "id": "mathcat-rules:bar_97_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠨⠒⠱",
+      "mathml": "<math><mo>.</mo><mover><mn>3</mn><mo>&#xAF;</mo></mover></math>",
+      "ref": "97.b.1"
+    },
+    {
+      "id": "mathcat-rules:bar_above_and_below_88_1",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠬⠽⠩⠱⠣⠱⠻",
+      "mathml": "<math><munderover>\n            <mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow>\n            <mo>&#xAF;</mo>\n            <mo>&#xAF;</mo>\n        </munderover></math>",
+      "ref": "88.1"
+    },
+    {
+      "id": "mathcat-rules:baseline_80_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠜⠭⠘⠆⠐⠬⠽⠘⠆⠐⠻",
+      "mathml": "<math><msqrt><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup></msqrt></math>",
+      "ref": "80.a.1"
+    },
+    {
+      "id": "mathcat-rules:beveled_frac_62_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠹⠁⠬⠃⠸⠌⠉⠬⠙⠼",
+      "mathml": "<math><mfrac bevelled='true'>\n        <mrow><mi>a</mi><mo>+</mo><mi>b</mi></mrow>\n        <mrow><mi>c</mi><mo>+</mo><mi>d</mi></mrow>\n        </mfrac></math>",
+      "ref": "62.b.1"
+    },
+    {
+      "id": "mathcat-rules:binomial_90_1",
+      "source": "mathcat-rules",
+      "cells": "⠷⠝⠩⠅⠾",
+      "mathml": "<math><mo>(</mo><mfrac linethickness='0'><mi>n</mi><mi>k</mi></mfrac><mo>)</mo></math>",
+      "ref": "90.1"
+    },
+    {
+      "id": "mathcat-rules:binomial_90_1_mtable",
+      "source": "mathcat-rules",
+      "cells": "⠷⠝⠩⠅⠾",
+      "mathml": "<math><mrow intent='binomial($n,$k)'>\n            <mo>(</mo>\n                <mtable>\n                <mtr><mtd><mi arg='n'>n</mi></mtd></mtr>\n                <mtr><mtd><mi arg='k'>k</mi></mtd></mtr>\n                </mtable>\n            <mo>)</mo>\n        </mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:boldface_32_a_14",
+      "source": "mathcat-rules",
+      "cells": "⠠⠨⠰⠠⠓",
+      "mathml": "<math><mn mathvariant='sans-serif'>H</mn></math>",
+      "ref": "32.a.14"
+    },
+    {
+      "id": "mathcat-rules:boldface_32_a_7",
+      "source": "mathcat-rules",
+      "cells": "⠸⠸⠁",
+      "mathml": "<math><mn mathvariant='bold-fraktur'>a</mn></math>",
+      "ref": "32.a.7"
+    },
+    {
+      "id": "mathcat-rules:boldface_32_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠈⠼⠆",
+      "mathml": "<math><mn mathvariant='script'>2</mn></math>",
+      "ref": "32.b.2"
+    },
+    {
+      "id": "mathcat-rules:boldface_32_b_3",
+      "source": "mathcat-rules",
+      "cells": "⠸⠼⠒⠲⠢",
+      "mathml": "<math><mn mathvariant='bold'>345</mn></math>",
+      "ref": "32.b.3"
+    },
+    {
+      "id": "mathcat-rules:boldface_32_b_6",
+      "source": "mathcat-rules",
+      "cells": "⠸⠼⠲⠼⠒⠢",
+      "mathml": "<math><mn>𝟒35</mn></math>",
+      "ref": "32.b.6"
+    },
+    {
+      "id": "mathcat-rules:brace_above_121_1",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠬⠽⠣⠨⠷⠻",
+      "mathml": "<math><mover><mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow><mo>&#x23DE;</mo></mover></math>",
+      "ref": "121.1"
+    },
+    {
+      "id": "mathcat-rules:brace_below_121_2",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠬⠽⠩⠨⠾⠻",
+      "mathml": "<math><munder><mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow><mo>&#x23DF;</mo></munder></math>",
+      "ref": "121.2"
+    },
+    {
+      "id": "mathcat-rules:bracket_above_121_3",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠬⠽⠣⠈⠷⠻",
+      "mathml": "<math><mover><mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow><mo>&#x23B4;</mo></mover></math>",
+      "ref": "121.3"
+    },
+    {
+      "id": "mathcat-rules:cap_22_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠫⠞⠀⠠⠁⠠⠃⠠⠉",
+      "mathml": "<math><mo>&#x25B3;</mo><mo>&#xA0;</mo><mi>A</mi><mi>B</mi><mi>C</mi></math>",
+      "ref": "22.a.1"
+    },
+    {
+      "id": "mathcat-rules:cap_roman_numeral_18_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠠⠠⠧⠊⠊⠬⠠⠧⠀⠨⠅⠀⠠⠠⠭⠊⠊",
+      "mathml": "<math><mtext>VII</mtext><mo>+</mo><mtext>V</mtext><mo>=</mo><mtext>XII</mtext></math>",
+      "ref": "18.a.3"
+    },
+    {
+      "id": "mathcat-rules:carrot_98_1",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠣⠸⠣⠻",
+      "mathml": "<math><mover><mi>x</mi><mo>^</mo></mover></math>",
+      "ref": "98.1"
+    },
+    {
+      "id": "mathcat-rules:chem_2_5_1_mchem",
+      "source": "mathcat-rules",
+      "cells": "⠠⠉⠁⠠⠉⠆⠬⠆⠠⠓⠠⠕⠠⠓⠀⠫⠒⠒⠒⠕⠀⠠⠓⠸⠒⠻⠠⠉⠸⠿⠻⠠⠉⠸⠒⠻⠠⠓⠬⠠⠉⠁⠷⠠⠕⠠⠓⠾⠰⠆",
+      "mathml": "<math>\n        <mrow>\n        <mrow><mi>CaC</mi></mrow>\n        <msub>\n            <mrow><mrow><mpadded width='0'><mphantom><mi>A</mi></mphantom></mpadded></mrow></mrow>\n            <mrow><mrow><mpadded height='0'><mn>2</mn></mpadded></mrow></mrow>\n        </msub>\n        <mrow></mrow>\n        <mo>+</mo>\n        <mrow></mrow>\n        <mn>2</mn>\n        <mstyle scriptlevel='0'><mspace width='0.167em'/></mstyle>\n        <mrow><mi>HOH</mi></mrow>\n        <mrow></mrow>\n        <mrow><mo stretchy='false'>&#x27F6;</mo></mrow>\n        <mrow></mrow>\n        <mrow><mi mathvariant='normal'>H</mi></mrow>\n        <mrow><mo>&#x2212;</mo></mrow>\n        <mrow><mi mathvariant='normal'>C</mi></mrow>\n        <mrow><mo>&#x2261;</mo></mrow>\n        <mrow><mi mathvariant='normal'>C</mi></mrow>\n        <mrow><mo>&#x2212;</mo></mrow>\n        <mrow><mi mathvariant='normal'>H</mi></mrow>\n        <mrow></mrow>\n        <mo>+</mo>\n        <mrow></mrow>\n        <mrow><mi>Ca</mi></mrow>\n        <mo stretchy='false'>(</mo>\n        <mrow><mi>OH</mi></mrow>\n        <mo stretchy='false'>)</mo>\n        <msub>\n            <mrow><mrow><mpadded width='0'><mphantom><mi>A</mi></mphantom></mpadded></mrow></mrow>\n            <mrow><mrow><mpadded height='0'><mn>2</mn></mpadded></mrow></mrow>\n        </msub>\n        </mrow>\n    </math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:chem_HOH_1_1_1_mchem",
+      "source": "mathcat-rules",
+      "cells": "⠠⠓⠸⠒⠻⠠⠕⠸⠒⠻⠠⠓",
+      "mathml": "<math>\n      <mi mathvariant='normal'>H</mi>\n      <mo>-</mo>\n      <mi mathvariant='normal'>O</mi>\n      <mo>-</mo>\n      <mi mathvariant='normal'>H</mi>\n   </math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:colon_40_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠒⠸⠒⠼⠒⠴",
+      "mathml": "<math><mn>3</mn><mo intent='time'>:</mo><mn>30</mn></math>",
+      "ref": "40.1"
+    },
+    {
+      "id": "mathcat-rules:colon_40_1_mtext",
+      "source": "mathcat-rules",
+      "cells": "⠼⠒⠸⠒⠼⠒⠴",
+      "mathml": "<math><mtext>3:30</mtext></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:colon_40_2",
+      "source": "mathcat-rules",
+      "cells": "⠰⠋⠸⠒⠷⠭⠠⠀⠽⠾",
+      "mathml": "<math><mi>f</mi><mo>:</mo><mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>)</mo></math>",
+      "ref": "40.2"
+    },
+    {
+      "id": "mathcat-rules:comma_78_2",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠷⠁⠪⠃⠾",
+      "mathml": "<math><msub><mi>x</mi><mrow><mo>(</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo>)</mo></mrow></msub></math>",
+      "ref": "78.2"
+    },
+    {
+      "id": "mathcat-rules:comma_78_2_invisible",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠷⠁⠪⠃⠾",
+      "mathml": "<math><msub><mi>x</mi><mrow><mo>(</mo><mi>a</mi><mo>&#x2063;</mo><mi>b</mi><mo>)</mo></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:comma_78_3",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠂⠪⠆",
+      "mathml": "<math><msub><mi>x</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msub></math>",
+      "ref": "78.3"
+    },
+    {
+      "id": "mathcat-rules:comma_78_6",
+      "source": "mathcat-rules",
+      "cells": "⠷⠭⠠⠀⠽⠾",
+      "mathml": "<math><mo>(</mo><mi>x</mi><mo>,</mo><mo>&#xA0;</mo><mi>y</mi><mo>)</mo></math>",
+      "ref": "78.6"
+    },
+    {
+      "id": "mathcat-rules:comma_ellipsis_in_sub_79_b_5",
+      "source": "mathcat-rules",
+      "cells": "⠠⠏⠰⠝⠰⠰⠂⠰⠪⠝⠰⠰⠆⠰⠪⠀⠄⠄⠄",
+      "mathml": "<math> <msub><mi>P</mi>\n        <mrow><msub><mi>n</mi><mn>1</mn></msub>\n          <mo>,</mo>\n          <msub><mi>n</mi><mn>2</mn></msub>\n          <mo>,</mo><mo>&#x2026;</mo>\n          </mrow></msub></math>",
+      "ref": "79.b.5"
+    },
+    {
+      "id": "mathcat-rules:comma_in_number_in_sup_79_b_3",
+      "source": "mathcat-rules",
+      "cells": "⠭⠘⠂⠴⠠⠴⠴⠴",
+      "mathml": "<math><msup><mi>x</mi><mrow><mn>10</mn><mo>,</mo><mn>000</mn></mrow></msup></math>",
+      "ref": "79.b.3"
+    },
+    {
+      "id": "mathcat-rules:comma_in_sup_79_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠊⠪⠚",
+      "mathml": "<math><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></math>",
+      "ref": "79.b.4"
+    },
+    {
+      "id": "mathcat-rules:comma_number_77_4_20",
+      "source": "mathcat-rules",
+      "cells": "⠭⠂⠴⠠⠴⠴⠴",
+      "mathml": "<math><msub><mi>x</mi><mrow><mn>10</mn><mo>,</mo><mn>000</mn></mrow></msub></math>",
+      "ref": "77.4.20"
+    },
+    {
+      "id": "mathcat-rules:comma_space_78_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠊⠪⠚⠪⠅",
+      "mathml": "<math><msub><mi>x</mi>\n         <mrow><mi>i</mi><mo>,</mo><mo>&#xA0;</mo><mi>j</mi><mo>,</mo><mo>&#xA0;</mo><mi>k</mi></mrow></msub></math>",
+      "ref": "78.1"
+    },
+    {
+      "id": "mathcat-rules:comparison_79_g_2",
+      "source": "mathcat-rules",
+      "cells": "⠼⠆⠘⠭⠀⠐⠅⠀⠼⠒⠘⠭",
+      "mathml": "<math><msup><mn>2</mn><mi>x</mi></msup><mo>&lt;</mo><msup><mn>3</mn><mi>x</mi></msup></math>",
+      "ref": "79.g.2"
+    },
+    {
+      "id": "mathcat-rules:comparison_ops_151_14",
+      "source": "mathcat-rules",
+      "cells": "⠨⠷⠭⠀⠳⠀⠼⠴⠀⠐⠅⠱⠀⠭⠀⠐⠅⠱⠀⠼⠂⠨⠾",
+      "mathml": "<math><mo>{</mo><mi>x</mi><mo>|</mo><mn>0</mn><mo>≤</mo><mi>x</mi><mo>≤</mo><mn>1</mn><mo>}</mo></math>",
+      "ref": "151.14"
+    },
+    {
+      "id": "mathcat-rules:complex_frac_66_1",
+      "source": "mathcat-rules",
+      "cells": "⠠⠹⠹⠒⠌⠦⠼⠠⠌⠢⠠⠼",
+      "mathml": "<math><mfrac><mfrac><mn>3</mn><mn>8</mn></mfrac><mn>5</mn></mfrac></math>",
+      "ref": "66.1"
+    },
+    {
+      "id": "mathcat-rules:dash_42_4",
+      "source": "mathcat-rules",
+      "cells": "⠹⠤⠤⠤⠤⠀⠌⠂⠢⠼⠀⠨⠅⠀⠹⠆⠌⠒⠼",
+      "mathml": "<math><mfrac><mo>&#x2015;</mo><mn>15</mn></mfrac><mo>=</mo><mfrac><mn>2</mn><mn>3</mn></mfrac></math>",
+      "ref": "42.4"
+    },
+    {
+      "id": "mathcat-rules:dash_42_6",
+      "source": "mathcat-rules",
+      "cells": "⠈⠎⠆⠬⠈⠎⠒⠀⠨⠅⠀⠈⠎⠤⠤⠤⠤",
+      "mathml": "<math><mo>$</mo><mn>2</mn><mo>+</mo><mo>$</mo><mn>3</mn><mo>=</mo><mo>$</mo><mo>&#x2015;</mo></math>",
+      "ref": "42.6"
+    },
+    {
+      "id": "mathcat-rules:degrees_165_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠔⠴⠘⠨⠡⠐⠬⠔⠴⠘⠨⠡⠀⠨⠅⠀⠼⠂⠦⠴⠘⠨⠡",
+      "mathml": "<math><mn>90</mn><mo>&#xB0;</mo><mo>+</mo><mn>90</mn><mo>&#xB0;</mo><mo>=</mo><mn>180</mn><mo>&#xB0;</mo></math>",
+      "ref": "165.1"
+    },
+    {
+      "id": "mathcat-rules:dots_99_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠨⠐⠒⠣⠡⠻",
+      "mathml": "<math><mo>.</mo><mover><mn>3</mn><mo>&#x2D9;</mo></mover></math>",
+      "ref": "99.a.1"
+    },
+    {
+      "id": "mathcat-rules:dots_99_a_2",
+      "source": "mathcat-rules",
+      "cells": "⠼⠨⠐⠂⠒⠢⠣⠡⠻",
+      "mathml": "<math><mo>.</mo><mover><mn>1</mn><mo>&#x2D9;</mo></mover><mover><mn>3</mn><mo>&#x2D9;</mo></mover><mover><mn>5</mn><mo>&#x2D9;</mo></mover></math>",
+      "ref": "99.a.2"
+    },
+    {
+      "id": "mathcat-rules:dots_99_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠼⠨⠂⠒⠐⠢⠣⠡⠻",
+      "mathml": "<math><mn>.13</mn><mover><mn>5</mn><mo>&#x2D9;</mo></mover></math>",
+      "ref": "99.a.3"
+    },
+    {
+      "id": "mathcat-rules:eli_nemeth_UEB_rule_book_4_11_1",
+      "source": "mathcat-rules",
+      "cells": "⠰⠏⠀⠰⠠⠙⠀⠰⠵⠀⠰⠠⠗⠀⠰⠭⠠⠀⠦⠰⠽⠸⠴⠀⠦⠰⠺⠀⠰⠠⠎⠸⠴⠀⠦⠰⠭⠸⠴⠬⠸⠦⠰⠽⠸⠴",
+      "mathml": "<math>\n            <mtext>p</mtext><mtext>&#xA0;</mtext>\n            <mtext>D</mtext><mtext>&#xA0;</mtext>\n            <mtext>z</mtext><mtext>&#xA0;</mtext>\n            <mtext>R</mtext><mtext>&#xA0;</mtext>\n            <mtext>x</mtext><mo>,</mo><mtext>&#xA0;</mtext>\n            <mtext>“y”</mtext><mtext>&#xA0;</mtext>\n            <mtext>“w S”</mtext><mtext>&#xA0;</mtext>\n            <mtext>“x”</mtext><mo>+</mo><mtext>“y”</mtext>\n        </math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:ellipsis_43_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠠⠀⠼⠒⠠⠀⠼⠢⠠⠀⠄⠄⠄⠠⠀⠼⠂⠢⠸⠲",
+      "mathml": "<math><mn>1</mn><mo>,</mo><mn>3</mn><mo>,</mo><mn>5</mn><mo>,</mo><mo>…</mo><mo>,</mo><mn>15</mn><mo>.</mo></math>",
+      "ref": "43.a.1"
+    },
+    {
+      "id": "mathcat-rules:ellipsis_43_b_3",
+      "source": "mathcat-rules",
+      "cells": "⠏⠂⠘⠨⠁⠘⠰⠂⠐⠄⠄⠄⠀⠏⠰⠗⠘⠨⠁⠘⠰⠗",
+      "mathml": "<math>\n        <msubsup><mi>p</mi><mn>1</mn><msub><mi>&#x3B1;</mi><mn>1</mn></msub></msubsup>\n        <mo>&#x2026;</mo>\n        <msubsup><mi>p</mi><mi>r</mi><msub><mi>&#x3B1;</mi><mi>r</mi></msub></msubsup>\n        </math>",
+      "ref": "43.b.3"
+    },
+    {
+      "id": "mathcat-rules:ellipsis_43_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠷⠄⠄⠄⠠⠀⠤⠂⠠⠀⠴⠠⠀⠂⠠⠀⠄⠄⠄⠾",
+      "mathml": "<math><mo>(</mo><mo>…</mo><mo>,</mo><mo>-</mo><mn>1</mn><mo>,</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mo>…</mo><mo>)</mo></math>",
+      "ref": "43.b.4"
+    },
+    {
+      "id": "mathcat-rules:ellipsis_43_b_5",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠆⠈⠉⠬⠂⠲⠈⠉⠀⠨⠅⠀⠄⠄⠄⠈⠉",
+      "mathml": "<math><mn>12</mn><mi>¢</mi><mo>+</mo><mn>14</mn><mi>¢</mi><mo>=</mo><mo>…</mo><mi>¢</mi></math>",
+      "ref": "43.b.5"
+    },
+    {
+      "id": "mathcat-rules:ellipsis_level_79_f_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠘⠂⠬⠂⠸⠌⠆⠬⠂⠸⠌⠒⠬⠀⠄⠄⠄⠀⠬⠂⠸⠌⠝",
+      "mathml": "<math><msup><mi>x</mi>\n        <mrow><mn>1</mn><mo>+</mo><mn>1</mn><mo>/</mo><mn>2</mn><mo>+</mo><mn>1</mn><mo>/</mo><mn>3</mn><mo>+</mo>\n        <mo>…</mo><mo>+</mo><mn>1</mn><mo>/</mo><mi>n</mi></mrow></msup></math>",
+      "ref": "79.f.1"
+    },
+    {
+      "id": "mathcat-rules:extension_field_not_ratio",
+      "source": "mathcat-rules",
+      "cells": "⠈⠷⠰⠠⠅⠸⠒⠰⠠⠋⠈⠾",
+      "mathml": "<math><mo>[</mo><mi>K</mi><mo>:</mo><mi>F</mi><mo>]</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:full_binomial",
+      "source": "mathcat-rules",
+      "cells": "⠷⠭⠬⠁⠾⠘⠝⠀⠨⠅⠀⠐⠨⠠⠎⠩⠅⠀⠨⠅⠀⠼⠴⠣⠝⠻⠷⠝⠩⠅⠾⠭⠘⠅⠐⠁⠘⠝⠤⠅",
+      "mathml": "<math>\n    <mo stretchy='false'>(</mo>\n    <mi>x</mi>\n    <mo>+</mo>\n    <mi>a</mi>\n    <msup>\n        <mo stretchy='false'>)</mo>\n        <mrow>\n            <mi>n</mi>\n        </mrow>\n    </msup>\n    <mo>=</mo>\n    <munderover>\n        <mo>∑</mo>\n        <mrow>\n            <mi>k</mi>\n            <mo>=</mo>\n            <mn>0</mn>\n        </mrow>\n        <mrow>\n            <mi>n</mi>\n        </mrow>\n    </munderover>\n    <mrow>\n        <mo>(</mo>\n        <mfrac linethickness='0'>\n            <mi>n</mi>\n            <mi>k</mi>\n        </mfrac>\n        <mo>)</mo>\n    </mrow>\n    <msup>\n        <mi>x</mi>\n        <mrow>\n            <mi>k</mi>\n        </mrow>\n    </msup>\n    <msup>\n        <mi>a</mi>\n        <mrow>\n            <mi>n</mi>\n            <mo>−</mo>\n            <mi>k</mi>\n        </mrow>\n    </msup>\n</math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:function_space_119_c_3",
+      "source": "mathcat-rules",
+      "cells": "⠎⠊⠝⠀⠼⠒⠴⠘⠨⠡⠐⠉⠕⠎⠀⠼⠲⠢⠘⠨⠡⠐⠬⠉⠕⠎⠀⠼⠒⠴⠘⠨⠡⠐⠎⠊⠝⠀⠼⠲⠢⠘⠨⠡",
+      "mathml": "<math><mi>sin</mi><mn>30</mn><mo>&#xB0;</mo><mi>cos</mi><mn>45</mn><mo>&#xB0;</mo>\n           <mo>+</mo><mi>cos</mi><mn>30</mn><mo>&#xB0;</mo><mi>sin</mi><mn>45</mn><mo>&#xB0;</mo></math>",
+      "ref": "119.c.3"
+    },
+    {
+      "id": "mathcat-rules:german_24_a_7",
+      "source": "mathcat-rules",
+      "cells": "⠸⠠⠁",
+      "mathml": "<math><mi>𝔄</mi></math>",
+      "ref": "24.a.7"
+    },
+    {
+      "id": "mathcat-rules:german_base_77_4_3",
+      "source": "mathcat-rules",
+      "cells": "⠸⠠⠁⠂",
+      "mathml": "<math><msub> <mi>𝔄</mi> <mn>1</mn> </msub></math>",
+      "ref": "77.4.3"
+    },
+    {
+      "id": "mathcat-rules:greek_24_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠨⠁",
+      "mathml": "<math><mi>α</mi></math>",
+      "ref": "24.a.1"
+    },
+    {
+      "id": "mathcat-rules:greek_24_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠨⠁⠨⠃",
+      "mathml": "<math><mi>α</mi><mi>β</mi></math>",
+      "ref": "24.b.1"
+    },
+    {
+      "id": "mathcat-rules:greek_24_b_1_together",
+      "source": "mathcat-rules",
+      "cells": "⠨⠁⠨⠃",
+      "mathml": "<math><mi>αβ</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:hebrew_24_a_8",
+      "source": "mathcat-rules",
+      "cells": "⠠⠠⠁⠴",
+      "mathml": "<math><msub><mi>ℵ</mi><mn>0</mn></msub></math>",
+      "ref": "24.a.8"
+    },
+    {
+      "id": "mathcat-rules:hyper_complex_frac_68_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠠⠠⠹⠠⠹⠂⠸⠹⠂⠌⠲⠸⠼⠠⠌⠂⠸⠹⠒⠌⠢⠸⠼⠠⠼⠠⠠⠌⠢⠠⠠⠼",
+      "mathml": "<math><mfrac>\n            <mfrac>\n            <mrow><mn>1</mn><mfrac><mn>1</mn><mn>4</mn></mfrac></mrow>\n            <mrow><mn>1</mn><mfrac><mn>3</mn><mn>5</mn></mfrac></mrow>\n            </mfrac>\n            <mn>5</mn>\n        </mfrac></math>",
+      "ref": "68.a.1"
+    },
+    {
+      "id": "mathcat-rules:identity_matrix_126_linearize",
+      "source": "mathcat-rules",
+      "cells": "⠠⠷⠼⠂⠀⠼⠴⠀⠼⠴⠀⣍⠴⠀⠼⠂⠀⠼⠴⠀⣍⠴⠀⠼⠴⠀⠼⠂⠠⠾",
+      "mathml": "<math> <mrow><mo>(</mo> <mtable>\n        <mtr><mtd><mn>1</mn></mtd><mtd><mn>0</mn></mtd><mtd><mn>0</mn></mtd></mtr>\n        <mtr><mtd><mn>0</mn></mtd><mtd><mn>1</mn></mtd><mtd><mn>0</mn></mtd></mtr>\n        <mtr><mtd><mn>0</mn></mtd><mtd><mn>0</mn></mtd><mtd><mn>1</mn></mtd></mtr>\n      </mtable><mo>)</mo></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:in_scripts_comparison_151_17",
+      "source": "mathcat-rules",
+      "cells": "⠮⠰⠭⠀⠰⠨⠅⠀⠁⠘⠭⠀⠘⠨⠅⠀⠃⠐⠋⠷⠭⠾⠙⠭",
+      "mathml": "<math>\n            <msubsup>\n            <mo>∫</mo>\n            <mrow><mi>x</mi><mo>=</mo><mi>a</mi></mrow>\n            <mrow><mi>x</mi><mo>=</mo><mi>b</mi></mrow>\n            </msubsup>\n            <mrow>\n            <mrow>\n                <mi>f</mi>\n                <mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow>\n            </mrow>\n            <mi>d</mi>\n            <mi>x</mi>\n            </mrow>\n        </math>",
+      "ref": "151.17"
+    },
+    {
+      "id": "mathcat-rules:integral_77_4_26",
+      "source": "mathcat-rules",
+      "cells": "⠮⠰⠴⠘⠜⠂⠤⠭⠘⠘⠆⠘⠻⠐⠋⠷⠭⠾⠙⠭",
+      "mathml": "<math>\n            <msubsup>\n                <mo>&#x222B;</mo>\n                <mn>0</mn>\n                <msqrt><mn>1</mn><mo>-</mo><msup><mi>x</mi><mn>2</mn></msup></msqrt> \n            </msubsup>\n            <mrow><mi>f</mi><mo>(</mo><mi>x</mi><mo>)</mo><mi>d</mi><mi>x</mi></mrow>\n        </math>",
+      "ref": "77.4.26"
+    },
+    {
+      "id": "mathcat-rules:left_sub_14_104",
+      "source": "mathcat-rules",
+      "cells": "⠠⠏⠰⠃⠐⠰⠉⠐⠠⠟",
+      "mathml": "<math><msub><mi>P</mi><mi>b</mi></msub><mmultiscripts><mi>Q</mi><mprescripts/><mi>c</mi><none/></mmultiscripts></math>",
+      "ref": "14.104"
+    },
+    {
+      "id": "mathcat-rules:left_sub_14_105",
+      "source": "mathcat-rules",
+      "cells": "⠠⠏⠂⠐⠰⠆⠐⠠⠟",
+      "mathml": "<math><msub><mi>P</mi><mn>1</mn></msub><mmultiscripts><mi>Q</mi><mprescripts/><mn>2</mn><none/></mmultiscripts></math>",
+      "ref": "14.105"
+    },
+    {
+      "id": "mathcat-rules:left_sup_75_1",
+      "source": "mathcat-rules",
+      "cells": "⠘⠭⠐⠝",
+      "mathml": "<math><mmultiscripts><mi>n</mi><mprescripts/><none/><mi>x</mi></mmultiscripts></math>",
+      "ref": "75.1"
+    },
+    {
+      "id": "mathcat-rules:left_sup_75_12",
+      "source": "mathcat-rules",
+      "cells": "⠏⠘⠃⠐⠘⠉⠐⠟",
+      "mathml": "<math><msup><mi>p</mi><mi>b</mi></msup><mmultiscripts><mi>q</mi><mprescripts/><none/><mi>c</mi></mmultiscripts></math>",
+      "ref": "75.12"
+    },
+    {
+      "id": "mathcat-rules:left_sup_75_4",
+      "source": "mathcat-rules",
+      "cells": "⠰⠭⠐⠝⠰⠽",
+      "mathml": "<math><mmultiscripts><mi>n</mi><mi>y</mi><none/><mprescripts/><mi>x</mi><none/></mmultiscripts></math>",
+      "ref": "75.4"
+    },
+    {
+      "id": "mathcat-rules:left_sup_75_7",
+      "source": "mathcat-rules",
+      "cells": "⠘⠰⠁⠘⠝⠐⠭",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mprescripts/><none/>\n            <mmultiscripts><mi>n</mi><mprescripts/><mi>a</mi><none/></mmultiscripts>\n        </mmultiscripts></math>",
+      "ref": "75.7"
+    },
+    {
+      "id": "mathcat-rules:left_sup_75_8",
+      "source": "mathcat-rules",
+      "cells": "⠰⠝⠰⠘⠁⠐⠭",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mprescripts/><msup><mi>n</mi><mi>a</mi></msup><none/></mmultiscripts></math>",
+      "ref": "75.8"
+    },
+    {
+      "id": "mathcat-rules:lesson_11_24_1",
+      "source": "mathcat-rules",
+      "cells": "⠫⠅⠭⠘⠆⠐⠻",
+      "mathml": "<math><menclose notation='roundedbox'><msup><mi>x</mi><mn>2</mn></msup></menclose></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:lesson_11_35_1",
+      "source": "mathcat-rules",
+      "cells": "⠷⠫⠪⠀⠼⠂⠠⠀⠫⠪⠀⠼⠆⠠⠀⠫⠪⠀⠼⠒⠾",
+      "mathml": "<math><mrow><mrow><mo>(</mo><mrow><mo>∠</mo><mn>1</mn><mo>,</mo><mo>∠</mo><mn>2</mn><mo>,</mo><mo>∠</mo><mn>3</mn></mrow><mo>)</mo></mrow></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:letter_26_b_18",
+      "source": "mathcat-rules",
+      "cells": "⠷⠰⠏⠀⠁⠝⠙⠀⠰⠟⠾",
+      "mathml": "<math><mo>(</mo><mi>p</mi><mo>&#xA0;</mo><mtext>and</mtext><mo>&#xA0;</mo><mi>q</mi><mo>)</mo></math>",
+      "ref": "26.b.18"
+    },
+    {
+      "id": "mathcat-rules:letter_26_b_19",
+      "source": "mathcat-rules",
+      "cells": "⠷⠰⠇⠠⠀⠰⠍⠠⠀⠰⠝⠠⠀⠁⠗⠑⠀⠊⠝⠀⠎⠑⠞⠀⠰⠠⠗⠾",
+      "mathml": "<math><mo>(</mo>\n            <mi mathvariant='normal'>l</mi><mo>,</mo>\n            <mi mathvariant='normal'>m</mi><mo>,</mo>\n            <mi mathvariant='normal'>n</mi><mo>,</mo>\n            <mtext>are in set&#xa0;</mtext>\n            <mi mathvariant='normal'>R</mi>\n        <mo>)</mo></math>",
+      "ref": "26.b.19"
+    },
+    {
+      "id": "mathcat-rules:lim_86_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠐⠇⠊⠍⠩⠭⠀⠫⠕⠀⠼⠴⠻⠀⠋⠷⠭⠾",
+      "mathml": "<math><munder><mi>lim</mi><mrow><mi>x</mi><mo>&#x2192;</mo><mn>0</mn></mrow></munder><mi>f</mi><mo>(</mo><mi>x</mi><mo>)</mo></math>",
+      "ref": "86.a.3"
+    },
+    {
+      "id": "mathcat-rules:list_10_6_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠠⠀⠰⠊⠠⠀⠤⠼⠂⠠⠀⠤⠊",
+      "mathml": "<math><mrow><mn>1</mn><mo>,</mo><mi>i</mi><mo>,</mo><mrow><mo>−</mo><mn>1</mn></mrow><mo>,</mo><mrow><mo>−</mo><mi>i</mi></mrow></mrow></math>",
+      "ref": "10.6.1"
+    },
+    {
+      "id": "mathcat-rules:list_10_6_11",
+      "source": "mathcat-rules",
+      "cells": "⠷⠭⠀⠨⠅⠀⠼⠂⠠⠀⠼⠆⠠⠀⠄⠄⠄⠠⠀⠼⠂⠴⠾",
+      "mathml": "<math><mo>(</mo>\n          <mrow><mi>x</mi><mo>=</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>…</mn><mo>,</mo><mn>10</mn></mrow>\n        <mo>)</mo></math>",
+      "ref": "10.6.11"
+    },
+    {
+      "id": "mathcat-rules:list_10_6_14",
+      "source": "mathcat-rules",
+      "cells": "⠷⠂⠠⠀⠆⠠⠀⠒⠾",
+      "mathml": "<math><mfenced><mrow><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>3</mn></mrow></mfenced></math>",
+      "ref": "10.6.14"
+    },
+    {
+      "id": "mathcat-rules:list_10_6_8",
+      "source": "mathcat-rules",
+      "cells": "⠈⠷⠫⠪⠀⠼⠂⠘⠨⠡⠠⠀⠎⠊⠝⠀⠼⠂⠘⠨⠡⠐⠈⠾",
+      "mathml": "<math>\n        <mo>[</mo>\n        <mrow><mo>&#x2220;</mo><mn>1</mn><mo>&#x00B0;</mo><mo>,</mo><mi>sin</mi><mn>1</mn><mo>&#x00B0;</mo></mrow>\t\t\t<mo>]</mo>\n    </math>",
+      "ref": "10.6.8"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind_11_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠈⠷⠴⠠⠀⠂⠈⠾",
+      "mathml": "<math><mo>[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>]</mo></math>",
+      "ref": "11.a.1"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind_11_a_2",
+      "source": "mathcat-rules",
+      "cells": "⠷⠤⠂⠠⠀⠤⠆⠠⠀⠤⠒⠾",
+      "mathml": "<math><mo>(</mo><mo>-</mo><mn>1</mn><mo>,</mo><mo>-</mo><mn>2</mn><mo>,</mo><mo>-</mo><mn>3</mn><mo>)</mo></math>",
+      "ref": "11.a.2"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind_11_a_5",
+      "source": "mathcat-rules",
+      "cells": "⠷⠆⠎⠊⠝⠀⠼⠒⠴⠘⠨⠡⠠⠀⠒⠉⠕⠎⠀⠼⠖⠴⠘⠨⠡⠐⠾",
+      "mathml": "<math><mfenced class='paren'>\n    <mrow>\n      <mrow><mn>2</mn><mo>⁢</mo><mrow><mi>sin</mi><mo>⁡</mo><mrow><mn>30</mn><mo>⁢</mo><mo>°</mo></mrow></mrow></mrow>\n      <mo>,</mo>\n      <mrow><mn>3</mn><mo>⁢</mo><mrow><mi>cos</mi><mo>⁡</mo><mrow><mn>60</mn><mo>⁢</mo><mo>°</mo></mrow></mrow></mrow>\n    </mrow>\n  </mfenced></math>",
+      "ref": "11.a.5"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind_11_a_7",
+      "source": "mathcat-rules",
+      "cells": "⠷⠭⠠⠀⠶⠠⠀⠸⠼⠦⠠⠀⠽⠾",
+      "mathml": "<math><mo>(</mo><mi>x</mi><mo>,</mo><mn>7</mn><mo>,</mo><mn mathvariant='bold'>8</mn><mo>,</mo><mi>y</mi><mo>)</mo></math>",
+      "ref": "11.a.7"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind_11_c_1",
+      "source": "mathcat-rules",
+      "cells": "⠨⠏⠀⠨⠅⠀⠼⠒⠨⠂⠲⠂⠢⠔⠀⠆⠖⠢⠒⠢⠀⠄⠄⠄",
+      "mathml": "<math><mi>&#x3C0;</mi><mo>=</mo><mn>3</mn><mo>.</mo><mn>14159</mn><mo>&#xA0;</mo><mn>26535</mn><mo>&#x2026;</mo></math>",
+      "ref": "11.c.1"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind_11_d_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠖⠢⠤⠶⠢",
+      "mathml": "<math><mrow><mn>65</mn><mo>-</mo><mn>75</mn></mrow></math>",
+      "ref": "11.d.1"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind_11_d_2",
+      "source": "mathcat-rules",
+      "cells": "⠼⠒⠸⠒⠼⠒⠴⠤⠲⠸⠒⠼⠲⠢",
+      "mathml": "<math><mn>3</mn><mo>:</mo><mn>30</mn><mo>&#x2212;</mo><mn>4</mn><mo>:</mo><mn>45</mn></math>",
+      "ref": "11.d.2"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind__11_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠷⠂⠬⠓⠠⠀⠆⠬⠅⠠⠀⠴⠾",
+      "mathml": "<math><mo>(</mo><mn>1</mn><mo>+</mo><mi>h</mi><mo>,</mo><mn>2</mn><mo>+</mo><mi>k</mi><mo>,</mo><mn>0</mn><mo>)</mo></math>",
+      "ref": "11.a.3"
+    },
+    {
+      "id": "mathcat-rules:list_num_ind__11_a_4",
+      "source": "mathcat-rules",
+      "cells": "⠷⠴⠠⠀⠤⠂⠠⠀⠬⠤⠆⠾",
+      "mathml": "<math><mfenced><mrow><mn>0</mn><mo>,</mo><mrow><mo>−</mo><mn>1</mn></mrow><mo>,</mo><mrow><mo>±</mo><mn>2</mn></mrow></mrow></mfenced></math>",
+      "ref": "11.a.4"
+    },
+    {
+      "id": "mathcat-rules:log_77_4_8",
+      "source": "mathcat-rules",
+      "cells": "⠇⠕⠛⠆⠀⠭",
+      "mathml": "<math><msub><mi>log</mi><mn>2</mn></msub> <mi>x</mi></math>",
+      "ref": "77.4.8"
+    },
+    {
+      "id": "mathcat-rules:lower_roman_numeral_18_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠧⠊⠬⠊⠧⠀⠨⠅⠀⠭",
+      "mathml": "<math><mtext>vi</mtext><mo>+</mo><mtext>iv</mtext><mo>=</mo><mtext>x</mtext></math>",
+      "ref": "18.b.4"
+    },
+    {
+      "id": "mathcat-rules:mathml_spec_example_86_a",
+      "source": "mathcat-rules",
+      "cells": "⠐⠷⠩⠱⠻⠹⠁⠌⠃⠼⠐⠾⠣⠱⠻",
+      "mathml": "<math>\n        <munder><mo>(</mo><mo>&#x5F;</mo></munder>\n        <mfrac><mi>a</mi><mi>b</mi></mfrac>\n        <mover><mo>)</mo><mo>&#x203E;</mo></mover>\n    </math>",
+      "ref": "86.a"
+    },
+    {
+      "id": "mathcat-rules:mathml_spec_example_alt_char_86_a",
+      "source": "mathcat-rules",
+      "cells": "⠐⠷⠩⠱⠻⠹⠁⠌⠃⠼⠐⠾⠣⠱⠻",
+      "mathml": "<math>\n        <munder><mo>(</mo><mo>&#x2015;</mo></munder>\n        <mfrac><mi>a</mi><mi>b</mi></mfrac>\n        <mover><mo>)</mo><mo>&#x2015;</mo></mover>\n    </math>",
+      "ref": "86.a"
+    },
+    {
+      "id": "mathcat-rules:menclose_111_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠫⠉⠸⠫⠠⠁⠻",
+      "mathml": "<math><menclose notation='circle'><mi>A</mi></menclose></math>",
+      "ref": "111.a.1"
+    },
+    {
+      "id": "mathcat-rules:menclose_111_a_4",
+      "source": "mathcat-rules",
+      "cells": "⠫⠪⠸⠫⠼⠒⠴⠘⠨⠡⠐⠻",
+      "mathml": "<math><menclose notation='phasorangle'><mrow><mn>30</mn><mo>&#xB0;</mo></mrow></menclose></math>",
+      "ref": "111.a.4"
+    },
+    {
+      "id": "mathcat-rules:menclose_86_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠩⠱",
+      "mathml": "<math><menclose notation='bottom'><mi>x</mi></menclose></math>",
+      "ref": "86.a.1"
+    },
+    {
+      "id": "mathcat-rules:menclose_86_a_4",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠘⠆⠐⠣⠱⠻",
+      "mathml": "<math><menclose notation='top'><msup><mi>x</mi><mn>2</mn></msup></menclose></math>",
+      "ref": "86.a.4"
+    },
+    {
+      "id": "mathcat-rules:menclose_86_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠱",
+      "mathml": "<math><menclose notation='top'><mi>x</mi></menclose></math>",
+      "ref": "86.b.1"
+    },
+    {
+      "id": "mathcat-rules:menclose_86_b_11",
+      "source": "mathcat-rules",
+      "cells": "⠐⠷⠁⠱⠸⠰⠠⠁⠬⠃⠱⠸⠰⠠⠃⠾⠣⠱⠻",
+      "mathml": "<math><menclose notation='top'><mfenced>\n            <mrow><menclose notation='top'><mi>a</mi></menclose><mi mathvariant='bold'>A</mi><mo>+</mo>\n            <menclose notation='top'><mi>b</mi></menclose><mi mathvariant='bold'>B</mi></mrow>\n        </mfenced></menclose></math>",
+      "ref": "86.b.11"
+    },
+    {
+      "id": "mathcat-rules:menclose_bar_97_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠨⠒⠱",
+      "mathml": "<math><mo>.</mo><menclose notation='top'><mn>3</mn></menclose></math>",
+      "ref": "97.b.1"
+    },
+    {
+      "id": "mathcat-rules:menclose_bar_97_b_3",
+      "source": "mathcat-rules",
+      "cells": "⠼⠒⠨⠢⠶⠐⠆⠔⠣⠱⠻",
+      "mathml": "<math><mn>3.57</mn><mover><mn>29</mn><mo stretchy='true'>&#xAF;</mo></mover></math>",
+      "ref": "97.b.3"
+    },
+    {
+      "id": "mathcat-rules:menclose_lesson_12_5_5_5",
+      "source": "mathcat-rules",
+      "cells": "⠠⠁⠷⠎⠩⠱⠝⠾",
+      "mathml": "<math><mi>A</mi><mo>(</mo><menclose notation='bottom'><mi>s</mi></menclose><mi>n</mi><mo>)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:menclose_primed_86_b_6",
+      "source": "mathcat-rules",
+      "cells": "⠭⠱⠄",
+      "mathml": "<math><msup><menclose notation='top'><mi>x</mi></menclose><mo>&#x2032;</mo></msup></math>",
+      "ref": "86.b.6"
+    },
+    {
+      "id": "mathcat-rules:menclose_top_bottom_88_1",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠬⠽⠩⠱⠣⠱⠻",
+      "mathml": "<math><menclose notation='top bottom'><mi>x</mi><mo>+</mo><mi>y</mi></menclose></math>",
+      "ref": "88.1"
+    },
+    {
+      "id": "mathcat-rules:mixed_frac_63_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠲⠸⠹⠒⠌⠦⠸⠼",
+      "mathml": "<math><mn>4</mn><mfrac><mn>3</mn><mn>8</mn></mfrac></math>",
+      "ref": "63.a.1"
+    },
+    {
+      "id": "mathcat-rules:mixed_frac_64_2",
+      "source": "mathcat-rules",
+      "cells": "⠼⠲⠸⠹⠒⠸⠌⠦⠸⠼",
+      "mathml": "<math><mn>4</mn><mn>3</mn><mo>/</mo><mn>8</mn></math>",
+      "ref": "64.2"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_77_4_10",
+      "source": "mathcat-rules",
+      "cells": "⠷⠠⠉⠠⠕⠒⠾⠰⠆",
+      "mathml": "<math>\n    <mmultiscripts>\n        <mrow>\n            <mo>(</mo>\n            <mi mathvariant='normal'>C</mi>\n            <mmultiscripts>  <mi mathvariant='normal'>O</mi> <mn>3</mn> <none/> </mmultiscripts>\n            <mo>)</mo>\n        </mrow>\n        <mn>2</mn>\n        <none/>\n    </mmultiscripts>\n</math>",
+      "ref": "77.4.10"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_77_4_18",
+      "source": "mathcat-rules",
+      "cells": "⠰⠒⠐⠭⠂",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mn>1</mn><none/><mprescripts/><mn>3</mn><none/></mmultiscripts></math>",
+      "ref": "77.4.18"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠁⠘⠝",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mi>a</mi><mi>n</mi></mmultiscripts></math>",
+      "ref": "82.a.1"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_a_2",
+      "source": "mathcat-rules",
+      "cells": "⠰⠁⠘⠝⠐⠭",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mprescripts/><mi>a</mi><mi>n</mi></mmultiscripts></math>",
+      "ref": "82.a.2"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠭⠂⠘⠆",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mn>1</mn><mn>2</mn></mmultiscripts></math>",
+      "ref": "82.a.3"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠁⠘⠝⠐⠰⠍",
+      "mathml": "<math><mmultiscripts><mi>a</mi><none/><mi>n</mi><mi>m</mi><none/></mmultiscripts></math>",
+      "ref": "82.b.1"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠁⠰⠍⠐⠘⠝",
+      "mathml": "<math><mmultiscripts><mi>a</mi><mi>m</mi><none/><none/><mi>n</mi></mmultiscripts></math>",
+      "ref": "82.b.2"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_b_3",
+      "source": "mathcat-rules",
+      "cells": "⠘⠁⠐⠰⠃⠐⠭",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mprescripts/><none/><mi>a</mi><mi>b</mi><none/></mmultiscripts></math>",
+      "ref": "82.b.3"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠰⠃⠐⠘⠁⠐⠭",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mprescripts/><mi>b</mi><none/><none/><mi>a</mi></mmultiscripts></math>",
+      "ref": "82.b.4"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_b_5",
+      "source": "mathcat-rules",
+      "cells": "⠭⠂⠐⠘⠆",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mn>1</mn><none/><none/><mn>2</mn></mmultiscripts></math>",
+      "ref": "82.b.5"
+    },
+    {
+      "id": "mathcat-rules:mmultiscripts_82_b_6",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠰⠁⠐⠘⠃",
+      "mathml": "<math><mmultiscripts><mi>x</mi><mi>a</mi><mo>'</mo><none/><mi>b</mi></mmultiscripts></math>",
+      "ref": "82.b.6"
+    },
+    {
+      "id": "mathcat-rules:modifier_in_script_91_1",
+      "source": "mathcat-rules",
+      "cells": "⠠⠁⠰⠐⠭⠣⠈⠱⠻",
+      "mathml": "<math><msub><mi>A</mi><mover><mi>x</mi><mo>~</mo></mover></msub></math>",
+      "ref": "91.1"
+    },
+    {
+      "id": "mathcat-rules:ms",
+      "source": "mathcat-rules",
+      "cells": "⠄⠄⠁⠀⠎⠞⠗⠊⠝⠛⠄⠄⠠⠀⠸⠠⠦⠁⠝⠕⠞⠓⠑⠗⠀⠎⠞⠗⠊⠝⠛⠠⠴",
+      "mathml": "<math><ms>a string</ms><mo>,</mo><ms lquote='‘' rquote='’'>another string</ms></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:ms_38_4_8",
+      "source": "mathcat-rules",
+      "cells": "⠷⠸⠦⠞⠓⠗⠑⠑⠴⠾",
+      "mathml": "<math><mo>(</mo><ms lquote='“' rquote='”'>three</ms><mo>)</mo></math>",
+      "ref": "38.4.8"
+    },
+    {
+      "id": "mathcat-rules:msubsup_82_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠁⠘⠝",
+      "mathml": "<math><msubsup><mi>x</mi><mi>a</mi><mi>n</mi></msubsup></math>",
+      "ref": "82.a.1"
+    },
+    {
+      "id": "mathcat-rules:msubsup_82_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠭⠂⠘⠆",
+      "mathml": "<math><msubsup><mi>x</mi><mn>1</mn><mn>2</mn></msubsup></math>",
+      "ref": "82.a.3"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_134_1",
+      "source": "mathcat-rules",
+      "cells": "⠬⠆⠤⠐⠬⠒",
+      "mathml": "<math><mo>+</mo><mn>2</mn><mo>-</mo><mo>+</mo><mn>3</mn></math>",
+      "ref": "134.1"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_2_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠐⠢",
+      "mathml": "<math> <mi>x5</mi> </math>",
+      "ref": "177.2.1"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_2_2",
+      "source": "mathcat-rules",
+      "cells": "⠭⠐⠨⠖",
+      "mathml": "<math> <mi>x</mi> <mn>.6</mn> </math>",
+      "ref": "177.2.2"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_3_1",
+      "source": "mathcat-rules",
+      "cells": "⠉⠴⠐⠂⠴⠘⠆⠐⠬⠉⠂⠐⠂⠴⠬⠉⠆",
+      "mathml": "<math>\n            <msub><mi>c</mi><mn>0</mn></msub>\n            <msup><mn>10</mn><mn>2</mn></msup>\n            <mo>+</mo>\n            <msub><mi>c</mi><mn>1</mn></msub>\n            <mn>10</mn><mo>+</mo>\n            <msub><mi>c</mi><mn>2</mn></msub>\n        </math>",
+      "ref": "177.3.1"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_5_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠴⠨⠐⠁⠂⠁⠆⠀⠄⠄⠄",
+      "mathml": "<math><mn>0.</mn><msub><mi>a</mi><mn>1</mn></msub><msub><mi>a</mi><mn>2</mn></msub><mo>…</mo></math>",
+      "ref": "177.5.1"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_5_4",
+      "source": "mathcat-rules",
+      "cells": "⠼⠒⠨⠐⠬⠨⠲⠀⠨⠅⠀⠼⠒⠨⠲",
+      "mathml": "<math><mn>3.</mn><mo>+</mo><mn>.4</mn><mo>=</mo><mn>3.4</mn></math>",
+      "ref": "177.5.4"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_5_5",
+      "source": "mathcat-rules",
+      "cells": "⠷⠒⠨⠐⠾",
+      "mathml": "<math><mo>(</mo><mn>3.</mn><mo>)</mo></math>",
+      "ref": "177.5.5"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_5_6",
+      "source": "mathcat-rules",
+      "cells": "⠹⠂⠨⠐⠌⠆⠨⠐⠼",
+      "mathml": "<math><mfrac><mn>1.</mn><mn>2.</mn></mfrac></math>",
+      "ref": "177.5.6"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_7_1",
+      "source": "mathcat-rules",
+      "cells": "⠳⠭⠳⠐⠳⠽⠳",
+      "mathml": "<math><mrow><mo>|</mo><mi>x</mi><mo>|</mo></mrow><mrow><mo>|</mo><mi>y</mi><mo>|</mo></mrow></math>",
+      "ref": "177.7.1"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_7_2",
+      "source": "mathcat-rules",
+      "cells": "⠳⠳⠭⠳⠳⠐⠳⠳⠽⠳⠳",
+      "mathml": "<math><mrow><mo>‖</mo><mi>x</mi><mo>‖</mo></mrow><mrow><mo>‖</mo><mi>y</mi><mo>‖</mo></mrow></math>",
+      "ref": "177.7.2"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_177_7_9",
+      "source": "mathcat-rules",
+      "cells": "⠈⠱⠐⠈⠱⠠⠞",
+      "mathml": "<math><mo>∼</mo><mo>∼</mo><mi>T</mi></math>",
+      "ref": "177.7.9"
+    },
+    {
+      "id": "mathcat-rules:multipurpose_lesson_5_2_3",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠴⠬⠐⠤⠢",
+      "mathml": "<math><mn>10</mn><mo>+</mo><mo>-</mo><mn>5</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:multipurpose_lesson_5_2_4",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠴⠤⠐⠬⠢",
+      "mathml": "<math><mn>10</mn><mo>-</mo><mo>+</mo><mn>5</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:multipurpose_lesson_5_2_5",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠴⠤⠐⠤⠢",
+      "mathml": "<math><mn>10</mn><mo>-</mo><mo>-</mo><mn>5</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:multipurpose_lesson_5_9_1_1",
+      "source": "mathcat-rules",
+      "cells": "⠝⠀⠨⠂⠐⠐⠅⠀⠼⠂",
+      "mathml": "<math><mi>n</mi><mo>&gt;</mo><mo>&lt;</mo><mn>1</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:multipurpose_lesson_5_9_2_1",
+      "source": "mathcat-rules",
+      "cells": "⠝⠀⠐⠅⠐⠨⠂⠀⠼⠂",
+      "mathml": "<math><mi>n</mi><mo>&lt;</mo><mo>&gt;</mo><mn>1</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:multipurpose_lesson_5_9_2_2",
+      "source": "mathcat-rules",
+      "cells": "⠝⠀⠐⠅⠐⠨⠅⠐⠨⠂⠀⠼⠂",
+      "mathml": "<math><mi>n</mi><mo>&lt;</mo><mo>=</mo><mo>&gt;</mo><mn>1</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:munder_lesson_12_5_5_5",
+      "source": "mathcat-rules",
+      "cells": "⠠⠁⠷⠎⠩⠱⠝⠾",
+      "mathml": "<math><mi>A</mi><mo>(</mo><munder><mi>s</mi><mo>&#xAF;</mo></munder><mi>n</mi><mo>)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:nested_root_105_2",
+      "source": "mathcat-rules",
+      "cells": "⠣⠒⠜⠭⠘⠆⠐⠬⠨⠣⠒⠜⠭⠘⠆⠐⠬⠽⠘⠆⠐⠨⠻⠬⠽⠘⠆⠐⠻",
+      "mathml": "<math><mroot>\n    <mrow>\n        <msup> <mi>x</mi><mn>2</mn> </msup>\n        <mo>+</mo>\n        <mroot>\n            <mrow>\n                <msup> <mi>x</mi> <mn>2</mn> </msup>\n                <mo>+</mo>\n                <msup> <mi>y</mi> <mn>2</mn>  </msup>\n            </mrow>\n            <mn>3</mn>\n        </mroot>\n        <mo>+</mo>\n        <msup> <mi>y</mi> <mn>2</mn> </msup>\n    </mrow>\n    <mn>3</mn>\n</mroot></math>",
+      "ref": "105.2"
+    },
+    {
+      "id": "mathcat-rules:nested_sqrt_105_1",
+      "source": "mathcat-rules",
+      "cells": "⠜⠭⠬⠨⠜⠭⠬⠽⠨⠻⠬⠵⠻",
+      "mathml": "<math><msqrt><mi>x</mi><mo>+</mo>\n            <msqrt><mi>x</mi><mo>+</mo><mi>y</mi></msqrt>\n            <mo>+</mo><mi>z</mi></msqrt></math>",
+      "ref": "105.1"
+    },
+    {
+      "id": "mathcat-rules:nested_sqrt_105_3",
+      "source": "mathcat-rules",
+      "cells": "⠜⠨⠣⠒⠜⠭⠨⠻⠻⠀⠨⠅⠀⠣⠒⠜⠨⠜⠭⠨⠻⠻",
+      "mathml": "<math>\n        <msqrt> <mroot> <mi>x</mi><mn>3</mn> </mroot> </msqrt>\n        <mo>=</mo>\n        <mroot> <msqrt><mi>x</mi></msqrt> <mn>3</mn></mroot>\n    </math>",
+      "ref": "105.3"
+    },
+    {
+      "id": "mathcat-rules:nested_sqrt_105_4",
+      "source": "mathcat-rules",
+      "cells": "⠜⠭⠬⠨⠜⠽⠬⠨⠨⠜⠵⠨⠨⠻⠨⠻⠻",
+      "mathml": "<math>\n            <msqrt><mi>x</mi><mo>+</mo><msqrt><mi>y</mi><mo>+</mo><msqrt><mi>z</mi></msqrt></msqrt></msqrt>\n        </math>",
+      "ref": "105.4"
+    },
+    {
+      "id": "mathcat-rules:nested_sub_sup_74_c_5",
+      "source": "mathcat-rules",
+      "cells": "⠝⠘⠭⠘⠰⠁⠘⠰⠰⠚",
+      "mathml": "<math><msup><mi>n</mi><msub><mi>x</mi><msub><mi>a</mi><mi>j</mi></msub></msub></msup></math>",
+      "ref": "74.c.5"
+    },
+    {
+      "id": "mathcat-rules:nested_sup_74_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠝⠘⠭⠘⠘⠽",
+      "mathml": "<math><msup><mi>n</mi><msup><mi>x</mi><mi>y</mi></msup></msup></math>",
+      "ref": "74.b.1"
+    },
+    {
+      "id": "mathcat-rules:nested_sup_74_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠝⠰⠭⠰⠰⠽",
+      "mathml": "<math><msub><mi>n</mi><msub><mi>x</mi><mi>y</mi></msub></msub></math>",
+      "ref": "74.b.4"
+    },
+    {
+      "id": "mathcat-rules:nested_sup_mmultiscripts_74_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠝⠘⠭⠘⠘⠽",
+      "mathml": "<math><mmultiscripts><mi>n</mi><none/><msup><mi>x</mi><mi>y</mi></msup></mmultiscripts></math>",
+      "ref": "74.b.1"
+    },
+    {
+      "id": "mathcat-rules:nested_sup_sup_space_79_d_9",
+      "source": "mathcat-rules",
+      "cells": "⠟⠘⠇⠕⠛⠘⠰⠟⠀⠁",
+      "mathml": "<math><msup><mi>q</mi><mrow><msub><mi>log</mi><mi>q</mi></msub><mi>a</mi></mrow></msup></math>",
+      "ref": "79.d.9"
+    },
+    {
+      "id": "mathcat-rules:nested_super_79_a_2",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠁⠐⠬⠽⠘⠆",
+      "mathml": "<math><msub><mi>x</mi><mi>a</mi></msub><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup></math>",
+      "ref": "79.a.2"
+    },
+    {
+      "id": "mathcat-rules:nested_super_79_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠹⠑⠘⠭⠘⠘⠆⠐⠌⠆⠼",
+      "mathml": "<math><mfrac><mrow><msup><mi>e</mi><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></msup></mrow><mn>2</mn></mfrac></math>",
+      "ref": "79.a.3"
+    },
+    {
+      "id": "mathcat-rules:nested_super_space_79_d_3",
+      "source": "mathcat-rules",
+      "cells": "⠉⠕⠎⠘⠆⠀⠭",
+      "mathml": "<math><msup><mi>cos</mi><mn>2</mn></msup><mi>x</mi></math>",
+      "ref": "79.d.3"
+    },
+    {
+      "id": "mathcat-rules:nested_super_space_79_d_7",
+      "source": "mathcat-rules",
+      "cells": "⠑⠘⠉⠕⠎⠘⠘⠆⠀⠭",
+      "mathml": "<math><mrow><msup><mi>e</mi><mrow><msup><mi>cos</mi><mn>2</mn></msup><mi>x</mi></mrow></msup></mrow></math>",
+      "ref": "79.d.7"
+    },
+    {
+      "id": "mathcat-rules:no_multipurpose_lesson_5_2_6",
+      "source": "mathcat-rules",
+      "cells": "⠤⠼⠂⠴⠬⠬⠢",
+      "mathml": "<math><mo>-</mo><mn>10</mn><mo>+</mo><mo>+</mo><mn>5</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:no_num_ind_11_e_3",
+      "source": "mathcat-rules",
+      "cells": "⠗⠐⠢",
+      "mathml": "<math><mrow><mi>r</mi><mn>5</mn></mrow></math>",
+      "ref": "11.e.3"
+    },
+    {
+      "id": "mathcat-rules:no_space_comparison_151_16",
+      "source": "mathcat-rules",
+      "cells": "⠷⠐⠅⠠⠀⠨⠅⠠⠀⠨⠂⠾",
+      "mathml": "<math><mo>(</mo><mo>&lt;</mo><mo>,</mo><mo>=</mo><mo>,</mo><mo>&gt;</mo><mo>)</mo></math>",
+      "ref": "151.16"
+    },
+    {
+      "id": "mathcat-rules:non_hyper_complex_frac_67_1",
+      "source": "mathcat-rules",
+      "cells": "⠹⠁⠌⠃⠘⠠⠹⠹⠒⠌⠲⠼⠠⠌⠹⠢⠌⠖⠼⠠⠼⠐⠼",
+      "mathml": "<math><mfrac><mi>a</mi><msup><mi>b</mi>\n            <mfrac>\n                <mfrac><mn>3</mn><mn>4</mn></mfrac>\n                <mfrac><mn>5</mn><mn>6</mn></mfrac>\n            </mfrac>\n        </msup></mfrac></math>",
+      "ref": "67.1"
+    },
+    {
+      "id": "mathcat-rules:non_list_10_4",
+      "source": "mathcat-rules",
+      "cells": "⠷⠂⠠⠀⠼⠆⠠⠀⠁⠝⠙⠀⠼⠒⠾",
+      "mathml": "<math><mo>(</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mtext>and&#xA0;</mtext><mn>3</mn><mo>)</mo></math>",
+      "ref": "10.4"
+    },
+    {
+      "id": "mathcat-rules:not_ratio_nfb_5_7_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠨⠷⠰⠭⠸⠒⠀⠭⠀⠨⠂⠀⠼⠴⠨⠾",
+      "mathml": "<math><mo>{</mo><mi>x</mi><mo>:</mo><mi>x</mi><mo>></mo><mn>0</mn><mo>}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:not_ratio_nfb_5_7_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠰⠏⠸⠒⠗⠀⠨⠅⠀⠟⠸⠒⠰⠎",
+      "mathml": "<math><mi>p</mi><mo>:</mo><mi>r</mi><mo>=</mo><mi>q</mi><mo>:</mo><mi>s</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠆⠶",
+      "mathml": "<math><mn>27</mn></math>",
+      "ref": "9.a.1"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_a_14",
+      "source": "mathcat-rules",
+      "cells": "⠤⠼⠂",
+      "mathml": "<math><mo>-</mo><mn>1</mn></math>",
+      "ref": "9.a.14"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_a_15",
+      "source": "mathcat-rules",
+      "cells": "⠤⠼⠨⠒",
+      "mathml": "<math><mo>-</mo><mn>.3</mn></math>",
+      "ref": "9.a.15"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_a_4",
+      "source": "mathcat-rules",
+      "cells": "⠽⠀⠨⠅⠀⠼⠆⠎⠊⠝⠀⠭",
+      "mathml": "<math><mrow><mi>y</mi><mo>=</mo><mrow><mn>2</mn><mo>&#x2062;</mo><mrow><mi>sin</mi><mo>&#x2061;</mo><mi>x</mi></mrow></mrow></mrow></math>",
+      "ref": "9.a.4"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_a_5",
+      "source": "mathcat-rules",
+      "cells": "⠎⠊⠝⠀⠼⠂",
+      "mathml": "<math><mrow><mi>sin</mi><mo>&#x2061;</mo><mn>1</mn></mrow></math>",
+      "ref": "9.a.5"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_a_9",
+      "source": "mathcat-rules",
+      "cells": "⠫⠪⠀⠼⠂",
+      "mathml": "<math><mrow><mo>∠</mo><mn>1</mn></mrow></math>",
+      "ref": "9.a.9"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_d_2",
+      "source": "mathcat-rules",
+      "cells": "⠼⠒⠨⠼⠼⠲",
+      "mathml": "<math><mn>3</mn><mi mathvariant='normal'>#</mi><mn>4</mn></math>",
+      "ref": "9.d.2"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_d_3",
+      "source": "mathcat-rules",
+      "cells": "⠼⠒⠈⠼⠼⠲",
+      "mathml": "<math><mn>3</mn><mo>∗</mo><mn>4</mn></math>",
+      "ref": "9.d.3"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_e_2",
+      "source": "mathcat-rules",
+      "cells": "⠸⠼⠴",
+      "mathml": "<math><mn mathvariant='bold'>0</mn></math>",
+      "ref": "9.e.2"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_e_5",
+      "source": "mathcat-rules",
+      "cells": "⠸⠼⠲⠒⠼⠢⠖",
+      "mathml": "<math><mn>𝟒𝟑56</mn></math>",
+      "ref": "9.e.5"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_e_6",
+      "source": "mathcat-rules",
+      "cells": "⠫⠉⠸⠫⠼⠢⠻",
+      "mathml": "<math><mn>⑤</mn></math>",
+      "ref": "9.e.6"
+    },
+    {
+      "id": "mathcat-rules:num_indicator_9_f_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠤⠞⠕⠤⠼⠂",
+      "mathml": "<math><mtext>1-to-1</mtext></math>",
+      "ref": "9.f.1"
+    },
+    {
+      "id": "mathcat-rules:number_space_after",
+      "source": "mathcat-rules",
+      "cells": "⠼⠆",
+      "mathml": "<math><mn>2</mn><mtext>&#xA0;</mtext></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:number_space_before",
+      "source": "mathcat-rules",
+      "cells": "⠼⠆",
+      "mathml": "<math><mtext>&#xA0;</mtext><mn>2</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:number_space_before_and_after",
+      "source": "mathcat-rules",
+      "cells": "⠼⠆",
+      "mathml": "<math><mtext>&#xA0;</mtext><mn>2</mn><mtext>&#xA0;</mtext></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:numeric_sub_81_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠷⠭⠂⠬⠂⠾",
+      "mathml": "<math><mo>(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>+</mo><mn>1</mn><mo>)</mo></math>",
+      "ref": "81.a.1"
+    },
+    {
+      "id": "mathcat-rules:omission_57_1",
+      "source": "mathcat-rules",
+      "cells": "⠷⠿⠾⠘⠒⠀⠨⠅⠀⠼⠆⠶",
+      "mathml": "<math><msup><mrow><mo>(</mo><mo>?</mo><mo>)</mo></mrow><mn>3</mn></msup><mo>=</mo><mn>27</mn></math>",
+      "ref": "57.1"
+    },
+    {
+      "id": "mathcat-rules:omission_57_3",
+      "source": "mathcat-rules",
+      "cells": "⠼⠶⠈⠡⠆⠀⠿⠀⠼⠂⠲",
+      "mathml": "<math><mn>7</mn><mo>&#xD7;</mo><mn>2</mn><mo>?</mo><mn>14</mn></math>",
+      "ref": "57.3"
+    },
+    {
+      "id": "mathcat-rules:omission_57_4",
+      "source": "mathcat-rules",
+      "cells": "⠿⠬⠿⠀⠨⠅⠀⠼⠂⠴",
+      "mathml": "<math><mo>?</mo><mo>+</mo><mo>?</mo><mo>=</mo><mn>10</mn></math>",
+      "ref": "57.4"
+    },
+    {
+      "id": "mathcat-rules:omission_57_5",
+      "source": "mathcat-rules",
+      "cells": "⠼⠶⠤⠿⠀⠨⠅⠀⠼⠢",
+      "mathml": "<math><mn>7</mn><mo>-</mo><menclose notation='bottom'><mo>?</mo></menclose><mo>=</mo><mn>5</mn></math>",
+      "ref": "57.5"
+    },
+    {
+      "id": "mathcat-rules:omission_57_6",
+      "source": "mathcat-rules",
+      "cells": "⠼⠔⠤⠢⠀⠨⠅⠀⠿",
+      "mathml": "<math><mn>9</mn><mo>-</mo><mn>5</mn><mo>=</mo><mtext>-?-</mtext></math>",
+      "ref": "57.6"
+    },
+    {
+      "id": "mathcat-rules:omission_57_7",
+      "source": "mathcat-rules",
+      "cells": "⠷⠢⠠⠀⠿⠾⠬⠷⠿⠠⠀⠂⠢⠾⠀⠨⠅⠀⠷⠶⠠⠀⠂⠒⠾",
+      "mathml": "<math>\n            <mo>(</mo><mn>5</mn><mo>,</mo><mspace width='1.5em'/><mo>)</mo><mo>+</mo>\n            <mo>(</mo><mo>&#xA0;</mo><mo>&#xA0;</mo><mo>,</mo><mn>15</mn><mo>)</mo><mo>=</mo>\n            <mo>(</mo><mn>7</mn><mo>,</mo><mn>13</mn><mo>)</mo>\n        </math>",
+      "ref": "57.7"
+    },
+    {
+      "id": "mathcat-rules:omission_57_8",
+      "source": "mathcat-rules",
+      "cells": "⠼⠢⠈⠡⠆⠢⠀⠨⠅⠀⠿",
+      "mathml": "<math><mn>5</mn><mo>×</mo><mn>25</mn><mo>=</mo><mspace width='1.5em'/></math>",
+      "ref": "57.8"
+    },
+    {
+      "id": "mathcat-rules:order2_overbar_87_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠬⠽⠣⠱⠣⠣⠁⠀⠨⠅⠀⠼⠒⠻",
+      "mathml": "<math><mover>\n            <mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow>\n            <mover><mo>&#xAF;</mo><mrow><mi>a</mi><mo>=</mo><mn>3</mn></mrow></mover>\n        </mover></math>",
+      "ref": "87.a.1"
+    },
+    {
+      "id": "mathcat-rules:overbar_86_a_4",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠘⠆⠐⠣⠱⠻",
+      "mathml": "<math><mover><msup><mi>x</mi><mn>2</mn></msup><mo>&#xAF;</mo></mover></math>",
+      "ref": "86.a.4"
+    },
+    {
+      "id": "mathcat-rules:overbar_86_a_5",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠘⠆⠐⠣⠱⠻",
+      "mathml": "<math><mover><msup><mi>x</mi><mn>2</mn></msup><mo>&#xAF;</mo></mover></math>",
+      "ref": "86.a.5"
+    },
+    {
+      "id": "mathcat-rules:overbar_86_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠱",
+      "mathml": "<math><mover><mi>x</mi><mo>&#xAF;</mo></mover></math>",
+      "ref": "86.b.1"
+    },
+    {
+      "id": "mathcat-rules:overbar_86_b_10",
+      "source": "mathcat-rules",
+      "cells": "⠼⠒⠨⠢⠲⠱",
+      "mathml": "<math><mn>3</mn><mo>.</mo><mn>5</mn><mover><mn>4</mn><mo>&#xAF;</mo></mover></math>",
+      "ref": "86.b.10"
+    },
+    {
+      "id": "mathcat-rules:overbar_86_b_11",
+      "source": "mathcat-rules",
+      "cells": "⠐⠷⠁⠱⠸⠰⠠⠁⠬⠃⠱⠸⠰⠠⠃⠾⠣⠱⠻",
+      "mathml": "<math><mover><mfenced>\n            <mrow><mover><mi>a</mi><mo>&#xAF;</mo></mover><mi mathvariant='bold'>A</mi><mo>+</mo>\n                <mover><mi>b</mi><mo>&#xAF;</mo></mover><mi mathvariant='bold'>B</mi></mrow>\n        </mfenced><mo>&#xAF;</mo></mover></math>",
+      "ref": "86.b.11"
+    },
+    {
+      "id": "mathcat-rules:overbar_86_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠬⠽⠣⠱⠻",
+      "mathml": "<math><mover>\n            <mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow>\n            <mo>&#xAF;</mo>\n        </mover></math>",
+      "ref": "86.b.2"
+    },
+    {
+      "id": "mathcat-rules:perpendicular_17_57",
+      "source": "mathcat-rules",
+      "cells": "⠠⠁⠠⠃⠀⠫⠏⠀⠠⠉⠠⠙",
+      "mathml": "<math><mi>A</mi><mi>B</mi><mo>&#x22A5;</mo><mi>C</mi><mi>D</mi></math>",
+      "ref": "17.57"
+    },
+    {
+      "id": "mathcat-rules:plus_minus_134_4",
+      "source": "mathcat-rules",
+      "cells": "⠭⠬⠤⠽",
+      "mathml": "<math><mi>x</mi><mo>&#xB1;</mo><mi>y</mi></math>",
+      "ref": "134.4"
+    },
+    {
+      "id": "mathcat-rules:prescript_77_4_18",
+      "source": "mathcat-rules",
+      "cells": "⠰⠒⠐⠭⠂",
+      "mathml": "<math><msub><mrow/><mn>3</mn></msub><msub><mi>x</mi><mn>1</mn></msub></math>",
+      "ref": "77.4.18"
+    },
+    {
+      "id": "mathcat-rules:prescript_77_4_6",
+      "source": "mathcat-rules",
+      "cells": "⠰⠒⠐⠭",
+      "mathml": "<math><mmultiscripts> <mi>x</mi> <mprescripts/> <mn>3</mn><none/></mmultiscripts></math>",
+      "ref": "77.4.6"
+    },
+    {
+      "id": "mathcat-rules:prescript_77_4_7",
+      "source": "mathcat-rules",
+      "cells": "⠭⠰⠊⠰⠰⠂",
+      "mathml": "<math><msub><mi>x</mi><msub><mi>i</mi><mn>1</mn></msub></msub></math>",
+      "ref": "77.4.7"
+    },
+    {
+      "id": "mathcat-rules:prime_172_5",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠰⠊",
+      "mathml": "<math><msubsup><mi>x</mi><mi>i</mi><mo>'</mo></msubsup></math>",
+      "ref": "172.5"
+    },
+    {
+      "id": "mathcat-rules:prime_172_6",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠂",
+      "mathml": "<math><msubsup><mi>x</mi><mn>1</mn><mo>'</mo></msubsup></math>",
+      "ref": "172.6"
+    },
+    {
+      "id": "mathcat-rules:prime_172_8",
+      "source": "mathcat-rules",
+      "cells": "⠭⠱⠄",
+      "mathml": "<math><msup><mover><mi>x</mi><mo>&#xAF;</mo></mover><mo>'</mo></msup></math>",
+      "ref": "172.8"
+    },
+    {
+      "id": "mathcat-rules:prime_172_9",
+      "source": "mathcat-rules",
+      "cells": "⠼⠢⠄⠦⠄⠄",
+      "mathml": "<math><msup><mn>5</mn><mo>'</mo></msup><msup><mn>8</mn><mrow><mo>'</mo><mo>'</mo></mrow></msup></math>",
+      "ref": "172.9"
+    },
+    {
+      "id": "mathcat-rules:prime_77_4_4",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠂",
+      "mathml": "<math><msub> <msup><mi>x</mi><mo>'</mo></msup> <mn>1</mn> </msub></math>",
+      "ref": "77.4.4"
+    },
+    {
+      "id": "mathcat-rules:prime_83_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠰⠁",
+      "mathml": "<math><msubsup><mi>x</mi><mi>a</mi><mo>'</mo></msubsup></math>",
+      "ref": "83.b.1"
+    },
+    {
+      "id": "mathcat-rules:prime_83_b_3",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠰⠁⠘⠃",
+      "mathml": "<math><mmultiscripts> <mi>x</mi> <none/><mo>'</mo> <mi>a</mi><mi>b</mi></mmultiscripts></math>",
+      "ref": "83.b.3"
+    },
+    {
+      "id": "mathcat-rules:prime_83_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠄⠂⠘⠒",
+      "mathml": "<math><msubsup> <msup><mi>x</mi><mo>''</mo></msup> <mn>1</mn> <mn>3</mn></msubsup></math>",
+      "ref": "83.b.4"
+    },
+    {
+      "id": "mathcat-rules:prime_83_b_5",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠘⠈⠼",
+      "mathml": "<math><mmultiscripts> <mi>x</mi> <none/><mo>'</mo> <none/><mo>*</mo></mmultiscripts></math>",
+      "ref": "83.b.5"
+    },
+    {
+      "id": "mathcat-rules:prime_83_b_6",
+      "source": "mathcat-rules",
+      "cells": "⠭⠘⠈⠼⠄",
+      "mathml": "<math><msup> <mi>x</mi> <mrow><mo>*</mo> <mo>'</mo></mrow> </msup></math>",
+      "ref": "83.b.6"
+    },
+    {
+      "id": "mathcat-rules:prime_83_b_7",
+      "source": "mathcat-rules",
+      "cells": "⠠⠁⠰⠥⠑⠘⠈⠼⠄",
+      "mathml": "<math>\n        <msubsup>\n            <mi>A</mi>\n            <mrow><mi>u</mi><mi>e</mi></mrow>\n            <mrow><mo>&#x2217;</mo><mo>&#x2032;</mo></mrow>\n        </msubsup>\n    </math>",
+      "ref": "83.b.7"
+    },
+    {
+      "id": "mathcat-rules:prime_83_b_8",
+      "source": "mathcat-rules",
+      "cells": "⠠⠁⠄⠰⠥⠑⠘⠈⠼",
+      "mathml": "<math>\n        <msubsup>\n            <mi>A</mi>\n            <mrow><mi>u</mi><mi>e</mi></mrow>\n            <mrow><mo>&#x2032;</mo><mo>&#x2217;</mo></mrow>\n        </msubsup>\n    </math>",
+      "ref": "83.b.8"
+    },
+    {
+      "id": "mathcat-rules:prime_mathjax_83_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠘⠆",
+      "mathml": "<math><msup> <mrow><mi>x</mi><mo>'</mo></mrow> <mn>2</mn></msup></math>",
+      "ref": "83.b.2"
+    },
+    {
+      "id": "mathcat-rules:prime_mmultiscripts_83_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠘⠆",
+      "mathml": "<math><mmultiscripts> <mi>x</mi> <none/><mo>'</mo> <none/><mn>2</mn></mmultiscripts></math>",
+      "ref": "83.b.2"
+    },
+    {
+      "id": "mathcat-rules:prime_mmultiscripts_83_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠄⠂⠘⠒",
+      "mathml": "<math><mmultiscripts> <mi>x</mi> <none/><mo>''</mo> <mn>1</mn><mn>3</mn></mmultiscripts></math>",
+      "ref": "83.b.4"
+    },
+    {
+      "id": "mathcat-rules:prime_wiris_83_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠭⠄⠘⠆",
+      "mathml": "<math><msup><mi>x</mi> <mrow><mi>&#x2032;</mi><mn>2</mn></mrow> </msup></math>",
+      "ref": "83.b.2"
+    },
+    {
+      "id": "mathcat-rules:primed_86_b_6",
+      "source": "mathcat-rules",
+      "cells": "⠭⠱⠄",
+      "mathml": "<math><msup><mrow><mover><mi>x</mi><mo>&#xAF;</mo></mover></mrow><mo>&#x2032;</mo></msup></math>",
+      "ref": "86.b.6"
+    },
+    {
+      "id": "mathcat-rules:product_77_4_24",
+      "source": "mathcat-rules",
+      "cells": "⠨⠠⠏⠴⠘⠝⠐⠁⠰⠅",
+      "mathml": "<math><msubsup><mo>&#x220F;</mo><mn>0</mn><mi>n</mi></msubsup><msub><mi>a</mi><mi>k</mi></msub></math>",
+      "ref": "77.4.24"
+    },
+    {
+      "id": "mathcat-rules:proportional_151_12",
+      "source": "mathcat-rules",
+      "cells": "⠭⠀⠸⠿⠀⠽",
+      "mathml": "<math><mi>x</mi><mo>∝</mo><mi>y</mi></math>",
+      "ref": "151.12"
+    },
+    {
+      "id": "mathcat-rules:punct_37_11_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠱⠸⠲",
+      "mathml": "<math><mover><mi>x</mi><mo>&#xAF;</mo></mover><mo>.</mo></math>",
+      "ref": "37.11.1"
+    },
+    {
+      "id": "mathcat-rules:punct_37_16_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠴⠴⠈⠴⠸⠲",
+      "mathml": "<math><mn>100</mn><mo>%</mo><mo>.</mo></math>",
+      "ref": "37.16.1"
+    },
+    {
+      "id": "mathcat-rules:punct_37_17_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠴⠠⠸⠴",
+      "mathml": "<math><mn>0</mn><mo>,</mo><mo>”</mo></math>",
+      "ref": "37.17.1"
+    },
+    {
+      "id": "mathcat-rules:punct_37_1_1",
+      "source": "mathcat-rules",
+      "cells": "⠹⠂⠌⠆⠼⠠⠀⠹⠒⠌⠲⠼⠸⠲",
+      "mathml": "<math>\n            <mfrac><mn>1</mn><mn>2</mn></mfrac>\n            <mo>,</mo>\n            <mfrac><mn>3</mn><mn>4</mn></mfrac>\n            <mo>.</mo>\n        </math>",
+      "ref": "37.1.1"
+    },
+    {
+      "id": "mathcat-rules:punct_37_1_2",
+      "source": "mathcat-rules",
+      "cells": "⠐⠧⠑⠇⠕⠉⠊⠞⠽⠣⠱⠻⠸⠲",
+      "mathml": "<math>\n            <mover> <mi>velocity</mi> <mo>_</mo> </mover>\n            <mtext>.</mtext>\n        </math>",
+      "ref": "37.1.2"
+    },
+    {
+      "id": "mathcat-rules:punct_37_2_2",
+      "source": "mathcat-rules",
+      "cells": "⠦⠼⠲⠔⠸⠴",
+      "mathml": "<math><mtext>“</mtext> <mn>49</mn> <mtext>”</mtext></math>",
+      "ref": "37.2.2"
+    },
+    {
+      "id": "mathcat-rules:punct_37_3_1",
+      "source": "mathcat-rules",
+      "cells": "⠰⠠⠊⠠⠀⠠⠠⠊⠊⠠⠀⠠⠠⠊⠊⠊⠸⠲",
+      "mathml": "<math><mtext>I</mtext><mo>,</mo><mtext>II</mtext><mo>,</mo><mtext>III</mtext><mo>.</mo></math>",
+      "ref": "37.3.1"
+    },
+    {
+      "id": "mathcat-rules:punct_37_4_2",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠠⠀⠼⠒⠠⠀⠄⠄⠄⠸⠲",
+      "mathml": "<math><mn>1</mn><mo>,</mo><mn>3</mn><mo>,</mo><mo>…</mo><mo>.</mo></math>",
+      "ref": "37.4.2"
+    },
+    {
+      "id": "mathcat-rules:punct_37_6_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠢⠈⠡⠒⠀⠨⠅⠀⠿⠸⠲",
+      "mathml": "<math><mn>5</mn><mo>×</mo><mn>3</mn><mo>=</mo><mo>?</mo><mo>.</mo></math>",
+      "ref": "37.6.1"
+    },
+    {
+      "id": "mathcat-rules:punct_37_7_1",
+      "source": "mathcat-rules",
+      "cells": "⠰⠁⠠⠀⠰⠃⠠⠀⠰⠉⠸⠲",
+      "mathml": "<math><mi>a</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>c</mi><mo>.</mo></math>",
+      "ref": "37.7.1"
+    },
+    {
+      "id": "mathcat-rules:punct_37_8_1",
+      "source": "mathcat-rules",
+      "cells": "⠫⠞⠀⠠⠁⠠⠃⠠⠉⠸⠲",
+      "mathml": "<math><mo>&#x25B3;</mo><mi>A</mi><mi>B</mi><mi>C</mi><mo>.</mo></math>",
+      "ref": "37.8.1"
+    },
+    {
+      "id": "mathcat-rules:punct_38_1_2",
+      "source": "mathcat-rules",
+      "cells": "⠠⠴⠼⠲⠔",
+      "mathml": "<math><mo>’</mo><mn>49</mn></math>",
+      "ref": "38.1.2"
+    },
+    {
+      "id": "mathcat-rules:punct_38_4_12",
+      "source": "mathcat-rules",
+      "cells": "⠗⠁⠞⠑⠈⠡⠞⠊⠍⠑⠲",
+      "mathml": "<math><mi>rate</mi><mo>×</mo><mi>time</mi><mo>.</mo></math>",
+      "ref": "38.4.12"
+    },
+    {
+      "id": "mathcat-rules:punct_38_6_1",
+      "source": "mathcat-rules",
+      "cells": "⠼⠴⠠⠀⠼⠂⠠⠀⠼⠆",
+      "mathml": "<math><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mn>2</mn></math>",
+      "ref": "38.6.1"
+    },
+    {
+      "id": "mathcat-rules:punct_38_6_3",
+      "source": "mathcat-rules",
+      "cells": "⠷⠂⠾⠠⠀⠷⠆⠾⠠⠀⠷⠒⠾⠸⠲",
+      "mathml": "<math><mo>(</mo><mn>1</mn><mo>)</mo><mo>,</mo><mo>(</mo><mn>2</mn><mo>)</mo><mo>,</mo><mo>(</mo><mn>3</mn><mo>)</mo><mo>.</mo></math>",
+      "ref": "38.6.3"
+    },
+    {
+      "id": "mathcat-rules:punctuation_after_sup_79_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠭⠘⠆⠠⠀⠭⠘⠒",
+      "mathml": "<math><msup><mi>x</mi><mn>2</mn></msup><mo>,</mo><msup><mi>x</mi><mn>3</mn></msup></math>",
+      "ref": "79.b.2"
+    },
+    {
+      "id": "mathcat-rules:question_mark_over_equals_101_1",
+      "source": "mathcat-rules",
+      "cells": "⠐⠨⠅⠣⠸⠦⠻",
+      "mathml": "<math><mover><mo>=</mo><mo>?</mo></mover></math>",
+      "ref": "101.1"
+    },
+    {
+      "id": "mathcat-rules:question_mark_under_equals_101_2",
+      "source": "mathcat-rules",
+      "cells": "⠐⠨⠅⠩⠸⠦⠻",
+      "mathml": "<math><munder><mo>=</mo><mo>?</mo></munder></math>",
+      "ref": "101.2"
+    },
+    {
+      "id": "mathcat-rules:racket_below_121_4",
+      "source": "mathcat-rules",
+      "cells": "⠐⠭⠬⠽⠩⠈⠾⠻",
+      "mathml": "<math><munder><mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow><mo>&#x23B5;</mo></munder></math>",
+      "ref": "121.4"
+    },
+    {
+      "id": "mathcat-rules:ratio_151_10",
+      "source": "mathcat-rules",
+      "cells": "⠼⠂⠀⠐⠂⠀⠼⠆⠀⠰⠆⠀⠼⠒⠀⠐⠂⠀⠼⠖",
+      "mathml": "<math><mn>1</mn><mo>:</mo><mn>2</mn><mo>∷</mo><mn>3</mn><mo>:</mo><mn>6</mn></math>",
+      "ref": "151.10"
+    },
+    {
+      "id": "mathcat-rules:ratio_151_11",
+      "source": "mathcat-rules",
+      "cells": "⠁⠬⠃⠀⠐⠂⠀⠃⠀⠰⠆⠀⠉⠬⠙⠀⠐⠂⠀⠙",
+      "mathml": "<math><mi>a</mi><mo>+</mo><mi>b</mi><mo>:</mo><mi>b</mi><mo>∷</mo><mi>c</mi><mo>+</mo><mi>d</mi><mo>:</mo><mi>d</mi></math>",
+      "ref": "151.11"
+    },
+    {
+      "id": "mathcat-rules:ring_dot_100_1",
+      "source": "mathcat-rules",
+      "cells": "⠐⠨⠅⠣⠨⠡⠻",
+      "mathml": "<math><mo>≗</mo></math>",
+      "ref": "100.1"
+    },
+    {
+      "id": "mathcat-rules:root_104_iii_1",
+      "source": "mathcat-rules",
+      "cells": "⠣⠒⠜⠆⠻",
+      "mathml": "<math><mroot><mn>2</mn><mn>3</mn></mroot></math>",
+      "ref": "104.iii.1"
+    },
+    {
+      "id": "mathcat-rules:root_104_iii_4",
+      "source": "mathcat-rules",
+      "cells": "⠣⠍⠬⠝⠜⠏⠬⠟⠻",
+      "mathml": "<math><mroot>\n            <mrow><mi>p</mi><mo>+</mo><mi>q</mi></mrow>\n            <mrow><mi>m</mi><mo>+</mo><mi>n</mi></mrow>\n        </mroot></math>",
+      "ref": "104.iii.4"
+    },
+    {
+      "id": "mathcat-rules:russian_24_a_10",
+      "source": "mathcat-rules",
+      "cells": "⠈⠈⠠⠁",
+      "mathml": "<math><mi>А</mi></math>",
+      "ref": "24.a.10"
+    },
+    {
+      "id": "mathcat-rules:set_vertical_bar_145_1",
+      "source": "mathcat-rules",
+      "cells": "⠨⠷⠭⠀⠳⠀⠳⠭⠳⠀⠐⠅⠀⠼⠂⠴⠨⠾",
+      "mathml": "<math><mo>{</mo><mi>x</mi><mo>|</mo><mo>|</mo><mi>x</mi><mo>|</mo><mo>&lt;</mo><mn>10</mn><mo>}</mo></math>",
+      "ref": "145.1"
+    },
+    {
+      "id": "mathcat-rules:shape_115_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠫⠪⠀⠼⠂",
+      "mathml": "<math><mo>∠</mo><mn>1</mn></math>",
+      "ref": "115.a.1"
+    },
+    {
+      "id": "mathcat-rules:shape_115_a_11",
+      "source": "mathcat-rules",
+      "cells": "⠍⠫⠪⠀⠠⠁⠠⠃⠠⠉",
+      "mathml": "<math><mi>m</mi><mo>&#x2220;</mo><mi>A</mi><mi>B</mi><mi>C</mi></math>",
+      "ref": "115.a.11"
+    },
+    {
+      "id": "mathcat-rules:shape_115_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠫⠉⠀⠠⠗",
+      "mathml": "<math><mo>&#x25CB;</mo><mi>R</mi></math>",
+      "ref": "115.a.3"
+    },
+    {
+      "id": "mathcat-rules:shape_115_a_6",
+      "source": "mathcat-rules",
+      "cells": "⠫⠪⠨⠗⠻⠀⠠⠁",
+      "mathml": "<math><mo>∟</mo><mi>A</mi></math>",
+      "ref": "115.a.6"
+    },
+    {
+      "id": "mathcat-rules:simple_frac_62_a_3",
+      "source": "mathcat-rules",
+      "cells": "⠹⠁⠬⠃⠌⠉⠼",
+      "mathml": "<math><mfrac><mrow><mi>a</mi><mo>+</mo><mi>b</mi></mrow><mi>c</mi></mfrac></math>",
+      "ref": "62.a.3"
+    },
+    {
+      "id": "mathcat-rules:space_after_punct_bug_152",
+      "source": "mathcat-rules",
+      "cells": "⠼⠶⠀⠐⠨⠅⠣⠸⠦⠻⠀⠼⠦",
+      "mathml": "<math><mn>7</mn><mover><mo>=</mo><mo>?</mo></mover><mn>8</mn></math>",
+      "ref": "152"
+    },
+    {
+      "id": "mathcat-rules:sqrt_103_a_2",
+      "source": "mathcat-rules",
+      "cells": "⠜⠭⠬⠽⠻",
+      "mathml": "<math><msqrt><mrow><mi>x</mi><mo>+</mo><mi>y</mi></mrow></msqrt></math>",
+      "ref": "103.a.2"
+    },
+    {
+      "id": "mathcat-rules:sqrt_103_a_4",
+      "source": "mathcat-rules",
+      "cells": "⠜⠭⠘⠆⠐⠬⠽⠘⠆⠐⠻",
+      "mathml": "<math><msqrt>\n            <msup><mi>x</mi><mn>2</mn></msup>\n            <mo>+</mo>\n            <msup><mi>y</mi><mn>2</mn></msup>\n        </msqrt></math>",
+      "ref": "103.a.4"
+    },
+    {
+      "id": "mathcat-rules:sqrt_103_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠜⠷⠭⠬⠽⠾",
+      "mathml": "<math><mo>√</mo><mo>(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo>)</mo></math>",
+      "ref": "103.b.2"
+    },
+    {
+      "id": "mathcat-rules:sub_ind_79_g_4",
+      "source": "mathcat-rules",
+      "cells": "⠮⠰⠥⠀⠰⠨⠅⠀⠁",
+      "mathml": "<math><msub><mo>∫</mo><mrow><mi>u</mi><mo>=</mo><mi>a</mi></mrow></msub></math>",
+      "ref": "79.g.4"
+    },
+    {
+      "id": "mathcat-rules:sub_ind_80_b_3",
+      "source": "mathcat-rules",
+      "cells": "⠠⠏⠂⠐⠰⠆⠐⠠⠟",
+      "mathml": "<math><msub><mi>P</mi><mn>1</mn></msub><mmultiscripts><mi>Q</mi><mprescripts/><mn>2</mn><none/></mmultiscripts></math>",
+      "ref": "80.b.3"
+    },
+    {
+      "id": "mathcat-rules:sub_ind_80_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠠⠁⠰⠐⠭⠣⠈⠱⠻⠬⠰⠐⠽⠣⠈⠱⠻",
+      "mathml": "<math><msub><mi>A</mi><mrow><mover><mi>x</mi><mo>~</mo></mover><mo>+</mo><mover><mi>y</mi><mo>~</mo></mover></mrow></msub></math>",
+      "ref": "80.b.4"
+    },
+    {
+      "id": "mathcat-rules:sub_ind_mmultiscripts_80_b_3",
+      "source": "mathcat-rules",
+      "cells": "⠠⠏⠂⠰⠆⠐⠠⠟",
+      "mathml": "<math><mmultiscripts><mi>P</mi><mn>1</mn><none/></mmultiscripts>\n                           <mmultiscripts><mi>Q</mi><mprescripts/><mn>2</mn><none/></mmultiscripts></math>",
+      "ref": "80.b.3"
+    },
+    {
+      "id": "mathcat-rules:sub_sup_82_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠁⠘⠝⠐⠰⠍",
+      "mathml": "<math><msub><msup><mi>a</mi><mi>n</mi></msup><mi>m</mi></msub></math>",
+      "ref": "82.b.1"
+    },
+    {
+      "id": "mathcat-rules:sub_sup_82_b_2",
+      "source": "mathcat-rules",
+      "cells": "⠁⠰⠍⠐⠘⠝",
+      "mathml": "<math><msup><msub><mi>a</mi><mi>m</mi></msub><mi>n</mi></msup></math>",
+      "ref": "82.b.2"
+    },
+    {
+      "id": "mathcat-rules:sum_77_4_23",
+      "source": "mathcat-rules",
+      "cells": "⠨⠠⠎⠴⠘⠝⠐⠁⠰⠅",
+      "mathml": "<math><msubsup><mo>&#x2211;</mo><mn>0</mn><mi>n</mi></msubsup><msub><mi>a</mi><mi>k</mi></msub></math>",
+      "ref": "77.4.23"
+    },
+    {
+      "id": "mathcat-rules:superscript_80_a_2",
+      "source": "mathcat-rules",
+      "cells": "⠑⠘⠜⠭⠘⠘⠆⠘⠬⠽⠘⠘⠆⠘⠻",
+      "mathml": "<math><msup><mi>e</mi><msqrt><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup></msqrt></msup></math>",
+      "ref": "80.a.2"
+    },
+    {
+      "id": "mathcat-rules:table_entry_after_sup_79_c_4",
+      "source": "mathcat-rules",
+      "cells": "⠷⠭⠘⠆⠀⠽⠘⠆⠐⠾",
+      "mathml": "<math><mrow><mo>(</mo>\n        <mtable><mtr>\n          <mtd><msup><mi>x</mi><mn>2</mn></msup></mtd>\n          <mtd><msup><mi>y</mi><mn>2</mn></msup></mtd>\n        </mtr></mtable>\n        <mo>)</mo></mrow></math>",
+      "ref": "79.c.4"
+    },
+    {
+      "id": "mathcat-rules:tensor_from_mathml_spec",
+      "source": "mathcat-rules",
+      "cells": "⠠⠗⠰⠊⠐⠘⠚⠐⠰⠅⠐⠰⠇",
+      "mathml": "<math>\n    <mmultiscripts>\n      <mi>R</mi>\n      <mi>i</mi> <none></none>\n      <none></none> <mi>j</mi>\n      <mi>k</mi> <none></none>\n      <mi>l</mi> <none></none>\n    </mmultiscripts>\n    </math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:test_9_b_1",
+      "source": "mathcat-rules",
+      "cells": "⠦⠼⠒⠀⠙⠕⠛⠎⠴",
+      "mathml": "<math><mrow><mo>“</mo><mrow><mn>3</mn><mtext>&#xa0;dogs</mtext><mo>”</mo></mrow></mrow></math>",
+      "ref": "9.b.1"
+    },
+    {
+      "id": "mathcat-rules:test_9_b_1_mtext",
+      "source": "mathcat-rules",
+      "cells": "⠦⠼⠒⠀⠙⠕⠛⠎⠴",
+      "mathml": "<math><mtext displaystyle='true'>&#x201C;3 dogs&#x201D;</mtext></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:test_9_b_4",
+      "source": "mathcat-rules",
+      "cells": "⠦⠤⠼⠲",
+      "mathml": "<math><mrow><mo>“</mo><mrow><mo>-</mo><mn>4</mn></mrow></mrow></math>",
+      "ref": "9.b.4"
+    },
+    {
+      "id": "mathcat-rules:test_9_c_1_linear",
+      "source": "mathcat-rules",
+      "cells": "⠠⠳⠼⠂⠀⠼⠆⠀⣍⠤⠒⠀⠤⠼⠲⠠⠳",
+      "mathml": "<math><mo>|</mo><mtable>\n            <mtr><mtd><mn>1</mn></mtd><mtd><mn>2</mn></mtd></mtr>\n            <mtr><mtd><mo>-</mo><mn>3</mn></mtd><mtd><mo>-</mo><mn>4</mn></mtd></mtr>\n        </mtable><mo>|</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:text_after_sup_79_c_3",
+      "source": "mathcat-rules",
+      "cells": "⠼⠖⠨⠖⠔⠖⠈⠡⠂⠴⠘⠦⠀⠍⠏⠓",
+      "mathml": "<math><mn>6</mn><mo>.</mo><mn>696</mn><mo>×</mo><msup><mn>10</mn><mn>8</mn></msup><mo>&#xA0;</mo><mtext>mph</mtext></math>",
+      "ref": "79.c.3"
+    },
+    {
+      "id": "mathcat-rules:tilde_137_2",
+      "source": "mathcat-rules",
+      "cells": "⠈⠱⠏⠈⠬⠈⠱⠟⠈⠬⠈⠱⠗",
+      "mathml": "<math><mo>∼</mo><mi>p</mi><mo>∨</mo><mo>∼</mo><mi>q</mi><mo>∨</mo><mo>∼</mo><mi>r</mi></math>",
+      "ref": "137.2"
+    },
+    {
+      "id": "mathcat-rules:tilde_137_3",
+      "source": "mathcat-rules",
+      "cells": "⠈⠱⠐⠈⠱⠠⠞⠈⠬⠠⠗",
+      "mathml": "<math><mo>~</mo><mo>~</mo><mi>T</mi><mo>&#x2228;</mo><mi>R</mi></math>",
+      "ref": "137.3"
+    },
+    {
+      "id": "mathcat-rules:tilde_137_3_mathjax",
+      "source": "mathcat-rules",
+      "cells": "⠈⠱⠐⠈⠱⠠⠞⠈⠬⠠⠗",
+      "mathml": "<math><mo>∼∼</mo><mi>T</mi><mo>∨</mo><mi>R</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:tilde_144_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠀⠈⠱⠀⠽",
+      "mathml": "<math><mi>x</mi><mo>∼</mo><mi>y</mi></math>",
+      "ref": "144.1"
+    },
+    {
+      "id": "mathcat-rules:trilinear_not_ratio",
+      "source": "mathcat-rules",
+      "cells": "⠰⠁⠸⠒⠰⠃⠸⠒⠰⠉",
+      "mathml": "<math><mi>a</mi><mo>:</mo><mi>b</mi><mo>:</mo><mi>c</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "mathcat-rules:underbar_86_a_1",
+      "source": "mathcat-rules",
+      "cells": "⠭⠩⠱",
+      "mathml": "<math><munder><mi>x</mi><mo>&#xAF;</mo></munder></math>",
+      "ref": "86.a.1"
+    },
+    {
+      "id": "mathcat-rules:vertical_bar_145_4",
+      "source": "mathcat-rules",
+      "cells": "⠠⠏⠷⠠⠁⠀⠳⠀⠠⠃⠾",
+      "mathml": "<math><mi>P</mi><mo>(</mo><mi>A</mi><mo>|</mo><mi>B</mi><mo>)</mo></math>",
+      "ref": "145.4"
+    },
+    {
+      "id": "mathcat-rules:whitespace_in_sup_79_e_1",
+      "source": "mathcat-rules",
+      "cells": "⠑⠘⠒⠨⠂⠲⠂⠢⠔⠀⠆⠖⠢⠒⠢",
+      "mathml": "<math><msup><mi>e</mi><mn>3.14159 26535</mn></msup></math>",
+      "ref": "79.e.1"
+    },
+    {
+      "id": "mathcat-rules:word_77_4_12",
+      "source": "mathcat-rules",
+      "cells": "⠎⠑⠧⠑⠝⠰⠒",
+      "mathml": "<math><msub><mi>seven</mi><mn>3</mn></msub></math>",
+      "ref": "77.4.12"
+    },
+    {
+      "id": "sre-aata:AataExpression_1",
+      "source": "sre-aata",
+      "cells": "⠗⠀⠸⠇⠀⠎⠷⠍⠕⠙⠀⠝⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>r</mi><mo>≡</mo><mi>s</mi><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mi>n</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_10",
+      "source": "sre-aata",
+      "cells": "⠋⠷⠏⠸⠌⠟⠾⠀⠨⠅⠀⠹⠏⠬⠂⠌⠏⠤⠆⠼",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mstyle displaystyle=\"true\" scriptlevel=\"0\"><mi>f</mi><mo stretchy=\"false\">(</mo><mi>p</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mi>q</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mfrac><mrow><mi>p</mi><mo>+</mo><mn>1</mn></mrow><mrow><mi>p</mi><mo>−</mo><mn>2</mn></mrow></mfrac></mstyle></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_100",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠂⠆⠴⠔⠶⠔⠠⠀⠠⠑⠀⠨⠅⠀⠼⠂⠒⠆⠢⠂⠠⠀⠭⠀⠨⠅⠀⠼⠂⠲⠆⠒⠶⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>120979</mn><mo>,</mo><mi>E</mi><mo>=</mo><mn>13251</mn><mo>,</mo><mi>x</mi><mo>=</mo><mn>142371</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_101",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠆⠒⠲⠢⠾⠷⠖⠶⠦⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>12345</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>678</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_102",
+      "source": "sre-aata",
+      "cells": "⠈⠷⠷⠂⠆⠒⠢⠾⠷⠲⠖⠶⠾⠈⠾⠘⠤⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">[</mo><mo stretchy=\"false\">(</mo><mn>1235</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>467</mn><mo stretchy=\"false\">)</mo><msup><mo stretchy=\"false\">]</mo><mrow class=\"MJX-TeXAtom-ORD\"><mo>−</mo><mn>1</mn></mrow></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_103",
+      "source": "sre-aata",
+      "cells": "⠷⠝⠠⠀⠠⠑⠾⠀⠨⠅⠀⠷⠒⠶⠔⠦⠖⠶⠒⠒⠠⠀⠂⠆⠒⠶⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mi>n</mi><mo>,</mo><mi>E</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mo stretchy=\"false\">(</mo><mn>37986733</mn><mo>,</mo><mn>12371</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_104",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠆⠲⠢⠒⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>12453</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_105",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠆⠾⠷⠂⠆⠢⠒⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>12</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>1253</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_106",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠆⠢⠒⠶⠾⠘⠤⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>12537</mn><msup><mo stretchy=\"false\">)</mo><mrow class=\"MJX-TeXAtom-ORD\"><mo>−</mo><mn>1</mn></mrow></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_107",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠆⠢⠲⠾⠷⠂⠒⠾⠷⠆⠢⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1254</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>13</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>25</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_108",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠆⠖⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>1260</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_109",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠆⠦⠘⠲⠀⠨⠅⠀⠼⠆⠖⠦⠠⠀⠼⠲⠒⠢⠠⠀⠼⠲⠢⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>128</mn><mn>4</mn></msup><mo>=</mo><mn>268</mn><mo>,</mo><mn>435</mn><mo>,</mo><mn>456</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_11",
+      "source": "sre-aata",
+      "cells": "⠠⠭⠀⠨⠅⠀⠈⠰⠠⠝⠨⠬⠨⠷⠜⠆⠻⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>X</mi><mo>=</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">N</mi></mrow></mrow><mo>∪</mo><mo fence=\"false\" stretchy=\"false\">{</mo><msqrt><mn>2</mn></msqrt><mspace width=\"thinmathspace\"></mspace><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_110",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠶⠔⠲⠴⠒⠠⠀⠠⠙⠀⠨⠅⠀⠼⠖⠶⠂⠠⠀⠽⠀⠨⠅⠀⠼⠂⠆⠔⠒⠦⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>79403</mn><mo>,</mo><mi>D</mi><mo>=</mo><mn>671</mn><mo>,</mo><mi>y</mi><mo>=</mo><mn>129381</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_111",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠲⠆⠒⠾⠷⠒⠲⠾⠷⠢⠖⠾⠷⠂⠒⠆⠲⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1423</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>34</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>56</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>1324</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_112",
+      "source": "sre-aata",
+      "cells": "⠨⠷⠷⠂⠒⠾⠠⠀⠷⠂⠒⠾⠷⠆⠲⠾⠠⠀⠷⠂⠒⠆⠾⠠⠀⠷⠂⠒⠲⠾⠠⠀⠷⠂⠒⠆⠲⠾⠠⠀⠷⠂⠒⠲⠆⠾⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo fence=\"false\" stretchy=\"false\">{</mo><mo stretchy=\"false\">(</mo><mn>13</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>13</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>24</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>132</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>134</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>1324</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>1342</mn><mo stretchy=\"false\">)</mo><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_113",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠒⠲⠢⠾⠷⠆⠒⠲⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1345</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>234</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_114",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>14</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_115",
+      "source": "sre-aata",
+      "cells": "⠭⠀⠨⠅⠀⠼⠂⠲⠆⠢⠆⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>x</mi><mo>=</mo><mn>142528</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_116",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠲⠆⠖⠾⠷⠂⠲⠆⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1426</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>142</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_117",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠲⠆⠖⠒⠶⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>142637</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_118",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠲⠒⠢⠖⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>14356</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_119",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠔⠂⠠⠑⠀⠨⠅⠀⠼⠂⠬⠂⠢⠂⠍",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>191</mn><mi>E</mi><mo>=</mo><mn>1</mn><mo>+</mo><mn>151</mn><mi>m</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_12",
+      "source": "sre-aata",
+      "cells": "⠵⠱⠀⠨⠅⠀⠁⠤⠃⠊",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mover><mi>z</mi><mo accent=\"false\">¯</mo></mover><mo>=</mo><mi>a</mi><mo>−</mo><mi>b</mi><mi>i</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_120",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠢⠆⠒",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>1523</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_121",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠢⠒⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>1531</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_122",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠶⠆⠢⠲⠾⠷⠂⠲⠆⠒⠾⠷⠂⠢⠲⠖⠒⠆⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>17254</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>1423</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>154632</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_123",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠢⠖⠾⠷⠆⠒⠲⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>156</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>234</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_124",
+      "source": "sre-aata",
+      "cells": "⠎⠀⠨⠅⠀⠤⠼⠂⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>s</mi><mo>=</mo><mo>−</mo><mn>16</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_125",
+      "source": "sre-aata",
+      "cells": "⠸⠼⠂⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mn mathvariant=\"bold\">16</mn></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_126",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠖⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>160</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_127",
+      "source": "sre-aata",
+      "cells": "⠨⠍⠀⠨⠅⠀⠷⠂⠖⠒⠲⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>μ</mi><mo>=</mo><mo stretchy=\"false\">(</mo><mn>1634</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_128",
+      "source": "sre-aata",
+      "cells": "⠷⠝⠠⠀⠠⠑⠾⠀⠨⠅⠀⠷⠂⠖⠒⠔⠲⠦⠢⠲⠒⠂⠒⠠⠀⠒⠲⠢⠶⠦⠲⠢⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mi>n</mi><mo>,</mo><mi>E</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mo stretchy=\"false\">(</mo><mn>16394854313</mn><mo>,</mo><mn>34578451</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_129",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠡⠶⠡⠲⠶⠀⠨⠅⠀⠼⠂⠖⠲⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>5</mn><mo>⋅</mo><mn>7</mn><mo>⋅</mo><mn>47</mn><mo>=</mo><mn>1645</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_13",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠵⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow><mn>8</mn></msub></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_130",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠖⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>165</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_131",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠖⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>168</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_132",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠂⠀⠸⠇⠀⠼⠂⠶⠷⠍⠕⠙⠀⠼⠦⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>41</mn><mo>≡</mo><mn>17</mn><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mn>8</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_133",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠶⠒⠢⠆⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>17352</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_134",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠶⠒⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>1739</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_135",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠶⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>175</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_136",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠦⠴⠘⠨⠡",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>180</mn><mrow class=\"MJX-TeXAtom-ORD\"><mo>∘</mo></mrow></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_137",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>19</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_138",
+      "source": "sre-aata",
+      "cells": "⠷⠝⠠⠀⠠⠑⠾⠀⠨⠅⠀⠷⠒⠴⠢⠒⠠⠀⠂⠔⠆⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mi>n</mi><mo>,</mo><mi>E</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mo stretchy=\"false\">(</mo><mn>3053</mn><mo>,</mo><mn>1921</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_139",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠔⠖⠠⠦⠒⠒⠈⠡⠂⠔⠖⠠⠦⠒⠒",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>196,833</mn><mo>×</mo><mn>196,833</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_14",
+      "source": "sre-aata",
+      "cells": "⠠⠉⠀⠨⠅⠀⠨⠷⠸⠰⠽⠸⠒⠠⠛⠸⠰⠭⠀⠨⠅⠀⠸⠰⠽⠋⠕⠗⠸⠰⠭⠀⠈⠑⠀⠈⠰⠠⠵⠆⠘⠅⠐⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>C</mi><mo>=</mo><mrow><mo>{</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">y</mi></mrow></mrow><mo>:</mo><mi>G</mi><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>=</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">y</mi></mrow></mrow><mtext>for</mtext><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>∈</mo><msubsup><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mn>2</mn><mi>k</mi></msubsup><mo>}</mo></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_140",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠔⠔⠲⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>19945</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_141",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠒⠢⠢⠂⠠⠀⠠⠙⠀⠨⠅⠀⠼⠂⠔⠔⠶⠠⠀⠽⠀⠨⠅⠀⠼⠆⠶⠔⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>3551</mn><mo>,</mo><mi>D</mi><mo>=</mo><mn>1997</mn><mo>,</mo><mi>y</mi><mo>=</mo><mn>2791</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_142",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠴⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>200</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_143",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠴⠴⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2000</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_144",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠴⠶⠂⠘⠔⠢⠆⠂⠐⠷⠍⠕⠙⠀⠼⠲⠶⠆⠲⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>2071</mn><mrow class=\"MJX-TeXAtom-ORD\"><mn>9521</mn></mrow></msup><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mn>4724</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_145",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠂⠒⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2134</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_146",
+      "source": "sre-aata",
+      "cells": "⠭⠀⠸⠇⠀⠼⠆⠂⠲⠷⠍⠕⠙⠀⠼⠆⠶⠶⠆⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>x</mi><mo>≡</mo><mn>214</mn><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mn>2772</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_147",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠆⠒⠲⠬⠲⠂⠆⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2234</mn><mo>+</mo><mn>4121</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_148",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠆⠆⠢⠶⠠⠀⠠⠑⠀⠨⠅⠀⠼⠲⠶⠠⠀⠭⠀⠨⠅⠀⠼⠆⠒",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>2257</mn><mo>,</mo><mi>E</mi><mo>=</mo><mn>47</mn><mo>,</mo><mi>x</mi><mo>=</mo><mn>23</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_149",
+      "source": "sre-aata",
+      "cells": "⠷⠝⠠⠀⠠⠑⠾⠀⠨⠅⠀⠷⠲⠢⠂⠠⠀⠆⠒⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mi>n</mi><mo>,</mo><mi>E</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mo stretchy=\"false\">(</mo><mn>451</mn><mo>,</mo><mn>231</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_15",
+      "source": "sre-aata",
+      "cells": "⠜⠆⠬⠨⠜⠒⠨⠻⠻",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msqrt><mn>2</mn><mo>+</mo><msqrt><mn>3</mn></msqrt></msqrt></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_150",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠲⠢⠖⠆⠔⠠⠀⠠⠑⠀⠨⠅⠀⠼⠶⠦⠂⠠⠀⠭⠀⠨⠅⠀⠼⠆⠒⠂⠢⠖⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>45629</mn><mo>,</mo><mi>E</mi><mo>=</mo><mn>781</mn><mo>,</mo><mi>x</mi><mo>=</mo><mn>231561</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_151",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠒⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>234</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_152",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠒⠶⠶⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>23771</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_153",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠂⠤⠂⠶⠀⠨⠅⠀⠼⠆⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>41</mn><mo>−</mo><mn>17</mn><mo>=</mo><mn>24</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_154",
+      "source": "sre-aata",
+      "cells": "⠼⠶⠆⠀⠈⠑⠀⠈⠰⠠⠵⠆⠲⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>72</mn><mo>∈</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mn>240</mn></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_155",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠲⠂⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2415</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_156",
+      "source": "sre-aata",
+      "cells": "⠠⠝⠀⠨⠅⠀⠼⠆⠢⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>N</mi><mo>=</mo><mn>250</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_157",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠢⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>255</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_158",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠢⠢⠶⠘⠒⠲⠂⠐⠷⠍⠕⠙⠀⠼⠢⠖⠦⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>2557</mn><mrow class=\"MJX-TeXAtom-ORD\"><mn>341</mn></mrow></msup><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mn>5681</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_159",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠘⠦⠀⠨⠅⠀⠼⠆⠢⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>2</mn><mrow class=\"MJX-TeXAtom-ORD\"><mn>8</mn></mrow></msup><mo>=</mo><mn>256</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_16",
+      "source": "sre-aata",
+      "cells": "⠜⠨⠣⠒⠜⠆⠨⠻⠤⠊⠻",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msqrt><mroot><mn>2</mn><mn>3</mn></mroot><mo>−</mo><mi>i</mi></msqrt></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_160",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠭⠬⠂⠀⠸⠇⠀⠼⠂⠒⠷⠍⠕⠙⠀⠼⠆⠖⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>5</mn><mi>x</mi><mo>+</mo><mn>1</mn><mo>≡</mo><mn>13</mn><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mn>26</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_161",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠖⠴⠴⠀⠨⠅⠀⠼⠆⠘⠒⠐⠈⠡⠢⠘⠆⠐⠈⠡⠂⠒",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2600</mn><mo>=</mo><msup><mn>2</mn><mn>3</mn></msup><mo>×</mo><msup><mn>5</mn><mn>2</mn></msup><mo>×</mo><mn>13</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_162",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠵⠆⠶",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mn>27</mn></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_163",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠶⠂⠘⠒⠆⠂⠐⠷⠍⠕⠙⠀⠼⠲⠦⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>271</mn><mrow class=\"MJX-TeXAtom-ORD\"><mn>321</mn></mrow></msup><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mn>481</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_164",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠂⠆⠴⠔⠶⠔⠠⠀⠠⠙⠀⠨⠅⠀⠼⠆⠶⠒⠒⠂⠠⠀⠽⠀⠨⠅⠀⠼⠂⠂⠆⠂⠒⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>120979</mn><mo>,</mo><mi>D</mi><mo>=</mo><mn>27331</mn><mo>,</mo><mi>y</mi><mo>=</mo><mn>112135</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_165",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠶⠔⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2791</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_166",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>28</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_167",
+      "source": "sre-aata",
+      "cells": "⠟⠀⠨⠅⠀⠼⠆⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>q</mi><mo>=</mo><mn>29</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_168",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠔⠆⠘⠒⠂⠶⠂⠐⠷⠍⠕⠙⠀⠼⠢⠦⠆⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>292</mn><mrow class=\"MJX-TeXAtom-ORD\"><mn>3171</mn></mrow></msup><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mn>582</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_169",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠂⠒⠲⠡⠂⠢⠒⠂⠀⠨⠅⠀⠼⠒⠠⠆⠖⠶⠠⠂⠢⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2134</mn><mo>⋅</mo><mn>1531</mn><mo>=</mo><mn>3,267,154</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_17",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠗⠘⠒",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">R</mi></mrow></mrow><mn>3</mn></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_170",
+      "source": "sre-aata",
+      "cells": "⠠⠥⠷⠒⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>U</mi><mo stretchy=\"false\">(</mo><mn>30</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_171",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠒⠢⠢⠂⠠⠀⠠⠑⠀⠨⠅⠀⠼⠖⠆⠔⠠⠀⠭⠀⠨⠅⠀⠼⠒⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>3551</mn><mo>,</mo><mi>E</mi><mo>=</mo><mn>629</mn><mo>,</mo><mi>x</mi><mo>=</mo><mn>31</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_172",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠂⠆⠀⠈⠑⠀⠈⠰⠠⠵⠲⠶⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>312</mn><mo>∈</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mn>471</mn></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_173",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠲⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>342</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_174",
+      "source": "sre-aata",
+      "cells": "⠠⠛⠀⠨⠅⠀⠨⠷⠷⠂⠾⠠⠀⠷⠂⠆⠾⠠⠀⠷⠒⠲⠢⠾⠠⠀⠷⠒⠢⠲⠾⠠⠀⠷⠂⠆⠾⠷⠒⠲⠢⠾⠠⠀⠷⠂⠆⠾⠷⠒⠢⠲⠾⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>G</mi><mo>=</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>12</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>345</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>354</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>12</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>345</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>12</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>354</mn><mo stretchy=\"false\">)</mo><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_175",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠲⠀⠒⠢⠆⠀⠴⠴⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>44</mn><mspace width=\"thinmathspace\"></mspace><mn>352</mn><mspace width=\"thinmathspace\"></mspace><mn>000</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_176",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠖⠴⠘⠨⠡",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>360</mn><mrow class=\"MJX-TeXAtom-ORD\"><mo>∘</mo></mrow></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_177",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠶",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>37</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_178",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠶⠢⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>3754</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_179",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>38</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_18",
+      "source": "sre-aata",
+      "cells": "⠐⠠⠭⠣⠈⠱⠻⠰⠷⠂⠾⠀⠨⠅⠀⠐⠠⠭⠣⠈⠱⠻",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mover><mi>X</mi><mo>~</mo></mover></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></msub><mo>=</mo><mrow class=\"MJX-TeXAtom-ORD\"><mover><mi>X</mi><mo>~</mo></mover></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_180",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>39</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_181",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠔⠂⠀⠨⠅⠀⠼⠂⠶⠡⠆⠒",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>391</mn><mo>=</mo><mn>17</mn><mo>⋅</mo><mn>23</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_182",
+      "source": "sre-aata",
+      "cells": "⠭⠀⠨⠅⠀⠼⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>x</mi><mo>=</mo><mn>4</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_183",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>40</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_184",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>42</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_185",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠒⠤⠂⠦⠊",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>43</mn><mo>−</mo><mn>18</mn><mi>i</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_186",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠦⠶⠶⠔⠡⠲⠒⠆⠶",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>8779</mn><mo>⋅</mo><mn>4327</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_187",
+      "source": "sre-aata",
+      "cells": "⠤⠼⠲⠒⠢⠶",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo>−</mo><mn>4357</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_188",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>44</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_189",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>46</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_19",
+      "source": "sre-aata",
+      "cells": "⠠⠛⠴⠀⠨⠅⠀⠨⠷⠠⠁⠸⠒⠷⠠⠁⠠⠀⠃⠾⠀⠈⠑⠀⠠⠛⠋⠕⠗⠀⠎⠕⠍⠑⠃⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mi>G</mi><mn>0</mn></msub><mo>=</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mi>A</mi><mo>:</mo><mo stretchy=\"false\">(</mo><mi>A</mi><mo>,</mo><mi>b</mi><mo stretchy=\"false\">)</mo><mo>∈</mo><mi>G</mi><mtext>for some</mtext><mi>b</mi><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_190",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠖⠠⠒⠦⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>46,388</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_191",
+      "source": "sre-aata",
+      "cells": "⠠⠙⠲⠶⠴⠲⠲⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mi>D</mi><mrow class=\"MJX-TeXAtom-ORD\"><mn>470448</mn></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_192",
+      "source": "sre-aata",
+      "cells": "⠼⠲⠶⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>471</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_193",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠵⠲⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mn>48</mn></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_194",
+      "source": "sre-aata",
+      "cells": "⠠⠑⠀⠨⠅⠀⠼⠲⠦⠶",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>E</mi><mo>=</mo><mn>487</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_195",
+      "source": "sre-aata",
+      "cells": "⠠⠥⠷⠲⠔⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>U</mi><mo stretchy=\"false\">(</mo><mn>49</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_196",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠬⠒⠀⠨⠅⠀⠼⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2</mn><mo>+</mo><mn>3</mn><mo>=</mo><mn>5</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_197",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠴⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>500</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_198",
+      "source": "sre-aata",
+      "cells": "⠼⠶⠯⠀⠀⠨⠅⠀⠼⠢⠴⠲⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>7</mn><mo>!</mo><mo>=</mo><mn>5040</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_199",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>51</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_2",
+      "source": "sre-aata",
+      "cells": "⠽⠀⠨⠅⠀⠭⠘⠠⠑⠐⠍⠕⠙⠀⠝",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>y</mi><mo>=</mo><msup><mi>x</mi><mi>E</mi></msup><mspace width=\"0.667em\"></mspace><mi>mod</mi><mspace width=\"thinmathspace\"></mspace><mspace width=\"thinmathspace\"></mspace><mi>n</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_20",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠴⠴⠯",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>300</mn><mo>!</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_200",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠘⠢⠂⠂⠐⠤⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>2</mn><mrow class=\"MJX-TeXAtom-ORD\"><mn>511</mn></mrow></msup><mo>−</mo><mn>1</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_201",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>52</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_202",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠒",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>53</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_203",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>54</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_204",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠲⠴⠀⠨⠅⠀⠼⠆⠘⠆⠐⠡⠒⠘⠒⠐⠡⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>540</mn><mo>=</mo><msup><mn>2</mn><mn>2</mn></msup><mo>⋅</mo><msup><mn>3</mn><mn>3</mn></msup><mo>⋅</mo><mn>5</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_205",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠖⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>561</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_206",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠖⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>562</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_207",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠶⠀⠨⠅⠀⠼⠆⠘⠴⠐⠬⠆⠘⠒⠐⠬⠆⠘⠲⠐⠬⠆⠘⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>57</mn><mo>=</mo><msup><mn>2</mn><mn>0</mn></msup><mo>+</mo><msup><mn>2</mn><mn>3</mn></msup><mo>+</mo><msup><mn>2</mn><mn>4</mn></msup><mo>+</mo><msup><mn>2</mn><mn>5</mn></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_208",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>58</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_209",
+      "source": "sre-aata",
+      "cells": "⠝⠀⠨⠅⠀⠼⠢⠦⠔⠒⠠⠀⠠⠙⠀⠨⠅⠀⠼⠦⠂⠠⠀⠽⠀⠨⠅⠀⠼⠒⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>n</mi><mo>=</mo><mn>5893</mn><mo>,</mo><mi>D</mi><mo>=</mo><mn>81</mn><mo>,</mo><mi>y</mi><mo>=</mo><mn>34</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_21",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠨⠬⠷⠠⠃⠨⠬⠠⠉⠾⠀⠨⠅⠀⠷⠠⠁⠨⠬⠠⠃⠾⠨⠬⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>A</mi><mo>∪</mo><mo stretchy=\"false\">(</mo><mi>B</mi><mo>∪</mo><mi>C</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mo stretchy=\"false\">(</mo><mi>A</mi><mo>∪</mo><mi>B</mi><mo stretchy=\"false\">)</mo><mo>∪</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_210",
+      "source": "sre-aata",
+      "cells": "⠼⠢⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>59</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_211",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠭⠀⠨⠅⠀⠼⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2</mn><mi>x</mi><mo>=</mo><mn>6</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_212",
+      "source": "sre-aata",
+      "cells": "⠼⠖⠨⠴⠴⠴⠴⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>6.00000</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_213",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠠⠀⠆⠠⠀⠲⠠⠀⠦⠾⠷⠒⠠⠀⠖⠨⠂⠆⠠⠀⠔⠾⠷⠢⠠⠀⠂⠴⠾⠷⠶⠠⠀⠂⠲⠠⠀⠂⠒⠠⠀⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>4</mn><mo>,</mo><mn>8</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>3</mn><mo>,</mo><mn>6.12</mn><mo>,</mo><mn>9</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>5</mn><mo>,</mo><mn>10</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>7</mn><mo>,</mo><mn>14</mn><mo>,</mo><mn>13</mn><mo>,</mo><mn>11</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_214",
+      "source": "sre-aata",
+      "cells": "⠵⠀⠨⠅⠀⠼⠆⠉⠊⠎⠀⠼⠖⠴⠘⠨⠡",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>z</mi><mo>=</mo><mn>2</mn><mi>cis</mi><mo>⁡</mo><msup><mn>60</mn><mrow class=\"MJX-TeXAtom-ORD\"><mo>∘</mo></mrow></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_215",
+      "source": "sre-aata",
+      "cells": "⠭⠘⠲⠐⠤⠷⠆⠸⠌⠒⠾⠭⠘⠆⠐⠤⠖⠆⠸⠌⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mi>x</mi><mn>4</mn></msup><mo>−</mo><mo stretchy=\"false\">(</mo><mn>2</mn><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mn>3</mn><mo stretchy=\"false\">)</mo><msup><mi>x</mi><mn>2</mn></msup><mo>−</mo><mn>62</mn><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mn>9</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_216",
+      "source": "sre-aata",
+      "cells": "⠈⠷⠠⠠⠛⠋⠷⠖⠆⠢⠾⠀⠐⠂⠀⠠⠠⠛⠋⠷⠆⠢⠾⠈⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">[</mo><mi>GF</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><mn>625</mn><mo stretchy=\"false\">)</mo><mo>:</mo><mi>GF</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><mn>25</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">]</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_217",
+      "source": "sre-aata",
+      "cells": "⠼⠖⠒⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>631</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_218",
+      "source": "sre-aata",
+      "cells": "⠼⠖⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>64</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_219",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠘⠆⠘⠘⠲⠀⠨⠅⠀⠼⠖⠢⠠⠢⠒⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>2</mn><mrow class=\"MJX-TeXAtom-ORD\"><msup><mn>2</mn><mn>4</mn></msup></mrow></msup><mo>=</mo><mn>65,536</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_22",
+      "source": "sre-aata",
+      "cells": "⠠⠷⠝⠠⠾⠀⠠⠷⠅⠠⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow><mstyle scriptlevel=\"0\"><mrow class=\"MJX-TeXAtom-OPEN\"><mo maxsize=\"1.2em\" minsize=\"1.2em\">(</mo></mrow></mstyle><mfrac linethickness=\"0\"><mi>n</mi><mi>k</mi></mfrac><mstyle scriptlevel=\"0\"><mrow class=\"MJX-TeXAtom-CLOSE\"><mo maxsize=\"1.2em\" minsize=\"1.2em\">)</mo></mrow></mstyle></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_220",
+      "source": "sre-aata",
+      "cells": "⠼⠖⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>66</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_221",
+      "source": "sre-aata",
+      "cells": "⠼⠶⠆⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>720</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_222",
+      "source": "sre-aata",
+      "cells": "⠼⠶⠆⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>729</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_223",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠶⠂⠘⠒⠆⠂⠐⠷⠍⠕⠙⠀⠼⠶⠖⠢⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>971</mn><mrow class=\"MJX-TeXAtom-ORD\"><mn>321</mn></mrow></msup><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mn>765</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_224",
+      "source": "sre-aata",
+      "cells": "⠼⠶⠶⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>771</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_225",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠵⠂⠴⠈⠡⠈⠰⠠⠵⠆⠲⠈⠡⠈⠰⠠⠵⠦⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mn>10</mn></mrow></msub><mo>×</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mn>24</mn></mrow></msub><mo>×</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mn>80</mn></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_226",
+      "source": "sre-aata",
+      "cells": "⠼⠶⠘⠢⠀⠨⠅⠀⠼⠂⠖⠀⠦⠴⠶",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>7</mn><mn>5</mn></msup><mo>=</mo><mn>16</mn><mspace width=\"thinmathspace\"></mspace><mn>807</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_227",
+      "source": "sre-aata",
+      "cells": "⠼⠦⠂⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>811</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_228",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠢⠡⠔⠶⠡⠔⠦⠡⠔⠔⠀⠨⠅⠀⠼⠦⠔⠠⠲⠴⠒⠠⠔⠒⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>95</mn><mo>⋅</mo><mn>97</mn><mo>⋅</mo><mn>98</mn><mo>⋅</mo><mn>99</mn><mo>=</mo><mn>89,403,930</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_229",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠴⠘⠨⠡",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>90</mn><mrow class=\"MJX-TeXAtom-ORD\"><mo>∘</mo></mrow></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_23",
+      "source": "sre-aata",
+      "cells": "⠼⠒⠬⠢⠖⠤⠂⠒⠬⠦⠸⠌⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>3</mn><mo>+</mo><mn>56</mn><mo>−</mo><mn>13</mn><mo>+</mo><mn>8</mn><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mn>2</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_230",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠲⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>945</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_231",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>95</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_232",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>96</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_233",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠶",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>97</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_234",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>98</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_235",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>99</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_236",
+      "source": "sre-aata",
+      "cells": "⠼⠔⠔⠆⠒",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>9923</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_237",
+      "source": "sre-aata",
+      "cells": "⠁⠀⠈⠑⠀⠠⠁",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>a</mi><mo>∈</mo><mi>A</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_238",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠥⠞⠷⠠⠛⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>Aut</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><mi>G</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_239",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠀⠸⠐⠅⠀⠠⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>A</mi><mo>⊂</mo><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_24",
+      "source": "sre-aata",
+      "cells": "⠺⠷⠸⠰⠭⠾⠀⠨⠅⠀⠙⠷⠸⠰⠭⠠⠀⠸⠼⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>w</mi><mo stretchy=\"false\">(</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo stretchy=\"false\">)</mo><mo>=</mo><mi>d</mi><mo stretchy=\"false\">(</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>,</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mn mathvariant=\"bold\">0</mn></mrow></mrow><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_240",
+      "source": "sre-aata",
+      "cells": "⠓⠸⠒⠀⠠⠉⠀⠫⠕⠀⠠⠙",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>h</mi><mo>:</mo><mi>C</mi><mo stretchy=\"false\">→</mo><mi>D</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_241",
+      "source": "sre-aata",
+      "cells": "⠠⠛⠈⠡⠠⠛⠀⠫⠕⠀⠠⠛",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>G</mi><mo>×</mo><mi>G</mi><mo stretchy=\"false\">→</mo><mi>G</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_242",
+      "source": "sre-aata",
+      "cells": "⠠⠠⠛⠋⠷⠏⠘⠝⠐⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>GF</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><msup><mi>p</mi><mi>n</mi></msup><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_243",
+      "source": "sre-aata",
+      "cells": "⠠⠓⠀⠨⠅⠀⠨⠷⠑⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>H</mi><mo>=</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mi>e</mi><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_244",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠓",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">H</mi></mrow></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_245",
+      "source": "sre-aata",
+      "cells": "⠠⠓⠕⠍⠀⠷⠠⠧⠠⠀⠠⠺⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>Hom</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><mi>V</mi><mo>,</mo><mi>W</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_246",
+      "source": "sre-aata",
+      "cells": "⠠⠊⠝⠝⠷⠠⠛⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>Inn</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><mi>G</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_247",
+      "source": "sre-aata",
+      "cells": "⠠⠛⠠⠇⠆⠷⠈⠰⠠⠗⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>G</mi><msub><mi>L</mi><mn>2</mn></msub><mo stretchy=\"false\">(</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">R</mi></mrow></mrow><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_248",
+      "source": "sre-aata",
+      "cells": "⠨⠋⠸⠒⠀⠈⠰⠠⠇⠰⠠⠓⠀⠫⠕⠀⠈⠰⠠⠗⠰⠠⠓",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>ϕ</mi><mo>:</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi class=\"MJX-tex-caligraphic\" mathvariant=\"script\">L</mi></mrow></mrow><mi>H</mi></msub><mo stretchy=\"false\">→</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi class=\"MJX-tex-caligraphic\" mathvariant=\"script\">R</mi></mrow></mrow><mi>H</mi></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_249",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠍⠆⠷⠈⠰⠠⠗⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">M</mi></mrow></mrow><mn>2</mn></msub><mo stretchy=\"false\">(</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">R</mi></mrow></mrow><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_25",
+      "source": "sre-aata",
+      "cells": "⠼⠖⠨⠴⠴⠴⠴⠴⠬⠴⠨⠴⠴⠴⠴⠴⠊",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>6.00000</mn><mo>+</mo><mn>0.00000</mn><mi>i</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_250",
+      "source": "sre-aata",
+      "cells": "⠠⠗⠸⠌⠠⠍",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>R</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mi>M</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_251",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠀⠐⠅⠀⠝⠀⠐⠅⠀⠠⠝",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>1</mn><mo>&lt;</mo><mi>n</mi><mo>&lt;</mo><mi>N</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_252",
+      "source": "sre-aata",
+      "cells": "⠠⠝⠥⠇⠇⠷⠠⠓⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>Null</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><mi>H</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_253",
+      "source": "sre-aata",
+      "cells": "⠠⠕⠷⠝⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>O</mi><mo stretchy=\"false\">(</mo><mi>n</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_254",
+      "source": "sre-aata",
+      "cells": "⠠⠏⠠⠁⠠⠏⠘⠤⠂⠀⠨⠅⠀⠠⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>P</mi><mi>A</mi><msup><mi>P</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>−</mo><mn>1</mn></mrow></msup><mo>=</mo><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_255",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠏⠷⠈⠰⠠⠗⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">P</mi></mrow></mrow><mo stretchy=\"false\">(</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">R</mi></mrow></mrow><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_256",
+      "source": "sre-aata",
+      "cells": "⠠⠟⠠⠃⠠⠟⠘⠤⠂⠀⠨⠅⠀⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>Q</mi><mi>B</mi><msup><mi>Q</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>−</mo><mn>1</mn></mrow></msup><mo>=</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_257",
+      "source": "sre-aata",
+      "cells": "⠠⠗⠀⠸⠐⠅⠀⠠⠭⠈⠡⠠⠭",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>R</mi><mo>⊂</mo><mi>X</mi><mo>×</mo><mi>X</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_258",
+      "source": "sre-aata",
+      "cells": "⠠⠎⠀⠨⠅⠀⠨⠷⠂⠠⠀⠆⠠⠀⠒⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>S</mi><mo>=</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>3</mn><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_259",
+      "source": "sre-aata",
+      "cells": "⠠⠎⠀⠨⠅⠀⠼⠂⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mtext>S</mtext><mo>=</mo><mn>18</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_26",
+      "source": "sre-aata",
+      "cells": "⠏⠀⠨⠅⠀⠼⠴⠨⠴⠴⠴⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>p</mi><mo>=</mo><mn>0.0001</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_260",
+      "source": "sre-aata",
+      "cells": "⠠⠞⠰⠠⠁⠸⠒⠀⠈⠰⠠⠗⠘⠆⠀⠫⠕⠀⠈⠰⠠⠗⠘⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mi>T</mi><mi>A</mi></msub><mo>:</mo><msup><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">R</mi></mrow></mrow><mn>2</mn></msup><mo stretchy=\"false\">→</mo><msup><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">R</mi></mrow></mrow><mn>2</mn></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_261",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠞⠀⠨⠅⠀⠨⠷⠵⠀⠈⠑⠀⠈⠰⠠⠉⠘⠈⠼⠸⠒⠳⠵⠳⠀⠨⠅⠀⠼⠂⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">T</mi></mrow></mrow><mo>=</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mi>z</mi><mo>∈</mo><msup><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">C</mi></mrow></mrow><mo>∗</mo></msup><mo>:</mo><mrow class=\"MJX-TeXAtom-ORD\"><mo stretchy=\"false\">|</mo></mrow><mi>z</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo stretchy=\"false\">|</mo></mrow><mo>=</mo><mn>1</mn><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_262",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠀⠸⠐⠅⠀⠠⠥",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>A</mi><mo>⊂</mo><mi>U</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_263",
+      "source": "sre-aata",
+      "cells": "⠧⠀⠈⠑⠀⠠⠧",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>v</mi><mo>∈</mo><mi>V</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_264",
+      "source": "sre-aata",
+      "cells": "⠠⠽⠀⠨⠅⠀⠨⠷⠠⠃⠠⠀⠠⠺⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>Y</mi><mo>=</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mi>B</mi><mo>,</mo><mi>W</mi><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_265",
+      "source": "sre-aata",
+      "cells": "⠋⠸⠒⠀⠠⠭⠀⠫⠕⠀⠠⠽",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>f</mi><mo>:</mo><mi>X</mi><mo stretchy=\"false\">→</mo><mi>Y</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_266",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠍⠰⠍⠈⠡⠝⠐⠷⠸⠰⠠⠵⠆⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">M</mi></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mi>m</mi><mo>×</mo><mi>n</mi></mrow></msub><mo stretchy=\"false\">(</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">Z</mi></mrow><mn>2</mn></msub><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_267",
+      "source": "sre-aata",
+      "cells": "⠈⠷⠭⠈⠾⠀⠨⠅⠀⠨⠷⠽⠀⠈⠑⠀⠠⠭⠸⠒⠽⠀⠈⠱⠀⠭⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">[</mo><mi>x</mi><mo stretchy=\"false\">]</mo><mo>=</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mi>y</mi><mo>∈</mo><mi>X</mi><mo>:</mo><mi>y</mi><mo>∼</mo><mi>x</mi><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_268",
+      "source": "sre-aata",
+      "cells": "⠠⠋⠈⠷⠭⠈⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>F</mi><mo fence=\"false\" stretchy=\"false\">[</mo><mi>x</mi><mo fence=\"false\" stretchy=\"false\">]</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_269",
+      "source": "sre-aata",
+      "cells": "⠉⠓⠁⠗⠀⠠⠗",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>char</mi><mo>⁡</mo><mi>R</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_27",
+      "source": "sre-aata",
+      "cells": "⠏⠀⠨⠅⠀⠼⠴⠨⠴⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>p</mi><mo>=</mo><mn>0.01</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_270",
+      "source": "sre-aata",
+      "cells": "⠗⠉⠊⠎⠀⠨⠹",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>r</mi><mi>cis</mi><mo>⁡</mo><mi>θ</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_271",
+      "source": "sre-aata",
+      "cells": "⠨⠁⠨⠃⠀⠨⠅⠀⠊⠙",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>α</mi><mi>β</mi><mo>=</mo><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"normal\">i</mi><mi mathvariant=\"normal\">d</mi></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_272",
+      "source": "sre-aata",
+      "cells": "⠙⠑⠛⠀⠋⠷⠭⠾⠀⠨⠅⠀⠝",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>deg</mi><mo>⁡</mo><mi>f</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mi>n</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_273",
+      "source": "sre-aata",
+      "cells": "⠙⠑⠞⠀⠠⠁⠀⠨⠅⠀⠁⠙⠤⠃⠉⠀⠌⠨⠅⠀⠼⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo movablelimits=\"true\" form=\"prefix\">det</mo><mi>A</mi><mo>=</mo><mi>a</mi><mi>d</mi><mo>−</mo><mi>b</mi><mi>c</mi><mo>≠</mo><mn>0</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_274",
+      "source": "sre-aata",
+      "cells": "⠙⠊⠍⠀⠠⠧⠀⠨⠅⠀⠝",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>dim</mi><mo>⁡</mo><mi>V</mi><mo>=</mo><mi>n</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_275",
+      "source": "sre-aata",
+      "cells": "⠋⠘⠤⠂⠐⠷⠭⠾⠀⠨⠅⠀⠑⠘⠭",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mi>f</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo>=</mo><msup><mi>e</mi><mi>x</mi></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_276",
+      "source": "sre-aata",
+      "cells": "⠋⠀⠸⠐⠅⠀⠠⠁⠈⠡⠠⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>f</mi><mo>⊂</mo><mi>A</mi><mo>×</mo><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_277",
+      "source": "sre-aata",
+      "cells": "⠛⠷⠂⠾⠀⠨⠅⠀⠁",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>g</mi><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mo>=</mo><mi>a</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_278",
+      "source": "sre-aata",
+      "cells": "⠙⠀⠨⠅⠀⠛⠉⠙⠀⠷⠁⠠⠀⠃⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>d</mi><mo>=</mo><mo movablelimits=\"true\" form=\"prefix\">gcd</mo><mo stretchy=\"false\">(</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_279",
+      "source": "sre-aata",
+      "cells": "⠠⠭⠰⠊⠐⠨⠩⠠⠭⠰⠚⠀⠨⠅⠀⠸⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mi>X</mi><mi>i</mi></msub><mo>∩</mo><msub><mi>X</mi><mi>j</mi></msub><mo>=</mo><mi mathvariant=\"normal\">∅</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_28",
+      "source": "sre-aata",
+      "cells": "⠏⠀⠨⠅⠀⠼⠴⠨⠔⠔⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>p</mi><mo>=</mo><mn>0.995</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_280",
+      "source": "sre-aata",
+      "cells": "⠅⠑⠗⠀⠨⠋",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>ker</mi><mo>⁡</mo><mi>ϕ</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_281",
+      "source": "sre-aata",
+      "cells": "⠎⠤⠞⠀⠨⠅⠀⠇⠝",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>s</mi><mo>−</mo><mi>t</mi><mo>=</mo><mi>l</mi><mi>n</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_282",
+      "source": "sre-aata",
+      "cells": "⠇⠉⠍⠀⠷⠁⠠⠀⠃⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>lcm</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_283",
+      "source": "sre-aata",
+      "cells": "⠐⠇⠊⠍⠩⠝⠀⠫⠕⠀⠠⠿⠻⠀⠋⠰⠝⠐⠸⠌⠋⠰⠝⠬⠂⠀⠨⠅⠀⠷⠜⠢⠻⠤⠂⠾⠸⠌⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><munder><mo movablelimits=\"true\" form=\"prefix\">lim</mo><mrow class=\"MJX-TeXAtom-ORD\"><mi>n</mi><mo stretchy=\"false\">→</mo><mi mathvariant=\"normal\">∞</mi></mrow></munder><msub><mi>f</mi><mi>n</mi></msub><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><msub><mi>f</mi><mrow class=\"MJX-TeXAtom-ORD\"><mi>n</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mo stretchy=\"false\">(</mo><msqrt><mn>5</mn></msqrt><mo>−</mo><mn>1</mn><mo stretchy=\"false\">)</mo><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mn>2</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_284",
+      "source": "sre-aata",
+      "cells": "⠋⠷⠭⠾⠀⠨⠅⠀⠇⠝⠀⠭",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>f</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mi>ln</mi><mo>⁡</mo><mi>x</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_285",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠗⠘⠍",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">R</mi></mrow></mrow><mi>m</mi></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_286",
+      "source": "sre-aata",
+      "cells": "⠙⠑⠛⠀⠷⠏⠷⠭⠾⠬⠟⠷⠭⠾⠾⠀⠐⠅⠱⠀⠍⠁⠭⠀⠷⠙⠑⠛⠀⠏⠷⠭⠾⠠⠀⠙⠑⠛⠀⠟⠷⠭⠾⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>deg</mi><mo>⁡</mo><mo stretchy=\"false\">(</mo><mi>p</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo>+</mo><mi>q</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">)</mo><mo>≤</mo><mo movablelimits=\"true\" form=\"prefix\">max</mo><mo stretchy=\"false\">(</mo><mi>deg</mi><mo>⁡</mo><mi>p</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo>,</mo><mi>deg</mi><mo>⁡</mo><mi>q</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_287",
+      "source": "sre-aata",
+      "cells": "⠙⠰⠍⠊⠝",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mi>d</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo movablelimits=\"true\" form=\"prefix\">min</mo></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_288",
+      "source": "sre-aata",
+      "cells": "⠗⠀⠨⠅⠀⠎",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>r</mi><mo>=</mo><mi>s</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_289",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠗",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">r</mi></mrow></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_29",
+      "source": "sre-aata",
+      "cells": "⠏⠀⠨⠅⠀⠼⠴⠨⠔⠔⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>p</mi><mo>=</mo><mn>0.999</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_290",
+      "source": "sre-aata",
+      "cells": "⠋⠷⠭⠾⠀⠨⠅⠀⠎⠊⠝⠀⠭",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>f</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mi>sin</mi><mo>⁡</mo><mi>x</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_291",
+      "source": "sre-aata",
+      "cells": "⠗⠸⠌⠎⠀⠈⠱⠀⠞⠸⠌⠥",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>r</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mi>s</mi><mo>∼</mo><mi>t</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mi>u</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_292",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠃⠀⠨⠅⠀⠷⠆⠠⠀⠆⠾⠘⠞",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">b</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>2</mn><mo>,</mo><mn>2</mn><msup><mo stretchy=\"false\">)</mo><mtext>t</mtext></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_293",
+      "source": "sre-aata",
+      "cells": "⠧⠀⠈⠑⠀⠈⠰⠠⠗⠘⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>v</mi><mo>∈</mo><msup><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">R</mi></mrow></mrow><mn>2</mn></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_294",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠺",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">w</mi></mrow></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_295",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠭⠀⠨⠅⠀⠷⠭⠂⠠⠀⠄⠄⠄⠠⠀⠭⠰⠝⠐⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><mo>…</mo><mo>,</mo><msub><mi>x</mi><mi>n</mi></msub><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_296",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠀⠨⠅⠀⠨⠷⠭⠠⠀⠽⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>A</mi><mo>=</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_297",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠽⠀⠨⠅⠀⠷⠽⠂⠠⠀⠄⠄⠄⠠⠀⠽⠰⠝⠐⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">y</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><mo>…</mo><mo>,</mo><msub><mi>y</mi><mi>n</mi></msub><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_298",
+      "source": "sre-aata",
+      "cells": "⠳⠭⠤⠽⠳⠀⠐⠅⠱⠀⠼⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mo stretchy=\"false\">|</mo></mrow><mi>x</mi><mo>−</mo><mi>y</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo stretchy=\"false\">|</mo></mrow><mo>≤</mo><mn>4</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_299",
+      "source": "sre-aata",
+      "cells": "⠐⠨⠎⠣⠈⠱⠻",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mover><mi>σ</mi><mo>~</mo></mover></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_3",
+      "source": "sre-aata",
+      "cells": "⠳⠐⠠⠭⠣⠈⠱⠻⠳⠀⠨⠅⠀⠼⠆⠘⠲⠀⠨⠅⠀⠼⠂⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mo stretchy=\"false\">|</mo></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mover><mi>X</mi><mo>~</mo></mover></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mo stretchy=\"false\">|</mo></mrow><mo>=</mo><msup><mn>2</mn><mn>4</mn></msup><mo>=</mo><mtext></mtext><mn>16</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_30",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠀⠨⠅⠀⠼⠴⠴⠠⠀⠠⠃⠀⠨⠅⠀⠼⠴⠂⠠⠀⠄⠄⠄⠠⠀⠠⠵⠀⠨⠅⠀⠼⠆⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mtext>A</mtext><mo>=</mo><mn>00</mn><mo>,</mo><mtext>B</mtext><mo>=</mo><mn>01</mn><mo>,</mo><mo>…</mo><mo>,</mo><mtext>Z</mtext><mo>=</mo><mn>25</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_300",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠈⠡⠠⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>A</mi><mo>×</mo><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_301",
+      "source": "sre-aata",
+      "cells": "⠨⠠⠙⠀⠨⠅⠀⠃⠘⠆⠐⠤⠲⠁⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi mathvariant=\"normal\">Δ</mi><mo>=</mo><msup><mi>b</mi><mn>2</mn></msup><mo>−</mo><mn>4</mn><mi>a</mi><mi>c</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_302",
+      "source": "sre-aata",
+      "cells": "⠨⠁",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>α</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_303",
+      "source": "sre-aata",
+      "cells": "⠨⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>β</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_304",
+      "source": "sre-aata",
+      "cells": "⠨⠨⠷⠸⠰⠁⠰⠗⠠⠀⠸⠰⠁⠰⠎⠐⠨⠨⠾⠀⠨⠅⠀⠨⠙⠰⠗⠎",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo fence=\"false\" stretchy=\"false\">⟨</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">a</mi></mrow></mrow><mi>r</mi></msub><mo>,</mo><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">a</mi></mrow></mrow><mi>s</mi></msub><mo fence=\"false\" stretchy=\"false\">⟩</mo><mo>=</mo><msub><mi>δ</mi><mrow class=\"MJX-TeXAtom-ORD\"><mi>r</mi><mi>s</mi></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_305",
+      "source": "sre-aata",
+      "cells": "⠨⠱⠸⠒⠀⠠⠛⠸⠌⠠⠅⠀⠫⠕⠀⠨⠽⠷⠠⠛⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>η</mi><mo>:</mo><mi>G</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mi>K</mi><mo stretchy=\"false\">→</mo><mi>ψ</mi><mo stretchy=\"false\">(</mo><mi>G</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_306",
+      "source": "sre-aata",
+      "cells": "⠨⠇",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>λ</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_307",
+      "source": "sre-aata",
+      "cells": "⠨⠍⠂⠨⠗⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mi>μ</mi><mn>1</mn></msub><msub><mi>ρ</mi><mn>1</mn></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_308",
+      "source": "sre-aata",
+      "cells": "⠨⠝⠸⠒⠀⠈⠰⠠⠵⠈⠷⠜⠒⠻⠊⠈⠾⠀⠫⠕⠀⠈⠰⠠⠝⠨⠬⠨⠷⠴⠨⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>ν</mi><mo>:</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">Z</mi></mrow></mrow><mo stretchy=\"false\">[</mo><msqrt><mn>3</mn></msqrt><mspace width=\"thinmathspace\"></mspace><mi>i</mi><mo stretchy=\"false\">]</mo><mo stretchy=\"false\">→</mo><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">N</mi></mrow></mrow><mo>∪</mo><mo fence=\"false\" stretchy=\"false\">{</mo><mn>0</mn><mo fence=\"false\" stretchy=\"false\">}</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_309",
+      "source": "sre-aata",
+      "cells": "⠨⠏⠸⠒⠀⠠⠎⠀⠫⠕⠀⠠⠎",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>π</mi><mo>:</mo><mi>S</mi><mo stretchy=\"false\">→</mo><mi>S</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_31",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>000</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_310",
+      "source": "sre-aata",
+      "cells": "⠨⠽",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>ψ</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_311",
+      "source": "sre-aata",
+      "cells": "⠺⠀⠨⠅⠀⠎⠉⠊⠎⠀⠨⠋",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>w</mi><mo>=</mo><mi>s</mi><mi>cis</mi><mo>⁡</mo><mi>ϕ</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_312",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠄",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mi>A</mi><mo>′</mo></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_313",
+      "source": "sre-aata",
+      "cells": "⠛⠄⠄",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mi>g</mi><mo>″</mo></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_314",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠇",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>ℓ</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_315",
+      "source": "sre-aata",
+      "cells": "⠋⠸⠒⠀⠠⠁⠀⠫⠕⠀⠠⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>f</mi><mo>:</mo><mi>A</mi><mo stretchy=\"false\">→</mo><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_316",
+      "source": "sre-aata",
+      "cells": "⠋⠸⠒⠀⠁⠀⠫⠳⠒⠒⠕⠀⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>f</mi><mo>:</mo><mi>a</mi><mo stretchy=\"false\">↦</mo><mi>b</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_317",
+      "source": "sre-aata",
+      "cells": "⠷⠫⠪⠶⠶⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mo stretchy=\"false\">⇐</mo><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_318",
+      "source": "sre-aata",
+      "cells": "⠸⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi mathvariant=\"normal\">∅</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_319",
+      "source": "sre-aata",
+      "cells": "⠤⠼⠒⠀⠌⠈⠑⠀⠠⠑",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo>−</mo><mn>3</mn><mo>∉</mo><mi>E</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_32",
+      "source": "sre-aata",
+      "cells": "⠼⠴⠴⠴⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>0000</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_320",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠉⠘⠈⠼",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"double-struck\">C</mi></mrow></mrow><mo>∗</mo></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_321",
+      "source": "sre-aata",
+      "cells": "⠷⠛⠨⠡⠋⠾⠷⠭⠾⠀⠨⠅⠀⠛⠷⠋⠷⠭⠾⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mi>g</mi><mo>∘</mo><mi>f</mi><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mi>g</mi><mo stretchy=\"false\">(</mo><mi>f</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_322",
+      "source": "sre-aata",
+      "cells": "⠁⠳⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>a</mi><mo>∣</mo><mi>b</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_323",
+      "source": "sre-aata",
+      "cells": "⠏⠌⠳⠁",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>p</mi><mo>∤</mo><mi>a</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_324",
+      "source": "sre-aata",
+      "cells": "⠁⠈⠩⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>a</mi><mo>∧</mo><mi>b</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_325",
+      "source": "sre-aata",
+      "cells": "⠁⠈⠬⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>a</mi><mo>∨</mo><mi>b</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_326",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠨⠬⠠⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>A</mi><mo>∪</mo><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_327",
+      "source": "sre-aata",
+      "cells": "⠭⠀⠈⠱⠀⠽",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>x</mi><mo>∼</mo><mi>y</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_328",
+      "source": "sre-aata",
+      "cells": "⠈⠱⠨⠅",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo>≅</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_329",
+      "source": "sre-aata",
+      "cells": "⠁⠀⠌⠨⠅⠀⠼⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>a</mi><mo>≠</mo><mn>0</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_33",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠉⠂⠀⠨⠅⠀⠷⠴⠴⠴⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">c</mi></mrow></mrow><mn>1</mn></msub><mo>=</mo><mo stretchy=\"false\">(</mo><mn>00000</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_330",
+      "source": "sre-aata",
+      "cells": "⠸⠇",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo>≡</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_331",
+      "source": "sre-aata",
+      "cells": "⠟⠀⠌⠸⠇⠀⠼⠂⠷⠍⠕⠙⠀⠏⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>q</mi><mo>≢</mo><mn>1</mn><mspace width=\"0.444em\"></mspace><mo stretchy=\"false\">(</mo><mi>mod</mi><mspace width=\"0.333em\"></mspace><mi>p</mi><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_332",
+      "source": "sre-aata",
+      "cells": "⠭⠀⠨⠂⠱⠀⠽",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>x</mi><mo>≥</mo><mi>y</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_333",
+      "source": "sre-aata",
+      "cells": "⠠⠃⠀⠸⠨⠂⠀⠠⠁",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>B</mi><mo>⊃</mo><mi>A</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_334",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠀⠌⠸⠐⠅⠀⠠⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>A</mi><mo>⊄</mo><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_335",
+      "source": "sre-aata",
+      "cells": "⠠⠺⠀⠨⠅⠀⠠⠥⠫⠉⠸⠫⠬⠻⠠⠧",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>W</mi><mo>=</mo><mi>U</mi><mo>⊕</mo><mi>V</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_336",
+      "source": "sre-aata",
+      "cells": "⠼⠆⠡⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>2</mn><mo>⋅</mo><mn>4</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_337",
+      "source": "sre-aata",
+      "cells": "⠠⠵⠒⠈⠡⠳⠠⠵⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mi>Z</mi><mn>3</mn></msub><mo>⋊</mo><msub><mi>Z</mi><mn>4</mn></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_338",
+      "source": "sre-aata",
+      "cells": "⠫⠞⠀⠠⠁⠠⠃⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo>△</mo><mi>A</mi><mi>B</mi><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_339",
+      "source": "sre-aata",
+      "cells": "⠁⠀⠨⠐⠅⠱⠀⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>a</mi><mo>⪯</mo><mi>b</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_34",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠴⠴⠂⠾⠬⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00001</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_340",
+      "source": "sre-aata",
+      "cells": "⠨⠨⠂⠱",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo>⪰</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_35",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠴⠴⠂⠴⠂⠂⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>0000101100</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_36",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠴⠂⠴⠾⠬⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00010</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_37",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠵⠀⠨⠅⠀⠷⠴⠴⠴⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">z</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>00011</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_38",
+      "source": "sre-aata",
+      "cells": "⠼⠴⠴⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>001</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_39",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠂⠴⠴⠾⠬⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00100</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_4",
+      "source": "sre-aata",
+      "cells": "⠈⠰⠠⠎",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mi class=\"MJX-tex-caligraphic\" mathvariant=\"script\">S</mi></mrow></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_40",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠂⠴⠴⠴⠴⠂⠴⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>0010000101</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_41",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠂⠴⠴⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>001001</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_42",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠂⠴⠴⠴⠾⠷⠴⠴⠂⠴⠂⠾⠷⠂⠂⠴⠂⠂⠾⠷⠂⠴⠂⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>01000</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>00101</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>11011</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>10110</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_43",
+      "source": "sre-aata",
+      "cells": "⠼⠴⠴⠂⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>0011</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_44",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠂⠂⠴⠾⠬⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00110</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_45",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠉⠆⠀⠨⠅⠀⠷⠴⠴⠂⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">c</mi></mrow></mrow><mn>2</mn></msub><mo>=</mo><mo stretchy=\"false\">(</mo><mn>00111</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_46",
+      "source": "sre-aata",
+      "cells": "⠼⠴⠂⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>010</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_47",
+      "source": "sre-aata",
+      "cells": "⠷⠼⠴⠂⠴⠴⠀⠼⠴⠂⠴⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>0100</mn><mspace width=\"thickmathspace\"></mspace><mn>0101</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_48",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠂⠴⠴⠴⠾⠬⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>01000</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_49",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠂⠴⠴⠾⠷⠴⠂⠴⠴⠂⠾⠷⠂⠴⠂⠂⠂⠾⠷⠂⠂⠴⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00100</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>01001</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>10111</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>11010</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_5",
+      "source": "sre-aata",
+      "cells": "⠁⠭⠘⠆⠐⠬⠃⠭⠬⠉⠀⠨⠅⠀⠼⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>a</mi><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mi>b</mi><mi>x</mi><mo>+</mo><mi>c</mi><mo>=</mo><mn>0</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_50",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠭⠀⠨⠅⠀⠷⠴⠂⠴⠴⠂⠂⠾⠘⠞",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>010011</mn><msup><mo stretchy=\"false\">)</mo><mtext>t</mtext></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_51",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠂⠂⠂⠾⠷⠴⠂⠴⠂⠴⠾⠷⠂⠴⠂⠴⠴⠾⠷⠂⠂⠴⠴⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00111</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>01010</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>10100</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>11001</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_52",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠂⠂⠂⠴⠴⠾⠷⠴⠂⠂⠴⠂⠂⠾⠷⠂⠂⠂⠴⠂⠂⠾⠷⠂⠴⠴⠴⠂⠂⠾⠷⠴⠴⠴⠴⠴⠴⠾⠷⠴⠂⠴⠂⠴⠂⠾⠷⠂⠂⠴⠂⠴⠴⠾⠷⠂⠂⠴⠴⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>011100</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>011011</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>111011</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>100011</mn><mo stretchy=\"false\">)</mo><mspace linebreak=\"newline\"></mspace><mo stretchy=\"false\">(</mo><mn>000000</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>010101</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>110100</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>110011</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_53",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠂⠂⠂⠴⠂⠴⠂⠾⠠⠀⠷⠴⠂⠴⠂⠴⠂⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>11110101</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>01010100</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_54",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠵⠀⠨⠅⠀⠷⠴⠂⠴⠂⠂⠂⠾⠘⠞",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">z</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>010111</mn><msup><mo stretchy=\"false\">)</mo><mtext>t</mtext></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_55",
+      "source": "sre-aata",
+      "cells": "⠼⠴⠂⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>011</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_56",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠂⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>0110</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_57",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠴⠴⠂⠾⠷⠴⠂⠂⠴⠴⠾⠷⠂⠴⠴⠂⠴⠾⠷⠂⠂⠂⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00001</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>01100</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>10010</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>11111</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_58",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠭⠀⠨⠅⠀⠷⠴⠂⠂⠴⠴⠂⠾⠘⠞",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>011001</mn><msup><mo stretchy=\"false\">)</mo><mtext>t</mtext></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_59",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠂⠂⠴⠂⠴⠾⠠⠀⠷⠴⠂⠂⠂⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>011010</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>011100</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_6",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠀⠐⠫⠒⠒⠕⠣⠋⠻⠀⠠⠃",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>A</mi><mrow class=\"MJX-TeXAtom-REL\"><mover><mrow class=\"MJX-TeXAtom-OP MJX-fixedlimits\"><mo stretchy=\"false\">→</mo></mrow><mrow class=\"MJX-TeXAtom-ORD\"><mi>f</mi></mrow></mover></mrow><mi>B</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_60",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠂⠂⠴⠂⠂⠴⠾⠷⠴⠂⠂⠂⠂⠴⠴⠾⠷⠂⠂⠂⠴⠴⠴⠴⠾⠷⠂⠂⠂⠂⠂⠂⠂⠾⠷⠂⠴⠴⠂⠴⠴⠂⠾⠷⠂⠴⠴⠴⠴⠂⠂⠾⠷⠴⠴⠴⠂⠂⠂⠂⠾⠷⠴⠴⠴⠴⠴⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>0110110</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>0111100</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>1110000</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>1111111</mn><mo stretchy=\"false\">)</mo><mspace linebreak=\"newline\"></mspace><mo stretchy=\"false\">(</mo><mn>1001001</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>1000011</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>0001111</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>0000000</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_61",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠴⠴⠂⠾⠠⠀⠷⠴⠂⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1001</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>0111</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_62",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠴⠴⠴⠴⠾⠷⠂⠂⠂⠴⠂⠾⠷⠴⠴⠴⠂⠂⠾⠷⠴⠂⠂⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>10000</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>11101</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>00011</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>01110</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_63",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠴⠂⠴⠾⠷⠴⠂⠂⠂⠂⠾⠷⠂⠴⠴⠴⠂⠾⠷⠂⠂⠂⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00010</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>01111</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>10001</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>11100</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_64",
+      "source": "sre-aata",
+      "cells": "⠠⠁⠀⠨⠅⠀⠼⠴⠴⠠⠀⠠⠃⠀⠨⠅⠀⠼⠴⠆⠠⠀⠄⠄⠄⠠⠀⠠⠵⠀⠨⠅⠀⠼⠆⠢",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mtext>A</mtext><mo>=</mo><mn>00</mn><mo>,</mo><mtext>B</mtext><mo>=</mo><mn>02</mn><mo>,</mo><mo>…</mo><mo>,</mo><mtext>Z</mtext><mo>=</mo><mn>25</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_65",
+      "source": "sre-aata",
+      "cells": "⠉⠀⠨⠅⠀⠼⠲⠀⠢⠔⠦⠀⠴⠒⠶⠀⠆⠒⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>c</mi><mo>=</mo><mn>4</mn><mspace width=\"thinmathspace\"></mspace><mn>598</mn><mspace width=\"thinmathspace\"></mspace><mn>037</mn><mspace width=\"thinmathspace\"></mspace><mn>234</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_66",
+      "source": "sre-aata",
+      "cells": "⠠⠑⠀⠨⠅⠀⠼⠴⠲",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mtext>E</mtext><mo>=</mo><mn>04</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_67",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠴⠸⠌⠢⠀⠨⠅⠀⠼⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>10</mn><mrow class=\"MJX-TeXAtom-ORD\"><mo>/</mo></mrow><mn>5</mn><mo>=</mo><mn>2</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_68",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠆⠢⠲⠾⠘⠂⠴⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1254</mn><msup><mo stretchy=\"false\">)</mo><mrow class=\"MJX-TeXAtom-ORD\"><mn>100</mn></mrow></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_69",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠴⠴⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>1000</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_7",
+      "source": "sre-aata",
+      "cells": "⠛⠷⠭⠾⠀⠨⠅⠀⠣⠒⠜⠭⠻",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mi>g</mi><mo stretchy=\"false\">(</mo><mi>x</mi><mo stretchy=\"false\">)</mo><mo>=</mo><mroot><mi>x</mi><mn>3</mn></mroot></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_70",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠴⠴⠴⠴⠾⠬⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>10000</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_71",
+      "source": "sre-aata",
+      "cells": "⠷⠼⠂⠴⠴⠂⠀⠼⠂⠴⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1001</mn><mspace width=\"thickmathspace\"></mspace><mn>1000</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_72",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠴⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>101</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_73",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠽⠀⠨⠅⠀⠷⠂⠴⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">y</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>1010</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_74",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠴⠂⠴⠴⠾⠬⠠⠉",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>10100</mn><mo stretchy=\"false\">)</mo><mo>+</mo><mi>C</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_75",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠭⠀⠨⠅⠀⠷⠂⠴⠂⠴⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>10101</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_76",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠴⠂⠴⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>101011</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_77",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠴⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>1011</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_78",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠴⠴⠴⠴⠾⠠⠀⠷⠴⠂⠴⠂⠂⠂⠾⠠⠀⠷⠂⠴⠂⠂⠴⠂⠾⠠⠀⠷⠂⠂⠂⠴⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>000000</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>010111</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>101101</mn><mo stretchy=\"false\">)</mo><mo>,</mo><mo stretchy=\"false\">(</mo><mn>111010</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_79",
+      "source": "sre-aata",
+      "cells": "⠛⠉⠙⠀⠷⠂⠆⠴⠠⠀⠂⠴⠆⠾⠀⠨⠅⠀⠼⠖",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo movablelimits=\"true\" form=\"prefix\">gcd</mo><mo stretchy=\"false\">(</mo><mn>120</mn><mo>,</mo><mn>102</mn><mo stretchy=\"false\">)</mo><mo>=</mo><mn>6</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_8",
+      "source": "sre-aata",
+      "cells": "⠠⠞⠰⠠⠁⠘⠤⠂⠀⠨⠅⠀⠠⠞⠰⠠⠁⠰⠘⠤⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msubsup><mi>T</mi><mi>A</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>−</mo><mn>1</mn></mrow></msubsup><mo>=</mo><msub><mi>T</mi><mrow class=\"MJX-TeXAtom-ORD\"><msup><mi>A</mi><mrow class=\"MJX-TeXAtom-ORD\"><mo>−</mo><mn>1</mn></mrow></msup></mrow></msub></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_80",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠴⠦",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>108</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_81",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠂⠴",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>110</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_82",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠽⠀⠨⠅⠀⠷⠂⠂⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">y</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>1100</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_83",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠂⠂⠴⠾⠷⠴⠂⠴⠂⠂⠾⠷⠂⠴⠂⠴⠂⠾⠷⠂⠂⠴⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>00110</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>01011</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>10101</mn><mo stretchy=\"false\">)</mo><mo stretchy=\"false\">(</mo><mn>11000</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_84",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠂⠂⠴⠂⠴⠾⠷⠴⠂⠂⠂⠴⠴⠾⠷⠂⠂⠴⠂⠂⠂⠾⠷⠂⠂⠴⠴⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>011010</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>011100</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>110111</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>110000</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_85",
+      "source": "sre-aata",
+      "cells": "⠷⠴⠴⠴⠴⠴⠴⠾⠷⠴⠂⠂⠂⠴⠴⠾⠷⠂⠂⠴⠂⠴⠂⠾⠷⠂⠂⠴⠴⠴⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>000000</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>011100</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>110101</mn><mo stretchy=\"false\">)</mo><mspace width=\"thickmathspace\"></mspace><mo stretchy=\"false\">(</mo><mn>110001</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_86",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠭⠀⠨⠅⠀⠷⠂⠂⠴⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>1101</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_87",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠽⠀⠨⠅⠀⠷⠂⠂⠴⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">y</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>11010</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_88",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠽⠀⠨⠅⠀⠷⠂⠂⠴⠂⠴⠂⠾⠘⠞",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">y</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>110101</mn><msup><mo stretchy=\"false\">)</mo><mtext>t</mtext></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_89",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠉⠲⠀⠨⠅⠀⠷⠂⠂⠴⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">c</mi></mrow></mrow><mn>4</mn></msub><mo>=</mo><mo stretchy=\"false\">(</mo><mn>11011</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_9",
+      "source": "sre-aata",
+      "cells": "⠐⠨⠬⠩⠅⠻⠠⠭⠰⠅⠀⠨⠅⠀⠠⠭",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><munder><mo>⋃</mo><mi>k</mi></munder><msub><mi>X</mi><mi>k</mi></msub><mo>=</mo><mi>X</mi></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_90",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠂⠴⠂⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>110110</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_91",
+      "source": "sre-aata",
+      "cells": "⠷⠂⠂⠂⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>111</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_92",
+      "source": "sre-aata",
+      "cells": "⠷⠼⠴⠂⠂⠴⠀⠼⠂⠂⠂⠴⠀⠼⠴⠂⠂⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo stretchy=\"false\">(</mo><mn>0110</mn><mspace width=\"thickmathspace\"></mspace><mn>1110</mn><mspace width=\"thickmathspace\"></mspace><mn>0110</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_93",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠉⠒⠀⠨⠅⠀⠷⠂⠂⠂⠴⠴⠾",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msub><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">c</mi></mrow></mrow><mn>3</mn></msub><mo>=</mo><mo stretchy=\"false\">(</mo><mn>11100</mn><mo stretchy=\"false\">)</mo></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_94",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠂⠂⠂",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>1111</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_95",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠭⠀⠨⠅⠀⠷⠂⠂⠂⠂⠂⠴⠾⠘⠞",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">x</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>111110</mn><msup><mo stretchy=\"false\">)</mo><mtext>t</mtext></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_96",
+      "source": "sre-aata",
+      "cells": "⠸⠰⠽⠀⠨⠅⠀⠷⠂⠂⠂⠂⠂⠂⠾⠘⠞",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow class=\"MJX-TeXAtom-ORD\"><mrow class=\"MJX-TeXAtom-ORD\"><mi mathvariant=\"bold\">y</mi></mrow></mrow><mo>=</mo><mo stretchy=\"false\">(</mo><mn>111111</mn><msup><mo stretchy=\"false\">)</mo><mtext>t</mtext></msup></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_97",
+      "source": "sre-aata",
+      "cells": "⠼⠂⠂⠆⠂⠒⠢⠆⠢⠴⠒⠆⠲⠲⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mn>112135</mn><mn>25032</mn><mn>442</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_98",
+      "source": "sre-aata",
+      "cells": "⠼⠶⠘⠖⠀⠨⠅⠀⠼⠂⠂⠶⠀⠖⠲⠔",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><msup><mn>7</mn><mn>6</mn></msup><mo>=</mo><mn>117</mn><mspace width=\"thinmathspace\"></mspace><mn>649</mn></math>",
+      "ref": null
+    },
+    {
+      "id": "sre-aata:AataExpression_99",
+      "source": "sre-aata",
+      "cells": "⠛⠉⠙⠀⠷⠆⠲⠠⠀⠒⠖⠾⠀⠨⠅⠀⠼⠂⠆",
+      "mathml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mo movablelimits=\"true\" form=\"prefix\">gcd</mo><mo stretchy=\"false\">(</mo><mn>24</mn><mo>,</mo><mn>36</mn><mo stretchy=\"false\">)</mo><mo>=</mo><mn>12</mn></math>",
+      "ref": null
+    }
+  ]
+}
