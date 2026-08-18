@@ -34,32 +34,84 @@ const reportPath = path.join(projectRoot, 'docs', 'nemeth-v2', 'coverage.md');
 const corpus = JSON.parse(readFileSync(corpusPath, 'utf8'));
 const coverage = await runCoverage(corpus);
 
-// Every DISAGREE case, with why it is not (yet) being fixed. Investigated by
-// hand against the corpus, not guessed:
-const DISAGREE_ALLOWLIST = {
-  'mathcat-rules:mmultiscripts_82_a_1':
-    'Corpus target is <mmultiscripts><mi>x</mi><mi>a</mi><mi>n</mi></mmultiscripts>; our parser ' +
-    'always emits <msubsup>. Same cells (`⠭⠰⠁⠘⠝`) are ALSO the corpus case ' +
-    '"msubsup_82_a_1", whose target IS <msubsup> and which PASSes -- MathCAT accepts ' +
-    'either encoding as correct for this input, and our parser deterministically ' +
-    'produces the one that matches one of the two, never the other.',
-  'mathcat-rules:nested_sup_mmultiscripts_74_b_1':
-    'Same situation as mmultiscripts_82_a_1: identical cells (`⠝⠘⠭⠘⠘⠽`) also appear as ' +
-    '"nested_sup_74_b_1", whose <msup>-nested target matches our output and PASSes. ' +
-    'The mmultiscripts-encoded twin does not, because we never emit <mmultiscripts>.',
-  'mathcat-rules:number_space_after':
-    'Cells are `⠼⠆` (just the numeral "2") -- identical to the cells for ' +
-    'number_space_before and number_space_before_and_after. The corpus target adds a ' +
-    'trailing <mtext>&#xA0;</mtext> that has no corresponding content anywhere in the ' +
-    'cells string. Looks like a corpus-import artifact (the space these three cases are ' +
-    'named for is not actually encoded in `cells`), not a parser bug -- reported per the ' +
-    'task brief, not fixed, since the corpus itself is out of scope for this task.',
-  'mathcat-rules:number_space_before':
-    'Same cells (`⠼⠆`) and same situation as number_space_after, mirrored: the target ' +
-    'adds a LEADING <mtext>&#xA0;</mtext> with nothing in `cells` to justify it.',
-  'mathcat-rules:number_space_before_and_after':
-    'Same cells (`⠼⠆`) again; target adds <mtext>&#xA0;</mtext> on both sides.'
+// Every DISAGREE case traces back to one structural fact, not five separate
+// mysteries: this corpus was built by running MathML *forward* through
+// MathCAT's/SRE's Nemeth rules (MathML -> braille) and recording the
+// resulting cells. That forward map is deliberately many-to-one -- braille
+// correctly discards non-mathematical detail (a leading/trailing space is
+// formatting, not content; more than one MathML encoding can render
+// identically), so distinct MathML inputs collapse to identical cells.
+// Running the corpus in reverse (cells -> our parsed MathML) is therefore
+// inherently ambiguous for any case whose MathML differs from another only
+// in such non-mathematical detail: the cells alone underdetermine which of
+// several equally-valid source MathML trees produced them, and there is
+// nothing a braille-to-MathML parser could do differently. Every entry
+// below is one instance of this collapse, verified against the corpus
+// itself, not guessed -- and DISAGREE = 0 is therefore not always an
+// achievable target. What this gate actually enforces is that every
+// DISAGREE has a verified structural reason attached, categorized by which
+// side of the collapse it is, never a bare "this looks wrong" guess.
+const MANY_TO_ONE_FORWARD_MAP = {
+  // Sub-cause: equivalent-encoding. MathCAT accepts more than one MathML
+  // shape as correct for the same subscript+superscript combination
+  // (<mmultiscripts> vs. <msubsup>/nested <msup>); both forward-map to the
+  // same cells. Our parser deterministically emits only the
+  // <msubsup>/<msup> form, so for each pair below it matches the corpus
+  // twin that chose that encoding and disagrees with the twin that chose
+  // <mmultiscripts> -- not because either answer is mathematically wrong.
+  'mathcat-rules:mmultiscripts_82_a_1': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Corpus target is <mmultiscripts><mi>x</mi><mi>a</mi><mi>n</mi></mmultiscripts>; our parser ' +
+      'always emits <msubsup>. Same cells (`⠭⠰⠁⠘⠝`) are ALSO the corpus case ' +
+      '"msubsup_82_a_1", whose target IS <msubsup> and which PASSes -- both MathML trees ' +
+      'forward-map to these cells, so reversing the cells alone cannot recover which one ' +
+      'the corpus intended.'
+  },
+  'mathcat-rules:nested_sup_mmultiscripts_74_b_1': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Same situation as mmultiscripts_82_a_1: identical cells (`⠝⠘⠭⠘⠘⠽`) also appear as ' +
+      '"nested_sup_74_b_1", whose <msup>-nested target matches our output and PASSes. ' +
+      'The <mmultiscripts>-encoded twin does not, because we never emit <mmultiscripts> -- ' +
+      'both are valid forward-map preimages of the same cells.'
+  },
+  // Sub-cause: formatting-only difference. A leading/trailing non-breaking
+  // space is print formatting, not mathematics, so Nemeth correctly drops
+  // it -- all three MathML inputs below forward-map to the identical cells
+  // `⠼⠆` ("2"). Verified directly against the corpus's own MathML for each
+  // case (each is a genuinely different <math> input on purpose, not an
+  // import artifact -- MathCAT is deliberately asserting that the braille
+  // is insensitive to this formatting):
+  //   number_space_after            <math><mn>2</mn><mtext>&#xA0;</mtext></math>
+  //   number_space_before           <math><mtext>&#xA0;</mtext><mn>2</mn></math>
+  //   number_space_before_and_after <math><mtext>&#xA0;</mtext><mn>2</mn><mtext>&#xA0;</mtext></math>
+  // From `⠼⠆` alone it is impossible to know whether the source carried a
+  // leading space, a trailing space, both, or neither -- our output `2` is
+  // the only sensible answer regardless of which of the three this is.
+  'mathcat-rules:number_space_after': {
+    cause: 'formatting-only',
+    reason:
+      'Cells are `⠼⠆` (just the numeral "2") -- identical to the cells for ' +
+      'number_space_before and number_space_before_and_after. The corpus target adds a ' +
+      'trailing <mtext>&#xA0;</mtext> (a non-breaking space) that Nemeth braille correctly ' +
+      'drops as formatting, not mathematics; the cells cannot distinguish this from the ' +
+      'other two space-placement variants, so our parser producing plain `2` for all three ' +
+      'is correct, not a bug.'
+  },
+  'mathcat-rules:number_space_before': {
+    cause: 'formatting-only',
+    reason:
+      'Same cells (`⠼⠆`) and same situation as number_space_after, mirrored: the target ' +
+      'adds a LEADING <mtext>&#xA0;</mtext>, which the cells likewise cannot encode.'
+  },
+  'mathcat-rules:number_space_before_and_after': {
+    cause: 'formatting-only',
+    reason: 'Same cells (`⠼⠆`) again; target adds <mtext>&#xA0;</mtext> on both sides, which the cells likewise cannot encode.'
+  }
 };
+
+const MANY_TO_ONE_CAUSES = new Set(['equivalent-encoding', 'formatting-only']);
 
 // No ERROR cases exist today. Kept as a real allowlist (not just an
 // `assert.equal(0)`) so the same discipline applies if one ever appears:
@@ -77,24 +129,36 @@ test('every corpus case lands in exactly one bucket, and the buckets sum to the 
   assert.equal(coverage.results.length, corpus.cases.length);
 });
 
-test('DISAGREE: every case is in the allowlist with a reason, and the allowlist has no stale entries', () => {
+test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reason, and the map has no stale entries', () => {
   const actualIds = new Set(coverage.disagrees.map((r) => r.case.id));
-  const allowedIds = new Set(Object.keys(DISAGREE_ALLOWLIST));
+  const allowedIds = new Set(Object.keys(MANY_TO_ONE_FORWARD_MAP));
 
   for (const id of actualIds) {
     assert.ok(
       allowedIds.has(id),
-      `DISAGREE case "${id}" is not in DISAGREE_ALLOWLIST -- a parsed-but-wrong result must be looked at ` +
-        'and explicitly recorded, not left silent. See docs/nemeth-v2/coverage.md for the full detail.'
+      `DISAGREE case "${id}" is not in MANY_TO_ONE_FORWARD_MAP -- a parsed-but-wrong result must be looked ` +
+        'at and explicitly recorded, not left silent. See docs/nemeth-v2/coverage.md for the full detail.'
+    );
+    const entry = MANY_TO_ONE_FORWARD_MAP[id];
+    assert.ok(
+      MANY_TO_ONE_CAUSES.has(entry?.cause),
+      `MANY_TO_ONE_FORWARD_MAP entry for "${id}" must have cause one of ${[...MANY_TO_ONE_CAUSES].join(', ')}`
     );
     assert.ok(
-      typeof DISAGREE_ALLOWLIST[id] === 'string' && DISAGREE_ALLOWLIST[id].trim().length > 0,
-      `DISAGREE_ALLOWLIST entry for "${id}" must have a non-empty reason`
+      typeof entry?.reason === 'string' && entry.reason.trim().length > 0,
+      `MANY_TO_ONE_FORWARD_MAP entry for "${id}" must have a non-empty reason`
     );
   }
   for (const id of allowedIds) {
-    assert.ok(actualIds.has(id), `DISAGREE_ALLOWLIST lists "${id}" but it no longer disagrees -- remove the stale entry`);
+    assert.ok(actualIds.has(id), `MANY_TO_ONE_FORWARD_MAP lists "${id}" but it no longer disagrees -- remove the stale entry`);
   }
+});
+
+test('DISAGREE: the two many-to-one sub-causes are both represented as expected (2 equivalent-encoding, 3 formatting-only)', () => {
+  const byCause = { 'equivalent-encoding': 0, 'formatting-only': 0 };
+  for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
+  assert.equal(byCause['equivalent-encoding'], 2);
+  assert.equal(byCause['formatting-only'], 3);
 });
 
 test('ERROR: every case is in the allowlist with a reason, and the allowlist has no stale entries', () => {

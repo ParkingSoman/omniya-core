@@ -80,11 +80,33 @@ position, not a category; the offending codepoint is kept since it is).
 | 1 | no Nemeth symbol starts at cell N (U+282F "⠯") | `sre-aata:AataExpression_198` |
 | 1 | no Nemeth symbol starts at cell N (U+283F "⠿") | `mathcat-rules:omission_57_4` |
 
+## Why DISAGREE = 0 is not always achievable
+
+This corpus was built by running MathML *forward* through MathCAT's/SRE's Nemeth rules
+(MathML -> braille) and recording the resulting cells. That forward map is deliberately
+many-to-one: braille correctly discards non-mathematical detail -- a leading or trailing
+space is formatting, not content, and more than one MathML encoding can render
+identically -- so distinct MathML inputs can collapse to identical cells. Running the
+corpus in reverse (cells -> our parsed MathML) is therefore inherently ambiguous for any
+case whose MathML differs from another only in such non-mathematical detail: the cells
+alone underdetermine which of several equally-valid source MathML trees produced them,
+and there is nothing a braille-to-MathML parser could do differently.
+
+Because of this, **the gate's actual target is not DISAGREE = 0** -- it is "every
+DISAGREE has a verified structural reason", enforced by the named, categorized allowlist
+in `test/unit/nemeth/corpus-gate.test.js` (`MANY_TO_ONE_FORWARD_MAP`). A DISAGREE with no
+allowlist entry still fails the gate; a DISAGREE explained by this many-to-one collapse
+is expected and does not by itself indicate a parser bug or a corpus error. Every
+DISAGREE below has been checked and falls into one of two sub-causes:
+`equivalent-encoding` (the corpus accepts more than one MathML shape as correct for the
+same input) or `formatting-only` (the differing MathML carries only non-mathematical
+whitespace).
+
 ## DISAGREE (5)
 
 Parsed successfully, but the resulting mathematics differs from the corpus case's
-own MathML. Every one of these must be in the allowlist in
-`test/unit/nemeth/corpus-gate.test.js` with a stated reason, or the gate fails.
+own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
+`test/unit/nemeth/corpus-gate.test.js` with a stated, categorized reason, or the gate fails.
 
 ### `mathcat-rules:mmultiscripts_82_a_1`
 
