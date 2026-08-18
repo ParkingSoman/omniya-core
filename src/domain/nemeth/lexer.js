@@ -71,8 +71,6 @@ function makeToken(match, cells, offset) {
   return Object.freeze({
     kind: match.kind,
     value: match.value,
-    role: match.role ?? null,
-    precedence: match.precedence ?? null,
     cells: cells.slice(offset, offset + match.len),
     offset,
     len: match.len

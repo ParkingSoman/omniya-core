@@ -6,6 +6,14 @@
  * than producing a wrong string at runtime. There is no default branch and no
  * opt-out.
  *
+ * Adjacent pieces are joined through `concat`, which inserts a space only when
+ * running them together would change what LaTeX reads. A control word (`\\`
+ * plus letters) is terminated by the first non-letter, so `\\times` followed by
+ * `b` would parse as the undefined control sequence `\\timesb`; `a` followed by
+ * `+`, or anything followed by `{`, needs nothing. The space is therefore
+ * conditional, and expressions with no macro-letter boundary come out byte for
+ * byte as before.
+ *
  * Kinds this stage cannot render throw `NemethUnsupportedError` from their own
  * entry. That is the honest way to stay exhaustive: `Hole` and `Text` are never
  * produced by this pipeline, and `FunctionCall` and `BigOperator` each require a
@@ -16,6 +24,16 @@
 
 import { defineBackend } from './backend.js';
 import { NemethUnsupportedError } from './errors.js';
+
+// A LaTeX control word: a backslash and the letters that follow it.
+const TRAILING_CONTROL_WORD = /\\[a-zA-Z]+$/u;
+const LEADING_LETTER = /^[a-zA-Z]/u;
+
+function concat(pieces) {
+  return pieces.reduce((left, right) =>
+    TRAILING_CONTROL_WORD.test(left) && LEADING_LETTER.test(right) ? `${left} ${right}` : left + right
+  , '');
+}
 
 function unrenderable(kind) {
   return (node) => {
@@ -31,7 +49,7 @@ export const toLatex = defineBackend(
     Number: (node) => node.value,
     Identifier: (node) => node.name,
     Operator: (node) => node.glyph,
-    Sequence: (node, emit) => node.items.map((item) => emit(item)).join(''),
+    Sequence: (node, emit) => concat(node.items.map((item) => emit(item))),
     Fraction: (node, emit) => `\\frac{${emit(node.numerator)}}{${emit(node.denominator)}}`,
     Root: (node, emit) =>
       node.index === null
@@ -41,7 +59,7 @@ export const toLatex = defineBackend(
     Subscript: (node, emit) => `${emit(node.base)}_{${emit(node.index)}}`,
     SubSuperscript: (node, emit) =>
       `${emit(node.base)}_{${emit(node.index)}}^{${emit(node.exponent)}}`,
-    Fenced: (node, emit) => `${node.open}${emit(node.body)}${node.close}`,
+    Fenced: (node, emit) => concat([node.open, emit(node.body), node.close]),
     FunctionCall: unrenderable('FunctionCall'),
     BigOperator: unrenderable('BigOperator'),
     Text: unrenderable('Text'),

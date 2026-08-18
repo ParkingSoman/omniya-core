@@ -10,6 +10,18 @@ import { parse } from '../../../src/domain/nemeth/parser.js';
 
 const treeOf = (ascii) => parse(resolveLevels(lex(asciiToCells(ascii))));
 
+// A resolved token, as `resolveLevels` hands them to `parse`. Used only where the
+// slice's symbol table cannot produce the token stream under test.
+const token = ({ kind, value, offset, level = '' }) => ({
+  kind,
+  value,
+  cells: '?',
+  offset,
+  len: 1,
+  level,
+  afterBaseline: false
+});
+
 test('a numeral is one Number node, not one node per digit', () => {
   assert.equal(format(treeOf('#27')), "Number('27')");
 });
@@ -54,6 +66,48 @@ test('a script must be exactly one level deeper than its base, not merely below 
 
 test('juxtaposition of two terms is a Sequence, which asserts nothing about multiplication', () => {
   assert.equal(format(treeOf('ab')), "Sequence([ Identifier('a'), Identifier('b') ])");
+});
+
+test('an expression is one flat Sequence in source order, never nested by precedence', () => {
+  // Two operators that a precedence grammar would have split into tiers. Nemeth
+  // states structure, not binding: it says a fraction has this numerator, never
+  // that this is division over the reals. Presentation MathML is flat for the
+  // same reason, and `Sequence` is documented as asserting no semantics -- so
+  // nesting `b x c` inside `a + ...` would assert binding in the one node whose
+  // contract is that it asserts none. Built as tokens because the slice's symbol
+  // table carries a single operator.
+  const tree = parse([
+    token({ kind: 'letter', value: 'a', offset: 0 }),
+    token({ kind: 'op', value: '+', offset: 1 }),
+    token({ kind: 'letter', value: 'b', offset: 2 }),
+    token({ kind: 'op', value: '*', offset: 3 }),
+    token({ kind: 'letter', value: 'c', offset: 4 })
+  ]);
+  assert.equal(
+    format(tree),
+    "Sequence([ Identifier('a'), Operator('+'), Identifier('b'), Operator('*'), Identifier('c') ])"
+  );
+});
+
+test('an operator at another level is not read as an operator of this one', () => {
+  // `a^^+"b` puts `+` at level '^^' with no base ever opened there. Without the
+  // level test on the operator, it is consumed as a baseline operator and `b`
+  // becomes its right operand: `a+b`, a wrong answer that looks like a right one.
+  assert.throws(() => treeOf('a^^+"b'), NemethUnsupportedError);
+});
+
+test('a term at another level is not juxtaposed into this one, and is reported where it sits', () => {
+  // The primary's own level check refuses this either way, so what the level test
+  // on the juxtaposition loop buys today is that the refusal names the token that
+  // is actually stranded, at the level it is stranded at.
+  try {
+    treeOf('a^^b');
+    assert.fail('expected an unsupported construct');
+  } catch (error) {
+    assert(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /unparsed letter token at level "\^\^"/u);
+    assert.equal(error.offset, 3);
+  }
 });
 
 test('a numeric indicator is recorded as a mark, since LaTeX cannot store it', () => {

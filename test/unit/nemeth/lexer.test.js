@@ -4,7 +4,7 @@ import test from 'node:test';
 import { asciiToCells } from '../../../src/domain/nemeth/braille-ascii.js';
 import { NemethUnsupportedError, UNSUPPORTED_MESSAGE } from '../../../src/domain/nemeth/errors.js';
 import { lex } from '../../../src/domain/nemeth/lexer.js';
-import { matchAt } from '../../../src/domain/nemeth/symbols.js';
+import { buildTrie, matchAt } from '../../../src/domain/nemeth/symbols.js';
 
 const shape = (tokens) => tokens.map((token) => `${token.kind}:${token.value}`);
 
@@ -69,6 +69,30 @@ test('the user-facing message of a lex failure is the shared constant and leaks 
 
 test('a braille cell with no symbol row raises NemethUnsupportedError', () => {
   assert.throws(() => lex(asciiToCells('%')), NemethUnsupportedError);
+});
+
+test('a symbol table that defines the same cells twice is refused when it is built', () => {
+  const row = { cells: asciiToCells('a'), kind: 'letter', value: 'a', banaRef: null };
+  assert.throws(() => buildTrie([row, { ...row, value: 'other' }]), /defines ".*" more than once/u);
+});
+
+test('the longest symbol wins when one symbol is a prefix of another', () => {
+  // No row in this slice is multi-cell, so the property is proved on a table that
+  // has one. `.` and `./` are the real pair this protects: the decimal point is a
+  // prefix of the division sign.
+  const trie = buildTrie([
+    { cells: asciiToCells('.'), kind: 'decimal', value: '.', banaRef: null },
+    { cells: asciiToCells('./'), kind: 'op', value: '\\div', banaRef: null }
+  ]);
+  const cells = asciiToCells('./a');
+  assert.deepEqual(
+    [matchAt(cells, 0, trie).kind, matchAt(cells, 0, trie).len],
+    ['op', 2]
+  );
+  assert.deepEqual([matchAt(asciiToCells('.a'), 0, trie).kind, matchAt(asciiToCells('.a'), 0, trie).len], [
+    'decimal',
+    1
+  ]);
 });
 
 test('matchAt is pure: repeated calls at the same index give the same answer', () => {

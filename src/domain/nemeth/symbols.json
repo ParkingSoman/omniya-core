@@ -57,8 +57,6 @@
     "cells": "⠬",
     "kind": "op",
     "value": "+",
-    "role": "binary",
-    "precedence": "additive",
     "banaRef": "20"
   },
   {

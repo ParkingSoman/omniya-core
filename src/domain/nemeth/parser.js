@@ -2,20 +2,24 @@
  * Token[] -> AST. Recursive descent, single pass, no backtracking, no modes.
  *
  * Grammar:
- *   expression     := relation
- *   relation       := additive ( REL additive )*
- *   additive       := multiplicative ( (+|-|±) multiplicative )*
- *   multiplicative := juxtaposition ( (×|÷) juxtaposition )*
- *   juxtaposition  := postfix+
- *   postfix        := primary script*
- *   primary        := Number | Identifier | Fraction | Root
+ *   expression := postfix ( OP? postfix )*
+ *   postfix    := primary script*
+ *   primary    := Number | Identifier | Fraction | Root
  *
- * The three binary tiers are one generic function driven by the `precedence`
- * field on the symbol row, so adding `×` is a row in symbols.json and no code
- * here. Juxtaposition is a plain run of `postfix` items collected into a
- * `Sequence`; it is deliberately NOT an alternative inside `multiplicative`,
- * because `Sequence` asserts no semantics and multiplication is a semantic
- * claim this stage has no grounds to make.
+ * `expression` is FLAT: one `Sequence` holding operands and operators in source
+ * order, never a nested one. There are no precedence tiers, because grouping by
+ * precedence is an assertion about operator binding, and Nemeth does not encode
+ * it -- the code is structurally explicit (this fraction has this numerator) and
+ * semantically silent (it never says that is division over the reals). The
+ * target is Presentation MathML, which is flat for the same reason:
+ * `<mrow><mi>a</mi><mo>+</mo><mi>b</mi></mrow>`. Tier nesting would have made
+ * `Sequence` -- the node whose contract is that it asserts nothing -- the one
+ * place binding got asserted.
+ *
+ * An operator between two operands is therefore optional and carries no weight:
+ * `a+b` and `ab` differ only in whether an `Operator` item sits between them.
+ * What the loop does still enforce is that an operator has an operand on each
+ * side, so `a+` and `+a` are refused rather than yielding a dangling item.
  *
  * Scripts are attached here, not in `levels.js`: a token at level `P + '^'`
  * belongs to the base parsed at level `P`, which is a prefix test on the
@@ -25,7 +29,8 @@
  *
  * Two productions of the designed grammar are absent because no symbol row can
  * reach them yet, and an unreachable branch is a place for a wrong guess to hide:
- * `unary := (+|-|±)? postfix`, which needs a row carrying a unary role, and
+ * `unary := (+|-|±)? postfix`, which needs a row marking an operator as usable
+ * as a prefix, and
  * `Fenced` in `primary`, which needs a grouping symbol. Both are additions to
  * this file when their rows arrive.
  */
@@ -42,9 +47,6 @@ import {
   Superscript
 } from './ast.js';
 import { NemethUnsupportedError } from './errors.js';
-
-// Outermost tier first. A row's `precedence` names the tier its operator binds at.
-const PRECEDENCE_TIERS = ['relation', 'additive', 'multiplicative'];
 
 const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'fracOpen', 'radOpen']);
 
@@ -170,34 +172,27 @@ function parsePostfix(state, level) {
 
 // -- expression --------------------------------------------------------------
 
-function parseJuxtaposition(state, level) {
-  const start = state.index;
-  const items = [parsePostfix(state, level)];
-  while (atLevel(state, level) && TERM_STARTS.has(peek(state).kind)) {
-    items.push(parsePostfix(state, level));
-  }
-  return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
-}
-
-function isOperatorAt(state, level, tier) {
+function isOperatorAt(state, level) {
   const token = peek(state);
-  return Boolean(token) && token.level === level && token.kind === 'op' && token.precedence === tier;
+  return Boolean(token) && token.level === level && token.kind === 'op';
 }
 
-function parseTier(state, tier, level) {
-  if (tier === PRECEDENCE_TIERS.length) return parseJuxtaposition(state, level);
-  const start = state.index;
-  const items = [parseTier(state, tier + 1, level)];
-  while (isOperatorAt(state, level, PRECEDENCE_TIERS[tier])) {
-    const token = advance(state);
-    items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));
-    items.push(parseTier(state, tier + 1, level));
-  }
-  return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
+function isTermAt(state, level) {
+  return atLevel(state, level) && TERM_STARTS.has(peek(state).kind);
 }
 
 function parseExpression(state, level) {
-  return parseTier(state, 0, level);
+  const start = state.index;
+  const items = [parsePostfix(state, level)];
+  while (isOperatorAt(state, level) || isTermAt(state, level)) {
+    if (isOperatorAt(state, level)) {
+      const token = advance(state);
+      items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));
+    }
+    // An operator must be followed by an operand; parsePostfix refuses if not.
+    items.push(parsePostfix(state, level));
+  }
+  return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
 }
 
 export function parse(tokens, context = {}) {

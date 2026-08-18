@@ -59,6 +59,18 @@ test('afterBaseline applies only to the token immediately after the indicator', 
   );
 });
 
+test('a level indicator after a baseline indicator clears afterBaseline', () => {
+  // In `"^a` the baseline indicator is superseded before it governs anything, so
+  // no baseline immediately precedes `a`. Rule 14.11.2 makes this field the sole
+  // carrier of `x_1^2` vs `(x_1)^2`, and it cannot be recovered once the
+  // indicators are stripped, so a stale `true` here would be unfixable later.
+  const tokens = resolveLevels(lex(asciiToCells('"^a')));
+  assert.deepEqual(
+    tokens.map((token) => [token.value, token.level, token.afterBaseline]),
+    [['a', '^', false]]
+  );
+});
+
 test('a level path deeper than the three components BANA Rule 2 enumerates is unsupported', () => {
   assert.throws(() => resolveLevels(lex(asciiToCells('n^^^^x'))), NemethUnsupportedError);
 });
