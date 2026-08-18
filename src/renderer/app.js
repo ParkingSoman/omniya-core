@@ -9,22 +9,15 @@ import {
   switchNapkin,
   updateItem
 } from '../domain/model.js';
-import { applyNemethSourceIntentToBraille } from './nemeth-braille-projection.js';
 import { applyUebBrailleLabel } from './ueb-braille-projection.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { createSixKeyInput } from './braille-input.js';
-import { createEmptyDraftMathDocument } from '../domain/guided-nemeth/index.js';
 import {
-  applyNemethCell,
-  applyNemethBoundary,
-  applyNemethChoice,
-  commitNemethLocalCode,
   cancelReplacement,
   setLatexSource,
   setReplacementMethod,
   startReplacementSession,
   submitReplacement,
-  undoNemethStep,
   replacementSessionHasDraftMath
 } from '../domain/replacement-session.js';
 import {
@@ -37,7 +30,25 @@ import {
   toggleUebGrade
 } from '../domain/authoring-state.js';
 import { createUebCellBuffer, isBrailleInsertEquationCell, pushUebCell } from '../domain/ueb-cell-buffer.js';
-import { isAllowedNemethCellInput } from '../domain/nemeth-cell-input.js';
+
+// The old incremental Nemeth engine and its Braille projection were deleted
+// in the nemeth-v2 rewrite (Task 0, see the SDD task briefs). A small batch
+// parser replaces it in Tasks 1-3, and app.js is re-wired to it in Task 5.
+// Until then Nemeth input is unavailable; see applyNemethSourceIntentToBraille,
+// createEmptyDraftMathDocument, and the composer's Nemeth entry points below
+// for the stubs standing in for it.
+
+/** Nemeth Braille projection is unavailable on this branch (Task 5 restores
+ * it). Previously this only ever *modified* an already-present SRE braille
+ * label with a source-linked BANA distinction; with no writer, it is the
+ * identity function. */
+function applyNemethSourceIntentToBraille(braille) {
+  return braille;
+}
+
+function createEmptyDraftMathDocument() {
+  return { formatVersion: 2, mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"></math>', focus: null };
+}
 
 const elements = Object.fromEntries([
   'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
@@ -846,22 +857,6 @@ function isComposerMathAuthoring() {
   return Boolean(replacementSession) && !replacementEditor && (mode === 'add' || mode === 'edit');
 }
 
-async function renderComposerDraftPreview() {
-  if (!isComposerMathAuthoring() || replacementSession?.method !== 'nemeth') return;
-  const itemId = editingItemId;
-  if (!itemId) return;
-  const article = elements['transcript'].querySelector(
-    `article.napkin-article[data-item-id="${CSS.escape(itemId)}"]`
-  );
-  const item = activeNapkin()?.items.find(({ id }) => id === itemId);
-  const content = article?.querySelector('.item-content');
-  if (!article || !item || !content) return;
-  await renderEquation(content, { ...item, math: replacementSession.draft }, ++transcriptRenderVersion);
-  // Keep the composer caret. Restoring explorer focus here steals Backspace
-  // from the draft the author is still editing.
-  elements['composer-source']?.focus();
-}
-
 function clearComposerMathSession() {
   if (replacementEditor) return;
   if (!replacementSession) return;
@@ -877,10 +872,15 @@ function ensureComposerMathSession() {
   if (replacementEditor) return;
   if (replacementSession) return;
   if ((commandState.surface ?? draft.type) !== 'equation') return;
-  const empty = createEmptyDraftMathDocument();
   replacementSession = startReplacementSession({
     document: null,
-    target: empty.focus,
+    // A brand-new equation draft has no original document to place into, so
+    // this target only needs to satisfy startReplacementSession's shape
+    // check: submitReplacement takes the "no originalDocument" branch and
+    // never reads it for placement. createEmptyDraftMathDocument()'s
+    // `focus` is null (there is no real draft to focus while Nemeth input
+    // is unavailable), so it cannot supply this.
+    target: { kind: 'node', nodeId: `omniya-${globalThis.crypto.randomUUID()}` },
     method: commandState.equationMethod || preferredAuthoringMethod
   });
   replacementSession.isNew = true;
@@ -894,28 +894,14 @@ function setComposerMathStatus(message) {
   elements['composer-status'].textContent = message ?? '';
 }
 
+/** Nemeth local-code disambiguation choices are unavailable on this branch
+ * (Task 5 restores them); this only ever needs to clear stale UI state. */
 function clearComposerNemethChoices() {
   const box = elements['composer-choices'];
   if (!box) return;
   box.replaceChildren();
   box.hidden = true;
   delete box.dataset.prefix;
-}
-
-function renderComposerNemethChoices(choices = [], prefix = '') {
-  const box = elements['composer-choices'];
-  if (!box) return;
-  box.dataset.prefix = prefix;
-  box.replaceChildren(...choices.map((choice) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'replacement-choice';
-    button.dataset.operationId = choice.operationId;
-    button.textContent = choice.label;
-    button.title = `BANA ${choice.banaRefs.join(', ')}`;
-    return button;
-  }));
-  box.hidden = choices.length === 0;
 }
 
 function isDocumentTextSurface() {
@@ -1410,38 +1396,12 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         replacementSession = setLatexSource(replacementSession, elements['composer-source'].value);
         draft.source = elements['composer-source'].value;
       }
-      if (replacementSession.method === 'nemeth' && replacementSession.nemethState?.prefix) {
-        const local = commitNemethLocalCode(replacementSession);
-        replacementSession = local.session;
-        if (local.status === 'applied') {
-          replacementHasContent = true;
-          elements['composer-source'].value = '';
-          draft.source = '';
-          clearComposerNemethChoices();
-          setComposerMathStatus(`Local code committed: ${local.announcement}`);
-          // Atomic / bounded local codes: Enter commits the construction only;
-          // the next Enter / n in Command mode submits the equation. Release the submit
-          // guard before draft preview so a follow-up Enter is not dropped.
-          if (local.localCommitPolicy !== 'immediate' && !allowAtomicSubmit) {
-            submittingComposerEquation = false;
-            await renderComposerDraftPreview();
-            elements['composer-source'].focus();
-            return;
-          }
-          await renderComposerDraftPreview();
-        } else if (local.status === 'choice') {
-          setComposerMathStatus(local.announcement);
-          renderComposerNemethChoices(local.choices, local.inputState?.prefix ?? replacementSession.nemethState?.prefix ?? '');
-          elements['composer-source'].focus();
-          return;
-        } else {
-          setFieldError(elements['composer-source'], elements['composer-error'], local.announcement);
-          elements['composer-source'].setAttribute('aria-invalid', 'true');
-          elements['composer-source'].focus();
-          return;
-        }
-      }
-  if (replacementDraftIsEmpty()) {
+      // Nemeth input is unavailable on this branch (Task 5 restores it), so
+      // there is no local-code prefix to commit here. A Nemeth-mode session
+      // always has an empty draft and falls through to the empty-draft
+      // rejection below, or (if reached directly) to submitReplacement's
+      // plain "Nemeth input is unavailable" error.
+      if (replacementDraftIsEmpty()) {
         const emptyMessage = editing || commandState.replaceScopeLabel
           ? 'Replacement draft is empty or incomplete.'
           : 'Enter Nemeth or LaTeX';
@@ -1679,81 +1639,6 @@ if (NOTES_UI_ENABLED) {
   elements['note-row'].hidden = true;
 }
 
-async function consumeComposerNemethCell(cell) {
-  if (!isComposerMathAuthoring()) return;
-  const editor = elements['composer-source'];
-  const result = (cell === ' ' || cell === '⠀')
-    ? applyNemethBoundary(replacementSession, 'space')
-    : applyNemethCell(replacementSession, cell);
-  replacementSession = result.session;
-  if (result.status === 'applied') {
-    replacementHasContent = true;
-    editor.value = '';
-    draft.source = '';
-    clearComposerNemethChoices();
-    setComposerMathStatus(`Draft updated: ${result.announcement}`);
-    editor.removeAttribute('aria-invalid');
-    setFieldError(editor, elements['composer-error']);
-    await renderComposerDraftPreview();
-    editor.focus();
-  } else if (result.status === 'pending' || result.status === 'choice') {
-    const prefix = replacementSession.nemethState?.prefix || '';
-    editor.value = prefix;
-    draft.source = prefix;
-    editor.setSelectionRange(prefix.length, prefix.length);
-    setComposerMathStatus(result.announcement);
-    editor.removeAttribute('aria-invalid');
-    setFieldError(editor, elements['composer-error']);
-    if (result.status === 'choice') {
-      renderComposerNemethChoices(
-        result.choices,
-        result.inputState?.prefix ?? replacementSession.nemethState?.prefix ?? ''
-      );
-    }
-    else clearComposerNemethChoices();
-  } else {
-    editor.value = replacementSession.nemethState?.prefix || '';
-    draft.source = editor.value;
-    clearComposerNemethChoices();
-    setFieldError(editor, elements['composer-error'], result.announcement);
-    editor.setAttribute('aria-invalid', 'true');
-  }
-  syncCommandContentEmpty();
-}
-
-async function chooseComposerNemethOperation(event) {
-  const button = event.target.closest?.('.replacement-choice');
-  if (!button || !isComposerMathAuthoring()) return;
-  const previousDraftMathML = replacementSession.draft.mathml;
-  const previousInputState = structuredClone(replacementSession.nemethState);
-  const result = applyNemethChoice(replacementSession, button.dataset.operationId);
-  replacementSession = result.session;
-  const committedChoice = result.status === 'applied' ||
-    (result.status === 'pending' && (
-      result.document?.mathml !== previousDraftMathML ||
-      JSON.stringify(result.inputState) !== JSON.stringify(previousInputState)
-    ));
-  if (!committedChoice) {
-    setComposerMathStatus(result.announcement);
-    return;
-  }
-  clearComposerNemethChoices();
-  const editor = elements['composer-source'];
-  if (result.status === 'applied') replacementHasContent = true;
-  editor.value = result.status === 'pending' ? (replacementSession.nemethState.prefix || '') : '';
-  draft.source = editor.value;
-  if (result.status === 'choice') {
-    renderComposerNemethChoices(
-      result.choices,
-      result.inputState?.prefix ?? replacementSession.nemethState?.prefix ?? ''
-    );
-  }
-  setComposerMathStatus(`Draft updated: ${result.announcement}`);
-  syncCommandContentEmpty();
-  await renderComposerDraftPreview();
-  editor.focus();
-}
-
 async function handleComposerMathInput() {
   if (!isComposerMathAuthoring()) return;
   const editor = elements['composer-source'];
@@ -1763,24 +1648,15 @@ async function handleComposerMathInput() {
     syncCommandContentEmpty();
     return;
   }
-  const knownPrefix = replacementSession.nemethState?.prefix || '';
-  const visible = editor.value;
-  const suffix = knownPrefix && visible.startsWith(knownPrefix)
-    ? visible.slice(knownPrefix.length)
-    : visible;
-  const cells = [...suffix];
-  composerMathInputProcessing = composerMathInputProcessing.then(async () => {
-    for (const cell of cells) await consumeComposerNemethCell(cell);
-    if (!cells.length && replacementSession?.nemethState?.prefix) {
-      const prefix = replacementSession.nemethState.prefix;
-      editor.value = prefix;
-      draft.source = prefix;
-      editor.setSelectionRange(prefix.length, prefix.length);
-    }
-  }).catch((error) => {
-    console.error('Nemeth composer input failed', error);
-  });
-  await composerMathInputProcessing;
+  // Nemeth input is unavailable on this branch (Task 5 restores it). Refuse
+  // whatever landed in the field instead of silently discarding it or
+  // falling back to LaTeX.
+  editor.value = '';
+  draft.source = '';
+  editor.setAttribute('aria-invalid', 'true');
+  setFieldError(editor, elements['composer-error'], 'Nemeth input is unavailable on this branch. Switch to LaTeX with Ctrl+L.');
+  setComposerMathStatus('Nemeth input is unavailable on this branch.');
+  syncCommandContentEmpty();
 }
 
 elements['composer-source'].addEventListener('input', () => {
@@ -1821,45 +1697,20 @@ elements['mode-switch'].addEventListener('change', () => {
 
 elements['composer-source'].addEventListener('keydown', (event) => {
   if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
-    if (
-      event.key.length === 1 &&
-      !event.metaKey && !event.ctrlKey && !event.altKey
-    ) {
-      if (!isAllowedNemethCellInput(event.key)) {
-        event.preventDefault();
-        event.stopPropagation();
-        elements['composer-source'].setAttribute('aria-invalid', 'true');
-        setFieldError(
-          elements['composer-source'],
-          elements['composer-error'],
-          'Nemeth mode accepts braille cells only. Switch to LaTeX with Ctrl+L while the draft is empty, or enter cells.'
-        );
-        return;
-      }
-      elements['composer-source'].removeAttribute('aria-invalid');
-      setFieldError(elements['composer-source'], elements['composer-error']);
-    }
-    if (event.key === 'Backspace') {
+    // Nemeth input is unavailable on this branch (Task 5 restores it).
+    // Refuse every cell keystroke and Backspace-undo with a clear message
+    // instead of accepting them into a draft that can never be submitted.
+    const isCellKeystroke = event.key === 'Backspace' ||
+      (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey);
+    if (isCellKeystroke) {
       event.preventDefault();
       event.stopPropagation();
-      composerMathInputProcessing = composerMathInputProcessing.catch(() => {}).then(async () => {
-        if (!isComposerMathAuthoring()) return;
-        const result = undoNemethStep(replacementSession);
-        replacementSession = result.session;
-        const prefix = result.session.nemethState?.prefix || '';
-        elements['composer-source'].value = prefix;
-        draft.source = prefix;
-        elements['composer-source'].setSelectionRange(prefix.length, prefix.length);
-        clearComposerNemethChoices();
-        setComposerMathStatus(result.announcement);
-        elements['composer-source'].toggleAttribute('aria-invalid', result.status === 'rejected');
-        if (result.status === 'undone') {
-          replacementHasContent = replacementSessionHasDraftMath(replacementSession) || Boolean(prefix);
-          await renderComposerDraftPreview();
-        }
-        syncCommandContentEmpty();
-        elements['composer-source'].focus();
-      });
+      elements['composer-source'].setAttribute('aria-invalid', 'true');
+      setFieldError(
+        elements['composer-source'],
+        elements['composer-error'],
+        'Nemeth input is unavailable on this branch. Switch to LaTeX with Ctrl+L.'
+      );
       return;
     }
   }
@@ -1871,9 +1722,10 @@ elements['composer-source'].addEventListener('keydown', (event) => {
   }
 });
 
-elements['composer-choices']?.addEventListener('click', (event) => {
-  void chooseComposerNemethOperation(event);
-});
+// The #composer-choices box only ever held Nemeth local-code disambiguation
+// buttons. Nemeth input is unavailable on this branch (Task 5 restores it,
+// along with this listener); nothing renders choices into the box now, so
+// there is nothing here to click.
 
 {
   // Composer UEB six-key is scoped to text Insert. Nemeth equation Insert gets

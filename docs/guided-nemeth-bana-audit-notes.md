@@ -1,5 +1,12 @@
 # Guided Nemeth registry audit notes
 
+> **Note:** the `guided-nemeth` implementation this file was written against has
+> been deleted (see Task 0 of the nemeth-v2 rewrite). This file survives only
+> for its BANA rule readings — the specific interpretations of Nemeth Code
+> rules recorded below. Any reading reused by the new parser must be
+> re-verified against the source PDFs before reuse; do not trust the old
+> implementation's behavior as evidence of correctness.
+
 This file records decisions made while auditing the local-operation registry
 against the normative sources:
 
