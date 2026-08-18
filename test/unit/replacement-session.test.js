@@ -6,21 +6,11 @@ import { importLatex } from '../../src/main/math-service.js';
 import { findMathNode, parseMathML } from '../../src/domain/math-tree.js';
 import {
   startReplacementSession,
-  applyNemethCell,
-  applyNemethBoundary,
-  applyNemethChoice,
-  commitNemethLocalCode,
-  undoNemethStep,
-  replacementSessionHasDraftMath,
   cancelReplacement,
   submitReplacement,
   setLatexSource,
   setReplacementMethod
 } from '../../src/domain/replacement-session.js';
-
-function replacementSession() {
-  return startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
-}
 
 test('replacement drafts start empty and cancel without mutating the source document', async () => {
   const document = await importLatex('x+x');
@@ -30,23 +20,13 @@ test('replacement drafts start empty and cancel without mutating the source docu
     document,
     target: { kind: 'node', nodeId: target },
     explorerFocus: { semanticId: '3', speech: 'x', nemeth: '⠭' },
-    method: 'nemeth'
+    method: 'latex'
   });
 
   assert.equal(parseMathML(session.draft.mathml).children.length, 0);
   const cancelled = cancelReplacement(session);
   assert.equal(cancelled.document.mathml, document.mathml);
   assert.deepEqual(cancelled.focus, { kind: 'node', nodeId: target });
-});
-
-test('committing a held Nemeth local code carries the immutable draft into the active session', () => {
-  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
-  for (const cell of ['⠫', '⠒', '⠒', '⠕']) session = applyNemethCell(session, cell).session;
-  const committed = commitNemethLocalCode(session);
-  assert.equal(committed.status, 'applied');
-  session = committed.session;
-  assert.equal(session.draft.mathml, committed.document.mathml);
-  assert.deepEqual(session.draftFocus, committed.focus);
 });
 
 test('LaTeX replacement spans multiple tokens and commits one exact subtree', async () => {
@@ -149,7 +129,7 @@ test('append beside a superscript wraps that node instead of breaking msup', asy
   assert.equal(msup.children[1].children[0].children[0].text, '3');
 });
 
-test('incomplete or empty replacement drafts cannot commit', async () => {
+test('an empty LaTeX replacement draft cannot commit', async () => {
   const document = await importLatex('x');
   const tree = parseMathML(document.mathml);
   const target = tree.children[0].attrs['data-omniya-id'];
@@ -157,29 +137,10 @@ test('incomplete or empty replacement drafts cannot commit', async () => {
     document,
     target: { kind: 'node', nodeId: target },
     explorerFocus: null,
-    method: 'nemeth'
+    method: 'latex'
   });
 
-  await assert.rejects(() => submitReplacement(session), /empty|incomplete/i);
-});
-
-test('Nemeth and LaTeX sessions use the same replacement commit path', async () => {
-  const document = await importLatex('x+x');
-  const tree = parseMathML(document.mathml);
-  const target = tree.children[2].attrs['data-omniya-id'];
-  let session = startReplacementSession({
-    document,
-    target: { kind: 'node', nodeId: target },
-    explorerFocus: null,
-    method: 'nemeth'
-  });
-  for (const value of ['⠹', '⠁', '⠌', '⠃', '⠼']) {
-    const result = applyNemethCell(session, value);
-    assert.notEqual(result.status, 'rejected', result.announcement);
-    session = result.session;
-  }
-  const committed = await submitReplacement(session, { convertLatexToMathML });
-  assert.equal(parseMathML(committed.document.mathml).children[2].name, 'mfrac');
+  await assert.rejects(() => submitReplacement(session, { convertLatexToMathML }), /empty/i);
 });
 
 test('authoring method can change only before the replacement draft receives input', async () => {
@@ -190,262 +151,25 @@ test('authoring method can change only before the replacement draft receives inp
   assert.equal(session.method, 'latex');
   session = setReplacementMethod(session, 'nemeth');
   assert.equal(session.method, 'nemeth');
-  const pending = applyNemethCell(session, '⠼');
-  assert.equal(pending.status, 'pending');
-  assert.throws(() => setReplacementMethod(pending.session, 'latex'), /before entering content/i);
+  session = setReplacementMethod(session, 'latex');
+  session = setLatexSource(session, 'x^2');
+  assert.throws(() => setReplacementMethod(session, 'nemeth'), /before entering content/i);
 });
 
-test('Enter commits one atomic Nemeth code before replacement submission', () => {
-  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
-  for (const cell of ['⠫', '⠒', '⠕']) session = applyNemethCell(session, cell).session;
-  assert.match(session.draft.mathml, /<math[^>]*\/>/);
-  const committed = commitNemethLocalCode(session);
-  assert.equal(committed.status, 'applied');
-  assert.match(committed.session.draft.mathml, />⇢</);
-  assert.equal(committed.session.nemethState.prefix, '');
-});
+// Nemeth input authoring was torn out in the nemeth-v2 rewrite (Task 0); Task 5
+// re-adds it. `method: 'nemeth'` remains a valid session shape (see the test
+// above) so that work does not have to rebuild this plumbing, but a session
+// left in Nemeth mode has no way to gather content and must refuse to submit.
+test('a Nemeth-mode session refuses to submit: Nemeth input is unavailable on this branch', async () => {
+  const document = await importLatex('x');
+  const tree = parseMathML(document.mathml);
+  const target = tree.children[0].attrs['data-omniya-id'];
+  const session = startReplacementSession({
+    document,
+    target: { kind: 'node', nodeId: target },
+    explorerFocus: null,
+    method: 'nemeth'
+  });
 
-test('a pending next local code retains an immediately committed preceding token', () => {
-  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
-  session = applyNemethCell(session, '⠭').session;
-  session = applyNemethCell(session, '⠬').session;
-  const result = applyNemethCell(session, '⠁');
-  assert.equal(result.status, 'pending');
-  assert.equal(result.session.nemethState.prefix, '⠁');
-  assert.match(result.session.draft.mathml, /<mo[^>]*>\+<\/mo>/);
-});
-
-test('a focus-only Nemeth choice updates the replacement session focus', () => {
-  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
-  for (const cell of ['⠭', '⠘', '⠆', '⠐']) session = applyNemethCell(session, cell).session;
-  const scriptFocus = session.draftFocus.nodeId;
-  const result = applyNemethChoice(session, 'script.baseline');
-  assert.notEqual(result.session.draftFocus.nodeId, scriptFocus);
-  assert.equal(result.session.draftFocus.nodeId, parseMathML(result.session.draft.mathml).attrs['data-omniya-id']);
-});
-
-test('a pending operator after a script baseline preserves the returned focus', () => {
-  let session = startReplacementSession({ target: { kind: 'node', nodeId: 'root' }, method: 'nemeth' });
-  for (const cell of ['⠭', '⠘', '⠆', '⠐', '⠤']) session = applyNemethCell(session, cell).session;
-  assert.equal(session.draftFocus.nodeId, parseMathML(session.draft.mathml).attrs['data-omniya-id']);
-});
-
-test('a visible blank flushes tally marks held with a comma indicator', () => {
-  let session = replacementSession();
-  for (const cell of ['⠸', '⠸', '⠸', '⠸', '⠸', '⠠']) {
-    session = applyNemethCell(session, cell).session;
-  }
-  assert.equal(session.nemethState.prefix, '⠸⠠');
-
-  const result = applyNemethBoundary(session, 'space');
-
-  assert.equal(result.status, 'applied', result.announcement);
-  assert.equal(result.session.nemethState.prefix, '');
-  const kids = parseMathML(result.session.draft.mathml).children;
-  assert.equal(kids.filter((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠸').length, 5);
-  assert.ok(kids.some((node) => node.children?.[0]?.text === ','));
-  assert.ok(kids.some((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'explicit-space'));
-});
-
-test('Rule 24-18 submits after blank boundaries flush tally punctuation', async () => {
-  let session = replacementSession();
-  const cells = ['⠸', '⠸', '⠸', '⠸', '⠸', '⠠', '⠀', '⠸', '⠸', '⠸', '⠸', '⠐', '⠸', '⠲', '⠀', '⠄', '⠄', '⠄'];
-  for (const cell of cells) {
-    let result = (cell === '⠀' || cell === ' ')
-      ? applyNemethBoundary(session, 'space')
-      : applyNemethCell(session, cell);
-    if (result.status === 'choice') {
-      const picked = result.choices.find((choice) => choice.operationId === 'punctuation.ellipsis')
-        ?? result.choices[0];
-      result = applyNemethChoice(result.session, picked.operationId);
-    }
-    assert.notEqual(result.status, 'rejected', `${cell}: ${result.announcement}`);
-    session = result.session;
-  }
-  const committed = await submitReplacement(session);
-  const tree = parseMathML(committed.document.mathml);
-  assert.equal(tree.children.some((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-period'), true);
-  const period = tree.children.find((node) => node.attrs?.['data-omniya-nemeth-intent'] === 'punctuation-period');
-  assert.equal(period?.attrs?.['data-omniya-nemeth-cells'], '⠐⠸⠲');
-  assert.equal(tree.children.some((node) => node.attrs?.['data-omniya-nemeth-cells'] === '⠄⠄⠄'), true);
-});
-
-test('a boundary held behind an equality code commits equals then inserts the blank', () => {
-  let session = replacementSession();
-  for (const cell of ['⠨', '⠅']) session = applyNemethCell(session, cell).session;
-
-  const boundary = applyNemethBoundary(session, 'space');
-  assert.equal(boundary.status, 'applied', boundary.announcement);
-  assert.match(boundary.session.draft.mathml, /<mo[^>]*>=<\/mo>/);
-  assert.match(boundary.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
-
-  const question = applyNemethCell(boundary.session, '⠿');
-  assert.equal(question.status, 'applied');
-  assert.deepEqual(parseMathML(question.session.draft.mathml).children.map(({ name, children }) => ({
-    name,
-    text: children?.[0]?.text ?? null
-  })), [
-    { name: 'mo', text: '=' },
-    { name: 'mspace', text: null },
-    { name: 'mo', text: '?' }
-  ]);
-});
-
-test('a dot-6 punctuation prefix resolves as punctuation at a visible blank', () => {
-  let session = replacementSession();
-  session = applyNemethCell(session, '⠠').session;
-
-  const result = applyNemethBoundary(session, 'space');
-
-  assert.equal(result.status, 'applied');
-  assert.match(result.session.draft.mathml, /<mo[^>]*>‚?<\/mo>|<mo[^>]*>,<\/mo>/);
-  assert.match(result.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"/);
-});
-
-test('a blank after superscript punctuation returns to the group and preserves the next lower-cell number boundary', () => {
-  let session = replacementSession();
-  const opener = applyNemethCell(session, '⠷');
-  const group = applyNemethChoice(opener.session, 'group.round');
-  assert.equal(group.status, 'applied');
-  session = group.session;
-  for (const cell of ['⠒', '⠎', '⠊', '⠝']) session = applyNemethCell(session, cell).session;
-  session = applyNemethBoundary(session, 'space').session;
-  for (const cell of ['⠼', '⠒', '⠴', '⠘', '⠨', '⠡', '⠠']) session = applyNemethCell(session, cell).session;
-
-  const boundary = applyNemethBoundary(session, 'space');
-  assert.equal(boundary.status, 'applied');
-  assert.match(boundary.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"[^>]*data-omniya-source-space="true"/);
-
-  const nextNumber = applyNemethCell(boundary.session, '⠒');
-  assert.equal(nextNumber.status, 'applied');
-  assert.match(nextNumber.session.draft.mathml, /<mspace[^>]*data-omniya-nemeth-intent="explicit-space"[^>]*\/><mn[^>]*data-omniya-nemeth-intent="lower-cell-numeric"[^>]*>3<\/mn>/);
-});
-
-test('a blank does not mutate an incomplete atomic local code', () => {
-  let session = replacementSession();
-  for (const cell of ['⠫', '⠒', '⠒']) session = applyNemethCell(session, cell).session;
-  const before = structuredClone(session);
-
-  const result = applyNemethBoundary(session, 'space');
-
-  assert.equal(result.status, 'rejected');
-  assert.equal(result.session.draft.mathml, before.draft.mathml);
-  assert.deepEqual(result.session.draftFocus, before.draftFocus);
-  assert.deepEqual(result.session.nemethState, before.nemethState);
-});
-
-test('a valid longer prefix remains pending until its next non-space cell', () => {
-  let session = replacementSession();
-  const prefix = applyNemethCell(session, '⠬');
-  assert.equal(prefix.status, 'pending');
-  assert.equal(prefix.session.nemethState.prefix, '⠬');
-
-  const continuation = applyNemethCell(prefix.session, '⠹');
-  assert.equal(continuation.status, 'applied');
-  assert.equal(continuation.session.nemethState.prefix, '');
-  assert.match(continuation.session.draft.mathml, /<mo[^>]*>\+<\/mo>/);
-});
-
-test('a nested second-order superscript submits without an unfilled hole', async () => {
-  let session = replacementSession();
-  for (const value of ['⠝', '⠘', '⠭', '⠘', '⠘', '⠽']) {
-    const result = applyNemethCell(session, value);
-    if (result.status === 'choice') {
-      session = applyNemethChoice(result.session, 'script.superscript').session;
-    } else {
-      assert.notEqual(result.status, 'rejected', result.announcement);
-      session = result.session;
-    }
-  }
-  const committed = await submitReplacement(session);
-  assert.match(committed.document.mathml, /<msup[\s\S]*<mi[^>]*>n<\/mi>[\s\S]*<msup[\s\S]*<mi[^>]*>x<\/mi>[\s\S]*<mi[^>]*>y<\/mi>/);
-  assert.equal(committed.document.mathml.includes('data-omniya-hole'), false);
-});
-
-test('a five-step modifier over a superscript submits without an unfilled hole', async () => {
-  let session = replacementSession();
-  for (const value of ['⠐', '⠭', '⠘', '⠆', '⠐', '⠣', '⠱', '⠻']) {
-    const result = applyNemethCell(session, value);
-    if (result.status === 'choice') {
-      session = applyNemethChoice(result.session, 'script.baseline').session;
-    } else {
-      assert.notEqual(result.status, 'rejected', result.announcement);
-      session = result.session;
-    }
-  }
-  const committed = await submitReplacement(session);
-  assert.match(committed.document.mathml, /<mover[\s\S]*<msup[\s\S]*<mi[^>]*>x<\/mi>[\s\S]*<mn[^>]*>2<\/mn>/);
-  assert.equal(committed.document.mathml.includes('data-omniya-hole'), false);
-});
-
-test('Rule 16-8 lone radical submits as radical-sign without a radicand hole', async () => {
-  let session = replacementSession();
-  const opened = applyNemethCell(session, '⠜');
-  assert.equal(opened.status, 'applied', opened.announcement);
-  session = opened.session;
-  assert.match(session.draft.mathml, /<msqrt/);
-  const committed = await submitReplacement(session);
-  assert.match(committed.document.mathml, /data-omniya-nemeth-intent="radical-sign"/);
-  assert.equal(committed.document.mathml.includes('data-omniya-hole'), false);
-  assert.equal(committed.document.mathml.includes('<msqrt'), false);
-});
-
-test('undoNemethStep rejects when the draft has no prior Nemeth input', () => {
-  const session = replacementSession();
-  const undone = undoNemethStep(session);
-  assert.equal(undone.status, 'rejected');
-  assert.match(undone.announcement, /nothing to undo/i);
-  assert.equal(undone.session.draft.mathml, session.draft.mathml);
-});
-
-test('undoNemethStep removes the last applied immediate cell from the draft', () => {
-  let session = replacementSession();
-  session = applyNemethCell(session, '⠭').session;
-  session = applyNemethCell(session, '⠽').session;
-  assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
-  assert.match(session.draft.mathml, /<mi[^>]*>y<\/mi>/);
-
-  const undone = undoNemethStep(session);
-  assert.equal(undone.status, 'undone');
-  session = undone.session;
-  assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
-  assert.equal(session.draft.mathml.includes('>y<'), false);
-  assert.equal(replacementSessionHasDraftMath(session), true);
-
-  const emptied = undoNemethStep(session);
-  assert.equal(emptied.status, 'undone');
-  assert.equal(parseMathML(emptied.session.draft.mathml).children.length, 0);
-  assert.equal(replacementSessionHasDraftMath(emptied.session), false);
-});
-
-test('undoNemethStep clears a pending operator after an applied letter', () => {
-  let session = replacementSession();
-  session = applyNemethCell(session, '⠭').session;
-  const pending = applyNemethCell(session, '⠬');
-  assert.equal(pending.status, 'pending');
-  session = pending.session;
-  assert.equal(session.nemethState.prefix, '⠬');
-  assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
-
-  session = undoNemethStep(session).session;
-  assert.equal(session.nemethState.prefix, '');
-  assert.match(session.draft.mathml, /<mi[^>]*>x<\/mi>/);
-});
-
-test('undoNemethStep clears a pending atomic prefix one cell at a time', () => {
-  let session = replacementSession();
-  for (const cell of ['⠫', '⠒', '⠒']) {
-    const result = applyNemethCell(session, cell);
-    assert.equal(result.status, 'pending', result.announcement);
-    session = result.session;
-  }
-  assert.equal(session.nemethState.prefix, '⠫⠒⠒');
-
-  session = undoNemethStep(session).session;
-  assert.equal(session.nemethState.prefix, '⠫⠒');
-  session = undoNemethStep(session).session;
-  assert.equal(session.nemethState.prefix, '⠫');
-  session = undoNemethStep(session).session;
-  assert.equal(session.nemethState.prefix, '');
-  assert.equal(undoNemethStep(session).status, 'rejected');
+  await assert.rejects(() => submitReplacement(session), /Nemeth input is unavailable on this branch/);
 });

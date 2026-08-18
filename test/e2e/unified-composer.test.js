@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { _electron as electron } from 'playwright';
-import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv, waitForDocumentComposer } from './launch-electron.js';
+import { addEquationViaComposer, chooseType, electronLaunchEnv, waitForDocumentComposer } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -35,6 +35,11 @@ async function enterCommand(page) {
   await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
 }
 
+// Nemeth authoring was torn out in the nemeth-v2 rewrite (Task 0); Task 5
+// re-adds it along with the tests that exercised it. Only tests that never
+// depend on a working Nemeth draft (mode/UI plumbing, empty-draft rejection,
+// pure LaTeX replacement) survive here.
+
 test('command x keeps composer-source visible', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-unified-x-');
   t.after(() => app.close().catch(() => {}));
@@ -58,25 +63,6 @@ test('Equation radio keeps composer-source visible', { timeout: 60_000 }, async 
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 });
 
-test('equation Nemeth in composer commits without replacement dock', { timeout: 90_000 }, async (t) => {
-  const { app, page } = await launch('omniya-unified-nemeth-');
-  t.after(() => app.close().catch(() => {}));
-  await openComposer(page);
-  await enterCommand(page);
-  await page.keyboard.type('x'); // Equation Nemeth
-  await page.keyboard.type('i');
-  await page.locator('#composer-source').focus();
-  // Immediate letter.x cell — same fixture used by inline-editing / replacement-session tests.
-  await page.keyboard.type('⠭');
-  await page.waitForFunction(() => /letter\.x|Draft updated/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
-  assert.doesNotMatch(await page.locator('#save-status').textContent() ?? '', /Draft updated|letter\.x/i);
-  await page.keyboard.press('Control+[');
-  await page.keyboard.type('n');
-  await page.locator('article.napkin-article').first().waitFor({ timeout: 15_000 });
-  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-});
-
 test('empty equation submit refuses without opening replacement dock', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-unified-empty-eq-');
   t.after(() => app.close().catch(() => {}));
@@ -88,41 +74,6 @@ test('empty equation submit refuses without opening replacement dock', { timeout
   assert.equal(await page.locator('#composer-dock').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
   assert.equal(await page.locator('article.napkin-article').count(), 0);
-});
-
-test('atomic Nemeth arrow needs a second Enter to commit from composer', { timeout: 90_000 }, async (t) => {
-  const { app, page } = await launch('omniya-unified-atomic-');
-  t.after(() => app.close().catch(() => {}));
-  await openComposer(page);
-  await chooseType(page, 'equation');
-  await page.locator('#composer-source').focus();
-  // Uncontracted right arrow — bounded atomic; first Enter commits local only.
-  await page.locator('#composer-source').fill('⠫⠒⠒⠕');
-  await page.waitForFunction(() => document.querySelector('#composer-source')?.value === '⠫⠒⠒⠕');
-  await page.keyboard.press('Enter');
-  await page.waitForFunction(() => /Local code committed/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.locator('article.napkin-article').count(), 0);
-  await page.keyboard.press('Enter');
-  await page.locator('article.napkin-article').first().waitFor({ timeout: 15_000 });
-  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-});
-
-test('composer shows Nemeth choice buttons for left-subscript ambiguity', { timeout: 90_000 }, async (t) => {
-  const { app, page } = await launch('omniya-unified-choice-');
-  t.after(() => app.close().catch(() => {}));
-  await openComposer(page);
-  await chooseType(page, 'equation');
-  await page.locator('#composer-source').focus();
-  // Dot-6 then x is ambiguous with English-letter indicator vs left-subscript.
-  await page.locator('#composer-source').fill('⠰');
-  await page.locator('#composer-source').fill('⠭');
-  await page.getByRole('button', { name: 'Begin left-subscript construction' }).waitFor({ timeout: 10_000 });
-  assert.equal(await page.locator('#composer-choices:not([hidden]) .replacement-choice').count() > 0, true);
-  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-  await page.getByRole('button', { name: 'Begin left-subscript construction' }).click();
-  await page.waitForFunction(() => /letter\.x|Draft updated/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
 });
 
 test('r opens unified composer for subtree replace', { timeout: 90_000 }, async (t) => {
@@ -163,27 +114,4 @@ test('a opens append composer on a focused equation', { timeout: 60_000 }, async
   await page.locator('#composer-dock').waitFor();
   assert.match(await page.locator('#composer-heading').textContent(), /Appending after/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
-});
-
-test('Backspace undoes the last applied Nemeth draft cell while the composer stays open', { timeout: 90_000 }, async (t) => {
-  const { app, page } = await launch('omniya-unified-backspace-');
-  t.after(() => app.close().catch(() => {}));
-  await openComposer(page);
-  await chooseType(page, 'equation');
-  await page.locator('#composer-source').focus();
-  await page.keyboard.type('⠭');
-  await page.waitForFunction(() => /Draft updated: letter\.x/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
-  await page.keyboard.type('⠽');
-  await page.waitForFunction(() => /Draft updated: letter\.y/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
-
-  await page.keyboard.press('Backspace');
-  await page.waitForFunction(() => /Undid last Nemeth input/i.test(document.querySelector('#composer-status')?.textContent ?? ''));
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-
-  await page.keyboard.press('Control+[');
-  await page.keyboard.type('n');
-  const article = page.locator('article.napkin-article').first();
-  await article.waitFor({ timeout: 15_000 });
-  assert.equal(await article.locator('math mi').count(), 1);
-  assert.equal(await article.locator('math mi').textContent(), 'x');
 });
