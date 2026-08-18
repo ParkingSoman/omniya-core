@@ -6,15 +6,63 @@
     "banaRef": null
   },
   {
+    "cells": "⠴",
+    "kind": "digit",
+    "value": "0",
+    "banaRef": "3.1.2"
+  },
+  {
+    "cells": "⠂",
+    "kind": "digit",
+    "value": "1",
+    "banaRef": "3.1.2"
+  },
+  {
     "cells": "⠆",
     "kind": "digit",
     "value": "2",
     "banaRef": "3.1.2"
   },
   {
+    "cells": "⠒",
+    "kind": "digit",
+    "value": "3",
+    "banaRef": "3.1.2"
+  },
+  {
+    "cells": "⠲",
+    "kind": "digit",
+    "value": "4",
+    "banaRef": "3.1.2"
+  },
+  {
+    "cells": "⠢",
+    "kind": "digit",
+    "value": "5",
+    "banaRef": "3.1.2"
+  },
+  {
+    "cells": "⠖",
+    "kind": "digit",
+    "value": "6",
+    "banaRef": "3.1.2"
+  },
+  {
     "cells": "⠶",
     "kind": "digit",
     "value": "7",
+    "banaRef": "3.1.2"
+  },
+  {
+    "cells": "⠦",
+    "kind": "digit",
+    "value": "8",
+    "banaRef": "3.1.2"
+  },
+  {
+    "cells": "⠔",
+    "kind": "digit",
+    "value": "9",
     "banaRef": "3.1.2"
   },
   {
@@ -36,9 +84,123 @@
     "banaRef": null
   },
   {
+    "cells": "⠙",
+    "kind": "letter",
+    "value": "d",
+    "banaRef": null
+  },
+  {
+    "cells": "⠑",
+    "kind": "letter",
+    "value": "e",
+    "banaRef": null
+  },
+  {
+    "cells": "⠋",
+    "kind": "letter",
+    "value": "f",
+    "banaRef": null
+  },
+  {
+    "cells": "⠛",
+    "kind": "letter",
+    "value": "g",
+    "banaRef": null
+  },
+  {
+    "cells": "⠓",
+    "kind": "letter",
+    "value": "h",
+    "banaRef": null
+  },
+  {
+    "cells": "⠊",
+    "kind": "letter",
+    "value": "i",
+    "banaRef": null
+  },
+  {
+    "cells": "⠚",
+    "kind": "letter",
+    "value": "j",
+    "banaRef": null
+  },
+  {
+    "cells": "⠅",
+    "kind": "letter",
+    "value": "k",
+    "banaRef": null
+  },
+  {
+    "cells": "⠇",
+    "kind": "letter",
+    "value": "l",
+    "banaRef": null
+  },
+  {
+    "cells": "⠍",
+    "kind": "letter",
+    "value": "m",
+    "banaRef": null
+  },
+  {
     "cells": "⠝",
     "kind": "letter",
     "value": "n",
+    "banaRef": null
+  },
+  {
+    "cells": "⠕",
+    "kind": "letter",
+    "value": "o",
+    "banaRef": null
+  },
+  {
+    "cells": "⠏",
+    "kind": "letter",
+    "value": "p",
+    "banaRef": null
+  },
+  {
+    "cells": "⠟",
+    "kind": "letter",
+    "value": "q",
+    "banaRef": null
+  },
+  {
+    "cells": "⠗",
+    "kind": "letter",
+    "value": "r",
+    "banaRef": null
+  },
+  {
+    "cells": "⠎",
+    "kind": "letter",
+    "value": "s",
+    "banaRef": null
+  },
+  {
+    "cells": "⠞",
+    "kind": "letter",
+    "value": "t",
+    "banaRef": null
+  },
+  {
+    "cells": "⠥",
+    "kind": "letter",
+    "value": "u",
+    "banaRef": null
+  },
+  {
+    "cells": "⠧",
+    "kind": "letter",
+    "value": "v",
+    "banaRef": null
+  },
+  {
+    "cells": "⠺",
+    "kind": "letter",
+    "value": "w",
     "banaRef": null
   },
   {
@@ -51,6 +213,12 @@
     "cells": "⠽",
     "kind": "letter",
     "value": "y",
+    "banaRef": null
+  },
+  {
+    "cells": "⠵",
+    "kind": "letter",
+    "value": "z",
     "banaRef": null
   },
   {

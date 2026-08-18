@@ -76,6 +76,61 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'The <mmultiscripts>-encoded twin does not, because we never emit <mmultiscripts> -- ' +
       'both are valid forward-map preimages of the same cells.'
   },
+  'mathcat-rules:as_multiscript_nested_sub_sup_74_c_5': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Same shape again: cells `⠝⠘⠭⠘⠰⠁⠘⠰⠰⠚` also appear as "nested_sub_sup_74_c_5", whose ' +
+      '<msup>/<msub>-nested target is exactly our `n^{x_{a_{j}}}` and which PASSes. The ' +
+      '<mmultiscripts>-encoded twin cannot, since this pipeline never emits <mmultiscripts>.'
+  },
+  'mathcat-rules:mmultiscripts_82_a_3': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠭⠂⠘⠆` (BANA Example 14-123, simultaneous subscript 1 and superscript 2). The ' +
+      'twin "msubsup_82_a_3" carries the <msubsup> encoding of the same mathematics and ' +
+      'PASSes on our `x_{1}^{2}`; this entry carries the <mmultiscripts> encoding of it. The ' +
+      'implicit-subscript gap that used to make BOTH twins disagree is fixed -- what is left ' +
+      'is the encoding choice alone.'
+  },
+  'mathcat-rules:mmultiscripts_82_b_1': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠁⠘⠝⠐⠰⠍` (BANA Example 14-124, non-simultaneous: (a^n) sub m). The twin ' +
+      '"sub_sup_82_b_1" spells that <msub><msup>...</msup></msub> and PASSes on our ' +
+      '`{a^{n}}_{m}`; this entry spells the identical tree as <mmultiscripts> with two ' +
+      'postscript pairs. Both twins disagreed before Rule 14.11.2 was implemented; only the ' +
+      'encoding difference survives.'
+  },
+  'mathcat-rules:mmultiscripts_82_b_2': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠁⠰⠍⠐⠘⠝`, the mirror of mmultiscripts_82_b_1 (BANA Example 14-125: (a sub m) ' +
+      'sup n). Twin "sub_sup_82_b_2" holds the <msup><msub> encoding and PASSes on our ' +
+      '`{a_{m}}^{n}`; this entry holds the <mmultiscripts> one.'
+  },
+  'mathcat-rules:mmultiscripts_82_b_5': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠭⠂⠐⠘⠆`, BANA Example 14-128 verbatim ((x sub 1) sup 2). Unlike the three ' +
+      'entries above this case has NO twin in the corpus, so the claim is verified directly ' +
+      'instead: the target is <mmultiscripts><mi>x</mi><mn>1</mn><none/><none/><mn>2</mn>' +
+      '</mmultiscripts>, i.e. two postscript pairs, and our `{x_{1}}^{2}` compares EQUAL ' +
+      'under this gate\'s own mathmlEquivalent to the nested spelling of that same tree, ' +
+      '<msup><msub><mi>x</mi><mn>1</mn></msub><mn>2</mn></msup> -- the identical relationship ' +
+      'the 82_b_1/82_b_2 twins make visible. The mathematics matches; only the encoding does not.'
+  },
+  'mathcat-rules:multipurpose_177_2_1': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠭⠐⠢` (BANA Example 24-1). Rule 24.1.b says only that the multipurpose ' +
+      'indicator makes the numeral NOT a subscript; it does not say whether the result is one ' +
+      'identifier or two juxtaposed terms, and the corpus itself contains both readings of ' +
+      'the same cell shape: this case targets <mi>x5</mi>, while "no_num_ind_11_e_3" targets ' +
+      '<mi>r</mi><mn>5</mn> for `⠗⠐⠢` and PASSes on our `r5`. Our parser reads the shape ' +
+      'juxtaposed in both, matching one MathCAT case and disagreeing with the other -- the ' +
+      'cells cannot settle which was meant. LaTeX also has no way to spell a two-character ' +
+      '<mi>, so the identifier reading is not emittable regardless.'
+  },
   // Sub-cause: formatting-only difference. A leading/trailing non-breaking
   // space is print formatting, not mathematics, so Nemeth correctly drops
   // it -- all three MathML inputs below forward-map to the identical cells
@@ -108,10 +163,28 @@ const MANY_TO_ONE_FORWARD_MAP = {
   'mathcat-rules:number_space_before_and_after': {
     cause: 'formatting-only',
     reason: 'Same cells (`⠼⠆`) again; target adds <mtext>&#xA0;</mtext> on both sides, which the cells likewise cannot encode.'
+  },
+  // Sub-cause: unencoded boundary. The forward map ran two adjacent elements
+  // together and the braille has no cell at the seam, so the boundary is not
+  // recoverable by anything -- not a different encoding of the same tree, and
+  // not non-mathematical detail either. Kept as its own sub-cause rather than
+  // stretched into one of the two above, because it is the one kind of collapse
+  // where our answer really is different mathematics from the target and the
+  // reason is still not a parser bug.
+  'sre-aata:AataExpression_97': {
+    cause: 'unencoded-boundary',
+    reason:
+      'Cells `⠼⠂⠂⠆⠂⠒⠢⠆⠢⠴⠒⠆⠲⠲⠆`: one numeric indicator followed by 14 unbroken digit cells. ' +
+      'The corpus target is three adjacent numerals, <mn>112135</mn><mn>25032</mn><mn>442</mn>, ' +
+      'with no operator, fence or space between them -- and these cells are SRE\'s own recorded ' +
+      'output for that input (source `sre-aata`, expected/nemeth/rules/aata.json), so the ' +
+      'boundaries genuinely did not survive the forward map. No cell marks 112135|25032|442 ' +
+      'rather than 1|1213525032442 or the single numeral we read, so there is nothing for a ' +
+      'reverse parser to key on. Verified against the corpus record, not inferred.'
   }
 };
 
-const MANY_TO_ONE_CAUSES = new Set(['equivalent-encoding', 'formatting-only']);
+const MANY_TO_ONE_CAUSES = new Set(['equivalent-encoding', 'formatting-only', 'unencoded-boundary']);
 
 // No ERROR cases exist today. Kept as a real allowlist (not just an
 // `assert.equal(0)`) so the same discipline applies if one ever appears:
@@ -121,7 +194,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 9;
+const PASS_BASELINE = 81;
 
 test('every corpus case lands in exactly one bucket, and the buckets sum to the corpus size', () => {
   const sum = coverage.totals.PASS + coverage.totals.REFUSE + coverage.totals.DISAGREE + coverage.totals.ERROR;
@@ -154,11 +227,46 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the two many-to-one sub-causes are both represented as expected (2 equivalent-encoding, 3 formatting-only)', () => {
-  const byCause = { 'equivalent-encoding': 0, 'formatting-only': 0 };
+test('DISAGREE: the many-to-one sub-causes are represented as expected (8 equivalent-encoding, 3 formatting-only, 1 unencoded-boundary)', () => {
+  const byCause = { 'equivalent-encoding': 0, 'formatting-only': 0, 'unencoded-boundary': 0 };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
-  assert.equal(byCause['equivalent-encoding'], 2);
+  assert.equal(byCause['equivalent-encoding'], 8);
   assert.equal(byCause['formatting-only'], 3);
+  assert.equal(byCause['unencoded-boundary'], 1);
+});
+
+// Six of the eight equivalent-encoding entries claim a cell-twin that PASSes:
+// the same braille appears twice in the corpus under two MathML encodings, we
+// match one and disagree with the other. That claim is checkable, so it is
+// checked -- an entry whose "twin" stopped passing would otherwise keep
+// excusing a DISAGREE that had become a real regression.
+const TWINS = {
+  'mathcat-rules:mmultiscripts_82_a_1': 'mathcat-rules:msubsup_82_a_1',
+  'mathcat-rules:nested_sup_mmultiscripts_74_b_1': 'mathcat-rules:nested_sup_74_b_1',
+  'mathcat-rules:as_multiscript_nested_sub_sup_74_c_5': 'mathcat-rules:nested_sub_sup_74_c_5',
+  'mathcat-rules:mmultiscripts_82_a_3': 'mathcat-rules:msubsup_82_a_3',
+  'mathcat-rules:mmultiscripts_82_b_1': 'mathcat-rules:sub_sup_82_b_1',
+  'mathcat-rules:mmultiscripts_82_b_2': 'mathcat-rules:sub_sup_82_b_2'
+};
+
+test('DISAGREE: every allowlisted entry that claims a PASSing cell-twin actually has one', () => {
+  const byId = new Map(corpus.cases.map((c) => [c.id, c]));
+  for (const [disagreeId, twinId] of Object.entries(TWINS)) {
+    const twin = byId.get(twinId);
+    assert.ok(twin, `${disagreeId} names twin "${twinId}", which is not in the corpus`);
+    assert.equal(
+      twin.cells,
+      byId.get(disagreeId).cells,
+      `${disagreeId} and ${twinId} must be the SAME cells for the many-to-one argument to hold`
+    );
+    const classified = coverage.results.find((r) => r.case.id === twinId);
+    assert.equal(
+      classified.bucket,
+      'PASS',
+      `${disagreeId} is excused because "${twinId}" carries the encoding we do emit and PASSes -- ` +
+        `but ${twinId} is now ${classified.bucket}, so the excuse no longer holds`
+    );
+  }
 });
 
 test('ERROR: every case is in the allowlist with a reason, and the allowlist has no stale entries', () => {

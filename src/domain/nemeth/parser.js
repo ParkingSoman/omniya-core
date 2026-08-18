@@ -27,6 +27,11 @@
  * -- a relation inside a script has to restate its own level indicator, which
  * is out of scope.
  *
+ * Whether two scripts on one base are simultaneous is NOT read off the level
+ * paths -- both readings put the scripts at the same two levels. The explicit
+ * baseline indicator is the only thing that separates them, and `levels.js`
+ * hands it over as `afterBaseline`; `parsePostfix` is where it is consumed.
+ *
  * Two productions of the designed grammar are absent because no symbol row can
  * reach them yet, and an unreachable branch is a place for a wrong guess to hide:
  * `unary := (+|-|±)? postfix`, which needs a row marking an operator as usable
@@ -154,20 +159,66 @@ function scriptSlot(state, level) {
   return token.level.slice(level.length);
 }
 
+/**
+ * A term at `level` that carries its own explicit baseline indicator, i.e. the
+ * `"q` of Example 24-7 `p~b"~c"x` (Nemeth_2022.txt line 11966; the rule that
+ * puts the first indicator there is 24.1.d, at line 11962).
+ */
+function startsBaselineTerm(state, level) {
+  const token = peek(state);
+  return Boolean(token) && token.afterBaseline && token.level === level && TERM_STARTS.has(token.kind);
+}
+
+function attachScript(base, slot, script, src) {
+  return slot === '^' ? Superscript(base, script, { src }) : Subscript(base, script, { src });
+}
+
+/**
+ * Rule 14.11 decides whether two scripts on one base are simultaneous, and the
+ * explicit baseline indicator is its sole carrier -- which is why `levels.js`
+ * records `afterBaseline` and why this loop reads it off the script's own first
+ * token rather than off the node it parses (the mark sits on the token; a
+ * script that carries scripts of its own would bury it).
+ *
+ * 14.11.1 (Nemeth_2022.txt lines 7234-7240): with no baseline indicator between
+ * them the two scripts are simultaneous and "the subscript must be indicated
+ * first" -- Example 14-121 `x;a~n`, one `msubsup`.
+ * 14.11.2 (lines 7263-7267): with one, "the relative horizontal positions of
+ * the signs must be retained" -- Example 14-124 `a~n";m` is (a^n)_m, so the
+ * second script re-bases onto the whole postfix parsed so far.
+ */
 function parsePostfix(state, level) {
   const start = state.index;
-  const node = parsePrimary(state, level);
-  const scripts = new Map();
+  let node = parsePrimary(state, level);
+  // Slots filled on the current base since the last baseline indicator.
+  let filled = '';
   for (let slot = scriptSlot(state, level); slot; slot = scriptSlot(state, level)) {
-    if (scripts.has(slot)) throw unsupported(state, `a second "${slot}" script on the same base`);
-    scripts.set(slot, parsePostfix(state, level + slot));
+    const rebased = peek(state).afterBaseline;
+    const script = parsePostfix(state, level + slot);
+    if (rebased && startsBaselineTerm(state, level)) {
+      // Rule 14.5.1 (lines 6311-6315): a LEFT script is written exactly like a
+      // right one and told apart only by sitting before the sign it applies to,
+      // with the baseline indicator of 14.5.2 between them. So a script fenced
+      // by baseline indicators on both sides belongs to what FOLLOWS it, not to
+      // the base behind it, and nothing here can render a left script.
+      throw unsupported(state, `a "${slot}" script between two baseline indicators is a left script`);
+    }
+    const src = spanFrom(state, start);
+    if (!rebased && filled !== '') {
+      if (filled !== '_' || slot !== '^') {
+        throw unsupported(
+          state,
+          `a "${slot}" script on a base already carrying "${filled}" needs a baseline indicator before it`
+        );
+      }
+      node = SubSuperscript(node.base, node.index, script, { src });
+      filled = '_^';
+      continue;
+    }
+    node = attachScript(node, slot, script, src);
+    filled = slot;
   }
-  if (scripts.size === 0) return node;
-  const src = spanFrom(state, start);
-  if (scripts.size === 2) return SubSuperscript(node, scripts.get('_'), scripts.get('^'), { src });
-  return scripts.has('^')
-    ? Superscript(node, scripts.get('^'), { src })
-    : Subscript(node, scripts.get('_'), { src });
+  return node;
 }
 
 // -- expression --------------------------------------------------------------

@@ -59,16 +59,113 @@ test('afterBaseline applies only to the token immediately after the indicator', 
   );
 });
 
-test('a level indicator after a baseline indicator clears afterBaseline', () => {
-  // In `"^a` the baseline indicator is superseded before it governs anything, so
-  // no baseline immediately precedes `a`. Rule 14.11.2 makes this field the sole
-  // carrier of `x_1^2` vs `(x_1)^2`, and it cannot be recovered once the
-  // indicators are stripped, so a stale `true` here would be unfixable later.
+test('afterBaseline survives an intervening level indicator, which is the Rule 14.11.2 shape', () => {
+  // `"^a` is a baseline indicator followed by a level indicator, and that is
+  // precisely how Rule 14.11.2 writes a non-simultaneous script: Example 14-124
+  // is `a~n";m` -- baseline indicator, subscript indicator, subscript. Clearing
+  // the mark at the level indicator would destroy it in the one case it exists
+  // for, and it cannot be recovered once the indicators are stripped.
   const tokens = resolveLevels(lex(asciiToCells('"^a')));
   assert.deepEqual(
     tokens.map((token) => [token.value, token.level, token.afterBaseline]),
-    [['a', '^', false]]
+    [['a', '^', true]]
   );
+});
+
+// -- Rule 14.6: numeric subscripts written with no subscript indicator --------
+
+test('Rule 14.6: a bare digit run after a letter is a subscript, with nothing in the cells to say so', () => {
+  // Example 14-36 (`x1` is x sub 1) and Example 14-37 (`x11` is x sub 11): the
+  // whole run is one first-order subscript, not one subscript per digit.
+  assert.deepEqual(levelled('x1'), [
+    ['x', ''],
+    ['1', '_']
+  ]);
+  assert.deepEqual(levelled('x11'), [
+    ['x', ''],
+    ['1', '_'],
+    ['1', '_']
+  ]);
+});
+
+test('Rule 14.6(d) makes the run self-delimiting: what follows it is back at the base level', () => {
+  // Condition (d) is that the subscript is numeric symbols only, so the digits
+  // end it. Promoting the level itself instead of just the run would drag `y`
+  // into the subscript and silently produce x sub 1y.
+  assert.deepEqual(levelled('x1y'), [
+    ['x', ''],
+    ['1', '_'],
+    ['y', '']
+  ]);
+});
+
+test('Rule 24.1.b: a multipurpose indicator between the letter and the digits blocks the promotion', () => {
+  // Example 24-1 is this exact input: `x"5` is x then 5 on the baseline, where
+  // `x5` would have been x sub 5. Without the `afterBaseline` test the two are
+  // indistinguishable and the numeral silently becomes a subscript.
+  assert.deepEqual(levelled('x"5'), [
+    ['x', ''],
+    ['5', '']
+  ]);
+});
+
+test('Rule 14.6 needs a bare numeral: a digit behind a numeric indicator stays on the baseline', () => {
+  assert.deepEqual(levelled('x#5'), [
+    ['x', ''],
+    ['#', ''],
+    ['5', '']
+  ]);
+});
+
+test('Rule 14.6 needs the letter to be adjacent: an explicit level indicator wins', () => {
+  // `x^1` states the level, so the digit is a superscript. Testing only "the
+  // previous token is a letter" without testing that it sits at the SAME level
+  // would read this as a subscript of a superscripted nothing.
+  assert.deepEqual(levelled('x^1'), [
+    ['x', ''],
+    ['1', '^']
+  ]);
+});
+
+test('Rule 14.6(b): first order only, so a bare digit inside a subscript is not promoted again', () => {
+  // Example 14-40 (`x;i;;1`, x sub i sub 1) writes the second-order subscript
+  // out in full, so a bare digit at level '_' cannot be one.
+  assert.deepEqual(levelled('x;a1'), [
+    ['x', ''],
+    ['a', '_'],
+    ['1', '_']
+  ]);
+});
+
+test('Rule 14.6 never invents a level deeper than BANA Rule 2 enumerates', () => {
+  assert.deepEqual(levelled('n^^^x1'), [
+    ['n', ''],
+    ['x', '^^^'],
+    ['1', '^^^']
+  ]);
+});
+
+test('a subscript indicator Rule 14.6 says is not used means the base was misread, so it is refused', () => {
+  // Example 14-45: `seven;3` carries the indicator "because condition c does not
+  // hold" -- the base is the word "seven", not the letter `n` against the
+  // indicator. Reading it as that letter yields s e v e (n sub 3), which is
+  // wrong mathematics dressed as a right answer.
+  assert.throws(() => resolveLevels(lex(asciiToCells('seven;3'))), NemethUnsupportedError);
+});
+
+test('a subscript indicator that Rule 14.6 does require is left alone', () => {
+  // Condition (d) fails once the subscript carries a script of its own
+  // (Example 14-46), so the indicator belongs there and nothing is refused.
+  assert.deepEqual(levelled('x;2^n'), [
+    ['x', ''],
+    ['2', '_'],
+    ['n', '^']
+  ]);
+  // Condition (c) is about the base, so a non-numeric subscript is untouched too.
+  assert.deepEqual(levelled('x;a'), [
+    ['x', ''],
+    ['a', '_']
+  ]);
 });
 
 test('a level path deeper than the three components BANA Rule 2 enumerates is unsupported', () => {

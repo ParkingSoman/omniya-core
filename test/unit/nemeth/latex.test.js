@@ -53,6 +53,33 @@ test('scripts render with braces so nesting survives', () => {
   );
 });
 
+test('a script standing on another script is braced, so the nesting is not flattened', () => {
+  // `x_{1}^{2}` is LaTeX for the SIMULTANEOUS msubsup, so it is the wrong string
+  // for the non-simultaneous (x sub 1) sup 2 of BANA Rule 14.11.2. Emitting it
+  // unbraced would throw away the distinction the parser just recovered.
+  assert.equal(
+    toLatex(Superscript(Subscript(Identifier('x'), Number('1')), Number('2'))),
+    '{x_{1}}^{2}'
+  );
+  assert.equal(
+    toLatex(SubSuperscript(Identifier('x'), Number('1'), Number('2'))),
+    'x_{1}^{2}'
+  );
+  assert.equal(
+    toLatex(Subscript(Superscript(Identifier('a'), Identifier('n')), Identifier('m'))),
+    '{a^{n}}_{m}'
+  );
+});
+
+test('a superscript standing on a superscript is braced, which LaTeX requires outright', () => {
+  // `x^{y}^{z}` is a double superscript, which LaTeX rejects -- an emitted
+  // string MathJax cannot convert is an ERROR, strictly worse than a refusal.
+  assert.equal(
+    toLatex(Superscript(Superscript(Identifier('x'), Identifier('y')), Identifier('z'))),
+    '{x^{y}}^{z}'
+  );
+});
+
 test('a macro-valued item followed by a letter is separated, so the control word ends', () => {
   // `\\times` runs to the first non-letter, so plain concatenation would emit the
   // undefined control sequence `\\timesb`. This is what the next scope area (x,

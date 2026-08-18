@@ -29,6 +29,22 @@ import { NemethUnsupportedError } from './errors.js';
 const TRAILING_CONTROL_WORD = /\\[a-zA-Z]+$/u;
 const LEADING_LETTER = /^[a-zA-Z]/u;
 
+const SCRIPT_KINDS = new Set(['Superscript', 'Subscript', 'SubSuperscript']);
+
+/**
+ * Brace a script's base when the base is itself a script.
+ *
+ * `x_{1}^{2}` is LaTeX for the SIMULTANEOUS msubsup, so it is the wrong string
+ * for `Superscript(Subscript(x, 1), 2)` -- the non-simultaneous `(x_1)^2` of
+ * BANA Rule 14.11.2. `{x_{1}}^{2}` is the right one, and it is what makes the
+ * distinction the parser recovers survive into the output. The braces are also
+ * what keeps `Superscript(Superscript(x, y), z)` from emitting the double
+ * superscript `x^{y}^{z}`, which LaTeX rejects outright.
+ */
+function scriptBase(node, emit) {
+  return SCRIPT_KINDS.has(node.kind) ? `{${emit(node)}}` : emit(node);
+}
+
 function concat(pieces) {
   return pieces.reduce((left, right) =>
     TRAILING_CONTROL_WORD.test(left) && LEADING_LETTER.test(right) ? `${left} ${right}` : left + right
@@ -55,10 +71,10 @@ export const toLatex = defineBackend(
       node.index === null
         ? `\\sqrt{${emit(node.radicand)}}`
         : `\\sqrt[${emit(node.index)}]{${emit(node.radicand)}}`,
-    Superscript: (node, emit) => `${emit(node.base)}^{${emit(node.exponent)}}`,
-    Subscript: (node, emit) => `${emit(node.base)}_{${emit(node.index)}}`,
+    Superscript: (node, emit) => `${scriptBase(node.base, emit)}^{${emit(node.exponent)}}`,
+    Subscript: (node, emit) => `${scriptBase(node.base, emit)}_{${emit(node.index)}}`,
     SubSuperscript: (node, emit) =>
-      `${emit(node.base)}_{${emit(node.index)}}^{${emit(node.exponent)}}`,
+      `${scriptBase(node.base, emit)}_{${emit(node.index)}}^{${emit(node.exponent)}}`,
     Fenced: (node, emit) => concat([node.open, emit(node.body), node.close]),
     FunctionCall: unrenderable('FunctionCall'),
     BigOperator: unrenderable('BigOperator'),

@@ -221,10 +221,11 @@ function renderReport({ cases, sourceIds, totals, bySource, refuseCauseRows, dis
   push('in `test/unit/nemeth/corpus-gate.test.js` (`MANY_TO_ONE_FORWARD_MAP`). A DISAGREE with no');
   push('allowlist entry still fails the gate; a DISAGREE explained by this many-to-one collapse');
   push('is expected and does not by itself indicate a parser bug or a corpus error. Every');
-  push('DISAGREE below has been checked and falls into one of two sub-causes:');
+  push('DISAGREE below has been checked and falls into one of three sub-causes:');
   push('`equivalent-encoding` (the corpus accepts more than one MathML shape as correct for the');
-  push('same input) or `formatting-only` (the differing MathML carries only non-mathematical');
-  push('whitespace).');
+  push('same input), `formatting-only` (the differing MathML carries only non-mathematical');
+  push('whitespace), or `unencoded-boundary` (the forward map ran two adjacent elements');
+  push('together and left no cell at the seam).');
   push();
   push(`## DISAGREE (${disagrees.length})`);
   push();

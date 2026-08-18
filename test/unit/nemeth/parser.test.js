@@ -58,6 +58,61 @@ test('a base carrying both a subscript and a superscript becomes SubSuperscript'
   );
 });
 
+test('Rule 14.6: the digit run promoted by levels.js attaches as an ordinary subscript', () => {
+  // Nothing in `x1` marks the subscript. The parser needs no rule of its own for
+  // that -- levels.js labels the digit '_' and the existing prefix test does the
+  // rest, which is what keeps the Code's implicit subscript out of the grammar.
+  assert.equal(format(treeOf('x1')), "Subscript(Identifier('x'), Number('1'))");
+});
+
+test('Rule 14.11.1: a subscript then a superscript with no baseline between them is simultaneous', () => {
+  // Example 14-123, `x1~2`: one base carrying both at once, an msubsup.
+  assert.equal(
+    format(treeOf('x1^2')),
+    "SubSuperscript(Identifier('x'), Number('1'), Number('2'))"
+  );
+});
+
+test('Rule 14.11.2: a baseline indicator before the second script makes it non-simultaneous', () => {
+  // Example 14-128, `x1"~2`: the same two scripts at the same two levels as the
+  // test above -- only the baseline indicator separates (x sub 1) sup 2 from
+  // x sub 1 sup 2, and it is the sole carrier of that distinction.
+  assert.equal(
+    format(treeOf('x1"^2')),
+    "Superscript(Subscript(Identifier('x'), Number('1')), Number('2'))"
+  );
+  // Example 14-124, `a~n";m`, mirrored: the superscript is closer to the a.
+  assert.equal(
+    format(treeOf('a^n";m')),
+    "Subscript(Superscript(Identifier('a'), Identifier('n')), Identifier('m'))"
+  );
+});
+
+test('Rule 14.11.1 puts the subscript first, so a superscript then a subscript needs a baseline indicator', () => {
+  // `a^n;m` has both scripts and no baseline indicator, but in the order the
+  // Code reserves for the non-simultaneous reading. Pairing them into an
+  // msubsup anyway would answer a question the cells did not settle.
+  assert.throws(() => treeOf('a^n;m'), NemethUnsupportedError);
+});
+
+test('a script fenced by baseline indicators belongs to what follows it, and is refused', () => {
+  // Example 24-7, `p~b"~c"x`: c is a LEFT superscript to x, not a second right
+  // superscript on p. Rule 14.11.2 alone would re-base it onto p and emit
+  // (p^b)^c x, which is wrong mathematics -- the one-token lookahead past the
+  // script is what tells the two apart.
+  try {
+    treeOf('p^b"^c"q');
+    assert.fail('expected an unsupported construct');
+  } catch (error) {
+    assert(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /left script/u);
+  }
+});
+
+test('Rule 24.1.b: a multipurpose indicator leaves the numeral juxtaposed on the baseline', () => {
+  assert.equal(format(treeOf('x"5')), "Sequence([ Identifier('x'), Number('5') ])");
+});
+
 test('a script must be exactly one level deeper than its base, not merely below it', () => {
   // 'n' sits at '' and 'x' at '^^'. '^^' has '' as a prefix, but the superscript
   // it belongs to was never opened, so attaching x to n would invent a level.
