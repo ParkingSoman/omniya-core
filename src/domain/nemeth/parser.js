@@ -98,7 +98,15 @@ function parseNumber(state, level, marks) {
   const start = state.index;
   const numeric = peek(state).kind === 'numeric' ? advance(state) : null;
   let digits = '';
-  while (atLevel(state, level) && peek(state).kind === 'digit') digits += advance(state).value;
+  // A digit carrying its own baseline indicator begins a new script event and is
+  // not more of this numeral. Rule 14.11.2 makes `afterBaseline` the carrier of
+  // that distinction, and a digit run is the one place it can be silently eaten:
+  // without this break `⠭⠂⠐⠰⠆` reads as x sub 12 instead of (x sub 1) sub 2 --
+  // two re-based scripts merged into one wrong number, with nothing refused.
+  while (atLevel(state, level) && peek(state).kind === 'digit') {
+    if (digits && peek(state).afterBaseline) break;
+    digits += advance(state).value;
+  }
   if (!digits) throw unsupported(state, 'numeric indicator is not followed by a numeral');
   return Number(digits, {
     src: spanFrom(state, start),

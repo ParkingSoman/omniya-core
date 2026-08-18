@@ -213,3 +213,25 @@ test('a trailing operator with no right operand is unsupported', () => {
 test('an empty token stream is unsupported', () => {
   assert.throws(() => parse([]), NemethUnsupportedError);
 });
+
+test('Rule 14.11.2: a baseline indicator ends the digit run instead of merging two scripts into one numeral', () => {
+  // `x1";2` is x sub 1, baseline, subscript indicator, 2. The baseline indicator
+  // re-bases, so the 2 is a subscript OF the subscripted x -- (x sub 1) sub 2.
+  // Without the guard the digit walk swallows both digits at the same level and
+  // silently answers x sub 12: two script events merged into one wrong number,
+  // and nothing refused. Same shape on the superscript side.
+  assert.equal(
+    format(treeOf('x1";2')),
+    "Subscript(Subscript(Identifier('x'), Number('1')), Number('2'))"
+  );
+  assert.equal(
+    format(treeOf('x^1"^2')),
+    "Superscript(Superscript(Identifier('x'), Number('1')), Number('2'))"
+  );
+});
+
+test('Rule 14.6: without a baseline indicator a digit run is still ONE numeral (Example 14-37)', () => {
+  // The guard above must not split every multi-digit subscript: `x11` is x sub 11,
+  // not (x sub 1) sub 1. Only an explicit baseline indicator breaks the run.
+  assert.equal(format(treeOf('x11')), "Subscript(Identifier('x'), Number('11'))");
+});
