@@ -6,29 +6,28 @@ The usage notes below apply to **`testing` only**. They are not on `main`. This 
 
 ## How to use this alpha
 
-Three things to learn first:
+**Write text.** Type in the document under the napkin. **Enter** starts a new paragraph;
+**Shift+Enter** adds a line break within one. **Ctrl+T** toggles UEB grade 2 / grade 1.
 
-1. **Type in the document** — the composer under the napkin is the notepad. Print text is a UEB document. There is no Add item button and no Command mode (no Ctrl+[, no Command n/i/t/x).
-2. **Equation islands** — **Ctrl+E** (Cmd+E on Mac) inserts a Nemeth equation at the caret; **Ctrl+L** inserts LaTeX. **Enter** commits the equation and returns you to text. **Escape** discards an unfinished equation. **Ctrl+T** toggles UEB G2 / G1 on text. The same actions are in the application menu: Insert → Equation (Nemeth / LaTeX), Format → UEB G2 / G1, Help → Keyboard shortcuts.
-3. **r / a / o on math** — in reading, Up and Down move between items. On an equation, **Enter** explores it. Then **r** replaces the focused node, **a** inserts after it, and **o** inserts before it (same composer, same captured node). On a focused equation *without* exploring, those keys target the whole expression. Escape leaves a replacement unchanged. **r** on a text item still opens that item for editing.
+**Insert an equation.** **Ctrl+E** (Cmd+E on Mac) starts a Nemeth equation at the caret;
+**Ctrl+L** starts a LaTeX one. **Enter** commits it and returns you to text; **Escape**
+discards it. On a braille display with no pending UEB cells, full cell **⠿** also starts a
+Nemeth equation.
 
-On a braille display, with no pending UEB cells, full cell **⠿** inserts a Nemeth equation (same as Ctrl+E). The UEB word “for” is also ⠿ at the start of a word and will do the same; use Ctrl+E or Insert → Equation (Nemeth) if that collides.
+**Type Nemeth.** The field takes braille cells only — letter keys are not read as their
+Braille ASCII. Enter cells from a braille display, by pasting them, or by chording on the
+keyboard: **f d s** are dots 1 2 3, **j k l** are dots 4 5 6, and the cell is entered when
+you release. As you type, the status line reads back what it has: *"5 cells read as
+x^{2}+1. Enter inserts it."* If it cannot read the cells yet it says so rather than
+guessing, and unsupported notation is refused rather than silently mistranscribed.
 
-**Keyboard help** (button under the napkin, or Help → Keyboard shortcuts) lists these keys.
+**Read and edit math.** In reading, **Up** and **Down** move between items. **Enter** on an
+equation explores inside it. There, **r** replaces the focused node, **a** inserts after it,
+and **o** inserts before it. On an equation you have not explored, those keys act on the
+whole expression. **Escape** leaves it unchanged. **r** on a text item opens it for editing.
 
-### How Braille typing feels here
-
-Nemeth in this alpha is not a Braille line you type into. On a display or in a usual Braille editor, cells stay in a buffer: the string grows, and Backspace deletes the last cell. Here a cell is usually an **operation** on a math tree. When the code is accepted, the composer field often goes empty again and the status says something like **Draft updated: letter.y**. The Braille did not remain in the box; it was applied to the draft.
-
-That is why the cadence is different from ordinary authoring:
-
-- Many letters and operators land **immediately** as one object.
-- Some symbols (an arrow is the usual example) are **held** until their registered cells are complete; **Enter** then commits that one symbol, not the whole equation.
-- Fraction openers, scripts, and similar signs are **follow-ups**: they open or move among slots in something already in the draft, rather than appending characters to a line.
-
-**Backspace** undoes the last accepted operation in this composing session, one step at a time. It is not “delete the last character in the text field.” **Escape** discards an unfinished equation. **Enter** commits the equation and returns you to text.
-
-Literary UEB text is closer to ordinary typing (cells become print). Nemeth is this guided, operation-by-operation path. It is an alpha experiment, not a finished transcriber editor.
+Everything above is also in the application menus (Insert / Format / Help — Alt on Windows,
+menu bar on Mac) and in Keyboard help, the button under the napkin.
 
 Download the alpha (or run from source): [Run this alpha](#run-this-alpha). Longer walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 

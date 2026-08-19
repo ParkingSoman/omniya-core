@@ -46,7 +46,7 @@ equations, offline autosave.
   (Ctrl+T); Help → Keyboard shortcuts.
 - Notes UI hidden; literary UEB G1 / G2 via Ctrl+T on text
 - Literary UEB G1 / G2 text via native liblouis (`lou_translate`)
-- Backspace undoes the last Nemeth draft step (not the whole equation)
+- Backspace deletes the last cell in the Nemeth field, as in any text field
 - Headed thought-stream demo scripts (`npm run test:demo:thought`)
 - BANA audit ledger, Electron evidence shards, and coverage reports as of
   merge `2ef0efb` (Nemeth gate pass `011f226`)
