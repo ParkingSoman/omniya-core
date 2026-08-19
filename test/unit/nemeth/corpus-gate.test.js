@@ -581,6 +581,219 @@ const ERROR_ALLOWLIST = {};
 // raise it as the parser's scope grows. It must never silently drop.
 const PASS_BASELINE = 204;
 
+// The id SET this gate was written against, not just its size. PASS_BASELINE
+// alone is an aggregate floor: N cases regressing to REFUSE while N different
+// cases start passing in the same commit leaves PASS_BASELINE, DISAGREE and
+// ERROR all unchanged, so that swap is fully green under the count alone. This
+// pins which 204 cases pass, so a swap is caught even though the total is not.
+// Sourced from the same coverage run as PASS_BASELINE -- see docs/nemeth-v2/coverage.md.
+const PASS_IDS = new Set([
+  "mathcat-rules:baseline_80_a_1",
+  "mathcat-rules:boldface_32_b_2",
+  "mathcat-rules:boldface_32_b_3",
+  "mathcat-rules:comparison_79_g_2",
+  "mathcat-rules:complex_frac_66_1",
+  "mathcat-rules:greek_24_a_1",
+  "mathcat-rules:greek_24_b_1",
+  "mathcat-rules:list_num_ind_11_d_1",
+  "mathcat-rules:list_num_ind_11_d_2",
+  "mathcat-rules:msubsup_82_a_1",
+  "mathcat-rules:msubsup_82_a_3",
+  "mathcat-rules:multipurpose_177_3_1",
+  "mathcat-rules:nested_sub_sup_74_c_5",
+  "mathcat-rules:nested_sup_74_b_1",
+  "mathcat-rules:nested_sup_74_b_4",
+  "mathcat-rules:nested_super_79_a_2",
+  "mathcat-rules:nested_super_79_a_3",
+  "mathcat-rules:no_num_ind_11_e_3",
+  "mathcat-rules:non_hyper_complex_frac_67_1",
+  "mathcat-rules:num_indicator_9_a_1",
+  "mathcat-rules:num_indicator_9_a_5",
+  "mathcat-rules:num_indicator_9_e_2",
+  "mathcat-rules:prescript_77_4_7",
+  "mathcat-rules:root_104_iii_1",
+  "mathcat-rules:root_104_iii_4",
+  "mathcat-rules:simple_frac_62_a_3",
+  "mathcat-rules:sqrt_103_a_2",
+  "mathcat-rules:sqrt_103_a_4",
+  "mathcat-rules:sub_sup_82_b_1",
+  "mathcat-rules:sub_sup_82_b_2",
+  "mathcat-rules:superscript_80_a_2",
+  "mathcat-rules:tilde_144_1",
+  "sre-aata:AataExpression_101",
+  "sre-aata:AataExpression_104",
+  "sre-aata:AataExpression_105",
+  "sre-aata:AataExpression_107",
+  "sre-aata:AataExpression_108",
+  "sre-aata:AataExpression_111",
+  "sre-aata:AataExpression_113",
+  "sre-aata:AataExpression_114",
+  "sre-aata:AataExpression_115",
+  "sre-aata:AataExpression_116",
+  "sre-aata:AataExpression_117",
+  "sre-aata:AataExpression_118",
+  "sre-aata:AataExpression_119",
+  "sre-aata:AataExpression_120",
+  "sre-aata:AataExpression_121",
+  "sre-aata:AataExpression_122",
+  "sre-aata:AataExpression_123",
+  "sre-aata:AataExpression_125",
+  "sre-aata:AataExpression_126",
+  "sre-aata:AataExpression_127",
+  "sre-aata:AataExpression_129",
+  "sre-aata:AataExpression_130",
+  "sre-aata:AataExpression_131",
+  "sre-aata:AataExpression_133",
+  "sre-aata:AataExpression_134",
+  "sre-aata:AataExpression_135",
+  "sre-aata:AataExpression_137",
+  "sre-aata:AataExpression_139",
+  "sre-aata:AataExpression_140",
+  "sre-aata:AataExpression_142",
+  "sre-aata:AataExpression_143",
+  "sre-aata:AataExpression_145",
+  "sre-aata:AataExpression_147",
+  "sre-aata:AataExpression_151",
+  "sre-aata:AataExpression_152",
+  "sre-aata:AataExpression_153",
+  "sre-aata:AataExpression_155",
+  "sre-aata:AataExpression_156",
+  "sre-aata:AataExpression_157",
+  "sre-aata:AataExpression_159",
+  "sre-aata:AataExpression_161",
+  "sre-aata:AataExpression_165",
+  "sre-aata:AataExpression_166",
+  "sre-aata:AataExpression_167",
+  "sre-aata:AataExpression_169",
+  "sre-aata:AataExpression_170",
+  "sre-aata:AataExpression_173",
+  "sre-aata:AataExpression_177",
+  "sre-aata:AataExpression_178",
+  "sre-aata:AataExpression_179",
+  "sre-aata:AataExpression_180",
+  "sre-aata:AataExpression_181",
+  "sre-aata:AataExpression_182",
+  "sre-aata:AataExpression_183",
+  "sre-aata:AataExpression_184",
+  "sre-aata:AataExpression_185",
+  "sre-aata:AataExpression_186",
+  "sre-aata:AataExpression_188",
+  "sre-aata:AataExpression_189",
+  "sre-aata:AataExpression_190",
+  "sre-aata:AataExpression_191",
+  "sre-aata:AataExpression_192",
+  "sre-aata:AataExpression_194",
+  "sre-aata:AataExpression_195",
+  "sre-aata:AataExpression_196",
+  "sre-aata:AataExpression_197",
+  "sre-aata:AataExpression_199",
+  "sre-aata:AataExpression_200",
+  "sre-aata:AataExpression_201",
+  "sre-aata:AataExpression_202",
+  "sre-aata:AataExpression_203",
+  "sre-aata:AataExpression_204",
+  "sre-aata:AataExpression_205",
+  "sre-aata:AataExpression_206",
+  "sre-aata:AataExpression_207",
+  "sre-aata:AataExpression_208",
+  "sre-aata:AataExpression_210",
+  "sre-aata:AataExpression_211",
+  "sre-aata:AataExpression_212",
+  "sre-aata:AataExpression_217",
+  "sre-aata:AataExpression_218",
+  "sre-aata:AataExpression_219",
+  "sre-aata:AataExpression_220",
+  "sre-aata:AataExpression_221",
+  "sre-aata:AataExpression_222",
+  "sre-aata:AataExpression_224",
+  "sre-aata:AataExpression_227",
+  "sre-aata:AataExpression_228",
+  "sre-aata:AataExpression_230",
+  "sre-aata:AataExpression_231",
+  "sre-aata:AataExpression_232",
+  "sre-aata:AataExpression_233",
+  "sre-aata:AataExpression_234",
+  "sre-aata:AataExpression_235",
+  "sre-aata:AataExpression_236",
+  "sre-aata:AataExpression_237",
+  "sre-aata:AataExpression_239",
+  "sre-aata:AataExpression_243",
+  "sre-aata:AataExpression_25",
+  "sre-aata:AataExpression_251",
+  "sre-aata:AataExpression_253",
+  "sre-aata:AataExpression_26",
+  "sre-aata:AataExpression_262",
+  "sre-aata:AataExpression_263",
+  "sre-aata:AataExpression_267",
+  "sre-aata:AataExpression_27",
+  "sre-aata:AataExpression_276",
+  "sre-aata:AataExpression_277",
+  "sre-aata:AataExpression_28",
+  "sre-aata:AataExpression_281",
+  "sre-aata:AataExpression_284",
+  "sre-aata:AataExpression_288",
+  "sre-aata:AataExpression_289",
+  "sre-aata:AataExpression_29",
+  "sre-aata:AataExpression_290",
+  "sre-aata:AataExpression_294",
+  "sre-aata:AataExpression_300",
+  "sre-aata:AataExpression_301",
+  "sre-aata:AataExpression_302",
+  "sre-aata:AataExpression_303",
+  "sre-aata:AataExpression_306",
+  "sre-aata:AataExpression_307",
+  "sre-aata:AataExpression_31",
+  "sre-aata:AataExpression_310",
+  "sre-aata:AataExpression_32",
+  "sre-aata:AataExpression_327",
+  "sre-aata:AataExpression_33",
+  "sre-aata:AataExpression_332",
+  "sre-aata:AataExpression_333",
+  "sre-aata:AataExpression_336",
+  "sre-aata:AataExpression_34",
+  "sre-aata:AataExpression_35",
+  "sre-aata:AataExpression_36",
+  "sre-aata:AataExpression_37",
+  "sre-aata:AataExpression_38",
+  "sre-aata:AataExpression_39",
+  "sre-aata:AataExpression_40",
+  "sre-aata:AataExpression_41",
+  "sre-aata:AataExpression_42",
+  "sre-aata:AataExpression_43",
+  "sre-aata:AataExpression_44",
+  "sre-aata:AataExpression_45",
+  "sre-aata:AataExpression_46",
+  "sre-aata:AataExpression_48",
+  "sre-aata:AataExpression_49",
+  "sre-aata:AataExpression_5",
+  "sre-aata:AataExpression_51",
+  "sre-aata:AataExpression_55",
+  "sre-aata:AataExpression_56",
+  "sre-aata:AataExpression_57",
+  "sre-aata:AataExpression_62",
+  "sre-aata:AataExpression_63",
+  "sre-aata:AataExpression_69",
+  "sre-aata:AataExpression_7",
+  "sre-aata:AataExpression_70",
+  "sre-aata:AataExpression_72",
+  "sre-aata:AataExpression_73",
+  "sre-aata:AataExpression_74",
+  "sre-aata:AataExpression_75",
+  "sre-aata:AataExpression_76",
+  "sre-aata:AataExpression_77",
+  "sre-aata:AataExpression_80",
+  "sre-aata:AataExpression_81",
+  "sre-aata:AataExpression_82",
+  "sre-aata:AataExpression_83",
+  "sre-aata:AataExpression_86",
+  "sre-aata:AataExpression_87",
+  "sre-aata:AataExpression_89",
+  "sre-aata:AataExpression_90",
+  "sre-aata:AataExpression_91",
+  "sre-aata:AataExpression_93",
+  "sre-aata:AataExpression_94",
+]);
+
 test('every corpus case lands in exactly one bucket, and the buckets sum to the corpus size', () => {
   const sum = coverage.totals.PASS + coverage.totals.REFUSE + coverage.totals.DISAGREE + coverage.totals.ERROR;
   assert.equal(sum, corpus.cases.length);
@@ -745,6 +958,31 @@ test(`PASS count has not regressed below the pinned baseline (${PASS_BASELINE})`
   );
 });
 
+test('PASS case id set matches PASS_IDS exactly -- a same-size swap is otherwise invisible to the count alone', () => {
+  // PASS_BASELINE (above) is an aggregate floor: N cases regressing from PASS
+  // to REFUSE while N different cases start passing in the same change leaves
+  // PASS_BASELINE, DISAGREE and ERROR all unchanged, so that swap is fully
+  // green under the count-only check. This test pins the actual id SET so a
+  // swap like that is caught even though the total is not.
+  const actualIds = new Set(coverage.results.filter((r) => r.bucket === 'PASS').map((r) => r.case.id));
+  const appeared = [...actualIds].filter((id) => !PASS_IDS.has(id)).sort();
+  const disappeared = [...PASS_IDS].filter((id) => !actualIds.has(id)).sort();
+
+  assert.ok(
+    appeared.length === 0 && disappeared.length === 0,
+    'The set of PASS-ing case ids changed since PASS_IDS was pinned.\n' +
+      `  Appeared (${appeared.length} case(s) now PASS that were not pinned): ` +
+      `${appeared.length ? appeared.join(', ') : '(none)'}\n` +
+      `  Disappeared (${disappeared.length} pinned case(s) no longer PASS): ` +
+      `${disappeared.length ? disappeared.join(', ') : '(none)'}\n` +
+      'If this is a deliberate, reviewed change -- new cases legitimately started passing as ' +
+      'scope grew, or a disappearance was investigated and is an accepted, explained tradeoff -- ' +
+      'update PASS_IDS to the new full list of `coverage.results` PASS ids (and PASS_BASELINE to ' +
+      'match the new count). Do not edit this test to silence a disappearance you have not ' +
+      'investigated; that is exactly the regression this test exists to catch.'
+  );
+});
+
 // Soiffer's smoke test: "y = 2 sin x" (mathcat-rules:num_indicator_9_a_4).
 // This is the expression MathCAT's maintainer used to reject an AI-written
 // Nemeth back-translator -- it is this project's public tripwire. Blanks
@@ -764,9 +1002,10 @@ test('Soiffer smoke test (mathcat-rules:num_indicator_9_a_4) parses to exactly "
   // The bucket is DISAGREE, and the reason is grouping alone -- MathCAT's
   // target wraps the implicit product and the function application in <mrow>s
   // that assert operator binding, which this parser does not emit by design.
-  // See the `implicit-grouping` entry in MANY_TO_ONE_FORWARD_MAP for the
-  // control that proves the mathematics matches. It is asserted here, not just
-  // allowlisted, so a regression to REFUSE or ERROR is loud.
+  // See the `mathcat-rules:num_indicator_9_a_4` entry (cause: equivalent-encoding)
+  // in MANY_TO_ONE_FORWARD_MAP for the control that proves the mathematics
+  // matches. It is asserted here, not just allowlisted, so a regression to
+  // REFUSE or ERROR is loud.
   const classified = coverage.results.find((r) => r.case.id === 'mathcat-rules:num_indicator_9_a_4');
   assert.equal(classified.bucket, 'DISAGREE');
 });

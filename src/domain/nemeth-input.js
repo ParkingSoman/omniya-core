@@ -66,10 +66,20 @@ const BLANK_CELL = '\u2800';
  * **Cells only.** A QWERTY character is NOT read as its Braille ASCII cell,
  * even though `braille-ascii.js` could do it and the corpus is written that
  * way. That is a standing product decision, not an oversight: commit `8bc05ae`
- * ("gate Nemeth QWERTY") deliberately closed that door, and
- * `test/e2e/ueb-text-command-mode.test.js` asserts a typed lowercase `a` is
- * rejected rather than read as the letter cell. Reversing it here would silently
- * reinterpret someone's prose as mathematics.
+ * ("gate Nemeth QWERTY") deliberately closed that door. The live guard for it is
+ * `test/unit/nemeth-input.test.js` ("QWERTY characters are rejected, not read as
+ * their Braille ASCII cells"), which asserts directly on this function that
+ * `toNemethCells('a')` rejects `'a'` rather than decoding it to the letter cell
+ * -- that test is green and runs in `npm test`.
+ * `test/e2e/ueb-text-command-mode.test.js` asserts the same behavior at the
+ * composer level, but that test is currently RED (failing at baseline too, a
+ * 30s timeout inside the shared `enterCommand` e2e helper, unrelated to this
+ * logic -- see the final-review-report's Important #1/#2). It is not excluded
+ * from `npm test` on purpose; e2e is a separate suite (`npm run test:e2e`) that
+ * `npm test` does not run at all. Do not point at it as a currently-enforced
+ * guarantee; the unit test above is the one that actually runs and holds.
+ * Reversing this behavior here would silently reinterpret someone's prose as
+ * mathematics.
  *
  * The one accepted non-cell is the space bar, which becomes `U+2800`. That is
  * not an exception to the rule, it is the only way to type the blank at all --

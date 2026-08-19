@@ -1,8 +1,37 @@
-# nemeth-v2 — FROZEN INTERFACE SPEC
+# nemeth-v2 — Task-1 interface spec (superseded — see status note)
 
-**Status: FROZEN.** Every worker codes against this document. If you believe the
-spec is wrong, do **not** unilaterally change it — message `god` and keep working
-around it. Coherence across parallel tracks depends on this file not moving.
+**Status: HISTORICAL, superseded where noted.** This is the contract Task 1 froze
+before any lane wrote code. It did its job — it is why five lanes could work in
+parallel without stepping on each other — but two things in it were empirically
+wrong and were corrected during implementation (Task 3's ledger entry, `progress.md`
+"Ruling: leave `role: 'binary'` deleted" and the level-model finding). This file was
+never edited back into agreement, so treat it as the **design record**, not as a
+live reference:
+
+- **§4's `kind` enum does not match what shipped.** The authoritative list is
+  `src/domain/nemeth/symbols.json` itself (88 rows, 19 `kind` values as of this
+  writing) — read the data, not this table. See the note inline at §4.
+- **§5's level model (signed integers, `level: number`, baseline = 0) is not what
+  shipped.** `src/domain/nemeth/levels.js` uses absolute-path strings instead,
+  because the signed model silently mis-parses `x_a^n` (see the doc-comment at the
+  top of that file, and `progress.md`'s Task 3 entry). See the note inline at §5.
+- Everything else below — the public API (§1), error contract (§2), AST node kinds
+  (§6, which do match `kinds.js` exactly), v1 scope (§7), teardown (§8), the LaTeX
+  backend shape (§10) and the corpus schema (§11) — was not found to have drifted
+  and can still be read as accurate to the shipped code as of `92dc3ef`. Verify
+  against the named source file if in doubt; this document is no longer the
+  arbiter.
+
+Below this point the original Task-1 text is preserved unedited except for the two
+inline superseded-notes, so the record of what was originally specified stays
+intact.
+
+---
+
+**Original status line (no longer in force): FROZEN.** Every worker codes against
+this document. If you believe the spec is wrong, do **not** unilaterally change it
+— message `god` and keep working around it. Coherence across parallel tracks
+depends on this file not moving.
 
 Branch `nemeth-v2` (off `testing`). Pure ESM, plain JavaScript (no TypeScript —
 the repo has none). 2-space indent, single quotes, semicolons. **No new
@@ -100,6 +129,17 @@ matrices, chemistry, and every out-of-scope construct.
 
 ## 4. Symbol table (W2) — `symbols.json`
 
+> **SUPERSEDED.** The `kind` enum below is the pre-implementation design. The
+> shipped `symbols.json` uses a different, coarser set of `kind` values
+> (`blank digit letter function op numeric fracOpen fracLine fracClose radIndex
+> radOpen radClose level baseline comma prefix decimal groupOpen groupClose
+> comparison` — 19 values, e.g. `rel` became `comparison` and the four separate
+> indicator kinds collapsed into one `prefix`). There is no `greek`, `bigop` or
+> `punctuation` kind. (`role` did ship, on `op`/`comparison` rows only, with
+> values `binary`/`comparison` — see `progress.md`'s Task 3 ruling on
+> `role: 'binary'` for why.) **Read `symbols.json` directly** for what actually
+> exists; do not code against the list below.
+
 Flat array; longest-match wins at lex time; W3 builds the trie.
 
 ```json
@@ -110,6 +150,7 @@ Flat array; longest-match wins at lex time; W3 builds the trie.
 letter-indicator · capital-indicator · typeform · level-up · level-down ·
 level-baseline · frac-open · frac-line · frac-close · root-open · root-close ·
 root-index · group-open · group-close · function-name · bigop · punctuation · blank`
+*(original design-time enum — see the SUPERSEDED note above; not what shipped)*
 
 Rules for W2:
 - **Every entry carries a `banaRef`.** No uncited symbols.
@@ -145,7 +186,19 @@ Token = {
 `resolveLevels` assigns `.level` and **consumes/removes the level-indicator
 tokens themselves**.
 
+> **SUPERSEDED.** The signed-integer model described below (`level: number`,
+> `level-baseline` → 0) is the pre-implementation design. It was found to be
+> silently wrong during Task 3: `x_{a}^{n}` computes as `-1 + 1 = 0` under a
+> signed model and parses as the wrong thing (`x_a n`) with no error. The shipped
+> `levels.js` instead labels each token with an **absolute path string** over the
+> alphabet `^`/`_` (`''`, `'^'`, `'_'`, `'^^'`, `'^_'`, …) — see the doc-comment at
+> the top of `src/domain/nemeth/levels.js` for the full reasoning and BANA
+> citations. The bullet list below records what was originally specified, not
+> what runs.
+
 **Level semantics — the #1 historical bug source. Get this exactly right:**
+*(original design-time model — see the SUPERSEDED note above; superseded by the
+absolute-path model in `levels.js`)*
 - `level-up` raises by 1; `level-down` lowers by 1, relative to current.
 - Repeated indicators nest (a second-level superscript is `⠘⠘`).
 - `level-baseline` returns to level **0** — not to level−1.
