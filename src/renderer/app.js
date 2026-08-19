@@ -397,7 +397,8 @@ function appendOrUpdateLiveTextArticle(item) {
   );
   if (!article) {
     article = buildTranscriptArticle(item, index, napkin.items.length, transcriptRenderVersion);
-    elements['transcript'].append(article);
+    const siblings = elements['transcript'].querySelectorAll('article.napkin-article');
+    elements['transcript'].insertBefore(article, siblings[index] ?? null);
   } else {
     const text = article.querySelector('.item-text');
     if (text) {
@@ -532,7 +533,7 @@ function renderComposer() {
     ? 'Nemeth: type cells · LaTeX: type source · Escape cancels · Replace commits'
     : values.type === 'equation'
       ? 'Nemeth: type cells · LaTeX: type source · Escape cancels · Ctrl+E / Ctrl+L choose method while empty'
-      : 'Type to write. Enter makes a new line. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX.';
+      : 'Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX.';
   // Unified composer: Equation keeps #composer-source visible (Nemeth/LaTeX styling only).
   elements['composer-source'].hidden = false;
   elements['composer-source'].required = false;
@@ -557,6 +558,13 @@ function renderAll() {
   renderTranscript();
   renderMode();
   if (activeNapkin()) renderComposer();
+}
+
+function scrollArticleIntoView(itemId) {
+  const article = itemId && elements['transcript'].querySelector(
+    `article.napkin-article[data-item-id="${CSS.escape(itemId)}"]`
+  );
+  article?.scrollIntoView({ block: 'nearest' });
 }
 
 function focusSelectedArticle() {
@@ -895,12 +903,16 @@ function persistLiveTextFromComposer() {
     return;
   }
   if (source.trim() && !liveTextItemId) {
+    const insertAt = clearedLiveTextIndex != null
+      ? Math.min(clearedLiveTextIndex, activeNapkin()?.items.length ?? 0)
+      : activeNapkin()?.items.length ?? 0;
     clearedLiveTextIndex = null;
-    state = addItem(state, { type: 'text', source, note });
+    state = insertItemAt(state, insertAt, { type: 'text', source, note });
     liveTextItemId = activeItem()?.id ?? null;
     editingItemId = liveTextItemId;
     const item = activeNapkin()?.items.find(({ id }) => id === liveTextItemId);
     if (item) appendOrUpdateLiveTextArticle(item);
+    scrollArticleIntoView(liveTextItemId);
     saveSelectionSoon();
     return;
   }
@@ -1039,6 +1051,31 @@ function enterDocumentTextAuthoring({ focus = true, preserveComposer = false } =
     elements['new-napkin-button'].focus();
   }
 }
+function startNewTextItem() {
+  if (!isDocumentTextSurface()) return;
+  const el = elements['composer-source'];
+  const source = el?.value ?? '';
+  if (!source.trim()) return;
+  const caret = Number.isInteger(el?.selectionStart) ? el.selectionStart : source.length;
+
+  let followId = null;
+  if (liveTextItemId) {
+    const split = splitTextItem(state, liveTextItemId, caret);
+    state = split.state;
+    followId = split.rightId;
+  }
+  liveTextItemId = null;
+  editingItemId = null;
+  clearedLiveTextIndex = null;
+  renderAll();
+  enterDocumentTextAuthoring({ focus: true });
+  if (followId && activeNapkin()?.items.some(({ id }) => id === followId)) {
+    openEditMode(followId);
+    elements['composer-source']?.setSelectionRange(0, 0);
+  }
+  void saveState().catch(() => {});
+}
+
 function returnToRead({ discardDraft = true } = {}) {
   const session = (!replacementEditor && replacementSession) ? replacementSession : null;
   const wasNew = Boolean(session?.isNew);
@@ -1091,6 +1128,7 @@ function openEditMode(itemId) {
   renderComposer();
   applyCommandStateToChrome(commandState);
   elements['composer-source'].focus();
+  scrollArticleIntoView(itemId);
 }
 
 function navigateItems(key) {
@@ -1310,6 +1348,13 @@ function handleComposerCommandKey(event) {
       return true;
     }
     applyEquationInsert(key === 'l' ? 'latex' : 'nemeth');
+    return true;
+  }
+
+  if (event.key === 'Escape' && isDocumentTextSurface()) {
+    event.preventDefault();
+    event.stopPropagation();
+    focusSelectedArticle();
     return true;
   }
 
@@ -1681,19 +1726,7 @@ elements['composer-source'].addEventListener('input', () => {
 elements['mode-switch'].addEventListener('change', () => {
   draft.type = selectedType();
   if (draft.type === 'equation') {
-    liveTextItemId = null;
-    editingItemId = null;
-    mode = 'add';
-    draft.source = '';
-    elements['composer-source'].value = '';
-    applyCommandStateToChrome({
-      ...commandState,
-      surface: 'equation',
-      equationMethod: preferredAuthoringMethod,
-      contentEmpty: true
-    });
-    ensureComposerMathSession();
-    renderComposer();
+    applyEquationInsert(preferredAuthoringMethod);
     return;
   }
   if (equationCaretSnapshot && replacementSession?.isNew) {
@@ -1714,7 +1747,11 @@ elements['composer-source'].addEventListener('keydown', (event) => {
   // editing model, and it is the one a screen reader already knows how to
   // narrate.
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
-    if (isDocumentTextSurface()) return;
+    if (isDocumentTextSurface()) {
+      event.preventDefault();
+      startNewTextItem();
+      return;
+    }
     event.preventDefault();
     void submitComposer();
   }
