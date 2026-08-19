@@ -15,6 +15,7 @@ import { createSixKeyInput } from './braille-input.js';
 import {
   cancelReplacement,
   setLatexSource,
+  setNemethSource,
   setReplacementMethod,
   startReplacementSession,
   submitReplacement,
@@ -30,21 +31,28 @@ import {
   toggleUebGrade
 } from '../domain/authoring-state.js';
 import { createUebCellBuffer, isBrailleInsertEquationCell, pushUebCell } from '../domain/ueb-cell-buffer.js';
+import { classifyNemethInput, nemethStatusMessage } from '../domain/nemeth-input.js';
 
-// The old incremental Nemeth engine and its Braille projection were deleted
-// in the nemeth-v2 rewrite (Task 0, see the SDD task briefs). A small batch
-// parser replaces it in Tasks 1-3, and app.js is re-wired to it in Task 5.
-// Until then Nemeth input is unavailable; see applyNemethSourceIntentToBraille,
-// createEmptyDraftMathDocument, and the composer's Nemeth entry points below
-// for the stubs standing in for it.
-
-/** Nemeth Braille projection is unavailable on this branch (Task 5 restores
- * it). Previously this only ever *modified* an already-present SRE braille
- * label with a source-linked BANA distinction; with no writer, it is the
- * identity function. */
-function applyNemethSourceIntentToBraille(braille) {
-  return braille;
-}
+// Nemeth authoring is a BATCH parse: the composer field accumulates braille
+// cells, `classifyNemethInput` reads the whole buffer on every keystroke for a
+// live status, and submit runs the same cells through `parseNemeth` inside
+// `materializeDraft`. There is no incremental engine, no undo stack and no
+// disambiguation prompt -- the parser resolves ambiguity from context (see
+// docs/nemeth-v2/INTERFACES.md section 9).
+//
+// Two things that are deliberately NOT here, both replaced rather than
+// restored by that design:
+//
+//  * The old source-intent Braille projection. The old incremental engine
+//    stamped `data-omniya-nemeth-intent` attributes and used them to overwrite
+//    SRE's aria-braillelabel. Nothing writes those attributes now, and nothing
+//    should: Nemeth-authored and LaTeX-authored expressions go through one
+//    converter precisely so that identical mathematics reads identically, and
+//    a projection keyed on how the author typed would reintroduce exactly the
+//    divergence that design prevents. SRE's projection stands alone.
+//  * The `#composer-choices` disambiguation box, for the same reason -- the
+//    old engine asked the author which reading it should take; this one never
+//    does.
 
 function createEmptyDraftMathDocument() {
   return { formatVersion: 2, mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"></math>', focus: null };
@@ -202,10 +210,6 @@ async function renderEquation(container, item, version) {
     for (const node of source.querySelectorAll('[data-omniya-id]')) {
       node.id = `omniya-source-${node.getAttribute('data-omniya-id')}`;
     }
-    // Keep the application-owned MathML node that already carries Omnia
-    // source stamps. A second innerHTML clone can drop MathML data attrs in
-    // Chromium and would make Braille projection fall back to SRE alone.
-    const authoredSourceMath = source.querySelector('math');
     container.replaceChildren(source);
     await globalThis.MathJax.typesetPromise([container]);
     stampCanonicalIds(container);
@@ -218,58 +222,12 @@ async function renderEquation(container, item, version) {
     for (const nodeId of scriptCommaIds) {
       container.querySelector(`#omniya-source-${CSS.escape(nodeId)}`)?.setAttribute('data-omniya-script-comma', 'true');
     }
-    // MathJax/SRE remains the independent projection. The guided writer may
-    // retain a small, source-linked BANA distinction that MathML alone cannot
-    // express, so apply it only to the already-rendered ARIA Braille labels.
-    // This is not a serializer and never changes the canonical tree.
-    const renderedMath = container.querySelector('math');
-    if (renderedMath) {
-      // Some literal MathML shapes (for example BANA's dotted/shaded
-      // circles) are intentionally represented as <mtext>. MathJax still
-      // creates the speech node, but it does not attach an aria-braillelabel
-      // attribute to that non-mathematical token. Include every speech node
-      // here so the bounded source-intent projection can supply the reviewed
-      // local cells instead of making the Electron workflow appear blank.
-      container.querySelectorAll('mjx-speech').forEach((node) => {
-        const braille = node.getAttribute('aria-braillelabel');
-        const projected = applyNemethSourceIntentToBraille(braille, authoredSourceMath || renderedMath);
-        if (projected) node.setAttribute('aria-braillelabel', projected);
-      });
-    }
-    const speech = container.querySelector('mjx-speech');
-    // Prefer the untouched application-owned MathML source for Nemeth intent
-    // projection. MathJax's assistive clone intentionally sanitizes unknown
-    // data attributes, which would erase function boundaries and other BANA
-    // distinctions needed for exact Braille. The clone remains the fallback
-    // for renderers that move the source node.
-    const sourceMath = authoredSourceMath || container.querySelector('mjx-assistive-mml math');
-    if (speech && sourceMath) {
-      const braille = speech.getAttribute('aria-braillelabel');
-      speech.setAttribute('aria-braillelabel', applyNemethSourceIntentToBraille(braille, authoredSourceMath || container));
-      // SRE can finish replacing the speech node one microtask after
-      // `typesetPromise` resolves. Reapply the same source-grounded correction
-      // to that final node so undo/redo and relaunch cannot expose a transient
-      // generic Braille projection.
-      const refreshBrailleProjection = () => {
-        const latest = container.querySelector('mjx-speech');
-        if (!latest) return;
-        const current = latest.getAttribute('aria-braillelabel') || undefined;
-        const projected = applyNemethSourceIntentToBraille(
-          current, authoredSourceMath || container
-        );
-        if (projected && projected !== current) latest.setAttribute('aria-braillelabel', projected);
-      };
-      // SRE may replace the speech node more than once while explorer
-      // enrichment settles. Reapply the source-scoped projection at fixed
-      // boundaries without retaining an observer (observers on speech churn
-      // can re-enter when projection itself writes aria-braillelabel).
-      setTimeout(refreshBrailleProjection, 0);
-      setTimeout(refreshBrailleProjection, 80);
-      setTimeout(refreshBrailleProjection, 250);
-      setTimeout(refreshBrailleProjection, 500);
-      setTimeout(refreshBrailleProjection, 900);
-      setTimeout(refreshBrailleProjection, 1500);
-    }
+    // MathJax/SRE is the ONLY Braille projection. The old incremental Nemeth
+    // engine post-processed `aria-braillelabel` here from its own source-intent
+    // attributes; the batch parser keeps no such side channel, and reinstating
+    // one keyed on the authoring method would make identical mathematics read
+    // differently in Braille depending on how it was typed. Removed rather than
+    // restored -- see the note at the top of this file.
     if (version !== transcriptRenderVersion || !container.isConnected) return;
     container.removeAttribute('aria-busy');
     // Only restore explorer focus if that equation is still being explored.
@@ -550,7 +508,7 @@ function renderComposer() {
     : '';
   if (!mathReplace || mode === 'add') {
     elements['composer-source'].value = values.source;
-  } else if (!replacementHasContent && !(replacementSession?.nemethState?.prefix) && replacementSession?.method !== 'latex') {
+  } else if (!replacementHasContent && !replacementSession?.nemethSource && replacementSession?.method !== 'latex') {
     elements['composer-source'].value = '';
   }
   elements['composer-note'].value = values.note;
@@ -794,7 +752,7 @@ async function openComposerForMathReplace(article, startingFocus = null, isNew =
   });
   clearComposerNemethChoices();
   setComposerMathStatus(preferredAuthoringMethod === 'nemeth'
-    ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
+    ? 'Enter Nemeth cells. Enter reads the whole expression.'
     : 'Enter LaTeX for the replacement expression.');
   renderAll();
   applyCommandStateToChrome(commandState);
@@ -894,8 +852,15 @@ function setComposerMathStatus(message) {
   elements['composer-status'].textContent = message ?? '';
 }
 
-/** Nemeth local-code disambiguation choices are unavailable on this branch
- * (Task 5 restores them); this only ever needs to clear stale UI state. */
+/**
+ * Hide `#composer-choices`.
+ *
+ * The batch parser never asks the author to disambiguate -- ambiguous cells are
+ * resolved from context (INTERFACES.md section 9: "The old engine asked the
+ * user - we never do"), so nothing renders choices into this box and nothing
+ * will. It is kept only so a document authored before the rewrite cannot leave
+ * a stale, unclickable button row on screen.
+ */
 function clearComposerNemethChoices() {
   const box = elements['composer-choices'];
   if (!box) return;
@@ -1240,8 +1205,7 @@ function replacementDraftIsEmpty() {
   if (replacementSession.method === 'latex') {
     return !String(replacementSession.latexSource ?? '').trim();
   }
-  const prefix = replacementSession.nemethState?.prefix ?? '';
-  if (prefix) return false;
+  if (String(replacementSession.nemethSource ?? '').trim()) return false;
   if (replacementSessionHasDraftMath(replacementSession)) return false;
   const field = replacementEditor ?? (isComposerMathAuthoring() ? elements['composer-source'] : null);
   return !(field?.value ?? '').trim();
@@ -1267,12 +1231,12 @@ function applyReplacementMethodFromCommand(method) {
     clearComposerNemethChoices();
     if (replacementEditor) {
       elements['replacement-status'].textContent = method === 'nemeth'
-        ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
+        ? 'Enter Nemeth cells. Enter reads the whole expression.'
         : 'Enter LaTeX for the replacement expression.';
     } else {
       setFieldError(elements['composer-source'], elements['composer-error']);
       setComposerMathStatus(method === 'nemeth'
-        ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
+        ? 'Enter Nemeth cells. Enter reads the whole expression.'
         : 'Enter LaTeX for the equation.');
     }
   } catch (error) {
@@ -1396,11 +1360,15 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         replacementSession = setLatexSource(replacementSession, elements['composer-source'].value);
         draft.source = elements['composer-source'].value;
       }
-      // Nemeth input is unavailable on this branch (Task 5 restores it), so
-      // there is no local-code prefix to commit here. A Nemeth-mode session
-      // always has an empty draft and falls through to the empty-draft
-      // rejection below, or (if reached directly) to submitReplacement's
-      // plain "Nemeth input is unavailable" error.
+      if (replacementSession.method === 'nemeth') {
+        // Commit whatever is in the field, unconditionally. The live status is
+        // only ever a progress report; this is the moment the parser's verdict
+        // becomes authoritative, and submitReplacement -> materializeDraft ->
+        // parseNemeth either yields LaTeX or throws NemethUnsupportedError,
+        // whose message is the single product-approved sentence.
+        replacementSession = setNemethSource(replacementSession, elements['composer-source'].value);
+        draft.source = elements['composer-source'].value;
+      }
       if (replacementDraftIsEmpty()) {
         const emptyMessage = editing || commandState.replaceScopeLabel
           ? 'Replacement draft is empty or incomplete.'
@@ -1591,12 +1559,12 @@ elements['replacement-method'].addEventListener('change', () => {
     }
     if (replacementEditor) {
       elements['replacement-status'].textContent = selected === 'nemeth'
-        ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
+        ? 'Enter Nemeth cells. Enter reads the whole expression.'
         : 'Enter LaTeX for the replacement expression.';
     } else {
       setFieldError(elements['composer-source'], elements['composer-error']);
       setComposerMathStatus(selected === 'nemeth'
-        ? 'Enter Nemeth cells. Complete local codes apply immediately; bounded codes wait for Enter.'
+        ? 'Enter Nemeth cells. Enter reads the whole expression.'
         : 'Enter LaTeX for the equation.');
     }
     applyCommandStateToChrome({
@@ -1648,14 +1616,56 @@ async function handleComposerMathInput() {
     syncCommandContentEmpty();
     return;
   }
-  // Nemeth input is unavailable on this branch (Task 5 restores it). Refuse
-  // whatever landed in the field instead of silently discarding it or
-  // falling back to LaTeX.
-  editor.value = '';
-  draft.source = '';
-  editor.setAttribute('aria-invalid', 'true');
-  setFieldError(editor, elements['composer-error'], 'Nemeth input is unavailable on this branch. Switch to LaTeX with Ctrl+L.');
-  setComposerMathStatus('Nemeth input is unavailable on this branch.');
+  // Nemeth. The field IS the cell accumulator: braille cells go in exactly as
+  // typed and the whole buffer is re-read on every keystroke. It is NOT routed
+  // through `pushUebCell` -- that buffer flushes on U+2800 because in UEB a space ends
+  // a word, whereas in Nemeth the same cell is a token (Rule 20/21 comparison
+  // spacing, present in 263 of the 613 corpus cases). Feeding Nemeth through it
+  // would truncate every expression at its first space.
+  //
+  // Re-parsing the whole buffer per keystroke is affordable: a 23-cell buffer
+  // costs ~0.13 ms to classify and a 120-cell one ~2.7 ms, both including the
+  // prefix scan. Parse-on-commit was the alternative and was rejected: an
+  // author who cannot see the field has no other channel telling them whether
+  // the cells are landing, and with 389 of 613 corpus constructs legitimately
+  // out of scope, saving all feedback for Enter means finding out at the end of
+  // a long expression with no clue where it stopped being understood.
+  //
+  // The status never says "unsupported" -- see src/domain/nemeth-input.js for
+  // why that is not knowable mid-buffer. Only submit says it, and by then it is
+  // true. So an unfinished expression does NOT put the field into the error
+  // state: not-yet-complete is the normal condition while typing, not a mistake.
+  let classification;
+  try {
+    classification = classifyNemethInput(editor.value);
+  } catch (error) {
+    // classifyNemethInput rethrows anything that is not a refusal, because that
+    // would be a parser bug rather than an unsupported construct. Surface it
+    // instead of leaving the author typing into a field that stopped reading.
+    setFieldError(editor, elements['composer-error'], `Nemeth reader failed: ${error.message}`);
+    setComposerMathStatus(`Nemeth reader failed: ${error.message}`);
+    return;
+  }
+
+  if (classification.rejected.length) {
+    // QWERTY stays gated (commit 8bc05ae). Strip the characters that are not
+    // cells and keep the ones that are -- the old engine cleared the whole
+    // field, which threw away work the author had already done correctly -- and
+    // say so, because a silent drop is unreadable to a screen reader.
+    const message = nemethStatusMessage(classification);
+    editor.value = classification.cells;
+    draft.source = classification.cells;
+    setFieldError(editor, elements['composer-error'], message);
+    setComposerMathStatus(message);
+    replacementSession = setNemethSource(replacementSession, classification.cells);
+    syncCommandContentEmpty();
+    return;
+  }
+
+  draft.source = editor.value;
+  replacementSession = setNemethSource(replacementSession, editor.value);
+  setFieldError(editor, elements['composer-error']);
+  setComposerMathStatus(nemethStatusMessage(classification));
   syncCommandContentEmpty();
 }
 
@@ -1696,25 +1706,13 @@ elements['mode-switch'].addEventListener('change', () => {
 });
 
 elements['composer-source'].addEventListener('keydown', (event) => {
-  if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
-    // Nemeth input is unavailable on this branch (Task 5 restores it).
-    // Refuse every cell keystroke and Backspace-undo with a clear message
-    // instead of accepting them into a draft that can never be submitted.
-    const isCellKeystroke = event.key === 'Backspace' ||
-      (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey);
-    if (isCellKeystroke) {
-      event.preventDefault();
-      event.stopPropagation();
-      elements['composer-source'].setAttribute('aria-invalid', 'true');
-      setFieldError(
-        elements['composer-source'],
-        elements['composer-error'],
-        'Nemeth input is unavailable on this branch. Switch to LaTeX with Ctrl+L.'
-      );
-      return;
-    }
-  }
-
+  // Nemeth cells and Backspace go straight into the field; it is an ordinary
+  // text buffer that happens to hold braille. The old engine intercepted every
+  // keystroke because it applied cells incrementally and kept its own undo
+  // stack; the batch parser has neither, so the textarea's native editing
+  // (Backspace, arrows, selection, paste, the platform's own undo) is the
+  // editing model, and it is the one a screen reader already knows how to
+  // narrate.
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
     if (isDocumentTextSurface()) return;
     event.preventDefault();
@@ -1722,14 +1720,16 @@ elements['composer-source'].addEventListener('keydown', (event) => {
   }
 });
 
-// The #composer-choices box only ever held Nemeth local-code disambiguation
-// buttons. Nemeth input is unavailable on this branch (Task 5 restores it,
-// along with this listener); nothing renders choices into the box now, so
-// there is nothing here to click.
+// `#composer-choices` has no click listener because it has no buttons. It held
+// the old engine's local-code disambiguation prompts; the batch parser resolves
+// ambiguity from context and never asks (INTERFACES.md section 9), so nothing
+// renders into the box. This is the permanent state, not a gap.
 
 {
-  // Composer UEB six-key is scoped to text Insert. Nemeth equation Insert gets
-  // its own six-key emitter into #composer-source (same pattern as the dock).
+  // Composer UEB six-key is scoped to text Insert. Nemeth equation Insert has
+  // its own six-key emitter into #composer-source: the cell lands in the field
+  // and the `input` event runs the same classifier a typed cell does, so the
+  // two entry paths cannot drift.
   const composerUebSixKey = createSixKeyInput({
     emit: (cell) => {
       uebCellChain = uebCellChain.then(() => handleComposerUebCell(cell)).catch(() => {});

@@ -5,6 +5,8 @@ import {
   replaceMathTarget,
   serializeMathML
 } from './math-tree.js';
+import { toNemethCells } from './nemeth-input.js';
+import { parseNemeth } from './nemeth/index.js';
 
 function emptyDraft() {
   const tree = parseMathML('<math xmlns="http://www.w3.org/1998/Math/MathML"/>');
@@ -44,14 +46,15 @@ export function startReplacementSession({ document = null, target, explorerFocus
     placement,
     draft,
     draftFocus: draft.focus,
-    latexSource: ''
+    latexSource: '',
+    nemethSource: ''
   };
 }
 
 export function setReplacementMethod(session, method) {
   if (!['nemeth', 'latex'].includes(method)) throw new TypeError('Unknown authoring method');
   const next = cloneSession(session);
-  if (next.latexSource || sessionHasDraftMath(next)) {
+  if (next.latexSource || next.nemethSource || sessionHasDraftMath(next)) {
     throw new Error('Authoring method can only change before entering content.');
   }
   next.method = method;
@@ -62,6 +65,26 @@ export function setLatexSource(session, source) {
   if (session.method !== 'latex') throw new Error('The replacement session is not in LaTeX mode.');
   const next = cloneSession(session);
   next.latexSource = String(source ?? '');
+  return next;
+}
+
+/**
+ * The Nemeth counterpart of `setLatexSource`: the session accumulates the
+ * authored source exactly as written, and nothing is parsed until submit.
+ *
+ * Like `latexSource` this is the author's text, not a processed form -- either
+ * Unicode braille cells or the Braille ASCII that spells them. `materializeDraft`
+ * is the single place both are converted and validated, so a caller cannot
+ * store a partially-converted buffer and have it commit truncated.
+ *
+ * `U+2800` is an ordinary character here: it is a Nemeth TOKEN (Rule 20/21
+ * comparison spacing), not a terminator, so this must never be routed through
+ * `ueb-cell-buffer.js`, which flushes on it.
+ */
+export function setNemethSource(session, source) {
+  if (session.method !== 'nemeth') throw new Error('The replacement session is not in Nemeth mode.');
+  const next = cloneSession(session);
+  next.nemethSource = String(source ?? '');
   return next;
 }
 
@@ -83,12 +106,33 @@ async function materializeDraft(session, convertLatexToMathML) {
     const mathml = canonicalizeMathML(await convertLatexToMathML(session.latexSource));
     return parseMathML(mathml);
   }
-  // Nemeth authoring was torn out in the nemeth-v2 rewrite (see Task 0). The
-  // `method` field and the 'nemeth' session shape survive so Task 5 can
-  // re-add the branch without rebuilding this plumbing; until then any
-  // session that reaches here in Nemeth mode has no way to have gathered
-  // content and cannot be submitted.
-  throw new Error('Nemeth input is unavailable on this branch.');
+  // Nemeth: cells -> LaTeX -> the SAME convertLatexToMathML path the LaTeX
+  // branch above uses. Deliberately not a second MathML generator: routing both
+  // authoring methods through one converter is what keeps Nemeth-authored and
+  // LaTeX-authored expressions from drifting apart, and it is why the parser
+  // emits LaTeX rather than MathML (src/domain must not import src/main).
+  //
+  // `parseNemeth` throws `NemethUnsupportedError` for anything out of scope.
+  // That propagates to the caller unchanged: its `message` is the single
+  // product-approved sentence, so a UI can show `error.message` directly, and
+  // its developer-only `detail` never rides along in it.
+  const authored = String(session.nemethSource ?? '');
+  if (!authored.trim()) throw new Error('Replacement draft is empty.');
+  const { cells, rejected } = toNemethCells(authored);
+  // Refuse rather than commit the cells that did convert. The composer strips
+  // non-cell characters as they are typed, so this is normally unreachable --
+  // but a session assembled any other way must not be able to commit a quietly
+  // filtered buffer, which is exactly the plausible-but-wrong answer a braille
+  // author has no way to notice.
+  if (rejected.length) {
+    throw new Error(
+      `Braille cells only: ${JSON.stringify(rejected[0].character)} at character ${rejected[0].index + 1} is not one.`
+    );
+  }
+  if (typeof convertLatexToMathML !== 'function') throw new Error('The local LaTeX converter is unavailable.');
+  const { latex } = parseNemeth(cells);
+  const mathml = canonicalizeMathML(await convertLatexToMathML(latex));
+  return parseMathML(mathml);
 }
 
 function applyDraftToDocument(document, target, tree, placement = 'replace') {

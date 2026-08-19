@@ -9,8 +9,10 @@ import {
   cancelReplacement,
   submitReplacement,
   setLatexSource,
+  setNemethSource,
   setReplacementMethod
 } from '../../src/domain/replacement-session.js';
+import { NemethUnsupportedError, UNSUPPORTED_MESSAGE } from '../../src/domain/nemeth/index.js';
 
 test('replacement drafts start empty and cancel without mutating the source document', async () => {
   const document = await importLatex('x+x');
@@ -156,20 +158,89 @@ test('authoring method can change only before the replacement draft receives inp
   assert.throws(() => setReplacementMethod(session, 'nemeth'), /before entering content/i);
 });
 
-// Nemeth input authoring was torn out in the nemeth-v2 rewrite (Task 0); Task 5
-// re-adds it. `method: 'nemeth'` remains a valid session shape (see the test
-// above) so that work does not have to rebuild this plumbing, but a session
-// left in Nemeth mode has no way to gather content and must refuse to submit.
-test('a Nemeth-mode session refuses to submit: Nemeth input is unavailable on this branch', async () => {
+// Replaces the Task 0 stub pin ("a Nemeth-mode session refuses to submit:
+// Nemeth input is unavailable on this branch"). That assertion described the
+// torn-out engine and could only pass while `materializeDraft` threw; it is
+// superseded here by the three outcomes the real branch has, which pin strictly
+// more behaviour than the stub did.
+async function nemethSession(cells) {
   const document = await importLatex('x');
   const tree = parseMathML(document.mathml);
-  const target = tree.children[0].attrs['data-omniya-id'];
   const session = startReplacementSession({
     document,
-    target: { kind: 'node', nodeId: target },
+    target: { kind: 'node', nodeId: tree.children[0].attrs['data-omniya-id'] },
     explorerFocus: null,
     method: 'nemeth'
   });
+  return cells === undefined ? session : setNemethSource(session, cells);
+}
 
-  await assert.rejects(() => submitReplacement(session), /Nemeth input is unavailable on this branch/);
+test('a Nemeth session with no cells refuses as empty, not as unsupported', async () => {
+  const session = await nemethSession();
+  assert.equal(session.nemethSource, '');
+  await assert.rejects(() => submitReplacement(session, { convertLatexToMathML }), /Replacement draft is empty/);
 });
+
+test('a Nemeth session commits its cells through the LaTeX MathML converter', async () => {
+  // '?a/b#' in Braille ASCII: a simple fraction, BANA Rule 12.
+  const session = await nemethSession('\u2839\u2801\u280c\u2803\u283c');
+  const result = await submitReplacement(session, { convertLatexToMathML });
+  assert.match(result.document.mathml, /<mfrac[ >]/);
+
+  // The point of routing Nemeth through convertLatexToMathML rather than a
+  // second generator: the same mathematics authored either way must be
+  // byte-identical MathML, not merely equivalent.
+  const latexResult = await submitReplacement(
+    { ...session, method: 'latex', latexSource: '\\frac{a}{b}', nemethSource: '' },
+    { convertLatexToMathML }
+  );
+  assert.equal(
+    serializeWithoutIds(result.document.mathml),
+    serializeWithoutIds(latexResult.document.mathml)
+  );
+});
+
+test('a QWERTY character refuses instead of being decoded as its Braille ASCII cell', async () => {
+  // The composer strips these as they are typed, so this guards a session
+  // assembled any other way. Committing the cells that *did* convert would be a
+  // plausible-looking wrong answer a braille author cannot see; and decoding the
+  // 'a' to the letter cell would reverse commit 8bc05ae, "gate Nemeth QWERTY".
+  const session = await nemethSession('\u2839a\u283c');
+  await assert.rejects(
+    () => submitReplacement(session, { convertLatexToMathML }),
+    /Braille cells only: "a" at character 2/
+  );
+});
+
+test('an out-of-scope Nemeth construct refuses with the single product message and no developer detail', async () => {
+  // U+282B has no reading in the v1 symbol table.
+  const session = await nemethSession('\u282d\u282b\u282d');
+  await assert.rejects(
+    () => submitReplacement(session, { convertLatexToMathML }),
+    (error) => {
+      assert.ok(error instanceof NemethUnsupportedError, 'expected NemethUnsupportedError');
+      assert.equal(error.message, UNSUPPORTED_MESSAGE);
+      assert.doesNotMatch(error.message, /cell|offset|U\+/i, 'developer detail must not reach error.message');
+      return true;
+    }
+  );
+});
+
+test('setNemethSource refuses a LaTeX-mode session, and cells block a method switch', async () => {
+  const latex = startReplacementSession({
+    document: null,
+    target: { kind: 'node', nodeId: 'omniya-x' },
+    method: 'latex'
+  });
+  assert.throws(() => setNemethSource(latex, '⠭'), /not in Nemeth mode/);
+
+  const withCells = setNemethSource(
+    startReplacementSession({ document: null, target: { kind: 'node', nodeId: 'omniya-x' }, method: 'nemeth' }),
+    '⠭'
+  );
+  assert.throws(() => setReplacementMethod(withCells, 'latex'), /before entering content/i);
+});
+
+function serializeWithoutIds(mathml) {
+  return mathml.replace(/ data-omniya-id="[^"]*"/g, '');
+}
