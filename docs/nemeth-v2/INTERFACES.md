@@ -9,7 +9,7 @@ never edited back into agreement, so treat it as the **design record**, not as a
 live reference:
 
 - **§4's `kind` enum does not match what shipped.** The authoritative list is
-  `src/domain/nemeth/symbols.json` itself (88 rows, 19 `kind` values as of this
+  `src/domain/nemeth/symbols.json` itself (88 rows, 20 `kind` values as of this
   writing) — read the data, not this table. See the note inline at §4.
 - **§5's level model (signed integers, `level: number`, baseline = 0) is not what
   shipped.** `src/domain/nemeth/levels.js` uses absolute-path strings instead,
