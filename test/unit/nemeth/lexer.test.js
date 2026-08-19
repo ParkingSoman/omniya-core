@@ -394,3 +394,53 @@ test('the tilde needs the OTHER unspaced resolution: truncation cannot reach its
   const kappa = lex(asciiToCells('x.ky'))[1];
   assert.deepEqual([kappa.kind, kappa.value, kappa.marks], ['letter', 'k', { alphabet: 'greek' }]);
 });
+
+// -- BANA Rule 18: function names, and the space that identifies one ---------
+
+test('Rule 18.4.1: a name from Rule 18\'s table followed by a space is one function token', () => {
+  // `sin x` -- BANA Example 18-2 (test/corpus/sources/Nemeth_2022.txt lines
+  // 9138-9141). The name is written with the plain letter cells of Rule 18's
+  // own table (`sin` is `SIN`, line 9113).
+  assert.deepEqual(shape(lex(asciiToCells('sin x'))), ['function:\\sin', 'blank: ', 'letter:x']);
+});
+
+test('Rule 18.4.1: with no space after, the same cells are the letters they are spelled with', () => {
+  // The oracle carries both readings of `⠇⠝`: `sre-aata:AataExpression_281`
+  // (`s-t .k ln`, input ends there) targets <mi>l</mi><mi>n</mi>, while
+  // `AataExpression_284` (`f(x) .k ln x`) targets <mi>ln</mi>. 18.4.1's space is
+  // the whole difference, so the end of the input does NOT satisfy it.
+  assert.deepEqual(shape(lex(asciiToCells('ln'))), ['letter:l', 'letter:n']);
+  assert.deepEqual(shape(lex(asciiToCells('ln x'))), ['function:\\ln', 'blank: ', 'letter:x']);
+});
+
+test('Rule 18.4.1: a name followed by an indicator rather than a space is not a function name', () => {
+  // 18.4.1's second sentence (the space follows a superscript, subscript or
+  // modifier carried by the name) is out of scope, so `cos^2 x`
+  // (mathcat-rules:nested_super_space_79_d_3) falls back to letters rather than
+  // being guessed at.
+  assert.deepEqual(shape(lex(asciiToCells('cos^2'))).slice(0, 3), ['letter:c', 'letter:o', 'letter:s']);
+});
+
+test('Rule 20: the multiplication cross and dot are their own rows, not the indicator plus a sign', () => {
+  // Cross `@*` and dot `*`, Nemeth_2022.txt lines 9883 and 9884-9885. The cross
+  // shares its first cell with the script-type typeform indicator of Rule 7, so
+  // longest match is what keeps `@*` one symbol.
+  assert.deepEqual(shape(lex(asciiToCells('a@*b'))), ['letter:a', 'op:×', 'letter:b']);
+  assert.deepEqual(shape(lex(asciiToCells('a*b'))), ['letter:a', 'op:⋅', 'letter:b']);
+});
+
+test('Rule 21: the vertically compounded comparison signs lex whole when 21.13 spaces them', () => {
+  // `"k:` line 10429 and `.1:` line 10407; each extends a sign already in the
+  // table by one cell, so only longest match separates `x "k: #5` from `x "k`.
+  assert.deepEqual(shape(lex(asciiToCells('x "k: #5'))).slice(1, 3), ['blank: ', 'comparison:≤']);
+  assert.deepEqual(shape(lex(asciiToCells('x .1: #5'))).slice(1, 3), ['blank: ', 'comparison:≥']);
+  assert.deepEqual(shape(lex(asciiToCells('x "k #5'))).slice(1, 3), ['blank: ', 'comparison:<']);
+});
+
+test('Rule 13: each order of fraction indicator carries its own order', () => {
+  const complex = lex(asciiToCells(',??3/8#,/5,#'));
+  assert.deepEqual(
+    complex.map((t) => `${t.kind}:${t.order ?? '-'}`).filter((s) => s.startsWith('frac')),
+    ['fracOpen:complex', 'fracOpen:simple', 'fracLine:simple', 'fracClose:simple', 'fracLine:complex', 'fracClose:complex']
+  );
+});

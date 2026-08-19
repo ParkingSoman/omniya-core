@@ -222,6 +222,51 @@
     "banaRef": null
   },
   {
+    "cells": "⠎⠊⠝",
+    "kind": "function",
+    "value": "\\sin",
+    "banaRef": "18",
+    "unlessSpaceFollows": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠉⠕⠎",
+    "kind": "function",
+    "value": "\\cos",
+    "banaRef": "18",
+    "unlessSpaceFollows": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠞⠁⠝",
+    "kind": "function",
+    "value": "\\tan",
+    "banaRef": "18",
+    "unlessSpaceFollows": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠇⠕⠛",
+    "kind": "function",
+    "value": "\\log",
+    "banaRef": "18",
+    "unlessSpaceFollows": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠇⠝",
+    "kind": "function",
+    "value": "\\ln",
+    "banaRef": "18",
+    "unlessSpaceFollows": {
+      "maxLen": 1
+    }
+  },
+  {
     "cells": "⠬",
     "kind": "op",
     "value": "+",
@@ -243,6 +288,20 @@
     "banaRef": "20"
   },
   {
+    "cells": "⠈⠡",
+    "kind": "op",
+    "value": "×",
+    "role": "binary",
+    "banaRef": "20"
+  },
+  {
+    "cells": "⠡",
+    "kind": "op",
+    "value": "⋅",
+    "role": "binary",
+    "banaRef": "20"
+  },
+  {
     "cells": "⠸⠒",
     "kind": "op",
     "value": ":",
@@ -256,20 +315,50 @@
     "unlessFollowedByNumeral": {
       "kind": "fracClose",
       "value": "#",
-      "banaRef": "13"
+      "order": "simple",
+      "banaRef": "13.2.1"
     }
   },
   {
     "cells": "⠹",
     "kind": "fracOpen",
     "value": "?",
-    "banaRef": "13"
+    "order": "simple",
+    "banaRef": "13.2.1"
   },
   {
     "cells": "⠌",
     "kind": "fracLine",
     "value": "/",
-    "banaRef": "13"
+    "order": "simple",
+    "banaRef": "13.2.1"
+  },
+  {
+    "cells": "⠠⠹",
+    "kind": "fracOpen",
+    "value": ",?",
+    "order": "complex",
+    "banaRef": "13.6"
+  },
+  {
+    "cells": "⠠⠌",
+    "kind": "fracLine",
+    "value": ",/",
+    "order": "complex",
+    "banaRef": "13.6"
+  },
+  {
+    "cells": "⠠⠼",
+    "kind": "fracClose",
+    "value": ",#",
+    "order": "complex",
+    "banaRef": "13.6"
+  },
+  {
+    "cells": "⠣",
+    "kind": "radIndex",
+    "value": "<",
+    "banaRef": "16.2"
   },
   {
     "cells": "⠜",
@@ -461,6 +550,26 @@
     "kind": "comparison",
     "role": "comparison",
     "value": "<",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠐⠅⠱",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≤",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠨⠂⠱",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≥",
     "banaRef": "21",
     "unlessUnspaced": {
       "maxLen": 1

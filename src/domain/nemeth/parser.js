@@ -5,7 +5,7 @@
  *   expression := terms ( BLANK comparison BLANK terms )*
  *   terms      := postfix ( OP? postfix )*
  *   postfix    := primary script*
- *   primary    := Number | Identifier | Fraction | Root | Fenced
+ *   primary    := Number | Identifier | Fraction | Root | Fenced | FunctionCall
  *
  * The two productions are BANA's two spacing rules, not a precedence ladder.
  * Rule 21.13 (Nemeth_2022.txt lines 10775-10779) spaces a comparison sign on
@@ -51,6 +51,7 @@
 import {
   Fenced,
   Fraction,
+  FunctionCall,
   Identifier,
   Number,
   Operator,
@@ -62,7 +63,7 @@ import {
 } from './ast.js';
 import { NemethUnsupportedError } from './errors.js';
 
-const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'fracOpen', 'radOpen', 'groupOpen']);
+const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen']);
 
 function peek(state) {
   return state.index < state.tokens.length ? state.tokens[state.index] : null;
@@ -181,16 +182,48 @@ function parseNumber(state, level, marks) {
   });
 }
 
+/**
+ * `Fraction := fracOpen expression fracLine expression fracClose`, all three
+ * indicators of the SAME order.
+ *
+ * BANA Rule 13 gives each order of fraction its own indicator triple, and says
+ * of each that its indicators are the ones that enclose a fraction of that
+ * order: 13.2.1 (test/corpus/sources/Nemeth_2022.txt lines 5543-5546) "Simple
+ * fraction indicators must be used ... to enclose a simple fraction", 13.6
+ * (lines 5753-5755) "Complex fraction indicators must be used to enclose a
+ * complex fraction". The order is therefore what pairs the three signs, exactly
+ * as nesting depth pairs them in print, and Example 13-23 (lines 5757-5762,
+ * `,??3/8#,/5,#`) is the shape that needs it: the inner simple fraction's own
+ * `⠌` and `⠼` sit between the outer complex `⠠⠹` and `⠠⠼`, so an order-blind
+ * `expect` would close the outer fraction on the inner one's line.
+ *
+ * Unlike `parseFenced`, which deliberately does NOT require its open and close
+ * to match (BANA Example 19-12 pairs a left bracket with a right parenthesis),
+ * nothing in Rule 13 sanctions a mixed triple, and reading one would silently
+ * re-parent a nested fraction.
+ */
+function expectFractionSign(state, kind, order, what) {
+  const token = peek(state);
+  if (!token || token.kind !== kind || token.order !== order) {
+    throw unsupported(
+      state,
+      `the ${order} fraction opened here has no ${order} ${what} -- BANA ${order === 'simple' ? '13.2.1' : '13.6'} ` +
+        `encloses a ${order} fraction in ${order} fraction indicators, and this pipeline has no node for a mixed triple`
+    );
+  }
+  return advance(state);
+}
+
 function parseFraction(state, level, marks) {
   const start = state.index;
-  advance(state);
+  const order = advance(state).order;
   const numerator = parseExpression(state, level);
-  expect(state, 'fracLine', 'simple fraction has no fraction line');
+  expectFractionSign(state, 'fracLine', order, 'fraction line');
   const denominator = parseExpression(state, level);
-  expect(state, 'fracClose', 'simple fraction is not closed');
+  expectFractionSign(state, 'fracClose', order, 'closing indicator');
   return Fraction(numerator, denominator, {
     src: spanFrom(state, start),
-    marks: { ...marks, fractionOrder: 'simple' }
+    marks: { ...marks, fractionOrder: order }
   });
 }
 
@@ -200,6 +233,39 @@ function parseRoot(state, level, marks) {
   const radicand = parseExpression(state, level);
   expect(state, 'radClose', 'radical has no termination indicator');
   return Root(radicand, null, { src: spanFrom(state, start), marks });
+}
+
+/**
+ * `Root := radIndex expression radOpen expression radClose` -- BANA 16.2
+ * (test/corpus/sources/Nemeth_2022.txt lines 8248-8254): a radical of index
+ * other than 2 is written as the index-of-radical indicator `⠣`, then the
+ * index, then the three steps of 16.1.1. Example 16-10 (lines 8256-8259) is
+ * `<3>2]` = the cube root of 2; Example 16-13 (lines 8271-8273) is `<m+n>p+q]`,
+ * so the index is a whole expression, not one sign.
+ *
+ * `⠣` is a homograph: Rule 15's "directly over" modifier indicator is the same
+ * cell. It is not disambiguated here and does not need to be, because a
+ * modifier's `⠣` follows the expression it modifies and is not at the start of
+ * a term, so it is never reached by this production -- and where those cells do
+ * reach it (nothing else in the modifier's shape starts a radicand) the index
+ * runs into a sign that cannot open one and the case refuses, which is what it
+ * did before Rule 16.2 shipped.
+ */
+function parseIndexedRoot(state, level, marks) {
+  const start = state.index;
+  advance(state);
+  if (!peek(state) || peek(state).kind === 'radOpen') {
+    throw unsupported(state, 'index-of-radical indicator is not followed by an index');
+  }
+  // The index runs up to the radical sign, so `⠜` cannot start a term inside it.
+  // That is 16.3's own doing (lines 8275-8290): a radical nested inside another
+  // carries order-of-radical indicators, which are separate signs, so an
+  // unindicated radical sign after the index is always THIS radical's.
+  const index = parseTerms(state, level, 'radOpen');
+  expect(state, 'radOpen', 'index-of-radical indicator is not followed by a radical sign');
+  const radicand = parseExpression(state, level);
+  expect(state, 'radClose', 'indexed radical has no termination indicator');
+  return Root(radicand, index, { src: spanFrom(state, start), marks });
 }
 
 /**
@@ -235,6 +301,32 @@ function parseFenced(state, level, marks) {
   return Fenced(open.value, body, close.value, { src: spanFrom(state, start), marks });
 }
 
+/**
+ * `FunctionCall := function BLANK postfix` -- BANA Rule 18.
+ *
+ * 18.4.1 (test/corpus/sources/Nemeth_2022.txt lines 9186-9191) leaves a space
+ * after an unmodified function name, and that space is grammar here for the same
+ * reason 21.13's two are: it is the only thing in the cells separating `⠇⠝⠀⠭`,
+ * ln applied to x, from `⠇⠝`, the letters l and n. The lexer reads these cells
+ * as a function name only when the space is there, so it is present by
+ * construction from `lex()`; the check below is what makes `parse()` refuse
+ * rather than mis-consume when it is handed tokens directly.
+ *
+ * The argument is a `postfix`, not a full `expression`, and that is 18.4.3's
+ * doing (lines 9239-9241): "The expression which follows ... is spaced in
+ * accordance with the other spacing rules of this Code", and Example 18-14
+ * (lines 9243-9247) is `sin x+y` for print "sin x + y" -- the name applies to
+ * the term, and the operation sign that follows belongs to the sequence around
+ * it. A wider argument would silently re-parent the `+y`.
+ */
+function parseFunctionCall(state, level, marks) {
+  const start = state.index;
+  const name = advance(state);
+  expect(state, 'blank', `BANA 18.4.1 leaves a space after the function name "${name.cells}", and none is here`);
+  const argument = parsePostfix(state, level);
+  return FunctionCall(name.value, argument, { src: spanFrom(state, start), marks });
+}
+
 function parsePrimary(state, level) {
   const token = peek(state);
   if (!token || token.level !== level || !TERM_STARTS.has(token.kind)) {
@@ -251,8 +343,12 @@ function parsePrimary(state, level) {
       return parseFraction(state, level, marks);
     case 'radOpen':
       return parseRoot(state, level, marks);
+    case 'radIndex':
+      return parseIndexedRoot(state, level, marks);
     case 'groupOpen':
       return parseFenced(state, level, marks);
+    case 'function':
+      return parseFunctionCall(state, level, marks);
     case 'letter':
       advance(state);
       return Identifier(token.value, { src: spanFrom(state, start), marks });
@@ -340,14 +436,21 @@ function isOperatorAt(state, level) {
   return Boolean(token) && token.level === level && token.kind === 'op';
 }
 
-function isTermAt(state, level) {
-  return atLevel(state, level) && TERM_STARTS.has(peek(state).kind);
+/**
+ * `stop` is a kind that does not start a term in THIS production, passed by a
+ * caller whose own grammar ends where that sign begins -- BANA 16.2's index,
+ * which the radical sign terminates. It is a parameter of the production, not a
+ * mode: nothing sets it for the rest of the parse, and the default is that
+ * every `TERM_STARTS` kind starts a term.
+ */
+function isTermAt(state, level, stop) {
+  return atLevel(state, level) && TERM_STARTS.has(peek(state).kind) && peek(state).kind !== stop;
 }
 
-function parseTerms(state, level) {
+function parseTerms(state, level, stop = null) {
   const start = state.index;
   const items = [parsePostfix(state, level)];
-  while (isOperatorAt(state, level) || isTermAt(state, level)) {
+  while (isOperatorAt(state, level) || isTermAt(state, level, stop)) {
     if (isOperatorAt(state, level)) {
       const token = advance(state);
       items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));

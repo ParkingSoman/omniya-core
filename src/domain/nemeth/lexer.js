@@ -227,13 +227,47 @@ function withNumeralAlternative(match, cells, index) {
 }
 
 /**
- * The reading a row declares for when BANA 21.13's spaces are absent.
+ * BANA 18.4.1 (test/corpus/sources/Nemeth_2022.txt lines 9186-9191): "A space is
+ * left after an unmodified function name or its abbreviated form."
  *
- * There are exactly two ways a comparison row can lose to its unspaced twin,
- * and which one applies is a property of the row, so the row says which:
+ * That space is what makes a run of letter cells a function name rather than the
+ * letters it is spelled with -- Rule 18's whole table is ordinary letter cells
+ * (`sin` is `SIN`, line 9113), so nothing else in the braille separates the two.
+ * The oracle carries the discrimination both ways on the same two cells:
+ * `sre-aata:AataExpression_281` is `⠎⠤⠞⠀⠨⠅⠀⠇⠝` and targets `<mi>l</mi><mi>n</mi>`
+ * (no space after, and the input ends there), while `AataExpression_284` is
+ * `⠋⠷⠭⠾⠀⠨⠅⠀⠇⠝⠀⠭` and targets `<mi>ln</mi>` applied to x.
+ *
+ * The end of the input is deliberately NOT counted as the space, unlike
+ * `isSpaced` above: 21.13's space sits OUTSIDE a transcribed expression, so its
+ * absence at the ends says nothing, whereas 18.4.1's space sits BETWEEN the name
+ * and the argument it applies to, and a function name with no argument after it
+ * is not a function application at all. `AataExpression_281` is that case
+ * exactly, and reading it as `\ln` would be a wrong answer, not a refusal.
+ *
+ * 18.4.1's second sentence -- if the name carries a superscript, subscript or
+ * modifier, the space follows THAT instead -- is out of scope, and the fallback
+ * is what keeps that honest: `⠉⠕⠎⠘⠆⠀⠭` (cos squared x,
+ * `mathcat-rules:nested_super_space_79_d_3`) and `⠇⠕⠛⠆⠀⠭` (log base 2 of x,
+ * `log_77_4_8`) read as letters and refuse further down, which is what they did
+ * before Rule 18 shipped. Skipping a script run here would mean walking a
+ * grammar the lexer does not have.
+ */
+function spaceFollows(cells, index, len) {
+  return cells[index + len] === BLANK;
+}
+
+/**
+ * The reading a row declares for when the spacing its primary reading requires
+ * is absent -- `unlessUnspaced` for BANA 21.13's two spaces, `unlessSpaceFollows`
+ * for 18.4.1's one.
+ *
+ * There are exactly two ways such a row can lose to its twin, and which one
+ * applies is a property of the row, so the row says which:
  *
  *   `{ maxLen }`  -- the cells are not one symbol at all. `⠨⠅` unspaced is the
- *                    Greek indicator plus the letter k, so the trie is re-run
+ *                    Greek indicator plus the letter k, and `⠇⠝` with no space
+ *                    after it is the letters l and n, so the trie is re-run
  *                    against a string truncated to the declared length and the
  *                    remaining cells are lexed on their own.
  *   fields        -- the cells ARE one symbol, a different one. `⠈⠱` is the
@@ -244,23 +278,26 @@ function withNumeralAlternative(match, cells, index) {
  *                    declares the fields to override, exactly as
  *                    `unlessFollowedByNumeral` does.
  */
-function whenUnspaced(match, cells, index) {
-  const alternative = match.unlessUnspaced;
+function alternativeReading(match, alternative, cells, index) {
   if (!alternative.maxLen) return { ...match, ...alternative };
   return matchAt(cells.slice(0, index + alternative.maxLen), index);
 }
 
 /**
  * Apply a row's declared alternative reading when the context shows the row's
- * primary reading is wrong. Every alternative is data-declared.
+ * primary reading is wrong. Every alternative is data-declared, and a row
+ * carries at most one spacing test: 21.13's `unlessUnspaced` belongs to
+ * comparison signs, 18.4.1's `unlessSpaceFollows` to function names.
  *
- * An unspaced fallback is disambiguated in its turn: truncating `⠨⠅` down to
- * `⠨` lands on the decimal-point row, whose own reading still depends on what
- * follows it.
+ * A fallback is disambiguated in its turn: truncating `⠨⠅` down to `⠨` lands on
+ * the decimal-point row, whose own reading still depends on what follows it.
  */
 function disambiguate(match, cells, index) {
   if (match.unlessUnspaced && !isSpaced(cells, index, match.len)) {
-    return withNumeralAlternative(whenUnspaced(match, cells, index), cells, index);
+    return withNumeralAlternative(alternativeReading(match, match.unlessUnspaced, cells, index), cells, index);
+  }
+  if (match.unlessSpaceFollows && !spaceFollows(cells, index, match.len)) {
+    return withNumeralAlternative(alternativeReading(match, match.unlessSpaceFollows, cells, index), cells, index);
   }
   return withNumeralAlternative(match, cells, index);
 }
@@ -305,6 +342,11 @@ function makeToken(match, cells, start, end, marks) {
   // declares one. `parser.js` reads it to decide what a blank next to this
   // token can mean; see the Rule 21.13 seam there.
   if (match.role) token.role = match.role;
+  // Which of BANA Rule 13's four indicator pairs this sign belongs to. 13.2.1
+  // and 13.6 each say their own indicators "must be used to enclose" a fraction
+  // of that order, so the order is what pairs an opening indicator with its own
+  // line and closing indicator; `parser.js` reads it at that seam.
+  if (match.order) token.order = match.order;
   if (marks) token.marks = Object.freeze(marks);
   return Object.freeze(token);
 }

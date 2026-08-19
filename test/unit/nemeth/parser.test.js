@@ -323,10 +323,17 @@ test('Rule 20.1.2: a blank beside an operation sign refuses, and names that rule
 });
 
 test('a blank that delimits nothing refuses, citing Rules 21.13 and 20.1.1', () => {
-  // `sin x` (mathcat-rules:num_indicator_9_a_5 shape). Function names are out of
-  // scope, so this blank is 20.1.1.b's and unreadable here. What must NOT happen
-  // is the blank being dropped: that would silently answer `sinx`.
-  assert.throws(() => treeOf('sin x'), (error) => {
+  // `x y` -- two letters with a blank between them. Nothing in the Code writes a
+  // blank there that this parser reads: 21.13's spaces belong to a comparison
+  // sign and 20.1.1's to an operation sign beside a function name, an
+  // abbreviation, an ellipsis or a dash. What must NOT happen is the blank being
+  // dropped, which would silently answer `xy`.
+  //
+  // The input used to be `sin x`, chosen when function names were out of scope.
+  // Rule 18 shipped in Task 5f and that string now parses correctly, so the
+  // example no longer demonstrates anything; the principle it was written for --
+  // an unaccounted-for blank refuses rather than vanishing -- is what is kept.
+  assert.throws(() => treeOf('x y'), (error) => {
     assert.ok(error instanceof NemethUnsupportedError);
     assert.match(error.detail, /BANA Rule 21\.13 does not put one/u);
     return true;
@@ -581,4 +588,102 @@ test('Rule 19: braces are escaped for LaTeX, brackets and parentheses are not', 
   assert.equal(toLatexOf('.(a.)'), '\\{a\\}');
   assert.equal(toLatexOf('@(a@)'), '[a]');
   assert.equal(toLatexOf('(a)'), '(a)');
+});
+
+// -- BANA Rule 18: function names --------------------------------------------
+
+test('Rule 18: a function name applies to the postfix after 18.4.1\'s space', () => {
+  // BANA Example 18-2 (test/corpus/sources/Nemeth_2022.txt lines 9138-9141).
+  assert.equal(format(treeOf('sin x')), "FunctionCall('\\\\sin', Identifier('x'))");
+  assert.equal(toLatexOf('sin x'), '\\sin x');
+});
+
+test('Rule 18.4.3: the argument is one term, so an operation sign after it stays in the sequence', () => {
+  // Example 18-14 (lines 9243-9247) is `sin x+y` for print "sin x + y": the name
+  // applies to x, and `+y` is not swallowed into the argument.
+  assert.equal(
+    format(treeOf('sin x+y')),
+    "Sequence([ FunctionCall('\\\\sin', Identifier('x')), Operator('+'), Identifier('y') ])"
+  );
+});
+
+test('Rule 18: a function token with no blank after it refuses rather than taking the next term', () => {
+  // Unreachable through `lex()` -- the lexer only reads these cells as a
+  // function name when 18.4.1's space is there -- so it is driven through
+  // `parse` directly. Without the check the name would silently apply to
+  // whatever followed, which is the one wrong answer this production can give.
+  assert.throws(
+    () => parse([token({ kind: 'function', value: '\\sin', offset: 0 }), token({ kind: 'letter', value: 'x', offset: 1 })]),
+    (error) => {
+      assert.ok(error instanceof NemethUnsupportedError);
+      assert.match(error.detail, /BANA 18\.4\.1 leaves a space/u);
+      return true;
+    }
+  );
+});
+
+// -- BANA Rule 16.2: index of radical ----------------------------------------
+
+test('Rule 16.2: an indexed radical becomes Root with its index', () => {
+  // Example 16-10 (lines 8256-8259) `<3>2]`, Example 16-12 (lines 8266-8269)
+  // `<n>a]`, Example 16-13 (lines 8271-8273) `<m+n>p+q]`.
+  assert.equal(format(treeOf('<3>2]')), "Root(Number('2'), Number('3'))");
+  assert.equal(toLatexOf('<n>a]'), '\\sqrt[n]{a}');
+  assert.equal(toLatexOf('<m+n>p+q]'), '\\sqrt[m+n]{p+q}');
+  // Example 16-11 (lines 8261-8264) `#3<3>x+y]`: the indexed radical is a term
+  // like any other, so it juxtaposes with the numeral before it.
+  assert.equal(toLatexOf('#3<3>x+y]'), '3\\sqrt[3]{x+y}');
+});
+
+test('Rule 16.2: the index ends at the radical sign, so the radical is not eaten as part of it', () => {
+  // Without the `stop`, `parseTerms` reads `>2]` as a further term of the index
+  // (a radical opens a term) and the radical sign that 16.2 step (c) requires is
+  // then missing, so a correct expression refuses.
+  assert.equal(format(treeOf('<3>2]')), "Root(Number('2'), Number('3'))");
+  // An index-of-radical indicator with no index at all is refused rather than
+  // reading the radical itself as the index.
+  assert.throws(() => treeOf('<>x]'), (error) => {
+    assert.match(error.detail, /not followed by an index/u);
+    return true;
+  });
+  assert.throws(() => treeOf('<3x]'), (error) => {
+    assert.match(error.detail, /not followed by a radical sign/u);
+    return true;
+  });
+  assert.throws(() => treeOf('<3>x'), (error) => {
+    assert.match(error.detail, /indexed radical has no termination indicator/u);
+    return true;
+  });
+});
+
+// -- BANA Rule 13: fraction indicators pair by order --------------------------
+
+test('Rule 13.6: a complex fraction encloses a simple one, and the orders pair', () => {
+  // Example 13-23 (lines 5757-5762) `,??3/8#,/5,#`.
+  assert.equal(toLatexOf(',??3/8#,/5,#'), '\\frac{\\frac{3}{8}}{5}');
+  assert.equal(treeOf(',??3/8#,/5,#').marks.fractionOrder, 'complex');
+  assert.equal(treeOf('?a/b#').marks.fractionOrder, 'simple');
+});
+
+test('Rule 13: a fraction opened at one order is not closed at another', () => {
+  // Without the order test, `expect(state, "fracLine")` matches the INNER simple
+  // fraction's line and the outer complex fraction is re-parented onto it.
+  assert.throws(() => treeOf(',??3/8#/5,#'), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /has no complex fraction line/u);
+    return true;
+  });
+  assert.throws(() => treeOf(',?3,/5#'), (error) => {
+    assert.match(error.detail, /has no complex closing indicator/u);
+    return true;
+  });
+});
+
+// -- BANA Rule 20/21: the new operation and comparison signs ------------------
+
+test('Rules 20 and 21: the new signs are items in the flat sequence, like the old ones', () => {
+  assert.equal(toLatexOf('a@*b'), 'a×b');
+  assert.equal(toLatexOf('a*b'), 'a⋅b');
+  assert.equal(toLatexOf('x "k: #5'), 'x≤5');
+  assert.equal(toLatexOf('x .1: #5'), 'x≥5');
 });

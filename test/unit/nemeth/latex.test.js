@@ -112,11 +112,24 @@ test('a Fenced node renders between the delimiters it carries', () => {
 test('kinds this backend has no evidence for throw instead of guessing', () => {
   assert.throws(() => toLatex(Text('hello')), NemethUnsupportedError);
   assert.throws(() => toLatex(Hole('radicand')), NemethUnsupportedError);
-  assert.throws(() => toLatex(FunctionCall('sin', Identifier('x'))), NemethUnsupportedError);
   assert.throws(
     () => toLatex(BigOperator('sum', null, null, Identifier('x'))),
     NemethUnsupportedError
   );
+});
+
+// `FunctionCall` used to sit in the list above, because nothing had settled
+// whether an abbreviated function name renders as `\sin` or
+// `\operatorname{sin}`. BANA Rule 18 settles it: the Code's own table is the
+// abbreviated names (`sin` is `SIN`, test/corpus/sources/Nemeth_2022.txt line
+// 9113), and LaTeX names those five with control words that produce a single
+// <mi>. The throw was a placeholder for missing evidence, not a claim that the
+// kind is unrenderable, so it goes when the evidence arrives -- the principle
+// above (no guessing) is untouched, and Text, Hole and BigOperator still throw.
+test('a FunctionCall renders as its name applied to its argument', () => {
+  assert.equal(toLatex(FunctionCall('\\sin', Identifier('x'))), '\\sin x');
+  // The argument is not a letter, so no separator is needed and none is added.
+  assert.equal(toLatex(FunctionCall('\\sin', Number('1'))), '\\sin1');
 });
 
 test('defineBackend refuses a table that is missing a node kind', () => {

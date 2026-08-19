@@ -16,10 +16,9 @@
  *
  * Kinds this stage cannot render throw `NemethUnsupportedError` from their own
  * entry. That is the honest way to stay exhaustive: `Hole` and `Text` are never
- * produced by this pipeline, and `FunctionCall` and `BigOperator` each require a
- * rendering decision (`\sin` vs `\operatorname{...}`; where a big operator's
- * limits go) that nothing in this slice provides evidence for. Inventing one
- * would put a guess behind a passing test.
+ * produced by this pipeline, and `BigOperator` still requires a rendering
+ * decision (where a big operator's limits go) that nothing here provides
+ * evidence for. Inventing one would put a guess behind a passing test.
  */
 
 import alphabets from './alphabets.json' with { type: 'json' };
@@ -189,7 +188,12 @@ export const toLatex = defineBackend(
     SubSuperscript: (node, emit) =>
       `${scriptBase(node.base, emit)}_{${emit(node.index)}}^{${emit(node.exponent)}}`,
     Fenced: (node, emit) => concat([node.open, emit(node.body), node.close]),
-    FunctionCall: unrenderable('FunctionCall'),
+    // BANA Rule 18's table is abbreviated function names, and LaTeX names the
+    // same five with control words that produce a single <mi> plus MathJax's
+    // invisible function application -- `\\sin x` -> <mi>sin</mi><mo>&#x2061;</mo>
+    // <mi>x</mi>. `concat` supplies the space that keeps `\\sin` from running
+    // into a letter argument as `\\sinx`.
+    FunctionCall: (node, emit) => concat([node.name, emit(node.argument)]),
     BigOperator: unrenderable('BigOperator'),
     Text: unrenderable('Text'),
     Hole: unrenderable('Hole')

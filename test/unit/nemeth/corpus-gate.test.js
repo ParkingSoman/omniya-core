@@ -521,6 +521,43 @@ const MANY_TO_ONE_FORWARD_MAP = {
       '`a+b "1 b ;2 c+d "1 d`). Same U+2236-versus-U+003A ratio spelling as ratio_151_10, verified ' +
       'the same way: EQUAL with only the ratio character swapped, DIFFERENT once the operands b ' +
       'and d are transposed.'
+  },
+  'mathcat-rules:num_indicator_9_a_4': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Soiffer\'s smoke test, cells `⠽⠀⠨⠅⠀⠼⠆⠎⠊⠝⠀⠭`. Our LaTeX is `y=2\\sin x`, the right ' +
+      'mathematics; the difference is <mrow> grouping alone. MathCAT wraps the implicit product ' +
+      'and the function application in their own <mrow>s, which is an assertion about operator ' +
+      'BINDING, and this parser emits a flat Sequence by design (see the header of ' +
+      'src/domain/nemeth/parser.js) because nothing in the cells says that 2 binds to sin x ' +
+      'rather than to y=. The corpus writes the same construct both ways, which is what makes ' +
+      'this an encoding choice rather than a gap: `sre-aata:AataExpression_290` spells ' +
+      '`f(x) = sin x` FLAT and PASSes on our identical shape. Verified with a control: the ' +
+      'target compares EQUAL under this gate\'s own mathmlEquivalent to `y={2{\\sin x}}`, the ' +
+      'same expression with MathCAT\'s two grouping <mrow>s spelled out, and DIFFERENT once the ' +
+      'function or the coefficient changes (`y={2{\\cos x}}`, `y={3{\\sin x}}`). Emitting those ' +
+      'braces would make the parser assert the binding the flat-Sequence ruling forbids.'
+  },
+  // The same <mi>-run collapse as AataExpression_238/_246/_271, with a second
+  // consequence riding on it: once the run is read as separate letters, the
+  // trailing lower-cell mark is a Rule 14.6 subscript rather than a period.
+  'mathcat-rules:punct_38_4_12': {
+    cause: 'unencoded-boundary',
+    reason:
+      'Cells `⠗⠁⠞⠑⠈⠡⠞⠊⠍⠑⠲`, target `<mi>rate</mi><mo>×</mo><mi>time</mi><mo>.</mo>`. Neither ' +
+      '`rate` nor `time` is in Rule 18\'s table, so nothing in the braille distinguishes them ' +
+      'from the letters they are spelled with. Read as separate letters -- the only reading ' +
+      'available without a word list -- the trailing `⠲` is Rule 14.6\'s numeric subscript, ' +
+      'because Rules 8.2.7 and 8.2.8 (lines 4033 and 4046) require the punctuation indicator ' +
+      '`⠸` after a single letter or after a sequence of letters each with a separate identity, ' +
+      'and it is absent; only 8.3.2 (line 4183), whose condition is that the run IS a word, ' +
+      'writes the period bare. Verified with a control: our `rate×time_{4}` compares EQUAL to ' +
+      'the separate-letter spelling `<mi>r</mi><mi>a</mi><mi>t</mi><mi>e</mi><mo>×</mo>' +
+      '<mi>t</mi><mi>i</mi><mi>m</mi><msub><mi>e</mi><mn>4</mn></msub>` and DIFFERENT once the ' +
+      'subscript becomes 5 or the operator becomes ⋅. Tightening Rule 14.6 to refuse a base ' +
+      'letter that abuts another letter was considered and rejected: BANA Example 14-44 (line ' +
+      '6505, `,na2,c,o3` = Na2CO3) is exactly that shape and the Code says the subscript ' +
+      'indicator is NOT required there.'
   }
 };
 
@@ -542,7 +579,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 184;
+const PASS_BASELINE = 204;
 
 test('every corpus case lands in exactly one bucket, and the buckets sum to the corpus size', () => {
   const sum = coverage.totals.PASS + coverage.totals.REFUSE + coverage.totals.DISAGREE + coverage.totals.ERROR;
@@ -575,7 +612,7 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (28 equivalent-encoding, 7 formatting-only, 5 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
+test('DISAGREE: the many-to-one sub-causes are represented as expected (29 equivalent-encoding, 7 formatting-only, 6 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
   const byCause = {
     'equivalent-encoding': 0,
     'formatting-only': 0,
@@ -586,9 +623,9 @@ test('DISAGREE: the many-to-one sub-causes are represented as expected (28 equiv
     'text-vs-math': 0
   };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
-  assert.equal(byCause['equivalent-encoding'], 28);
+  assert.equal(byCause['equivalent-encoding'], 29);
   assert.equal(byCause['formatting-only'], 7);
-  assert.equal(byCause['unencoded-boundary'], 5);
+  assert.equal(byCause['unencoded-boundary'], 6);
   assert.equal(byCause['unencoded-attribute'], 3);
   assert.equal(byCause.homograph, 2);
   assert.equal(byCause['glyph-spelling'], 2);
@@ -639,7 +676,16 @@ test('DISAGREE: every allowlisted entry that claims a PASSing cell-twin actually
 const UNCORROBORATED_COMPARISON_CELLS = [
   '⠈⠢', // reverse membership, line 10321
   '⠨⠐⠅', // less than with curved sides, line 10303
-  '⠨⠨⠂' // greater than with curved sides, line 10296
+  '⠨⠨⠂', // greater than with curved sides, line 10296
+  // Bar under less than, "is less than or equal to", line 10429. Unlike the
+  // three above, three corpus cases DO carry these cells
+  // (mathcat-rules:comparison_ops_151_14, sre-aata:AataExpression_286 and
+  // _298); none of them lexes yet -- two are blocked on the vertical bar `⠳`
+  // and one on a comma before a space -- so no case exercises the row
+  // end-to-end. It drops off this list when either blocker ships. Its twin
+  // `⠨⠂⠱` (greater than or equal to, line 10407) IS corroborated, by
+  // sre-aata:AataExpression_332.
+  '⠐⠅⠱'
 ];
 
 test('every comparison symbol row is either exercised by a corpus case or declared uncorroborated', async () => {
@@ -706,14 +752,23 @@ test(`PASS count has not regressed below the pinned baseline (${PASS_BASELINE})`
 // today, so this case REFUSES. It must refuse *cleanly* -- a clean REFUSE is
 // the honest, correct outcome for an out-of-scope construct; a crash would
 // not be. It must become PASS by the end of Task 5.
-test('Soiffer smoke test (mathcat-rules:num_indicator_9_a_4, "y = 2 sin x") refuses cleanly today -- must PASS by end of Task 5', () => {
+test('Soiffer smoke test (mathcat-rules:num_indicator_9_a_4) parses to exactly "y=2\\sin x"', () => {
   const soiffer = corpus.cases.find((c) => c.id === 'mathcat-rules:num_indicator_9_a_4');
   assert.ok(soiffer, 'corpus is missing the Soiffer smoke-test case');
 
-  assert.throws(() => parseNemeth(soiffer.cells), NemethUnsupportedError);
+  // This assertion is STRICTLY stronger than the REFUSE it replaces. It pins
+  // the answer, not the bucket: the tripwire's job is that this pipeline reads
+  // Soiffer's expression correctly, and a REFUSE never demonstrated that.
+  assert.equal(parseNemeth(soiffer.cells).latex, 'y=2\\sin x');
 
+  // The bucket is DISAGREE, and the reason is grouping alone -- MathCAT's
+  // target wraps the implicit product and the function application in <mrow>s
+  // that assert operator binding, which this parser does not emit by design.
+  // See the `implicit-grouping` entry in MANY_TO_ONE_FORWARD_MAP for the
+  // control that proves the mathematics matches. It is asserted here, not just
+  // allowlisted, so a regression to REFUSE or ERROR is loud.
   const classified = coverage.results.find((r) => r.case.id === 'mathcat-rules:num_indicator_9_a_4');
-  assert.equal(classified.bucket, 'REFUSE', 'Soiffer smoke test must REFUSE, not ERROR or DISAGREE -- an out-of-scope construct is not a bug');
+  assert.equal(classified.bucket, 'DISAGREE');
 });
 
 test('committed docs/nemeth-v2/coverage.md summary is current with this run', () => {
