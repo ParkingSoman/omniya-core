@@ -194,6 +194,35 @@ const MANY_TO_ONE_FORWARD_MAP = {
       '82_b_5 was: our LaTeX compares EQUAL under this gate to the nested spelling of that ' +
       'mmultiscripts tree, and DIFFERENT to a tree with the sup and one sub transposed.'
   },
+  'mathcat-rules:lower_roman_numeral_18_b_4': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠧⠊⠬⠊⠧⠀⠨⠅⠀⠭` are BANA Example 3-104 verbatim (Nemeth_2022.txt lines 1698-1701, ' +
+      '`vi+iv .k x`). Rule 3.11.1.b (lines 1663-1667) says a lowercase Roman numeral "is treated ' +
+      'as though it were a \'single letter\'" and carries no indicator of its own, so the cells ' +
+      'are exactly the letters v and i -- nothing marks `vi` as one <mtext> token rather than two ' +
+      '<mi>s. The target is <mtext>vi</mtext><mo>+</mo><mtext>iv</mtext><mo>=</mo><mtext>x</mtext>; ' +
+      'checked with this gate\'s own comparison, our `vi+iv=x` compares EQUAL to the same tree ' +
+      'spelled with <mi> per character and DIFFERENT once the two operands are transposed, so ' +
+      'element granularity and token type are the whole of the difference. Same collapse as ' +
+      'greek_24_b_1_together (granularity) and boldface_32_a_14 (token type), combined.'
+  },
+  'sre-aata:AataExpression_259': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠠⠎⠀⠨⠅⠀⠼⠂⠦` = capital S, equals, 18. The target tags the S <mtext>; we emit <mi>. ' +
+      'The Code has no cell that says which MathML token type a letter was carried in -- Rule 5.1.1 ' +
+      'writes a capital letter the same way either way -- so both forward-map to these cells. ' +
+      'Verified with this gate: our `S=18` compares EQUAL to the <mi> spelling and DIFFERENT once ' +
+      'the numeral changes, so the tag is the entire disagreement.'
+  },
+  'sre-aata:AataExpression_66': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠠⠑⠀⠨⠅⠀⠼⠴⠲` = capital E, equals, 04. Same <mtext>-versus-<mi> collapse as ' +
+      'AataExpression_259. Verified the same way: EQUAL to the <mi> spelling, DIFFERENT once the ' +
+      'leading zero is dropped, so the token type is all that differs.'
+  },
   // Sub-cause: homograph. The Nemeth Code writes two different print signs with
   // one set of cells, and the cells alone cannot say which was meant. This is a
   // many-to-one forward map like the others, but the collapse is in the CODE
@@ -266,10 +295,58 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'boundaries genuinely did not survive the forward map. No cell marks 112135|25032|442 ' +
       'rather than 1|1213525032442 or the single numeral we read, so there is nothing for a ' +
       'reverse parser to key on. Verified against the corpus record, not inferred.'
+  },
+  'sre-aata:AataExpression_271': {
+    cause: 'unencoded-boundary',
+    reason:
+      'Cells `⠨⠁⠨⠃⠀⠨⠅⠀⠊⠙` = Greek alpha, Greek beta, equals, the letters i and d. The target ' +
+      'groups the last two as <mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi>' +
+      '</mrow>, i.e. the identity map written as one upright name. Neither half of that is in the ' +
+      'cells: BANA Rule 18 writes a function name as its plain letters with nothing to mark them ' +
+      '(Example 18-2, lines 9138-9141, is `sin x` = the letters s, i, n), `id` is not even in the Code\'s ' +
+      'own list of abbreviated forms (lines 9075-9118), and Rule 7.4.1 (lines 3775-3776) says ' +
+      'regular type carries no typeform indicator, so nothing can say "upright". Verified with ' +
+      'this gate: our `αβ=id` compares EQUAL to the same tree flat and unvarianted, DIFFERENT with ' +
+      'the <mrow> alone, DIFFERENT with the mathvariant alone, and DIFFERENT once i and d are ' +
+      'transposed. Like AataExpression_97 this is a case where our reading really is different ' +
+      'mathematics from the target and the braille still cannot tell them apart.'
+  },
+  // Sub-cause: glyph spelling. The Code and the corpus write the SAME sign with
+  // two different Unicode codepoints, so both forward-map to the same cells and
+  // the cells cannot say which the source used. Named separately from
+  // equivalent-encoding because that sub-cause is about MathML SHAPE, and here
+  // the shape is identical and only the character differs. This is the same kind
+  // of split the gate's own comparison helper already normalizes away for the
+  // minus sign, where the inconsistency happens to sit inside the corpus rather
+  // than between the corpus and the Code.
+  'mathcat-rules:ratio_151_10': {
+    cause: 'glyph-spelling',
+    reason:
+      'Cells `⠼⠂⠀⠐⠂⠀⠼⠆⠀⠰⠆⠀⠼⠒⠀⠐⠂⠀⠼⠖` are BANA Example 21-34 verbatim (Nemeth_2022.txt lines ' +
+      '10840-10843, `#1 "1 #2 ;2 #3 "1 #6`), 1 : 2 :: 3 : 6. Rule 21\'s symbol list prints the ratio ' +
+      'sign U+2236 (line 10316) and the proportion sign U+2237 (line 10314); we emit both as the ' +
+      'Code writes them. The corpus agrees on U+2237 and spells the ratio U+003A COLON instead. ' +
+      'Verified with this gate: substituting ONLY the ratio character into our output makes the ' +
+      'two trees compare EQUAL, while transposing the ratio and proportion signs compares ' +
+      'DIFFERENT -- so the codepoint is the whole disagreement and the mathematics matches.'
+  },
+  'mathcat-rules:ratio_151_11': {
+    cause: 'glyph-spelling',
+    reason:
+      'Cells `⠁⠬⠃⠀⠐⠂⠀⠃⠀⠰⠆⠀⠉⠬⠙⠀⠐⠂⠀⠙` are BANA Example 21-35 verbatim (lines 10845-10848, ' +
+      '`a+b "1 b ;2 c+d "1 d`). Same U+2236-versus-U+003A ratio spelling as ratio_151_10, verified ' +
+      'the same way: EQUAL with only the ratio character swapped, DIFFERENT once the operands b ' +
+      'and d are transposed.'
   }
 };
 
-const MANY_TO_ONE_CAUSES = new Set(['equivalent-encoding', 'formatting-only', 'unencoded-boundary', 'homograph']);
+const MANY_TO_ONE_CAUSES = new Set([
+  'equivalent-encoding',
+  'formatting-only',
+  'unencoded-boundary',
+  'homograph',
+  'glyph-spelling'
+]);
 
 // No ERROR cases exist today. Kept as a real allowlist (not just an
 // `assert.equal(0)`) so the same discipline applies if one ever appears:
@@ -279,7 +356,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 94;
+const PASS_BASELINE = 114;
 
 test('every corpus case lands in exactly one bucket, and the buckets sum to the corpus size', () => {
   const sum = coverage.totals.PASS + coverage.totals.REFUSE + coverage.totals.DISAGREE + coverage.totals.ERROR;
@@ -312,13 +389,20 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (15 equivalent-encoding, 3 formatting-only, 1 unencoded-boundary, 2 homograph)', () => {
-  const byCause = { 'equivalent-encoding': 0, 'formatting-only': 0, 'unencoded-boundary': 0, homograph: 0 };
+test('DISAGREE: the many-to-one sub-causes are represented as expected (18 equivalent-encoding, 3 formatting-only, 2 unencoded-boundary, 2 homograph, 2 glyph-spelling)', () => {
+  const byCause = {
+    'equivalent-encoding': 0,
+    'formatting-only': 0,
+    'unencoded-boundary': 0,
+    homograph: 0,
+    'glyph-spelling': 0
+  };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
-  assert.equal(byCause['equivalent-encoding'], 15);
+  assert.equal(byCause['equivalent-encoding'], 18);
   assert.equal(byCause['formatting-only'], 3);
-  assert.equal(byCause['unencoded-boundary'], 1);
+  assert.equal(byCause['unencoded-boundary'], 2);
   assert.equal(byCause.homograph, 2);
+  assert.equal(byCause['glyph-spelling'], 2);
 });
 
 // Seven of the fifteen equivalent-encoding entries claim a cell-twin that PASSes:
@@ -354,6 +438,42 @@ test('DISAGREE: every allowlisted entry that claims a PASSing cell-twin actually
         `but ${twinId} is now ${classified.bucket}, so the excuse no longer holds`
     );
   }
+});
+
+// Rule 21's "Simple Comparison Signs" list (Nemeth_2022.txt lines 10274-10330)
+// is shipped from the Code, not from the oracle, so some rows have no corpus
+// case to corroborate them. That is allowed -- the Code is the normative source
+// -- but it must be declared, because an uncorroborated row is a row no
+// end-to-end test exercises. This pins which ones, so a row silently losing (or
+// gaining) corroboration is visible in the diff rather than invisible.
+const UNCORROBORATED_COMPARISON_CELLS = [
+  '⠈⠢', // reverse membership, line 10321
+  '⠨⠂', // greater than, line 10295
+  '⠨⠐⠅', // less than with curved sides, line 10303
+  '⠨⠨⠂' // greater than with curved sides, line 10296
+];
+
+test('every comparison symbol row is either exercised by a corpus case or declared uncorroborated', async () => {
+  const { lex } = await import('../../../src/domain/nemeth/lexer.js');
+  const rows = JSON.parse(readFileSync(path.join(projectRoot, 'src', 'domain', 'nemeth', 'symbols.json'), 'utf8'));
+  const comparisons = rows.filter((row) => row.role === 'comparison').map((row) => row.cells);
+  const exercised = new Set();
+  for (const testCase of corpus.cases) {
+    let tokens;
+    try {
+      tokens = lex(testCase.cells);
+    } catch {
+      continue;
+    }
+    for (const token of tokens) if (token.kind === 'comparison') exercised.add(token.cells);
+  }
+  const uncorroborated = comparisons.filter((cells) => !exercised.has(cells)).sort();
+  assert.deepEqual(
+    uncorroborated,
+    [...UNCORROBORATED_COMPARISON_CELLS].sort(),
+    'a comparison row changed corroboration status -- update UNCORROBORATED_COMPARISON_CELLS on purpose, ' +
+      'and say in the commit which BANA line the row comes from'
+  );
 });
 
 test('ERROR: every case is in the allowlist with a reason, and the allowlist has no stale entries', () => {

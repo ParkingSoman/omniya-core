@@ -28,6 +28,19 @@
  * vs `(x_1)^2` distinction and is unrecoverable once the indicators are gone;
  * `parser.js` consumes it.
  *
+ * A BLANK is a level event too, and only sometimes. Rule 14.8 enumerates which
+ * spaces reset the level and which preserve it: 14.8.7 (lines 6907-6911) a space
+ * followed by a comparison symbol "initiates the baseline level"; 14.8.4 (line
+ * 6787) a space after a shape or a function name preserves it; 14.8.5 (line
+ * 6852) a space partitioning a numeral preserves it; 14.8.6 (line 6860) a space
+ * around an ellipsis or long dash preserves it; and 14.8.8 (line 6947) "Any
+ * other symbol or situation preserves the level that is already in effect."
+ * Only 14.8.7 is implemented, because it is the only one whose neighbouring
+ * construct this pass can identify from a symbol row; the rest fall to 14.8.8's
+ * preserve, which is also what they ask for. 14.8.3 (lines 6744-6749), the reset
+ * before literary or unrelated text, needs a notion of text this pipeline does
+ * not have.
+ *
  * `⠐` is both the baseline indicator (Rule 2) and the multipurpose indicator
  * (Rule 24). This pass does not have to choose: on the level it does the same
  * thing either way (returning to the baseline is a no-op when already there),
@@ -51,6 +64,35 @@ const SUBSCRIPT = '_';
 // such kind the symbol table has rows for; naming the set here is what lets the
 // Greek, function-name and prime rows extend the rule as data.
 const IMPLICIT_SUBSCRIPT_BASES = new Set(['letter']);
+
+function isComparison(token) {
+  return Boolean(token) && token.role === 'comparison';
+}
+
+/**
+ * BANA 14.8.7 (test/corpus/sources/Nemeth_2022.txt lines 6907-6911): "The
+ * space, or transition to a new braille line, which is followed by a comparison
+ * symbol terminates the effect of a level indicator already in effect and
+ * initiates the baseline level. The space after a comparison symbol preserves
+ * the level that is already in effect." Both halves are here: this predicate,
+ * and -- for the trailing space -- the absence of one, since every other space
+ * falls to 14.8.8 (line 6947), "Any other symbol or situation preserves the
+ * level that is already in effect."
+ *
+ * Example 14-92 (lines 6923-6929) is this rule and is a corpus case verbatim:
+ * `#2~x "k #3~x` = `⠼⠆⠘⠭⠀⠐⠅⠀⠼⠒⠘⠭` (`mathcat-rules:comparison_79_g_2`), 2^x <
+ * 3^x, where nothing but the space returns the less-than sign to the baseline.
+ * Without the reset it is labelled `^`, the Rule 21.13 seam in `parser.js` does
+ * not match, and the case refuses.
+ *
+ * A level indicator BETWEEN the space and the sign makes the reset a no-op --
+ * it sets the level itself -- which is how Example 14-94 (lines 6939-6945) keeps
+ * its equals sign at the subscript level. So this looks only at the token
+ * immediately after the space.
+ */
+function endsScriptLevel(token, next) {
+  return token.kind === 'blank' && isComparison(next);
+}
 
 /**
  * Consecutive level cells spell one indicator: `⠘⠘` is the single symbol
@@ -178,6 +220,8 @@ export function resolveLevels(tokens, context = {}) {
       index = read.index;
       continue;
     }
+
+    if (endsScriptLevel(token, tokens[index + 1])) level = '';
 
     if (token.kind === 'digit' && startsImplicitSubscript(resolved.at(-1), level, afterBaseline)) {
       const run = readImplicitSubscript(tokens, index, level);

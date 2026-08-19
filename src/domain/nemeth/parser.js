@@ -2,9 +2,19 @@
  * Token[] -> AST. Recursive descent, single pass, no backtracking, no modes.
  *
  * Grammar:
- *   expression := postfix ( OP? postfix )*
+ *   expression := terms ( BLANK comparison BLANK terms )*
+ *   terms      := postfix ( OP? postfix )*
  *   postfix    := primary script*
  *   primary    := Number | Identifier | Fraction | Root
+ *
+ * The two productions are BANA's two spacing rules, not a precedence ladder.
+ * Rule 21.13 (Nemeth_2022.txt lines 10775-10779) spaces a comparison sign on
+ * both sides; Rule 20.1.2 (line 9964) leaves no space beside an operation sign
+ * except in the five circumstances 20.1.1 lists (lines 9916-9963), none of
+ * which this parser reads. So a blank is grammar, not whitespace: it is exactly
+ * what tells `⠨⠅` the equals sign from `⠨⠅` the Greek letter kappa, and
+ * dropping or collapsing one would turn `⠎⠊⠝⠀⠭` into `sinx` and
+ * `⠼⠲⠲⠀⠒⠢⠆` into a single numeral.
  *
  * `expression` is FLAT: one `Sequence` holding operands and operators in source
  * order, never a nested one. There are no precedence tiers, because grouping by
@@ -250,7 +260,7 @@ function isTermAt(state, level) {
   return atLevel(state, level) && TERM_STARTS.has(peek(state).kind);
 }
 
-function parseExpression(state, level) {
+function parseTerms(state, level) {
   const start = state.index;
   const items = [parsePostfix(state, level)];
   while (isOperatorAt(state, level) || isTermAt(state, level)) {
@@ -264,11 +274,106 @@ function parseExpression(state, level) {
   return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
 }
 
+// -- relation ----------------------------------------------------------------
+
+/**
+ * A comparison sign together with the two blanks BANA Rule 21.13 puts around it.
+ *
+ * 21.13 (Nemeth_2022.txt lines 10775-10779): "A space must be left on either
+ * side of a comparison symbol. However, a space is not left between the
+ * comparison symbol and any punctuation symbol, grouping symbol, or indicator
+ * which applies to it." Those two blanks are the whole of the grammar: nothing
+ * else in the Code writes a blank the parser can account for, so nothing else
+ * consumes one.
+ *
+ * The test is on `role`, not on `kind`. `kind` is the grammatical category this
+ * file dispatches on; `role` is the spacing class Rules 20 and 21 assign, and
+ * they are not the same question -- Example 21-25 (lines 10781-10784) is
+ * `x $4 y`, a SHAPE used as a comparison sign and spaced by 21.13 exactly like
+ * `.k`. Keying the seam to `role` is what lets such a row arrive as data.
+ *
+ * The indicators of 21.13's second sentence need no handling here: `levels.js`
+ * has already consumed them and stamped the level they name onto the sign, so
+ * `⠀⠰⠨⠅⠀` arrives as blank, comparison-at-level-`_`, blank, and the level test
+ * below is what checks the indicator applied to the sign and not to something
+ * else.
+ */
+function comparisonSeam(state, level) {
+  const before = state.tokens[state.index];
+  const sign = state.tokens[state.index + 1];
+  const after = state.tokens[state.index + 2];
+  if (!before || before.kind !== 'blank') return null;
+  if (!sign || sign.role !== 'comparison' || sign.level !== level) return null;
+  if (!after || after.kind !== 'blank') return null;
+  return { sign, next: state.index + 3 };
+}
+
+/**
+ * `expression := terms ( BLANK comparison BLANK terms )*`
+ *
+ * Flat, for the reason in this file's header: a comparison sign is an item in
+ * the `Sequence` beside its operands, never a node that binds them, because
+ * Presentation MathML spells `x = y` as `<mi>x</mi><mo>=</mo><mi>y</mi>` and
+ * Nemeth asserts no more than that either.
+ *
+ * A comparison sign needs a term on each side, the same discipline `parseTerms`
+ * applies to an operation sign. So the lone `≡` of `sre-aata:AataExpression_330`
+ * refuses: 21.13's outer space is real but there is no relation to build.
+ */
+function parseExpression(state, level) {
+  const start = state.index;
+  const items = [];
+  // `parseTerms` returns either one node or a flat `Sequence` of items at this
+  // same level, so its items are spread rather than nested. Nesting them would
+  // make `Sequence` -- the node whose contract is that it asserts nothing --
+  // assert that `a+b` binds tighter than the `=` beside it, which is exactly
+  // the binding claim Nemeth does not encode and MathML does not spell.
+  const push = (node) => {
+    if (node.kind === 'Sequence') items.push(...node.items);
+    else items.push(node);
+  };
+  push(parseTerms(state, level));
+  for (let seam = comparisonSeam(state, level); seam; seam = comparisonSeam(state, level)) {
+    state.index = seam.next;
+    items.push(Operator(seam.sign.value, { src: [seam.sign.offset, seam.sign.offset + seam.sign.len] }));
+    push(parseTerms(state, level));
+  }
+  return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
+}
+
+/**
+ * Why a leftover blank is refused, in the Code's own terms.
+ *
+ * Rule 20.1.2 (line 9964) "A space is not left on either side of a symbol of
+ * operation in any other situation" -- "other" than the five circumstances
+ * 20.1.1 lists (lines 9916-9963): beside a comparison symbol, after a function
+ * name, beside an ellipsis or dash, beside an abbreviation, or where Rule 23
+ * requires it. This parser reads none of those five constructs, so a blank
+ * touching an operation sign is out of scope rather than wrong, and saying so
+ * with the sign named beats a bare "unparsed blank".
+ */
+function leftoverDetail(state) {
+  const token = peek(state);
+  if (token.kind !== 'blank') return `unparsed ${token.kind} token at level "${token.level}"`;
+  const operation = [state.tokens[state.index - 1], state.tokens[state.index + 1]].find(
+    (neighbour) => neighbour && neighbour.role === 'binary'
+  );
+  if (operation) {
+    return (
+      `BANA Rule 20.1.2 leaves no space beside the operation sign "${operation.value}", ` +
+      "and none of Rule 20.1.1's five spaced circumstances is a construct this parser reads"
+    );
+  }
+  return (
+    'a blank stands where BANA Rule 21.13 does not put one -- it spaces a comparison symbol and ' +
+    'nothing else here, and Rule 20.1.1 spaces an operation symbol only next to a function name, ' +
+    'an abbreviation, an ellipsis or a dash, none of which this parser reads'
+  );
+}
+
 export function parse(tokens, context = {}) {
   const state = { tokens, index: 0, context };
   const node = parseExpression(state, '');
-  if (state.index < tokens.length) {
-    throw unsupported(state, `unparsed ${peek(state).kind} token at level "${peek(state).level}"`);
-  }
+  if (state.index < tokens.length) throw unsupported(state, leftoverDetail(state));
   return node;
 }

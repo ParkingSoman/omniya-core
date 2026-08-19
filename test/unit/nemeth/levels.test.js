@@ -198,3 +198,53 @@ test('a Rule 14.6 promotion marks its digits `implicit`; explicitly indicated on
     ['2', '_', false]
   ]);
 });
+
+test('Rule 14.8.7: a space before a comparison sign returns the level to the baseline', () => {
+  // "The space ... which is followed by a comparison symbol terminates the
+  // effect of a level indicator already in effect and initiates the baseline
+  // level. The space after a comparison symbol preserves the level that is
+  // already in effect." (Nemeth_2022.txt lines 6907-6911.)
+  //
+  // Example 14-92 (lines 6923-6929), `#2~x "k #3~x` = 2^x < 3^x, is also the
+  // corpus case mathcat-rules:comparison_79_g_2. Nothing but the space returns
+  // the less-than sign to the baseline: there is no baseline indicator in the
+  // cells, and the `"` of `"k` belongs to the comparison sign itself.
+  assert.deepEqual(levelled('#2^x "k #3^x'), [
+    ['#', ''],
+    ['2', ''],
+    ['x', '^'],
+    [' ', ''],
+    ['<', ''],
+    [' ', ''],
+    ['#', ''],
+    ['3', ''],
+    ['x', '^']
+  ]);
+});
+
+test('Rule 14.8.8: a space NOT followed by a comparison sign preserves the level', () => {
+  // "Any other symbol or situation preserves the level that is already in
+  // effect" (line 6947). Example 14-85 (line 6856) is a space inside a numeral
+  // at the superscript level, and 14.8.5 (line 6852) says it preserves it.
+  assert.deepEqual(levelled('e^2 3'), [
+    ['e', ''],
+    ['2', '^'],
+    [' ', '^'],
+    ['3', '^']
+  ]);
+});
+
+test('Rule 14.8.7: a level indicator between the space and the sign wins (Example 14-94)', () => {
+  // `!;u ;.k a` (lines 6939-6945): "the subscript indicator before the equals
+  // sign keeps this symbol at the subscript level". The reset is a no-op there
+  // because the indicator sets the level itself, which is why 14.8.7 is read off
+  // the token immediately after the space and not through the indicators.
+  assert.deepEqual(levelled('x;u ;.k a'), [
+    ['x', ''],
+    ['u', '_'],
+    [' ', '_'],
+    ['=', '_'],
+    [' ', '_'],
+    ['a', '_']
+  ]);
+});

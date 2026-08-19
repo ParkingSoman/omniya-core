@@ -225,7 +225,8 @@
     "cells": "⠬",
     "kind": "op",
     "value": "+",
-    "banaRef": "20"
+    "role": "binary",
+    "banaRef": "20.1.2"
   },
   {
     "cells": "⠼",
@@ -313,6 +314,15 @@
     "banaRef": "6.2.1"
   },
   {
+    "cells": "⠈",
+    "kind": "prefix",
+    "value": "@",
+    "slots": {
+      "typeform": "script"
+    },
+    "banaRef": "7.1"
+  },
+  {
     "cells": "⠠⠨",
     "kind": "prefix",
     "value": ",.",
@@ -333,6 +343,7 @@
   {
     "cells": "⠨⠅",
     "kind": "comparison",
+    "role": "comparison",
     "value": "=",
     "banaRef": "21",
     "unlessUnspaced": {
@@ -342,6 +353,7 @@
   {
     "cells": "⠸⠇",
     "kind": "comparison",
+    "role": "comparison",
     "value": "≡",
     "banaRef": "21.3",
     "unlessUnspaced": {
@@ -351,8 +363,109 @@
   {
     "cells": "⠠⠗",
     "kind": "comparison",
+    "role": "comparison",
     "value": "R",
     "banaRef": "21.5",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠨⠂",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": ">",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠨⠨⠂",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≻",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠐⠅",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "<",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠨⠐⠅",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≺",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠸⠐⠅",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "⊂",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠸⠨⠂",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "⊃",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠈⠑",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "∈",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠈⠢",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "∋",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠐⠂",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "∶",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠰⠆",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "∷",
+    "banaRef": "21",
     "unlessUnspaced": {
       "maxLen": 1
     }

@@ -188,3 +188,40 @@ test('a typeformed sign keeps macro spacing correct against what follows it', ()
     '\\mathbf{x}y'
   );
 });
+
+test('Rule 7.1: script type renders on a numeral, where Code and oracle agree', () => {
+  // 7.1 (Nemeth_2022.txt lines 3596-3598) makes provision for six typeforms
+  // including script; Rule 7's indicator list writes it `@` = `⠈` (line 3563).
+  // `mathcat-rules:boldface_32_b_2` is `⠈⠼⠆` and targets
+  // <mn mathvariant='script'>2</mn>, which is what \mathscr{2} round-trips to.
+  assert.equal(toLatex(Number('2', { marks: { typeform: 'script' } })), '\\mathscr{2}');
+});
+
+test('script type on a LETTER refuses: the Code and the oracle contradict each other there', () => {
+  // Appendix C spells script English `@;` = `⠈⠰` (line 16446), but all 20 corpus
+  // cases written `⠈⠰` target mathvariant="double-struck", which Rule 7 writes
+  // `,_` = `⠠⠸` (line 3564) and which no corpus case uses as a typeform
+  // indicator. Emitting either would assert a resolution nobody has established.
+  assert.throws(
+    () => toLatex(Identifier('z', { marks: { typeform: 'script', alphabet: 'english' } })),
+    (error) => {
+      assert.ok(error instanceof NemethUnsupportedError);
+      assert.match(error.detail, /targets double-struck/u);
+      return true;
+    }
+  );
+});
+
+test('a typeform with no LaTeX macro refuses instead of emitting \\undefined{...}', () => {
+  // `noundefined` renders an undefined control sequence as red literal text
+  // rather than rejecting it, so an unmapped typeform would otherwise become a
+  // wrong answer that survives the corpus gate as a PASS-shaped string.
+  assert.throws(
+    () => toLatex(Number('2', { marks: { typeform: 'rococo' } })),
+    (error) => {
+      assert.ok(error instanceof NemethUnsupportedError);
+      assert.match(error.detail, /no macro for the rococo typeform/u);
+      return true;
+    }
+  );
+});

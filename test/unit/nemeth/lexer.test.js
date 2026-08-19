@@ -217,3 +217,68 @@ test('an unspaced comparison homograph falls back to its first cell as an indica
   // Same cell pair, same rule, for capital R vs the relation sign of 21.5.
   assert.deepEqual(marksOf(lex(asciiToCells(',rx'))), [{ capitalization: 'single' }, null]);
 });
+
+// -- BANA Rule 21.13: spacing is what tells a comparison sign from its homograph
+
+test('Rule 21.13: blank-surrounded comparison cells lex as comparison signs', () => {
+  // "A space must be left on either side of a comparison symbol"
+  // (Nemeth_2022.txt line 10776). Each of these cell pairs is BOTH a Rule 21
+  // comparison sign and something else entirely, and only the spacing separates
+  // them: `.k` = / Greek kappa (line 10291), `_l` = / German ell (10298),
+  // `,r` = R / capital R (10318), `;2` = / a subscript 2 (10314),
+  // `"1` = / a baseline indicator and the digit 1 (10316),
+  // `"k` = < / a baseline indicator and the letter k (10302).
+  const signOf = (ascii) => lex(asciiToCells(ascii)).map((token) => `${token.kind}:${token.value}`);
+  assert.deepEqual(signOf('a .k b'), ['letter:a', 'blank: ', 'comparison:=', 'blank: ', 'letter:b']);
+  assert.deepEqual(signOf('a _l b'), ['letter:a', 'blank: ', 'comparison:≡', 'blank: ', 'letter:b']);
+  assert.deepEqual(signOf('a ,r b'), ['letter:a', 'blank: ', 'comparison:R', 'blank: ', 'letter:b']);
+  assert.deepEqual(signOf('a ;2 b'), ['letter:a', 'blank: ', 'comparison:∷', 'blank: ', 'letter:b']);
+  assert.deepEqual(signOf('a "1 b'), ['letter:a', 'blank: ', 'comparison:∶', 'blank: ', 'letter:b']);
+  assert.deepEqual(signOf('a "k b'), ['letter:a', 'blank: ', 'comparison:<', 'blank: ', 'letter:b']);
+});
+
+test('Rule 21.13: the same cells unspaced fall back to the other reading', () => {
+  const signOf = (ascii) => lex(asciiToCells(ascii)).map((token) => `${token.kind}:${token.value}`);
+  // `.k` becomes the Greek-letter indicator composed onto k, i.e. kappa.
+  assert.deepEqual(signOf('.kx'), ['letter:k', 'letter:x']);
+  assert.equal(lex(asciiToCells('.kx'))[0].marks.alphabet, 'greek');
+  // `;2` becomes the subscript indicator and the digit 2.
+  assert.deepEqual(signOf('x;2y'), ['letter:x', 'level:_', 'digit:2', 'letter:y']);
+  // `"k` becomes the baseline indicator and the letter k.
+  assert.deepEqual(signOf('x"ky'), ['letter:x', 'baseline:', 'letter:k', 'letter:y']);
+});
+
+test('a comparison row carries its Rule 20/21 spacing class onto the token', () => {
+  // `role` is what `levels.js` and `parser.js` read; without it on the token the
+  // Rule 14.8.7 level reset and the Rule 21.13 seam have nothing to test.
+  const tokens = lex(asciiToCells('a .k b+c'));
+  assert.equal(tokens[2].role, 'comparison');
+  assert.equal(tokens[5].role, 'binary');
+  assert.equal(tokens[0].role, undefined);
+});
+
+test('Rule 7.1: the script-type indicator is read as a typeform on a numeral', () => {
+  // Rule 7's indicator list writes script `@` = `⠈` (line 3563) and 7.1 lists
+  // script among the Code's six typeforms (lines 3596-3598).
+  // `mathcat-rules:boldface_32_b_2` is `@#2` and targets mathvariant='script'.
+  const tokens = lex(asciiToCells('@#2'));
+  assert.deepEqual(tokens.map((token) => token.kind), ['numeric', 'digit']);
+  assert.equal(tokens[0].marks.typeform, 'script');
+});
+
+test('Rule 21.13 sentence two: an indicator sits inside the space, not outside it', () => {
+  // "a space is not left between the comparison symbol and any punctuation
+  // symbol, grouping symbol, or indicator which applies to it" (lines
+  // 10777-10779). Example 14-94 (lines 6939-6945) writes `!;u ;.k a`, an equals
+  // sign held at the subscript level by the indicator against it. Reading the
+  // spacing off the immediately preceding CELL would find `;`, call the sign
+  // unspaced, and answer a Greek kappa.
+  const signOf = (ascii) => lex(asciiToCells(ascii)).map((token) => `${token.kind}:${token.value}`);
+  assert.deepEqual(signOf('x;u ;.k a'), [
+    'letter:x', 'level:_', 'letter:u', 'blank: ', 'level:_', 'comparison:=', 'blank: ', 'letter:a'
+  ]);
+  // The walk must not manufacture a space that is not there: with the indicator
+  // run reached from a letter rather than from a space, the sign is unspaced and
+  // stays the Greek reading.
+  assert.deepEqual(signOf('x;.ka'), ['letter:x', 'level:_', 'letter:k', 'letter:a']);
+});

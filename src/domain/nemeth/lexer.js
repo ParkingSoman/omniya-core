@@ -58,9 +58,12 @@
  *
  * ## What this pass deliberately does not read
  *
- *   - Script type `@` (line 3563) and the Russian indicator `@@` (line 2971):
- *     see the note on TYPEFORM_MACRO in latex.js -- the corpus and Rule 7
- *     disagree about what those cells mean, so neither is guessed at.
+ *   - The Russian indicator `@@` (line 2971): the Code gives no Russian
+ *     alphabet to go with it and no corpus case uses it, so it is not guessed
+ *     at. Script type `@` (line 3563) IS read now -- it is a typeform row like
+ *     the other four -- but `latex.js` refuses it on a letter; see the note on
+ *     `withTypeform` for the Code-versus-oracle conflict that sits there and
+ *     nowhere else.
  *   - Hebrew `,,` (line 2970): the same two cells as the double capitalization
  *     indicator of 5.3.2, and 6.1.2 gives the Code exactly one Hebrew letter.
  *     Both readings refuse together rather than one being preferred blind.
@@ -83,23 +86,33 @@
  * ## Homographs the Code resolves by spacing
  *
  * `⠨` before a letter is the Greek-letter indicator, but `⠨⠅` is also the
- * equals sign (Rule 21's symbol list, line 10291) -- 166 occurrences in the
- * corpus against a handful of Greek letters. Likewise `⠸⠇` is identity
- * (line 10298, Rule 21.3 at line 10631) as well as German ell, and `⠠⠗` is the
- * relation sign of 21.5 (lines 10655-10664) as well as capital R. The Code
- * separates them by 21.13 (lines 10775-10777): "A space must be left on either
- * side of a comparison symbol." So each is a `comparison` row carrying
+ * equals sign (Rule 21's symbol list, line 10291). Measured on the corpus: 169
+ * occurrences, of which 157 are blank-surrounded, and NOT ONE of the 142 cases
+ * containing those cells targets a Greek kappa -- 141 of them target an
+ * equals-family sign. Likewise `⠸⠇` is identity (line 10298, Rule 21.3 at line
+ * 10631) as well as German ell, `⠠⠗` is the relation sign of 21.5 (lines
+ * 10655-10664) as well as capital R, `⠰⠆` is the proportion sign (line 10314)
+ * as well as a subscript 2, and `⠐⠅` is the less-than sign (line 10302) as well
+ * as a baseline indicator followed by the letter k.
+ *
+ * The Code separates them by 21.13 (lines 10775-10779): "A space must be left
+ * on either side of a comparison symbol." So each is a `comparison` row carrying
  * `unlessUnspaced`, and when the cells are not blank-surrounded the row falls
  * back to its first cell, which is the indicator. The ends of the input count
  * as blanks -- the space 21.13 requires sits outside a transcribed expression,
- * and the corpus proves it: `sre-aata:AataExpression_330` is the bare cells
- * `⠸⠇` for `≡`. Comparison signs have no grammar yet, so all three refuse in
- * the parser; the rows exist to stop the prefix pass answering `κ` where the
- * Code says `=`.
+ * and the corpus shows the shape: `sre-aata:AataExpression_330` is the bare
+ * cells `⠸⠇` for `≡`.
+ *
+ * 21.13's second sentence is half implemented, on purpose: see `isSpaced` for
+ * the indicator half, and for why the punctuation and grouping half is left out
+ * rather than guessed at.
  */
 
 import { NemethUnsupportedError } from './errors.js';
+import rows from './symbols.json' with { type: 'json' };
 import { matchAt } from './symbols.js';
+
+const LEVEL_KINDS = new Set(['level', 'baseline']);
 
 const CELL_MIN = 0x2800;
 const CELL_MAX = 0x28ff;
@@ -113,6 +126,13 @@ const NUMERAL_START = new Set(['digit', 'decimal']);
 
 // Appendix C's column order, outermost indicator first.
 const SLOT_ORDER = ['typeform', 'alphabet', 'capitalization'];
+
+// The one-cell indicators Rule 2 writes BEFORE the sign they apply to, taken
+// from the table rather than listed here, so a new level indicator row extends
+// the Rule 21.13 spacing test as data.
+const PRECEDING_INDICATOR_CELLS = new Set(
+  rows.filter((row) => row.cells.length === 1 && LEVEL_KINDS.has(row.kind)).map((row) => row.cells)
+);
 
 function describeCodepoint(code) {
   return `U+${code.toString(16).toUpperCase().padStart(4, '0')}`;
@@ -142,8 +162,28 @@ function normalize(input) {
   return cells;
 }
 
+/**
+ * Is this sign blank-surrounded in the sense BANA Rule 21.13 means?
+ *
+ * Sentence one (line 10776) is the `after` test and the outer half of `before`.
+ * Sentence two (lines 10777-10779) -- "a space is not left between the
+ * comparison symbol and any punctuation symbol, grouping symbol, or INDICATOR
+ * which applies to it" -- is the backward walk: a level or baseline indicator is
+ * written before the sign it applies to (Rule 2), so it sits INSIDE the space
+ * 21.13 requires and must be stepped over to find that space. Example 14-94
+ * (Nemeth_2022.txt lines 6939-6945) is exactly this shape: `!;u ;.k a`, where
+ * "the subscript indicator before the equals sign keeps this symbol at the
+ * subscript level". Without the walk those cells read as a Greek kappa.
+ *
+ * Only indicators are stepped over, not the punctuation and grouping symbols
+ * sentence two also names: those follow the sign rather than precede it, and
+ * this pipeline has no punctuation rows to identify them by. That half stays
+ * unimplemented rather than guessed.
+ */
 function isSpaced(cells, index, len) {
-  const before = index === 0 ? BLANK : cells[index - 1];
+  let start = index;
+  while (start > 0 && PRECEDING_INDICATOR_CELLS.has(cells[start - 1])) start -= 1;
+  const before = start === 0 ? BLANK : cells[start - 1];
   const after = index + len >= cells.length ? BLANK : cells[index + len];
   return before === BLANK && after === BLANK;
 }
@@ -186,6 +226,10 @@ function makeToken(match, cells, start, end, marks) {
     offset: start,
     len: end - start
   };
+  // The spacing class BANA Rules 20 and 21 put the sign in, where its row
+  // declares one. `parser.js` reads it to decide what a blank next to this
+  // token can mean; see the Rule 21.13 seam there.
+  if (match.role) token.role = match.role;
   if (marks) token.marks = Object.freeze(marks);
   return Object.freeze(token);
 }

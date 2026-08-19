@@ -198,7 +198,11 @@ test('a radical with no termination indicator is unsupported', () => {
   assert.throws(() => treeOf('>x+y'), NemethUnsupportedError);
 });
 
-test('a blank is not silently dropped: it has no grammar yet, so it is unsupported', () => {
+test('a blank is not silently dropped: `a b` is not `ab`', () => {
+  // Rule 20.1.2 (line 9964) leaves no space between juxtaposed letters, so this
+  // blank is one of 20.1.1's spaced circumstances -- a function name, an
+  // abbreviation, an ellipsis or a dash -- and none of those is in scope.
+  // Dropping it would answer `ab`, which is different mathematics.
   assert.throws(() => treeOf('a b'), NemethUnsupportedError);
 });
 
@@ -250,4 +254,112 @@ test('an indicated digit does not continue a Rule 14.6 promoted run (Nemeth_2022
   // The counter-case that keeps the break from splitting every multi-digit
   // subscript: Example 14-37, `x11` = x sub 11, promoted throughout.
   assert.equal(format(treeOf('x11')), "Subscript(Identifier('x'), Number('11'))");
+});
+
+// -- BANA Rule 21.13, the blank-delimited comparison seam ---------------------
+
+test('Rule 21.13: a blank-surrounded comparison sign joins two expressions, flat', () => {
+  // "A space must be left on either side of a comparison symbol"
+  // (Nemeth_2022.txt line 10776). Example 21-26 (lines 10786-10789) is `x .k y`
+  // verbatim. The relation is one FLAT Sequence -- a comparison sign is an item
+  // beside its operands, never a node that binds them, for the same reason the
+  // operation signs are flat.
+  assert.equal(
+    format(treeOf('x .k y')),
+    "Sequence([ Identifier('x'), Operator('='), Identifier('y') ])"
+  );
+  assert.equal(
+    format(treeOf('a+b .k c')),
+    "Sequence([ Identifier('a'), Operator('+'), Identifier('b'), Operator('='), Identifier('c') ])"
+  );
+});
+
+test('Rule 21.13: without its blanks the same cells are not a comparison sign', () => {
+  // `.k` unspaced is the Greek-letter indicator followed by k, i.e. kappa --
+  // which the lexer's `unlessUnspaced` fallback produces and which is NOT a
+  // comparison, so no relation is built out of it.
+  assert.equal(format(treeOf('.kx')), "Sequence([ Identifier('k'), Identifier('x') ])");
+  // Only one of the two required blanks is not enough either.
+  assert.throws(() => treeOf('x .ky'), NemethUnsupportedError);
+});
+
+test('Rule 21.13: a comparison sign needs a term on each side', () => {
+  // The same discipline the operation-sign loop applies. `sre-aata:
+  // AataExpression_330` is the bare cells `_l` for the identity sign; 21.13's
+  // outer space is real but there is no relation to build, so it refuses.
+  assert.throws(() => treeOf('_l'), NemethUnsupportedError);
+  assert.throws(() => treeOf('x .k '), NemethUnsupportedError);
+});
+
+test('Rule 20.1.2: a blank beside an operation sign refuses, and names that rule', () => {
+  // "A space is not left on either side of a symbol of operation in any other
+  // situation" (line 9964) -- other than the five circumstances of 20.1.1 (lines
+  // 9916-9963), none of which this parser reads. The refusal names the sign,
+  // which it can only do by reading the `role: 'binary'` its symbol row carries.
+  assert.throws(() => treeOf('a +b'), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /Rule 20\.1\.2 leaves no space beside the operation sign "\+"/u);
+    return true;
+  });
+});
+
+test('a blank that delimits nothing refuses, citing Rules 21.13 and 20.1.1', () => {
+  // `sin x` (mathcat-rules:num_indicator_9_a_5 shape). Function names are out of
+  // scope, so this blank is 20.1.1.b's and unreadable here. What must NOT happen
+  // is the blank being dropped: that would silently answer `sinx`.
+  assert.throws(() => treeOf('sin x'), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /BANA Rule 21\.13 does not put one/u);
+    return true;
+  });
+});
+
+test('Rule 21.13: the seam only matches a comparison sign at the expression\'s own level', () => {
+  // `x ^.k "y` -- the superscript indicator puts the equals sign at the
+  // superscript level (Example 14-113, lines 7137-7142: "the superscript
+  // indicator before the equals symbol keeps this symbol at the superscript
+  // level"), and the baseline indicator puts y back at the baseline. The
+  // baseline expression must NOT reach up and take that equals sign as its own:
+  // doing so answers `x=y` for an expression whose relation sign is an exponent.
+  assert.throws(() => treeOf('x ^.k "y'), NemethUnsupportedError);
+});
+
+test('Rule 21.13: only a comparison SIGN opens the seam, not any blank-flanked token', () => {
+  // Three consecutive blanks put a blank in the seam's middle slot. Without the
+  // `role` test the middle one would be read as the relation sign and emitted as
+  // an operator, silently answering `a b` for cells that say nothing of the sort.
+  assert.throws(() => treeOf('a   b'), NemethUnsupportedError);
+});
+
+test('the seam is a shape in the TOKEN stream, not an assumption about the lexer', () => {
+  // `lex` never emits a comparison token that is not blank-flanked -- Rule 21.13
+  // is enforced there too, by `unlessUnspaced`. But `parse` is a separately
+  // callable stage (Task 6 feeds it token streams), so it checks the shape
+  // itself rather than trusting an invariant from upstream. Both mis-shapes
+  // below would otherwise SKIP a token: `b` on the left, `b` on the right.
+  const tok = (kind, value, extra = {}) =>
+    Object.freeze({ kind, value, level: '', cells: '', offset: 0, len: 1, ...extra });
+  const equals = tok('comparison', '=', { role: 'comparison' });
+  const blank = tok('blank', ' ');
+  assert.throws(
+    () => parse([tok('letter', 'a'), tok('radClose', ']'), equals, blank, tok('letter', 'c')]),
+    NemethUnsupportedError
+  );
+  assert.throws(
+    () => parse([tok('letter', 'a'), blank, equals, tok('letter', 'b'), tok('letter', 'c')]),
+    NemethUnsupportedError
+  );
+});
+
+test('Rule 21.13 with the ratio and proportion signs (Example 21-34)', () => {
+  // `#1 "1 #2 ;2 #3 "1 #6` is Nemeth_2022.txt line 10843 verbatim (Example
+  // 21-34), and is `mathcat-rules:ratio_151_10`. `;2` unspaced is a subscript 2 and `"1`
+  // unspaced is a baseline indicator with the digit 1; the blanks are the only
+  // thing that makes them the proportion and ratio signs (lexer.test.js pins the
+  // unspaced readings).
+  assert.equal(
+    format(treeOf('#1 "1 #2 ;2 #3 "1 #6')),
+    "Sequence([ Number('1'), Operator('∶'), Number('2'), Operator('∷'), " +
+      "Number('3'), Operator('∶'), Number('6') ])"
+  );
 });
