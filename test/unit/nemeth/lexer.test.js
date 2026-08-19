@@ -282,3 +282,115 @@ test('Rule 21.13 sentence two: an indicator sits inside the space, not outside i
   // stays the Greek reading.
   assert.deepEqual(signOf('x;.ka'), ['letter:x', 'level:_', 'letter:k', 'letter:a']);
 });
+
+// -- Rule 3.2: two Rule 2 indicator cells that are numeric marks first --------
+
+test('BANA 3.2.3: `.` before a digit is the decimal point, before a letter the Greek indicator', () => {
+  // 3.2.3 (test/corpus/sources/Nemeth_2022.txt lines 818-819): the decimal
+  // point "is regarded as a numeric symbol only when it is followed by a
+  // number". `.a` is Example 6-6's Greek alpha (line 3117), the same cell.
+  assert.deepEqual(shape(lex(asciiToCells('#3.14'))), [
+    'numeric:#',
+    'digit:3',
+    'decimal:.',
+    'digit:1',
+    'digit:4'
+  ]);
+  assert.deepEqual(shape(lex(asciiToCells('.a'))), ['letter:a']);
+  assert.deepEqual(lex(asciiToCells('.a'))[0].marks, { alphabet: 'greek' });
+});
+
+test('BANA 3.2.2: `,` before a digit is the mathematical comma, before a letter the capitalization indicator', () => {
+  // 3.2.2 (lines 808-810), Example 3-4 `#1,478.00` (line 815), against Rule
+  // 5.1.1's capitalization indicator on the very same cell.
+  assert.deepEqual(shape(lex(asciiToCells('#1,478'))), [
+    'numeric:#',
+    'digit:1',
+    'comma:,',
+    'digit:4',
+    'digit:7',
+    'digit:8'
+  ]);
+  assert.deepEqual(shape(lex(asciiToCells(',a'))), ['letter:a']);
+});
+
+test('the fraction-close test reads the next SYMBOL, not the next cell', () => {
+  // `#.13`: the cells after `#` longest-match as `.1`, Rule 21's greater-than
+  // sign (line 10295), and only 21.13's spacing test turns that back into the
+  // decimal point that makes the leading `#` a numeric indicator. A raw trie
+  // hit at the next cell answers `comparison`, which is not a numeral start, and
+  // the `#` would be read as a fraction close.
+  assert.deepEqual(shape(lex(asciiToCells('#.13'))), ['numeric:#', 'decimal:.', 'digit:1', 'digit:3']);
+});
+
+test('`?4/9#./?1/6#` -- the shape the whole-symbol lookahead exists for (BANA line 1662)', () => {
+  // The cells after the closing fraction indicator are `./`, Rule 20's division
+  // sign (line 9857). `.` alone is the decimal point, so a one-cell peek would
+  // read that `#` as opening a numeral instead of closing the fraction.
+  assert.deepEqual(shape(lex(asciiToCells('?4/9#./?1/6#'))), [
+    'fracOpen:?',
+    'digit:4',
+    'fracLine:/',
+    'digit:9',
+    'fracClose:#',
+    'op:÷',
+    'fracOpen:?',
+    'digit:1',
+    'fracLine:/',
+    'digit:6',
+    'fracClose:#'
+  ]);
+});
+
+test('a refusal on `,` or `.` names the reading the table leads with, not just Rule 5', () => {
+  // `(0, 1, 2)` is Example 8-34 verbatim (lines 4229-4230), and 8.3.3 (lines
+  // 4224-4225) is why the comma carries no punctuation indicator. This pipeline
+  // has no grammar for a mark of punctuation, so it refuses -- but blaming
+  // Rule 5's capitalization indicator alone would point the next reader at the
+  // wrong chapter for what is a comma before a space.
+  assert.throws(() => lex(asciiToCells('(0, 1, 2)')), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /the comma of BANA 3\.2\.2/u);
+    return true;
+  });
+  // The note appears only for a row that declares an alternative reading: `_`
+  // is a typeform indicator and nothing else, so its message is unchanged.
+  assert.throws(() => lex(asciiToCells('_ ')), (error) => {
+    assert.equal(/the table leads with/u.test(error.detail), false);
+    return true;
+  });
+});
+
+// -- Rule 21.13 again: the tilde, where both readings are the SAME two cells --
+
+test('the simple tilde is a comparison sign spaced and an operation sign unspaced', () => {
+  // The Code lists Simple Tilde twice on the cells `@:` (the book prints them
+  // as `` `: ``, the Duxbury font's rendering alias for the same byte): as a symbol of
+  // OPERATION, U+301C, in Rule 20's table (line 9910), and as a symbol of
+  // COMPARISON, U+223C "is related to; is similar to", in Rule 21's (line
+  // 10325). 20.1.2 (line 9964) leaves no space beside an operation sign and
+  // 21.13 (line 10776) requires one on both sides of a comparison sign, so the
+  // spacing is the Code's own discriminator -- the same one that separates
+  // `.k` the equals sign from `.k` the Greek kappa.
+  const spaced = lex(asciiToCells('x @: y'));
+  assert.deepEqual(shape(spaced), ['letter:x', 'blank: ', 'comparison:∼', 'blank: ', 'letter:y']);
+  assert.equal(spaced[2].role, 'comparison');
+  const unspaced = lex(asciiToCells('x@:y'));
+  assert.deepEqual(shape(unspaced), ['letter:x', 'op:〜', 'letter:y']);
+  assert.equal(unspaced[1].role, 'binary');
+});
+
+test('the tilde needs the OTHER unspaced resolution: truncation cannot reach its twin', () => {
+  // `.k` unspaced is two symbols (the Greek indicator and the letter k), so its
+  // row declares `maxLen` and the trie is re-run against a truncated string.
+  // `@:` unspaced is still ONE symbol, a different one, so no truncation can
+  // reach it -- truncating to one cell would land on the script-type indicator
+  // of Rule 7 (line 3563) and lose the tilde entirely. The row declares fields
+  // instead, and this pins that the two rows really do take different paths.
+  const tilde = lex(asciiToCells('x@:y'))[1];
+  assert.deepEqual([tilde.kind, tilde.value, tilde.cells], ['op', '〜', asciiToCells('@:')]);
+  // Same two cells, same "unspaced" verdict, a structurally different outcome:
+  // the truncating row leaves an indicator governing a letter, not a sign.
+  const kappa = lex(asciiToCells('x.ky'))[1];
+  assert.deepEqual([kappa.kind, kappa.value, kappa.marks], ['letter', 'k', { alphabet: 'greek' }]);
+});

@@ -245,6 +245,173 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'Cells `⠨⠠⠏⠴⠘⠝⠐⠁⠰⠅`, the product twin of sum_77_4_23: Greek capitalized pi (BANA 6.1.4, ' +
       'line 3040) against <mo>∏</mo> (U+220F). Same collapse, same reading.'
   },
+  // --- Task 5e: BANA Rule 19 grouping symbols, and Rule 3's numeric marks -----
+  'mathcat-rules:comma_in_number_in_sup_79_b_3': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠭⠘⠂⠴⠠⠴⠴⠴` = x superscript 10,000, a BANA 3.2.2 numeric comma (Nemeth_2022.txt lines ' +
+      '808-810, "interior to a modified numeral ... to partition the numeral into short regular ' +
+      'segments"). We emit `x^{10{,}000}`, which MathJax returns as the single <mn>10,000</mn>; ' +
+      'the target spells the same numeral as <mn>10</mn><mo>,</mo><mn>000</mn>. Verified with this ' +
+      "gate: our LaTeX compares EQUAL to <msup><mi>x</mi><mn>10,000</mn></msup> and DIFFERENT to " +
+      'the same tree holding 10,001, so element granularity is the whole of it. The corpus itself ' +
+      'holds both granularities -- `sre-aata:AataExpression_190` (`⠼⠲⠖⠠⠒⠦⠦`) targets the merged ' +
+      '<mn>46,388</mn> and PASSes on our `46{,}388`.'
+  },
+  'mathcat-rules:mmultiscripts_77_4_10': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠷⠠⠉⠠⠕⠒⠾⠰⠆` = (CO sub 3) sub 2. Three encoding differences and no mathematical one: ' +
+      'the target writes both subscripts as <mmultiscripts> where we write <msub>, tags C and O ' +
+      "mathvariant='normal' where the Code has no cell that says a capital letter was upright " +
+      '(Rule 5.1.1 writes it the same either way), and omits the stretchy="false" MathJax puts on ' +
+      'every non-\\left parenthesis. Verified with this gate: our `{(CO_{3})}_{2}` compares EQUAL ' +
+      'to that tree once all three are aligned, and DIFFERENT once the 3 and the 2 are transposed.'
+  },
+  'mathcat-rules:colon_40_1_mtext': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠼⠒⠸⠒⠼⠒⠴` = 3:30, a Rule 8 punctuation indicator (line 3879) with the colon (line ' +
+      '3882). The target is one <mtext>3:30</mtext>; we emit `3:30`, which MathJax returns as ' +
+      '<mn>3</mn><mo>:</mo><mn>30</mn>. Nothing in the cells says the three signs were carried in ' +
+      'one text token rather than three math tokens -- the same <mtext>-versus-<mi>/<mn> collapse ' +
+      'as AataExpression_259, in its granular form. Its cell-twin `colon_40_1` carries the third ' +
+      'reading of these identical cells (three tokens, plus an intent annotation), so the corpus ' +
+      'holds two spellings of one braille string and neither is the one we emit.'
+  },
+  'sre-aata:AataExpression_68': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠷⠂⠆⠢⠲⠾⠘⠂⠴⠴` = (1254) superscript 100. BANA Example 19-4 (lines 9393-9394, ' +
+      '`(seven)^2"+1` printing "(seven)2 + 1") puts a script written after a right grouping symbol ' +
+      'on the whole group, which is the tree we build and the reason `latex.js` emits ' +
+      '`{(1254)}^{100}` rather than `(1254)^{100}`. MathJax turns the braced form into ' +
+      '<msup><mrow>(1254)</mrow>…</msup> and the unbraced one into <msup><mo>)</mo>…</msup>; the ' +
+      'target holds the latter. Verified with this gate: our LaTeX compares EQUAL to the ' +
+      'mrow-wrapped spelling of the same tree and DIFFERENT once the digits are transposed. The ' +
+      'corpus holds both spellings -- mmultiscripts_77_4_10 wraps its fenced base in an <mrow> for ' +
+      'the same construct. This is the one case the braces cost, and they are kept because the ' +
+      'two typeset identically while only one says what the parser recovered.'
+  },
+  'sre-aata:AataExpression_50': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells end `⠷…⠾⠘⠞` = a bold vector equal to a parenthesised bit string transposed. Two ' +
+      'encoding differences, both already named elsewhere in this map: the target tags the ' +
+      'transpose <mtext>t</mtext> where we emit <mi>t</mi> (the same collapse as ' +
+      'AataExpression_259, since no cell says which token type carried a letter), and it spells ' +
+      'the superscript on the closing parenthesis where we brace the group, as Example 19-4 ' +
+      '(lines 9393-9394) reads it -- see AataExpression_68 for that half. Verified with this ' +
+      'gate: our LaTeX compares EQUAL to the target once both are aligned, DIFFERENT with only ' +
+      'the grouping aligned, and DIFFERENT once a digit of the bit string changes.'
+  },
+  'sre-aata:AataExpression_54': {
+    cause: 'equivalent-encoding',
+    reason:
+      'The same bold-vector-transposed shape as AataExpression_50: <mtext>t</mtext> against our ' +
+      '<mi>t</mi>, and the Example 19-4 grouping. Verified the same way.'
+  },
+  'sre-aata:AataExpression_58': {
+    cause: 'equivalent-encoding',
+    reason:
+      'The same bold-vector-transposed shape as AataExpression_50: <mtext>t</mtext> against our ' +
+      '<mi>t</mi>, and the Example 19-4 grouping. Verified the same way.'
+  },
+  'sre-aata:AataExpression_88': {
+    cause: 'equivalent-encoding',
+    reason:
+      'The same bold-vector-transposed shape as AataExpression_50: <mtext>t</mtext> against our ' +
+      '<mi>t</mi>, and the Example 19-4 grouping. Verified the same way.'
+  },
+  'sre-aata:AataExpression_95': {
+    cause: 'equivalent-encoding',
+    reason:
+      'The same bold-vector-transposed shape as AataExpression_50: <mtext>t</mtext> against our ' +
+      '<mi>t</mi>, and the Example 19-4 grouping. Verified the same way.'
+  },
+  'sre-aata:AataExpression_96': {
+    cause: 'equivalent-encoding',
+    reason:
+      'The same bold-vector-transposed shape as AataExpression_50: <mtext>t</mtext> against our ' +
+      '<mi>t</mi>, and the Example 19-4 grouping. Verified the same way.'
+  },
+  'sre-aata:AataExpression_52': {
+    cause: 'formatting-only',
+    reason:
+      'Eight parenthesised bit strings juxtaposed. The target interleaves <mspace ' +
+      'width="thickmathspace"> between them and one <mspace linebreak="newline"> where the print ' +
+      'wrapped. Neither is mathematics and neither has a cell: BANA has no symbol for a typeset ' +
+      'gap or a line break inside an expression. Verified with this gate: our LaTeX compares EQUAL ' +
+      'to the same tree with the <mspace> elements removed and DIFFERENT once a digit changes.'
+  },
+  'sre-aata:AataExpression_60': {
+    cause: 'formatting-only',
+    reason: 'Eight seven-bit strings; the same <mspace> layout difference as AataExpression_52, verified the same way.'
+  },
+  'sre-aata:AataExpression_84': {
+    cause: 'formatting-only',
+    reason: 'Four six-bit strings; the same <mspace> layout difference as AataExpression_52, verified the same way.'
+  },
+  'sre-aata:AataExpression_85': {
+    cause: 'formatting-only',
+    reason: 'Four six-bit strings; the same <mspace> layout difference as AataExpression_52, verified the same way.'
+  },
+  'sre-aata:AataExpression_238': {
+    cause: 'unencoded-boundary',
+    reason:
+      'Cells `⠠⠁⠥⠞⠷⠠⠛⠾` = the capital letters A, u, t then (G). The target groups the first three ' +
+      'as one <mi>Aut</mi> and inserts <mo>&#x2061;</mo> (function application). Neither is in the ' +
+      'cells: BANA Rule 18 writes a function name as its plain letters with nothing to mark them ' +
+      '(Example 18-2, lines 9138-9141, is `sin x` = the letters s, i, n), `Aut` is not in the ' +
+      "Code's own list of abbreviated forms (lines 9075-9118), and there is no cell for an " +
+      'invisible operator. Same collapse as AataExpression_271 (`id`). Verified with this gate: ' +
+      'our `Aut(G)` compares EQUAL to the letter-by-letter spelling and DIFFERENT once G changes.'
+  },
+  'sre-aata:AataExpression_246': {
+    cause: 'unencoded-boundary',
+    reason: 'Cells `⠠⠊⠝⠝⠷⠠⠛⠾` = Inn(G); the same <mi>Inn</mi>-plus-U+2061 collapse as AataExpression_238, verified the same way.'
+  },
+  'sre-aata:AataExpression_252': {
+    cause: 'unencoded-boundary',
+    reason: 'Cells `⠠⠝⠥⠇⠇⠷⠠⠓⠾` = Null(H); the same collapse as AataExpression_238, verified the same way.'
+  },
+  // Sub-cause: unencoded attribute. Element structure and content match exactly;
+  // the target carries an <mo> attribute that no braille cell can express and
+  // that this pipeline's own serializer (MathJax) either always adds or never
+  // adds. Named separately from equivalent-encoding, which is about MathML
+  // SHAPE, and from formatting-only, which is about content the braille drops:
+  // here nothing is dropped and nothing is reshaped, only annotated. The gate's
+  // comparison helper already normalizes four such serialization differences
+  // away (xmlns, the minus spelling, invisible operators, a sole <mrow>); these
+  // three are candidates for a fifth rule, and are recorded here rather than
+  // resolved that way because a task graded by this gate should not be the one
+  // that widens it.
+  'mathcat-rules:numeric_sub_81_a_1': {
+    cause: 'unencoded-attribute',
+    reason:
+      'Cells `⠷⠭⠂⠬⠂⠾` = (x sub 1 + 1). Element for element identical to the target; MathJax puts ' +
+      'stretchy="false" on both parentheses and MathCAT\'s stored MathML omits it. Verified with ' +
+      'this gate: our `(x_{1}+1)` compares EQUAL to the target with stretchy="false" added and ' +
+      'DIFFERENT once the subscript changes to 2.'
+  },
+  'sre-aata:AataExpression_268': {
+    cause: 'unencoded-attribute',
+    reason:
+      'Cells `⠠⠋⠈⠷⠭⠈⠾` = F[x], BANA Rule 19\'s square brackets (line 9328, `@(`/`@)`). The target ' +
+      'adds fence="false" alongside the stretchy="false" MathJax also emits. Verified with this ' +
+      'gate: EQUAL with fence="false" dropped from the target, DIFFERENT once x becomes y.'
+  },
+  'mathcat-rules:colon_40_1': {
+    cause: 'unencoded-attribute',
+    reason:
+      'Cells `⠼⠒⠸⠒⠼⠒⠴` = 3:30. The target is <mn>3</mn><mo intent=\'time\'>:</mo><mn>30</mn>; our ' +
+      'output is the same three elements without the annotation. MathML 4\'s `intent` is an ' +
+      'assertion about what the notation MEANS, and nothing in these cells makes it -- Rule 8 ' +
+      'writes the punctuation indicator (line 3879) and the colon (line 3882) the same way in a ' +
+      'time as anywhere else, which is exactly what `mathcat-rules:not_ratio_nfb_5_7_b_4` and ' +
+      '`trilinear_not_ratio` use the same two cells for. Verified with this gate: EQUAL with the ' +
+      'attribute dropped, DIFFERENT once 30 becomes 31.'
+  },
   // Sub-cause: formatting-only difference. A leading/trailing non-breaking
   // space is print formatting, not mathematics, so Nemeth correctly drops
   // it -- all three MathML inputs below forward-map to the identical cells
@@ -344,6 +511,7 @@ const MANY_TO_ONE_CAUSES = new Set([
   'equivalent-encoding',
   'formatting-only',
   'unencoded-boundary',
+  'unencoded-attribute',
   'homograph',
   'glyph-spelling'
 ]);
@@ -356,7 +524,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 114;
+const PASS_BASELINE = 177;
 
 test('every corpus case lands in exactly one bucket, and the buckets sum to the corpus size', () => {
   const sum = coverage.totals.PASS + coverage.totals.REFUSE + coverage.totals.DISAGREE + coverage.totals.ERROR;
@@ -389,23 +557,25 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (18 equivalent-encoding, 3 formatting-only, 2 unencoded-boundary, 2 homograph, 2 glyph-spelling)', () => {
+test('DISAGREE: the many-to-one sub-causes are represented as expected (28 equivalent-encoding, 7 formatting-only, 5 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling)', () => {
   const byCause = {
     'equivalent-encoding': 0,
     'formatting-only': 0,
     'unencoded-boundary': 0,
+    'unencoded-attribute': 0,
     homograph: 0,
     'glyph-spelling': 0
   };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
-  assert.equal(byCause['equivalent-encoding'], 18);
-  assert.equal(byCause['formatting-only'], 3);
-  assert.equal(byCause['unencoded-boundary'], 2);
+  assert.equal(byCause['equivalent-encoding'], 28);
+  assert.equal(byCause['formatting-only'], 7);
+  assert.equal(byCause['unencoded-boundary'], 5);
+  assert.equal(byCause['unencoded-attribute'], 3);
   assert.equal(byCause.homograph, 2);
   assert.equal(byCause['glyph-spelling'], 2);
 });
 
-// Seven of the fifteen equivalent-encoding entries claim a cell-twin that PASSes:
+// Seven of the equivalent-encoding entries claim a cell-twin that PASSes:
 // the same braille appears twice in the corpus under two MathML encodings, we
 // match one and disagree with the other. That claim is checkable, so it is
 // checked -- an entry whose "twin" stopped passing would otherwise keep
@@ -448,7 +618,6 @@ test('DISAGREE: every allowlisted entry that claims a PASSing cell-twin actually
 // gaining) corroboration is visible in the diff rather than invisible.
 const UNCORROBORATED_COMPARISON_CELLS = [
   '⠈⠢', // reverse membership, line 10321
-  '⠨⠂', // greater than, line 10295
   '⠨⠐⠅', // less than with curved sides, line 10303
   '⠨⠨⠂' // greater than with curved sides, line 10296
 ];

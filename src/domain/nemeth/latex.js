@@ -50,10 +50,25 @@ const TYPEFORM_MACRO = Object.freeze({
 const TRAILING_CONTROL_WORD = /\\[a-zA-Z]+$/u;
 const LEADING_LETTER = /^[a-zA-Z]/u;
 
-const SCRIPT_KINDS = new Set(['Superscript', 'Subscript', 'SubSuperscript']);
+// Node kinds whose LaTeX must be braced before a script is hung on it, because
+// TeX's `^` and `_` bind to the single token on their left. A script kind needs
+// it for the reason on `scriptBase` below.
+//
+// `Fenced` needs it for a quieter reason: `(a)^{2}` is LaTeX whose MathML puts
+// the exponent on the closing parenthesis alone (verified through this repo's
+// own MathJax: `<mo>(</mo><mn>a</mn><msup><mo>)</mo>...`), while BANA Example
+// 19-4 (test/corpus/sources/Nemeth_2022.txt lines 9391-9394, `(seven)^2"+1` =
+// "(seven)2 + 1") puts it on the whole group -- which is the tree `parseFenced`
+// builds. The two spellings typeset identically, so this is not a visible
+// difference; it is a fidelity one, and the tree is what the app consumes.
+// It costs exactly one corpus case (`sre-aata:AataExpression_68`, whose stored
+// MathML carries MathJax's unbraced shape) and is taken anyway, for the same
+// reason `{x_{1}}^{2}` is spelled with braces.
+const BRACED_SCRIPT_BASES = new Set(['Superscript', 'Subscript', 'SubSuperscript', 'Fenced']);
 
 /**
- * Brace a script's base when the base is itself a script.
+ * Brace a script's base where TeX's binding would otherwise disagree with the
+ * tree.
  *
  * `x_{1}^{2}` is LaTeX for the SIMULTANEOUS msubsup, so it is the wrong string
  * for `Superscript(Subscript(x, 1), 2)` -- the non-simultaneous `(x_1)^2` of
@@ -63,7 +78,7 @@ const SCRIPT_KINDS = new Set(['Superscript', 'Subscript', 'SubSuperscript']);
  * superscript `x^{y}^{z}`, which LaTeX rejects outright.
  */
 function scriptBase(node, emit) {
-  return SCRIPT_KINDS.has(node.kind) ? `{${emit(node)}}` : emit(node);
+  return BRACED_SCRIPT_BASES.has(node.kind) ? `{${emit(node)}}` : emit(node);
 }
 
 function concat(pieces) {
@@ -155,7 +170,12 @@ function unrenderable(kind) {
 
 export const toLatex = defineBackend(
   {
-    Number: (node) => withTypeform(node.value, node),
+    // `{,}` is TeX's way of saying a comma is part of the numeral rather than a
+    // separator beside it, and it is what the round trip needs: `46,388` comes
+    // back from MathJax as <mn>46</mn><mo>,</mo><mn>388</mn>, `46{,}388` as the
+    // single <mn>46,388</mn> that BANA 3.2.2's numeric comma (Nemeth_2022.txt
+    // lines 808-810) describes. The decimal point needs no such help.
+    Number: (node) => withTypeform(node.value.replaceAll(',', '{,}'), node),
     Identifier: (node) => withTypeform(letterGlyph(node), node),
     Operator: (node) => node.glyph,
     Sequence: (node, emit) => concat(node.items.map((item) => emit(item))),

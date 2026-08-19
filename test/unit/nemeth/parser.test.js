@@ -6,9 +6,11 @@ import { asciiToCells } from '../../../src/domain/nemeth/braille-ascii.js';
 import { NemethUnsupportedError } from '../../../src/domain/nemeth/errors.js';
 import { lex } from '../../../src/domain/nemeth/lexer.js';
 import { resolveLevels } from '../../../src/domain/nemeth/levels.js';
+import { toLatex } from '../../../src/domain/nemeth/latex.js';
 import { parse } from '../../../src/domain/nemeth/parser.js';
 
 const treeOf = (ascii) => parse(resolveLevels(lex(asciiToCells(ascii))));
+const toLatexOf = (ascii) => toLatex(treeOf(ascii));
 
 // A resolved token, as `resolveLevels` hands them to `parse`. Used only where the
 // slice's symbol table cannot produce the token stream under test.
@@ -362,4 +364,204 @@ test('Rule 21.13 with the ratio and proportion signs (Example 21-34)', () => {
     "Sequence([ Number('1'), Operator('∶'), Number('2'), Operator('∷'), " +
       "Number('3'), Operator('∶'), Number('6') ])"
   );
+});
+
+// -- Rule 19: signs and symbols of grouping ----------------------------------
+
+test('a pair of grouping symbols becomes one Fenced node (BANA Example 19-1)', () => {
+  // `(s4a4s4 .k s4a4s4)` is Example 19-1 (Nemeth_2022.txt lines 9374-9375); the
+  // periods are out of scope, so this is the same shape with letters. What the
+  // node must carry is the two signs themselves -- Rule 19.1.1 (line 9369)
+  // "Symbols of grouping are transcribed wherever they appear in print".
+  assert.equal(format(treeOf('(a+b)')), "Fenced('(', Sequence([ Identifier('a'), Operator('+'), Identifier('b') ]), ')')");
+});
+
+test('the body of a fence is a whole expression, spaces and relation included (Example 3-31)', () => {
+  // `(0 .k x)` is Example 3-31 verbatim (Nemeth_2022.txt lines 1019-1020). If
+  // the body were only a `terms` production the relation would be left unparsed
+  // and the case would refuse; it is the reason `parseFenced` recurses into
+  // `parseExpression`, and the reason the numeral needs no numeric indicator
+  // (3.4.1, lines 1164-1167: a number "preceded unspaced by a symbol").
+  assert.equal(
+    format(treeOf('(0 .k x)')),
+    "Fenced('(', Sequence([ Number('0'), Operator('='), Identifier('x') ]), ')')"
+  );
+});
+
+test('nesting is the call stack: no depth counter anywhere', () => {
+  assert.equal(
+    format(treeOf('((12)(4))')),
+    "Fenced('(', Sequence([ Fenced('(', Number('12'), ')'), Fenced('(', Number('4'), ')') ]), ')')"
+  );
+});
+
+test('the open and close signs need not match -- Example 19-12 is a bracket closed by a paren', () => {
+  // `` `(a, +,=) `` (Nemeth_2022.txt lines 9436-9437) is "[a, +∞)". The comma
+  // and infinity are out of scope, so this pins the mismatched pair alone: a
+  // parser that required a matching partner would refuse the Code's own example.
+  assert.equal(format(treeOf('@(a)')), "Fenced('[', Identifier('a'), ')')");
+});
+
+test('a left grouping symbol with no right one refuses, per BANA 19.1.2', () => {
+  // 19.1.2 (lines 9438-9443) preserves an unpaired grouping sign in the
+  // transcription. `Fenced` has no way to spell half a fence, so the honest
+  // answer is a refusal that says so -- never dropping the sign, and never
+  // pairing it with a later one that belongs to something else.
+  assert.throws(() => treeOf('(a'), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /has no right grouping symbol/u);
+    return true;
+  });
+});
+
+test('a right grouping symbol with no left one refuses too', () => {
+  assert.throws(() => treeOf('a)'), NemethUnsupportedError);
+});
+
+test('a script after a right grouping symbol belongs to the group (Example 19-4)', () => {
+  // `(seven)^2"+1` (Nemeth_2022.txt lines 9393-9394) prints as "(seven)2 + 1" --
+  // the exponent is on the whole parenthesised group, not on the parenthesis.
+  assert.equal(format(treeOf('(x)^2')), "Superscript(Fenced('(', Identifier('x'), ')'), Number('2'))");
+});
+
+test('a fence closed at a different level is not this fence\'s partner', () => {
+  // `x^(y")` -- the group opens at the SUPERSCRIPT level and the only right
+  // grouping sign is at the baseline, put there by the baseline indicator of
+  // Rule 2. It closes some baseline group, not this one. Without the level test
+  // the exponent silently becomes `(y)`, a right sign borrowed from another
+  // level -- and nothing refuses, because every token was consumed.
+  assert.throws(() => treeOf('x^(y")'), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /has no right grouping symbol at level "\^"/u);
+    return true;
+  });
+});
+
+test('only a right GROUPING symbol closes a fence, not whatever the body stopped at', () => {
+  // `(a/b)` -- `parseExpression` stops at the fraction line, which is at this
+  // fence's own level. Without the kind test that line is taken as the closing
+  // sign and the answer is a fence spelled `(a/`, with the `b)` unparsed: a
+  // wrong node built out of a symbol from a different rule entirely.
+  assert.throws(() => treeOf('(a/b)'), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /has no right grouping symbol/u);
+    return true;
+  });
+});
+
+// -- Rule 3.2: the decimal point and the numeric comma -----------------------
+
+test('a decimal point interior to a numeral is part of it (Example 3-6)', () => {
+  // `#3.14` is Example 3-6 verbatim (Nemeth_2022.txt lines 836-837).
+  assert.equal(format(treeOf('#3.14')), "Number('3.14')");
+});
+
+test('a decimal point may OPEN a numeral (Example 3-5)', () => {
+  // `#.35` is Example 3-5 verbatim (line 828). 3.2.3 (lines 818-819) makes the
+  // decimal point numeric "only when it is followed by a number", not when it
+  // is preceded by one.
+  assert.equal(format(treeOf('#.35')), "Number('.35')");
+});
+
+test('a numeric comma partitions a numeral (Example 3-4)', () => {
+  // `#1,478.00` is Example 3-4 verbatim (line 815); 3.2.2 (lines 808-810) calls
+  // this comma "interior to a modified numeral".
+  assert.equal(format(treeOf('#1,478.00')), "Number('1,478.00')");
+});
+
+test('a comma that is not interior to a numeral is not part of one', () => {
+  // 3.2.2's "interior" is both sides. `,478` has no digits before the comma, so
+  // it is Rule 8's mark of punctuation (its table, line 3887, spells the two
+  // identically) and this parser has no grammar for it. The reading that must
+  // NOT happen is the numeral `,478`.
+  assert.throws(() => treeOf(',478'), NemethUnsupportedError);
+});
+
+test('a decimal point with no numeral after it is not a decimal point at all (3.2.3)', () => {
+  // 3.2.3 (lines 818-819) makes `⠨` numeric "only when it is followed by a
+  // number", and the Code's own way of writing `1.` followed by non-numeric
+  // material is Example 3-8's `#1."a1a2a3` (line 847) -- the multipurpose
+  // indicator, not a bare decimal point. So `#3.x` is the OTHER reading of the
+  // cell: Rule 6's Greek indicator on x, which is xi. The answer that must not
+  // appear is a numeral with a trailing point.
+  assert.equal(format(treeOf('#3.x')), "Sequence([ Number('3'), Identifier('x') ])");
+});
+
+test('a numeric mark at another level does not join a numeral at this one', () => {
+  // `#1;,478` -- the comma carries a subscript indicator, so it is not interior
+  // to the baseline numeral. Merging it would answer `1,478` for cells that say
+  // 1 with something else hung under it.
+  assert.throws(() => treeOf('#1;,478'), NemethUnsupportedError);
+});
+
+test('BANA 3.2.2/3.2.3 are checked on the TOKEN stream, not assumed from the lexer', () => {
+  // `lex` already refuses to emit a numeric mark that the rules do not license:
+  // `⠨` is only the decimal point when a numeral follows it, and `⠼` demotes
+  // itself to a fraction close when a comma follows. But `parse` is a separately
+  // callable stage (Task 6 feeds it token streams), so it re-derives the two
+  // conditions rather than trusting an invariant from upstream -- and each
+  // stream below, unguarded, produces a WRONG numeral rather than a refusal.
+  const num = token({ kind: 'numeric', value: '#', offset: 0 });
+  const three = token({ kind: 'digit', value: '3', offset: 1 });
+  const parseAll = (tokens) => parse(tokens);
+
+  // 3.2.2: "interior to a modified numeral" is both sides, so a comma with no
+  // digits before it does not open one. Unguarded this answers `,4`.
+  assert.throws(
+    () => parseAll([num, token({ kind: 'comma', value: ',', offset: 1 }), token({ kind: 'digit', value: '4', offset: 2 })]),
+    NemethUnsupportedError
+  );
+  // 3.2.3: numeric "only when it is followed by a number". Unguarded: `3.x`.
+  assert.throws(
+    () =>
+      parseAll([
+        num,
+        three,
+        token({ kind: 'decimal', value: '.', offset: 2 }),
+        token({ kind: 'letter', value: 'x', offset: 3 })
+      ]),
+    NemethUnsupportedError
+  );
+  // The mark itself must be at the numeral's own level. Unguarded: `3.4`, with a
+  // decimal point borrowed from a superscript.
+  assert.throws(
+    () =>
+      parseAll([
+        num,
+        three,
+        token({ kind: 'decimal', value: '.', offset: 2, level: '^' }),
+        token({ kind: 'digit', value: '4', offset: 3 })
+      ]),
+    NemethUnsupportedError
+  );
+  // And so must the numeral it is followed by. Unguarded: `3.^{4}` -- a numeral
+  // ending in a point, with the exponent hung off it.
+  assert.throws(
+    () =>
+      parseAll([
+        num,
+        three,
+        token({ kind: 'decimal', value: '.', offset: 2 }),
+        token({ kind: 'digit', value: '4', offset: 3, level: '^' })
+      ]),
+    NemethUnsupportedError
+  );
+});
+
+test('BANA Rule 8: the punctuation indicator with a colon is an infix sign, not a letter', () => {
+  // `_3` = the punctuation indicator (Nemeth_2022.txt line 3879, and the Rule 2
+  // summary at line 688) with the colon (line 3882). `x_3y` is the shape inside
+  // `sre-aata:AataExpression_267`, "{y in X : y ~ x}". It must land in the tree
+  // as an Operator between its two operands: as an Identifier the LaTeX would
+  // come out the same and the tree would silently say the colon is a name.
+  assert.equal(format(treeOf('x_3y')), "Sequence([ Identifier('x'), Operator(':'), Identifier('y') ])");
+});
+
+test('Rule 19: braces are escaped for LaTeX, brackets and parentheses are not', () => {
+  // `.(`/`.)` are the curly brackets of Rule 19's table (lines 9333-9334) and
+  // `@(`/`@)` the square ones (lines 9328-9329). A bare `{` is LaTeX grouping,
+  // not a brace, so the row carries the escape.
+  assert.equal(toLatexOf('.(a.)'), '\\{a\\}');
+  assert.equal(toLatexOf('@(a@)'), '[a]');
+  assert.equal(toLatexOf('(a)'), '(a)');
 });

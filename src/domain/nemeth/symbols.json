@@ -229,6 +229,19 @@
     "banaRef": "20.1.2"
   },
   {
+    "cells": "⠨⠌",
+    "kind": "op",
+    "value": "÷",
+    "role": "binary",
+    "banaRef": "20"
+  },
+  {
+    "cells": "⠸⠒",
+    "kind": "op",
+    "value": ":",
+    "banaRef": "8"
+  },
+  {
     "cells": "⠼",
     "kind": "numeric",
     "value": "#",
@@ -286,12 +299,17 @@
   },
   {
     "cells": "⠠",
-    "kind": "prefix",
+    "kind": "comma",
     "value": ",",
-    "slots": {
-      "capitalization": "single"
-    },
-    "banaRef": "5.1.1"
+    "banaRef": "3.2.2",
+    "unlessFollowedByNumeral": {
+      "kind": "prefix",
+      "value": ",",
+      "slots": {
+        "capitalization": "single"
+      },
+      "banaRef": "5.1.1"
+    }
   },
   {
     "cells": "⠸",
@@ -305,13 +323,18 @@
   },
   {
     "cells": "⠨",
-    "kind": "prefix",
+    "kind": "decimal",
     "value": ".",
-    "slots": {
-      "typeform": "italic",
-      "alphabet": "greek"
-    },
-    "banaRef": "6.2.1"
+    "banaRef": "3.2.3",
+    "unlessFollowedByNumeral": {
+      "kind": "prefix",
+      "value": ".",
+      "slots": {
+        "typeform": "italic",
+        "alphabet": "greek"
+      },
+      "banaRef": "6.2.1"
+    }
   },
   {
     "cells": "⠈",
@@ -339,6 +362,42 @@
       "typeform": "barred"
     },
     "banaRef": "7.2.1"
+  },
+  {
+    "cells": "⠷",
+    "kind": "groupOpen",
+    "value": "(",
+    "banaRef": "19"
+  },
+  {
+    "cells": "⠾",
+    "kind": "groupClose",
+    "value": ")",
+    "banaRef": "19"
+  },
+  {
+    "cells": "⠈⠷",
+    "kind": "groupOpen",
+    "value": "[",
+    "banaRef": "19"
+  },
+  {
+    "cells": "⠈⠾",
+    "kind": "groupClose",
+    "value": "]",
+    "banaRef": "19"
+  },
+  {
+    "cells": "⠨⠷",
+    "kind": "groupOpen",
+    "value": "\\{",
+    "banaRef": "19"
+  },
+  {
+    "cells": "⠨⠾",
+    "kind": "groupClose",
+    "value": "\\}",
+    "banaRef": "19"
   },
   {
     "cells": "⠨⠅",
@@ -468,6 +527,19 @@
     "banaRef": "21",
     "unlessUnspaced": {
       "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠈⠱",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "∼",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "kind": "op",
+      "role": "binary",
+      "value": "〜",
+      "banaRef": "20"
     }
   }
 ]

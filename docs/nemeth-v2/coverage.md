@@ -14,9 +14,9 @@ maximize.
 
 | Outcome | Count | % of 613 |
 |---|---:|---:|
-| PASS | 114 | 18.6% |
-| REFUSE | 472 | 77.0% |
-| DISAGREE | 27 | 4.4% |
+| PASS | 177 | 28.9% |
+| REFUSE | 389 | 63.5% |
+| DISAGREE | 47 | 7.7% |
 | ERROR | 0 | 0.0% |
 | **Total** | **613** | **100.0%** |
 
@@ -24,8 +24,8 @@ maximize.
 
 | Source | PASS | REFUSE | DISAGREE | ERROR | Total |
 |---|---:|---:|---:|---:|---:|
-| mathcat-rules | 24 | 226 | 23 | 0 | 273 |
-| sre-aata | 90 | 246 | 4 | 0 | 340 |
+| mathcat-rules | 25 | 220 | 28 | 0 | 273 |
+| sre-aata | 152 | 169 | 19 | 0 | 340 |
 
 ## REFUSE by cause
 
@@ -36,43 +36,51 @@ position, not a category; the offending codepoint is kept since it is).
 
 | Count | Cause | Representative case |
 |---:|---|---|
-| 165 | no Nemeth symbol starts at cell N (U+2837 "⠷") | `mathcat-rules:binomial_90_1` |
-| 43 | an alphabetic or capitalization indicator governs a digit, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:bar_97_b_1` |
-| 29 | no Nemeth symbol starts at cell N (U+2824 "⠤") | `mathcat-rules:dash_42_4` |
-| 25 | no Nemeth symbol starts at cell N (U+2821 "⠡") | `mathcat-rules:degrees_165_1` |
-| 22 | no Nemeth symbol starts at cell N (U+2823 "⠣") | `mathcat-rules:arrow_96_1` |
-| 20 | an alphabetic or capitalization indicator governs a blank, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:eli_nemeth_UEB_rule_book_4_11_1` |
-| 18 | no Nemeth symbol starts at cell N (U+2804 "⠄") | `mathcat-rules:ellipsis_43_b_3` |
-| 18 | no Nemeth symbol starts at cell N (U+282B "⠫") | `mathcat-rules:arrow_96_10` |
-| 15 | a blank stands where BANA Rule 21.13 does not put one -- it spaces a comparison symbol and nothing else here, and Rule 20.1.1 spaces an operation symbol only next to a function name, an abbreviation, an ellipsis or a dash, none of which this parser reads | `mathcat-rules:log_77_4_8` |
-| 15 | no Nemeth symbol starts at cell N (U+2831 "⠱") | `mathcat-rules:menclose_86_b_1` |
-| 12 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:above_and_below_88_2` |
-| 11 | BANA 7.1 and Appendix C read the script-type indicator on a letter as script type, but every corpus case written that way targets double-struck, which the Code writes with a different indicator; neither reading is established, so this refuses rather than picking one | `sre-aata:AataExpression_13` |
-| 11 | expected the start of a term at level "" | `mathcat-rules:left_sup_75_1` |
-| 7 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:dots_99_a_1` |
-| 7 | no Nemeth symbol starts at cell N (U+2833 "⠳") | `mathcat-rules:multipurpose_177_7_1` |
-| 5 | an alphabetic or capitalization indicator governs a fracLine, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:beveled_frac_62_b_1` |
-| 5 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:complex_frac_66_1` |
-| 4 | a typeform indicator governs a fracClose; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:num_indicator_9_d_3` |
-| 4 | an alphabetic or capitalization indicator governs a op, not the letter BANA Rules 5.1.1 and 6.2.3 require | `sre-aata:AataExpression_11` |
-| 4 | indicator "," cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:cap_roman_numeral_18_a_3` |
-| 4 | no Nemeth symbol starts at cell N (U+282A "⠪") | `mathcat-rules:comma_78_3` |
+| 57 | an alphabetic or capitalization indicator governs a blank, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a blank either | `mathcat-rules:colon_40_2` |
+| 33 | no Nemeth symbol starts at cell N (U+2824 "⠤") | `mathcat-rules:dash_42_4` |
+| 29 | no Nemeth symbol starts at cell N (U+2821 "⠡") | `mathcat-rules:degrees_165_1` |
+| 29 | no Nemeth symbol starts at cell N (U+282B "⠫") | `mathcat-rules:arrow_96_10` |
+| 25 | no Nemeth symbol starts at cell N (U+2823 "⠣") | `mathcat-rules:arrow_96_1` |
+| 22 | a blank stands where BANA Rule 21.13 does not put one -- it spaces a comparison symbol and nothing else here, and Rule 20.1.1 spaces an operation symbol only next to a function name, an abbreviation, an ellipsis or a dash, none of which this parser reads | `mathcat-rules:log_77_4_8` |
+| 20 | expected the start of a term at level "" | `mathcat-rules:chem_HOH_1_1_1_mchem` |
+| 20 | no Nemeth symbol starts at cell N (U+2804 "⠄") | `mathcat-rules:ellipsis_43_b_3` |
+| 19 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:above_and_below_88_2` |
+| 16 | no Nemeth symbol starts at cell N (U+2831 "⠱") | `mathcat-rules:bar_97_b_1` |
+| 15 | BANA 7.1 and Appendix C read the script-type indicator on a letter as script type, but every corpus case written that way targets double-struck, which the Code writes with a different indicator; neither reading is established, so this refuses rather than picking one | `sre-aata:AataExpression_13` |
+| 12 | the grouping symbol "(" has no right grouping symbol at level ""; BANA 19.1.2 preserves an unpaired one and this parser has no node for it | `sre-aata:AataExpression_1` |
+| 10 | no Nemeth symbol starts at cell N (U+2833 "⠳") | `mathcat-rules:comparison_ops_151_14` |
+| 6 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a baseline either | `mathcat-rules:dots_99_a_1` |
+| 6 | an alphabetic or capitalization indicator governs a fracLine, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:beveled_frac_62_b_1` |
+| 6 | no Nemeth symbol starts at cell N (U+282A "⠪") | `mathcat-rules:comma_78_2` |
+| 5 | a typeform indicator governs a fracClose; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:num_indicator_9_d_3` |
+| 5 | indicator "," cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:cap_roman_numeral_18_a_3` |
+| 4 | a typeform indicator governs a op; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:tilde_137_2` |
+| 4 | an alphabetic or capitalization indicator governs a op, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a op either | `sre-aata:AataExpression_11` |
 | 3 | a "_" script between two baseline indicators is a left script | `mathcat-rules:left_sub_14_104` |
-| 3 | an alphabetic or capitalization indicator governs a radOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:nested_sqrt_105_1` |
+| 3 | an alphabetic or capitalization indicator governs a digit, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:ms_38_4_8` |
+| 3 | an alphabetic or capitalization indicator governs a radOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a radOpen either | `mathcat-rules:nested_sqrt_105_1` |
+| 3 | expected the start of a term at level "^" | `mathcat-rules:nested_super_space_79_d_3` |
 | 3 | no Nemeth symbol starts at cell N (U+282E "⠮") | `mathcat-rules:in_scripts_comparison_151_17` |
+| 3 | no Nemeth symbol starts at cell N (U+283F "⠿") | `mathcat-rules:omission_57_1` |
 | 2 | a "_" script on a base already carrying "_" needs a baseline indicator before it | `mathcat-rules:sub_ind_mmultiscripts_80_b_3` |
 | 2 | a "^" script on a base already carrying "^" needs a baseline indicator before it | `mathcat-rules:nested_sup_sup_space_79_d_9` |
 | 2 | a typeform indicator governs a digit; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:punct_37_16_1` |
 | 2 | a typeform indicator governs a letter; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:dash_42_6` |
+| 2 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require | `sre-aata:AataExpression_334` |
+| 2 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:mixed_frac_63_a_1` |
+| 2 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a fracOpen either | `mathcat-rules:complex_frac_66_1` |
+| 2 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a groupOpen either | `mathcat-rules:identity_matrix_126_linearize` |
 | 2 | no Nemeth symbol starts at cell N (U+282F "⠯") | `sre-aata:AataExpression_198` |
-| 2 | no Nemeth symbol starts at cell N (U+283F "⠿") | `mathcat-rules:omission_57_4` |
 | 1 | a "^" script between two baseline indicators is a left script | `mathcat-rules:left_sup_75_12` |
 | 1 | a subscript indicator stands before a first-order numeric subscript that BANA Rule 14.6 writes without one, so this base is not the single letter it looks like | `mathcat-rules:word_77_4_12` |
-| 1 | a typeform indicator governs a op; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `sre-aata:AataExpression_325` |
-| 1 | an alphabetic or capitalization indicator governs a fracClose, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:num_indicator_9_d_2` |
-| 1 | expected the start of a term at level "^" | `mathcat-rules:nested_super_space_79_d_3` |
+| 1 | an alphabetic or capitalization indicator governs a fracClose, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a fracClose either | `mathcat-rules:num_indicator_9_d_2` |
+| 1 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a fracOpen either | `sre-aata:AataExpression_270` |
+| 1 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a groupOpen either | `sre-aata:AataExpression_304` |
 | 1 | indicator "@" cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:russian_24_a_10` |
 | 1 | latex has no rendering for bold german (BANA Rule 7.2.1) | `mathcat-rules:boldface_32_a_7` |
+| 1 | radical has no termination indicator | `mathcat-rules:sqrt_103_b_2` |
+| 1 | unparsed comma token at level "" | `mathcat-rules:comma_number_77_4_20` |
+| 1 | unparsed decimal token at level "" | `mathcat-rules:multipurpose_177_2_2` |
 
 ## Why DISAGREE = 0 is not always achievable
 
@@ -99,7 +107,7 @@ together and left no cell at the seam), `homograph` (the Nemeth Code itself writ
 different print signs with one set of cells), or `glyph-spelling` (the Code and the
 corpus write the same sign with two different Unicode codepoints).
 
-## DISAGREE (27)
+## DISAGREE (47)
 
 Parsed successfully, but the resulting mathematics differs from the corpus case's
 own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
@@ -142,6 +150,45 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math><mn>𝟒35</mn></math>
+  ```
+
+### `mathcat-rules:colon_40_1`
+
+- cells: `⠼⠒⠸⠒⠼⠒⠴`
+- our LaTeX: `3:30`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>3</mn><mo>:</mo><mn>30</mn></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mn>3</mn><mo intent="time">:</mo><mn>30</mn></math>
+  ```
+
+### `mathcat-rules:colon_40_1_mtext`
+
+- cells: `⠼⠒⠸⠒⠼⠒⠴`
+- our LaTeX: `3:30`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>3</mn><mo>:</mo><mn>30</mn></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mtext>3:30</mtext></math>
+  ```
+
+### `mathcat-rules:comma_in_number_in_sup_79_b_3`
+
+- cells: `⠭⠘⠂⠴⠠⠴⠴⠴`
+- our LaTeX: `x^{10{,}000}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mi>x</mi><mrow><mn>10,000</mn></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math><msup><mi>x</mi><mrow><mn>10</mn><mo>,</mo><mn>000</mn></mrow></msup></math>
   ```
 
 ### `mathcat-rules:german_24_a_7`
@@ -194,6 +241,19 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math><mtext>vi</mtext><mo>+</mo><mtext>iv</mtext><mo>=</mo><mtext>x</mtext></math>
+  ```
+
+### `mathcat-rules:mmultiscripts_77_4_10`
+
+- cells: `⠷⠠⠉⠠⠕⠒⠾⠰⠆`
+- our LaTeX: `{(CO_{3})}_{2}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mrow><mo stretchy="false">(</mo><mi>C</mi><msub><mi>O</mi><mrow><mn>3</mn></mrow></msub><mo stretchy="false">)</mo></mrow><mrow><mn>2</mn></mrow></msub></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mmultiscripts><mrow><mo>(</mo><mi mathvariant="normal">C</mi><mmultiscripts><mi mathvariant="normal">O</mi><mn>3</mn><none/></mmultiscripts><mo>)</mo></mrow><mn>2</mn><none/></mmultiscripts></math>
   ```
 
 ### `mathcat-rules:mmultiscripts_82_a_1`
@@ -339,6 +399,19 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
   <math><mtext> </mtext><mn>2</mn><mtext> </mtext></math>
   ```
 
+### `mathcat-rules:numeric_sub_81_a_1`
+
+- cells: `⠷⠭⠂⠬⠂⠾`
+- our LaTeX: `(x_{1}+1)`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><msub><mi>x</mi><mrow><mn>1</mn></mrow></msub><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mo>(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>+</mo><mn>1</mn><mo>)</mo></math>
+  ```
+
 ### `mathcat-rules:product_77_4_24`
 
 - cells: `⠨⠠⠏⠴⠘⠝⠐⠁⠰⠅`
@@ -404,6 +477,45 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
   <math><mmultiscripts><mi>R</mi><mi>i</mi><none/><none/><mi>j</mi><mi>k</mi><none/><mi>l</mi><none/></mmultiscripts></math>
   ```
 
+### `sre-aata:AataExpression_238`
+
+- cells: `⠠⠁⠥⠞⠷⠠⠛⠾`
+- our LaTeX: `Aut(G)`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>A</mi><mi>u</mi><mi>t</mi><mo stretchy="false">(</mo><mi>G</mi><mo stretchy="false">)</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>Aut</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>G</mi><mo stretchy="false">)</mo></math>
+  ```
+
+### `sre-aata:AataExpression_246`
+
+- cells: `⠠⠊⠝⠝⠷⠠⠛⠾`
+- our LaTeX: `Inn(G)`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>I</mi><mi>n</mi><mi>n</mi><mo stretchy="false">(</mo><mi>G</mi><mo stretchy="false">)</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>Inn</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>G</mi><mo stretchy="false">)</mo></math>
+  ```
+
+### `sre-aata:AataExpression_252`
+
+- cells: `⠠⠝⠥⠇⠇⠷⠠⠓⠾`
+- our LaTeX: `Null(H)`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>N</mi><mi>u</mi><mi>l</mi><mi>l</mi><mo stretchy="false">(</mo><mi>H</mi><mo stretchy="false">)</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>Null</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>H</mi><mo stretchy="false">)</mo></math>
+  ```
+
 ### `sre-aata:AataExpression_259`
 
 - cells: `⠠⠎⠀⠨⠅⠀⠼⠂⠦`
@@ -415,6 +527,19 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math xmlns="http://www.w3.org/1998/Math/MathML"><mtext>S</mtext><mo>=</mo><mn>18</mn></math>
+  ```
+
+### `sre-aata:AataExpression_268`
+
+- cells: `⠠⠋⠈⠷⠭⠈⠾`
+- our LaTeX: `F[x]`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>F</mi><mo stretchy="false">[</mo><mi>x</mi><mo stretchy="false">]</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>F</mi><mo fence="false" stretchy="false">[</mo><mi>x</mi><mo fence="false" stretchy="false">]</mo></math>
   ```
 
 ### `sre-aata:AataExpression_271`
@@ -430,6 +555,71 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
   <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>α</mi><mi>β</mi><mo>=</mo><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow></math>
   ```
 
+### `sre-aata:AataExpression_50`
+
+- cells: `⠸⠰⠭⠀⠨⠅⠀⠷⠴⠂⠴⠴⠂⠂⠾⠘⠞`
+- our LaTeX: `\mathbf{x}={(010011)}^{t}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi mathvariant="bold">x</mi></mrow><mo>=</mo><msup><mrow><mo stretchy="false">(</mo><mn>010011</mn><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mrow><mi mathvariant="bold">x</mi></mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><mn>010011</mn><msup><mo stretchy="false">)</mo><mtext>t</mtext></msup></math>
+  ```
+
+### `sre-aata:AataExpression_52`
+
+- cells: `⠷⠴⠂⠂⠂⠴⠴⠾⠷⠴⠂⠂⠴⠂⠂⠾⠷⠂⠂⠂⠴⠂⠂⠾⠷⠂⠴⠴⠴⠂⠂⠾⠷⠴⠴⠴⠴⠴⠴⠾⠷⠴⠂⠴⠂⠴⠂⠾⠷⠂⠂⠴⠂⠴⠴⠾⠷⠂⠂⠴⠴⠂⠂⠾`
+- our LaTeX: `(011100)(011011)(111011)(100011)(000000)(010101)(110100)(110011)`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>011100</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>011011</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>111011</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>100011</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>000000</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>010101</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>110100</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>110011</mn><mo stretchy="false">)</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>011100</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>011011</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>111011</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>100011</mn><mo stretchy="false">)</mo><mspace/><mo stretchy="false">(</mo><mn>000000</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>010101</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>110100</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>110011</mn><mo stretchy="false">)</mo></math>
+  ```
+
+### `sre-aata:AataExpression_54`
+
+- cells: `⠸⠰⠵⠀⠨⠅⠀⠷⠴⠂⠴⠂⠂⠂⠾⠘⠞`
+- our LaTeX: `\mathbf{z}={(010111)}^{t}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi mathvariant="bold">z</mi></mrow><mo>=</mo><msup><mrow><mo stretchy="false">(</mo><mn>010111</mn><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mrow><mi mathvariant="bold">z</mi></mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><mn>010111</mn><msup><mo stretchy="false">)</mo><mtext>t</mtext></msup></math>
+  ```
+
+### `sre-aata:AataExpression_58`
+
+- cells: `⠸⠰⠭⠀⠨⠅⠀⠷⠴⠂⠂⠴⠴⠂⠾⠘⠞`
+- our LaTeX: `\mathbf{x}={(011001)}^{t}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi mathvariant="bold">x</mi></mrow><mo>=</mo><msup><mrow><mo stretchy="false">(</mo><mn>011001</mn><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mrow><mi mathvariant="bold">x</mi></mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><mn>011001</mn><msup><mo stretchy="false">)</mo><mtext>t</mtext></msup></math>
+  ```
+
+### `sre-aata:AataExpression_60`
+
+- cells: `⠷⠴⠂⠂⠴⠂⠂⠴⠾⠷⠴⠂⠂⠂⠂⠴⠴⠾⠷⠂⠂⠂⠴⠴⠴⠴⠾⠷⠂⠂⠂⠂⠂⠂⠂⠾⠷⠂⠴⠴⠂⠴⠴⠂⠾⠷⠂⠴⠴⠴⠴⠂⠂⠾⠷⠴⠴⠴⠂⠂⠂⠂⠾⠷⠴⠴⠴⠴⠴⠴⠴⠾`
+- our LaTeX: `(0110110)(0111100)(1110000)(1111111)(1001001)(1000011)(0001111)(0000000)`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>0110110</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>0111100</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>1110000</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>1111111</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>1001001</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>1000011</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>0001111</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>0000000</mn><mo stretchy="false">)</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>0110110</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>0111100</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>1110000</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>1111111</mn><mo stretchy="false">)</mo><mspace/><mo stretchy="false">(</mo><mn>1001001</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>1000011</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>0001111</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>0000000</mn><mo stretchy="false">)</mo></math>
+  ```
+
 ### `sre-aata:AataExpression_66`
 
 - cells: `⠠⠑⠀⠨⠅⠀⠼⠴⠲`
@@ -441,6 +631,84 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math xmlns="http://www.w3.org/1998/Math/MathML"><mtext>E</mtext><mo>=</mo><mn>04</mn></math>
+  ```
+
+### `sre-aata:AataExpression_68`
+
+- cells: `⠷⠂⠆⠢⠲⠾⠘⠂⠴⠴`
+- our LaTeX: `{(1254)}^{100}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mrow><mo stretchy="false">(</mo><mn>1254</mn><mo stretchy="false">)</mo></mrow><mrow><mn>100</mn></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>1254</mn><msup><mo stretchy="false">)</mo><mrow><mn>100</mn></mrow></msup></math>
+  ```
+
+### `sre-aata:AataExpression_84`
+
+- cells: `⠷⠴⠂⠂⠴⠂⠴⠾⠷⠴⠂⠂⠂⠴⠴⠾⠷⠂⠂⠴⠂⠂⠂⠾⠷⠂⠂⠴⠴⠴⠴⠾`
+- our LaTeX: `(011010)(011100)(110111)(110000)`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>011010</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>011100</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>110111</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>110000</mn><mo stretchy="false">)</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>011010</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>011100</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>110111</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>110000</mn><mo stretchy="false">)</mo></math>
+  ```
+
+### `sre-aata:AataExpression_85`
+
+- cells: `⠷⠴⠴⠴⠴⠴⠴⠾⠷⠴⠂⠂⠂⠴⠴⠾⠷⠂⠂⠴⠂⠴⠂⠾⠷⠂⠂⠴⠴⠴⠂⠾`
+- our LaTeX: `(000000)(011100)(110101)(110001)`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>000000</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>011100</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>110101</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>110001</mn><mo stretchy="false">)</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>000000</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>011100</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>110101</mn><mo stretchy="false">)</mo><mspace width="thickmathspace"/><mo stretchy="false">(</mo><mn>110001</mn><mo stretchy="false">)</mo></math>
+  ```
+
+### `sre-aata:AataExpression_88`
+
+- cells: `⠸⠰⠽⠀⠨⠅⠀⠷⠂⠂⠴⠂⠴⠂⠾⠘⠞`
+- our LaTeX: `\mathbf{y}={(110101)}^{t}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi mathvariant="bold">y</mi></mrow><mo>=</mo><msup><mrow><mo stretchy="false">(</mo><mn>110101</mn><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mrow><mi mathvariant="bold">y</mi></mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><mn>110101</mn><msup><mo stretchy="false">)</mo><mtext>t</mtext></msup></math>
+  ```
+
+### `sre-aata:AataExpression_95`
+
+- cells: `⠸⠰⠭⠀⠨⠅⠀⠷⠂⠂⠂⠂⠂⠴⠾⠘⠞`
+- our LaTeX: `\mathbf{x}={(111110)}^{t}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi mathvariant="bold">x</mi></mrow><mo>=</mo><msup><mrow><mo stretchy="false">(</mo><mn>111110</mn><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mrow><mi mathvariant="bold">x</mi></mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><mn>111110</mn><msup><mo stretchy="false">)</mo><mtext>t</mtext></msup></math>
+  ```
+
+### `sre-aata:AataExpression_96`
+
+- cells: `⠸⠰⠽⠀⠨⠅⠀⠷⠂⠂⠂⠂⠂⠂⠾⠘⠞`
+- our LaTeX: `\mathbf{y}={(111111)}^{t}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi mathvariant="bold">y</mi></mrow><mo>=</mo><msup><mrow><mo stretchy="false">(</mo><mn>111111</mn><mo stretchy="false">)</mo></mrow><mrow><mi>t</mi></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mrow><mi mathvariant="bold">y</mi></mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><mn>111111</mn><msup><mo stretchy="false">)</mo><mtext>t</mtext></msup></math>
   ```
 
 ### `sre-aata:AataExpression_97`

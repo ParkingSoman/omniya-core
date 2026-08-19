@@ -5,7 +5,7 @@
  *   expression := terms ( BLANK comparison BLANK terms )*
  *   terms      := postfix ( OP? postfix )*
  *   postfix    := primary script*
- *   primary    := Number | Identifier | Fraction | Root
+ *   primary    := Number | Identifier | Fraction | Root | Fenced
  *
  * The two productions are BANA's two spacing rules, not a precedence ladder.
  * Rule 21.13 (Nemeth_2022.txt lines 10775-10779) spaces a comparison sign on
@@ -42,15 +42,14 @@
  * baseline indicator is the only thing that separates them, and `levels.js`
  * hands it over as `afterBaseline`; `parsePostfix` is where it is consumed.
  *
- * Two productions of the designed grammar are absent because no symbol row can
- * reach them yet, and an unreachable branch is a place for a wrong guess to hide:
+ * One production of the designed grammar is absent because no symbol row can
+ * reach it yet, and an unreachable branch is a place for a wrong guess to hide:
  * `unary := (+|-|±)? postfix`, which needs a row marking an operator as usable
- * as a prefix, and
- * `Fenced` in `primary`, which needs a grouping symbol. Both are additions to
- * this file when their rows arrive.
+ * as a prefix. It is an addition to this file when that row arrives.
  */
 
 import {
+  Fenced,
   Fraction,
   Identifier,
   Number,
@@ -63,7 +62,7 @@ import {
 } from './ast.js';
 import { NemethUnsupportedError } from './errors.js';
 
-const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'fracOpen', 'radOpen']);
+const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'fracOpen', 'radOpen', 'groupOpen']);
 
 function peek(state) {
   return state.index < state.tokens.length ? state.tokens[state.index] : null;
@@ -104,11 +103,38 @@ function atLevel(state, level) {
 
 // -- primary -----------------------------------------------------------------
 
+/**
+ * Is the token at `state.index` a Rule 3 numeric punctuation mark that belongs
+ * INSIDE the numeral being read, rather than a mark of punctuation beside it?
+ *
+ * Both marks share their cells with a Rule 2 indicator, and both rules answer
+ * the same way -- by what follows.
+ *   3.2.3 (test/corpus/sources/Nemeth_2022.txt lines 818-819): the decimal point
+ *     "is regarded as a numeric symbol only when it is followed by a number".
+ *     Example 3-5 (line 828) is `#.35`, so it may also OPEN one.
+ *   3.2.2 (lines 808-810): the numeric comma is one "which is interior to a
+ *     modified numeral, and which is used to partition the numeral into short
+ *     regular segments". Interior is both sides, so unlike the decimal point it
+ *     needs digits already read. Example 3-4 (line 815) is `#1,478.00`.
+ * A comma with nothing numeric after it is Rule 8's mark of punctuation instead
+ * (its own table spells the two identically, line 3887), and this parser has no
+ * grammar for that, so it is left for `parse` to refuse by name.
+ */
+function isInteriorNumericMark(state, level, digits) {
+  const token = peek(state);
+  if (!token || token.level !== level) return false;
+  if (token.kind !== 'decimal' && !(token.kind === 'comma' && digits !== '')) return false;
+  const next = state.tokens[state.index + 1];
+  return Boolean(next) && next.kind === 'digit' && next.level === level;
+}
+
 function parseNumber(state, level, marks) {
   const start = state.index;
   const numeric = peek(state).kind === 'numeric' ? advance(state) : null;
-  let digits = '';
   const promoted = Boolean(peek(state).implicit);
+  // Example 3-5 (line 828) writes `.35` with the decimal point OPENING the
+  // numeral, so the interior test runs once here as well as inside the walk.
+  let digits = isInteriorNumericMark(state, level, '') ? advance(state).value : '';
   // A digit carrying its own baseline indicator begins a new script event and is
   // not more of this numeral. Rule 14.11.2 makes `afterBaseline` the carrier of
   // that distinction, and a digit run is the one place it can be silently eaten:
@@ -124,6 +150,7 @@ function parseNumber(state, level, marks) {
     if (digits && peek(state).afterBaseline) break;
     if (digits && Boolean(peek(state).implicit) !== promoted) break;
     digits += advance(state).value;
+    if (isInteriorNumericMark(state, level, digits)) digits += advance(state).value;
   }
   if (!digits) throw unsupported(state, 'numeric indicator is not followed by a numeral');
   return Number(digits, {
@@ -153,6 +180,39 @@ function parseRoot(state, level, marks) {
   return Root(radicand, null, { src: spanFrom(state, start), marks });
 }
 
+/**
+ * `Fenced := groupOpen expression groupClose`, at one level.
+ *
+ * Nesting is the call stack, not a counter: `⠷⠷⠂⠆⠾⠷⠲⠾⠾` recurses and returns,
+ * and there is no depth variable anywhere for a later reader to have to keep in
+ * their head. The body is a full `expression`, because BANA Example 3-31
+ * (Nemeth_2022.txt lines 1017-1020, `(0 .k x)` = "(0 = x)") puts a whole
+ * relation, spaces and all, inside one pair of grouping symbols.
+ *
+ * The open and close signs are NOT required to match. Example 19-12 (lines
+ * 9434-9437, `` `(a, +,=) `` = "[a, +∞)") is a left square bracket closed by a
+ * right parenthesis, so a matching test would refuse the Code's own example.
+ * What IS required is that a close exists at this level: BANA 19.1.2 (lines
+ * 9438-9443) preserves a grouping sign that has no partner, and this pipeline
+ * has no node for half a fence, so an unpartnered one refuses rather than
+ * being quietly dropped or paired with the wrong sign.
+ */
+function parseFenced(state, level, marks) {
+  const start = state.index;
+  const open = advance(state);
+  const body = parseExpression(state, level);
+  const close = peek(state);
+  if (!close || close.kind !== 'groupClose' || close.level !== level) {
+    throw unsupported(
+      state,
+      `the grouping symbol "${open.value}" has no right grouping symbol at level "${level}"; ` +
+        'BANA 19.1.2 preserves an unpaired one and this parser has no node for it'
+    );
+  }
+  advance(state);
+  return Fenced(open.value, body, close.value, { src: spanFrom(state, start), marks });
+}
+
 function parsePrimary(state, level) {
   const token = peek(state);
   if (!token || token.level !== level || !TERM_STARTS.has(token.kind)) {
@@ -169,6 +229,8 @@ function parsePrimary(state, level) {
       return parseFraction(state, level, marks);
     case 'radOpen':
       return parseRoot(state, level, marks);
+    case 'groupOpen':
+      return parseFenced(state, level, marks);
     case 'letter':
       advance(state);
       return Identifier(token.value, { src: spanFrom(state, start), marks });

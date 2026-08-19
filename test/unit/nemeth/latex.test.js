@@ -225,3 +225,24 @@ test('a typeform with no LaTeX macro refuses instead of emitting \\undefined{...
     }
   );
 });
+
+test('a numeric comma is braced so the numeral survives the round trip (BANA 3.2.2)', () => {
+  // MathJax reads `46,388` as <mn>46</mn><mo>,</mo><mn>388</mn> and `46{,}388`
+  // as the single <mn>46,388</mn> that 3.2.2's numeric comma
+  // (test/corpus/sources/Nemeth_2022.txt lines 808-810) describes. Corroborated
+  // end to end by `sre-aata:AataExpression_190`, whose target is that <mn>.
+  assert.equal(toLatex(Number('46,388')), '46{,}388');
+  // The decimal point needs no such help, and nothing else is touched.
+  assert.equal(toLatex(Number('1,478.00')), '1{,}478.00');
+  assert.equal(toLatex(Number('3.14')), '3.14');
+});
+
+test('a script on a fenced base is braced, so the group keeps the script (BANA Example 19-4)', () => {
+  // `(seven)^2"+1` (Nemeth_2022.txt lines 9393-9394) prints "(seven)2 + 1": the
+  // exponent is on the group. Unbraced, `(x)^{2}` round-trips through MathJax as
+  // <mo>(</mo><mi>x</mi><msup><mo>)</mo>… -- the script on the parenthesis, not
+  // on what the tree says it is on.
+  assert.equal(toLatex(Superscript(Fenced('(', Identifier('x'), ')'), Number('2'))), '{(x)}^{2}');
+  // A fence that is NOT a script base is untouched.
+  assert.equal(toLatex(Fenced('(', Identifier('x'), ')')), '(x)');
+});

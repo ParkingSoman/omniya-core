@@ -5,10 +5,12 @@
  * lookahead through `matchAt`. The one genuinely ambiguous cell in Nemeth's
  * lower half is the numeric indicator, which is also the simple-fraction
  * closing indicator; it is resolved by looking at the next whole TOKEN, never
- * at the next cell. A cell-level peek is not sufficient: in the real corpus case
- * `⠹⠲⠌⠔⠼⠨⠌…` the cells after the closing indicator are `⠨⠌`, which longest-
- * matches as a division sign -- but `⠨` on its own is the decimal point, so a
- * peek at that single cell would read the closing indicator as a numeric one.
+ * at the next cell. A cell-level peek is not sufficient: in `⠹⠲⠌⠔⠼⠨⠌⠹⠂⠌⠖⠼`
+ * (BANA `?4/9#./?1/6#`, test/corpus/sources/Nemeth_2022.txt line 1662, "4/9 ÷
+ * 1/6") the cells after the closing indicator are `⠨⠌`, which longest-matches
+ * as a division sign -- but `⠨` on its own is the decimal point, so a peek at
+ * that single cell would read the closing indicator as a numeric one. No corpus
+ * case has this shape; the example is the Code's, not the oracle's.
  *
  * A blank (U+2800) is a token like any other. Nemeth spacing is semantic --
  * comparisons are blank-surrounded and operations are not -- so blanks are
@@ -120,8 +122,9 @@ const SIX_DOT_MASK = 0x3f;
 const BLANK = '⠀';
 
 // Token kinds that can open a numeral, and so make a leading `⠼` a numeric
-// indicator rather than a fraction close. `decimal` has no row yet; naming it
-// here means adding that row later is a data change, not a logic change.
+// indicator rather than a fraction close (BANA 3.3 against Rule 13). `decimal`
+// is here because 3.2.3 lets the decimal point open one -- Example 3-5 (line
+// 828) is `#.35`.
 const NUMERAL_START = new Set(['digit', 'decimal']);
 
 // Appendix C's column order, outermost indicator first.
@@ -176,9 +179,22 @@ function normalize(input) {
  * subscript level". Without the walk those cells read as a Greek kappa.
  *
  * Only indicators are stepped over, not the punctuation and grouping symbols
- * sentence two also names: those follow the sign rather than precede it, and
- * this pipeline has no punctuation rows to identify them by. That half stays
- * unimplemented rather than guessed.
+ * sentence two also names. Rule 19's grouping rows arrived in Task 5e and the
+ * temptation with them is to treat an adjacent `⠷`/`⠾` as satisfying the space.
+ * Measured against the corpus, that trades one wrong reading for another, so it
+ * stays unimplemented:
+ *   - `mathcat-rules:no_space_comparison_151_16` is `⠷⠐⠅⠠⠀⠨⠅⠠⠀⠨⠂⠾` = "(<, =, >)",
+ *     three comparison signs named as list members and unspaced against the
+ *     parentheses. Sentence two says they are comparison signs; we read the
+ *     first as a baseline indicator with the letter k.
+ *   - `mathcat-rules:letter_26_b_19` ends `⠀⠰⠠⠗⠾` and its target is
+ *     `<mi mathvariant='normal'>R</mi>`, the LETTER R, in a right parenthesis
+ *     after a space. Counting that parenthesis as the space turns it into Rule
+ *     21.5's relation sign -- an `<mo>` where the corpus says `<mi>`.
+ * Sentence two's own qualifier is what separates them: the grouping symbol must
+ * be one "which applies to" the comparison sign, and nothing in the cells says
+ * whether it does. Both cases refuse today for other reasons, so neither
+ * reading ships; the half stays out until something in the Code decides it.
  */
 function isSpaced(cells, index, len) {
   let start = index;
@@ -189,21 +205,80 @@ function isSpaced(cells, index, len) {
 }
 
 /**
- * Apply a row's declared alternative reading when the context shows the row's
- * primary reading is wrong. Both alternatives are data-declared, so a new
+ * BANA 3.2.3 (test/corpus/sources/Nemeth_2022.txt lines 818-819): "The decimal
+ * point is regarded as a numeric symbol only when it is followed by a number."
+ * The numeric indicator's own reading turns on the same test read the other way
+ * -- `⠼` opens a numeral when a numeral follows and closes a simple fraction
+ * (Rule 13) when one does not -- so one predicate serves both rows and a third
  * ambiguous cell is a table entry rather than a branch here.
+ *
+ * The test is on the next whole SYMBOL, not the next cell. `?4/9#./?1/6#`
+ * (Nemeth_2022.txt line 1662, "4/9 ÷ 1/6") is the shape that forces it: after
+ * the closing fraction indicator come the cells `⠨⠌`, which longest-match as
+ * the division sign of Rule 20 (line 9857) -- but `⠨` alone is the decimal
+ * point, so a one-cell peek would read that closing indicator as an opening
+ * numeric one.
+ */
+function withNumeralAlternative(match, cells, index) {
+  if (!match || !match.unlessFollowedByNumeral) return match;
+  const next = symbolAt(cells, index + match.len);
+  if (next && NUMERAL_START.has(next.kind)) return match;
+  return { ...match, ...match.unlessFollowedByNumeral };
+}
+
+/**
+ * The reading a row declares for when BANA 21.13's spaces are absent.
+ *
+ * There are exactly two ways a comparison row can lose to its unspaced twin,
+ * and which one applies is a property of the row, so the row says which:
+ *
+ *   `{ maxLen }`  -- the cells are not one symbol at all. `⠨⠅` unspaced is the
+ *                    Greek indicator plus the letter k, so the trie is re-run
+ *                    against a string truncated to the declared length and the
+ *                    remaining cells are lexed on their own.
+ *   fields        -- the cells ARE one symbol, a different one. `⠈⠱` is the
+ *                    simple tilde twice over: an operation sign, U+301C, in
+ *                    Rule 20's list (line 9910) and a comparison sign, U+223C,
+ *                    in Rule 21's (line 10325), on the same two cells. No
+ *                    truncation can reach the second reading, so the row
+ *                    declares the fields to override, exactly as
+ *                    `unlessFollowedByNumeral` does.
+ */
+function whenUnspaced(match, cells, index) {
+  const alternative = match.unlessUnspaced;
+  if (!alternative.maxLen) return { ...match, ...alternative };
+  return matchAt(cells.slice(0, index + alternative.maxLen), index);
+}
+
+/**
+ * Apply a row's declared alternative reading when the context shows the row's
+ * primary reading is wrong. Every alternative is data-declared.
+ *
+ * An unspaced fallback is disambiguated in its turn: truncating `⠨⠅` down to
+ * `⠨` lands on the decimal-point row, whose own reading still depends on what
+ * follows it.
  */
 function disambiguate(match, cells, index) {
-  if (match.unlessFollowedByNumeral) {
-    const next = matchAt(cells, index + match.len);
-    if (!next || !NUMERAL_START.has(next.kind)) return { ...match, ...match.unlessFollowedByNumeral };
-  }
   if (match.unlessUnspaced && !isSpaced(cells, index, match.len)) {
-    // Re-read at the same place against a truncated string, so only the
-    // declared number of cells is visible to the trie.
-    return matchAt(cells.slice(0, index + match.unlessUnspaced.maxLen), index);
+    return withNumeralAlternative(whenUnspaced(match, cells, index), cells, index);
   }
-  return match;
+  return withNumeralAlternative(match, cells, index);
+}
+
+/**
+ * The fully-disambiguated symbol at `index`, or null if none starts there.
+ *
+ * `withNumeralAlternative` reaches back through this rather than calling
+ * `matchAt` directly, because the question 3.2.3 and Rule 13 both ask is about
+ * the next SYMBOL, and a raw trie hit is not yet one: `⠼⠨⠂⠒` (`#.13`) hits
+ * `⠨⠂`, Rule 21's greater-than sign, at the second cell, and only 21.13's
+ * spacing test turns that back into the decimal point that makes the leading
+ * `⠼` a numeric indicator instead of a fraction close. The mutual recursion is
+ * bounded: every step moves strictly forward through the cells.
+ */
+function symbolAt(cells, index) {
+  const match = matchAt(cells, index);
+  return match ? disambiguate(match, cells, index) : null;
 }
 
 function resolve(cells, index) {
@@ -258,6 +333,28 @@ function chooseSlot(match, next, filledThrough) {
 }
 
 /**
+ * What the run's OPENING cells are before `unlessFollowedByNumeral` demotes them.
+ *
+ * `⠠` and `⠨` are each a Rule 3 numeric mark first -- the mathematical comma
+ * (3.2.2, test/corpus/sources/Nemeth_2022.txt lines 808-810; the same sign is
+ * in Rule 8's punctuation table at line 3887) and the decimal point (3.2.3,
+ * lines 818-819) -- and become a Rule 5/6 indicator only because no numeral
+ * follows. So when the run turns out to govern something Rules 5-7 cannot
+ * govern, blaming Rule 5 alone points the reader at the wrong chapter: `⠠⠀` in
+ * `(0, 1, 2)` (BANA Example 8-34, lines 4229-4230) is a comma before a space,
+ * not a capitalization indicator before a space. The table already knows this;
+ * this reads it back rather than restating it.
+ */
+function leadingReading(cells, index, governedKind) {
+  const row = matchAt(cells, index);
+  if (!row || !row.unlessFollowedByNumeral) return '';
+  return (
+    ` -- and the table leads with a different reading of these cells, the ${row.kind} of ` +
+    `BANA ${row.banaRef}, for which this pipeline has no grammar beside a ${governedKind} either`
+  );
+}
+
+/**
  * Read a run of indicator cells and the single sign they govern.
  *
  * Returns the governed match, the composed marks, and the end offset. Refusal
@@ -293,9 +390,11 @@ function readPrefixed(cells, index) {
     throw new NemethUnsupportedError({
       offset: at,
       cells,
-      detail: governsLetter
-        ? `an alphabetic or capitalization indicator governs a ${match.kind}, not the letter BANA Rules 5.1.1 and 6.2.3 require`
-        : `a typeform indicator governs a ${match.kind}; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral`
+      detail:
+        (governsLetter
+          ? `an alphabetic or capitalization indicator governs a ${match.kind}, not the letter BANA Rules 5.1.1 and 6.2.3 require`
+          : `a typeform indicator governs a ${match.kind}; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral`) +
+        leadingReading(cells, index, match.kind)
     });
   }
   return { match, marks, end: at + match.len };
