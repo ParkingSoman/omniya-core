@@ -131,6 +131,28 @@ function isInteriorNumericMark(state, level, digits) {
 function parseNumber(state, level, marks) {
   const start = state.index;
   const numeric = peek(state).kind === 'numeric' ? advance(state) : null;
+  // BANA Rule 3.3.1 (test/corpus/sources/Nemeth_2022.txt lines 862-865): the
+  // numeric indicator "is used at the beginning of a braille line or after a
+  // space". A numeral written there WITHOUT one is therefore not a numeral, and
+  // the lower-cell digits share their dots with punctuation -- `⠦` is both the
+  // digit 8 and an opening quotation mark, so reading it as 8 here invents a
+  // number the cells do not carry.
+  //
+  // Scoped exactly as 3.3.1 scopes it, and no wider: the rule governs line start
+  // and after a space only, so `2+3` is written `⠼⠆⠬⠒` with ONE indicator and the
+  // bare `3` after the operator stays legitimate. Rule 14.6's indicator-less
+  // subscript is untouched too, since those digits sit at a script level, never
+  // at the baseline.
+  if (!numeric && level === '') {
+    const previous = start > 0 ? state.tokens[start - 1] : null;
+    if (!previous || previous.kind === 'blank') {
+      throw unsupported(
+        state,
+        'a numeral at the start of the input or after a space needs the numeric indicator ' +
+          'BANA Rule 3.3.1 requires, so these cells are not the number they resemble'
+      );
+    }
+  }
   const promoted = Boolean(peek(state).implicit);
   // Example 3-5 (line 828) writes `.35` with the decimal point OPENING the
   // numeral, so the interior test runs once here as well as inside the walk.

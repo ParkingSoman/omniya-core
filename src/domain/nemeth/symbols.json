@@ -229,6 +229,13 @@
     "banaRef": "20.1.2"
   },
   {
+    "cells": "⠤",
+    "kind": "op",
+    "value": "-",
+    "role": "binary",
+    "banaRef": "20"
+  },
+  {
     "cells": "⠨⠌",
     "kind": "op",
     "value": "÷",

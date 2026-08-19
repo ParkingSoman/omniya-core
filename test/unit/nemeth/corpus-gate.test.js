@@ -445,6 +445,23 @@ const MANY_TO_ONE_FORWARD_MAP = {
     cause: 'formatting-only',
     reason: 'Same cells (`⠼⠆`) again; target adds <mtext>&#xA0;</mtext> on both sides, which the cells likewise cannot encode.'
   },
+  // Sub-cause: text-vs-math. The cells carry a literary phrase, and this is a
+  // mathematics parser. Nothing in the braille marks the difference -- the
+  // distinction lives in the source MathML's <mtext>, which the forward map
+  // discards -- so the cells have a perfectly valid mathematical reading and no
+  // reverse parser can recover which was meant. Same structural shape as the
+  // `homograph` entries, one level up: there a single symbol had two meanings,
+  // here a whole run does.
+  'mathcat-rules:num_indicator_9_f_1': {
+    cause: 'text-vs-math',
+    reason:
+      'Cells `\u2833\u2802\u2824\u281e\u2815\u2824\u2833\u2802` are the phrase "1-to-1"; the corpus target is ' +
+      '<mtext>1-to-1</mtext>. Read as mathematics -- which is all this pipeline does -- the same ' +
+      'cells are 1, minus, the juxtaposed letters t and o, minus, 1, and `\u2824` is BANA Rule 20\'s ' +
+      'minus exactly as it is everywhere else. No cell distinguishes the literary hyphen from the ' +
+      'minus sign; only the <mtext> wrapper did, and braille does not carry it. Verified against ' +
+      'the corpus record: the target is a single <mtext> node, not a math expression we mis-parsed.'
+  },
   // Sub-cause: unencoded boundary. The forward map ran two adjacent elements
   // together and the braille has no cell at the seam, so the boundary is not
   // recoverable by anything -- not a different encoding of the same tree, and
@@ -513,7 +530,8 @@ const MANY_TO_ONE_CAUSES = new Set([
   'unencoded-boundary',
   'unencoded-attribute',
   'homograph',
-  'glyph-spelling'
+  'glyph-spelling',
+  'text-vs-math'
 ]);
 
 // No ERROR cases exist today. Kept as a real allowlist (not just an
@@ -524,7 +542,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 177;
+const PASS_BASELINE = 184;
 
 test('every corpus case lands in exactly one bucket, and the buckets sum to the corpus size', () => {
   const sum = coverage.totals.PASS + coverage.totals.REFUSE + coverage.totals.DISAGREE + coverage.totals.ERROR;
@@ -557,14 +575,15 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (28 equivalent-encoding, 7 formatting-only, 5 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling)', () => {
+test('DISAGREE: the many-to-one sub-causes are represented as expected (28 equivalent-encoding, 7 formatting-only, 5 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
   const byCause = {
     'equivalent-encoding': 0,
     'formatting-only': 0,
     'unencoded-boundary': 0,
     'unencoded-attribute': 0,
     homograph: 0,
-    'glyph-spelling': 0
+    'glyph-spelling': 0,
+    'text-vs-math': 0
   };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
   assert.equal(byCause['equivalent-encoding'], 28);
@@ -573,6 +592,7 @@ test('DISAGREE: the many-to-one sub-causes are represented as expected (28 equiv
   assert.equal(byCause['unencoded-attribute'], 3);
   assert.equal(byCause.homograph, 2);
   assert.equal(byCause['glyph-spelling'], 2);
+  assert.equal(byCause['text-vs-math'], 1);
 });
 
 // Seven of the equivalent-encoding entries claim a cell-twin that PASSes:

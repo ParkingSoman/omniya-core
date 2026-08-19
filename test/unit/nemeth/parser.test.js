@@ -169,7 +169,24 @@ test('a term at another level is not juxtaposed into this one, and is reported w
 
 test('a numeric indicator is recorded as a mark, since LaTeX cannot store it', () => {
   assert.deepEqual(treeOf('#27').marks, { numericIndicator: true });
-  assert.deepEqual(treeOf('7').marks, { numericIndicator: false });
+  // The indicator-less case has to be a numeral that is legitimately written
+  // without one. BANA Rule 3.3.1 requires it only at the start of a line or
+  // after a space, so `#2+3` carries exactly one and the `3` after the operator
+  // is bare and correct. A bare `7` standing alone was the previous fixture and
+  // is not legal Nemeth -- it refuses now, which is what `⠦` being both the
+  // digit 8 and an opening quotation mark demands.
+  assert.deepEqual(treeOf('#2+3').items[2].marks, { numericIndicator: false });
+});
+
+test('BANA Rule 3.3.1: a numeral at the start or after a space needs the numeric indicator', () => {
+  // Lower-cell digits share their dots with punctuation -- `⠦` is the digit 8
+  // AND an opening quotation mark -- so reading a bare one as a number invents a
+  // value the cells do not carry. Scoped as 3.3.1 scopes it: only line start and
+  // after a space, never a bare digit following an operator.
+  assert.throws(() => treeOf('8'), NemethUnsupportedError);
+  assert.throws(() => treeOf('#2 8'), NemethUnsupportedError);
+  assert.equal(treeOf('#2+3').items[2].value, '3');
+  assert.equal(treeOf('x8').kind, 'Subscript');
 });
 
 test('a simple fraction records its fraction order', () => {
