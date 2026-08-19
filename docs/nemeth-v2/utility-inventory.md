@@ -63,8 +63,8 @@ no gate, so the citation is part of the row, not a footnote.
 
 | Operation | Braille-ASCII | Cells | Works | LaTeX | BANA | Source line |
 |---|---|---|---|---|---|---|
-| exponent | `x^2` | `⠭⠘⠆` | yes | `x^{2}` | 14 | 652-670 (Rule 2 level indicators) |
-| subscript | `x;a` | `⠭⠰⠁` | yes | `x_{a}` | 14 | 652-670 (Rule 2 level indicators) |
+| exponent | `x^2` | `⠭⠘⠆` | yes | `x^{2}` | 14 | 652-667 (Rule 2 level indicators) |
+| subscript | `x;a` | `⠭⠰⠁` | yes | `x_{a}` | 14 | 652-667 (Rule 2 level indicators) |
 | subscript and superscript together | `x;a^n` | `⠭⠰⠁⠘⠝` | yes | `x_{a}^{n}` | 14.11.1 | 7242-7245 (Example 14-121) |
 
 ## Function names

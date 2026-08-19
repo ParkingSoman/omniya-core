@@ -422,7 +422,7 @@ test('Rule 18.4.1: a name followed by an indicator rather than a space is not a 
 });
 
 test('Rule 20: the multiplication cross and dot are their own rows, not the indicator plus a sign', () => {
-  // Cross `@*` and dot `*`, Nemeth_2022.txt lines 9883 and 9884-9885. The cross
+  // Cross `@*` and dot `*`, Nemeth_2022.txt lines 9884 and 9885. The cross
   // shares its first cell with the script-type typeform indicator of Rule 7, so
   // longest match is what keeps `@*` one symbol.
   assert.deepEqual(shape(lex(asciiToCells('a@*b'))), ['letter:a', 'op:×', 'letter:b']);

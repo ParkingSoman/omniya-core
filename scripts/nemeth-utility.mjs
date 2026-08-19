@@ -81,8 +81,8 @@ export const OPERATIONS = Object.freeze([
   { id: 'nth-root', area: 'Structure', tier: 'core', label: 'nth root', ascii: '<3>2]', latex: '\\sqrt[3]{2}', banaRef: '16.2', source: '8256-8259 (Example 16-10)' },
 
   // -- Powers ----------------------------------------------------------------
-  { id: 'exponent', area: 'Powers', tier: 'core', label: 'exponent', ascii: 'x^2', latex: 'x^{2}', banaRef: '14', source: '652-670 (Rule 2 level indicators)' },
-  { id: 'subscript', area: 'Powers', tier: 'core', label: 'subscript', ascii: 'x;a', latex: 'x_{a}', banaRef: '14', source: '652-670 (Rule 2 level indicators)' },
+  { id: 'exponent', area: 'Powers', tier: 'core', label: 'exponent', ascii: 'x^2', latex: 'x^{2}', banaRef: '14', source: '652-667 (Rule 2 level indicators)' },
+  { id: 'subscript', area: 'Powers', tier: 'core', label: 'subscript', ascii: 'x;a', latex: 'x_{a}', banaRef: '14', source: '652-667 (Rule 2 level indicators)' },
   { id: 'sub-and-superscript', area: 'Powers', tier: 'core', label: 'subscript and superscript together', ascii: 'x;a^n', latex: 'x_{a}^{n}', banaRef: '14.11.1', source: '7242-7245 (Example 14-121)' },
 
   // -- Function names --------------------------------------------------------

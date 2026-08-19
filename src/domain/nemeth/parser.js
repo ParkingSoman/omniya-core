@@ -304,7 +304,7 @@ function parseFenced(state, level, marks) {
 /**
  * `FunctionCall := function BLANK postfix` -- BANA Rule 18.
  *
- * 18.4.1 (test/corpus/sources/Nemeth_2022.txt lines 9186-9191) leaves a space
+ * 18.4.1 (test/corpus/sources/Nemeth_2022.txt lines 9186-9190) leaves a space
  * after an unmodified function name, and that space is grammar here for the same
  * reason 21.13's two are: it is the only thing in the cells separating `⠇⠝⠀⠭`,
  * ln applied to x, from `⠇⠝`, the letters l and n. The lexer reads these cells

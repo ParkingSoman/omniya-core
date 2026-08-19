@@ -556,7 +556,7 @@ const MANY_TO_ONE_FORWARD_MAP = {
       '<mi>t</mi><mi>i</mi><mi>m</mi><msub><mi>e</mi><mn>4</mn></msub>` and DIFFERENT once the ' +
       'subscript becomes 5 or the operator becomes ⋅. Tightening Rule 14.6 to refuse a base ' +
       'letter that abuts another letter was considered and rejected: BANA Example 14-44 (line ' +
-      '6505, `,na2,c,o3` = Na2CO3) is exactly that shape and the Code says the subscript ' +
+      '6507, `,na2,c,o3` = Na2CO3) is exactly that shape and the Code says the subscript ' +
       'indicator is NOT required there.'
   }
 };

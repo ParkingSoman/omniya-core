@@ -227,7 +227,7 @@ function withNumeralAlternative(match, cells, index) {
 }
 
 /**
- * BANA 18.4.1 (test/corpus/sources/Nemeth_2022.txt lines 9186-9191): "A space is
+ * BANA 18.4.1 (test/corpus/sources/Nemeth_2022.txt lines 9186-9190): "A space is
  * left after an unmodified function name or its abbreviated form."
  *
  * That space is what makes a run of letter cells a function name rather than the
