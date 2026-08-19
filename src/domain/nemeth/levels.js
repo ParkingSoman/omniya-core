@@ -216,6 +216,21 @@ export function resolveLevels(tokens, context = {}) {
             'BANA Rule 14.6 writes without one, so this base is not the single letter it looks like'
         });
       }
+      // A level indicator asserts that a script follows it. If nothing does, that
+      // assertion is unmet and the cells cannot be read -- dropping the indicator
+      // silently answers `⠭⠘` as plain `x`, which is a confident wrong answer where
+      // a refusal was available. The lexer already refuses a dangling typeform or
+      // capitalisation run for the same reason ('indicator run governs nothing');
+      // this is that rule for level indicators. A trailing BASELINE indicator is
+      // deliberately not covered: it asserts a return to the baseline, not that
+      // anything follows, so with nothing after it it is vacuous rather than unmet.
+      if (read.index >= tokens.length) {
+        throw new NemethUnsupportedError({
+          offset: token.offset,
+          cells: token.cells,
+          detail: `level indicator run "${read.path}" governs nothing -- no script follows it`
+        });
+      }
       level = read.path;
       index = read.index;
       continue;

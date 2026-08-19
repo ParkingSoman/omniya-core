@@ -248,3 +248,22 @@ test('Rule 14.8.7: a level indicator between the space and the sign wins (Exampl
     ['a', '_']
   ]);
 });
+
+test('a level indicator with nothing after it governs nothing, and is refused rather than dropped', () => {
+  // `⠭⠘` used to resolve to plain `x`: the dangling indicator was silently
+  // discarded, so committing mid-superscript answered confidently and wrongly
+  // where a refusal was available. A level indicator asserts that a script
+  // follows; when none does the assertion is unmet and the cells cannot be read.
+  // The lexer already refuses a dangling typeform/capitalisation run for the
+  // same reason ('indicator run governs nothing').
+  assert.throws(() => levelled('x^'), NemethUnsupportedError);
+  assert.throws(() => levelled('x;'), NemethUnsupportedError);
+  assert.throws(() => levelled('x^^'), NemethUnsupportedError);
+});
+
+test('a trailing BASELINE indicator is still accepted -- it asserts no follower', () => {
+  // Deliberately not covered by the guard above: `⠐` asserts a return to the
+  // baseline, not that something comes next, so with nothing after it it is
+  // vacuous rather than unmet. Splitting these two is the whole point.
+  assert.deepEqual(levelled('x"'), [['x', '']]);
+});

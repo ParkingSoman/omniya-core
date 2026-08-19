@@ -192,12 +192,26 @@ test('no live status ever claims a construct is unsupported', () => {
 });
 
 test('the status states the LaTeX it read rather than a bare approval', () => {
-  // A trailing level indicator is dropped by resolveLevels, so 'x^' parses as
-  // 'x'. "Looks good" would be true and useless; naming the reading lets an
-  // author who cannot see the field catch that.
-  assert.equal(classifyNemethInput(cells('x^')).state, 'complete');
-  assert.equal(classifyNemethInput(cells('x^')).latex, 'x');
-  assert.match(nemethStatusMessage(classifyNemethInput(cells('x^'))), /read as x\./);
+  // BANA Rule 14.6 makes `x1` a subscript with nothing in the cells saying so,
+  // so the reading is genuinely surprising. "Looks good" would be true and
+  // useless; naming the reading lets an author who cannot see the field catch
+  // a base the parser took differently than they meant.
+  assert.equal(classifyNemethInput(cells('x1')).state, 'complete');
+  assert.equal(classifyNemethInput(cells('x1')).latex, 'x_{1}');
+  assert.match(nemethStatusMessage(classifyNemethInput(cells('x1'))), /read as x_\{1\}\./);
+});
+
+test('a trailing level indicator is partial, not a complete `x`', () => {
+  // This case previously reported `complete` with latex `x`: resolveLevels
+  // dropped the dangling indicator, so committing mid-superscript silently
+  // produced a confidently wrong answer where a refusal was available. The
+  // root cause is fixed in levels.js; this pins the behaviour at the layer the
+  // composer actually consumes, since that is where the wrong answer reached a
+  // user. A trailing BASELINE indicator stays complete -- it asserts a return
+  // to the baseline, not that anything follows.
+  assert.equal(classifyNemethInput(cells('x^')).state, 'partial');
+  assert.equal(classifyNemethInput(cells('x;')).state, 'partial');
+  assert.equal(classifyNemethInput(cells('x"')).state, 'complete');
 });
 
 test('the rejection status says "braille cells only" and names the character', () => {
