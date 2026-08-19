@@ -84,7 +84,7 @@ test('supports a live-text offline napkin workflow', { timeout: 60_000 }, async 
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
   assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB G2/);
   assert.doesNotMatch(await page.locator('#composer-heading').textContent() ?? '', /Adding to/i);
-  assert.match(await page.locator('#composer-help').textContent() ?? '', /Type to write/i);
+  assert.match(await page.locator('#composer-help').textContent() ?? '', /Enter starts a new paragraph/i);
   assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 1);
   await assertNoAxeViolations(page);
   const modeSwitchChrome = await page.locator('#mode-switch').evaluate((el) => {
@@ -167,7 +167,8 @@ test('supports a live-text offline napkin workflow', { timeout: 60_000 }, async 
   await source.focus();
   await source.press('Escape');
   assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
+  assert.equal(await secondArticle.evaluate((el) => el === document.activeElement), true);
   assert.equal(await articles.count(), 2);
 
   await chooseType(page, 'equation');
@@ -193,11 +194,14 @@ test('supports a live-text offline napkin workflow', { timeout: 60_000 }, async 
   await source.type('Second line.');
   const textNotesArticles = page.locator('article.napkin-article');
   await textNotesArticles.first().waitFor();
+  assert.equal(await textNotesArticles.count(), 2);
+  assert.match(await textNotesArticles.nth(0).textContent(), /The proof starts here/);
+  assert.match(await textNotesArticles.nth(1).textContent(), /Second line/);
+  await textNotesArticles.nth(1).focus();
+  await textNotesArticles.nth(1).press('Backspace');
   assert.equal(await textNotesArticles.count(), 1);
-  assert.match(await textNotesArticles.first().textContent(), /The proof starts here/);
-  assert.match(await textNotesArticles.first().textContent(), /Second line/);
-  await textNotesArticles.first().focus();
-  await textNotesArticles.first().press('Backspace');
+  await textNotesArticles.nth(0).focus();
+  await textNotesArticles.nth(0).press('Backspace');
   assert.equal(await textNotesArticles.count(), 0);
   assert.equal(await page.getByText('No items yet. Start typing.').count(), 1);
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');

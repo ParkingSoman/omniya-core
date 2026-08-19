@@ -98,7 +98,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .reading-actions button, #keyboard-help button { border: 1px solid var(--accent); border-radius: 0.35rem; padding: 0.45rem 0.8rem; }
 #keyboard-help-button { background: transparent; color: var(--muted); }
 
-#composer-dock { background: #f3f5f6; border-top: 0.25rem solid var(--accent); padding: 0.75rem clamp(1rem, 4vw, 3rem) 1rem; }
+#composer-dock { background: var(--paper); border-top: 1px solid var(--line); padding: 0.75rem clamp(1rem, 4vw, 3rem) 1rem; }
 #replacement-dock { background: #f3f5f6; border-top: 0.25rem solid var(--accent); padding: 0.75rem clamp(1rem, 4vw, 3rem) 1rem; }
 #replacement-dock textarea { background: white; border: 1px solid #bec8cd; border-radius: 0.35rem; color: var(--rail); padding: 0.65rem 0.75rem; resize: vertical; width: 100%; }
 #replacement-choices,

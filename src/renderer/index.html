@@ -102,12 +102,12 @@
               <textarea id="composer-note" rows="2"></textarea>
             </div>
             <p id="composer-status" class="composer-status" aria-live="polite"></p>
-            <p id="composer-help">Type to write. Enter makes a new line.</p>
+            <p id="composer-help">Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts a Nemeth equation, Ctrl+L a LaTeX equation, at the caret.</p>
             <p id="composer-error" class="error" hidden></p>
             <div class="composer-footer">
               <span id="editing-indicator" class="muted"></span>
               <button id="composer-submit" type="submit" hidden>Insert equation</button>
-              <button id="composer-discard" type="button">Discard draft</button>
+              <button id="composer-discard" type="button">Discard</button>
               <button id="composer-cancel" type="button" hidden>Cancel</button>
             </div>
           </form>
@@ -116,7 +116,7 @@
         <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
           <h3 id="keyboard-help-heading">Keyboard help</h3>
           <p><strong>Reading:</strong> Enter explores an equation. MathJax arrows navigate its hierarchy. r replaces the exact focus. a inserts after it. o inserts before it.</p>
-          <p><strong>Authoring:</strong> Type in the document to write. Enter makes a new line. Ctrl+E inserts a Nemeth equation; Ctrl+L inserts LaTeX. Enter commits an unfinished equation, then you are in text again. Escape discards an unfinished equation. Ctrl+T toggles UEB grade on text. Backspace undoes the last Nemeth cell in an open draft. With no pending UEB cells, full cell ⠿ inserts Nemeth (same as Ctrl+E). The UEB word “for” is also ⠿ at the start of a word and will do the same; use Ctrl+E or Insert → Equation (Nemeth) if that collides. The application menu Insert / Format / Help (Alt on Windows; menu bar on Mac) does the same actions.</p>
+          <p><strong>Authoring:</strong> Type in the document to write. Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts a Nemeth equation; Ctrl+L inserts LaTeX. Enter commits an unfinished equation, then you are in text again. Escape discards an unfinished equation. Ctrl+T toggles UEB grade on text. Backspace undoes the last Nemeth cell in an open draft. With no pending UEB cells, full cell ⠿ inserts Nemeth (same as Ctrl+E). The UEB word “for” is also ⠿ at the start of a word and will do the same; use Ctrl+E or Insert → Equation (Nemeth) if that collides. The application menu Insert / Format / Help (Alt on Windows; menu bar on Mac) does the same actions.</p>
           <div data-command-help></div>
           <p><strong>History:</strong> Cmd/Ctrl+Z undoes a submitted replacement. Cmd/Ctrl+Shift+Z redoes it.</p>
           <button id="close-keyboard-help" type="button">Close</button>
