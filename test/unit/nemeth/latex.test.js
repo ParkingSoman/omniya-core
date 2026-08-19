@@ -133,3 +133,58 @@ test('defineBackend refuses a table that handles a kind the registry does not ha
     /throwaway defines handlers for unknown node kinds: NotAKind/u
   );
 });
+
+// -- marks composed by the lexer's prefix pass (Rules 5, 6 and 7) -------------
+
+test('a capitalization mark uppercases the letter (Rule 5.1.1)', () => {
+  assert.equal(toLatex(Identifier('a', { marks: { capitalization: 'single' } })), 'A');
+  assert.equal(toLatex(Identifier('a')), 'a');
+});
+
+test('a Greek mark selects the Greek letter, in the case the mark asks for (BANA 6.1.4)', () => {
+  assert.equal(toLatex(Identifier('a', { marks: { alphabet: 'greek' } })), 'α');
+  assert.equal(toLatex(Identifier('g', { marks: { alphabet: 'greek', capitalization: 'single' } })), 'Γ');
+  // Uppercase Greek that LaTeX has no macro for is still the right codepoint.
+  assert.equal(toLatex(Identifier('a', { marks: { alphabet: 'greek', capitalization: 'single' } })), 'Α');
+});
+
+test('a Greek letter the Code writes with a non-English cell is refused, not guessed', () => {
+  // BANA 6.1.4 gives eta, theta and chi the cells `:`, `?` and `&`, which are
+  // not letter rows -- so `alphabets.json` has no entry keyed by them.
+  assert.throws(() => toLatex(Identifier('j', { marks: { alphabet: 'greek' } })), NemethUnsupportedError);
+});
+
+test('a German mark renders as Fraktur (BANA 6.1.1)', () => {
+  assert.equal(toLatex(Identifier('v', { marks: { alphabet: 'german' } })), '\\mathfrak{v}');
+  assert.equal(toLatex(Identifier('v', { marks: { alphabet: 'german', capitalization: 'single' } })), '\\mathfrak{V}');
+});
+
+test('each typeform renders as its LaTeX macro, on letters and on numerals alike (Rule 7.2)', () => {
+  const english = (typeform) => toLatex(Identifier('t', { marks: { typeform, alphabet: 'english' } }));
+  assert.equal(english('bold'), '\\mathbf{t}');
+  assert.equal(english('italic'), '\\mathit{t}');
+  assert.equal(english('sans-serif'), '\\mathsf{t}');
+  assert.equal(english('barred'), '\\mathbb{t}');
+  assert.equal(toLatex(Number('345', { marks: { typeform: 'bold' } })), '\\mathbf{345}');
+  assert.equal(toLatex(Number('345')), '345');
+});
+
+test('a typeform on a non-English alphabet is refused rather than rendered wrong', () => {
+  // Example 7-3's boldface Greek alpha. `\boldsymbol` is not in this pipeline's
+  // TeX packages, and `noundefined` would turn it into red literal text.
+  assert.throws(
+    () => toLatex(Identifier('a', { marks: { typeform: 'bold', alphabet: 'greek' } })),
+    NemethUnsupportedError
+  );
+  assert.throws(
+    () => toLatex(Identifier('a', { marks: { typeform: 'bold', alphabet: 'german' } })),
+    NemethUnsupportedError
+  );
+});
+
+test('a typeformed sign keeps macro spacing correct against what follows it', () => {
+  assert.equal(
+    toLatex(Sequence([Identifier('x', { marks: { typeform: 'bold', alphabet: 'english' } }), Identifier('y')])),
+    '\\mathbf{x}y'
+  );
+});

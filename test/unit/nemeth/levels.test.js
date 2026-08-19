@@ -178,3 +178,23 @@ test('a three-component level path is accepted', () => {
     ['x', '^^^']
   ]);
 });
+
+test('a Rule 14.6 promotion marks its digits `implicit`; explicitly indicated ones are not', () => {
+  // `x1` is Example 14-36: the subscript indicator is not used, so this pass
+  // supplies the level and says so.
+  const promoted = resolveLevels(lex(asciiToCells('x1')));
+  assert.deepEqual(promoted.map((token) => [token.value, token.level, Boolean(token.implicit)]), [
+    ['x', '', false],
+    ['1', '_', true]
+  ]);
+  // `x;1+2` is one of the shapes where 14.6's condition (d) fails and the
+  // indicator is genuinely required, so it survives the contrapositive guard --
+  // and its digits carry no `implicit` mark, because nothing was promoted.
+  const explicit = resolveLevels(lex(asciiToCells('x;1+2')));
+  assert.deepEqual(explicit.map((token) => [token.value, token.level, Boolean(token.implicit)]), [
+    ['x', '', false],
+    ['1', '_', false],
+    ['+', '_', false],
+    ['2', '_', false]
+  ]);
+});

@@ -14,9 +14,9 @@ maximize.
 
 | Outcome | Count | % of 613 |
 |---|---:|---:|
-| PASS | 81 | 13.2% |
-| REFUSE | 520 | 84.8% |
-| DISAGREE | 12 | 2.0% |
+| PASS | 94 | 15.3% |
+| REFUSE | 498 | 81.2% |
+| DISAGREE | 21 | 3.4% |
 | ERROR | 0 | 0.0% |
 | **Total** | **613** | **100.0%** |
 
@@ -24,8 +24,8 @@ maximize.
 
 | Source | PASS | REFUSE | DISAGREE | ERROR | Total |
 |---|---:|---:|---:|---:|---:|
-| mathcat-rules | 18 | 244 | 11 | 0 | 273 |
-| sre-aata | 63 | 276 | 1 | 0 | 340 |
+| mathcat-rules | 22 | 231 | 20 | 0 | 273 |
+| sre-aata | 72 | 267 | 1 | 0 | 340 |
 
 ## REFUSE by cause
 
@@ -36,30 +36,39 @@ position, not a category; the offending codepoint is kept since it is).
 
 | Count | Cause | Representative case |
 |---:|---|---|
-| 104 | no Nemeth symbol starts at cell N (U+2837 "⠷") | `mathcat-rules:binomial_90_1` |
-| 103 | no Nemeth symbol starts at cell N (U+2828 "⠨") | `mathcat-rules:above_and_below_88_2` |
-| 93 | no Nemeth symbol starts at cell N (U+2820 "⠠") | `mathcat-rules:arrow_96_1` |
-| 55 | no Nemeth symbol starts at cell N (U+2838 "⠸") | `mathcat-rules:beveled_frac_62_b_1` |
-| 45 | no Nemeth symbol starts at cell N (U+2808 "⠈") | `mathcat-rules:boldface_32_b_2` |
-| 23 | no Nemeth symbol starts at cell N (U+2824 "⠤") | `mathcat-rules:dash_42_4` |
-| 15 | no Nemeth symbol starts at cell N (U+2804 "⠄") | `mathcat-rules:mmultiscripts_82_b_6` |
-| 12 | no Nemeth symbol starts at cell N (U+2823 "⠣") | `mathcat-rules:brace_above_121_1` |
-| 12 | no Nemeth symbol starts at cell N (U+282B "⠫") | `mathcat-rules:cap_22_a_1` |
-| 10 | expected the start of a term at level "" | `mathcat-rules:left_sup_75_1` |
-| 8 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:bar_above_and_below_88_1` |
-| 7 | no Nemeth symbol starts at cell N (U+2831 "⠱") | `mathcat-rules:menclose_86_b_1` |
-| 7 | unparsed blank token at level "" | `mathcat-rules:log_77_4_8` |
-| 6 | no Nemeth symbol starts at cell N (U+2833 "⠳") | `mathcat-rules:multipurpose_177_7_1` |
-| 4 | no Nemeth symbol starts at cell N (U+2821 "⠡") | `sre-aata:AataExpression_129` |
-| 3 | no Nemeth symbol starts at cell N (U+282A "⠪") | `mathcat-rules:comma_78_3` |
+| 155 | no Nemeth symbol starts at cell N (U+2837 "⠷") | `mathcat-rules:binomial_90_1` |
+| 52 | no Nemeth symbol starts at cell N (U+2808 "⠈") | `mathcat-rules:boldface_32_b_2` |
+| 44 | an alphabetic or capitalization indicator governs a digit, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:bar_97_b_1` |
+| 31 | unparsed blank token at level "" | `mathcat-rules:log_77_4_8` |
+| 29 | no Nemeth symbol starts at cell N (U+2824 "⠤") | `mathcat-rules:dash_42_4` |
+| 22 | no Nemeth symbol starts at cell N (U+2823 "⠣") | `mathcat-rules:arrow_96_1` |
+| 20 | an alphabetic or capitalization indicator governs a blank, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:eli_nemeth_UEB_rule_book_4_11_1` |
+| 18 | no Nemeth symbol starts at cell N (U+2804 "⠄") | `mathcat-rules:ellipsis_43_b_3` |
+| 18 | no Nemeth symbol starts at cell N (U+282B "⠫") | `mathcat-rules:arrow_96_10` |
+| 13 | no Nemeth symbol starts at cell N (U+2821 "⠡") | `mathcat-rules:degrees_165_1` |
+| 11 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:dots_99_a_1` |
+| 11 | expected the start of a term at level "" | `mathcat-rules:left_sup_75_1` |
+| 11 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:above_and_below_88_2` |
+| 8 | no Nemeth symbol starts at cell N (U+2831 "⠱") | `mathcat-rules:menclose_86_b_1` |
+| 7 | no Nemeth symbol starts at cell N (U+2833 "⠳") | `mathcat-rules:multipurpose_177_7_1` |
+| 5 | an alphabetic or capitalization indicator governs a fracLine, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:beveled_frac_62_b_1` |
+| 5 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:complex_frac_66_1` |
+| 5 | expected the start of a term at level "^" | `mathcat-rules:comparison_79_g_2` |
+| 4 | indicator "," cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:cap_roman_numeral_18_a_3` |
+| 4 | no Nemeth symbol starts at cell N (U+282A "⠪") | `mathcat-rules:comma_78_3` |
+| 3 | a "_" script between two baseline indicators is a left script | `mathcat-rules:left_sub_14_104` |
+| 3 | an alphabetic or capitalization indicator governs a op, not the letter BANA Rules 5.1.1 and 6.2.3 require | `sre-aata:AataExpression_21` |
+| 3 | an alphabetic or capitalization indicator governs a radOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:nested_sqrt_105_1` |
 | 3 | no Nemeth symbol starts at cell N (U+282E "⠮") | `mathcat-rules:in_scripts_comparison_151_17` |
+| 2 | a "_" script on a base already carrying "_" needs a baseline indicator before it | `mathcat-rules:sub_ind_mmultiscripts_80_b_3` |
 | 2 | a "^" script on a base already carrying "^" needs a baseline indicator before it | `mathcat-rules:nested_sup_sup_space_79_d_9` |
-| 2 | expected the start of a term at level "^" | `mathcat-rules:comparison_79_g_2` |
 | 2 | no Nemeth symbol starts at cell N (U+282F "⠯") | `sre-aata:AataExpression_198` |
-| 1 | a "_" script on a base already carrying "_" needs a baseline indicator before it | `sre-aata:AataExpression_287` |
+| 2 | no Nemeth symbol starts at cell N (U+283F "⠿") | `mathcat-rules:omission_57_4` |
 | 1 | a "^" script between two baseline indicators is a left script | `mathcat-rules:left_sup_75_12` |
 | 1 | a subscript indicator stands before a first-order numeric subscript that BANA Rule 14.6 writes without one, so this base is not the single letter it looks like | `mathcat-rules:word_77_4_12` |
-| 1 | no Nemeth symbol starts at cell N (U+283F "⠿") | `mathcat-rules:omission_57_4` |
+| 1 | a typeform indicator governs a digit; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:punct_37_17_1` |
+| 1 | an alphabetic or capitalization indicator governs a fracClose, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:num_indicator_9_d_2` |
+| 1 | latex has no rendering for bold german (BANA Rule 7.2.1) | `mathcat-rules:boldface_32_a_7` |
 
 ## Why DISAGREE = 0 is not always achievable
 
@@ -84,7 +93,7 @@ same input), `formatting-only` (the differing MathML carries only non-mathematic
 whitespace), or `unencoded-boundary` (the forward map ran two adjacent elements
 together and left no cell at the seam).
 
-## DISAGREE (12)
+## DISAGREE (21)
 
 Parsed successfully, but the resulting mathematics differs from the corpus case's
 own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
@@ -101,6 +110,71 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math><mmultiscripts><mi>n</mi><none/><msub><mi>x</mi><msub><mi>a</mi><mi>j</mi></msub></msub></mmultiscripts></math>
+  ```
+
+### `mathcat-rules:boldface_32_a_14`
+
+- cells: `⠠⠨⠰⠠⠓`
+- our LaTeX: `\mathsf{H}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi mathvariant="sans-serif">H</mi></mrow></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mn mathvariant="sans-serif">H</mn></math>
+  ```
+
+### `mathcat-rules:boldface_32_b_6`
+
+- cells: `⠸⠼⠲⠼⠒⠢`
+- our LaTeX: `\mathbf{4}35`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mn mathvariant="bold">4</mn></mrow><mn>35</mn></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mn>𝟒35</mn></math>
+  ```
+
+### `mathcat-rules:german_24_a_7`
+
+- cells: `⠸⠠⠁`
+- our LaTeX: `\mathfrak{A}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi mathvariant="fraktur">A</mi></mrow></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mi>𝔄</mi></math>
+  ```
+
+### `mathcat-rules:german_base_77_4_3`
+
+- cells: `⠸⠠⠁⠂`
+- our LaTeX: `\mathfrak{A}_{1}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mrow><mi mathvariant="fraktur">A</mi></mrow><mrow><mn>1</mn></mrow></msub></math>
+  ```
+- their MathML:
+  ```xml
+  <math><msub><mi>𝔄</mi><mn>1</mn></msub></math>
+  ```
+
+### `mathcat-rules:greek_24_b_1_together`
+
+- cells: `⠨⠁⠨⠃`
+- our LaTeX: `αβ`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>α</mi><mi>β</mi></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mi>αβ</mi></math>
   ```
 
 ### `mathcat-rules:mmultiscripts_82_a_1`
@@ -194,6 +268,19 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
   <math><mmultiscripts><mi>n</mi><none/><msup><mi>x</mi><mi>y</mi></msup></mmultiscripts></math>
   ```
 
+### `mathcat-rules:num_indicator_9_e_5`
+
+- cells: `⠸⠼⠲⠒⠼⠢⠖`
+- our LaTeX: `\mathbf{43}56`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mn mathvariant="bold">43</mn></mrow><mn>56</mn></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mn>𝟒𝟑56</mn></math>
+  ```
+
 ### `mathcat-rules:number_space_after`
 
 - cells: `⠼⠆`
@@ -231,6 +318,45 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math><mtext> </mtext><mn>2</mn><mtext> </mtext></math>
+  ```
+
+### `mathcat-rules:product_77_4_24`
+
+- cells: `⠨⠠⠏⠴⠘⠝⠐⠁⠰⠅`
+- our LaTeX: `Π_{0}^{n}a_{k}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msubsup><mi mathvariant="normal">Π</mi><mrow><mn>0</mn></mrow><mrow><mi>n</mi></mrow></msubsup><msub><mi>a</mi><mrow><mi>k</mi></mrow></msub></math>
+  ```
+- their MathML:
+  ```xml
+  <math><msubsup><mo>∏</mo><mn>0</mn><mi>n</mi></msubsup><msub><mi>a</mi><mi>k</mi></msub></math>
+  ```
+
+### `mathcat-rules:sum_77_4_23`
+
+- cells: `⠨⠠⠎⠴⠘⠝⠐⠁⠰⠅`
+- our LaTeX: `Σ_{0}^{n}a_{k}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msubsup><mi mathvariant="normal">Σ</mi><mrow><mn>0</mn></mrow><mrow><mi>n</mi></mrow></msubsup><msub><mi>a</mi><mrow><mi>k</mi></mrow></msub></math>
+  ```
+- their MathML:
+  ```xml
+  <math><msubsup><mo>∑</mo><mn>0</mn><mi>n</mi></msubsup><msub><mi>a</mi><mi>k</mi></msub></math>
+  ```
+
+### `mathcat-rules:tensor_from_mathml_spec`
+
+- cells: `⠠⠗⠰⠊⠐⠘⠚⠐⠰⠅⠐⠰⠇`
+- our LaTeX: `{{{R_{i}}^{j}}_{k}}_{l}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mrow><msub><mrow><msup><mrow><msub><mi>R</mi><mrow><mi>i</mi></mrow></msub></mrow><mrow><mi>j</mi></mrow></msup></mrow><mrow><mi>k</mi></mrow></msub></mrow><mrow><mi>l</mi></mrow></msub></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mmultiscripts><mi>R</mi><mi>i</mi><none/><none/><mi>j</mi><mi>k</mi><none/><mi>l</mi><none/></mmultiscripts></math>
   ```
 
 ### `sre-aata:AataExpression_97`

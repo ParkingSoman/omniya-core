@@ -98,13 +98,21 @@ function parseNumber(state, level, marks) {
   const start = state.index;
   const numeric = peek(state).kind === 'numeric' ? advance(state) : null;
   let digits = '';
+  const promoted = Boolean(peek(state).implicit);
   // A digit carrying its own baseline indicator begins a new script event and is
   // not more of this numeral. Rule 14.11.2 makes `afterBaseline` the carrier of
   // that distinction, and a digit run is the one place it can be silently eaten:
   // without this break `⠭⠂⠐⠰⠆` reads as x sub 12 instead of (x sub 1) sub 2 --
   // two re-based scripts merged into one wrong number, with nothing refused.
+  //
+  // The second break is Rule 14.6 read backwards. Where its conditions hold the
+  // subscript indicator "is not used" (Nemeth_2022.txt lines 6420-6439), so a
+  // digit the writer DID indicate cannot be more of a run this pass promoted
+  // with no indicator at all, nor the reverse: `⠠⠏⠂⠰⠆⠐⠠⠟` is P sub 1 followed
+  // by a left-subscripted Q, not P sub 12.
   while (atLevel(state, level) && peek(state).kind === 'digit') {
     if (digits && peek(state).afterBaseline) break;
+    if (digits && Boolean(peek(state).implicit) !== promoted) break;
     digits += advance(state).value;
   }
   if (!digits) throw unsupported(state, 'numeric indicator is not followed by a numeral');
@@ -143,7 +151,9 @@ function parsePrimary(state, level) {
   const start = state.index;
   // An explicit baseline indicator before this token is the only carrier of the
   // `x_1^2` vs `(x_1)^2` distinction (Rule 14.11.2), so it is recorded as a mark.
-  const marks = token.afterBaseline ? { afterBaseline: true } : {};
+  // `token.marks` is what the lexer's prefix pass composed onto this sign --
+  // typeform, alphabet, capitalization -- and travels with it unchanged.
+  const marks = { ...token.marks, ...(token.afterBaseline ? { afterBaseline: true } : {}) };
   switch (token.kind) {
     case 'fracOpen':
       return parseFraction(state, level, marks);

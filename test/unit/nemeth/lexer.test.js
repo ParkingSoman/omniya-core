@@ -102,3 +102,118 @@ test('matchAt is pure: repeated calls at the same index give the same answer', (
   assert.deepEqual(first, second);
   assert.equal(matchAt(cells, 3), null);
 });
+
+// -- the prefix pass: Rules 5, 6 and 7 ---------------------------------------
+//
+// Every expectation below is a shape the BANA text writes out, cited by line in
+// test/corpus/sources/Nemeth_2022.txt. The pass composes indicators onto ONE
+// governed sign; the marks it produces are what latex.js renders.
+
+const marksOf = (tokens) => tokens.map((token) => token.marks ?? null);
+
+test('a capitalization indicator composes onto the letter it precedes (Rule 5.1.1, line 2898)', () => {
+  const tokens = lex(asciiToCells(',a'));
+  assert.deepEqual(shape(tokens), ['letter:a']);
+  assert.deepEqual(marksOf(tokens), [{ capitalization: 'single' }]);
+  // The token spans BOTH cells, so `src` offsets still cover the indicator.
+  assert.deepEqual([tokens[0].offset, tokens[0].len], [0, 2]);
+});
+
+test('a Greek indicator composes onto its letter, and is repeated per letter (Example 6-6, line 3117)', () => {
+  const tokens = lex(asciiToCells('.a.b'));
+  assert.deepEqual(shape(tokens), ['letter:a', 'letter:b']);
+  assert.deepEqual(marksOf(tokens), [{ alphabet: 'greek' }, { alphabet: 'greek' }]);
+});
+
+test('Appendix C order: alphabet then capitalization, never the reverse (Example 5-2, line 2912)', () => {
+  assert.deepEqual(marksOf(lex(asciiToCells('.,g'))), [{ alphabet: 'greek', capitalization: 'single' }]);
+  // `,.` is the sans serif indicator, so the reversed spelling is not even the
+  // same cells -- and `;` after a capitalization indicator is out of order.
+  assert.throws(() => lex(asciiToCells(',;a')), NemethUnsupportedError);
+});
+
+test('a dual-role indicator is a typeform when an alphabetic indicator follows it (Rule 7.2.1, line 3605)', () => {
+  // `_` is boldface AND the German-letter indicator; `.` is italic AND Greek.
+  assert.deepEqual(marksOf(lex(asciiToCells('_a'))), [{ alphabet: 'german' }]);
+  assert.deepEqual(marksOf(lex(asciiToCells('__a'))), [{ typeform: 'bold', alphabet: 'german' }]);
+  assert.deepEqual(marksOf(lex(asciiToCells('_;a'))), [{ typeform: 'bold', alphabet: 'english' }]);
+  assert.deepEqual(marksOf(lex(asciiToCells('_.a'))), [{ typeform: 'bold', alphabet: 'greek' }]);
+  assert.deepEqual(marksOf(lex(asciiToCells('..a'))), [{ typeform: 'italic', alphabet: 'greek' }]);
+});
+
+test('a capitalization indicator does not make a dual-role indicator a typeform (Example 5-2, line 2912)', () => {
+  // `.,g` is capital Greek gamma. If `,` counted as "an alphabetic indicator
+  // follows", `.` would be read as italic with no alphabet and this would refuse.
+  assert.deepEqual(marksOf(lex(asciiToCells('.,g'))), [{ alphabet: 'greek', capitalization: 'single' }]);
+});
+
+test('sans serif and barred are single indicators of their own (Examples 7-5 line 3642, 7-2 line 3619)', () => {
+  assert.deepEqual(marksOf(lex(asciiToCells(',.;,h'))), [
+    { typeform: 'sans-serif', alphabet: 'english', capitalization: 'single' }
+  ]);
+  assert.deepEqual(marksOf(lex(asciiToCells(',_;,r'))), [
+    { typeform: 'barred', alphabet: 'english', capitalization: 'single' }
+  ]);
+});
+
+test('a typeform indicator governs a numeral through the numeric indicator (Rule 7.2.2, line 3656)', () => {
+  const tokens = lex(asciiToCells('_#345'));
+  assert.deepEqual(shape(tokens), ['numeric:#', 'digit:3', 'digit:4', 'digit:5']);
+  assert.deepEqual(tokens[0].marks, { typeform: 'bold' });
+});
+
+test('a typeform indicator with no alphabetic or numeric indicator after it refuses (Rule 7.2.1, line 3605)', () => {
+  // `,.` (sans serif) can only be a typeform, so `,.a` has no alphabetic
+  // indicator where 7.2.1 requires one.
+  assert.throws(() => lex(asciiToCells(',.a')), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /typeform indicator governs a letter/u);
+    return true;
+  });
+});
+
+test('an alphabetic or capitalization indicator governing a non-letter refuses (Rules 5.1.1/6.2.3)', () => {
+  // `,` before a blank is the mathematical comma of Rule 8, not a capitalization
+  // indicator -- and this pass has no grammar for it, so it must not guess.
+  assert.throws(() => lex(asciiToCells(', ')), (error) => {
+    assert.match(error.detail, /governs a blank/u);
+    return true;
+  });
+  assert.throws(() => lex(asciiToCells(',')), (error) => {
+    assert.match(error.detail, /governs nothing/u);
+    return true;
+  });
+});
+
+test('the double capitalization indicator refuses rather than becoming a mode (Rule 5.3.2, line 2942)', () => {
+  // 5.3.2's effect "extends to all of the letters which immediately follow it".
+  // That is run-scoped, i.e. a mode, and out of scope here.
+  assert.throws(() => lex(asciiToCells(',,iii')), (error) => {
+    assert.match(error.detail, /Appendix C's order/u);
+    return true;
+  });
+});
+
+test('a comparison sign wins over the prefix reading when it is blank-surrounded (Rule 21.13, line 10775)', () => {
+  // `.k` is both the equals sign (Rule 21 list, line 10291) and Greek kappa.
+  assert.deepEqual(shape(lex(asciiToCells('x .k y'))), [
+    'letter:x',
+    'blank: ',
+    'comparison:=',
+    'blank: ',
+    'letter:y'
+  ]);
+  // The ends of the input are spaces too: `_l` alone is the identity sign,
+  // which is what sre-aata:AataExpression_330 records.
+  assert.deepEqual(shape(lex(asciiToCells('_l'))), ['comparison:≡']);
+});
+
+test('an unspaced comparison homograph falls back to its first cell as an indicator', () => {
+  // Greek letters are never blank-surrounded, so `.k` written against its
+  // neighbours is kappa, not "equals".
+  const tokens = lex(asciiToCells('a.kb'));
+  assert.deepEqual(shape(tokens), ['letter:a', 'letter:k', 'letter:b']);
+  assert.deepEqual(tokens[1].marks, { alphabet: 'greek' });
+  // Same cell pair, same rule, for capital R vs the relation sign of 21.5.
+  assert.deepEqual(marksOf(lex(asciiToCells(',rx'))), [{ capitalization: 'single' }, null]);
+});

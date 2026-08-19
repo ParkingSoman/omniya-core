@@ -131,6 +131,91 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'cells cannot settle which was meant. LaTeX also has no way to spell a two-character ' +
       '<mi>, so the identifier reading is not emittable regardless.'
   },
+  'mathcat-rules:greek_24_b_1_together': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠨⠁⠨⠃` (BANA Example 6-6, Nemeth_2022.txt line 3117 (`_% .a.b _:`): the Greek indicator is repeated ' +
+      'for each letter). This case targets one merged <mi>αβ</mi>; the twin "greek_24_b_1" carries ' +
+      'the same cells with <mi>α</mi><mi>β</mi> and PASSes on our `αβ`. The corpus therefore holds ' +
+      'BOTH element granularities for one braille string, which is the many-to-one collapse itself ' +
+      'made visible -- nothing in the cells says whether the author wrote one <mi> or two.'
+  },
+  'mathcat-rules:boldface_32_a_14': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠠⠨⠰⠠⠓` = sans serif + English-letter + capitalization + h, BANA Example 7-5 verbatim ' +
+      '(Nemeth_2022.txt line 3642, `,.;,h`). Our `\\mathsf{H}` round-trips to ' +
+      '<mi mathvariant="sans-serif">H</mi>; the target is <mn mathvariant="sans-serif">H</mn>. Same ' +
+      'letter, same typeform, different MathML token type -- and the Code has no cell that says ' +
+      '"this letter was tagged a number", so <mi> and <mn> forward-map to identical braille. ' +
+      'Verified with this gate\'s own comparison: the <mi> spelling compares equal and the <mn> one ' +
+      'different, so the tag is the only difference.'
+  },
+  'mathcat-rules:german_24_a_7': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠸⠠⠁` = German-letter + capitalization + a, BANA Example 6-2 (line 3082) in its ' +
+      'capitalized form. Our `\\mathfrak{A}` round-trips to <mi mathvariant="fraktur">A</mi>; the ' +
+      'target is <mi>𝔄</mi> (U+1D504, MATHEMATICAL FRAKTUR CAPITAL A). Those are the two ways ' +
+      'MathML spells one Fraktur capital A -- base character plus mathvariant, or the Mathematical ' +
+      'Alphanumeric codepoint -- and both forward-map to these cells. Checked directly: ' +
+      '`\\mathfrak{A}` compares equal to <mi mathvariant="fraktur">A</mi> and different from ' +
+      '<mi>𝔄</mi>, so the encoding is the whole of the disagreement.'
+  },
+  'mathcat-rules:german_base_77_4_3': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠸⠠⠁⠂`: german_24_a_7 with a Rule 14.6 numeric subscript on it. Identical mathvariant/' +
+      'Mathematical-Alphanumeric split as german_24_a_7, with the subscript unaffected.'
+  },
+  'mathcat-rules:boldface_32_b_6': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠸⠼⠲⠼⠒⠢`, BANA Example 7-12 verbatim (Nemeth_2022.txt line 3703, `_#4#35`): one ' +
+      'numeral whose 4 is boldface and whose 35 is regular, per 7.2.2 "If the transition is to ' +
+      'regular type, only the numeric indicator is used" (lines 3665-3666). Our `\\mathbf{4}35` says ' +
+      'exactly that, as <mn mathvariant="bold">4</mn><mn>35</mn>, which this gate confirms compares ' +
+      'EQUAL to that spelling and DIFFERENT once the bold is dropped. The target merges it into one ' +
+      '<mn>𝟒35</mn> using the Mathematical Bold Digit codepoint. Element granularity is the same ' +
+      'collapse the corpus demonstrates on itself in greek_24_b_1 vs greek_24_b_1_together, and ' +
+      'LaTeX has no way to put a per-character typeform inside a single <mn>.'
+  },
+  'mathcat-rules:num_indicator_9_e_5': {
+    cause: 'equivalent-encoding',
+    reason: 'Cells `⠸⠼⠲⠒⠼⠢⠖`; the same mixed-typeform numeral as boldface_32_b_6, bold 43 then regular 56.'
+  },
+  'mathcat-rules:tensor_from_mathml_spec': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠠⠗⠰⠊⠐⠘⠚⠐⠰⠅⠐⠰⠇`: capital R with four successive script positions, each re-based by ' +
+      'the baseline indicator of Rule 14.11.2. The target spells them as one <mmultiscripts> with ' +
+      'four postscript pairs; we spell the identical tree nested, `{{{R_{i}}^{j}}_{k}}_{l}`. Same ' +
+      'family as mmultiscripts_82_b_1/_b_2 with four positions instead of two, and verified the way ' +
+      '82_b_5 was: our LaTeX compares EQUAL under this gate to the nested spelling of that ' +
+      'mmultiscripts tree, and DIFFERENT to a tree with the sup and one sub transposed.'
+  },
+  // Sub-cause: homograph. The Nemeth Code writes two different print signs with
+  // one set of cells, and the cells alone cannot say which was meant. This is a
+  // many-to-one forward map like the others, but the collapse is in the CODE
+  // rather than in the MathML, so it is named separately -- our answer is a
+  // legitimate reading of the braille, not the reading this case wanted.
+  'mathcat-rules:sum_77_4_23': {
+    cause: 'homograph',
+    reason:
+      'Cells `⠨⠠⠎⠴⠘⠝⠐⠁⠰⠅` are BANA Example 14-55 verbatim (Nemeth_2022.txt line 6597, `.,S0~N"A;K`; title at line 6594), ' +
+      'whose title is "Right Numeric Subscript to a GREEK LETTER" and whose gloss (line 6598) reads ' +
+      'it as "the summation from zero to n of a sub k". The Code has no separate summation sign: ' +
+      'the gloss to Example 15-37 (line 7744) calls that same shape "the Greek capitalized sigma". So ' +
+      '<mi>Σ</mi> (U+03A3) and <mo>∑</mo> (U+2211) produce identical cells. We emit the letter. ' +
+      'Confirmed with this gate: our LaTeX compares equal to the same tree carrying Σ and different ' +
+      'to the one carrying ∑ -- the operator character is the entire disagreement.'
+  },
+  'mathcat-rules:product_77_4_24': {
+    cause: 'homograph',
+    reason:
+      'Cells `⠨⠠⠏⠴⠘⠝⠐⠁⠰⠅`, the product twin of sum_77_4_23: Greek capitalized pi (BANA 6.1.4, ' +
+      'line 3040) against <mo>∏</mo> (U+220F). Same collapse, same reading.'
+  },
   // Sub-cause: formatting-only difference. A leading/trailing non-breaking
   // space is print formatting, not mathematics, so Nemeth correctly drops
   // it -- all three MathML inputs below forward-map to the identical cells
@@ -184,7 +269,7 @@ const MANY_TO_ONE_FORWARD_MAP = {
   }
 };
 
-const MANY_TO_ONE_CAUSES = new Set(['equivalent-encoding', 'formatting-only', 'unencoded-boundary']);
+const MANY_TO_ONE_CAUSES = new Set(['equivalent-encoding', 'formatting-only', 'unencoded-boundary', 'homograph']);
 
 // No ERROR cases exist today. Kept as a real allowlist (not just an
 // `assert.equal(0)`) so the same discipline applies if one ever appears:
@@ -194,7 +279,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 81;
+const PASS_BASELINE = 94;
 
 test('every corpus case lands in exactly one bucket, and the buckets sum to the corpus size', () => {
   const sum = coverage.totals.PASS + coverage.totals.REFUSE + coverage.totals.DISAGREE + coverage.totals.ERROR;
@@ -227,15 +312,16 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (8 equivalent-encoding, 3 formatting-only, 1 unencoded-boundary)', () => {
-  const byCause = { 'equivalent-encoding': 0, 'formatting-only': 0, 'unencoded-boundary': 0 };
+test('DISAGREE: the many-to-one sub-causes are represented as expected (15 equivalent-encoding, 3 formatting-only, 1 unencoded-boundary, 2 homograph)', () => {
+  const byCause = { 'equivalent-encoding': 0, 'formatting-only': 0, 'unencoded-boundary': 0, homograph: 0 };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
-  assert.equal(byCause['equivalent-encoding'], 8);
+  assert.equal(byCause['equivalent-encoding'], 15);
   assert.equal(byCause['formatting-only'], 3);
   assert.equal(byCause['unencoded-boundary'], 1);
+  assert.equal(byCause.homograph, 2);
 });
 
-// Six of the eight equivalent-encoding entries claim a cell-twin that PASSes:
+// Seven of the fifteen equivalent-encoding entries claim a cell-twin that PASSes:
 // the same braille appears twice in the corpus under two MathML encodings, we
 // match one and disagree with the other. That claim is checkable, so it is
 // checked -- an entry whose "twin" stopped passing would otherwise keep
@@ -246,7 +332,8 @@ const TWINS = {
   'mathcat-rules:as_multiscript_nested_sub_sup_74_c_5': 'mathcat-rules:nested_sub_sup_74_c_5',
   'mathcat-rules:mmultiscripts_82_a_3': 'mathcat-rules:msubsup_82_a_3',
   'mathcat-rules:mmultiscripts_82_b_1': 'mathcat-rules:sub_sup_82_b_1',
-  'mathcat-rules:mmultiscripts_82_b_2': 'mathcat-rules:sub_sup_82_b_2'
+  'mathcat-rules:mmultiscripts_82_b_2': 'mathcat-rules:sub_sup_82_b_2',
+  'mathcat-rules:greek_24_b_1_together': 'mathcat-rules:greek_24_b_1'
 };
 
 test('DISAGREE: every allowlisted entry that claims a PASSing cell-twin actually has one', () => {

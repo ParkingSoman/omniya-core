@@ -235,3 +235,19 @@ test('Rule 14.6: without a baseline indicator a digit run is still ONE numeral (
   // not (x sub 1) sub 1. Only an explicit baseline indicator breaks the run.
   assert.equal(format(treeOf('x11')), "Subscript(Identifier('x'), Number('11'))");
 });
+
+test('an indicated digit does not continue a Rule 14.6 promoted run (Nemeth_2022.txt lines 6420-6439)', () => {
+  // `,p1;2",q` is mathcat-rules:sub_ind_mmultiscripts_80_b_3: P with the
+  // unindicated numeric subscript 1, then a subscript indicator whose 2 is a
+  // LEFT subscript of Q. Where Rule 14.6's conditions hold the indicator "is
+  // not used", so the indicated 2 cannot be more of the promoted run -- reading
+  // it as one numeral gives the wrong answer `P_{12}Q` with nothing refused.
+  assert.throws(() => treeOf(',p1;2",q'), (error) => {
+    assert.ok(error instanceof NemethUnsupportedError);
+    assert.match(error.detail, /script on a base already carrying/u);
+    return true;
+  });
+  // The counter-case that keeps the break from splitting every multi-digit
+  // subscript: Example 14-37, `x11` = x sub 11, promoted throughout.
+  assert.equal(format(treeOf('x11')), "Subscript(Identifier('x'), Number('11'))");
+});

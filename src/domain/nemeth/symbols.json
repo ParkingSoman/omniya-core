@@ -272,12 +272,89 @@
     "cells": "⠰",
     "kind": "level",
     "value": "_",
-    "banaRef": "2"
+    "banaRef": "2",
+    "slots": {
+      "alphabet": "english"
+    }
   },
   {
     "cells": "⠐",
     "kind": "baseline",
     "value": "",
     "banaRef": "2"
+  },
+  {
+    "cells": "⠠",
+    "kind": "prefix",
+    "value": ",",
+    "slots": {
+      "capitalization": "single"
+    },
+    "banaRef": "5.1.1"
+  },
+  {
+    "cells": "⠸",
+    "kind": "prefix",
+    "value": "_",
+    "slots": {
+      "typeform": "bold",
+      "alphabet": "german"
+    },
+    "banaRef": "6.2.1"
+  },
+  {
+    "cells": "⠨",
+    "kind": "prefix",
+    "value": ".",
+    "slots": {
+      "typeform": "italic",
+      "alphabet": "greek"
+    },
+    "banaRef": "6.2.1"
+  },
+  {
+    "cells": "⠠⠨",
+    "kind": "prefix",
+    "value": ",.",
+    "slots": {
+      "typeform": "sans-serif"
+    },
+    "banaRef": "7.2.1"
+  },
+  {
+    "cells": "⠠⠸",
+    "kind": "prefix",
+    "value": ",_",
+    "slots": {
+      "typeform": "barred"
+    },
+    "banaRef": "7.2.1"
+  },
+  {
+    "cells": "⠨⠅",
+    "kind": "comparison",
+    "value": "=",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠸⠇",
+    "kind": "comparison",
+    "value": "≡",
+    "banaRef": "21.3",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠠⠗",
+    "kind": "comparison",
+    "value": "R",
+    "banaRef": "21.5",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
   }
 ]

@@ -22,8 +22,26 @@
  * would put a guess behind a passing test.
  */
 
+import alphabets from './alphabets.json' with { type: 'json' };
 import { defineBackend } from './backend.js';
 import { NemethUnsupportedError } from './errors.js';
+
+/**
+ * Typeform (BANA Rule 7.1, test/corpus/sources/Nemeth_2022.txt line 3591) named
+ * as the LaTeX macro that reproduces it. Regular type carries no indicator and
+ * so no mark. Script is absent on purpose: Rule 7's own symbol list gives it as
+ * `@` (line 3563) and Appendix C spells script English `@;` (line 16446), but
+ * every corpus case written that way -- e.g. `sre-aata:AataExpression_13`,
+ * `⠈⠰⠠⠵` -- targets `mathvariant="double-struck"`, which Rule 7 writes `,_`
+ * (line 3564, Example 7-2 at lines 3616-3619). Oracle and normative source disagree
+ * about what those cells mean, so nothing is emitted for them.
+ */
+const TYPEFORM_MACRO = Object.freeze({
+  bold: 'mathbf',
+  italic: 'mathit',
+  'sans-serif': 'mathsf',
+  barred: 'mathbb'
+});
 
 // A LaTeX control word: a backslash and the letters that follow it.
 const TRAILING_CONTROL_WORD = /\\[a-zA-Z]+$/u;
@@ -51,6 +69,49 @@ function concat(pieces) {
   , '');
 }
 
+function unsupported(node, detail) {
+  return new NemethUnsupportedError({ offset: node.src ? node.src[0] : 0, detail });
+}
+
+/**
+ * The glyph an alphabetic indicator plus a capitalization indicator names.
+ *
+ * Greek is a lookup, not a wrapper: BANA 6.1.4 assigns each Greek letter the
+ * cell of an English letter, so the braille alone says "alpha" only once the
+ * table is consulted. German Fraktur is a wrapper because the Code's German
+ * alphabet (6.1.1) is the Latin letters in a different face.
+ */
+function letterGlyph(node) {
+  const { alphabet, capitalization } = node.marks;
+  const capital = capitalization === 'single';
+  if (alphabet === 'greek') {
+    const pair = alphabets.greek.letters[node.name];
+    if (!pair) throw unsupported(node, `BANA ${alphabets.greek.banaRef} gives no Greek letter for "${node.name}"`);
+    return pair[capital ? 1 : 0];
+  }
+  const glyph = capital ? node.name.toUpperCase() : node.name;
+  return alphabet === 'german' ? `\\mathfrak{${glyph}}` : glyph;
+}
+
+/**
+ * Wrap a rendered sign in its typeform.
+ *
+ * A typeform on a non-English alphabet -- Example 7-3's boldface Greek alpha
+ * `_.a` (Nemeth_2022.txt line 3630) -- has no rendering here. The pipeline
+ * loads the TeX packages base, ams, newcommand and noundefined (src/main/
+ * mathml.js line 17); none defines a bold-Greek or bold-Fraktur macro, and
+ * `noundefined` turns an invented one into red literal text instead of an
+ * error. Refusing is the only honest answer available.
+ */
+function withTypeform(body, node) {
+  const { typeform, alphabet } = node.marks;
+  if (!typeform) return body;
+  if (alphabet && alphabet !== 'english') {
+    throw unsupported(node, `latex has no rendering for ${typeform} ${alphabet} (BANA Rule 7.2.1)`);
+  }
+  return `\\${TYPEFORM_MACRO[typeform]}{${body}}`;
+}
+
 function unrenderable(kind) {
   return (node) => {
     throw new NemethUnsupportedError({
@@ -62,8 +123,8 @@ function unrenderable(kind) {
 
 export const toLatex = defineBackend(
   {
-    Number: (node) => node.value,
-    Identifier: (node) => node.name,
+    Number: (node) => withTypeform(node.value, node),
+    Identifier: (node) => withTypeform(letterGlyph(node), node),
     Operator: (node) => node.glyph,
     Sequence: (node, emit) => concat(node.items.map((item) => emit(item))),
     Fraction: (node, emit) => `\\frac{${emit(node.numerator)}}{${emit(node.denominator)}}`,

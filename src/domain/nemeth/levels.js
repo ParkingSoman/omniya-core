@@ -78,7 +78,10 @@ function readImplicitSubscript(tokens, start, level) {
   const digits = [];
   let index = start;
   while (index < tokens.length && tokens[index].kind === 'digit') {
-    digits.push(Object.freeze({ ...tokens[index], level: scriptLevel, afterBaseline: false }));
+    // `implicit` records that Rule 14.6 put this digit at `scriptLevel` with
+    // nothing in the cells saying so. `parser.js` reads it to tell a promoted
+    // run from digits the writer indicated explicitly.
+    digits.push(Object.freeze({ ...tokens[index], level: scriptLevel, afterBaseline: false, implicit: true }));
     index += 1;
   }
   return { digits, index };

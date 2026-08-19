@@ -1,0 +1,29 @@
+{
+  "greek": {
+    "banaRef": "6.1.4",
+    "note": "BANA Nemeth 2022 (test/corpus/sources/Nemeth_2022.txt lines 3023-3048), Greek Alphabet (Standard). Keyed by the Braille-ASCII letter the Code assigns to each Greek letter; the value is [lowercase, capital]. Three letters of the table are absent because the Code writes them with a cell that is not an English letter -- eta ':' (U+2831), theta '?' (U+2839) and chi '&' (U+282F) -- and none of those cells has a symbol row yet. The capitals are taken from the Greek block throughout: the extracted table prints some of them as their Latin lookalikes (line 3025 shows capital alpha as 'A', while line 3026 shows capital beta as the Greek 'B'), which is a PDF text artifact, not two different alphabets.",
+    "letters": {
+      "a": ["α", "Α"],
+      "b": ["β", "Β"],
+      "g": ["γ", "Γ"],
+      "d": ["δ", "Δ"],
+      "e": ["ϵ", "Ε"],
+      "z": ["ζ", "Ζ"],
+      "i": ["ι", "Ι"],
+      "k": ["κ", "Κ"],
+      "l": ["λ", "Λ"],
+      "m": ["μ", "Μ"],
+      "n": ["ν", "Ν"],
+      "x": ["ξ", "Ξ"],
+      "o": ["ο", "Ο"],
+      "p": ["π", "Π"],
+      "r": ["ρ", "Ρ"],
+      "s": ["σ", "Σ"],
+      "t": ["τ", "Τ"],
+      "u": ["υ", "Υ"],
+      "f": ["ϕ", "Φ"],
+      "y": ["ψ", "Ψ"],
+      "w": ["ω", "Ω"]
+    }
+  }
+}
