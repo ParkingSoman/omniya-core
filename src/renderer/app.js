@@ -1745,11 +1745,20 @@ elements['composer-source'].addEventListener('keydown', (event) => {
     }
   });
   elements['composer-source'].addEventListener('keydown', (event) => {
-    if (!globalThis.__omniyaBrailleSimulation) return;
+    // Nemeth six-key is live without the simulation flag; UEB six-key still needs
+    // it. The asymmetry is not arbitrary: this field accepts only braille cells
+    // (see `not-braille` in nemeth-input.js), and 8bc05ae deliberately gated
+    // QWERTY here, so the letter keys are already inert during Nemeth authoring
+    // and chording them costs nothing. In UEB text insert those same keys type
+    // literal text, so binding them would break ordinary typing -- hence the flag
+    // stays on that path. Without this, a plain keyboard cannot enter Nemeth at
+    // all: only a braille display or a paste can, which makes the parser
+    // unreachable for anyone without hardware.
     if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
       composerNemethSixKey.keydown(event);
       return;
     }
+    if (!globalThis.__omniyaBrailleSimulation) return;
     if (!composerIsTextInsert()) return;
     if (event.key === ' ' && uebBuffer.pending) {
       event.preventDefault();
@@ -1759,11 +1768,14 @@ elements['composer-source'].addEventListener('keydown', (event) => {
     composerUebSixKey.keydown(event);
   });
   elements['composer-source'].addEventListener('keyup', (event) => {
-    if (!globalThis.__omniyaBrailleSimulation) return;
+    // Mirrors the keydown ordering above: the chord only completes on keyup, so
+    // gating this path while leaving keydown open would swallow keys and emit
+    // nothing.
     if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
       composerNemethSixKey.keyup(event);
       return;
     }
+    if (!globalThis.__omniyaBrailleSimulation) return;
     if (!composerIsTextInsert()) return;
     composerUebSixKey.keyup(event);
   });
