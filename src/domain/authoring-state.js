@@ -59,9 +59,14 @@ export function enterEquationSurface(state, method) {
 }
 
 export function equationInsertIntent(state, { replacing = false } = {}) {
-  if (replacing || state.replaceScopeLabel) return 'noop';
-  if (state.surface === 'text') return 'start';
+  // An empty equation switches method whether or not it is a replacement --
+  // Ctrl+E/Ctrl+L should work the same way replacing focused mathematics
+  // (r/a/o) as they do starting a brand new equation, as long as nothing has
+  // been typed yet. Only STARTING a new equation at the caret is blocked
+  // while replacing: that would abandon the replacement target, whereas
+  // switching the method of the (still empty) replacement does not.
   if (state.surface === 'equation' && state.contentEmpty) return 'switch-method';
+  if (state.surface === 'text') return (replacing || state.replaceScopeLabel) ? 'noop' : 'start';
   return 'noop';
 }
 

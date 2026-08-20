@@ -44,6 +44,45 @@ test('QWERTY characters are rejected, not read as their Braille ASCII cells', ()
   assert.notEqual(result.cells, asciiToCells('a'), 'must not decode QWERTY to cells');
 });
 
+// ---------------------------------------------------------------------------
+// The opt-in computer-braille decode (off by default)
+// ---------------------------------------------------------------------------
+
+test('with no table given, ASCII that a computer braille keyboard would send is still rejected', () => {
+  // Same guarantee as the QWERTY test above, restated for the new parameter's
+  // default: omitting brailleInputTable must behave exactly as before this
+  // option existed.
+  assert.deepEqual(toNemethCells('2'), { cells: '', rejected: [{ index: 0, character: '2' }] });
+  assert.deepEqual(toNemethCells('2', 'none'), { cells: '', rejected: [{ index: 0, character: '2' }] });
+});
+
+test('with en-us-comp8 selected, computer-braille ASCII decodes instead of rejecting', () => {
+  // '#' is the numeric indicator (dots 3456) in both this table and Nemeth
+  // grammar -- Nemeth requires it before a digit run regardless of input
+  // method, so it is not special-cased here, just typed like any other cell.
+  const result = toNemethCells('#2+#2', 'en-us-comp8');
+  assert.deepEqual(result.rejected, []);
+  assert.equal(result.cells.length, 5);
+  const classification = classifyNemethInput('#2+#2', { brailleInputTable: 'en-us-comp8' });
+  assert.equal(classification.state, 'complete');
+  assert.equal(classification.latex, '2+2');
+});
+
+test('en-us-comp8 decoding preserves case, unlike Braille ASCII', () => {
+  const lower = toNemethCells('x', 'en-us-comp8').cells;
+  const upper = toNemethCells('X', 'en-us-comp8').cells;
+  assert.notEqual(lower, upper);
+});
+
+test('en-us-comp8 still rejects characters it has no entry for', () => {
+  const result = toNemethCells('2€', 'en-us-comp8');
+  assert.deepEqual(result.rejected, [{ index: 1, character: '€' }]);
+});
+
+test('an unknown table name behaves as if no table were given', () => {
+  assert.deepEqual(toNemethCells('2', 'not-a-real-table'), { cells: '', rejected: [{ index: 0, character: '2' }] });
+});
+
 test('every rejected character is reported, and the cells around them are kept', () => {
   // Reporting all of them (rather than stopping at the first) is what lets the
   // composer strip exactly the offending characters instead of clearing the

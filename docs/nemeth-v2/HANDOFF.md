@@ -83,3 +83,17 @@ keyboard**, which is live for Nemeth authoring. `src/domain/ueb-cell-buffer.js` 
 to feed the Nemeth parser — it flushes on `U+2800`, which Nemeth uses as a *token* (Rule 20/21
 comparison spacing, present in 263 of 613 corpus cases); feeding Nemeth through it truncates every
 expression at its first space. `src/domain/nemeth-input.js` is the correct accumulator.
+
+"A hardware braille display" above means one sending raw Unicode braille cells. A braille
+*keyboard* whose driver is configured for a "computer braille" input table instead translates dot
+chords into plain text (its own device-side dots→character step, following a table like liblouis's
+`en-us-comp8`) before the OS delivers a keystroke — indistinguishable from QWERTY typing, and
+rejected the same way. `toNemethCells`/`classifyNemethInput` accept an opt-in
+`brailleInputTable` parameter (persisted via `src/main/settings-storage.js`, toggled from the
+composer with Ctrl+D) that decodes through a specific, verified table —
+`src/domain/nemeth/computer-braille-en-us.js` for `en-us-comp8` — instead of rejecting. It is
+off by default and stays a manual, per-user choice: there is no way to detect at runtime which
+table a given device used, and decoding through the wrong one would silently produce the wrong
+symbol rather than today's honest rejection. Do not reuse `braille-ascii.js` for this — it is
+6-dot only and case-folds (`a`/`A` both decode to the same cell), which loses information a real
+8-dot computer braille keyboard preserves via dot 7.

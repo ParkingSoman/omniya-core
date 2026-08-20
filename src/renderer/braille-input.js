@@ -32,6 +32,6 @@ export function createSixKeyInput({ emit, onUnsupported } = {}) {
       return true;
     },
     blur() { pressed = new Set(); chordMask = 0; active = false; },
-    unsupported() { onUnsupported?.('Six-key input is unavailable; use display or computer-Braille input.'); }
+    unsupported() { onUnsupported?.('Six-key input is unavailable; use a braille display or paste instead.'); }
   };
 }

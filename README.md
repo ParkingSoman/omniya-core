@@ -21,6 +21,13 @@ you release. As you type, the status line reads back what it has: *"5 cells read
 x^{2}+1. Enter inserts it."* If it cannot read the cells yet it says so rather than
 guessing, and unsupported notation is refused rather than silently mistranscribed.
 
+If a connected braille keyboard is configured to send plain text (a "computer braille"
+input table) instead of raw cells, the field rejects it the same as ordinary typing — the
+app has no way to tell them apart, and guessing at the wrong table would silently produce
+the wrong symbol. **Ctrl+D** while authoring Nemeth opens a picker to tell the app which
+table your keyboard uses (currently just English (U.S.) 8-dot computer braille); it stays
+off by default and is remembered once set.
+
 **Read and edit math.** In reading, **Up** and **Down** move between items. **Enter** on an
 equation explores inside it. There, **r** replaces the focused node, **a** inserts after it,
 and **o** inserts before it. On an equation you have not explored, those keys act on the

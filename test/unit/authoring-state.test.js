@@ -213,6 +213,28 @@ test('equationInsertIntent starts from text and switches empty equation', () => 
   );
 });
 
+test('equationInsertIntent switches method while replacing, as long as nothing has been typed yet', () => {
+  // Ctrl+E/Ctrl+L while replacing focused mathematics (r/a/o) must behave the
+  // same as starting a brand new equation: switch method if the field is
+  // still empty. Only STARTING a fresh equation at the caret is blocked
+  // while replacing (that would abandon the replacement target).
+  assert.equal(
+    equationInsertIntent(
+      createAuthoringState({ surface: 'equation', contentEmpty: true, replaceScopeLabel: 'term' }),
+      { replacing: true }
+    ),
+    'switch-method'
+  );
+  assert.equal(
+    equationInsertIntent(
+      createAuthoringState({ surface: 'equation', contentEmpty: false, replaceScopeLabel: 'term' }),
+      { replacing: true }
+    ),
+    'noop',
+    'once content exists, switching is blocked whether replacing or not -- same as a new equation'
+  );
+});
+
 test('equationInsertIntent is a no-op when equation has content or replace is active', () => {
   assert.equal(
     equationInsertIntent(createAuthoringState({ surface: 'equation', contentEmpty: false })),

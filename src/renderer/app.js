@@ -63,7 +63,8 @@ const elements = Object.fromEntries([
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name', 'item-count',
   'mode-panel', 'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions',
-  'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'composer-dock',
+  'keyboard-help-button', 'keyboard-help', 'close-keyboard-help',
+  'braille-table-picker', 'braille-table-fieldset', 'close-braille-table-picker', 'composer-dock',
   'composer-form', 'composer-heading', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
   'composer-help', 'composer-status', 'composer-error', 'composer-choices', 'editing-indicator', 'composer-submit',
@@ -89,6 +90,10 @@ let replacementSession = null;
 let replacementEditor = null;
 let replacementHasContent = false;
 let preferredAuthoringMethod = 'nemeth';
+// Opt-in, persisted (settings-storage.js) computer-braille decode table for
+// the Nemeth composer field. 'none' matches this app's pre-existing
+// cells-only behavior exactly; see nemeth-input.js's brailleInputTable option.
+let nemethBrailleInputTable = 'none';
 let commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
 let uebBuffer = createUebCellBuffer();
 let uebCellChain = Promise.resolve();
@@ -1331,6 +1336,54 @@ function openContextualHelp() {
   else box.hidden = false;
 }
 
+const BRAILLE_TABLE_LABELS = {
+  none: 'off — raw braille cells only',
+  'en-us-comp8': 'English (U.S.) 8-dot computer braille'
+};
+
+function applyNemethBrailleInputTable(table) {
+  nemethBrailleInputTable = BRAILLE_TABLE_LABELS[table] ? table : 'none';
+  elements['braille-table-fieldset']?.querySelectorAll('input').forEach((input) => {
+    input.checked = input.value === nemethBrailleInputTable;
+  });
+}
+
+function openBrailleTablePicker() {
+  const box = elements['braille-table-picker'];
+  if (!box) return;
+  applyNemethBrailleInputTable(nemethBrailleInputTable);
+  if (typeof box.showModal === 'function') box.showModal();
+  else box.hidden = false;
+}
+
+function closeBrailleTablePicker() {
+  const box = elements['braille-table-picker'];
+  if (!box) return;
+  if (typeof box.close === 'function') box.close();
+  else box.hidden = true;
+}
+
+// A native radio group applies (and fires 'change' for) EVERY option arrowed
+// past, not just the one the author settles on -- so 'change' only applies
+// and announces the choice. Closing happens on its own listener below, which
+// also covers Escape: <dialog> closes on Escape natively, without running any
+// of our own code, so returning focus has to live on 'close' itself rather
+// than beside a specific button's click handler.
+elements['braille-table-fieldset']?.addEventListener('change', () => {
+  const selected = elements['braille-table-fieldset'].querySelector('input:checked')?.value;
+  applyNemethBrailleInputTable(selected);
+  window.omniya?.saveSettings?.({ nemethBrailleInputTable }).catch(() => {});
+  announce(`Braille input table: ${BRAILLE_TABLE_LABELS[nemethBrailleInputTable]}.`);
+  // Re-classify immediately so a character rejected under the old table (or
+  // vice versa) is reflected without waiting for the next keystroke -- but
+  // only when the field is actually mid-Nemeth-authoring, matching the guard
+  // the 'input' listener itself uses.
+  if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') void handleComposerMathInput();
+});
+
+elements['close-braille-table-picker']?.addEventListener('click', () => closeBrailleTablePicker());
+elements['braille-table-picker']?.addEventListener('close', () => elements['composer-source']?.focus());
+
 function handleComposerCommandKey(event) {
   const inDock = isDockReplacement();
   const chord = event.ctrlKey || event.metaKey;
@@ -1339,15 +1392,24 @@ function handleComposerCommandKey(event) {
   if (chord && (key === 'e' || key === 'l' || key === 't')) {
     event.preventDefault();
     event.stopPropagation();
-    if (commandState.replaceScopeLabel || isMathReplaceAuthoring()) return true;
     if (key === 't') {
-      if (!isDocumentTextSurface()) return true;
+      // UEB grade has no meaning while authoring an equation (new or a
+      // replacement) -- unlike Ctrl+E/Ctrl+L, which equationInsertIntent
+      // already allows to switch method during a still-empty replacement.
+      if (commandState.replaceScopeLabel || isMathReplaceAuthoring() || !isDocumentTextSurface()) return true;
       const toggled = toggleUebGrade(commandState);
       applyCommandStateToChrome(toggled.state);
       announce(toggled.announcement);
       return true;
     }
     applyEquationInsert(key === 'l' ? 'latex' : 'nemeth');
+    return true;
+  }
+
+  if (chord && key === 'd' && isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
+    event.preventDefault();
+    event.stopPropagation();
+    openBrailleTablePicker();
     return true;
   }
 
@@ -1682,7 +1744,7 @@ async function handleComposerMathInput() {
   // state: not-yet-complete is the normal condition while typing, not a mistake.
   let classification;
   try {
-    classification = classifyNemethInput(editor.value);
+    classification = classifyNemethInput(editor.value, { brailleInputTable: nemethBrailleInputTable });
   } catch (error) {
     // classifyNemethInput rethrows anything that is not a refusal, because that
     // would be a parser bug rather than an unsupported construct. Surface it
@@ -1946,6 +2008,10 @@ window.omniya?.onMenuCommand?.((payload) => {
   }
   if (payload.action === 'keyboard-help') {
     openContextualHelp();
+    return;
+  }
+  if (payload.action === 'braille-input-table') {
+    openBrailleTablePicker();
   }
 });
 
@@ -1961,6 +2027,13 @@ if (!globalThis.omniya?.loadState) {
     if (loaded.warning) showError(loaded.warning);
   } catch {
     showError('The napkins could not be loaded.');
+  }
+  try {
+    const loadedSettings = await window.omniya.loadSettings?.();
+    if (loadedSettings?.settings) applyNemethBrailleInputTable(loadedSettings.settings.nemethBrailleInputTable);
+  } catch {
+    // Settings are a low-stakes preference; fall back to the 'none' default
+    // already in place rather than surfacing an error for this.
   }
 }
 elements['app-shell'].setAttribute('aria-busy', 'false');

@@ -48,6 +48,19 @@
  */
 
 import { NemethUnsupportedError, parseNemeth } from './nemeth/index.js';
+import { decodeEnUsComp8 } from './nemeth/computer-braille-en-us.js';
+
+/**
+ * Registry of opt-in computer-braille input decoders, keyed by the value
+ * persisted in settings (`nemethBrailleInputTable`, see
+ * `src/main/settings-storage.js`). `'none'` (the default -- absent from this
+ * map on purpose) means no decoding: only real braille cells are accepted,
+ * exactly as before this feature existed. Adding another locale's table
+ * later is adding one more entry here, not touching the classifier logic.
+ */
+const BRAILLE_INPUT_DECODERS = {
+  'en-us-comp8': decodeEnUsComp8
+};
 
 /**
  * Upper bound on prefix parses per keystroke. A 120-cell buffer costs ~2.7 ms
@@ -63,14 +76,15 @@ const BLANK_CELL = '\u2800';
 /**
  * Field text -> Unicode braille cells.
  *
- * **Cells only.** A QWERTY character is NOT read as its Braille ASCII cell,
- * even though `braille-ascii.js` could do it and the corpus is written that
- * way. That is a standing product decision, not an oversight: commit `8bc05ae`
- * ("gate Nemeth QWERTY") deliberately closed that door. The live guard for it is
- * `test/unit/nemeth-input.test.js` ("QWERTY characters are rejected, not read as
- * their Braille ASCII cells"), which asserts directly on this function that
- * `toNemethCells('a')` rejects `'a'` rather than decoding it to the letter cell
- * -- that test is green and runs in `npm test`.
+ * **Cells only, by default.** A QWERTY character is NOT read as its Braille
+ * ASCII cell, even though `braille-ascii.js` could do it and the corpus is
+ * written that way. That is a standing product decision, not an oversight:
+ * commit `8bc05ae` ("gate Nemeth QWERTY") deliberately closed that door. The
+ * live guard for it is `test/unit/nemeth-input.test.js` ("QWERTY characters
+ * are rejected, not read as their Braille ASCII cells"), which asserts
+ * directly on this function that `toNemethCells('a')` rejects `'a'` rather
+ * than decoding it to the letter cell -- that test is green and runs in
+ * `npm test`.
  * `test/e2e/ueb-text-command-mode.test.js` asserts the same behavior at the
  * composer level, but that test is currently RED (failing at baseline too, a
  * 30s timeout inside the shared `enterCommand` e2e helper, unrelated to this
@@ -78,32 +92,52 @@ const BLANK_CELL = '\u2800';
  * from `npm test` on purpose; e2e is a separate suite (`npm run test:e2e`) that
  * `npm test` does not run at all. Do not point at it as a currently-enforced
  * guarantee; the unit test above is the one that actually runs and holds.
- * Reversing this behavior here would silently reinterpret someone's prose as
- * mathematics.
+ * Reversing this behavior by default would silently reinterpret someone's
+ * prose as mathematics.
  *
- * The one accepted non-cell is the space bar, which becomes `U+2800`. That is
- * not an exception to the rule, it is the only way to type the blank at all --
- * a dot-key chord cannot produce it -- and the same equivalence is already
- * built into `pushUebCell`, which treats `' '` and `U+2800` as one thing. In
- * Nemeth the blank is a TOKEN (Rule 20/21 comparison spacing), never a
- * terminator.
+ * **The one narrow, explicit exception** is `brailleInputTable`: some
+ * connected braille keyboards are configured to send text through their own
+ * "computer braille" input table rather than raw Unicode braille cells (see
+ * `computer-braille-en-us.js` for why this is a real, separate problem from
+ * QWERTY typing, not a reversal of it). When the caller passes a known table
+ * name here -- persisted per-user via `src/main/settings-storage.js`, opt-in
+ * and off by default -- a character that would otherwise be rejected is first
+ * run through that table's decoder. This is deliberately NOT the same thing
+ * commit `8bc05ae` closed: it is a distinct, verified table for a distinct
+ * input device class, chosen explicitly by the person typing, not a general
+ * "decode any ASCII as Braille ASCII" fallback. With `brailleInputTable`
+ * omitted or `'none'`, behavior is byte-for-byte identical to before this
+ * option existed.
+ *
+ * The one accepted non-cell regardless of table is the space bar, which
+ * becomes `U+2800`. That is not an exception to the rule, it is the only way
+ * to type the blank at all -- a dot-key chord cannot produce it -- and the
+ * same equivalence is already built into `pushUebCell`, which treats `' '`
+ * and `U+2800` as one thing. In Nemeth the blank is a TOKEN (Rule 20/21
+ * comparison spacing), never a terminator.
  *
  * Every character that is neither is collected in `rejected` rather than
  * halting the scan, so a caller can strip exactly the offending characters and
  * keep the author's other work. Nothing is silently dropped: `rejected` is
  * non-empty and the caller must act on it.
  *
+ * @param {string} text
+ * @param {string} [brailleInputTable] one of `BRAILLE_INPUT_DECODERS`' keys,
+ *   or `'none'`/omitted for the default cells-only behavior.
  * @returns {{cells: string, rejected: Array<{index: number, character: string}>}}
  */
-export function toNemethCells(text) {
+export function toNemethCells(text, brailleInputTable) {
   const source = String(text ?? '');
+  const decode = BRAILLE_INPUT_DECODERS[brailleInputTable];
   let cells = '';
   const rejected = [];
   for (let index = 0; index < source.length; index += 1) {
     const character = source[index];
     const code = character.codePointAt(0);
+    const decoded = decode?.(character);
     if (code >= BRAILLE_FIRST && code <= BRAILLE_LAST) cells += character;
     else if (character === ' ') cells += BLANK_CELL;
+    else if (decoded) cells += decoded;
     else rejected.push({ index, character });
   }
   return { cells, rejected };
@@ -126,9 +160,10 @@ function tryParse(parse, cells) {
  * Classify the current field text. Pure; safe to call on every keystroke.
  *
  * `parse` exists as a test seam only; production always uses `parseNemeth`.
+ * `brailleInputTable` is forwarded to `toNemethCells` -- see its docstring.
  */
-export function classifyNemethInput(text, { parse = parseNemeth } = {}) {
-  const { cells, rejected } = toNemethCells(text);
+export function classifyNemethInput(text, { parse = parseNemeth, brailleInputTable } = {}) {
+  const { cells, rejected } = toNemethCells(text, brailleInputTable);
   const cellCount = cells.length;
   const base = { cells, cellCount, latex: '', readCells: 0, rejected };
 

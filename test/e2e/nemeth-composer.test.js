@@ -151,3 +151,74 @@ test('QWERTY stays gated: a typed letter is refused, and the cells already enter
   assert.match(message ?? '', /braille cells only|LaTeX|x in Command mode/i, 'matches the existing product assertion');
   assert.match(message ?? '', /"a"/, 'and names the character that was refused');
 });
+
+test('Ctrl+D opens the braille input table picker, and the choice decodes computer-braille ASCII and persists', { timeout: 90_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-nemeth-braille-table-'));
+  const launchWith = async () => {
+    const app = await electron.launch({
+      args: ['.'],
+      cwd: projectRoot,
+      env: electronLaunchEnv({ OMNIYA_TEST_USER_DATA_DIR: dataDirectory })
+    });
+    const page = await app.firstWindow();
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('#app-shell[aria-busy="false"]').waitFor();
+    await app.context().setOffline(true);
+    return { app, page };
+  };
+
+  const first = await launchWith();
+  t.after(() => first.app.close().catch(() => {}));
+  await enterNemethMode(first.page);
+
+  // Off by default: '2' is refused exactly like ordinary QWERTY typing.
+  await first.page.keyboard.type('2');
+  await first.page.locator('#composer-error:not([hidden])').waitFor();
+  assert.match(await first.page.locator('#composer-error').textContent() ?? '', /braille cells only/i);
+
+  await first.page.keyboard.press('Control+d');
+  const dialog = first.page.locator('#braille-table-picker');
+  await dialog.waitFor({ state: 'visible' });
+
+  // Arrowing between options applies each one as you pass it (native radio
+  // group behavior) but must NOT close the dialog -- that was the bug: any
+  // arrow press closed it before you could compare options.
+  await first.page.locator('#braille-table-fieldset input[value="none"]').focus();
+  await first.page.keyboard.press('ArrowDown');
+  await first.page.waitForFunction(() => document.querySelector(
+    '#braille-table-fieldset input[value="en-us-comp8"]'
+  )?.checked === true);
+  assert.equal(await dialog.isVisible(), true, 'the dialog stays open while arrowing between options');
+  await first.page.keyboard.press('ArrowUp');
+  await first.page.waitForFunction(() => document.querySelector(
+    '#braille-table-fieldset input[value="none"]'
+  )?.checked === true);
+  assert.equal(await dialog.isVisible(), true, 'and stays open arrowing back, in either direction');
+
+  await first.page.locator('#braille-table-fieldset input[value="en-us-comp8"]').check();
+  assert.equal(await dialog.isVisible(), true, 'selecting via click/check also leaves the dialog open');
+  await first.page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'hidden' });
+  assert.equal(await first.page.locator('#composer-source').isVisible(), true, 'focus returns to the field');
+
+  // On now: '#2+#2' (numeric indicator, digit, plus, numeric indicator, digit)
+  // decodes and parses as ordinary Nemeth arithmetic.
+  await first.page.keyboard.type('#2+#2');
+  await first.page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  assert.match(await first.page.locator('#composer-status').textContent() ?? '', /read as 2\+2/);
+  assert.equal(await first.page.locator('#composer-error').isVisible(), false);
+
+  await first.app.close();
+
+  // Relaunch against the same userData dir: the choice survived the process.
+  const second = await launchWith();
+  t.after(() => second.app.close().catch(() => {}));
+  await enterNemethMode(second.page);
+  await second.page.keyboard.press('Control+d');
+  await second.page.locator('#braille-table-picker').waitFor({ state: 'visible' });
+  assert.equal(
+    await second.page.locator('#braille-table-fieldset input[value="en-us-comp8"]').isChecked(),
+    true,
+    'the picker reopens with the persisted choice already selected'
+  );
+});

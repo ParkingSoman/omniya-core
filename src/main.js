@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { convertLatexToMathML } from './main/mathml.js';
 import { exportLatex, importLatex } from './main/math-service.js';
+import { createSettingsStorage } from './main/settings-storage.js';
 import { createStorage } from './main/storage.js';
 import { backTranslateUeb, translateUeb } from './main/ueb-service.js';
 
@@ -33,7 +34,7 @@ function assertTrustedSender(event) {
   }
 }
 
-function registerIpc(storage) {
+function registerIpc(storage, settingsStorage) {
   ipcMain.handle('state:load', async (event) => {
     assertTrustedSender(event);
     return storage.load();
@@ -41,6 +42,14 @@ function registerIpc(storage) {
   ipcMain.handle('state:save', async (event, state) => {
     assertTrustedSender(event);
     return storage.save(state);
+  });
+  ipcMain.handle('settings:load', async (event) => {
+    assertTrustedSender(event);
+    return settingsStorage.load();
+  });
+  ipcMain.handle('settings:save', async (event, settings) => {
+    assertTrustedSender(event);
+    return settingsStorage.save(settings);
   });
   ipcMain.handle('math:convert', async (event, source) => {
     assertTrustedSender(event);
@@ -108,6 +117,10 @@ function buildApplicationMenu() {
         {
           label: `UEB G2 / G1\t${mod}+T`,
           click: () => sendMenuCommand({ action: 'toggle-ueb-grade' })
+        },
+        {
+          label: `Braille input table…\t${mod}+D`,
+          click: () => sendMenuCommand({ action: 'braille-input-table' })
         }
       ]
     },
@@ -133,7 +146,8 @@ app.whenReady().then(() => {
   const storage = externalFile
     ? createStorage(path.dirname(externalFile), { fileName: path.basename(externalFile) })
     : createStorage(app.getPath('userData'));
-  registerIpc(storage);
+  const settingsStorage = createSettingsStorage(app.getPath('userData'));
+  registerIpc(storage, settingsStorage);
   createWindow();
   Menu.setApplicationMenu(buildApplicationMenu());
   app.on('activate', () => {
