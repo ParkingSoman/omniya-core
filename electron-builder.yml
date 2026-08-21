@@ -10,11 +10,20 @@ mac:
       arch:
         - arm64
   category: public.app-category.education
+  artifactName: "Omniya-Core-mac-arm64.zip"
 win:
   target:
-    - target: zip
+    - target: nsis
       arch:
         - x64
+  artifactName: "Omniya-Core-Setup-x64.${ext}"
+  publish:
+    provider: generic
+    url: "https://github.com/ParkingSoman/omniya-core/releases/download/testing-app/"
+nsis:
+  oneClick: true
+  perMachine: false
+  allowToChangeInstallationDirectory: false
 directories:
   output: dist
 files:

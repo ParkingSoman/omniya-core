@@ -19,13 +19,17 @@ jobs:
           cache: npm
       - run: brew install liblouis
       - run: npm ci
+      - run: npm run version:bump
       - run: npm run dist:mac
-      - name: Publish zip to testing-app prerelease
+      - name: Write version manifest
+        run: |
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); fs.writeFileSync('dist/version.json', JSON.stringify({version: pkg.version}))"
+      - name: Publish zip + version manifest to testing-app prerelease
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view testing-app >/dev/null 2>&1 || gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned zips for the testing branch. Re-download after each push. Apple Silicon Mac and Windows x64 only." --target "$GITHUB_SHA"
-          gh release upload testing-app dist/*.zip --clobber
+          gh release view testing-app >/dev/null 2>&1 || gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned builds for the testing branch. Windows installs auto-update in the background; macOS testers get an in-app notice to re-download. Apple Silicon Mac and Windows x64 only." --target "$GITHUB_SHA"
+          gh release upload testing-app dist/*.zip dist/version.json --clobber
 
   pack-win:
     runs-on: windows-latest
@@ -36,15 +40,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - run: npm run version:bump
       - run: npm run dist:win
-      - name: Publish zip to testing-app prerelease
+      - name: Publish installer + update metadata to testing-app prerelease
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
-          gh release view testing-app >$null 2>&1; if ($LASTEXITCODE -ne 0) { gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned zips for the testing branch. Re-download after each push. Apple Silicon Mac and Windows x64 only." --target $env:GITHUB_SHA }
-          $zips = Get-ChildItem -Path dist -Filter *.zip
-          if (-not $zips) { throw "No zip found in dist" }
-          foreach ($zip in @($zips)) {
-            gh release upload testing-app $zip.FullName --clobber
+          gh release view testing-app >$null 2>&1; if ($LASTEXITCODE -ne 0) { gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned builds for the testing branch. Windows installs auto-update in the background; macOS testers get an in-app notice to re-download. Apple Silicon Mac and Windows x64 only." --target $env:GITHUB_SHA }
+          $assets = Get-ChildItem -Path dist -Include *.exe,*.exe.blockmap,latest.yml -Recurse
+          if (-not $assets) { throw "No installer/update assets found in dist" }
+          foreach ($asset in @($assets)) {
+            gh release upload testing-app $asset.FullName --clobber
           }

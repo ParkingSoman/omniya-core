@@ -12,5 +12,9 @@ contextBridge.exposeInMainWorld('omniya', {
   backTranslateUeb: (braille, grade) => ipcRenderer.invoke('ueb:backTranslate', { braille, grade }),
   onMenuCommand: (cb) => {
     ipcRenderer.on('menu:command', (_e, payload) => cb(payload));
-  }
+  },
+  onUpdateAvailable: (cb) => {
+    ipcRenderer.on('update:available', (_e, payload) => cb(payload));
+  },
+  openReleasePage: () => ipcRenderer.invoke('update:openReleasePage')
 });

@@ -64,13 +64,14 @@ const elements = Object.fromEntries([
   'mode-panel', 'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help',
-  'braille-table-picker', 'braille-table-fieldset', 'close-braille-table-picker', 'composer-dock',
+  'braille-table-picker', 'braille-table-menu', 'close-braille-table-picker', 'composer-dock',
   'composer-form', 'composer-heading', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
   'composer-help', 'composer-status', 'composer-error', 'composer-choices', 'editing-indicator', 'composer-submit',
   'composer-discard', 'composer-cancel', 'replacement-dock', 'replacement-heading',
   'replacement-scope', 'replacement-method', 'replacement-input', 'replacement-status', 'replacement-choices',
-  'replacement-submit', 'replacement-cancel', 'app-error', 'app-error-message', 'retry-save'
+  'replacement-submit', 'replacement-cancel', 'app-error', 'app-error-message', 'retry-save',
+  'update-banner', 'update-banner-text', 'update-banner-action', 'update-banner-dismiss'
 ].map((id) => [id, document.getElementById(id)]));
 
 const NOTES_UI_ENABLED = false;
@@ -1343,9 +1344,34 @@ const BRAILLE_TABLE_LABELS = {
 
 function applyNemethBrailleInputTable(table) {
   nemethBrailleInputTable = BRAILLE_TABLE_LABELS[table] ? table : 'none';
-  elements['braille-table-fieldset']?.querySelectorAll('input').forEach((input) => {
-    input.checked = input.value === nemethBrailleInputTable;
+  elements['braille-table-menu']?.querySelectorAll('[role="menuitemradio"]').forEach((option) => {
+    option.setAttribute('aria-checked', String(option.dataset.value === nemethBrailleInputTable));
   });
+}
+
+function brailleTableOptions() {
+  return Array.from(elements['braille-table-menu']?.querySelectorAll('[role="menuitemradio"]') ?? []);
+}
+
+// Roving tabindex: only the option arrow keys last landed on is Tab-reachable.
+// This is tracked independently of aria-checked, so arrowing between options
+// moves focus WITHOUT applying them -- only Enter/Space (or a click) applies
+// the focused option, and closes the menu.
+function focusBrailleTableOption(option) {
+  brailleTableOptions().forEach((el) => { el.tabIndex = el === option ? 0 : -1; });
+  option?.focus();
+}
+
+function selectBrailleTable(value) {
+  applyNemethBrailleInputTable(value);
+  window.omniya?.saveSettings?.({ nemethBrailleInputTable }).catch(() => {});
+  announce(`Braille input table: ${BRAILLE_TABLE_LABELS[nemethBrailleInputTable]}.`);
+  // Re-classify immediately so a character rejected under the old table (or
+  // vice versa) is reflected without waiting for the next keystroke -- but
+  // only when the field is actually mid-Nemeth-authoring, matching the guard
+  // the 'input' listener itself uses.
+  if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') void handleComposerMathInput();
+  closeBrailleTablePicker();
 }
 
 function openBrailleTablePicker() {
@@ -1354,6 +1380,8 @@ function openBrailleTablePicker() {
   applyNemethBrailleInputTable(nemethBrailleInputTable);
   if (typeof box.showModal === 'function') box.showModal();
   else box.hidden = false;
+  const options = brailleTableOptions();
+  focusBrailleTableOption(options.find((option) => option.getAttribute('aria-checked') === 'true') ?? options[0]);
 }
 
 function closeBrailleTablePicker() {
@@ -1363,22 +1391,43 @@ function closeBrailleTablePicker() {
   else box.hidden = true;
 }
 
-// A native radio group applies (and fires 'change' for) EVERY option arrowed
-// past, not just the one the author settles on -- so 'change' only applies
-// and announces the choice. Closing happens on its own listener below, which
-// also covers Escape: <dialog> closes on Escape natively, without running any
-// of our own code, so returning focus has to live on 'close' itself rather
-// than beside a specific button's click handler.
-elements['braille-table-fieldset']?.addEventListener('change', () => {
-  const selected = elements['braille-table-fieldset'].querySelector('input:checked')?.value;
-  applyNemethBrailleInputTable(selected);
-  window.omniya?.saveSettings?.({ nemethBrailleInputTable }).catch(() => {});
-  announce(`Braille input table: ${BRAILLE_TABLE_LABELS[nemethBrailleInputTable]}.`);
-  // Re-classify immediately so a character rejected under the old table (or
-  // vice versa) is reflected without waiting for the next keystroke -- but
-  // only when the field is actually mid-Nemeth-authoring, matching the guard
-  // the 'input' listener itself uses.
-  if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') void handleComposerMathInput();
+// menuitemradio, not a native radiogroup: arrow keys must move focus WITHOUT
+// applying an option (that was the awkward part -- every option arrowed past
+// got applied and announced). Enter/Space applies the focused option; a click
+// does the same. Escape needs no handler of our own: <dialog> closes on
+// Escape natively, which is also why returning focus lives on 'close' itself
+// rather than beside a specific button's click handler.
+elements['braille-table-menu']?.addEventListener('keydown', (event) => {
+  const options = brailleTableOptions();
+  if (options.length === 0) return;
+  const currentIndex = options.indexOf(document.activeElement);
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    const from = currentIndex === -1 ? 0 : currentIndex;
+    const delta = event.key === 'ArrowDown' ? 1 : -1;
+    focusBrailleTableOption(options[(from + delta + options.length) % options.length]);
+    return;
+  }
+  if (event.key === 'Home') {
+    event.preventDefault();
+    focusBrailleTableOption(options[0]);
+    return;
+  }
+  if (event.key === 'End') {
+    event.preventDefault();
+    focusBrailleTableOption(options[options.length - 1]);
+    return;
+  }
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    const target = currentIndex === -1 ? options.find((o) => o.getAttribute('aria-checked') === 'true') : options[currentIndex];
+    if (target) selectBrailleTable(target.dataset.value);
+  }
+});
+elements['braille-table-menu']?.addEventListener('click', (event) => {
+  const option = event.target.closest('[role="menuitemradio"]');
+  if (!option) return;
+  selectBrailleTable(option.dataset.value);
 });
 
 elements['close-braille-table-picker']?.addEventListener('click', () => closeBrailleTablePicker());
@@ -2014,6 +2063,19 @@ window.omniya?.onMenuCommand?.((payload) => {
     openBrailleTablePicker();
   }
 });
+
+function showUpdateBanner({ latestVersion }) {
+  elements['update-banner-text'].textContent = `A newer testing build (${latestVersion}) is available.`;
+  elements['update-banner'].hidden = false;
+}
+
+elements['update-banner-dismiss'].addEventListener('click', () => {
+  elements['update-banner'].hidden = true;
+});
+elements['update-banner-action'].addEventListener('click', () => {
+  window.omniya.openReleasePage?.();
+});
+globalThis.omniya?.onUpdateAvailable?.(showUpdateBanner);
 
 if (!globalThis.omniya?.loadState) {
   disableInteractiveControls();

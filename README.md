@@ -18,15 +18,28 @@ Nemeth equation.
 Braille ASCII. Enter cells from a braille display, by pasting them, or by chording on the
 keyboard: **f d s** are dots 1 2 3, **j k l** are dots 4 5 6, and the cell is entered when
 you release. As you type, the status line reads back what it has: *"5 cells read as
-x^{2}+1. Enter inserts it."* If it cannot read the cells yet it says so rather than
-guessing, and unsupported notation is refused rather than silently mistranscribed.
+x^{2}+1. Enter inserts it."* A construct genuinely outside Nemeth's current coverage is
+refused with a fixed message — but only once you press **Enter**. While typing, *"not a
+complete expression yet"* is the normal, expected state, not an error.
 
-If a connected braille keyboard is configured to send plain text (a "computer braille"
-input table) instead of raw cells, the field rejects it the same as ordinary typing — the
-app has no way to tell them apart, and guessing at the wrong table would silently produce
-the wrong symbol. **Ctrl+D** while authoring Nemeth opens a picker to tell the app which
-table your keyboard uses (currently just English (U.S.) 8-dot computer braille); it stays
-off by default and is remembered once set.
+Two *separate* settings affect what reaches this field, and mixing them up is the most
+common reason input seems to do nothing:
+
+- **Your braille device's own input mode.** It has to be set to send raw braille cells,
+  not its own pre-translated output. Look for a setting on the device itself along the
+  lines of "uncontracted" or "raw cell" input, as opposed to a text- or
+  computer-braille-translation mode — naming varies by manufacturer.
+- **Ctrl+D**, inside the app, is a different setting: a picker for which table it uses
+  to decode a keyboard that can *only* send translated text (currently English (U.S.)
+  8-dot computer braille). It defaults to **off — raw braille cells only**, and should
+  normally stay there; pick the other option only if you know your device cannot send raw
+  cells.
+
+To check whether the keyboard path itself is working, independent of what Nemeth
+supports, chord **f** alone (dot 1) and release. The status line should read *"1 cell
+read as a. Enter inserts it."* — that confirms both the chording and the parser. If it
+instead still reads *"Enter Nemeth cells"* with no reaction, input isn't reaching the
+field at all: check the device's input mode first, then the Ctrl+D table.
 
 **Read and edit math.** In reading, **Up** and **Down** move between items. **Enter** on an
 equation explores inside it. There, **r** replaces the focused node, **a** inserts after it,
@@ -40,7 +53,7 @@ Download the alpha (or run from source): [Run this alpha](#run-this-alpha). Long
 
 ## What the app is
 
-Omniya Core is a small **local Electron app** for writing and reading mathematics with a screen reader, a keyboard, and (on this branch) a Braille display. You create named documents the interface calls **napkins**, add text and equations, explore equation structure, and save the work as JSON on your computer. There is no account and no cloud. Testers can download an unsigned zip from the [testing prerelease](https://github.com/ParkingSoman/omniya-core/releases/tag/testing-app).
+Omniya Core is a small **local Electron app** for writing and reading mathematics with a screen reader, a keyboard, and (on this branch) a Braille display. You create named documents the interface calls **napkins**, add text and equations, explore equation structure, and save the work as JSON on your computer. There is no account and no cloud. Testers can download an unsigned build from the [testing prerelease](https://github.com/ParkingSoman/omniya-core/releases/tag/testing-app).
 
 It is an experimental workspace for blind mathematicians, blind STEM students, screen-reader users, and accessibility researchers. It is not a finished editor. Automated tests are not evidence that the workflow is usable without feedback from blind users.
 
@@ -56,10 +69,10 @@ You are on **`testing`**, the alpha. Newer functionality lives here and has **no
 
 Open the [testing-app prerelease](https://github.com/ParkingSoman/omniya-core/releases/tag/testing-app).
 
-- **Apple Silicon Mac:** download the arm64 mac zip, unzip, and open **Omniya Core**. If macOS blocks it: System Settings → Privacy & Security → Open Anyway, or right-click the app → Open.
-- **Windows x64:** download the win zip, unzip, and run **Omniya Core.exe**. If SmartScreen: More info → Run anyway.
+- **Apple Silicon Mac:** download the arm64 mac zip, unzip, and open **Omniya Core**. If macOS blocks it: System Settings → Privacy & Security → Open Anyway, or right-click the app → Open. The app is unsigned, so it does not auto-update; it checks each launch and shows a banner with a link back to this release page when a newer testing build exists — re-download and reinstall from there.
+- **Windows x64:** download and run the installer, **Omniya-Core-Setup-x64.exe**. If SmartScreen: More info → Run anyway. After that first install, the app auto-updates itself in the background on future testing-branch pushes — no more re-downloading. (If you already have an older unzip-and-run install, it does not upgrade automatically; do this one manual reinstall once, then updates take over.)
 
-Literary UEB is bundled in that zip. This path does not need Homebrew liblouis or Node.
+Literary UEB is bundled with the app. This path does not need Homebrew liblouis or Node.
 
 Intel Mac is not packaged yet — use [run from source](#run-from-source).
 

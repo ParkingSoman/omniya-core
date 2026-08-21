@@ -1,11 +1,13 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { checkForNewerMacBuild, RELEASE_PAGE_URL } from './main/mac-update-check.js';
 import { convertLatexToMathML } from './main/mathml.js';
 import { exportLatex, importLatex } from './main/math-service.js';
 import { createSettingsStorage } from './main/settings-storage.js';
 import { createStorage } from './main/storage.js';
+import { shouldRunWindowsAutoUpdate, startWindowsAutoUpdate } from './main/updater.js';
 import { backTranslateUeb, translateUeb } from './main/ueb-service.js';
 
 const sourceDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -65,6 +67,10 @@ function registerIpc(storage, settingsStorage) {
     assertTrustedSender(event);
     return { text: await backTranslateUeb(braille, grade) };
   });
+  ipcMain.handle('update:openReleasePage', async (event) => {
+    assertTrustedSender(event);
+    await shell.openExternal(RELEASE_PAGE_URL);
+  });
 }
 
 function createWindow() {
@@ -85,6 +91,16 @@ function createWindow() {
     if (url !== rendererUrl) event.preventDefault();
   });
   void window.loadFile(rendererFile);
+  return window;
+}
+
+function checkForMacUpdateBanner(window) {
+  checkForNewerMacBuild(app.getVersion())
+    .then(({ available, latestVersion, releaseUrl }) => {
+      if (!available || window.isDestroyed()) return;
+      window.webContents.send('update:available', { latestVersion, releaseUrl });
+    })
+    .catch((err) => console.error('[omniya:update] mac check failed', err));
 }
 
 function sendMenuCommand(payload) {
@@ -148,11 +164,17 @@ app.whenReady().then(() => {
     : createStorage(app.getPath('userData'));
   const settingsStorage = createSettingsStorage(app.getPath('userData'));
   registerIpc(storage, settingsStorage);
-  createWindow();
+  const window = createWindow();
   Menu.setApplicationMenu(buildApplicationMenu());
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+
+  if (shouldRunWindowsAutoUpdate({ platform: process.platform, isPackaged: app.isPackaged, isAutomatedTest })) {
+    void startWindowsAutoUpdate();
+  } else if (process.platform === 'darwin' && app.isPackaged && !isAutomatedTest) {
+    checkForMacUpdateBanner(window);
+  }
 });
 
 app.on('window-all-closed', () => {

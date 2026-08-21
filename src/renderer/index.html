@@ -11,6 +11,11 @@
   </head>
   <body class="chrome-radios-hidden">
     <div id="app-shell" aria-busy="true">
+      <div id="update-banner" role="status" aria-live="polite" hidden>
+        <p id="update-banner-text"></p>
+        <button id="update-banner-action" type="button">Get the latest build</button>
+        <button id="update-banner-dismiss" type="button">Dismiss</button>
+      </div>
       <aside id="napkin-rail" aria-label="Napkins">
         <div class="rail-brand"><span class="brand-mark" aria-hidden="true">∴</span><span>Omniya</span></div>
         <div class="rail-heading">
@@ -125,11 +130,10 @@
         <dialog id="braille-table-picker" aria-labelledby="braille-table-picker-heading">
           <h3 id="braille-table-picker-heading">Braille input table</h3>
           <p id="braille-table-picker-help">Only change this if a connected braille keyboard or display sends plain text instead of braille cells, and you know which table it is configured to use. Choosing the wrong table produces the wrong symbol rather than an error, so leave this off unless you need it.</p>
-          <fieldset id="braille-table-fieldset" aria-describedby="braille-table-picker-help">
-            <legend class="sr-only">Braille input table</legend>
-            <label><input type="radio" name="braille-table" value="none" checked> Off — raw braille cells only</label>
-            <label><input type="radio" name="braille-table" value="en-us-comp8"> English (U.S.) 8-dot computer braille</label>
-          </fieldset>
+          <div id="braille-table-menu" role="menu" aria-label="Braille input table" aria-describedby="braille-table-picker-help">
+            <button type="button" role="menuitemradio" aria-checked="true" tabindex="0" data-value="none">Off — raw braille cells only</button>
+            <button type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-value="en-us-comp8">English (U.S.) 8-dot computer braille</button>
+          </div>
           <button id="close-braille-table-picker" type="button">Close</button>
         </dialog>
 

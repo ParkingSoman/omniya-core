@@ -179,25 +179,32 @@ test('Ctrl+D opens the braille input table picker, and the choice decodes comput
   await first.page.keyboard.press('Control+d');
   const dialog = first.page.locator('#braille-table-picker');
   await dialog.waitFor({ state: 'visible' });
+  const noneOption = first.page.locator('#braille-table-menu [data-value="none"]');
+  const comp8Option = first.page.locator('#braille-table-menu [data-value="en-us-comp8"]');
 
-  // Arrowing between options applies each one as you pass it (native radio
-  // group behavior) but must NOT close the dialog -- that was the bug: any
-  // arrow press closed it before you could compare options.
-  await first.page.locator('#braille-table-fieldset input[value="none"]').focus();
+  // Opens with the current choice both focused and checked.
+  assert.equal(await noneOption.getAttribute('aria-checked'), 'true');
+  assert.equal(await noneOption.evaluate((el) => el === document.activeElement), true);
+
+  // Arrowing moves focus only -- it must NOT apply the option arrowed past
+  // (that was the bug this menu used to have) and must NOT close the dialog.
   await first.page.keyboard.press('ArrowDown');
-  await first.page.waitForFunction(() => document.querySelector(
-    '#braille-table-fieldset input[value="en-us-comp8"]'
-  )?.checked === true);
+  assert.equal(await comp8Option.evaluate((el) => el === document.activeElement), true, 'focus moved to the arrowed-to option');
+  assert.equal(await comp8Option.getAttribute('aria-checked'), 'false', 'arrowing onto it does not apply it');
+  assert.equal(await noneOption.getAttribute('aria-checked'), 'true', 'the original choice is untouched');
   assert.equal(await dialog.isVisible(), true, 'the dialog stays open while arrowing between options');
-  await first.page.keyboard.press('ArrowUp');
-  await first.page.waitForFunction(() => document.querySelector(
-    '#braille-table-fieldset input[value="none"]'
-  )?.checked === true);
-  assert.equal(await dialog.isVisible(), true, 'and stays open arrowing back, in either direction');
 
-  await first.page.locator('#braille-table-fieldset input[value="en-us-comp8"]').check();
-  assert.equal(await dialog.isVisible(), true, 'selecting via click/check also leaves the dialog open');
+  // Escape closes without applying whatever was merely focused.
   await first.page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'hidden' });
+  assert.equal(await first.page.locator('#composer-source').isVisible(), true, 'focus returns to the field');
+  await first.page.keyboard.press('Control+d');
+  await dialog.waitFor({ state: 'visible' });
+  assert.equal(await noneOption.getAttribute('aria-checked'), 'true', 'reopening shows the choice from before, unaffected by the earlier arrowing');
+
+  // Enter on the focused option applies it and closes the dialog.
+  await first.page.keyboard.press('ArrowDown');
+  await first.page.keyboard.press('Enter');
   await dialog.waitFor({ state: 'hidden' });
   assert.equal(await first.page.locator('#composer-source').isVisible(), true, 'focus returns to the field');
 
@@ -217,8 +224,8 @@ test('Ctrl+D opens the braille input table picker, and the choice decodes comput
   await second.page.keyboard.press('Control+d');
   await second.page.locator('#braille-table-picker').waitFor({ state: 'visible' });
   assert.equal(
-    await second.page.locator('#braille-table-fieldset input[value="en-us-comp8"]').isChecked(),
-    true,
+    await second.page.locator('#braille-table-menu [data-value="en-us-comp8"]').getAttribute('aria-checked'),
+    'true',
     'the picker reopens with the persisted choice already selected'
   );
 });
