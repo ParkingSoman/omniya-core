@@ -55,10 +55,12 @@ jobs:
           # Top-level dist\* only (no -Recurse): dist\win-unpacked holds the NSIS
           # target's intermediate build (bundled liblouis/elevate helpers, the raw
           # unpacked app exe) which must never be uploaded as if it were a release asset.
-          # *.yml (not the literal "latest.yml") because bump-testing-version.mjs tags
-          # every build with the "alpha" prerelease channel, so electron-builder names
-          # the update-info file alpha.yml, not latest.yml.
-          $assets = Get-ChildItem -Path "dist\*" -Include *.exe,*.exe.blockmap,*.yml
+          # alpha.yml (not the literal "latest.yml", and not a *.yml wildcard - that
+          # also matches electron-builder's own builder-debug.yml dump) because
+          # bump-testing-version.mjs always tags testing builds with the "alpha"
+          # prerelease channel, so electron-builder names the update-info file
+          # alpha.yml specifically.
+          $assets = Get-ChildItem -Path "dist\*" -Include *.exe,*.exe.blockmap,alpha.yml
           if (-not $assets) { throw "No installer/update assets found in dist" }
           foreach ($asset in @($assets)) {
             gh release upload testing-app $asset.FullName --clobber
