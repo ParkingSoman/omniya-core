@@ -29,6 +29,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release view testing-app >/dev/null 2>&1 || gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned builds for the testing branch. Windows installs auto-update in the background; macOS testers get an in-app notice to re-download. Apple Silicon Mac and Windows x64 only." --target "$GITHUB_SHA"
+          git tag -f testing-app "$GITHUB_SHA"
+          git push origin testing-app --force
           gh release upload testing-app dist/*.zip dist/version.json --clobber
 
   pack-win:
@@ -48,6 +50,8 @@ jobs:
         shell: pwsh
         run: |
           gh release view testing-app >$null 2>&1; if ($LASTEXITCODE -ne 0) { gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned builds for the testing branch. Windows installs auto-update in the background; macOS testers get an in-app notice to re-download. Apple Silicon Mac and Windows x64 only." --target $env:GITHUB_SHA }
+          git tag -f testing-app $env:GITHUB_SHA
+          git push origin testing-app --force
           $assets = Get-ChildItem -Path dist -Include *.exe,*.exe.blockmap,latest.yml -Recurse
           if (-not $assets) { throw "No installer/update assets found in dist" }
           foreach ($asset in @($assets)) {
