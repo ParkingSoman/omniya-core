@@ -52,8 +52,15 @@ jobs:
           gh release view testing-app >$null 2>&1; if ($LASTEXITCODE -ne 0) { gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned builds for the testing branch. Windows installs auto-update in the background; macOS testers get an in-app notice to re-download. Apple Silicon Mac and Windows x64 only." --target $env:GITHUB_SHA }
           git tag -f testing-app $env:GITHUB_SHA
           git push origin testing-app --force
-          $assets = Get-ChildItem -Path dist -Include *.exe,*.exe.blockmap,latest.yml -Recurse
+          # Top-level dist\* only (no -Recurse): dist\win-unpacked holds the NSIS
+          # target's intermediate build (bundled liblouis/elevate helpers, the raw
+          # unpacked app exe) which must never be uploaded as if it were a release asset.
+          # *.yml (not the literal "latest.yml") because bump-testing-version.mjs tags
+          # every build with the "alpha" prerelease channel, so electron-builder names
+          # the update-info file alpha.yml, not latest.yml.
+          $assets = Get-ChildItem -Path "dist\*" -Include *.exe,*.exe.blockmap,*.yml
           if (-not $assets) { throw "No installer/update assets found in dist" }
           foreach ($asset in @($assets)) {
             gh release upload testing-app $asset.FullName --clobber
+            if ($LASTEXITCODE -ne 0) { throw "gh release upload failed for $($asset.FullName)" }
           }
