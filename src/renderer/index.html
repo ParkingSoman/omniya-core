@@ -28,7 +28,7 @@
           <input id="napkin-name" required autocomplete="off">
           <p id="napkin-name-error" class="error" hidden></p>
           <div class="form-actions">
-            <button type="submit">Create napkin</button>
+            <button id="new-napkin-submit" type="submit">Create napkin</button>
             <button id="cancel-new-napkin" type="button">Cancel</button>
           </div>
         </form>
@@ -121,7 +121,7 @@
         <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
           <h3 id="keyboard-help-heading">Keyboard help</h3>
           <p><strong>Reading:</strong> Enter explores an equation. MathJax arrows navigate its hierarchy. r replaces the exact focus. a inserts after it. o inserts before it.</p>
-          <p><strong>Authoring:</strong> Type in the document to write. Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts a Nemeth equation; Ctrl+L inserts LaTeX. Enter commits an unfinished equation, then you are in text again. Escape discards an unfinished equation. Ctrl+T toggles UEB grade on text. The Nemeth field takes braille cells only; Backspace deletes the last cell as in any text field, and a braille display works whether it sends cells or the plain text a computer-braille table produces — the app tells them apart on its own and the status line says which reading it used. With no pending UEB cells, full cell ⠿ inserts Nemeth (same as Ctrl+E). The UEB word “for” is also ⠿ at the start of a word and will do the same; use Ctrl+E or Insert → Equation (Nemeth) if that collides. The application menu Insert / Format / Help (Alt on Windows; menu bar on Mac) does the same actions.</p>
+          <p><strong>Authoring:</strong> Type in the document to write. Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts a Nemeth equation; Ctrl+L inserts LaTeX. Enter commits the equation and keeps the equation editor up in the same method, so the next expression needs no Ctrl+E. Escape returns to text, and discards an unfinished equation. Ctrl+T toggles UEB grade on text. The Nemeth field takes braille cells only; Backspace deletes the last cell as in any text field, and a braille display works whether it sends cells or the plain text a computer-braille table produces — the app tells them apart on its own and the status line says which reading it used. With no pending UEB cells, full cell ⠿ inserts Nemeth (same as Ctrl+E). The UEB word “for” is also ⠿ at the start of a word and will do the same; use Ctrl+E or Insert → Equation (Nemeth) if that collides. The application menu Insert / Format / Help (Alt on Windows; menu bar on Mac) does the same actions.</p>
           <div data-command-help></div>
           <p><strong>History:</strong> Cmd/Ctrl+Z undoes a submitted replacement. Cmd/Ctrl+Shift+Z redoes it.</p>
           <p><strong>Build:</strong> <span id="app-build-identity">unknown</span>. If braille input misbehaves, Help → Copy braille input diagnostics puts this and the last few keystrokes on the clipboard for a bug report.</p>

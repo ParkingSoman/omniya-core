@@ -284,7 +284,8 @@ By default, committed state is stored as `napkins.json` under Electron’s platf
 On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In the app, **Keyboard help** (under the napkin, or Help → Keyboard shortcuts) is the live list.
 
 - Use Tab and Shift+Tab to move through ordinary controls.
-- In the napkin sidebar, focus a napkin and press Backspace to delete it after confirmation.
+- In the napkin sidebar, focus a napkin and press Backspace to delete it after confirmation,
+  or Ctrl+U (Cmd+U on macOS) to rename it.
 - Up and Down move between items. Home and End move to the first and last item; on compact Mac keyboards these are commonly Fn+Left Arrow and Fn+Right Arrow.
 - Press Enter on a focused text item to edit it.
 - Press Enter on a focused equation to enter MathJax’s expression explorer. MathJax handles movement through the expression; Escape returns to the item.

@@ -28,8 +28,19 @@ import { createInputLog } from './input-log.js';
 
 const FIELD = '#composer-source';
 
-function nemethAuthoring(document) {
-  return /Equation · Nemeth/i.test(document.querySelector('#mode-panel')?.textContent ?? '');
+/**
+ * The authoring mode in force, recorded on every entry.
+ *
+ * The capture used to record ONLY while this read "Equation · Nemeth", and
+ * return early otherwise. That gate hid the single most useful thing a report
+ * could carry: an author who believes they are in equation mode and is not
+ * produced no log at all, so "the app would not take my equation" and "the app
+ * was never in equation mode" looked identical from here -- and identical to
+ * having typed nothing. Recording the mode instead of gating on it turns that
+ * into one readable line.
+ */
+function authoringMode(document) {
+  return document.querySelector('#mode-panel')?.textContent?.trim() || 'unknown';
 }
 
 export function attachInputCapture({ document, log = createInputLog(), onChange, readTable } = {}) {
@@ -43,7 +54,6 @@ export function attachInputCapture({ document, log = createInputLog(), onChange,
   };
 
   const onKeydown = (event) => {
-    if (!nemethAuthoring(document)) return;
     publish({
       type: 'keydown',
       key: event.key,
@@ -51,15 +61,16 @@ export function attachInputCapture({ document, log = createInputLog(), onChange,
       // Set by the time a bubble listener runs: the chord reader calls
       // preventDefault() in capture/earlier-registered order.
       swallowed: event.defaultPrevented,
+      mode: authoringMode(document),
       table: activeTable(),
       value: field.value
     });
   };
 
   const onInput = () => {
-    if (!nemethAuthoring(document)) return;
     publish({
       type: 'input',
+      mode: authoringMode(document),
       table: activeTable(),
       value: field.value,
       state: document.querySelector('#composer-status')?.textContent?.trim() || undefined

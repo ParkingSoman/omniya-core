@@ -9,6 +9,7 @@ import {
   deleteItem,
   getActiveNapkin,
   insertItemAt,
+  renameNapkin,
   selectItem,
   splitTextItem,
   switchNapkin,
@@ -87,6 +88,24 @@ test('restores each napkin’s independent selection when switching', () => {
 test('rejects a blank napkin name', () => {
   const initial = createInitialState({ idFactory: ids('napkin-1') });
   assert.throws(() => createNapkin(initial, '   '), /Napkin name is required/);
+});
+
+test('renames a napkin immutably, trimming the name and leaving other napkins alone', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const withSecond = createNapkin(initial, 'Second napkin', { idFactory: ids('napkin-2') });
+
+  const renamed = renameNapkin(withSecond, 'napkin-1', '  Proof ideas  ');
+  assert.notEqual(renamed, withSecond);
+  assert.equal(withSecond.napkins[0].name, 'Untitled Napkin');
+  assert.equal(renamed.napkins.find(({ id }) => id === 'napkin-1').name, 'Proof ideas');
+  assert.equal(renamed.napkins.find(({ id }) => id === 'napkin-2').name, 'Second napkin');
+  assert.equal(renamed.activeNapkinId, withSecond.activeNapkinId);
+});
+
+test('rejects a blank rename and an unknown napkin id', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  assert.throws(() => renameNapkin(initial, 'napkin-1', '   '), /Napkin name is required/);
+  assert.throws(() => renameNapkin(initial, 'missing', 'New name'), /Napkin not found/);
 });
 
 test('adds text and equation items in order and selects the newest item', () => {

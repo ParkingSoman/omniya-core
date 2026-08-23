@@ -278,3 +278,71 @@ test('automatic detection leaves a raw-cell buffer alone and announces no mode',
   assert.doesNotMatch(status, /computer braille/i);
   assert.equal(await page.locator('#composer-source').inputValue(), FRACTION, 'cells pass through untouched');
 });
+
+test('equation mode persists after Enter until Escape asks for text', { timeout: 120_000 }, async (t) => {
+  // Reported by an alpha tester on 2026-08-23: "After I'm done entering an
+  // equation, I hit enter and I'm ready to enter in another equation. I
+  // expected the equation editor to still be up ... It would be nice if it
+  // stayed in equation mode until I told it to go to the text entry mode."
+  //
+  // Committing used to call enterDocumentTextAuthoring(), so every equation
+  // cost a Ctrl+E to get back. Escape is the way out, and it already was.
+  const { app, page } = await launch('omniya-nemeth-mode-persists-');
+  t.after(() => app.close().catch(() => {}));
+  await enterNemethMode(page);
+
+  await page.keyboard.type('#2+#2 .k #4');
+  await page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  await page.keyboard.press('Enter');
+  await page.locator('article.napkin-article').first()
+    .locator('mjx-assistive-mml math, math').first().waitFor();
+
+  // Still in Nemeth, with an empty field ready for the next expression.
+  await page.waitForFunction(() => /Equation · Nemeth/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  assert.equal(await page.locator('#composer-source').inputValue(), '');
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.id),
+    'composer-source',
+    'focus stays in the field the author is already typing into'
+  );
+  // #composer-status is the field's aria-describedby live region -- with focus
+  // never moving, it is the only channel that can tell a screen-reader user the
+  // equation landed and the mode held.
+  assert.match(
+    await page.locator('#composer-status').textContent() ?? '',
+    /added.*Nemeth/i,
+    'the status names both the insert and the mode that persisted'
+  );
+
+  // A second equation goes straight in, with no Ctrl+E in between.
+  await page.keyboard.type('#3+#3 .k #6');
+  await page.waitForFunction(() => /read as 3\+3=6/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.querySelectorAll('article.napkin-article').length === 2);
+
+  // Escape is the documented way back to text, and still is.
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text · UEB/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+});
+
+test('the mode panel stops calling a full equation empty', { timeout: 90_000 }, async (t) => {
+  // The panel is the state readout a braille reader queries; it said
+  // "Equation · Nemeth · empty" with 22 cells in the field because
+  // syncCommandContentEmpty() updated commandState without re-rendering chrome.
+  const { app, page } = await launch('omniya-nemeth-contentempty-');
+  t.after(() => app.close().catch(() => {}));
+  await enterNemethMode(page);
+
+  assert.match(await page.locator('#mode-panel').textContent() ?? '', /empty/i);
+  await page.keyboard.type('#2+#2 .k #4');
+  await page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  assert.doesNotMatch(
+    await page.locator('#mode-panel').textContent() ?? '',
+    /empty/i,
+    'a field holding a complete expression is not empty'
+  );
+});

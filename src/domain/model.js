@@ -174,6 +174,20 @@ export function createNapkin(state, name, { idFactory = defaultIdFactory } = {})
   };
 }
 
+export function renameNapkin(state, napkinId, name) {
+  assertValidState(state);
+  const normalizedName = requiredTrimmed(name, 'Napkin name is required');
+  if (!state.napkins.some(({ id }) => id === napkinId)) {
+    throw new RangeError('Napkin not found');
+  }
+  return {
+    ...state,
+    napkins: state.napkins.map((napkin) => (
+      napkin.id === napkinId ? { ...napkin, name: normalizedName } : napkin
+    ))
+  };
+}
+
 export function switchNapkin(state, napkinId) {
   assertValidState(state);
   if (!state.napkins.some(({ id }) => id === napkinId)) {

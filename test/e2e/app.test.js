@@ -226,7 +226,7 @@ test('supports a live-text offline napkin workflow', { timeout: 60_000 }, async 
   assert.deepEqual([...session.externalRequests], []);
 });
 
-test('Ctrl+L inserts LaTeX at the caret and Enter returns to text', { timeout: 60_000 }, async (t) => {
+test('Ctrl+L inserts LaTeX at the caret and Enter keeps the equation editor up', { timeout: 60_000 }, async (t) => {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-ctrl-l-e2e-'));
   const session = await launch(dataDirectory);
   t.after(async () => {
@@ -248,8 +248,29 @@ test('Ctrl+L inserts LaTeX at the caret and Enter returns to text', { timeout: 6
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
   assert.ok(await articles.locator('mjx-container, math').count());
-  assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text/);
+  // Equation mode is sticky, and sticky in the method that just committed.
+  // Reported by an alpha tester (2026-08-23): dropping to text after every
+  // Enter charged a Ctrl+L per equation, and someone writing mathematics is
+  // usually writing more than one expression.
+  await page.waitForFunction(() => /Equation · LaTeX/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  assert.equal(await source.inputValue(), '', 'ready for the next expression, not holding the last');
+
+  // Escape is the way back to text, and it always was. The prose the equation
+  // was inserted into has to survive that -- sticky mode re-opens a draft at
+  // the caret after every commit, and discarding one must not take the
+  // surrounding text with it.
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  assert.match(
+    await page.locator('#transcript').textContent() ?? '',
+    /Let x equal/,
+    'the text the equation was written into is still in the napkin'
+  );
 });
 
 test('Ctrl+E opens Nemeth; Escape discards and returns to text', { timeout: 60_000 }, async (t) => {
@@ -571,4 +592,44 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
   await assert.rejects(() => rail.getByRole('button', { name: 'Untitled Napkin' }).waitFor({ timeout: 250 }));
   assert.equal(await rail.locator('[data-napkin-id]').count(), 0);
   assert.equal(await page.getByRole('heading', { name: 'No napkin selected' }).count(), 1);
+});
+
+test('renames a focused sidebar napkin with Ctrl+U', { timeout: 60_000 }, async (t) => {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-rename-napkin-e2e-'));
+  const session = await launch(dataDirectory);
+  t.after(async () => {
+    await session.electronApp.close().catch(() => {});
+  });
+
+  const { page } = session;
+  const rail = page.getByRole('complementary', { name: 'Napkins' });
+  await page.getByRole('button', { name: 'New napkin' }).click();
+  await page.getByLabel('Napkin name').fill('Second napkin');
+  await page.getByRole('button', { name: 'Create napkin' }).click();
+  await page.locator('#composer-source').waitFor();
+
+  const first = rail.getByRole('button', { name: 'Untitled Napkin' });
+  await first.focus();
+  await first.press('Control+u');
+  const nameField = page.getByLabel('Napkin name');
+  await nameField.waitFor();
+  assert.equal(await nameField.inputValue(), 'Untitled Napkin');
+  await nameField.fill('Proof ideas');
+  await page.getByRole('button', { name: 'Rename napkin' }).click();
+
+  assert.equal(await rail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
+  assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Proof ideas');
+
+  await page.getByRole('button', { name: 'Second napkin' }).click();
+  assert.match(await page.locator('#current-napkin-name').textContent() ?? '', /Second napkin/);
+
+  const second = rail.getByRole('button', { name: 'Second napkin' });
+  await second.focus();
+  await second.press('Control+u');
+  await page.getByLabel('Napkin name').fill('   ');
+  await page.getByRole('button', { name: 'Rename napkin' }).click();
+  assert.match(await page.locator('#napkin-name-error').textContent() ?? '', /Napkin name is required/);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
 });

@@ -35,8 +35,9 @@ equations, offline autosave.
   replace the focused subtree, **a** to insert after it, **o** to insert
   before it — same captured node, same composer.
 - Type in the document. Ctrl+E inserts a Nemeth equation island; Ctrl+L
-  inserts LaTeX. Enter commits the equation and returns to text. Escape
-  discards an unfinished equation.
+  inserts LaTeX. Enter commits the equation and **stays in equation mode**, in
+  the same method, ready for the next expression. Escape returns to text (and
+  discards an unfinished equation).
 - Braille: the Nemeth field reads raw cells and computer-braille text alike,
   detected from the input itself with nothing to configure. Command mode is
   gone; there is no Ctrl+[, no Command n/i/t/x, and no Add item.
@@ -87,8 +88,11 @@ npm run test:demo:thought
 
 1. Launch the packaged app or `npm start`. Confirm notes / type radios are not visible chrome.
 2. Type in the document. `#mode-panel` shows Text · UEB G2 (or G1). Ctrl+E
-   inserts Nemeth; Ctrl+L inserts LaTeX. Enter commits the equation, then
-   type text again. Escape discards an unfinished equation.
+   inserts Nemeth; Ctrl+L inserts LaTeX. Enter commits the equation and the
+   composer stays in equation mode — type a second expression with no Ctrl+E
+   in between, and check `#composer-status` says so. Escape returns to text;
+   it also discards an unfinished equation. `#mode-panel` must say `editing`,
+   not `empty`, once there are cells in the field.
 3. Type print text; confirm the article has a UEB `aria-braillelabel`
    (inspect or AT). Ctrl+T toggles UEB G2 / G1.
 4. Ctrl+E → author Nemeth in `#composer-source` → Enter. With no braille
@@ -128,7 +132,8 @@ source before the task. Full protocol:
 
 1. Create a napkin; type in the document.
 2. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX. Enter commits the equation
-   then returns to text. Escape discards an unfinished equation.
+   and keeps the equation editor up in the same method. Escape returns to
+   text; it also discards an unfinished equation.
 3. Ctrl+T toggles UEB grade on text. Insert / Format / Help menus (Alt on
    Windows; menu bar on Mac) do the same.
 4. For an equation: author cells in the unified composer from the braille
@@ -157,8 +162,19 @@ source before the task. Full protocol:
   shipped build: its only code path sat behind a simulation flag that was never
   set. Use Ctrl+E or Insert → Equation (Nemeth).
 - If braille input does not behave, **Help → Copy braille input diagnostics** captures
-  the build, the input table in force, and what the field received — paste it into the
-  report rather than describing the symptom, which historically took several rounds.
+  the build, the input table in force, and everything the writing field received
+  **since the app was opened** — not a tail of it. Three things changed after an alpha
+  report on 2026-08-23 arrived with a log that could not contain the answer:
+  - it holds the whole session, where it used to keep 50 entries and print 20;
+  - it records text mode as well as Nemeth, with a `-- mode:` line at each change,
+    so "I thought I was in equation mode" is visible rather than indistinguishable
+    from having typed nothing;
+  - it records what Enter did (`commit verdict=accepted` / `verdict=refused`, with
+    the message), which the old capture could never reach because it stopped the
+    moment Enter left equation mode.
+
+  The report is long by design and states its own size. Paste it into the report
+  rather than describing the symptom, which historically took several rounds.
 - This is usability / workflow feedback, **not** a BANA certification session.
 - Grade preference (`uebGrade`) is session-only and not persisted yet.
 

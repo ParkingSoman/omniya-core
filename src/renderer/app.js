@@ -4,6 +4,7 @@ import {
   deleteNapkin,
   deleteItem,
   insertItemAt,
+  renameNapkin,
   selectItem,
   splitTextItem,
   switchNapkin,
@@ -61,7 +62,7 @@ function createEmptyDraftMathDocument() {
 }
 
 const elements = Object.fromEntries([
-  'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'napkin-name',
+  'app-shell', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'new-napkin-submit', 'napkin-name',
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name', 'item-count',
   'mode-panel', 'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions',
@@ -89,6 +90,7 @@ let saveChain = Promise.resolve();
 let transcriptRenderVersion = 0;
 let mathJaxReady;
 let exploringEquationItemId = null;
+let renamingNapkinId = null;
 let replacementSession = null;
 let replacementEditor = null;
 let replacementHasContent = false;
@@ -549,7 +551,7 @@ function renderComposer() {
   elements['composer-help'].textContent = mathReplace
     ? 'Nemeth: type cells · LaTeX: type source · Escape cancels · Replace commits'
     : values.type === 'equation'
-      ? 'Nemeth: type cells · LaTeX: type source · Escape cancels · Ctrl+E / Ctrl+L choose method while empty'
+      ? 'Nemeth: type cells · LaTeX: type source · Enter inserts and stays in equation mode · Escape returns to text · Ctrl+E / Ctrl+L choose method while empty'
       : 'Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX.';
   // Unified composer: Equation keeps #composer-source visible (Nemeth/LaTeX styling only).
   elements['composer-source'].hidden = false;
@@ -733,6 +735,21 @@ async function resolveMathReplaceFocus(article, item, startingFocus = null, isNe
 
 /** Open the unified composer to replace the focused MathML slot. */
 async function openComposerForMathReplace(article, startingFocus = null, isNew = false, placement = 'replace') {
+  // An untouched new-equation draft yields; anything with content still wins.
+  //
+  // Equation mode is sticky after a commit, so an empty session is now almost
+  // always sitting open when the author moves to an equation in the transcript
+  // and presses r / a / o. Without this, `if (replacementSession) return` below
+  // silently swallowed all three -- the sticky mode would have cost the author
+  // the mathematics-editing keys, which is a far worse trade than the Ctrl+E it
+  // saves. Only the empty, brand-new, not-a-replacement case is discarded here;
+  // openEditMode already does exactly this for the text path.
+  if (replacementSession && !replacementEditor
+      && replacementSession.isNew && !replacementSession.originalDocument
+      && replacementDraftIsEmpty()) {
+    clearComposerMathSession();
+    equationCaretSnapshot = null;
+  }
   if (replacementSession) return;
   const item = activeNapkin()?.items.find(({ id }) => id === article.dataset.itemId);
   if (!item) return;
@@ -883,6 +900,44 @@ function ensureComposerMathSession() {
 function setComposerMathStatus(message) {
   if (!elements['composer-status']) return;
   elements['composer-status'].textContent = message ?? '';
+}
+
+/**
+ * Put the commit verdict into the same log the keystrokes went into.
+ *
+ * `input-capture.js` observes the field from the DOM and gates every entry on
+ * #mode-panel still reading "Equation · Nemeth". Enter is the keystroke that
+ * ends that condition, so the capture fell silent exactly one line before the
+ * answer: an alpha tester's report of "it told me the equation wasn't valid"
+ * arrived with a log whose last line was the Enter, and nothing about what
+ * happened next. Accepted-or-refused is only knowable here, so it is recorded
+ * here, deliberately outside that gate.
+ *
+ * Nemeth only. This report is the braille input path; a LaTeX commit in it is
+ * noise for the person reading it back with a screen reader. Same privacy
+ * posture as every other entry -- in memory, capped, and it leaves the process
+ * only when someone asks for the dump.
+ */
+function recordNemethCommit(verdict, value, message) {
+  if (replacementSession?.method !== 'nemeth') return;
+  inputLog.record({
+    type: 'commit',
+    verdict,
+    mode: elements['mode-panel']?.textContent?.trim() || 'unknown',
+    table: lastResolvedInputTable,
+    value,
+    state: message
+  });
+}
+
+/**
+ * What the author hears after Enter commits an equation and the composer stays
+ * in equation mode. Names the insert, the mode that persisted, and the way out
+ * -- Escape, which has always been the way out of an unfinished equation.
+ */
+function equationCommittedStatus(method) {
+  const name = method === 'latex' ? 'LaTeX' : 'Nemeth';
+  return `Equation added. Still in ${name} — type the next equation, or Escape for text.`;
 }
 
 /**
@@ -1272,10 +1327,20 @@ async function handleComposerUebCell(cell) {
 function syncCommandContentEmpty() {
   if (replacementSession) {
     commandState = { ...commandState, contentEmpty: replacementDraftIsEmpty() };
+    syncModePanel(commandState);
     return;
   }
   const src = elements['composer-source']?.value ?? '';
   commandState = { ...commandState, contentEmpty: src.trim().length === 0 };
+  // Repaint, don't just record. `commandState.contentEmpty` was already being
+  // kept accurate here, but nothing re-rendered #mode-panel afterwards, so the
+  // panel went on reading "Equation · Nemeth · empty" with a complete
+  // expression in the field. That panel is the state readout a braille reader
+  // queries when they want to know where they are, so a stale one is not
+  // cosmetic. syncModePanel rather than applyCommandStateToChrome: this runs on
+  // every keystroke and only the text needs to change -- re-checking the
+  // mode-switch radios mid-word would churn the accessibility tree for nothing.
+  syncModePanel(commandState);
 }
 
 function replacementDraftIsEmpty() {
@@ -1359,7 +1424,7 @@ function openContextualHelp() {
     shortcuts.children[0].textContent = 'Ctrl+T';
     shortcuts.append(' toggles UEB grade on text · ');
     shortcuts.children[1].textContent = 'Enter';
-    shortcuts.append(' commits an equation');
+    shortcuts.append(' commits an equation and stays in equation mode — Escape returns to text');
     const brailleHelp = document.createElement('p');
     brailleHelp.append(document.createElement('kbd'));
     brailleHelp.firstChild.textContent = '⠿';
@@ -1443,6 +1508,9 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
   if (mathSessionActive) {
     if (submittingComposerEquation) return;
     submittingComposerEquation = true;
+    // Snapshot before anything can clear the field: this is the exact buffer
+    // the verdict recorded below applies to.
+    const submittedBuffer = elements['composer-source'].value;
     try {
       if (!editing) ensureComposerMathSession();
       if (!replacementSession || replacementEditor) {
@@ -1486,6 +1554,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         // status line the author just heard.
         brailleInputTable: NEMETH_INPUT_MODE
       });
+      recordNemethCommit('accepted', submittedBuffer);
       if (replacementSession.originalDocument && item) {
         const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
         history.undo.push({ document: structuredClone(item.math), focus: item.math?.focus ?? null });
@@ -1507,6 +1576,9 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         elements['save-status'].textContent = 'Replacement committed';
         await saveState().catch(() => {});
       } else {
+        // Captured before clearComposerMathSession() drops the session: the
+        // composer re-opens in the method that just committed, below.
+        const committedMethod = replacementSession.method;
         const followId = commitEquationAtSnapshot(note, result.document);
         clearComposerMathSession();
         resetDraft();
@@ -1519,9 +1591,31 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
           elements['composer-source']?.setSelectionRange(0, 0);
         }
         elements['save-status'].textContent = 'Added item';
+        // Equation mode is sticky: an author writing mathematics is usually
+        // writing more than one expression, and dropping to text after every
+        // Enter charged them a Ctrl+E per equation. Reported directly by an
+        // alpha tester (2026-08-23): "I expected the equation editor to still
+        // be up ... it would be nice if it stayed in equation mode until I
+        // told it to go to the text entry mode."
+        //
+        // This deliberately runs AFTER the enterDocumentTextAuthoring/
+        // openEditMode pair above rather than replacing it. That pair is what
+        // puts the caret at offset 0 of the text item split off to the right of
+        // the new equation, so the snapshot startEquationAtCaret takes here
+        // lands the NEXT equation immediately after this one instead of at the
+        // end of the napkin. openEditMode also tears down a live isNew session,
+        // so re-entering before it would be undone.
+        startEquationAtCaret(committedMethod);
+        // #composer-status is the field's aria-describedby live region, and
+        // with focus never leaving the field it is now the only channel that
+        // can tell a screen-reader user the equation landed. Say the mode too:
+        // "still in Nemeth" is the whole point of the change, and silence about
+        // it is how a sticky mode becomes a trap.
+        setComposerMathStatus(equationCommittedStatus(committedMethod));
         await saveState().catch(() => {});
       }
     } catch (error) {
+      recordNemethCommit('refused', submittedBuffer, error.message);
       setFieldError(elements['composer-source'], elements['composer-error'], error.message);
       setComposerMathStatus(error.message);
       elements['composer-source'].setAttribute('aria-invalid', 'true');
@@ -1588,9 +1682,24 @@ async function deleteFocusedNapkin(napkinId) {
   await saveState().catch(() => {});
 }
 
+function renameFocusedNapkin(napkinId) {
+  if (mode !== 'read') return;
+  const napkin = state.napkins.find(({ id }) => id === napkinId);
+  if (!napkin) return;
+  renamingNapkinId = napkinId;
+  elements['new-napkin-form'].hidden = false;
+  elements['new-napkin-submit'].textContent = 'Rename napkin';
+  elements['napkin-name'].value = napkin.name;
+  setFieldError(elements['napkin-name'], elements['napkin-name-error']);
+  elements['napkin-name'].focus();
+  elements['napkin-name'].select();
+}
+
 elements['new-napkin-button'].addEventListener('click', () => {
   if (mode !== 'read') returnToRead();
+  renamingNapkinId = null;
   elements['new-napkin-form'].hidden = false;
+  elements['new-napkin-submit'].textContent = 'Create napkin';
   elements['napkin-name'].value = '';
   setFieldError(elements['napkin-name'], elements['napkin-name-error']);
   elements['napkin-name'].focus();
@@ -1598,21 +1707,33 @@ elements['new-napkin-button'].addEventListener('click', () => {
 
 elements['cancel-new-napkin'].addEventListener('click', () => {
   elements['new-napkin-form'].hidden = true;
-  elements['new-napkin-button'].focus();
+  const napkinId = renamingNapkinId;
+  renamingNapkinId = null;
+  if (napkinId) focusNapkinButton(napkinId);
+  else elements['new-napkin-button'].focus();
 });
 
 elements['new-napkin-form'].addEventListener('submit', async (event) => {
   event.preventDefault();
+  const napkinId = renamingNapkinId;
   try {
-    state = createNapkin(state, elements['napkin-name'].value);
+    state = napkinId
+      ? renameNapkin(state, napkinId, elements['napkin-name'].value)
+      : createNapkin(state, elements['napkin-name'].value);
   } catch (error) {
     setFieldError(elements['napkin-name'], elements['napkin-name-error'], error.message);
     elements['napkin-name'].focus();
     return;
   }
   elements['new-napkin-form'].hidden = true;
+  renamingNapkinId = null;
   renderAll();
-  enterDocumentTextAuthoring({ focus: true });
+  if (napkinId) {
+    focusNapkinButton(napkinId);
+    elements['save-status'].textContent = `Renamed to ${state.napkins.find(({ id }) => id === napkinId)?.name ?? ''}`;
+  } else {
+    enterDocumentTextAuthoring({ focus: true });
+  }
   await saveState().catch(() => {});
 });
 
@@ -1633,9 +1754,21 @@ elements['napkin-list'].addEventListener('click', async (event) => {
 
 elements['napkin-list'].addEventListener('keydown', (event) => {
   const button = event.target.closest('[data-napkin-id]');
-  if (!button || event.key !== 'Backspace') return;
-  event.preventDefault();
-  void deleteFocusedNapkin(button.dataset.napkinId);
+  if (!button) return;
+  if (event.key === 'Backspace') {
+    event.preventDefault();
+    void deleteFocusedNapkin(button.dataset.napkinId);
+    return;
+  }
+  // Ctrl+U (Cmd+U on Mac) rather than F2. F2 is the desktop convention, but it
+  // is a poor fit for the people using this: a braille display's keyboard often
+  // has no function-key row at all, and reaching one on a laptop can mean a
+  // second Fn chord. Ctrl+U is unclaimed here -- there is no accelerator for it
+  // in the application menu, and `role: 'editMenu'` does not define one.
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'u') {
+    event.preventDefault();
+    renameFocusedNapkin(button.dataset.napkinId);
+  }
 });
 
 elements['replacement-submit'].addEventListener('click', () => {
@@ -1972,7 +2105,8 @@ async function copyInputDiagnostics() {
     appInfo: window.omniya?.appInfo,
     brailleInputTable: NEMETH_INPUT_MODE,
     resolvedTable: lastResolvedInputTable,
-    entries: inputLog.entries()
+    entries: inputLog.entries(),
+    dropped: inputLog.dropped
   });
   try {
     await navigator.clipboard.writeText(report);
@@ -2088,7 +2222,8 @@ globalThis.__omniyaTesting = {
       appInfo: window.omniya?.appInfo,
       brailleInputTable: NEMETH_INPUT_MODE,
       resolvedTable: lastResolvedInputTable,
-      entries: inputLog.entries()
+      entries: inputLog.entries(),
+      dropped: inputLog.dropped
     });
   },
   async openNewEquationDock() {

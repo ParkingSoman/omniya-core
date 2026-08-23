@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { formatInputDiagnostics, MAX_REPORTED_ENTRIES } from '../../src/renderer/input-diagnostics.js';
+import { formatInputDiagnostics } from '../../src/renderer/input-diagnostics.js';
 
 const appInfo = { version: '0.1.0-alpha.12+5386fc6', platform: 'win32', arch: 'x64' };
 
@@ -21,7 +21,10 @@ test('the report answers the questions that cost three rounds of email', () => {
   assert.match(report, /win32-x64/);
   assert.match(report, /Braille input table: en-us-comp8/);
   assert.match(report, /CONSUMED-BY-APP/, 'a keystroke the app consumed is visible');
-  assert.match(report, /field="#2" U\+0023 U\+0032/, 'and what the field really held');
+  // Printable ASCII prints quoted; the cells it should have decoded to print
+  // with their code points, and that contrast is the fact this report exists
+  // to carry.
+  assert.match(report, /field="#2"/, 'and what the field really held');
 });
 
 test('an automatic table reports the reading it settled on, not just "auto"', () => {
@@ -38,7 +41,7 @@ test('running from source is said plainly rather than shown as undefined', () =>
   assert.doesNotMatch(report, /undefined/);
 });
 
-test('the report is capped, and says how much it is disclosing', () => {
+test('the report holds the whole session, and says how much it is disclosing', () => {
   // A keystroke log of this field IS the author's equation, so the report says
   // so in its own body -- a blind contributor can read what they are sending
   // before they send it, which is why this is plain text and not JSON.
@@ -46,10 +49,48 @@ test('the report is capped, and says how much it is disclosing', () => {
   const report = formatInputDiagnostics({ appInfo, brailleInputTable: 'none', entries });
 
   const keydownLines = report.split('\n').filter((line) => line.startsWith('keydown'));
-  assert.equal(keydownLines.length, MAX_REPORTED_ENTRIES);
-  assert.match(keydownLines.at(-1), /key="59"/, 'keeps the most recent, which is where the fault is');
+  assert.equal(keydownLines.length, 60, 'the whole session, not a tail of it');
+  assert.match(keydownLines.at(0), /key="0"/, 'starting from the first keystroke after launch');
+  assert.match(keydownLines.at(-1), /key="59"/);
+  assert.match(report, /everything the writing field received since the app started/);
   assert.match(report, /includes the mathematics you were typing/);
   assert.match(report, /Nothing here was saved/);
+});
+
+test('a trimmed log says so, so a partial report is never read as a whole one', () => {
+  // The log holds the session, but it still has a ceiling. Silence about
+  // hitting it would put the report back where it was: looking complete while
+  // missing the part that explains the bug.
+  const entries = Array.from({ length: 5 }, (_, index) => ({ type: 'keydown', key: String(index) }));
+  const report = formatInputDiagnostics({ appInfo, brailleInputTable: 'none', entries, dropped: 118 });
+
+  assert.match(report, /Below are the last 5 lines/);
+  assert.match(report, /118 earlier lines are not shown/);
+  assert.doesNotMatch(report, /since the app started/);
+});
+
+test('the mode is printed where it changes, not on every line', () => {
+  // "Was the app in equation mode when I typed this" is what a stateful bug
+  // turns on, and the capture no longer gates on it -- it records it. Repeating
+  // it per line would triple the length of something a person reads aloud.
+  const report = formatInputDiagnostics({
+    appInfo,
+    brailleInputTable: 'auto',
+    resolvedTable: 'en-us-comp8',
+    entries: [
+      { type: 'keydown', key: 'a', mode: 'Text · UEB G2' },
+      { type: 'keydown', key: 'b', mode: 'Text · UEB G2' },
+      { type: 'keydown', key: '#', mode: 'Equation · Nemeth · empty' },
+      { type: 'commit', verdict: 'refused', mode: 'Equation · Nemeth · editing' }
+    ]
+  });
+
+  const modeLines = report.split('\n').filter((line) => line.startsWith('-- mode:'));
+  assert.deepEqual(modeLines, [
+    '-- mode: Text · UEB G2',
+    '-- mode: Equation · Nemeth · empty',
+    '-- mode: Equation · Nemeth · editing'
+  ], 'one line per change, none for the run in between');
 });
 
 test('an empty log reports itself rather than looking broken', () => {

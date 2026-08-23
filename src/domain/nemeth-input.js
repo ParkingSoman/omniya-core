@@ -264,17 +264,21 @@ export function nemethStatusMessage(classification) {
       return 'Enter Nemeth cells. Enter reads the whole expression.';
     case 'not-braille':
       return `Braille cells only: ${describeRejected(classification.rejected)} `
-        // Both fixes, always. The commonest cause of "braille is not
-        // recognised" is a device set to a computer-braille input table, which
-        // sends characters rather than cells so every keystroke is refused --
-        // and Control D is the whole fix for that user, but the old message
-        // never mentioned it. We cannot tell that case from ordinary prose
-        // here: en-us-comp8 spans the whole printable ASCII range, so "every
-        // rejected character decodes through a table we ship" is true of
-        // "hello?" as well. Rather than guess, name both.
-        + 'cannot be typed here. If your braille device sends translated text '
-        + 'rather than cells, Control D sets the input table to match it. '
-        + 'Otherwise switch to LaTeX with Control L to write ordinary source.';
+        // Names ONE fix, because there is only one left. This message used to
+        // offer Control D as well, from when a device sending computer-braille
+        // text needed the author to pick an input table by hand. That picker is
+        // gone -- `resolveBrailleInputTable` measures the table instead -- and
+        // no Control D handler exists anywhere in the app, so the sentence was
+        // sending a blind author to a keystroke that does nothing, in the one
+        // message they hear when their input is being refused.
+        //
+        // What is left is true and actionable: both readings this app supports
+        // (raw cells, and computer-braille text) are already tried on every
+        // keystroke, so a character reaching here is neither, and Control L is
+        // the way to write it as ordinary source.
+        + 'cannot be typed here. Braille cells and computer-braille text are '
+        + 'both read automatically, so these characters are neither. To write '
+        + 'ordinary source instead, switch to LaTeX with Control L.';
     case 'complete':
       return `${count} read as ${classification.latex}.${readingMode(classification)} Enter inserts it.`;
     case 'partial':
