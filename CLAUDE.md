@@ -55,9 +55,10 @@ Notes on the test setup:
 - `OMNIYA_TEST_USER_DATA_DIR` isolates persisted state for automated tests.
 - Local MathJax assets are vendored/installed, not CDN-loaded. If they're missing,
   `npm install` — do not add a network fallback.
-- As of the last Nemeth-v2 handoff: `npm test` 382/382 green; `npm run test:e2e` has
-  11 pre-existing `enterCommand` timeout failures unrelated to Nemeth (see
-  `docs/nemeth-v2/HANDOFF.md`, "Known rot") — don't assume you broke something if you
+- Current baseline: `npm test` 439/439 green; `npm run test:e2e` has 11 pre-existing
+  failures unrelated to Nemeth — 10 `enterCommand` timeouts plus one assertion in
+  `mathjax-navigation.test.js`, all verified to fail identically on a clean tree (see
+  `docs/nemeth-v2/HANDOFF.md`, "Known rot"). Don't assume you broke something if you
   see exactly those failures reproduce on a clean checkout too.
 
 ### Auto-commit hook
@@ -130,11 +131,39 @@ used by both the model and the Nemeth pipeline.
   parser. **Do not** reuse `src/domain/ueb-cell-buffer.js` for this — it flushes on
   `U+2800`, which Nemeth uses as a significant token (comparison-sign spacing), so
   reusing it truncates expressions at the first space.
-- Optional "computer braille" keyboard input (a braille keyboard configured to send
-  translated text instead of raw cells) is opt-in only, off by default, and decoded
-  through `src/domain/nemeth/computer-braille-en-us.js` for the one verified table
-  (`en-us-comp8`) — never guessed, since decoding through the wrong table would silently
-  produce the wrong symbol.
+- "Computer braille" keyboard input (a braille keyboard configured to send translated
+  text instead of raw cells) is decoded through
+  `src/domain/nemeth/computer-braille-en-us.js` for the one verified table
+  (`en-us-comp8`). `nemethBrailleInputTable` defaults to `'auto'`:
+  `resolveBrailleInputTable` picks between cells and a known table by measurement, which
+  is safe *only* because cells (`U+2800`–`U+28FF`) and ASCII are disjoint ranges. It
+  still never guesses between two text tables, and unexplained input resolves to `'none'`
+  so it refuses rather than half-decodes. The reading is always named in the status line
+  — that readback is the containment for a wrong detection, so don't remove it.
+  It used to be off by default; that was changed because a contributor whose display was
+  correctly configured was refused on every keystroke and had no way to discover the
+  picker existed.
+- **There is no input-table setting and no six-key chording.** Both were deliberately
+  removed; do not reintroduce either without reading this. The table is measured, and
+  chording made `s d f j k l` ambiguous — a press of `f` was either dot 1 or the letter
+  f, with nothing in the event to tell them apart, which silently corrupted `f(x)` and
+  the Nemeth equals sign `.k`. Every fix for that ambiguity was a setting someone had to
+  know to set, so the feature went instead. Typing the computer-braille spelling
+  (`?a/b#`) is the hardware-free path now, and it is easier than chording was.
+- Consequence to keep in mind: `8bc05ae`'s outright refusal of letter keys is gone with
+  it — there is no cells-only mode left to fall back to. Its stated concern was input
+  being *silently* reinterpreted as mathematics; what holds that line now is the status
+  line naming the reading on every keystroke. **Do not remove that readback.**
+- `handleComposerUebCell` in `src/renderer/app.js` is unreachable and was already
+  unreachable before this work (its callers sat behind the never-set
+  `__omniyaBrailleSimulation`). The ⠿-inserts-Nemeth shortcut it implements has
+  therefore never run in a shipped build, despite being documented. Kept, marked, and
+  the docs corrected rather than deleting the only implementation.
+- `src/renderer/input-capture.js` + `input-log.js` ship and record the input path in
+  memory (capped, never persisted). They exist so a remote blind contributor can send
+  Help → Copy braille input diagnostics instead of a description. The dev panel under
+  `src/renderer/dev/` renders the same log and is excluded from packaged builds by
+  `electron-builder.yml`; `npm run start:dev` is the only way to see it.
 
 ### Document model
 

@@ -200,6 +200,30 @@ test('a Nemeth session commits its cells through the LaTeX MathML converter', as
   );
 });
 
+test('a session authored on a computer-braille keyboard commits through the configured table', async () => {
+  // The real report this pins: a braille display set to 8-dot U.S. computer
+  // braille sends '#2+#2 .k #4' for 2+2=4. `eec9b56` taught the composer's
+  // classifier to decode that, but never threaded the table down to here, so
+  // submit re-read the buffer with no table and refused input it had just
+  // narrated back as "read as 2+2=4".
+  const session = await nemethSession('#2+#2 .k #4');
+  const result = await submitReplacement(session, {
+    convertLatexToMathML,
+    brailleInputTable: 'en-us-comp8'
+  });
+  assert.match(result.document.mathml, />2<\/mn>.*>\+<\/mo>.*>2<\/mn>.*>=<\/mo>.*>4<\/mn>/);
+});
+
+test('the configured table does not leak into a session that did not ask for one', async () => {
+  // The table is opt-in per user. Without it the QWERTY gate below must still
+  // hold, so decoding stays a thing a caller requests, never a default.
+  const session = await nemethSession('#2+#2');
+  await assert.rejects(
+    () => submitReplacement(session, { convertLatexToMathML }),
+    /Braille cells only: "#" at character 1/
+  );
+});
+
 test('a QWERTY character refuses instead of being decoded as its Braille ASCII cell', async () => {
   // The composer strips these as they are typed, so this guards a session
   // assembled any other way. Committing the cells that *did* convert would be a

@@ -74,6 +74,41 @@ const BRAILLE_LAST = 0x28ff;
 const BLANK_CELL = '\u2800';
 
 /**
+ * `'auto'`: work out the table from the buffer instead of asking the author.
+ *
+ * Braille cells (`U+2800`-`U+28FF`) and the ASCII a computer-braille keyboard
+ * sends occupy DISJOINT code point ranges, so "this device sends cells" and
+ * "this device sends translated text" can never be mistaken for one another --
+ * which is what makes detecting them safe where guessing between two *text*
+ * tables would not be. Cells are accepted in either mode; only the non-cell
+ * characters decide, and a table is chosen only if it explains all of them.
+ *
+ * What this does NOT do is guess between two tables that both explain the
+ * input. The registry is ordered and the first full explanation wins, so
+ * adding a second overlapping table is a decision to make deliberately, not a
+ * thing that silently changes behaviour for existing users.
+ *
+ * Unexplained input resolves to `'none'`, which rejects with the usual message
+ * rather than half-decoding -- an honest refusal, not a plausible wrong answer.
+ */
+export function resolveBrailleInputTable(text, brailleInputTable) {
+  if (brailleInputTable !== 'auto') return brailleInputTable;
+  const source = String(text ?? '');
+  const undecided = [];
+  for (const character of source) {
+    const code = character.codePointAt(0);
+    if (code >= BRAILLE_FIRST && code <= BRAILLE_LAST) continue;
+    if (character === ' ') continue;
+    undecided.push(character);
+  }
+  if (!undecided.length) return 'none';
+  for (const [name, decode] of Object.entries(BRAILLE_INPUT_DECODERS)) {
+    if (undecided.every((character) => decode(character) !== null)) return name;
+  }
+  return 'none';
+}
+
+/**
  * Field text -> Unicode braille cells.
  *
  * **Cells only, by default.** A QWERTY character is NOT read as its Braille
@@ -163,9 +198,15 @@ function tryParse(parse, cells) {
  * `brailleInputTable` is forwarded to `toNemethCells` -- see its docstring.
  */
 export function classifyNemethInput(text, { parse = parseNemeth, brailleInputTable } = {}) {
-  const { cells, rejected } = toNemethCells(text, brailleInputTable);
+  // Resolve first, then classify: under `'auto'` the mode is a property of the
+  // buffer, and callers (the composer's chord guard, the status line, submit)
+  // all need the SAME answer. Reporting it as `inputTable` is what lets the
+  // status line name the interpretation out loud, which is the only feedback a
+  // braille author gets that the app read their device the way they meant.
+  const inputTable = resolveBrailleInputTable(text, brailleInputTable);
+  const { cells, rejected } = toNemethCells(text, inputTable);
   const cellCount = cells.length;
-  const base = { cells, cellCount, latex: '', readCells: 0, rejected };
+  const base = { cells, cellCount, latex: '', readCells: 0, rejected, inputTable };
 
   if (rejected.length) return { ...base, state: 'not-braille' };
   if (!cellCount) return { ...base, state: 'empty' };
@@ -191,6 +232,24 @@ function cellCountPhrase(count) {
 }
 
 /**
+ * Names the input mode when it is not the plain cells-only one.
+ *
+ * The containment for auto-detection: a screen reader applying a *literary*
+ * table also emits ASCII, which would decode through a computer-braille table
+ * into valid-but-wrong cells. The parser catches most such input, but not all
+ * -- so the reading is said out loud rather than assumed. An author who hears
+ * "read as computer braille" when their device sends raw cells knows
+ * immediately that something is set wrong, which is the difference between a
+ * detectable mistake and a silent one.
+ */
+function readingMode(classification) {
+  const table = classification.inputTable;
+  if (!table || table === 'none') return '';
+  return table === 'en-us-comp8' ? ' Read as computer braille.' : ` Read through ${table}.`;
+}
+
+
+/**
  * The screen-reader status line for a classification.
  *
  * Written to be heard, not read: it leads with what was understood rather than
@@ -205,14 +264,27 @@ export function nemethStatusMessage(classification) {
       return 'Enter Nemeth cells. Enter reads the whole expression.';
     case 'not-braille':
       return `Braille cells only: ${describeRejected(classification.rejected)} `
-        + 'cannot be typed here. Switch to LaTeX with Control L to write ordinary source.';
+        // Both fixes, always. The commonest cause of "braille is not
+        // recognised" is a device set to a computer-braille input table, which
+        // sends characters rather than cells so every keystroke is refused --
+        // and Control D is the whole fix for that user, but the old message
+        // never mentioned it. We cannot tell that case from ordinary prose
+        // here: en-us-comp8 spans the whole printable ASCII range, so "every
+        // rejected character decodes through a table we ship" is true of
+        // "hello?" as well. Rather than guess, name both.
+        + 'cannot be typed here. If your braille device sends translated text '
+        + 'rather than cells, Control D sets the input table to match it. '
+        + 'Otherwise switch to LaTeX with Control L to write ordinary source.';
     case 'complete':
-      return `${count} read as ${classification.latex}. Enter inserts it.`;
+      return `${count} read as ${classification.latex}.${readingMode(classification)} Enter inserts it.`;
     case 'partial':
       return `${count}. The first ${classification.readCells} read as ${classification.latex}. `
-        + 'Not a complete expression yet.';
+        + `Not a complete expression yet.${readingMode(classification)}`;
     case 'unreadable':
-      return `${count}. Not a complete expression yet. Enter checks it.`;
+      // The mode matters MOST here. "Not a complete expression yet" with no
+      // reading named is what an author hears when detection has guessed wrong,
+      // and without the mode they have nothing to act on.
+      return `${count}. Not a complete expression yet.${readingMode(classification)} Enter checks it.`;
     default:
       throw new TypeError(`Unknown Nemeth input state: ${classification.state}`);
   }

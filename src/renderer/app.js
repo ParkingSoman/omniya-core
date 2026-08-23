@@ -11,7 +11,9 @@ import {
 } from '../domain/model.js';
 import { applyUebBrailleLabel } from './ueb-braille-projection.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
-import { createSixKeyInput } from './braille-input.js';
+import { attachInputCapture } from './input-capture.js';
+import { createInputLog } from './input-log.js';
+import { formatInputDiagnostics } from './input-diagnostics.js';
 import {
   cancelReplacement,
   setLatexSource,
@@ -63,8 +65,8 @@ const elements = Object.fromEntries([
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name', 'item-count',
   'mode-panel', 'save-status', 'reading-section', 'reading-heading', 'reading-help',
   'empty-message', 'transcript', 'reading-actions',
-  'keyboard-help-button', 'keyboard-help', 'close-keyboard-help',
-  'braille-table-picker', 'braille-table-menu', 'close-braille-table-picker', 'composer-dock',
+  'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'app-build-identity',
+  'composer-dock',
   'composer-form', 'composer-heading', 'composer-back',
   'mode-switch', 'note-toggle', 'composer-source', 'note-row', 'composer-note',
   'composer-help', 'composer-status', 'composer-error', 'composer-choices', 'editing-indicator', 'composer-submit',
@@ -94,7 +96,16 @@ let preferredAuthoringMethod = 'nemeth';
 // Opt-in, persisted (settings-storage.js) computer-braille decode table for
 // the Nemeth composer field. 'none' matches this app's pre-existing
 // cells-only behavior exactly; see nemeth-input.js's brailleInputTable option.
-let nemethBrailleInputTable = 'none';
+// How the Nemeth field reads input. Always 'auto' now: `resolveBrailleInputTable`
+// works out cells-versus-computer-braille by measurement, which is sound because
+// the two occupy disjoint code point ranges. There is no user setting, and there
+// is nothing to set -- the picker this replaced asked a question ("which input
+// table is your device using?") that a person could not reliably answer and the
+// app can.
+const NEMETH_INPUT_MODE = 'auto';
+// The reading the last classification settled on, kept only so the diagnostics
+// report can say which one it was. Nothing branches on it.
+let lastResolvedInputTable = 'none';
 let commandState = createAuthoringState({ surface: 'text', contentEmpty: true });
 let uebBuffer = createUebCellBuffer();
 let uebCellChain = Promise.resolve();
@@ -825,6 +836,14 @@ function isDockReplacement() {
 }
 
 /** True while add-mode equation authoring binds guided Nemeth/LaTeX to #composer-source. */
+/**
+ * The single dev-tools switch: `npm run start:dev`, unpackaged builds only.
+ * See `createWindow` in src/main.js for the three conditions behind it.
+ */
+function devToolsEnabled() {
+  return Boolean(window.omniya?.appInfo?.devTools);
+}
+
 function isComposerMathAuthoring() {
   return Boolean(replacementSession) && !replacementEditor && (mode === 'add' || mode === 'edit');
 }
@@ -1210,6 +1229,22 @@ async function appendUebPrint(printText, { trailingSpace = false } = {}) {
   area.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+/**
+ * UNREACHABLE, and was already unreachable before six-key chording was removed.
+ *
+ * Its only two callers sat behind `globalThis.__omniyaBrailleSimulation`, a flag
+ * that was never set anywhere in `src/`, `test/` or `scripts/`. So in every
+ * shipped build this never ran -- and with it, neither did the ⠿-starts-a-Nemeth
+ * -equation shortcut (`isBrailleInsertEquationCell`, below) that README and
+ * HUMAN-TESTING have been telling braille contributors to use.
+ *
+ * Kept rather than deleted because it is the only implementation of that
+ * promised feature, and the docs are being corrected instead of the code
+ * quietly disappearing. To revive it, ⠿ has to be noticed where a real display
+ * actually delivers it -- as a character arriving in the text surface's `input`
+ * handler -- not through a chord emitter, which is how it came to depend on a
+ * simulation flag in the first place.
+ */
 async function handleComposerUebCell(cell) {
   if (!composerIsTextInsert()) return;
   if (isBrailleInsertEquationCell(uebBuffer, cell)) {
@@ -1337,101 +1372,6 @@ function openContextualHelp() {
   else box.hidden = false;
 }
 
-const BRAILLE_TABLE_LABELS = {
-  none: 'off — raw braille cells only',
-  'en-us-comp8': 'English (U.S.) 8-dot computer braille'
-};
-
-function applyNemethBrailleInputTable(table) {
-  nemethBrailleInputTable = BRAILLE_TABLE_LABELS[table] ? table : 'none';
-  elements['braille-table-menu']?.querySelectorAll('[role="menuitemradio"]').forEach((option) => {
-    option.setAttribute('aria-checked', String(option.dataset.value === nemethBrailleInputTable));
-  });
-}
-
-function brailleTableOptions() {
-  return Array.from(elements['braille-table-menu']?.querySelectorAll('[role="menuitemradio"]') ?? []);
-}
-
-// Roving tabindex: only the option arrow keys last landed on is Tab-reachable.
-// This is tracked independently of aria-checked, so arrowing between options
-// moves focus WITHOUT applying them -- only Enter/Space (or a click) applies
-// the focused option, and closes the menu.
-function focusBrailleTableOption(option) {
-  brailleTableOptions().forEach((el) => { el.tabIndex = el === option ? 0 : -1; });
-  option?.focus();
-}
-
-function selectBrailleTable(value) {
-  applyNemethBrailleInputTable(value);
-  window.omniya?.saveSettings?.({ nemethBrailleInputTable }).catch(() => {});
-  announce(`Braille input table: ${BRAILLE_TABLE_LABELS[nemethBrailleInputTable]}.`);
-  // Re-classify immediately so a character rejected under the old table (or
-  // vice versa) is reflected without waiting for the next keystroke -- but
-  // only when the field is actually mid-Nemeth-authoring, matching the guard
-  // the 'input' listener itself uses.
-  if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') void handleComposerMathInput();
-  closeBrailleTablePicker();
-}
-
-function openBrailleTablePicker() {
-  const box = elements['braille-table-picker'];
-  if (!box) return;
-  applyNemethBrailleInputTable(nemethBrailleInputTable);
-  if (typeof box.showModal === 'function') box.showModal();
-  else box.hidden = false;
-  const options = brailleTableOptions();
-  focusBrailleTableOption(options.find((option) => option.getAttribute('aria-checked') === 'true') ?? options[0]);
-}
-
-function closeBrailleTablePicker() {
-  const box = elements['braille-table-picker'];
-  if (!box) return;
-  if (typeof box.close === 'function') box.close();
-  else box.hidden = true;
-}
-
-// menuitemradio, not a native radiogroup: arrow keys must move focus WITHOUT
-// applying an option (that was the awkward part -- every option arrowed past
-// got applied and announced). Enter/Space applies the focused option; a click
-// does the same. Escape needs no handler of our own: <dialog> closes on
-// Escape natively, which is also why returning focus lives on 'close' itself
-// rather than beside a specific button's click handler.
-elements['braille-table-menu']?.addEventListener('keydown', (event) => {
-  const options = brailleTableOptions();
-  if (options.length === 0) return;
-  const currentIndex = options.indexOf(document.activeElement);
-  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-    event.preventDefault();
-    const from = currentIndex === -1 ? 0 : currentIndex;
-    const delta = event.key === 'ArrowDown' ? 1 : -1;
-    focusBrailleTableOption(options[(from + delta + options.length) % options.length]);
-    return;
-  }
-  if (event.key === 'Home') {
-    event.preventDefault();
-    focusBrailleTableOption(options[0]);
-    return;
-  }
-  if (event.key === 'End') {
-    event.preventDefault();
-    focusBrailleTableOption(options[options.length - 1]);
-    return;
-  }
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    const target = currentIndex === -1 ? options.find((o) => o.getAttribute('aria-checked') === 'true') : options[currentIndex];
-    if (target) selectBrailleTable(target.dataset.value);
-  }
-});
-elements['braille-table-menu']?.addEventListener('click', (event) => {
-  const option = event.target.closest('[role="menuitemradio"]');
-  if (!option) return;
-  selectBrailleTable(option.dataset.value);
-});
-
-elements['close-braille-table-picker']?.addEventListener('click', () => closeBrailleTablePicker());
-elements['braille-table-picker']?.addEventListener('close', () => elements['composer-source']?.focus());
 
 function handleComposerCommandKey(event) {
   const inDock = isDockReplacement();
@@ -1455,13 +1395,6 @@ function handleComposerCommandKey(event) {
     return true;
   }
 
-  if (chord && key === 'd' && isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
-    event.preventDefault();
-    event.stopPropagation();
-    openBrailleTablePicker();
-    return true;
-  }
-
   if (event.key === 'Escape' && isDocumentTextSurface()) {
     event.preventDefault();
     event.stopPropagation();
@@ -1478,6 +1411,12 @@ function handleComposerCommandKey(event) {
       void cancelReplacementEditor(findReplacementArticle());
       return true;
     }
+    // An Enter-triggered commit is still awaiting its MathML conversion.
+    // Tearing down replacementSession now (via returnToRead) would orphan
+    // that in-flight commit: it resumes with a null session, throws, and the
+    // equation never reaches state -- silently discarding already-converted
+    // input. Swallow Escape until the commit settles instead.
+    if (submittingComposerEquation) return true;
     if (isComposerMathAuthoring() || isMathReplaceAuthoring()) {
       returnToRead();
       return true;
@@ -1540,7 +1479,12 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         convertLatexToMathML: async (latex) => {
           const converted = await window.omniya.latexToMathML(latex);
           return converted?.mathml ?? converted;
-        }
+        },
+        // The session normally already holds decoded cells, so this is the
+        // backstop for a buffer assembled some other way -- it must be the same
+        // table the composer classified with, or submit disagrees with the
+        // status line the author just heard.
+        brailleInputTable: NEMETH_INPUT_MODE
       });
       if (replacementSession.originalDocument && item) {
         const history = mathHistory.get(item.id) ?? { undo: [], redo: [] };
@@ -1793,7 +1737,8 @@ async function handleComposerMathInput() {
   // state: not-yet-complete is the normal condition while typing, not a mistake.
   let classification;
   try {
-    classification = classifyNemethInput(editor.value, { brailleInputTable: nemethBrailleInputTable });
+    classification = classifyNemethInput(editor.value, { brailleInputTable: NEMETH_INPUT_MODE });
+    lastResolvedInputTable = classification.inputTable ?? 'none';
   } catch (error) {
     // classifyNemethInput rethrows anything that is not a refusal, because that
     // would be a parser bug rather than an unsupported construct. Surface it
@@ -1818,8 +1763,25 @@ async function handleComposerMathInput() {
     return;
   }
 
-  draft.source = editor.value;
-  replacementSession = setNemethSource(replacementSession, editor.value);
+  // Keep the DECODED cells, not the characters that produced them. With an
+  // input table on, a braille keyboard sends computer-braille ASCII and
+  // `classification.cells` is what it means; storing `editor.value` instead
+  // left the field holding '#2+#2' while the status line read it back as
+  // "2+2". A braille author arrowing the field then heard ordinary characters,
+  // and submit re-read the same ASCII and refused it.
+  //
+  // Decoding is one cell per character, so caret offsets survive unchanged --
+  // but restore them explicitly rather than relying on that, and skip the write
+  // entirely when nothing decoded (the raw-cell and no-table paths), so an
+  // untouched field never churns its value under a screen reader.
+  if (classification.cells !== editor.value) {
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value = classification.cells;
+    if (start !== null && end !== null) editor.setSelectionRange(start, end);
+  }
+  draft.source = classification.cells;
+  replacementSession = setNemethSource(replacementSession, classification.cells);
   setFieldError(editor, elements['composer-error']);
   setComposerMathStatus(nemethStatusMessage(classification));
   syncCommandContentEmpty();
@@ -1873,65 +1835,22 @@ elements['composer-source'].addEventListener('keydown', (event) => {
 // ambiguity from context and never asks (INTERFACES.md section 9), so nothing
 // renders into the box. This is the permanent state, not a gap.
 
-{
-  // Composer UEB six-key is scoped to text Insert. Nemeth equation Insert has
-  // its own six-key emitter into #composer-source: the cell lands in the field
-  // and the `input` event runs the same classifier a typed cell does, so the
-  // two entry paths cannot drift.
-  const composerUebSixKey = createSixKeyInput({
-    emit: (cell) => {
-      uebCellChain = uebCellChain.then(() => handleComposerUebCell(cell)).catch(() => {});
-    }
-  });
-  const composerNemethSixKey = createSixKeyInput({
-    emit: (cell) => {
-      const editor = elements['composer-source'];
-      const start = editor.selectionStart ?? editor.value.length;
-      const end = editor.selectionEnd ?? start;
-      editor.setRangeText(cell, start, end, 'end');
-      editor.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-  });
-  elements['composer-source'].addEventListener('keydown', (event) => {
-    // Nemeth six-key is live without the simulation flag; UEB six-key still needs
-    // it. The asymmetry is not arbitrary: this field accepts only braille cells
-    // (see `not-braille` in nemeth-input.js), and 8bc05ae deliberately gated
-    // QWERTY here, so the letter keys are already inert during Nemeth authoring
-    // and chording them costs nothing. In UEB text insert those same keys type
-    // literal text, so binding them would break ordinary typing -- hence the flag
-    // stays on that path. Without this, a plain keyboard cannot enter Nemeth at
-    // all: only a braille display or a paste can, which makes the parser
-    // unreachable for anyone without hardware.
-    if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
-      composerNemethSixKey.keydown(event);
-      return;
-    }
-    if (!globalThis.__omniyaBrailleSimulation) return;
-    if (!composerIsTextInsert()) return;
-    if (event.key === ' ' && uebBuffer.pending) {
-      event.preventDefault();
-      uebCellChain = uebCellChain.then(() => handleComposerUebCell(' ')).catch(() => {});
-      return;
-    }
-    composerUebSixKey.keydown(event);
-  });
-  elements['composer-source'].addEventListener('keyup', (event) => {
-    // Mirrors the keydown ordering above: the chord only completes on keyup, so
-    // gating this path while leaving keydown open would swallow keys and emit
-    // nothing.
-    if (isComposerMathAuthoring() && replacementSession?.method === 'nemeth') {
-      composerNemethSixKey.keyup(event);
-      return;
-    }
-    if (!globalThis.__omniyaBrailleSimulation) return;
-    if (!composerIsTextInsert()) return;
-    composerUebSixKey.keyup(event);
-  });
-  elements['composer-source'].addEventListener('blur', () => {
-    composerUebSixKey.blur();
-    composerNemethSixKey.blur();
-  });
-}
+// Six-key chording is gone, deliberately.
+//
+// It let a plain keyboard act as a Perkins keyboard: f d s / j k l as dots
+// 1 2 3 / 4 5 6. `1fc6f86` added it because without it a keyboard could not
+// enter Nemeth at all -- but that is no longer true. Input detection means the
+// computer-braille spelling typed on any keyboard reaches the parser: `?a/b#`
+// is the fraction, `#2+#2 .k #4` is 2+2=4. That is both easier than holding
+// three keys and available to everyone, so chording had no remaining job.
+//
+// Removing it also removes the only real ambiguity in this input path. Those
+// six letters are ordinary characters in computer braille -- `f(x)` starts with
+// one -- and while chording existed, a keystroke of `f` was either dot 1 or the
+// letter f with nothing in the event to tell them apart. Every workaround for
+// that was a setting someone had to know to set. Deleting the feature deletes
+// the question.
+
 
 elements['composer-form'].addEventListener('submit', (event) => {
   event.preventDefault();
@@ -2024,6 +1943,59 @@ elements['transcript'].addEventListener('keydown', (event) => {
   navigateItems(event.key);
 });
 
+// Input capture: silent, in-memory, capped. Attached last so its bubble-phase
+// listeners run after the composer's and can see `defaultPrevented` -- the one
+// signal that says a keystroke was claimed as a braille dot before the field
+// saw it. Feeds the diagnostics dump; renders nothing on its own.
+const inputLog = createInputLog();
+attachInputCapture({ document, log: inputLog, readTable: () => lastResolvedInputTable });
+
+// The visible inspector is dev-only and lives in a directory excluded from
+// packaged builds, so this import resolves to nothing in a shipped app. Dynamic
+// and catch-swallowed for exactly that reason.
+if (devToolsEnabled()) {
+  import('./dev/index.js')
+    .then((mod) => mod.enableDevTools({ document, log: inputLog }))
+    .catch(() => {});
+}
+
+/**
+ * Copy the braille-input report to the clipboard, then say so.
+ *
+ * Only ever runs from the Help menu -- a person asking for it. Clipboard, not a
+ * file and not the network: the app has no telemetry and this must not become
+ * the exception. Announced through the same status region the rest of the app
+ * uses, so a screen-reader user hears that it worked.
+ */
+async function copyInputDiagnostics() {
+  const report = formatInputDiagnostics({
+    appInfo: window.omniya?.appInfo,
+    brailleInputTable: NEMETH_INPUT_MODE,
+    resolvedTable: lastResolvedInputTable,
+    entries: inputLog.entries()
+  });
+  try {
+    await navigator.clipboard.writeText(report);
+    announce('Braille input diagnostics copied. Paste them into your report.');
+  } catch {
+    // A clipboard permission failure must not look like success, or someone
+    // pastes an empty message and the round trip is wasted.
+    announce('Could not copy the diagnostics to the clipboard.');
+  }
+}
+
+// Real text in the accessibility tree, not a title attribute: the whole point
+// is that a tester can read their build back to a maintainer over email.
+{
+  const info = window.omniya?.appInfo;
+  const target = elements['app-build-identity'];
+  if (target) {
+    target.textContent = info?.version
+      ? `${info.version} (${info.platform}-${info.arch})`
+      : 'running from source';
+  }
+}
+
 elements['keyboard-help-button'].addEventListener('click', () => {
   if (typeof elements['keyboard-help'].showModal === 'function') {
     elements['keyboard-help'].showModal();
@@ -2059,13 +2031,20 @@ window.omniya?.onMenuCommand?.((payload) => {
     openContextualHelp();
     return;
   }
-  if (payload.action === 'braille-input-table') {
-    openBrailleTablePicker();
+  if (payload.action === 'copy-input-diagnostics') {
+    void copyInputDiagnostics();
   }
 });
 
-function showUpdateBanner({ latestVersion }) {
-  elements['update-banner-text'].textContent = `A newer testing build (${latestVersion}) is available.`;
+function showUpdateBanner(notice) {
+  // Two kinds of news through one banner: a build is waiting, or updates have
+  // stopped arriving at all. The second is the one nobody could see before --
+  // a failed check only reached a console that a packaged app does not have,
+  // so a tester on a stale build had no way to find out.
+  elements['update-banner-text'].textContent = notice?.kind === 'stalled'
+    ? 'Automatic updates are not reaching this computer. '
+      + 'This build may be out of date; use the button to check the release page.'
+    : `A newer testing build (${notice?.latestVersion}) is available.`;
   elements['update-banner'].hidden = false;
 }
 
@@ -2075,7 +2054,7 @@ elements['update-banner-dismiss'].addEventListener('click', () => {
 elements['update-banner-action'].addEventListener('click', () => {
   window.omniya.openReleasePage?.();
 });
-globalThis.omniya?.onUpdateAvailable?.(showUpdateBanner);
+globalThis.omniya?.onUpdateNotice?.(showUpdateBanner);
 
 if (!globalThis.omniya?.loadState) {
   disableInteractiveControls();
@@ -2092,7 +2071,6 @@ if (!globalThis.omniya?.loadState) {
   }
   try {
     const loadedSettings = await window.omniya.loadSettings?.();
-    if (loadedSettings?.settings) applyNemethBrailleInputTable(loadedSettings.settings.nemethBrailleInputTable);
   } catch {
     // Settings are a low-stakes preference; fall back to the 'none' default
     // already in place rather than surfacing an error for this.
@@ -2103,6 +2081,16 @@ elements['app-shell'].setAttribute('aria-busy', 'false');
 // Test-only hook: open composer math-replace on a new empty equation (subtree e2es).
 // Product submit never calls this — new equations commit from #composer-source.
 globalThis.__omniyaTesting = {
+  // The report the Help menu copies, without driving a native clipboard from a
+  // headless test. Same call, same live state; only the clipboard write differs.
+  inputDiagnostics() {
+    return formatInputDiagnostics({
+      appInfo: window.omniya?.appInfo,
+      brailleInputTable: NEMETH_INPUT_MODE,
+      resolvedTable: lastResolvedInputTable,
+      entries: inputLog.entries()
+    });
+  },
   async openNewEquationDock() {
     if (!activeNapkin()) return;
     if (mode === 'add' || mode === 'edit') {

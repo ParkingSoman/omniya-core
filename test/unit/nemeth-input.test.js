@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { classifyNemethInput, nemethStatusMessage, toNemethCells } from '../../src/domain/nemeth-input.js';
+import { classifyNemethInput, nemethStatusMessage, resolveBrailleInputTable, toNemethCells } from '../../src/domain/nemeth-input.js';
 import { NemethUnsupportedError, parseNemeth } from '../../src/domain/nemeth/index.js';
 import { asciiToCells } from '../../src/domain/nemeth/braille-ascii.js';
 import { createUebCellBuffer, pushUebCell } from '../../src/domain/ueb-cell-buffer.js';
@@ -269,4 +269,87 @@ test('the status counts cells, and gets the singular right', () => {
 
 test('nemethStatusMessage refuses an unknown state instead of returning undefined', () => {
   assert.throws(() => nemethStatusMessage({ state: 'invented', cellCount: 0 }), /Unknown Nemeth input state/);
+});
+
+
+// ---------------------------------------------------------------------------
+// resolveBrailleInputTable: 'auto', and why detection is safe here
+
+test('auto resolves raw cells and computer braille apart, and refuses what it cannot explain', () => {
+  // The property the whole feature rests on: cells (U+2800-U+28FF) and the
+  // ASCII a computer-braille keyboard sends are DISJOINT, so this is a
+  // measurement, not a guess between two plausible readings.
+  assert.equal(resolveBrailleInputTable(cells('?a/b#'), 'auto'), 'none');
+  assert.equal(resolveBrailleInputTable('#2+#2', 'auto'), 'en-us-comp8');
+  // Nothing typed yet: nothing to detect, so the cells-only reading stands.
+  assert.equal(resolveBrailleInputTable('', 'auto'), 'none');
+  // A blank is accepted in either mode and so must not decide the mode.
+  assert.equal(resolveBrailleInputTable('   ', 'auto'), 'none');
+  // Undecodable input resolves to 'none' so it REFUSES with the usual message
+  // rather than half-decoding into a plausible wrong answer.
+  assert.equal(resolveBrailleInputTable('\u00e9\u00e8', 'auto'), 'none');
+});
+
+test('an explicit pin always wins over detection', () => {
+  // The escape hatch: someone whose device auto-detects wrongly must be able to
+  // say so and be believed, in both directions.
+  assert.equal(resolveBrailleInputTable('#2+#2', 'none'), 'none');
+  assert.equal(resolveBrailleInputTable(cells('?a/b#'), 'en-us-comp8'), 'en-us-comp8');
+  assert.equal(resolveBrailleInputTable('#2+#2', undefined), undefined);
+});
+
+test('auto decodes a computer-braille buffer end to end and names the reading', () => {
+  // The contributor's case: '#2+#2 .k #4' is 2+2=4 in 8-dot computer braille.
+  const classification = classifyNemethInput('#2+#2 .k #4', { brailleInputTable: 'auto' });
+  assert.equal(classification.state, 'complete');
+  assert.equal(classification.latex, '2+2=4');
+  assert.equal(classification.inputTable, 'en-us-comp8');
+  // Said out loud, because a wrong auto-detection must be noticeable by ear.
+  assert.match(nemethStatusMessage(classification), /read as computer braille/i);
+});
+
+test('auto leaves a raw-cell buffer alone and does not announce a mode', () => {
+  const classification = classifyNemethInput(cells('?a/b#'), { brailleInputTable: 'auto' });
+  assert.equal(classification.state, 'complete');
+  assert.equal(classification.inputTable, 'none');
+  assert.doesNotMatch(nemethStatusMessage(classification), /computer braille/i);
+});
+
+test('auto DOES accept prose as letters, and says so out loud', () => {
+  // Recorded because it is the real cost of defaulting to 'auto', not an
+  // oversight. en-us-comp8 spans printable ASCII, so 'hello' decodes to five
+  // cells that legitimately mean the letters h e l l o in Nemeth -- there is no
+  // measurement that separates "prose typed by mistake" from "a braille device
+  // spelling a variable sequence", because the cells are identical.
+  //
+  // 8bc05ae's concern was that reversing the gate "would SILENTLY reinterpret
+  // someone's prose as mathematics". Silence is the part this keeps closed: the
+  // status line names both the reading and the mode, so the author hears
+  // "read as hello, read as computer braille" rather than nothing. The field is
+  // also only reachable after Ctrl+E, which is an explicit statement that what
+  // follows is an equation.
+  const classification = classifyNemethInput('hello', { brailleInputTable: 'auto' });
+  assert.equal(classification.state, 'complete');
+  assert.equal(classification.latex, 'hello');
+  assert.match(nemethStatusMessage(classification), /read as hello/i);
+  assert.match(nemethStatusMessage(classification), /computer braille/i);
+});
+
+test('an explicit none pin still rejects prose outright, as 8bc05ae specified', () => {
+  // The old behaviour remains available verbatim for anyone who wants it.
+  const classification = classifyNemethInput('hello', { brailleInputTable: 'none' });
+  assert.equal(classification.state, 'not-braille');
+  assert.match(nemethStatusMessage(classification), /braille cells only/i);
+});
+
+test('a lone chord letter is the one case auto cannot call, and it errs toward chording', () => {
+  // Known, accepted limit. 'f' alone is either the letter f from a
+  // computer-braille keyboard or dot 1 from someone chording, and nothing in
+  // the character distinguishes them. It resolves to the table, so the composer
+  // treats a NON-EMPTY buffer as device input; an EMPTY field resolves to
+  // 'none', which is what keeps chording available to start with. The escape
+  // hatch for a device whose first keystroke is one of these six is the
+  // explicit pin above.
+  assert.equal(resolveBrailleInputTable('f', 'auto'), 'en-us-comp8');
+  assert.equal(resolveBrailleInputTable('', 'auto'), 'none');
 });

@@ -5,7 +5,7 @@ import {
   replaceMathTarget,
   serializeMathML
 } from './math-tree.js';
-import { toNemethCells } from './nemeth-input.js';
+import { resolveBrailleInputTable, toNemethCells } from './nemeth-input.js';
 import { parseNemeth } from './nemeth/index.js';
 
 function emptyDraft() {
@@ -99,7 +99,7 @@ function replacementNode(tree) {
   };
 }
 
-async function materializeDraft(session, convertLatexToMathML) {
+async function materializeDraft(session, convertLatexToMathML, brailleInputTable) {
   if (session.method === 'latex') {
     if (!session.latexSource.trim()) throw new Error('Replacement draft is empty.');
     if (typeof convertLatexToMathML !== 'function') throw new Error('The local LaTeX converter is unavailable.');
@@ -118,7 +118,20 @@ async function materializeDraft(session, convertLatexToMathML) {
   // its developer-only `detail` never rides along in it.
   const authored = String(session.nemethSource ?? '');
   if (!authored.trim()) throw new Error('Replacement draft is empty.');
-  const { cells, rejected } = toNemethCells(authored);
+  // `brailleInputTable` must be the SAME table the composer classified with.
+  // Omitting it here was the bug behind "I can enter an equation, but Enter
+  // says cells must be in braille": a keyboard sending computer-braille ASCII
+  // decoded fine on every keystroke and was then re-read with no table at
+  // commit, so the buffer the status line had just narrated as "read as 2+2=4"
+  // was refused character by character.
+  // Resolve here too, not just in the composer: `'auto'` is not a decoder key,
+  // so passing it through raw would decode nothing and refuse everything. Both
+  // paths resolving the same pure function over the same buffer is what keeps
+  // submit agreeing with the status line the author just heard.
+  const { cells, rejected } = toNemethCells(
+    authored,
+    resolveBrailleInputTable(authored, brailleInputTable)
+  );
   // Refuse rather than commit the cells that did convert. The composer strips
   // non-cell characters as they are typed, so this is normally unreachable --
   // but a session assembled any other way must not be able to commit a quietly
@@ -149,8 +162,8 @@ function applyDraftToDocument(document, target, tree, placement = 'replace') {
   return replaceMathTarget(current, target, replacement);
 }
 
-export async function submitReplacement(session, { convertLatexToMathML } = {}) {
-  const tree = await materializeDraft(session, convertLatexToMathML);
+export async function submitReplacement(session, { convertLatexToMathML, brailleInputTable } = {}) {
+  const tree = await materializeDraft(session, convertLatexToMathML, brailleInputTable);
   if (!session.originalDocument) {
     return {
       document: { formatVersion: 2, mathml: serializeMathML(tree), focus: null },

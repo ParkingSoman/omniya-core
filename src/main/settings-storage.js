@@ -2,28 +2,31 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 /**
- * User-level app settings, separate from document content (see
- * `storage.js`). Currently holds one thing: which computer-braille input
- * table (if any) the Nemeth composer should decode keyboard input through --
- * see `src/domain/nemeth-input.js`'s `brailleInputTable` option for why this
- * exists. `'none'` is the default and matches this app's pre-existing
- * cells-only behavior exactly.
+ * User-level app settings, separate from document content (see `storage.js`).
  *
- * Adding another table later means adding its key here, not a schema
- * migration: an unrecognized value in a saved settings file is treated the
- * same as absent, not as corruption.
+ * Currently persists NOTHING, and that is the point rather than an oversight.
+ * It held one key: which computer-braille input table the Nemeth composer
+ * should decode through. That setting is gone because the question was both
+ * unanswerable and unnecessary -- a contributor whose braille display was
+ * configured correctly was refused on every keystroke and had no way to
+ * discover a picker existed, while the app can tell cells from computer-braille
+ * text by measurement (`resolveBrailleInputTable`), since the two occupy
+ * disjoint code point ranges. Six-key chording, the one genuinely unmeasurable
+ * question in this path, was removed rather than made a setting.
+ *
+ * The plumbing stays because the atomic write and corrupt-file recovery below
+ * are the valuable part and there is a known next occupant: `uebGrade` is
+ * session-only today (see docs/HUMAN-TESTING.md, "Honest limits").
+ *
+ * Unknown keys in a saved file are dropped, not treated as corruption, so a
+ * settings.json written by an older build loads cleanly.
  */
-const KNOWN_BRAILLE_INPUT_TABLES = new Set(['none', 'en-us-comp8']);
-
 export function createDefaultSettings() {
-  return { nemethBrailleInputTable: 'none' };
+  return {};
 }
 
-function sanitize(raw) {
-  const table = raw && typeof raw === 'object' ? raw.nemethBrailleInputTable : undefined;
-  return {
-    nemethBrailleInputTable: KNOWN_BRAILLE_INPUT_TABLES.has(table) ? table : 'none'
-  };
+function sanitize() {
+  return createDefaultSettings();
 }
 
 /**

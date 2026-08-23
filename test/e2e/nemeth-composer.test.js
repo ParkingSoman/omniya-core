@@ -53,6 +53,92 @@ async function enterNemethMode(page) {
   ));
 }
 
+test('a computer-braille keyboard leaves braille cells in the field, not the characters it sent', { timeout: 90_000 }, async (t) => {
+  // The decode was being computed for the status line and then thrown away, so
+  // the field kept the ASCII. A braille reader arrowing the field heard
+  // ordinary characters instead of cells, and Enter refused the buffer the
+  // status line had just read back as mathematics.
+  const { app, page } = await launch('omniya-nemeth-comp8-cells-');
+  t.after(() => app.close().catch(() => {}));
+  await enterNemethMode(page);
+
+  await page.keyboard.type('#2+#2');
+  await page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  assert.equal(
+    await page.locator('#composer-source').inputValue(),
+    '⠼⠆⠬⠼⠆',
+    'the field holds the decoded cells, not the ASCII the keyboard sent'
+  );
+});
+
+test('an equation typed on a computer-braille keyboard commits with Enter', { timeout: 90_000 }, async (t) => {
+  // The contributor's literal report: 2+2=4, which is '#2+#2 .k #4'. Note the
+  // '.k' -- the Nemeth equals sign spells with 'k', one of the six-key chord
+  // letters, so this case needs both the decode fix and the chord guard.
+  const { app, page } = await launch('omniya-nemeth-comp8-commit-');
+  t.after(() => app.close().catch(() => {}));
+  await enterNemethMode(page);
+
+  await page.keyboard.type('#2+#2 .k #4');
+  await page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  assert.match(await page.locator('#composer-status').textContent() ?? '', /read as 2\+2=4/);
+
+  await page.keyboard.press('Enter');
+  const article = page.locator('article.napkin-article').first();
+  await article.locator('mjx-assistive-mml math, math').first().waitFor();
+  const mathml = await article.locator('mjx-assistive-mml math, math').first().innerHTML();
+  assert.match(mathml, />4<\/mn>/, 'the equation committed rather than refusing the buffer it just read back');
+});
+
+test('s d f j k l are ordinary characters, not braille dots', { timeout: 90_000 }, async (t) => {
+  // These six were the home-row dot keys while six-key chording existed, and
+  // typing one produced a single-dot chord instead of the letter -- 'f' meant ⠋
+  // and inserted ⠁, silently. Chording is gone, so they are just characters
+  // now. Pinned because `f(x)` starts with one and this is the exact set that
+  // used to break.
+  const { app, page } = await launch('omniya-nemeth-letters-');
+  t.after(() => app.close().catch(() => {}));
+  await enterNemethMode(page);
+
+  const field = page.locator('#composer-source');
+  for (const [character, cell] of [
+    ['f', '⠋'], ['d', '⠙'], ['s', '⠎'],
+    ['j', '⠚'], ['k', '⠅'], ['l', '⠇']
+  ]) {
+    await field.fill('');
+    await page.keyboard.type(character);
+    assert.equal(await field.inputValue(), cell, `'${character}' is read as itself`);
+  }
+
+  // And the case that motivated removing chording at all.
+  await field.fill('');
+  await page.keyboard.type('f(x)');
+  await page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  assert.match(await page.locator('#composer-status').textContent() ?? '', /read as f\(x\)/);
+});
+
+test('a display sending raw cells needs no table at all', { timeout: 90_000 }, async (t) => {
+  // insertText bypasses key events entirely, which is what a braille display
+  // sending Unicode cells looks like -- also the shape NVDA produces with its
+  // braille input table set to "Unicode braille". Structurally immune to the
+  // six-key layer, so it pins that the two paths stay independent.
+  const { app, page } = await launch('omniya-nemeth-rawcells-');
+  t.after(() => app.close().catch(() => {}));
+  await enterNemethMode(page);
+
+  await page.keyboard.insertText('⠼⠆⠬⠼⠆⠀⠨⠅⠀⠼⠲');
+  await page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  assert.match(await page.locator('#composer-status').textContent() ?? '', /read as 2\+2=4/);
+
+  await page.keyboard.press('Enter');
+  const article = page.locator('article.napkin-article').first();
+  await article.locator('mjx-assistive-mml math, math').first().waitFor();
+  assert.match(
+    await article.locator('mjx-assistive-mml math, math').first().innerHTML(),
+    />4<\/mn>/
+  );
+});
+
 test('Nemeth cells in the composer become mathematics in the document', { timeout: 90_000 }, async (t) => {
   const { app, page } = await launch('omniya-nemeth-commit-');
   t.after(() => app.close().catch(() => {}));
@@ -129,12 +215,17 @@ test('an out-of-scope construct refuses at submit, with the product message and 
   assert.equal(await page.locator('#composer-source').inputValue(), UNKNOWN_SYMBOL, 'the cells are not thrown away');
 });
 
-test('QWERTY stays gated: a typed letter is refused, and the cells already entered survive', { timeout: 90_000 }, async (t) => {
-  // Commit 8bc05ae ("gate Nemeth QWERTY") is a standing product decision, and
-  // test/e2e/ueb-text-command-mode.test.js asserts the same thing for an empty
-  // field. This adds the case that decides the design: the old engine cleared
-  // the WHOLE field on a bad keystroke, throwing away correct work.
-  const { app, page } = await launch('omniya-nemeth-qwerty-');
+test('a typed letter is read as its computer-braille cell, and said out loud', { timeout: 90_000 }, async (t) => {
+  // Supersedes the old "QWERTY stays gated" assertion, which pinned 8bc05ae's
+  // outright refusal of letter keys. That refusal is genuinely gone: with the
+  // input table measured rather than configured, there is no cells-only mode
+  // left to fall back to, and a letter decodes to the cell it spells.
+  //
+  // What replaces the guarantee is disclosure, not silence. 8bc05ae's stated
+  // worry was input being SILENTLY reinterpreted as mathematics; the status
+  // line names both the reading and the mode on every keystroke, so an author
+  // who typed prose by mistake hears it immediately.
+  const { app, page } = await launch('omniya-nemeth-letter-');
   t.after(() => app.close().catch(() => {}));
   await enterNemethMode(page);
 
@@ -143,89 +234,47 @@ test('QWERTY stays gated: a typed letter is refused, and the cells already enter
 
   assert.equal(
     await page.locator('#composer-source').inputValue(),
-    OPEN_FRACTION,
-    'the a is stripped and the four good cells are kept'
+    `${OPEN_FRACTION}\u2801`,
+    'the a becomes the letter-a cell, and the cells already entered survive'
   );
-  assert.equal(await page.locator('#composer-source').getAttribute('aria-invalid'), 'true');
-  const message = await page.locator('#composer-error').textContent();
-  assert.match(message ?? '', /braille cells only|LaTeX|x in Command mode/i, 'matches the existing product assertion');
-  assert.match(message ?? '', /"a"/, 'and names the character that was refused');
+  assert.equal(await page.locator('#composer-error').isVisible(), false, 'this is no longer an error');
+  const status = await page.locator('#composer-status').textContent() ?? '';
+  assert.match(status, /computer braille/i, 'and the reading is announced, so it is never silent');
 });
 
-test('Ctrl+D opens the braille input table picker, and the choice decodes computer-braille ASCII and persists', { timeout: 90_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-nemeth-braille-table-'));
-  const launchWith = async () => {
-    const app = await electron.launch({
-      args: ['.'],
-      cwd: projectRoot,
-      env: electronLaunchEnv({ OMNIYA_TEST_USER_DATA_DIR: dataDirectory })
-    });
-    const page = await app.firstWindow();
-    await page.waitForLoadState('domcontentloaded');
-    await page.locator('#app-shell[aria-busy="false"]').waitFor();
-    await app.context().setOffline(true);
-    return { app, page };
-  };
+test('automatic detection reads a device with no setting, and says which reading it used', { timeout: 90_000 }, async (t) => {
+  // The whole point of the default: the contributor had their display set to
+  // computer braille correctly and was still refused on every keystroke,
+  // because they had no way to know a picker existed. Nothing is configured
+  // here -- this is a fresh profile.
+  const { app, page } = await launch('omniya-nemeth-auto-');
+  t.after(() => app.close().catch(() => {}));
+  await enterNemethMode(page);
 
-  const first = await launchWith();
-  t.after(() => first.app.close().catch(() => {}));
-  await enterNemethMode(first.page);
+  await page.keyboard.type('#2+#2 .k #4');
+  await page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  const status = await page.locator('#composer-status').textContent() ?? '';
+  assert.match(status, /read as 2\+2=4/, 'decoded without anyone choosing a table');
+  assert.match(status, /computer braille/i, 'and names the reading, so a wrong guess is audible');
+  assert.equal(await page.locator('#composer-source').inputValue(), '⠼⠆⠬⠼⠆⠀⠨⠅⠀⠼⠲');
 
-  // Off by default: '2' is refused exactly like ordinary QWERTY typing.
-  await first.page.keyboard.type('2');
-  await first.page.locator('#composer-error:not([hidden])').waitFor();
-  assert.match(await first.page.locator('#composer-error').textContent() ?? '', /braille cells only/i);
+  await page.keyboard.press('Enter');
+  const article = page.locator('article.napkin-article').first();
+  await article.locator('mjx-assistive-mml math, math').first().waitFor();
+  assert.match(await article.locator('mjx-assistive-mml math, math').first().innerHTML(), />4<\/mn>/);
+});
 
-  await first.page.keyboard.press('Control+d');
-  const dialog = first.page.locator('#braille-table-picker');
-  await dialog.waitFor({ state: 'visible' });
-  const noneOption = first.page.locator('#braille-table-menu [data-value="none"]');
-  const comp8Option = first.page.locator('#braille-table-menu [data-value="en-us-comp8"]');
+test('automatic detection leaves a raw-cell buffer alone and announces no mode', { timeout: 90_000 }, async (t) => {
+  // A display sending real cells must not be told it is being decoded through
+  // anything -- silence here is the signal that nothing was reinterpreted.
+  const { app, page } = await launch('omniya-nemeth-auto-cells-');
+  t.after(() => app.close().catch(() => {}));
+  await enterNemethMode(page);
 
-  // Opens with the current choice both focused and checked.
-  assert.equal(await noneOption.getAttribute('aria-checked'), 'true');
-  assert.equal(await noneOption.evaluate((el) => el === document.activeElement), true);
-
-  // Arrowing moves focus only -- it must NOT apply the option arrowed past
-  // (that was the bug this menu used to have) and must NOT close the dialog.
-  await first.page.keyboard.press('ArrowDown');
-  assert.equal(await comp8Option.evaluate((el) => el === document.activeElement), true, 'focus moved to the arrowed-to option');
-  assert.equal(await comp8Option.getAttribute('aria-checked'), 'false', 'arrowing onto it does not apply it');
-  assert.equal(await noneOption.getAttribute('aria-checked'), 'true', 'the original choice is untouched');
-  assert.equal(await dialog.isVisible(), true, 'the dialog stays open while arrowing between options');
-
-  // Escape closes without applying whatever was merely focused.
-  await first.page.keyboard.press('Escape');
-  await dialog.waitFor({ state: 'hidden' });
-  assert.equal(await first.page.locator('#composer-source').isVisible(), true, 'focus returns to the field');
-  await first.page.keyboard.press('Control+d');
-  await dialog.waitFor({ state: 'visible' });
-  assert.equal(await noneOption.getAttribute('aria-checked'), 'true', 'reopening shows the choice from before, unaffected by the earlier arrowing');
-
-  // Enter on the focused option applies it and closes the dialog.
-  await first.page.keyboard.press('ArrowDown');
-  await first.page.keyboard.press('Enter');
-  await dialog.waitFor({ state: 'hidden' });
-  assert.equal(await first.page.locator('#composer-source').isVisible(), true, 'focus returns to the field');
-
-  // On now: '#2+#2' (numeric indicator, digit, plus, numeric indicator, digit)
-  // decodes and parses as ordinary Nemeth arithmetic.
-  await first.page.keyboard.type('#2+#2');
-  await first.page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
-  assert.match(await first.page.locator('#composer-status').textContent() ?? '', /read as 2\+2/);
-  assert.equal(await first.page.locator('#composer-error').isVisible(), false);
-
-  await first.app.close();
-
-  // Relaunch against the same userData dir: the choice survived the process.
-  const second = await launchWith();
-  t.after(() => second.app.close().catch(() => {}));
-  await enterNemethMode(second.page);
-  await second.page.keyboard.press('Control+d');
-  await second.page.locator('#braille-table-picker').waitFor({ state: 'visible' });
-  assert.equal(
-    await second.page.locator('#braille-table-menu [data-value="en-us-comp8"]').getAttribute('aria-checked'),
-    'true',
-    'the picker reopens with the persisted choice already selected'
-  );
+  await page.keyboard.insertText(FRACTION);
+  await page.waitForFunction(() => /read as/.test(document.querySelector('#composer-status')?.textContent ?? ''));
+  const status = await page.locator('#composer-status').textContent() ?? '';
+  assert.match(status, /read as/);
+  assert.doesNotMatch(status, /computer braille/i);
+  assert.equal(await page.locator('#composer-source').inputValue(), FRACTION, 'cells pass through untouched');
 });

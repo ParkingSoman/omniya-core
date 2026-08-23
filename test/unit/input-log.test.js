@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { createInputLog, describeCharacter, formatEntry } from '../../src/renderer/input-log.js';
+
+test('the log is bounded, so a long session cannot grow without limit', () => {
+  // It holds the author's equation as they type it. Capped in memory, never
+  // written anywhere, and only ever leaves the process on an explicit request.
+  const log = createInputLog({ limit: 3 });
+  for (const key of ['a', 'b', 'c', 'd', 'e']) log.record({ type: 'keydown', key });
+
+  assert.equal(log.size, 3);
+  assert.deepEqual(log.entries().map((entry) => entry.key), ['c', 'd', 'e'], 'keeps the most recent');
+});
+
+test('entries() hands back a copy, so a reader cannot mutate the log', () => {
+  const log = createInputLog();
+  log.record({ type: 'keydown', key: 'a' });
+  log.entries().push({ type: 'forged' });
+  assert.equal(log.size, 1);
+});
+
+test('subscribers see each entry, and can stop listening', () => {
+  const log = createInputLog();
+  const seen = [];
+  const unsubscribe = log.subscribe(() => seen.push(log.size));
+
+  log.record({ type: 'keydown', key: 'a' });
+  log.record({ type: 'keydown', key: 'b' });
+  unsubscribe();
+  log.record({ type: 'keydown', key: 'c' });
+
+  assert.deepEqual(seen, [1, 2]);
+});
+
+test('characters are described with their code points, never elided', () => {
+  // The whole point is telling '#2+#2' from the cells it should have decoded
+  // to. Two strings that read alike must not print alike.
+  assert.equal(describeCharacter('a'), '"a" U+0061');
+  assert.equal(describeCharacter('⠼'), '"⠼" U+283C');
+  assert.equal(describeCharacter(''), '(none)');
+  assert.equal(describeCharacter(undefined), '(none)');
+});
+
+test('a consumed keystroke is called out, because nothing else reports it', () => {
+  // "A handler ate your keypress before the field saw it" is invisible from
+  // every other vantage point, and is the first thing to rule out when a
+  // device's input appears not to arrive. It is how the six-key chord reader
+  // was silently swallowing s d f j k l.
+  const line = formatEntry({
+    type: 'keydown', key: 'k', code: 'KeyK', swallowed: true, table: 'en-us-comp8'
+  });
+  assert.match(line, /CONSUMED-BY-APP/);
+  assert.match(line, /table=en-us-comp8/);
+
+  const clean = formatEntry({ type: 'keydown', key: 'k', code: 'KeyK', table: 'none' });
+  assert.doesNotMatch(clean, /CONSUMED/);
+});
+
+test('an input entry reports the field contents with code points', () => {
+  // The other half of the original bug: the field held ASCII while the status
+  // line said it had read mathematics.
+  const line = formatEntry({ type: 'input', table: 'en-us-comp8', value: '#2', state: '2 cells read as 2.' });
+  assert.match(line, /field="#2" U\+0023 U\+0032/);
+  assert.match(line, /state=2 cells read as 2\./);
+});

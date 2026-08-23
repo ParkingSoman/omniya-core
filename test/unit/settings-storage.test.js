@@ -10,7 +10,10 @@ async function temporaryDirectory() {
   return mkdtemp(path.join(os.tmpdir(), 'omniya-settings-'));
 }
 
-test('loads defaults when no settings file exists', async () => {
+test('loads empty defaults when no settings file exists', async () => {
+  // The store deliberately persists nothing right now: the braille input table
+  // it used to hold is measured rather than configured. What is being pinned
+  // here is that an absent file is a normal first run, not an error.
   const directory = await temporaryDirectory();
   const storage = createSettingsStorage(directory);
 
@@ -18,29 +21,25 @@ test('loads defaults when no settings file exists', async () => {
 
   assert.equal(result.warning, null);
   assert.deepEqual(result.settings, createDefaultSettings());
-  assert.equal(result.settings.nemethBrailleInputTable, 'none');
+  assert.deepEqual(result.settings, {});
 });
 
-test('saves and loads a chosen table', async () => {
+test('a settings file from an older build loads cleanly instead of erroring', async () => {
+  // Real upgrade path: anyone who used the input-table picker has
+  // `nemethBrailleInputTable` on disk. A retired key must be dropped, not
+  // treated as corruption -- otherwise upgrading looks like data loss.
   const directory = await temporaryDirectory();
+  await writeFile(
+    path.join(directory, 'settings.json'),
+    JSON.stringify({ nemethBrailleInputTable: 'en-us-comp8' }),
+    'utf8'
+  );
   const storage = createSettingsStorage(directory);
 
-  const saved = await storage.save({ nemethBrailleInputTable: 'en-us-comp8' });
-  const loaded = await storage.load();
+  const result = await storage.load();
 
-  assert.match(saved.savedAt, /^\d{4}-\d{2}-\d{2}T/);
-  assert.deepEqual(loaded.settings, { nemethBrailleInputTable: 'en-us-comp8' });
-  assert.equal((await readdir(directory)).includes('settings.json.tmp'), false);
-});
-
-test('an unrecognized table value falls back to none instead of throwing', async () => {
-  const directory = await temporaryDirectory();
-  const storage = createSettingsStorage(directory);
-
-  await storage.save({ nemethBrailleInputTable: 'not-a-real-table' });
-  const loaded = await storage.load();
-
-  assert.equal(loaded.settings.nemethBrailleInputTable, 'none');
+  assert.equal(result.warning, null, 'a retired key is not corruption');
+  assert.deepEqual(result.settings, {});
 });
 
 test('preserves corrupt data and returns usable default settings', async () => {
@@ -57,15 +56,14 @@ test('preserves corrupt data and returns usable default settings', async () => {
   assert.ok(recovery);
 });
 
-test('serializes concurrent saves and leaves the newest setting intact', async () => {
+test('concurrent saves serialize and leave no temp file behind', async () => {
+  // The atomic-write behaviour is why this module is kept even with nothing to
+  // store yet: `uebGrade` is the known next occupant.
   const directory = await temporaryDirectory();
   const storage = createSettingsStorage(directory);
 
-  await Promise.all([
-    storage.save({ nemethBrailleInputTable: 'none' }),
-    storage.save({ nemethBrailleInputTable: 'en-us-comp8' })
-  ]);
+  await Promise.all([storage.save({}), storage.save({})]);
 
-  assert.deepEqual((await storage.load()).settings, { nemethBrailleInputTable: 'en-us-comp8' });
+  assert.deepEqual((await storage.load()).settings, {});
   assert.equal((await readdir(directory)).some((name) => name.endsWith('.tmp')), false);
 });

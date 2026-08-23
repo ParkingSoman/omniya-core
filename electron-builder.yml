@@ -34,3 +34,7 @@ files:
   - "!dist{,/**/*}"
   - "!.github{,/**/*}"
   - "!scripts{,/**/*}"
+  # The dev-only input inspector must not exist in a shipped build. This is the
+  # guarantee the runtime flags are only a convenience on top of: with no file
+  # in the asar there is nothing for the dynamic import in app.js to find.
+  - "!src/renderer/dev{,/**/*}"

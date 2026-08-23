@@ -11,35 +11,34 @@ The usage notes below apply to **`testing` only**. They are not on `main`. This 
 
 **Insert an equation.** **Ctrl+E** (Cmd+E on Mac) starts a Nemeth equation at the caret;
 **Ctrl+L** starts a LaTeX one. **Enter** commits it and returns you to text; **Escape**
-discards it. On a braille display with no pending UEB cells, full cell **⠿** also starts a
-Nemeth equation.
+discards it.
 
-**Type Nemeth.** The field takes braille cells only — letter keys are not read as their
-Braille ASCII. Enter cells from a braille display, by pasting them, or by chording on the
-keyboard: **f d s** are dots 1 2 3, **j k l** are dots 4 5 6, and the cell is entered when
-you release. As you type, the status line reads back what it has: *"5 cells read as
-x^{2}+1. Enter inserts it."* A construct genuinely outside Nemeth's current coverage is
-refused with a fixed message — but only once you press **Enter**. While typing, *"not a
-complete expression yet"* is the normal, expected state, not an error.
+**Type Nemeth.** The field works in braille cells, and it works out how your input
+arrives on its own — there is nothing to configure. A braille display sending raw cells,
+a display set to a computer-braille table that sends plain text, and an ordinary keyboard
+typing the computer-braille spelling all reach the parser the same way. As you type, the
+status line reads back what it has: *"5 cells read as x^{2}+1. Enter inserts it."*, and it
+names the reading it used (*"read as computer braille"*) whenever your input was text
+rather than cells — so if it ever reads your device wrongly, you hear it immediately.
 
-Two *separate* settings affect what reaches this field, and mixing them up is the most
-common reason input seems to do nothing:
+With no braille hardware at all, type the computer-braille spelling: `?a/b#` is the
+fraction a over b, `#2+#2 .k #4` is 2+2=4, `x^2` is x squared.
 
-- **Your braille device's own input mode.** It has to be set to send raw braille cells,
-  not its own pre-translated output. Look for a setting on the device itself along the
-  lines of "uncontracted" or "raw cell" input, as opposed to a text- or
-  computer-braille-translation mode — naming varies by manufacturer.
-- **Ctrl+D**, inside the app, is a different setting: a picker for which table it uses
-  to decode a keyboard that can *only* send translated text (currently English (U.S.)
-  8-dot computer braille). It defaults to **off — raw braille cells only**, and should
-  normally stay there; pick the other option only if you know your device cannot send raw
-  cells.
+A construct genuinely outside Nemeth's current coverage is refused with a fixed message —
+but only once you press **Enter**. While typing, *"not a complete expression yet"* is the
+normal, expected state, not an error.
 
-To check whether the keyboard path itself is working, independent of what Nemeth
-supports, chord **f** alone (dot 1) and release. The status line should read *"1 cell
-read as a. Enter inserts it."* — that confirms both the chording and the parser. If it
-instead still reads *"Enter Nemeth cells"* with no reaction, input isn't reaching the
-field at all: check the device's input mode first, then the Ctrl+D table.
+**If input seems to do nothing,** the setting that matters is on your braille device, not
+in this app: it has to be sending either raw braille cells or a *computer-braille* /
+uncontracted table. A contracted literary table (UEB grade 2) cannot be read back into
+Nemeth by anything, because contractions are not reversible. On NVDA, Settings → Braille →
+Input table set to **Unicode braille** or **English (U.S.) computer braille** both work.
+
+Still stuck? **Help → Copy braille input diagnostics** puts the build you are on, the
+reading in force, and what the field actually received for your last few keystrokes on the
+clipboard — paste that into your report. It is copied only when you ask, is never written
+to disk or sent anywhere, and you can read it first: it includes the mathematics you were
+typing.
 
 **Read and edit math.** In reading, **Up** and **Down** move between items. **Enter** on an
 equation explores inside it. There, **r** replaces the focused node, **a** inserts after it,
@@ -292,7 +291,7 @@ On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In
 - Press `r` on a focused equation to replace it (or the explorer focus). `a` inserts after that same node; `o` inserts before it. On a text item, `r` opens it for editing.
 - Press Backspace on a focused item to delete it; focus moves to a nearby remaining item.
 - Type in the composer to write. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX. Enter commits an equation and returns to text. Escape discards an unfinished equation.
-- Ctrl+T toggles UEB G2 / G1 on text. With no pending UEB cells, full cell ⠿ inserts Nemeth (the UEB word “for” collides; use Ctrl+E or the Insert menu).
+- Ctrl+T toggles UEB G2 / G1 on text.
 - Arrow keys inside textareas retain normal text-cursor behavior.
 
 Only completed Add and Save actions are persisted. Unfinished drafts are not saved.
