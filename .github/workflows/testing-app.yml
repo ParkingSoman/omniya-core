@@ -28,7 +28,24 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view testing-app >/dev/null 2>&1 || gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned builds for the testing branch. Windows installs auto-update in the background; macOS testers get an in-app notice to re-download. Apple Silicon Mac and Windows x64 only." --target "$GITHUB_SHA"
+          # The notes are rewritten on EVERY build, not just the first. They used
+          # to sit behind `gh release view ... ||`, so the body written when the
+          # release was created never changed again -- it still advertised
+          # "rolling unsigned zips, re-download after each push" long after the
+          # Windows target became an NSIS installer, sending Windows testers to
+          # look for a zip asset that does not exist.
+          NOTES=$(cat <<'EOF'
+          Rolling unsigned builds of the `testing` branch. Download the asset for your platform:
+
+          - **Apple Silicon Mac** — `Omniya-Core-mac-arm64.zip`. Unzip and run. There is no auto-update; the app shows an in-app notice when a newer build exists, and you re-download this zip.
+          - **Windows x64** — `Omniya-Core-Setup-x64.exe`, an installer (there is **no** Windows zip). Once installed it auto-updates in the background, so you only download this once.
+
+          `version.json` and `alpha.yml` are update metadata, not downloads. Apple Silicon Mac and Windows x64 only; both are unsigned.
+          EOF
+          )
+          gh release view testing-app >/dev/null 2>&1 \
+            || gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "$NOTES" --target "$GITHUB_SHA"
+          gh release edit testing-app --notes "$NOTES"
           git tag -f testing-app "$GITHUB_SHA"
           git push origin testing-app --force
           gh release upload testing-app dist/*.zip dist/version.json --clobber
