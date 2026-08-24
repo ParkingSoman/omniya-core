@@ -178,3 +178,50 @@ test('the diagnostics report shows a napkin name reaching the name field', { tim
   assert.match(report, /-- typing into: napkin-name/, 'the name field is recorded and named');
   assert.match(report, /keydown key="A"/, 'and its keystrokes are in the report at all');
 });
+
+test('nothing pulls focus out of the new-napkin form while it is open', { timeout: 120_000 }, async (t) => {
+  // A guard, not a fix for one path. Three alpha reports of "I couldn't make a
+  // new napkin, what I typed never appeared" all reduce to something in the app
+  // moving focus out of #napkin-name while the person was typing into it. Each
+  // route there is worth fixing on its own, but the form is the one place where
+  // a stolen focus is silent and unrecoverable for someone who cannot see it,
+  // so programmatic focus is refused wholesale while it is up.
+  //
+  // openNewEquationDock is a real app path that ends in composer-source.focus().
+  const page = await launch(t, 'omniya-focus-guard-');
+  await addEquationViaComposer(page, { method: 'latex', source: 'x+1' });
+
+  await page.locator('#new-napkin-button').click();
+  await page.locator('#napkin-name').waitFor();
+  await page.keyboard.type('Alg');
+
+  await page.evaluate(() => globalThis.__omniyaTesting.openNewEquationDock());
+  await page.waitForTimeout(500);
+
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.id),
+    'napkin-name',
+    'focus stays where the person put it'
+  );
+  await page.keyboard.type('ebra');
+  assert.equal(await page.locator('#napkin-name').inputValue(), 'Algebra', 'and the whole name lands');
+});
+
+test('the form still hands focus on when the person closes it', { timeout: 120_000 }, async (t) => {
+  // The guard must not outlive the form, or Cancel strands focus on nothing.
+  const page = await launch(t, 'omniya-focus-guard-cancel-');
+  await page.locator('#new-napkin-button').click();
+  await page.locator('#napkin-name').waitFor();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'new-napkin-button');
+
+  await page.locator('#new-napkin-button').click();
+  await page.keyboard.type('Second');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.querySelector('#new-napkin-form')?.hidden === true);
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.id),
+    'composer-source',
+    'creating a napkin still lands the author in the writing field'
+  );
+});

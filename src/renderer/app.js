@@ -609,24 +609,49 @@ function scrollArticleIntoView(itemId) {
   article?.scrollIntoView({ block: 'nearest' });
 }
 
+/**
+ * Programmatic focus, refused while the napkin form owns the author.
+ *
+ * Every route the app has to move focus goes through here. The naming form is
+ * the one place in this app where a stolen focus is both silent and
+ * unrecoverable for someone who cannot see the screen: their typing lands in a
+ * field they did not open, the name field stays empty, and the form goes on
+ * asking for a name with nothing anywhere to say why. Three alpha reports in a
+ * row reduced to some version of that, and fixing each route as it was found
+ * left the next one live.
+ *
+ * So the form is treated as owning the author's attention while it is up, and
+ * nothing outside it may take focus away. This deliberately does NOT trap
+ * focus -- Tab, Shift+Tab and clicking still go wherever the person sends
+ * them, because a non-modal form that cannot be left is its own accessibility
+ * bug. Only the app's own unrequested focus moves are refused.
+ */
+function moveFocusTo(element) {
+  if (!element) return false;
+  const form = elements['new-napkin-form'];
+  if (form && !form.hidden && !form.contains(element)) return false;
+  element.focus();
+  return true;
+}
+
 function focusSelectedArticle() {
   const napkin = activeNapkin();
   if (!napkin) {
-    elements['new-napkin-button'].focus();
+    moveFocusTo(elements['new-napkin-button']);
     return;
   }
   const item = activeItem();
   const article = item && elements['transcript'].querySelector(
     `article.napkin-article[data-item-id="${CSS.escape(item.id)}"]`
   );
-  (article ?? elements['composer-source']).focus();
+  moveFocusTo(article ?? elements['composer-source']);
 }
 
 function focusNapkinButton(napkinId) {
   const button = elements['napkin-list'].querySelector(
     `[data-napkin-id="${CSS.escape(napkinId)}"]`
   );
-  if (button) button.focus();
+  if (button) moveFocusTo(button);
   else focusSelectedArticle();
 }
 
@@ -645,7 +670,7 @@ async function enterEquation(article) {
     elements['save-status'].textContent = 'Equation is still loading.';
     return false;
   }
-  math.focus();
+  moveFocusTo(math);
   exploringEquationItemId = article.dataset.itemId;
   elements['save-status'].textContent = 'Equation entered. Use arrow keys to explore it. Escape returns to the item.';
   return true;
@@ -657,7 +682,7 @@ function clearExploringEquation() {
 
 function leaveEquation(article) {
   clearExploringEquation();
-  article?.focus();
+  moveFocusTo(article);
   elements['save-status'].textContent = 'Equation level';
 }
 
@@ -825,7 +850,7 @@ async function openComposerForMathReplace(article, startingFocus = null, isNew =
   elements['composer-source'].className = preferredAuthoringMethod === 'nemeth'
     ? 'nemeth-inline-editor'
     : 'latex-inline-editor';
-  elements['composer-source'].focus();
+  moveFocusTo(elements['composer-source']);
 }
 
 /** @deprecated Product path uses openComposerForMathReplace; kept as alias for safety. */
@@ -918,7 +943,7 @@ function takeBackCommittedEquation() {
   // Through the real input path, so the parser re-reads the buffer and the
   // status line describes it exactly as it would while typing.
   field.dispatchEvent(new Event('input', { bubbles: true }));
-  field.focus();
+  moveFocusTo(field);
   field.setSelectionRange(snap.buffer.length, snap.buffer.length);
   setComposerMathStatus(`Equation removed and put back in the field. ${elements['composer-status']?.textContent ?? ''}`.trim());
   void saveState().catch(() => {});
@@ -940,7 +965,7 @@ function reachForLastItemFromComposer() {
     `article.napkin-article[data-item-id="${CSS.escape(last.id)}"]`
   );
   if (!article) return false;
-  article.focus();
+  moveFocusTo(article);
   announce(`${last.type === 'equation' ? 'Equation' : 'Text'} ${items.length}. Backspace deletes it; Enter explores it.`);
   return true;
 }
@@ -1152,7 +1177,7 @@ function restoreEquationCaretSnapshot() {
   });
   applyCommandStateToChrome(commandState);
   renderComposer();
-  elements['composer-source']?.focus();
+  moveFocusTo(elements['composer-source']);
 }
 
 function commitEquationAtSnapshot(note, math) {
@@ -1212,7 +1237,7 @@ function startEquationAtCaret(method) {
   ensureComposerMathSession();
   applyCommandStateToChrome(commandState);
   renderComposer();
-  elements['composer-source'].focus();
+  moveFocusTo(elements['composer-source']);
 }
 
 function enterDocumentTextAuthoring({ focus = true, preserveComposer = false } = {}) {
@@ -1233,9 +1258,9 @@ function enterDocumentTextAuthoring({ focus = true, preserveComposer = false } =
   if (activeNapkin()) {
     renderComposer();
     applyCommandStateToChrome(commandState);
-    if (focus) elements['composer-source'].focus();
+    if (focus) moveFocusTo(elements['composer-source']);
   } else if (focus) {
-    elements['new-napkin-button'].focus();
+    moveFocusTo(elements['new-napkin-button']);
   }
 }
 function startNewTextItem() {
@@ -1314,7 +1339,7 @@ function openEditMode(itemId) {
   if (elements['composer-source']) elements['composer-source'].value = item.source;
   renderComposer();
   applyCommandStateToChrome(commandState);
-  elements['composer-source'].focus();
+  moveFocusTo(elements['composer-source']);
   scrollArticleIntoView(itemId);
 }
 
@@ -1622,7 +1647,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
       if (!editing) ensureComposerMathSession();
       if (!replacementSession || replacementEditor) {
         setFieldError(elements['composer-source'], elements['composer-error'], 'Enter Nemeth or LaTeX');
-        elements['composer-source'].focus();
+        moveFocusTo(elements['composer-source']);
         return;
       }
       await composerMathInputProcessing;
@@ -1645,7 +1670,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
           : 'Enter Nemeth or LaTeX';
         setFieldError(elements['composer-source'], elements['composer-error'], emptyMessage);
         setComposerMathStatus(emptyMessage);
-        elements['composer-source'].focus();
+        moveFocusTo(elements['composer-source']);
         return;
       }
       const itemId = editingItemId ?? activeItem()?.id;
@@ -1731,7 +1756,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
       setFieldError(elements['composer-source'], elements['composer-error'], error.message);
       setComposerMathStatus(error.message);
       elements['composer-source'].setAttribute('aria-invalid', 'true');
-      elements['composer-source'].focus();
+      moveFocusTo(elements['composer-source']);
     } finally {
       submittingComposerEquation = false;
     }
@@ -1740,7 +1765,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
 
   if (type === 'text' && !source.trim()) {
     setFieldError(elements['composer-source'], elements['composer-error'], 'Enter text or LaTeX first.');
-    elements['composer-source'].focus();
+    moveFocusTo(elements['composer-source']);
     return;
   }
 
@@ -1943,7 +1968,7 @@ if (NOTES_UI_ENABLED) {
     elements['note-row'].hidden = !noteVisible;
     elements['note-toggle'].textContent = noteVisible ? 'Hide note' : 'Add note';
     elements['note-toggle'].setAttribute('aria-expanded', String(noteVisible));
-    if (noteVisible) elements['composer-note'].focus();
+    if (noteVisible) moveFocusTo(elements['composer-note']);
   });
 
   elements['composer-note'].addEventListener('input', () => {
