@@ -101,3 +101,14 @@ test('a commit records its verdict, which is where the log used to go silent', (
   assert.match(refused, /verdict=refused/);
   assert.match(refused, /isn't supported yet/, 'the message the author actually heard');
 });
+
+test('a keystroke the app sent to itself is marked as such', () => {
+  // The transcript forwards Backspace into #composer-source as a synthetic
+  // KeyboardEvent. Without this marker that line reads exactly like a key the
+  // person pressed, which is the opposite of what the report is for.
+  const sent = formatEntry({ type: 'keydown', key: 'Backspace', code: '', synthetic: true, table: 'none' });
+  assert.match(sent, /SENT-BY-APP/);
+
+  const pressed = formatEntry({ type: 'keydown', key: 'Backspace', code: 'Backspace', table: 'none' });
+  assert.doesNotMatch(pressed, /SENT-BY-APP/);
+});

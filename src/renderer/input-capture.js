@@ -58,6 +58,12 @@ export function attachInputCapture({ document, log = createInputLog(), onChange,
       type: 'keydown',
       key: event.key,
       code: event.code,
+      // The app dispatches keydowns of its own -- the transcript forwards
+      // Backspace into #composer-source as a synthetic event -- and one of
+      // those is indistinguishable, in a report, from a key the person
+      // actually pressed. It cost a round of this investigation: a Backspace
+      // that no hardware sent was read as one that did.
+      synthetic: !event.isTrusted,
       // Set by the time a bubble listener runs: the chord reader calls
       // preventDefault() in capture/earlier-registered order.
       swallowed: event.defaultPrevented,

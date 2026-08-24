@@ -476,6 +476,20 @@ function placementVerb(placement) {
   return 'Replacing';
 }
 
+/**
+ * True where a bare letter is the author's text, not an application shortcut.
+ *
+ * Deliberately wider than "is an input": the napkin rail and any open dialog
+ * own their own keys too, and a single-letter accelerator that fires inside
+ * someone's half-typed napkin name is indistinguishable, to them, from the
+ * keystroke being lost.
+ */
+function typingIntoAField(element) {
+  if (!(element instanceof Element)) return false;
+  if (element.isContentEditable) return true;
+  return Boolean(element.closest('input, textarea, select, #new-napkin-form, #napkin-rail, dialog'));
+}
+
 function mathPlacementFromKey(event) {
   if (event.altKey || event.ctrlKey || event.metaKey) return null;
   const key = event.key.toLowerCase();
@@ -819,7 +833,22 @@ document.addEventListener('keydown', (event) => {
       && focused.closest('#composer-source, #replacement-input, #composer-note, #composer-dock')) return;
   const article = articleForMathEditKey(focused);
   if (!article) return;
-  const explorerPlacement = mathPlacementFromKey(event);
+  // r / a / o are shortcuts, but only where a letter is not text. This handler
+  // reaches beyond the transcript on purpose -- MathJax's explorer can hand
+  // focus off to <body> mid-navigation, and `articleForMathEditKey` falls back
+  // to the equation last explored so the keys survive that (see "r still
+  // replaces after explorer navigation moves focus off the math node"). The
+  // fallback has no expiry, though: `exploringEquationItemId` outlives the
+  // focus that set it, so the same reach also claimed letters typed into an
+  // ordinary field. An alpha contributor could not name a new napkin after
+  // exploring an equation -- the first a, o or r of the name was swallowed
+  // here, focus moved to #composer-source, and the rest of the name landed in
+  // a field they had not opened, so the form kept telling them to name the
+  // napkin while their typing went somewhere they could not hear.
+  //
+  // The exclusion list extends the one on the command-key listener further
+  // down, which already had to learn this about the napkin rail and dialogs.
+  const explorerPlacement = typingIntoAField(focused) ? null : mathPlacementFromKey(event);
   if (explorerPlacement) {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -1647,6 +1676,8 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
 }
 
 async function deleteFocusedItem(itemId) {
+  // The id of a deleted item is not a place anyone can still be reading.
+  if (exploringEquationItemId === itemId) clearExploringEquation();
   if (liveTextItemId === itemId) {
     liveTextItemId = null;
     editingItemId = null;
@@ -2031,6 +2062,29 @@ elements['transcript'].addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       event.preventDefault();
       leaveEquation(article);
+    }
+    // Backspace deletes the focused item -- README: "Press Backspace on a
+    // focused item to delete it". Exploring an equation must not take that
+    // away, and it did: the explorer puts focus on <mjx-container> INSIDE the
+    // article, so the key entered this `math` branch and returned from it
+    // without ever reaching the delete below. An alpha contributor reported
+    // exactly that -- equations they had written could not be deleted,
+    // "including pressing backspace and control z" -- and had no way to tell
+    // that the key was being handled at all.
+    //
+    // Ordered before the draft forwarding because both can be true at once:
+    // the composer stays up in equation mode after a commit (5f8ab9c), so
+    // `isComposerMathAuthoring()` is still set while the author reads back the
+    // equation they just committed. That sent Backspace to an empty composer
+    // field, where it did nothing. `exploringEquationItemId` is the one flag
+    // that says this math is a committed item being read, not a live draft:
+    // openComposerForMathReplace clears it when the composer takes the math
+    // over.
+    if (event.key === 'Backspace' && exploringEquationItemId === article.dataset.itemId) {
+      event.preventDefault();
+      event.stopPropagation();
+      void deleteFocusedItem(article.dataset.itemId);
+      return;
     }
     if (event.key === 'Backspace' && isComposerMathAuthoring()) {
       event.preventDefault();

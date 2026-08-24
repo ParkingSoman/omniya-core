@@ -130,6 +130,9 @@ export function formatEntry(entry) {
   // Nemeth, so it fell silent on the very keystroke that decided the outcome.
   if (entry.verdict) parts.push(`verdict=${entry.verdict}`);
   if (entry.swallowed) parts.push('CONSUMED-BY-APP');
+  // Says the app sent this to itself. A report full of these is describing the
+  // app talking to itself, not a device that is failing to type.
+  if (entry.synthetic) parts.push('SENT-BY-APP');
   if (entry.table) parts.push(`table=${entry.table}`);
   if (entry.value !== undefined) parts.push(`field=${describeCharacter(entry.value)}`);
   if (entry.state) parts.push(`state=${entry.state}`);

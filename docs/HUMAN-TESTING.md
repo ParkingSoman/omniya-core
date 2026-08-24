@@ -102,12 +102,18 @@ npm run test:demo:thought
 5. Enter explorer → arrow to a term → **r** → same composer opens (status
    shows replacing scope); Escape cancels unchanged. **a** / **o** insert
    after / before the focused node.
-6. Cmd/Ctrl+Z undoes a submitted replacement; Shift+Z redoes.
-7. Backspace in an open Nemeth draft undoes the last accepted step.
-8. Keyboard help (button, Help menu, or the dialog) lists Ctrl+E / L / T,
+6. Still in the explorer, press **Backspace**: the equation you are reading is
+   deleted, as it is for any other focused item. Then press **+ New napkin**
+   and type a name containing an `a`, `o` or `r` — every letter must reach the
+   name field, and focus must stay in it. Both failed in alpha 14: r / a / o
+   were claimed as explorer shortcuts wherever focus happened to be, so the
+   name went into the writing field instead and the form kept asking for one.
+7. Cmd/Ctrl+Z undoes a submitted replacement; Shift+Z redoes.
+8. Backspace in an open Nemeth draft undoes the last accepted step.
+9. Keyboard help (button, Help menu, or the dialog) lists Ctrl+E / L / T,
    Enter, Escape, and the application menu. No Ctrl+[, Command keys, or Add
    item.
-9. Quit, reopen, confirm the napkin persisted.
+10. Quit, reopen, confirm the napkin persisted.
 
 More detail: [`guided-nemeth-user-guide.md`](guided-nemeth-user-guide.md).
 
