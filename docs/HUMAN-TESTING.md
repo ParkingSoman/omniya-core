@@ -108,12 +108,21 @@ npm run test:demo:thought
    name field, and focus must stay in it. Both failed in alpha 14: r / a / o
    were claimed as explorer shortcuts wherever focus happened to be, so the
    name went into the writing field instead and the form kept asking for one.
-7. Cmd/Ctrl+Z undoes a submitted replacement; Shift+Z redoes.
-8. Backspace in an open Nemeth draft undoes the last accepted step.
-9. Keyboard help (button, Help menu, or the dialog) lists Ctrl+E / L / T,
+7. Commit an equation with Enter, then press **Backspace** on the now-empty
+   field: the equation leaves the document and its cells come back into the
+   field, with `#composer-status` saying so. A second Backspace is an ordinary
+   cell delete — it must NOT reach further back into the napkin. Ctrl+Z does
+   the same as the first Backspace. Reported in alpha 14: "pressing backspace
+   and control z didn't erase the expression I'd written."
+8. Help → Copy braille input diagnostics after typing in both the napkin-name
+   field and the writing field. The report must carry a `-- typing into:` line
+   for each, and must not say `read as none` for a session that decoded cells.
+9. Cmd/Ctrl+Z undoes a submitted replacement; Shift+Z redoes.
+10. Backspace in an open Nemeth draft undoes the last accepted step.
+11. Keyboard help (button, Help menu, or the dialog) lists Ctrl+E / L / T,
    Enter, Escape, and the application menu. No Ctrl+[, Command keys, or Add
    item.
-10. Quit, reopen, confirm the napkin persisted.
+12. Quit, reopen, confirm the napkin persisted.
 
 More detail: [`guided-nemeth-user-guide.md`](guided-nemeth-user-guide.md).
 

@@ -26,7 +26,22 @@
  */
 import { createInputLog } from './input-log.js';
 
-const FIELD = '#composer-source';
+/**
+ * Every field a person types into, not just the equation one.
+ *
+ * It watched `#composer-source` alone, and that is precisely how two rounds of
+ * an alpha report went unanswered. A contributor could not name a new napkin;
+ * the report they sent showed their keystrokes arriving in the equation field,
+ * with no way to tell that this was the wrong field -- and once focus moved to
+ * the napkin-name field, recording stopped dead, so the half of the session
+ * that contained the bug was simply absent. A report that goes quiet exactly
+ * where the author says the trouble is cannot do its job.
+ *
+ * Bounded on purpose: these are the authoring fields, not the document. This
+ * is not a document-wide key log and must not become one -- buttons, menus and
+ * the transcript are deliberately not here.
+ */
+const FIELDS = ['#composer-source', '#composer-note', '#napkin-name', '#replacement-input'];
 
 /**
  * The authoring mode in force, recorded on every entry.
@@ -45,8 +60,10 @@ function authoringMode(document) {
 
 export function attachInputCapture({ document, log = createInputLog(), onChange, readTable } = {}) {
   const activeTable = () => readTable?.() ?? 'unknown';
-  const field = document.querySelector(FIELD);
-  if (!field) return { log, detach() {} };
+  const fields = FIELDS
+    .map((selector) => document.querySelector(selector))
+    .filter(Boolean);
+  if (!fields.length) return { log, detach() {} };
 
   const publish = (entry) => {
     log.record(entry);
@@ -54,10 +71,16 @@ export function attachInputCapture({ document, log = createInputLog(), onChange,
   };
 
   const onKeydown = (event) => {
+    const field = event.currentTarget;
     publish({
       type: 'keydown',
       key: event.key,
       code: event.code,
+      // Which field actually received this. The single most useful fact the
+      // report was missing: "you were typing into the equation field" is the
+      // whole answer to "my napkin name never appeared", and nothing else in
+      // the app can say it after the fact.
+      where: field.id,
       // The app dispatches keydowns of its own -- the transcript forwards
       // Backspace into #composer-source as a synthetic event -- and one of
       // those is indistinguishable, in a report, from a key the person
@@ -73,9 +96,12 @@ export function attachInputCapture({ document, log = createInputLog(), onChange,
     });
   };
 
-  const onInput = () => {
+
+  const onInput = (event) => {
+    const field = event.currentTarget;
     publish({
       type: 'input',
+      where: field.id,
       mode: authoringMode(document),
       table: activeTable(),
       value: field.value,
@@ -83,13 +109,17 @@ export function attachInputCapture({ document, log = createInputLog(), onChange,
     });
   };
 
-  field.addEventListener('keydown', onKeydown);
-  field.addEventListener('input', onInput);
+  for (const field of fields) {
+    field.addEventListener('keydown', onKeydown);
+    field.addEventListener('input', onInput);
+  }
   return {
     log,
     detach() {
-      field.removeEventListener('keydown', onKeydown);
-      field.removeEventListener('input', onInput);
+      for (const field of fields) {
+        field.removeEventListener('keydown', onKeydown);
+        field.removeEventListener('input', onInput);
+      }
     }
   };
 }

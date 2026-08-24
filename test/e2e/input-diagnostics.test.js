@@ -145,7 +145,7 @@ test('the report covers the whole session, text mode included, not the last 20 l
 
   const report = await page.evaluate(() => globalThis.__omniyaTesting?.inputDiagnostics?.());
 
-  assert.match(report, /everything the writing field received since the app started/);
+  assert.match(report, /everything the writing fields received since the app started/);
   assert.doesNotMatch(report, /earlier lines are not shown/, 'nothing was trimmed in a session this short');
 
   // The prose typed before Ctrl+E is present -- it was invisible before.

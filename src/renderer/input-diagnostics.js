@@ -41,15 +41,51 @@ function describeInfo(appInfo) {
  */
 function withModeChanges(entries) {
   const lines = [];
-  let current;
+  let currentMode;
+  let currentField;
   for (const entry of entries) {
-    if (entry.mode && entry.mode !== current) {
-      current = entry.mode;
-      lines.push(`-- mode: ${current}`);
+    if (entry.mode && entry.mode !== currentMode) {
+      currentMode = entry.mode;
+      lines.push(`-- mode: ${currentMode}`);
+    }
+    // Which field the next run of keystrokes went into, on the same
+    // print-only-when-it-changes rule as the mode. This is the line that says
+    // "your typing went somewhere you did not put it", and its absence is why
+    // an alpha contributor's "the name I typed wasn't showing up" took three
+    // reports to place.
+    if (entry.where && entry.where !== currentField) {
+      currentField = entry.where;
+      lines.push(`-- typing into: ${currentField}`);
     }
     lines.push(formatEntry(entry));
   }
   return lines;
+}
+
+/**
+ * What the session actually read, rather than what the last keystroke did.
+ *
+ * The header used to print one mutable variable, and it lied in both
+ * directions. `resolveBrailleInputTable` answers `'none'` to three different
+ * questions -- "this is raw braille cells, no table needed", "nothing here is
+ * explicable", and "nothing has arrived at all" -- so a session that decoded
+ * `en-us-comp8` perfectly reported `read as none` the moment the author
+ * backspaced down to pure cells. Two reports carried that line and it sent the
+ * diagnosis the wrong way both times. Summarising the whole log cannot make
+ * that mistake: a table that was used at any point appears, and a session with
+ * no input at all says so instead of blaming a table.
+ */
+function describeTables(brailleInputTable, resolvedTable, entries) {
+  if (brailleInputTable !== 'auto') return String(brailleInputTable ?? 'unknown');
+  const named = (table) => Boolean(table) && table !== 'none' && table !== 'unknown';
+  const seen = [...new Set([...entries.map((entry) => entry.table), resolvedTable].filter(named))];
+  if (seen.length) return `auto (read as ${seen.join(', ')})`;
+  if (!entries.some((entry) => entry.type === 'input')) {
+    return 'auto (nothing has reached a writing field yet, so nothing has been read)';
+  }
+  // Input arrived and no table ever explained it. That is the only reading of
+  // "none" worth printing, and now it is the only one that can appear.
+  return 'auto (read as none — the input matched no known table)';
 }
 
 export function formatInputDiagnostics({
@@ -62,9 +98,7 @@ export function formatInputDiagnostics({
 } = {}) {
   const recent = limit === undefined ? entries : entries.slice(-limit);
   const trimmed = dropped + (entries.length - recent.length);
-  const table = brailleInputTable === 'auto' && resolvedTable
-    ? `auto (read as ${resolvedTable})`
-    : String(brailleInputTable ?? 'unknown');
+  const table = describeTables(brailleInputTable, resolvedTable, recent);
 
   return [
     'Omniya Core — braille input diagnostics',
@@ -76,12 +110,13 @@ export function formatInputDiagnostics({
     // gated to Nemeth mode, that means prose as well as mathematics, and the
     // sentence says so rather than leaving them to infer it.
     trimmed
-      ? `Below are the last ${recent.length} lines of what the writing field received,`
-      : `Below is everything the writing field received since the app started,`,
-    'and what happened each time you pressed Enter. That means this report',
-    'includes the mathematics you were typing, and any other text typed in the',
-    'same field. Nothing here was saved to disk or sent anywhere; it was copied',
-    'only because you asked for it.',
+      ? `Below are the last ${recent.length} lines of what the writing fields received,`
+      : `Below is everything the writing fields received since the app started,`,
+    'and what happened each time you pressed Enter. A "typing into" line says',
+    'which field the keystrokes under it went to. That means this report',
+    'includes the mathematics you were typing, any other text typed in those',
+    'fields, and the napkin names you typed. Nothing here was saved to disk or',
+    'sent anywhere; it was copied only because you asked for it.',
     ...(trimmed
       ? ['', `(${trimmed} earlier lines are not shown: the log holds a fixed maximum.)`]
       : []),

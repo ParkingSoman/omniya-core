@@ -93,3 +93,88 @@ test('Backspace deletes the equation being explored', { timeout: 120_000 }, asyn
   );
   assert.equal(await articles.count(), 0, 'the explored equation is deleted');
 });
+
+/**
+ * Backspace on an empty equation field takes the last equation back.
+ *
+ * From the same alpha thread: "Pressing backspace and control z didn't erase
+ * the expression I'd written." The composer stays in equation mode after Enter
+ * (5f8ab9c), so the author is left in an empty field with the equation they
+ * just wrote sitting behind them and no key that reaches it -- their diagnostics
+ * showed eleven Backspaces and two Ctrl+Zs into an empty field, in silence.
+ *
+ * Taking it back rather than deleting it is what makes repeating the key safe:
+ * the second press is an ordinary cell delete, so leaning on Backspace cannot
+ * walk backwards through the napkin destroying items.
+ */
+async function composeNemeth(page, source) {
+  await page.locator('#composer-source').focus();
+  await page.keyboard.press('Control+e');
+  await page.waitForFunction(() => /Equation · Nemeth/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
+  await page.keyboard.type(source);
+  await page.keyboard.press('Enter');
+  await page.locator('article.napkin-article mjx-container, article.napkin-article math')
+    .first().waitFor({ timeout: 30_000 });
+}
+
+test('Backspace on the empty equation field takes the equation just committed back', { timeout: 120_000 }, async (t) => {
+  const page = await launch(t, 'omniya-uncommit-');
+  await composeNemeth(page, '#2+2');
+
+  const articles = page.locator('article.napkin-article');
+  assert.equal(await articles.count(), 1, 'the equation committed');
+  assert.equal(await page.locator('#composer-source').inputValue(), '', 'and the field is empty again');
+
+  await page.keyboard.press('Backspace');
+  await page.waitForFunction(
+    () => document.querySelector('#composer-source')?.value === '⠼⠆⠬⠆',
+    null,
+    { timeout: 15_000 }
+  );
+  assert.equal(await articles.count(), 0, 'the equation is out of the document');
+  assert.match(
+    await page.locator('#composer-status').textContent(),
+    /back in the field/i,
+    'and the author is told where it went'
+  );
+
+  // The second press is an ordinary cell delete, so holding Backspace cannot
+  // walk backwards through the napkin.
+  await page.keyboard.press('Backspace');
+  await page.waitForFunction(
+    () => document.querySelector('#composer-source')?.value === '⠼⠆⠬',
+    null,
+    { timeout: 15_000 }
+  );
+});
+
+test('Ctrl+Z on the empty equation field takes it back too', { timeout: 120_000 }, async (t) => {
+  const page = await launch(t, 'omniya-uncommit-undo-');
+  await composeNemeth(page, '#2+2');
+
+  await page.keyboard.press('Control+z');
+  await page.waitForFunction(
+    () => document.querySelector('#composer-source')?.value === '⠼⠆⠬⠆',
+    null,
+    { timeout: 15_000 }
+  );
+  assert.equal(await page.locator('article.napkin-article').count(), 0);
+});
+
+test('the diagnostics report shows a napkin name reaching the name field', { timeout: 120_000 }, async (t) => {
+  // The report went silent the moment focus left #composer-source, so the half
+  // of the session that contained the bug was simply absent from two alpha
+  // reports. Whatever the app does with these keys, the report has to be able
+  // to say where they went.
+  const page = await launch(t, 'omniya-report-fields-');
+
+  await page.locator('#new-napkin-button').click();
+  await page.locator('#napkin-name').waitFor();
+  await page.keyboard.type('Algebra');
+
+  const report = await page.evaluate(() => globalThis.__omniyaTesting?.inputDiagnostics?.());
+  assert.match(report, /-- typing into: napkin-name/, 'the name field is recorded and named');
+  assert.match(report, /keydown key="A"/, 'and its keystrokes are in the report at all');
+});

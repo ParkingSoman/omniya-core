@@ -90,6 +90,15 @@ let saveChain = Promise.resolve();
 let transcriptRenderVersion = 0;
 let mathJaxReady;
 let exploringEquationItemId = null;
+/**
+ * The equation Enter just committed, kept only so Backspace can take it back.
+ *
+ * `{ itemId, buffer, method }`, in memory, dropped on the next keystroke. An
+ * equation item stores MathML and nothing else -- Nemeth -> LaTeX -> MathML is
+ * one-directional -- so this snapshot is the ONLY thing that can put an
+ * author's cells back in the field, and only for the commit they just made.
+ */
+let uncommittedEquation = null;
 let renamingNapkinId = null;
 let replacementSession = null;
 let replacementEditor = null;
@@ -871,6 +880,71 @@ document.addEventListener('keydown', (event) => {
   void applyMathHistory(item.id, event.shiftKey ? 'redo' : 'undo');
 }, true);
 
+/**
+ * Backspace / Ctrl+Z on an EMPTY equation field: undo the commit behind it.
+ *
+ * Equation mode is sticky after Enter (5f8ab9c), which leaves an author in an
+ * empty field with the expression they just wrote sitting behind them and,
+ * before this, no key that reached it. An alpha contributor reported exactly
+ * that -- "pressing backspace and control z didn't erase the expression I'd
+ * written" -- and their diagnostics showed eleven Backspaces and two Ctrl+Zs
+ * into an empty field with nothing announced in reply.
+ *
+ * It takes the equation BACK rather than deleting it, which is what makes
+ * repeating the key safe: the field is no longer empty afterwards, so the next
+ * press is an ordinary cell delete and leaning on Backspace cannot walk
+ * backwards through the napkin destroying items. It is also the exact inverse
+ * of the Enter that created it, which is the only reading of Backspace that
+ * needs no explaining.
+ */
+function takeBackCommittedEquation() {
+  const snap = uncommittedEquation;
+  uncommittedEquation = null;
+  if (!snap) return false;
+  if (!activeNapkin()?.items.some(({ id }) => id === snap.itemId)) return false;
+  if (!isComposerMathAuthoring() || replacementSession?.method !== snap.method) return false;
+
+  if (exploringEquationItemId === snap.itemId) clearExploringEquation();
+  state = deleteItem(state, snap.itemId);
+  liveTextItemId = null;
+  editingItemId = null;
+  renderAll();
+
+  // After renderAll: renderComposer writes draft.source into the field, so the
+  // restore has to come second or it is immediately overwritten.
+  const field = elements['composer-source'];
+  draft.source = snap.buffer;
+  field.value = snap.buffer;
+  // Through the real input path, so the parser re-reads the buffer and the
+  // status line describes it exactly as it would while typing.
+  field.dispatchEvent(new Event('input', { bubbles: true }));
+  field.focus();
+  field.setSelectionRange(snap.buffer.length, snap.buffer.length);
+  setComposerMathStatus(`Equation removed and put back in the field. ${elements['composer-status']?.textContent ?? ''}`.trim());
+  void saveState().catch(() => {});
+  return true;
+}
+
+/**
+ * No snapshot to take back -- an equation from an earlier session, say. Put the
+ * author on the item instead and say what Backspace does there, rather than
+ * deleting something they cannot see on a key that just did nothing.
+ */
+function reachForLastItemFromComposer() {
+  const items = activeNapkin()?.items ?? [];
+  const last = items[items.length - 1];
+  if (!last) return false;
+  state = selectItem(state, last.id);
+  renderTranscript();
+  const article = elements['transcript'].querySelector(
+    `article.napkin-article[data-item-id="${CSS.escape(last.id)}"]`
+  );
+  if (!article) return false;
+  article.focus();
+  announce(`${last.type === 'equation' ? 'Equation' : 'Text'} ${items.length}. Backspace deletes it; Enter explores it.`);
+  return true;
+}
+
 function resetDraft() {
   draft = { source: '', note: '', type: 'text' };
   noteVisible = false;
@@ -1103,7 +1177,11 @@ function commitEquationAtSnapshot(note, math) {
   }
   clearedLiveTextIndex = null;
   state = insertItemAt(state, insertAt, { type: 'equation', note, math });
-  return rightId;
+  // The equation's own id, not just the text split off to its right: Backspace
+  // on the empty field has to be able to reach back and take this item away
+  // again, and it is the only thing that knows which one it made.
+  const equationId = activeNapkin()?.items[insertAt]?.id ?? null;
+  return { rightId, equationId };
 }
 
 function applyEquationInsert(method) {
@@ -1608,7 +1686,7 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         // Captured before clearComposerMathSession() drops the session: the
         // composer re-opens in the method that just committed, below.
         const committedMethod = replacementSession.method;
-        const followId = commitEquationAtSnapshot(note, result.document);
+        const { rightId: followId, equationId } = commitEquationAtSnapshot(note, result.document);
         clearComposerMathSession();
         resetDraft();
         liveTextItemId = null;
@@ -1635,6 +1713,11 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         // end of the napkin. openEditMode also tears down a live isNew session,
         // so re-entering before it would be undone.
         startEquationAtCaret(committedMethod);
+        // Held ONLY until the next keystroke, and only in memory. See
+        // takeBackCommittedEquation.
+        uncommittedEquation = equationId
+          ? { itemId: equationId, buffer: submittedBuffer, method: committedMethod }
+          : null;
         // #composer-status is the field's aria-describedby live region, and
         // with focus never leaving the field it is now the only channel that
         // can tell a screen-reader user the equation landed. Say the mode too:
@@ -1952,6 +2035,9 @@ async function handleComposerMathInput() {
 }
 
 elements['composer-source'].addEventListener('input', () => {
+  // Typing is moving on. The take-back is for the moment right after Enter,
+  // not a history someone can walk back through later.
+  uncommittedEquation = null;
   if (isComposerMathAuthoring()) {
     void handleComposerMathInput();
     return;
@@ -1983,6 +2069,20 @@ elements['composer-source'].addEventListener('keydown', (event) => {
   // (Backspace, arrows, selection, paste, the platform's own undo) is the
   // editing model, and it is the one a screen reader already knows how to
   // narrate.
+  // ...with one exception, and only while the field is EMPTY, so the sentence
+  // above still holds for every keystroke that has something to edit: with
+  // nothing left to delete, Backspace and Ctrl+Z reach the commit behind the
+  // field instead of doing nothing in silence.
+  const undoChord = (event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z';
+  if ((event.key === 'Backspace' || undoChord)
+      && !elements['composer-source'].value
+      && isComposerMathAuthoring()) {
+    event.preventDefault();
+    if (!takeBackCommittedEquation() && !reachForLastItemFromComposer()) {
+      setComposerMathStatus('Nothing to erase yet. Type an equation, or Escape to return to the text.');
+    }
+    return;
+  }
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
     if (isDocumentTextSurface()) {
       event.preventDefault();
@@ -2276,7 +2376,7 @@ globalThis.__omniyaTesting = {
       appInfo: window.omniya?.appInfo,
       brailleInputTable: NEMETH_INPUT_MODE,
       resolvedTable: lastResolvedInputTable,
-      entries: inputLog.entries(),
+        entries: inputLog.entries(),
       dropped: inputLog.dropped
     });
   },
