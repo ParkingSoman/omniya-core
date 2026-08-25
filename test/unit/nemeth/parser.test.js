@@ -687,3 +687,60 @@ test('Rules 20 and 21: the new signs are items in the flat sequence, like the ol
   assert.equal(toLatexOf('x "k: #5'), 'x≤5');
   assert.equal(toLatexOf('x .1: #5'), 'x≥5');
 });
+
+// -- unary sign ---------------------------------------------------------------
+// `unary := (+|-|±)? postfix`. BANA Rule 20 writes the negative sign with the
+// same cell as the sign of subtraction, so the position -- nothing before it on
+// this level -- is the whole of what separates them.
+
+test('a minus sign with no term before it is a negative sign', () => {
+  assert.equal(
+    format(treeOf('-#1')),
+    "Sequence([ Operator('-'), Number('1') ])"
+  );
+});
+
+test('a plus sign with no term before it is a positive sign', () => {
+  assert.equal(
+    format(treeOf('+#1')),
+    "Sequence([ Operator('+'), Number('1') ])"
+  );
+});
+
+test('a negative term is allowed on the far side of a comparison sign', () => {
+  assert.equal(toLatexOf('x .k -y'), 'x=-y');
+});
+
+test('a negative term is allowed as the first term inside a grouping sign', () => {
+  assert.equal(toLatexOf('(-#1)'), '(-1)');
+});
+
+// `mathcat-rules:multipurpose_lesson_5_2_3`: Rule 5.2's multipurpose indicator
+// is what keeps the two signs from reading as one symbol.
+test('a negative term is allowed after a sign of operation', () => {
+  assert.equal(toLatexOf('#10+"-5'), '10+-5');
+});
+
+test('a sign of multiplication is not usable as a prefix', () => {
+  assert.throws(() => treeOf('@*#1'), NemethUnsupportedError);
+});
+
+// Rule 20.6 (Nemeth_2022.txt lines 10156-10160): "When the signs for plus and
+// minus are combined either vertically or horizontally, the combination is
+// regarded as a SINGLE sign of operation." Without a row of its own each
+// combination would lex as two signs, and -- now that `⠤` has a prefix reading
+// -- `⠬⠤` would quietly come back as "plus, then negative" instead of `±`.
+// Rule 20.6's own Example 20-38 is what spells that other reading: the
+// multipurpose indicator, `⠐`, is what divides the two signs.
+
+test('the combination "+-" is the single sign ±, not a plus before a negative', () => {
+  assert.equal(toLatexOf('x+-y'), 'x±y');
+});
+
+test('the combination "-+" is the single sign ∓', () => {
+  assert.equal(toLatexOf('x-+y'), 'x∓y');
+});
+
+test('a multipurpose indicator divides a sign of operation from a following sign of a term', () => {
+  assert.equal(toLatexOf('x+"-y'), 'x+-y');
+});

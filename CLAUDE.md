@@ -118,8 +118,16 @@ used by both the model and the Nemeth pipeline.
   `kinds.js` and `levels.js` similarly carry doc-comments explaining why the shipped
   model differs from the original design (e.g. `levels.js` uses absolute-path level
   strings, not signed integers, because the signed model silently mis-parsed `x_a^n`).
-- Unsupported constructs throw `NemethUnsupportedError` with one fixed user-facing
-  message (`UNSUPPORTED_MESSAGE`) — never a partial/guessed parse. `ERROR` in the
+- Unsupported constructs throw `NemethUnsupportedError` — never a partial/guessed parse.
+  Its `message` is always `UNSUPPORTED_MESSAGE`, and so is the `userMessage` the composer
+  shows, *unless* the throwing call site passed a `userDetail`. Only a handful do: those
+  that can name what is missing in plain words and without citing a rule number ("write
+  the baseline indicator (dot 5)"), which is the difference between a typo and a construct
+  this pipeline cannot read. Adding one is opt-in per call site — there is deliberately no
+  `detail`→message map, because refusal causes are not an enumerable set (46 cause families
+  across the corpus alone). A new `unsupported()` call site that passes nothing keeps
+  today's behaviour. See `src/domain/nemeth/errors.js` and `test/unit/nemeth/user-message.test.js`.
+  `ERROR` in the
   correctness gate must stay 0; `REFUSE` (honest unsupported) and `DISAGREE` (silently
   wrong) are not interchangeable, and reducing DISAGREE by weakening a check or deleting
   a test/corpus row is considered gaming the gate.

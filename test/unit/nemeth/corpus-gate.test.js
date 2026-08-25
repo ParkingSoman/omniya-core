@@ -579,13 +579,13 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 204;
+const PASS_BASELINE = 214;
 
 // The id SET this gate was written against, not just its size. PASS_BASELINE
 // alone is an aggregate floor: N cases regressing to REFUSE while N different
 // cases start passing in the same commit leaves PASS_BASELINE, DISAGREE and
 // ERROR all unchanged, so that swap is fully green under the count alone. This
-// pins which 204 cases pass, so a swap is caught even though the total is not.
+// pins which 214 cases pass, so a swap is caught even though the total is not.
 // Sourced from the same coverage run as PASS_BASELINE -- see docs/nemeth-v2/coverage.md.
 const PASS_IDS = new Set([
   "mathcat-rules:baseline_80_a_1",
@@ -599,17 +599,25 @@ const PASS_IDS = new Set([
   "mathcat-rules:list_num_ind_11_d_2",
   "mathcat-rules:msubsup_82_a_1",
   "mathcat-rules:msubsup_82_a_3",
+  "mathcat-rules:multipurpose_134_1",
   "mathcat-rules:multipurpose_177_3_1",
+  "mathcat-rules:multipurpose_lesson_5_2_3",
+  "mathcat-rules:multipurpose_lesson_5_2_4",
+  "mathcat-rules:multipurpose_lesson_5_2_5",
   "mathcat-rules:nested_sub_sup_74_c_5",
   "mathcat-rules:nested_sup_74_b_1",
   "mathcat-rules:nested_sup_74_b_4",
   "mathcat-rules:nested_super_79_a_2",
   "mathcat-rules:nested_super_79_a_3",
+  "mathcat-rules:no_multipurpose_lesson_5_2_6",
   "mathcat-rules:no_num_ind_11_e_3",
   "mathcat-rules:non_hyper_complex_frac_67_1",
   "mathcat-rules:num_indicator_9_a_1",
+  "mathcat-rules:num_indicator_9_a_14",
+  "mathcat-rules:num_indicator_9_a_15",
   "mathcat-rules:num_indicator_9_a_5",
   "mathcat-rules:num_indicator_9_e_2",
+  "mathcat-rules:plus_minus_134_4",
   "mathcat-rules:prescript_77_4_7",
   "mathcat-rules:root_104_iii_1",
   "mathcat-rules:root_104_iii_4",
@@ -637,6 +645,7 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_121",
   "sre-aata:AataExpression_122",
   "sre-aata:AataExpression_123",
+  "sre-aata:AataExpression_124",
   "sre-aata:AataExpression_125",
   "sre-aata:AataExpression_126",
   "sre-aata:AataExpression_127",
@@ -677,6 +686,7 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_184",
   "sre-aata:AataExpression_185",
   "sre-aata:AataExpression_186",
+  "sre-aata:AataExpression_187",
   "sre-aata:AataExpression_188",
   "sre-aata:AataExpression_189",
   "sre-aata:AataExpression_190",
@@ -791,7 +801,7 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_90",
   "sre-aata:AataExpression_91",
   "sre-aata:AataExpression_93",
-  "sre-aata:AataExpression_94",
+  "sre-aata:AataExpression_94"
 ]);
 
 test('every corpus case lands in exactly one bucket, and the buckets sum to the corpus size', () => {

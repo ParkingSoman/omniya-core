@@ -28,8 +28,10 @@
  *
  * An operator between two operands is therefore optional and carries no weight:
  * `a+b` and `ab` differ only in whether an `Operator` item sits between them.
- * What the loop does still enforce is that an operator has an operand on each
- * side, so `a+` and `+a` are refused rather than yielding a dangling item.
+ * What the loop does still enforce is that an operator has an operand after it,
+ * so `a+` is refused rather than yielding a dangling item. An operand *before*
+ * it is required only of a sign with no prefix reading on its row: `+a` and `-a`
+ * are the positive and negative signs of Rule 20, and are read by `parseUnary`.
  *
  * Scripts are attached here, not in `levels.js`: a token at level `P + '^'`
  * belongs to the base parsed at level `P`, which is a prefix test on the
@@ -42,10 +44,12 @@
  * baseline indicator is the only thing that separates them, and `levels.js`
  * hands it over as `afterBaseline`; `parsePostfix` is where it is consumed.
  *
- * One production of the designed grammar is absent because no symbol row can
- * reach it yet, and an unreachable branch is a place for a wrong guess to hide:
- * `unary := (+|-|±)? postfix`, which needs a row marking an operator as usable
- * as a prefix. It is an addition to this file when that row arrives.
+ * `unary := (+|-|±)? postfix` is reached through the `prefix` flag on a symbol
+ * row, which is what marks an operator as usable before the term it applies to.
+ * `⠬`, `⠤` and Rule 20.6's combined `⠬⠤` / `⠤⠬` carry it. See `parseUnary` --
+ * and note that 20.6 is why the combinations need rows of their own: without
+ * them `⠬⠤` would lex as two signs and, once `⠤` has a prefix reading, come
+ * back as "plus, then negative" rather than `±`.
  */
 
 import {
@@ -75,13 +79,32 @@ function advance(state) {
   return token;
 }
 
-function unsupported(state, detail) {
+function unsupported(state, detail, userDetail = '') {
   const token = peek(state) ?? state.tokens[state.tokens.length - 1] ?? null;
   return new NemethUnsupportedError({
     offset: token ? token.offset : 0,
     cells: token ? token.cells : '',
-    detail
+    detail,
+    userDetail
   });
+}
+
+const SCRIPT_NAMES = { '^': 'superscript', _: 'subscript' };
+
+/**
+ * The plain-language half of a refusal, where one can be written; see
+ * `errors.js` for what a `userDetail` is held to. `level` is an absolute path,
+ * so its last character is the script the run never came back from -- and an
+ * empty string, meaning the failure was on the baseline and had some other
+ * cause, yields no message rather than a guessed one.
+ */
+function baselineUserDetail(level) {
+  const name = SCRIPT_NAMES[level.slice(-1)];
+  if (!name) return '';
+  return (
+    `This ${name} never returns to the baseline, so the rest of the expression is being read as ` +
+    `part of it. Write the baseline indicator (dot 5) before the part that is back on the baseline.`
+  );
 }
 
 function spanFrom(state, startIndex) {
@@ -91,9 +114,9 @@ function spanFrom(state, startIndex) {
   return [first.offset, last.offset + last.len];
 }
 
-function expect(state, kind, detail) {
+function expect(state, kind, detail, userDetail = '') {
   const token = peek(state);
-  if (!token || token.kind !== kind) throw unsupported(state, detail);
+  if (!token || token.kind !== kind) throw unsupported(state, detail, userDetail);
   return advance(state);
 }
 
@@ -150,7 +173,10 @@ function parseNumber(state, level, marks) {
       throw unsupported(
         state,
         'a numeral at the start of the input or after a space needs the numeric indicator ' +
-          'BANA Rule 3.3.1 requires, so these cells are not the number they resemble'
+          'BANA Rule 3.3.1 requires, so these cells are not the number they resemble',
+        'A number at the start of an expression, or after a space, needs the numeric indicator ' +
+          '(dots 3456) before it. Without one these cells are not the number they look like, ' +
+          'because the lower-cell digits share their dots with punctuation.'
       );
     }
   }
@@ -231,7 +257,12 @@ function parseRoot(state, level, marks) {
   const start = state.index;
   advance(state);
   const radicand = parseExpression(state, level);
-  expect(state, 'radClose', 'radical has no termination indicator');
+  expect(
+    state,
+    'radClose',
+    'radical has no termination indicator',
+    'This radical is never closed. Write the termination indicator that ends it.'
+  );
   return Root(radicand, null, { src: spanFrom(state, start), marks });
 }
 
@@ -264,7 +295,12 @@ function parseIndexedRoot(state, level, marks) {
   const index = parseTerms(state, level, 'radOpen');
   expect(state, 'radOpen', 'index-of-radical indicator is not followed by a radical sign');
   const radicand = parseExpression(state, level);
-  expect(state, 'radClose', 'indexed radical has no termination indicator');
+  expect(
+    state,
+    'radClose',
+    'indexed radical has no termination indicator',
+    'This indexed radical is never closed. Write the termination indicator that ends it.'
+  );
   return Root(radicand, index, { src: spanFrom(state, start), marks });
 }
 
@@ -294,7 +330,8 @@ function parseFenced(state, level, marks) {
     throw unsupported(
       state,
       `the grouping symbol "${open.value}" has no right grouping symbol at level "${level}"; ` +
-        'BANA 19.1.2 preserves an unpaired one and this parser has no node for it'
+        'BANA 19.1.2 preserves an unpaired one and this parser has no node for it',
+      `The grouping symbol "${open.value}" is never closed. Write the grouping symbol that closes it.`
     );
   }
   advance(state);
@@ -330,7 +367,11 @@ function parseFunctionCall(state, level, marks) {
 function parsePrimary(state, level) {
   const token = peek(state);
   if (!token || token.level !== level || !TERM_STARTS.has(token.kind)) {
-    throw unsupported(state, `expected the start of a term at level "${level}"`);
+    throw unsupported(
+      state,
+      `expected the start of a term at level "${level}"`,
+      baselineUserDetail(level)
+    );
   }
   const start = state.index;
   // An explicit baseline indicator before this token is the only carrier of the
@@ -416,7 +457,9 @@ function parsePostfix(state, level) {
       if (filled !== '_' || slot !== '^') {
         throw unsupported(
           state,
-          `a "${slot}" script on a base already carrying "${filled}" needs a baseline indicator before it`
+          `a "${slot}" script on a base already carrying "${filled}" needs a baseline indicator before it`,
+          `This base already carries a ${SCRIPT_NAMES[filled.slice(-1)] ?? 'script'}. Write the baseline ` +
+            `indicator (dot 5) before the ${SCRIPT_NAMES[slot] ?? 'script'} to attach it to the base too.`
         );
       }
       node = SubSuperscript(node.base, node.index, script, { src });
@@ -447,16 +490,45 @@ function isTermAt(state, level, stop) {
   return atLevel(state, level) && TERM_STARTS.has(peek(state).kind) && peek(state).kind !== stop;
 }
 
+/**
+ * `unary := (+|-|±)? postfix`
+ *
+ * BANA Rule 20 spells the negative sign and the sign of subtraction with the
+ * same cell, `⠤`, and the positive sign and the sign of addition with `⠬`. What
+ * separates the two readings is position alone: a sign with no term before it
+ * on this level applies to the term after it. So the test here is where the
+ * sign sits, and `prefix` on the symbol row is what says the sign has such a
+ * reading at all -- `×`, `÷` and `⋅` carry no row and stay binary-only.
+ *
+ * The sign is pushed as a plain `Operator` into the same flat `Sequence` as
+ * every other item, for this file's standing reason: a `Unary` node would
+ * assert that the sign binds its operand more tightly than the operators around
+ * it, and Nemeth does not encode that. Presentation MathML spells `-1` as
+ * `<mo>-</mo><mn>1</mn>` and asserts no more either.
+ *
+ * At most one sign is consumed, so `--1` still refuses rather than nesting.
+ */
+function parseUnary(state, level, items) {
+  const token = peek(state);
+  if (token && token.prefix && token.level === level) {
+    advance(state);
+    items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));
+  }
+  // A prefix sign must be followed by an operand; parsePostfix refuses if not.
+  items.push(parsePostfix(state, level));
+}
+
 function parseTerms(state, level, stop = null) {
   const start = state.index;
-  const items = [parsePostfix(state, level)];
+  const items = [];
+  parseUnary(state, level, items);
   while (isOperatorAt(state, level) || isTermAt(state, level, stop)) {
     if (isOperatorAt(state, level)) {
       const token = advance(state);
       items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));
     }
     // An operator must be followed by an operand; parsePostfix refuses if not.
-    items.push(parsePostfix(state, level));
+    parseUnary(state, level, items);
   }
   return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
 }

@@ -321,6 +321,12 @@ function symbolAt(cells, index) {
 function resolve(cells, index) {
   const match = matchAt(cells, index);
   if (!match) {
+    // No `userDetail` here, deliberately. An unassigned cell is ambiguous in
+    // exactly the way the generic sentence exists for: `⠫` is the shape
+    // indicator -- valid Nemeth this pipeline does not read, and the commonest
+    // unknown cell in the corpus at 31 cases -- so "check the key you pressed"
+    // would accuse an author of a typo they did not make. Nothing here can tell
+    // a wrong key from a construct we cannot read, so it says neither.
     throw new NemethUnsupportedError({
       offset: index,
       cells,
@@ -342,6 +348,12 @@ function makeToken(match, cells, start, end, marks) {
   // declares one. `parser.js` reads it to decide what a blank next to this
   // token can mean; see the Rule 21.13 seam there.
   if (match.role) token.role = match.role;
+  // Whether BANA Rule 20 also writes this sign before a term it applies to,
+  // rather than only between two. The cell is the same either way -- Rule 20's
+  // negative sign and sign of subtraction are both `⠤` -- so the row is what
+  // says the reading is available and `parser.js` decides from position which
+  // one is in force. Rows without it (`×`, `÷`, `⋅`) stay binary-only.
+  if (match.prefix) token.prefix = true;
   // Which of BANA Rule 13's four indicator pairs this sign belongs to. 13.2.1
   // and 13.6 each say their own indicators "must be used to enclose" a fraction
   // of that order, so the order is what pairs an opening indicator with its own

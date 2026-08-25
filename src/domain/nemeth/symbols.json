@@ -271,6 +271,7 @@
     "kind": "op",
     "value": "+",
     "role": "binary",
+    "prefix": true,
     "banaRef": "20.1.2"
   },
   {
@@ -278,7 +279,24 @@
     "kind": "op",
     "value": "-",
     "role": "binary",
+    "prefix": true,
     "banaRef": "20"
+  },
+  {
+    "cells": "⠬⠤",
+    "kind": "op",
+    "value": "±",
+    "role": "binary",
+    "prefix": true,
+    "banaRef": "20.6"
+  },
+  {
+    "cells": "⠤⠬",
+    "kind": "op",
+    "value": "∓",
+    "role": "binary",
+    "prefix": true,
+    "banaRef": "20.6"
   },
   {
     "cells": "⠨⠌",

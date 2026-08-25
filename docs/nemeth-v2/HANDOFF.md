@@ -70,10 +70,18 @@ utility gate exists so that cannot recur, and its core set must stay 100%.
 
 ## Known rot (pre-existing, not caused by this branch)
 
-`npm run test:e2e` is 33/44. All 11 failures are `enterCommand` timeouts across
+`npm run test:e2e` is 33/44. 11 failures are `enterCommand` timeouts across
 `ueb-text-command-mode`, `unified-composer` and `mathjax-navigation`. They reproduce identically at
 `7f49e09` (before this work began) and at HEAD — verified by running the same files at both commits.
 They belong to a separate piece of work.
+
+Since amended (2026-08-25): `test/e2e/app.test.js` has **four more** pre-existing failures, which
+this note previously missed by saying "all 11" — `Ctrl+L mid-word commits an island`, both
+`Escape … World` cases, and `Ctrl+E after clearing middle live text`. All four are 30s timeouts, not
+assertion failures, and all four reproduce on a clean detached checkout of `22b0e84` with an empty
+`git status`. Also: `npm run test:e2e` as a whole **hangs** rather than completing when run outside a
+normal logged-in terminal (e.g. from a background job) — individual files run fine, so verify a
+change with the specific e2e files it touches and leave the full suite to a real terminal.
 
 ## Input path
 

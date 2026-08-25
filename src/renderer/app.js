@@ -1752,9 +1752,14 @@ async function submitComposer({ allowAtomicSubmit = false } = {}) {
         await saveState().catch(() => {});
       }
     } catch (error) {
-      recordNemethCommit('refused', submittedBuffer, error.message);
-      setFieldError(elements['composer-source'], elements['composer-error'], error.message);
-      setComposerMathStatus(error.message);
+      // `userMessage` is the single product sentence for every refusal except
+      // the few whose call site could name what is missing in plain words --
+      // see `src/domain/nemeth/errors.js`. A non-Nemeth error has none, so it
+      // falls back to its own message exactly as before.
+      const shown = error.userMessage ?? error.message;
+      recordNemethCommit('refused', submittedBuffer, shown);
+      setFieldError(elements['composer-source'], elements['composer-error'], shown);
+      setComposerMathStatus(shown);
       elements['composer-source'].setAttribute('aria-invalid', 'true');
       moveFocusTo(elements['composer-source']);
     } finally {

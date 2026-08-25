@@ -14,8 +14,8 @@ maximize.
 
 | Outcome | Count | % of 613 |
 |---|---:|---:|
-| PASS | 204 | 33.3% |
-| REFUSE | 359 | 58.6% |
+| PASS | 214 | 34.9% |
+| REFUSE | 349 | 56.9% |
 | DISAGREE | 50 | 8.2% |
 | ERROR | 0 | 0.0% |
 | **Total** | **613** | **100.0%** |
@@ -24,8 +24,8 @@ maximize.
 
 | Source | PASS | REFUSE | DISAGREE | ERROR | Total |
 |---|---:|---:|---:|---:|---:|
-| mathcat-rules | 32 | 210 | 31 | 0 | 273 |
-| sre-aata | 172 | 149 | 19 | 0 | 340 |
+| mathcat-rules | 40 | 202 | 31 | 0 | 273 |
+| sre-aata | 174 | 147 | 19 | 0 | 340 |
 
 ## REFUSE by cause
 
@@ -37,8 +37,8 @@ position, not a category; the offending codepoint is kept since it is).
 | Count | Cause | Representative case |
 |---:|---|---|
 | 59 | an alphabetic or capitalization indicator governs a blank, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a blank either | `mathcat-rules:colon_40_2` |
-| 39 | expected the start of a term at level "" | `mathcat-rules:brace_above_121_1` |
 | 31 | no Nemeth symbol starts at cell N (U+282B "⠫") | `mathcat-rules:arrow_96_1` |
+| 29 | expected the start of a term at level "" | `mathcat-rules:brace_above_121_1` |
 | 21 | no Nemeth symbol starts at cell N (U+2831 "⠱") | `mathcat-rules:bar_97_b_1` |
 | 20 | no Nemeth symbol starts at cell N (U+2804 "⠄") | `mathcat-rules:ellipsis_43_b_3` |
 | 19 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:above_and_below_88_2` |
