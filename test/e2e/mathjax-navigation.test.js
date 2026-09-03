@@ -56,9 +56,33 @@ async function enterEquation(page, article) {
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
   const itemId = await article.getAttribute('data-item-id');
+  // `explorers.speech.current` is NOT a signal that the explorer is ready. It
+  // survives the previous exploration, so on every entry after the first this
+  // wait was satisfied by a stale value and returned immediately -- leaving
+  // only the caller's fixed 150ms as the real margin.
+  //
+  // That margin is not always enough. Cancelling an append or a prepend
+  // re-renders the article, and MathJax destroys and rebuilds <mjx-speech> when
+  // it does; measured, the element is absent right after Cancel and comes back
+  // during the next entry. When the rebuild ran long, ArrowDown arrived while
+  // the container still held focus, the explorer never saw it, and `a` and `o`
+  // silently addressed the whole equation instead of the subexpression the
+  // author had moved to.
+  //
+  // So wait on the thing that is false until activation has actually happened:
+  // focus has been handed from <mjx-container> on to the speech proxy, inside
+  // THIS article. That is exactly what separated the working case from the
+  // broken one -- activeElement read MJX-SPEECH when arrow keys worked and
+  // MJX-CONTAINER when they did nothing.
+  //
+  // Do NOT also require `explorers.speech.active`. It looks like the natural
+  // signal and it is not: after a submit re-typesets the transcript, the
+  // explorer instance an article exposes is no longer the one holding focus, so
+  // `active` reads false while the explorer is working perfectly. Requiring it
+  // made this helper time out on four runs in six.
   await page.waitForFunction((id) => {
-    const el = document.querySelector(`article.napkin-article[data-item-id="${id}"]`);
-    return Boolean(globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(el)?.[0]?.explorers?.speech?.current);
+    const speech = document.activeElement?.closest?.('mjx-speech');
+    return Boolean(speech) && Boolean(speech.closest(`article.napkin-article[data-item-id="${id}"]`));
   }, itemId);
 }
 

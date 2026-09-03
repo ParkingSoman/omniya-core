@@ -349,6 +349,11 @@ test('Ctrl+L mid-word commits an island and puts the caret at the start of World
   await source.fill('x');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  // Equation mode is sticky after Enter (5f8ab9c): the composer stays in the
+  // method that just committed, so the next expression needs no Ctrl+E or
+  // Ctrl+L. Escape is the way back to text, and what this test checks is what
+  // the text field holds once it is text again.
+  await page.keyboard.press('Escape');
   await page.waitForFunction(() => /Text/i.test(
     document.querySelector('#mode-panel')?.textContent ?? ''
   ));
@@ -384,6 +389,14 @@ test('Escape after Ctrl+E at the start of World does not merge it into Hello', {
   await source.fill('x');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  // Equation mode is sticky after Enter (5f8ab9c): the composer stays in the
+  // method that just committed, so the next expression needs no Ctrl+E or
+  // Ctrl+L. Escape is the way back to text, and what this test checks is what
+  // the text field holds once it is text again.
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
   await source.waitFor();
   await source.fill('World');
   await articles.filter({ hasText: 'World' }).waitFor();
@@ -436,6 +449,14 @@ test('Escape at the start of World keeps Hello and World on either side of an eq
   await source.fill('x');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  // Equation mode is sticky after Enter (5f8ab9c): the composer stays in the
+  // method that just committed, so the next expression needs no Ctrl+E or
+  // Ctrl+L. Escape is the way back to text, and what this test checks is what
+  // the text field holds once it is text again.
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
   await source.fill('World');
   await articles.filter({ hasText: 'World' }).waitFor();
   assert.equal(await articles.count(), 3);
@@ -479,6 +500,14 @@ test('Ctrl+E after clearing middle live text inserts at the hole', { timeout: 60
   await source.fill('x');
   await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
+  // Equation mode is sticky after Enter (5f8ab9c): the composer stays in the
+  // method that just committed, so the next expression needs no Ctrl+E or
+  // Ctrl+L. Escape is the way back to text, and what this test checks is what
+  // the text field holds once it is text again.
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => /Text/i.test(
+    document.querySelector('#mode-panel')?.textContent ?? ''
+  ));
   await source.fill('World');
   await articles.filter({ hasText: 'World' }).waitFor();
 

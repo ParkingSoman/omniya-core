@@ -670,6 +670,25 @@ async function enterEquation(article) {
     elements['save-status'].textContent = 'Equation is still loading.';
     return false;
   }
+  // A container is not an explorer. MathJax starts the speech explorer when
+  // <mjx-container> takes focus, and it can only do that once it has attached
+  // <mjx-speech> underneath. Cancelling an edit re-renders the article and
+  // destroys that proxy, so an Enter arriving before the rebuild focused a
+  // container with nothing behind it: the explorer never started, arrow keys
+  // did nothing at all, and r, a and o then silently addressed the whole
+  // equation instead of the subexpression the author believed they were on.
+  // Nothing announced any of that -- the equation still read correctly, so the
+  // author's place was lost silently, which is the worst shape this failure
+  // could take for someone working by ear.
+  //
+  // Bounded, and deliberately falls through rather than refusing: an equation
+  // that renders without a speech proxy must still be focusable.
+  for (let attempt = 0; attempt < 100 && article.isConnected; attempt += 1) {
+    const container = article.querySelector('mjx-container');
+    if (!container || container.querySelector('mjx-speech')) break;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    math = container.isConnected ? container : (article.querySelector('mjx-container') ?? math);
+  }
   moveFocusTo(math);
   exploringEquationItemId = article.dataset.itemId;
   elements['save-status'].textContent = 'Equation entered. Use arrow keys to explore it. Escape returns to the item.';
@@ -2182,6 +2201,34 @@ elements['transcript'].addEventListener('click', (event) => {
   }
   saveSelectionSoon();
 });
+
+// Backspace, claimed in the capture phase, for an equation being explored.
+//
+// MathJax's speech explorer stops keydown events once it is active, so the
+// bubble-phase listener below never sees Backspace while an equation is being
+// read. That is the alpha report quoted further down -- equations that "could
+// not be deleted, including pressing backspace and control z".
+//
+// The bubble handler appeared to fix it only because the explorer was failing
+// to start at all (see enterEquation). Making the explorer start again handed
+// the key straight back to MathJax and took deletion away a second time. The
+// two cannot both be served from the bubble phase, so this one is taken before
+// MathJax can stop it.
+//
+// Deliberately narrow: only Backspace, only while an equation is being
+// explored, and only for the article that is being explored. Everything else --
+// Backspace in the composer, in the napkin name field, on a text item -- is
+// untouched and still reaches the handlers below.
+elements['transcript'].addEventListener('keydown', (event) => {
+  if (event.key !== 'Backspace' || !exploringEquationItemId) return;
+  if (!(event.target instanceof Element)) return;
+  if (!event.target.closest('mjx-container, math, mjx-focus, mjx-speech')) return;
+  const article = event.target.closest('.napkin-article');
+  if (!article || article.dataset.itemId !== exploringEquationItemId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  void deleteFocusedItem(article.dataset.itemId);
+}, true);
 
 elements['transcript'].addEventListener('keydown', (event) => {
   const article = event.target.closest('.napkin-article');
