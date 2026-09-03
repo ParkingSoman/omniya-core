@@ -1,0 +1,134 @@
+name: pr-build
+
+# Give the person who reported the bug something they can actually install.
+#
+# They are the only one with a braille display, so "is the bug gone" is a
+# question only they can answer, and they cannot answer it from a diff. This
+# publishes each pull request as its own prerelease and posts one comment with a
+# direct download link per platform.
+#
+# GitHub Actions artifacts were considered and rejected: reaching one means a run
+# page, then an artifacts section, then a zip inside a zip. That is a bad path
+# with a screen reader. A release page with plainly named assets is the same
+# path these testers already use for `testing-app`.
+on:
+  pull_request:
+    branches: [testing]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: pr-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  pack-mac:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: brew install liblouis
+      - run: npm ci
+      - run: npm run dist:mac
+      - name: Publish the mac zip to this pull request's prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Through env, never inline in the command: a branch name is
+          # attacker-controlled text and `run:` is a shell.
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          TAG="pr-${PR_NUMBER}"
+          NOTES="Test build of pull request #${PR_NUMBER}, at commit ${HEAD_SHA}.
+
+          This is not a release. It exists so the person who reported the bug can
+          check the fix on their own hardware before it reaches anyone else.
+
+          - **Apple Silicon Mac** - \`Omniya-Core-mac-arm64.zip\`. Unzip and run.
+          - **Windows x64** - \`Omniya-Core-Setup-x64.exe\`, an installer.
+
+          Both are unsigned, and neither auto-updates. When the pull request is
+          updated, these assets are replaced in place, so download again."
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --prerelease --title "Test build for PR #${PR_NUMBER}" --notes "$NOTES" --target "$HEAD_SHA"
+          gh release edit "$TAG" --notes "$NOTES"
+          gh release upload "$TAG" dist/*.zip --clobber
+
+  pack-win:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run dist:win
+      - name: Publish the Windows installer to this pull request's prerelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $tag = "pr-$env:PR_NUMBER"
+          gh release view $tag > $null 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --prerelease --title "Test build for PR #$env:PR_NUMBER" --notes "Test build of pull request #$env:PR_NUMBER." --target $env:HEAD_SHA
+          }
+          # Top-level dist\* only (no -Recurse). dist\win-unpacked holds the NSIS
+          # target's intermediate build -- bundled liblouis and elevate helpers,
+          # the raw unpacked exe -- which must never be uploaded as if it were a
+          # release asset. This is the same trap testing-app.yml documents.
+          $assets = Get-ChildItem -Path "dist\*" -Include *.exe
+          if (-not $assets) { throw "No installer found in dist" }
+          foreach ($asset in @($assets)) {
+            gh release upload $tag $asset.FullName --clobber
+            if ($LASTEXITCODE -ne 0) { throw "gh release upload failed for $($asset.FullName)" }
+          }
+
+  comment:
+    needs: [pack-mac, pack-win]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Post one comment with a direct link per platform
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="pr-${PR_NUMBER}"
+          BASE="https://github.com/${REPO}/releases/download/${TAG}"
+          BODY="### Test build ready
+
+          Install this and tell us whether the bug is gone. Direct links, no run
+          pages to navigate:
+
+          - Apple Silicon Mac: ${BASE}/Omniya-Core-mac-arm64.zip
+          - Windows x64: ${BASE}/Omniya-Core-Setup-x64.exe
+
+          On the Mac, unzip it and run it. On Windows, run the installer. Both
+          are unsigned, so your machine will ask you to confirm. Neither
+          auto-updates, and neither replaces the alpha build you already have.
+
+          If this pull request changes again, these links stay the same and the
+          files behind them are replaced. Download again rather than looking for
+          a new link."
+
+          # One comment, edited in place rather than a new one per push. A thread
+          # that grows a near-identical comment on every commit is noise to
+          # scroll past, and worse to hear read aloud. `--edit-last` updates the
+          # comment this workflow already left; `--create-if-none` writes the
+          # first one.
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$BODY" --edit-last --create-if-none

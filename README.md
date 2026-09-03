@@ -243,6 +243,12 @@ The project is especially interested in thoughtful discussion before implementat
 
 Useful entry points include screen-reader testing, reproducible accessibility reports, automated keyboard/accessibility tests, MathML or MathJax review, interaction experiments, documentation, focused bug fixes, and respectful usability-study design. Small experiments are preferred to large unsolicited rewrites.
 
+### Reporting a bug in the alpha
+
+If you are running the alpha and something behaves wrongly, use the **Bug report** issue form rather than a blank issue. It asks what happened, what you expected instead, and for the output of Help → Copy braille input diagnostics. A report filed that way is picked up, reproduced, fixed and built for you to install and check on your own hardware, without anyone couriering it by hand. See [docs/contributor-pipeline.md](docs/contributor-pipeline.md) for what happens after you press submit, and for what the diagnostics dump contains before you paste it into a public issue.
+
+That path is for bugs only. A request for behavior that does not exist yet is a design decision, and the guidance below applies instead.
+
 ### What makes a strong issue
 
 Start with the user problem and affected workflow. Describe the observed experience or open design question; expected and actual behavior; operating system, screen reader, runtime, and input method; exact napkin content or reproduction steps; and a focused reproduction when possible.
