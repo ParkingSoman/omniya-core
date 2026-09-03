@@ -36,6 +36,7 @@
     "axe-core": "^4.12.1",
     "electron": "43.2.0",
     "electron-builder": "^26.15.3",
+    "js-yaml": "^5.4.1",
     "playwright": "^1.62.1",
     "speech-rule-engine": "5.0.0-rc.4"
   }

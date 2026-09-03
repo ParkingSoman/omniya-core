@@ -1,0 +1,79 @@
+name: pr-checks
+
+# The gate on every pull request into `testing`.
+#
+# It exists because a merge to `testing` has no review window behind it:
+# `testing-app.yml` fires on push and publishes to the `testing-app` prerelease,
+# and Windows testers auto-update in the background. By the time anyone notices
+# a bad merge, it is already installed. So the window has to be before the
+# merge, which is here.
+#
+# Unlike `contributor-fix.yml`, this triggers on `pull_request` and therefore
+# runs the PULL REQUEST's own copy of this file. It does not need to live on the
+# default branch.
+on:
+  pull_request:
+    branches: [testing]
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: brew install liblouis
+      - run: npm ci
+      - run: npm test
+
+  nemeth:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: brew install liblouis
+      - run: npm ci
+      # NOT `npm run nemeth:coverage && npm run nemeth:utility`. Both of those
+      # print their results and exit 0 whatever the numbers say -- neither script
+      # sets an exit code at all. Running them directly here would be a green
+      # tick that means nothing, which is worse than no tick, because a reviewer
+      # reads it as coverage. This wrapper parses what they print and fails on
+      # the two thresholds CLAUDE.md actually treats as gates: ERROR is 0, and
+      # the utility core set stays whole.
+      - run: node scripts/ci/nemeth-gate.mjs
+
+  e2e:
+    runs-on: macos-latest
+    # macOS, not Linux: `scripts/stage-liblouis.mjs` supports darwin and win32
+    # only, and the suite drives a real Electron window.
+    #
+    # A runner has no logged-in display session, which is the case
+    # docs/nemeth-v2/HANDOFF.md warns can make this suite HANG rather than fail.
+    # That did not reproduce locally (65/65, twice). The timeout below is what
+    # turns a hang into a failure instead of a job that burns the allowance --
+    # it is a backstop, not a fallback. If the suite does not work here it gets
+    # fixed and verified here; it does not get routed around.
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: brew install liblouis
+      - run: npm ci
+      - run: npm run test:e2e
