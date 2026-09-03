@@ -30,9 +30,15 @@ async function openComposer(page) {
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
 }
 
-async function enterCommand(page) {
-  await page.keyboard.press('Control+[');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+// Command mode (Ctrl+[ then a letter) is gone; the unified composer replaced it
+// with direct chords. `formatStatus` cannot emit "Command", so the old helper
+// always ran to its timeout. Each call site below now presses the chord the
+// action actually needs.
+function modePanelReads(page, pattern) {
+  return page.waitForFunction(
+    (source) => new RegExp(source, 'i').test(document.querySelector('#mode-panel')?.textContent ?? ''),
+    pattern.source
+  );
 }
 
 // Nemeth authoring was torn out in the nemeth-v2 rewrite (Task 0); Task 5
@@ -40,13 +46,12 @@ async function enterCommand(page) {
 // depend on a working Nemeth draft (mode/UI plumbing, empty-draft rejection,
 // pure LaTeX replacement) survive here.
 
-test('command x keeps composer-source visible', { timeout: 60_000 }, async (t) => {
+test('Ctrl+E keeps composer-source visible', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-unified-x-');
   t.after(() => app.close().catch(() => {}));
   await openComposer(page);
-  await enterCommand(page);
-  await page.keyboard.type('x');
-  await page.waitForFunction(() => /Equation · Nemeth/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  await page.keyboard.press('Control+e');
+  await modePanelReads(page, /Equation · Nemeth/);
   assert.equal(await page.locator('#composer-source').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
   assert.match(await page.locator('#composer-source').getAttribute('class') ?? '', /nemeth-inline-editor/);
@@ -67,9 +72,9 @@ test('empty equation submit refuses without opening replacement dock', { timeout
   const { app, page } = await launch('omniya-unified-empty-eq-');
   t.after(() => app.close().catch(() => {}));
   await openComposer(page);
-  await enterCommand(page);
-  await page.keyboard.type('x');
-  await page.keyboard.type('n');
+  await page.keyboard.press('Control+e');
+  await modePanelReads(page, /Equation · Nemeth/);
+  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
   await page.waitForFunction(() => /Enter Nemeth or LaTeX/i.test(document.querySelector('#composer-error')?.textContent ?? ''));
   assert.equal(await page.locator('#composer-dock').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
@@ -91,10 +96,11 @@ test('r opens unified composer for subtree replace', { timeout: 90_000 }, async 
   assert.equal(await page.locator('#composer-source').isVisible(), true);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
   assert.match(await page.locator('#mode-panel').textContent() ?? '', /replacing/i);
-  await page.keyboard.press('Control+[');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
-  await page.keyboard.type('t');
-  await page.waitForFunction(() => /Can't switch to Text|Equation/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  // Ctrl+T is the UEB-grade chord. While replacing mathematics it must refuse
+  // rather than drop the replacement target: handleComposerCommandKey returns
+  // early when commandState.replaceScopeLabel is set.
+  await page.keyboard.press('Control+t');
+  await modePanelReads(page, /Can't switch to Text|Equation/);
   assert.doesNotMatch(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB/i);
   await page.keyboard.press('Escape');
   await waitForDocumentComposer(page);

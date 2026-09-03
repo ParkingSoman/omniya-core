@@ -10,6 +10,20 @@ import { electronLaunchEnv } from './launch-electron.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
+// This file used to drive a "Command mode" reached with Ctrl+[ , where a single
+// letter afterwards chose the action: t for text, x to cycle authoring method,
+// s to focus the mode panel, n to submit, ? for help. That mode is gone. The
+// unified composer replaced it with direct chords -- Ctrl+E, Ctrl+L, Ctrl+T --
+// and no renderer has handled Ctrl+[ since. `formatStatus` in
+// src/domain/authoring-state.js cannot emit the word "Command" at all, so every
+// wait for it ran to its timeout.
+//
+// The behaviours those tests covered are re-pinned here against the chords that
+// exist. One test is not: "command s focuses mode panel". Nothing focuses the
+// mode panel now, by design -- the panel is a quiet status line read through
+// the field's aria-describedby, which the first test below pins. There was no
+// behaviour left to re-target, so that test is not carried forward.
+
 async function launch(prefix = 'omniya-ueb-cmd-') {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), prefix));
   const app = await electron.launch({
@@ -30,9 +44,11 @@ async function openComposer(page) {
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
 }
 
-async function enterCommand(page) {
-  await page.keyboard.press('Control+[');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+function modePanelReads(page, pattern) {
+  return page.waitForFunction(
+    (source) => new RegExp(source, 'i').test(document.querySelector('#mode-panel')?.textContent ?? ''),
+    pattern.source
+  );
 }
 
 test('hides notes UI after launch and Add item', { timeout: 60_000 }, async (t) => {
@@ -44,44 +60,43 @@ test('hides notes UI after launch and Add item', { timeout: 60_000 }, async (t) 
   assert.equal(await page.locator('#note-row').isVisible(), false);
 });
 
-test('Ctrl+[ enters Command; Escape cancels composer', { timeout: 60_000 }, async (t) => {
-  const { app, page } = await launch('omniya-cmd-chord-');
+test('Escape while writing text moves focus to the article and keeps the text', { timeout: 60_000 }, async (t) => {
+  const { app, page } = await launch('omniya-text-escape-');
   t.after(() => app.close().catch(() => {}));
   await openComposer(page);
   await page.keyboard.type('hello');
-  await page.keyboard.press('Control+[');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  const article = page.locator('article.napkin-article').filter({ hasText: 'hello' }).first();
+  await article.waitFor();
+
   await page.keyboard.press('Escape');
-  await page.locator('#composer-source').waitFor();
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+
+  // Escape on the text surface hands focus to the transcript so arrow-key
+  // navigation can start. It must not discard what was typed.
+  await page.waitForFunction(() => document.activeElement?.tagName === 'ARTICLE');
   assert.equal(await page.locator('article.napkin-article').count(), 1);
+  assert.equal((await article.locator('.item-text').textContent())?.trim(), 'hello');
 });
 
-test('composer has no Command button; Ctrl+[ still enters Command', { timeout: 60_000 }, async (t) => {
+test('composer has no Command button and never opens the replacement dock', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-cmd-btn-');
   t.after(() => app.close().catch(() => {}));
   await openComposer(page);
   assert.equal(await page.locator('#composer-command').count(), 0);
   assert.equal(await page.getByRole('button', { name: 'Command' }).count(), 0);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-  await page.keyboard.press('Control+[');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+
+  await page.keyboard.press('Control+e');
+  await modePanelReads(page, /Equation · Nemeth/);
+  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 });
 
-test('command t then insert submits text with a UEB braille label', { timeout: 60_000 }, async (t) => {
+test('text submitted with Enter carries a UEB braille label', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-ueb-text-submit-');
   t.after(() => app.close().catch(() => {}));
 
   await openComposer(page);
-  await enterCommand(page);
-  await page.keyboard.type('t');
-  await page.keyboard.type('i');
-  await page.waitForFunction(() => /Insert/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
   await page.locator('#composer-source').fill('hello world');
-  await page.keyboard.press('Control+[');
-  await page.waitForFunction(() => /Command/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
-  await page.keyboard.type('n');
+  await page.keyboard.press('Enter');
 
   const article = page.locator('article.napkin-article').filter({ hasText: 'hello world' }).first();
   await article.waitFor();
@@ -91,38 +106,28 @@ test('command t then insert submits text with a UEB braille label', { timeout: 6
   assert.ok(labels.some((label) => /⠓/.test(label)), `expected UEB ⠓ on a descendant, got ${JSON.stringify(labels)}`);
 });
 
-test('command x cycles authoring method while the composer is empty', { timeout: 60_000 }, async (t) => {
+test('Ctrl+E and Ctrl+L switch authoring method while the composer is empty', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-ueb-x-cycle-');
   t.after(() => app.close().catch(() => {}));
 
   await openComposer(page);
-  await enterCommand(page);
-  await page.keyboard.type('x');
-  await page.waitForFunction(() => /Equation · Nemeth/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  await page.keyboard.press('Control+e');
+  await modePanelReads(page, /Equation · Nemeth/);
   assert.equal(await page.evaluate(() => document.querySelector('#mode-switch input:checked')?.value), 'equation');
 
-  await page.keyboard.type('x');
-  await page.waitForFunction(() => /Equation · LaTeX/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  await page.keyboard.press('Control+l');
+  await modePanelReads(page, /Equation · LaTeX/);
 
-  await page.keyboard.type('x');
-  await page.waitForFunction(() => /Equation · Nemeth/i.test(document.querySelector('#mode-panel')?.textContent ?? ''));
+  await page.keyboard.press('Control+e');
+  await modePanelReads(page, /Equation · Nemeth/);
 });
 
-test('command s focuses mode panel', { timeout: 60_000 }, async (t) => {
-  const { app, page } = await launch('omniya-ueb-s-focus-');
-  t.after(() => app.close().catch(() => {}));
-
-  await openComposer(page);
-  await enterCommand(page);
-  await page.keyboard.type('s');
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'mode-panel');
-  assert.match(await page.locator('#mode-panel').textContent(), /Command/i);
-});
-
-test('mode panel is quiet and command ? help lists x and s', { timeout: 60_000 }, async (t) => {
+test('the mode panel is quiet and the help dialog lists the chords that exist', { timeout: 60_000 }, async (t) => {
   const { app, page } = await launch('omniya-ueb-help-quiet-');
   t.after(() => app.close().catch(() => {}));
 
+  // The panel is read through the field's aria-describedby, not announced on
+  // its own and not focusable. Nothing in the app moves focus to it.
   const mode = await page.locator('#mode-panel').evaluate((el) => ({
     id: el.id,
     live: el.getAttribute('aria-live'),
@@ -141,39 +146,53 @@ test('mode panel is quiet and command ? help lists x and s', { timeout: 60_000 }
   assert.notEqual(save.role, 'status');
 
   await openComposer(page);
-  await enterCommand(page);
-  await page.keyboard.type('?');
+  await page.locator('#keyboard-help-button').click();
   const dialog = page.getByRole('dialog', { name: 'Keyboard help' });
   await dialog.waitFor();
-  const help = await page.locator('#keyboard-help [data-command-help]').innerText();
-  assert.match(help ?? '', /Command · Text · UEB G2/i);
-  assert.match(help ?? '', /\bx\b/i);
-  assert.match(help ?? '', /\bs\b/i);
-  assert.match(help ?? '', /Ctrl\+\[/i);
-  assert.match(help ?? '', /Escape cancels/i);
-  assert.doesNotMatch(help ?? '', /Escape enters Command/i);
-  assert.doesNotMatch(help ?? '', /\bq\b.*cancel/i);
-  assert.doesNotMatch(help ?? '', /make Equation \(Nemeth\).*e\b/i);
+  const help = await dialog.innerText();
+  assert.match(help, /Ctrl\+E/i);
+  assert.match(help, /Ctrl\+L/i);
+  assert.match(help, /Ctrl\+T/i);
+  assert.match(help, /Escape/i);
+  // The dead chord must not be advertised to someone who cannot see that
+  // pressing it does nothing.
+  assert.doesNotMatch(help, /Ctrl\+\[/i);
+  assert.doesNotMatch(help, /Command mode/i);
 });
 
-test('composer Escape cancels equation; lowercase a rejected in Nemeth', { timeout: 90_000 }, async (t) => {
+test('the Nemeth field reads computer braille, names the reading, and Escape cancels', { timeout: 90_000 }, async (t) => {
   const { app, page } = await launch('omniya-ueb-repl-escape-');
   t.after(() => app.close().catch(() => {}));
 
   await openComposer(page);
-  await enterCommand(page);
-  await page.keyboard.type('x'); // Equation Nemeth
-  await page.keyboard.type('i');
-  await page.locator('#composer-source').focus();
+  await page.keyboard.press('Control+e');
+  await modePanelReads(page, /Equation · Nemeth/);
 
-  await page.keyboard.type('a'); // lowercase — not an ASCII braille cell
-  assert.equal(await page.locator('#composer-source').inputValue(), '');
+  // A lowercase letter used to be refused outright (8bc05ae). It is not any
+  // more: `resolveBrailleInputTable` measures the table on every keystroke, so
+  // 'a' typed on an ordinary keyboard decodes through en-us-comp8 to the cell
+  // it spells. The field keeps the DECODED cell, not the character.
+  await page.keyboard.type('a');
+  await page.waitForFunction(() => document.querySelector('#composer-source')?.value === '⠁');
+  assert.notEqual(await page.locator('#composer-source').getAttribute('aria-invalid'), 'true');
+
+  // CLAUDE.md: naming the reading in the status line is the containment for a
+  // wrong detection. If this assertion is ever removed, a misread keystroke
+  // becomes silent for someone who cannot see the field.
+  assert.match(await page.locator('#composer-status').textContent() ?? '', /computer braille/i);
+
+  // A character that is neither a cell nor computer-braille text is still
+  // refused, and the refusal still says so rather than dropping it silently.
+  await page.keyboard.type('é');
+  await page.waitForFunction(() => /Braille cells only/i.test(
+    document.querySelector('#composer-error')?.textContent ?? ''
+  ));
   assert.equal(await page.locator('#composer-source').getAttribute('aria-invalid'), 'true');
-  assert.match(await page.locator('#composer-error').textContent(), /braille cells only|LaTeX|x in Command mode/i);
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
 
   await page.keyboard.press('Escape');
   await page.locator('#composer-source').waitFor();
+  await modePanelReads(page, /Text/);
   assert.equal(await page.locator('#composer-dock').isVisible(), true);
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
   assert.equal(await page.locator('#replacement-dock').isVisible(), false);
