@@ -126,10 +126,15 @@ jobs:
                that habit where your change would otherwise read as arbitrary.
 
             4. PASS ALL FOUR GATES YOURSELF, BEFORE OPENING ANYTHING.
-                 npm test                  -- unit suite, must be green
-                 npm run nemeth:coverage   -- ERROR must be 0
-                 npm run nemeth:utility    -- core set must stay 26/26
-                 npm run test:e2e          -- must be green
+                 npm test                         -- unit suite, green
+                 node scripts/ci/nemeth-gate.mjs  -- both Nemeth gates
+                 npm run test:e2e                 -- green
+               Run the wrapper for Nemeth, not `npm run nemeth:coverage` and
+               `npm run nemeth:utility` on their own. Those two print their
+               numbers and then exit 0 whatever the numbers say, so a zero exit
+               from either tells you nothing at all. The wrapper reads what they
+               print and fails on the two thresholds that are actually gates:
+               ERROR is 0, and the utility core set stays whole.
                If a gate is red, fix the cause. Never delete or weaken a test or
                a corpus row to reach green: this repository calls that gaming the
                gate, and it is the one thing that will get your work reverted
