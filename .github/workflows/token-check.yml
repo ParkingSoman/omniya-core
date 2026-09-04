@@ -46,6 +46,18 @@ jobs:
             *[[:space:]]*) echo "whitespace: PRESENT somewhere in the value" ;;
             *)             echo "whitespace: none" ;;
           esac
+          # If stripping whitespace makes the prefix appear, the stored value IS
+          # the right token and the paste simply carried a newline. That is a
+          # different fix from "the wrong thing was pasted", so it is worth
+          # separating rather than guessing between them.
+          TRIMMED=$(printf '%s' "$TOKEN" | tr -d '[:space:]')
+          echo "trimmed length: ${#TRIMMED}"
+          case "$TRIMMED" in
+            sk-ant-oat01-*) echo "trimmed shape: subscription token. Right value, whitespace is the only problem." ;;
+            sk-ant-api03-*) echo "trimmed shape: API KEY, the wrong kind for this input" ;;
+            sk-ant-*)       echo "trimmed shape: some other sk-ant- credential" ;;
+            *)              echo "trimmed shape: still not an sk-ant- credential. The wrong value is stored." ;;
+          esac
 
       - name: Install the Claude Code CLI
         run: curl -fsSL https://claude.ai/install.sh | bash
