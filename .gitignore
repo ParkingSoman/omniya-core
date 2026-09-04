@@ -4,6 +4,15 @@ playwright-report/
 test-results/
 .pi/
 
+# Per-machine Claude Code state. The hook and settings.json ARE tracked on
+# purpose -- CLAUDE.md documents the auto-commit hook, so a clone has to get it.
+# These two are different: they hold this machine's runtime state and this
+# machine's permission rules, which are exactly the kind of file that ends up
+# carrying a path, a token or a host you did not mean to publish. This
+# repository is public.
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
+
 # Local Electron data and one overwritten generated test napkin
 .omniya-data/
 .omniya-user-data/
