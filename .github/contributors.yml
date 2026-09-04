@@ -1,0 +1,28 @@
+# Who may drive the contributor fix pipeline.
+#
+# A handle on this list may open a bug report that starts an agent run. That run
+# spends the maintainer's Claude subscription quota, so this file is the place
+# that says who is allowed to spend it.
+#
+# This is deliberately separate from repository access. Contributors are also
+# repository collaborators with write access, but taking somebody off this list
+# should not require removing them from the repository, and the reverse is also
+# true.
+#
+# To add somebody: add one line under `contributors`, with their GitHub handle
+# and no `@`. Keep it alphabetical. Then invite them to the repository as a
+# collaborator. Both steps are needed.
+#
+# To remove somebody: delete their line. The next run refuses them.
+#
+# Read by `scripts/ci/allowlist.mjs`, which runs as the first job of
+# `.github/workflows/contributor-fix.yml`. Every other job in that workflow
+# waits on it.
+#
+# This file must exist on the default branch (`main`). GitHub runs `on: issues`
+# workflows from the default branch only, so a copy on `testing` alone is never
+# read.
+
+contributors:
+  - ParkingSoman
+  # - example-handle

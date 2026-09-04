@@ -1,0 +1,9 @@
+# Blank issues stay ON.
+#
+# The bug form is the fast path: an allowlisted contributor files it, an agent
+# fixes it, a build comes back. Anything that is not a bug still needs a home,
+# and a feature request filed as a blank issue is exactly what the triage step
+# is meant to catch and label `needs-design`. Turning blank issues off would
+# leave a contributor with a design idea nowhere to put it, and would push them
+# to file it as a bug instead -- which is the one input that wastes an agent run.
+blank_issues_enabled: true
