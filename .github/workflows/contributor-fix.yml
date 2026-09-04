@@ -82,8 +82,28 @@ jobs:
           base_branch: testing
           branch_prefix: claude/fix-
           track_progress: true
+          # `--allowedTools` is not optional decoration. On an `issues` event
+          # this action picks "tag" mode, whose tool preset is Glob, Grep, LS,
+          # Read, four MCP comment/CI tools, and four git commands -- no Bash,
+          # no Edit, no Write. The action's own docs say it: "Claude does not
+          # have access to execute arbitrary Bash commands by default." Setting
+          # `prompt` does not change that.
+          #
+          # Measured on run 33835963064: with the preset alone, every step of
+          # the prompt below was impossible. It could not read the issue with
+          # `gh`, could not write the failing test, could not edit a file, and
+          # could not run any of the four gates. Do not trim this list back
+          # without re-reading that run.
+          #
+          # Bash is unrestricted rather than a list of `Bash(npm test:*)`
+          # patterns, because the gates shell out further -- `npm` to `node`, to
+          # `electron`, to `brew`-installed `liblouis` -- and a pattern list that
+          # covers that is a list nobody can keep correct. What contains this is
+          # the allowlist job above: only a named contributor can start a run at
+          # all.
           claude_args: |
             --max-turns 60
+            --allowedTools "Bash,Edit,Write,Read,Glob,Grep,NotebookEdit,TodoWrite,mcp__github_comment__update_claude_comment,mcp__github_ci__get_ci_status,mcp__github_ci__get_workflow_run_details,mcp__github_ci__download_job_log"
           prompt: |
             You are fixing a bug reported by a blind alpha contributor of Omniya
             Core, a screen-reader-first mathematical workspace. Read CLAUDE.md
