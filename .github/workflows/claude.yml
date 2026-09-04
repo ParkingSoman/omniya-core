@@ -34,7 +34,12 @@ jobs:
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Subscription, not API billing. This repository runs everything
+          # Claude does on the maintainer's own Claude subscription; there is no
+          # ANTHROPIC_API_KEY secret, and a key here would bill per token
+          # instead. `contributor-fix.yml` carries the same note and a unit test
+          # that fails if an API key input is added to it.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
