@@ -161,9 +161,23 @@ jobs:
                outright. If you genuinely cannot get a gate green, comment
                explaining which one and why, and STOP.
 
-            5. OPEN A PULL REQUEST against `testing`. Never against `main`.
+            5. OPEN THE PULL REQUEST YOURSELF, against `testing`. Never
+               against `main`. Run it:
+
+                 gh pr create --base testing --head "$(git branch --show-current)" \
+                   --title "..." --body "..."
+
+               Run that command. Do NOT post a "Create PR" link and stop. The
+               link looks like finishing and is not: somebody then has to open
+               it, read a prefilled form and submit it, which is the couriering
+               this whole pipeline exists to remove. You have `gh` and a token,
+               so you can do it.
+
                The body must say what the bug was, what the diagnostics showed,
                what you changed, and which gates you ran.
+
+               If `gh pr create` fails, say so in a comment with the exact error.
+               Do not fall back to a link.
 
             ONE MORE RULE, AND IT MATTERS.
 

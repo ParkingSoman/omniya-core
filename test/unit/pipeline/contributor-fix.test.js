@@ -128,3 +128,32 @@ test('the agent can edit files and run the gates', () => {
   // The containment is the allowlist job, not the tool patterns.
   assert.doesNotMatch(args, /Bash\(/, 'Bash patterns cannot cover what the gates shell out to');
 });
+
+test('the agent opens the pull request itself', () => {
+  // Measured on run 33837551762, issue #12. The agent classified correctly,
+  // verified every claim against the source, fixed the file, and passed all
+  // four gates -- 490/490 units, ERROR 0 with core 26/26, 65/65 e2e. Then it
+  // pushed its branch and posted a `Create PR` link.
+  //
+  // That link is not finishing. Somebody has to open it, read a prefilled form
+  // and press a button, which is the couriering this pipeline exists to remove.
+  // It comes from tag mode's own instructions, not from a missing capability:
+  // the agent already has unrestricted Bash and GH_TOKEN, so `gh pr create`
+  // works. It just was not told to prefer it.
+  const step = workflow.jobs.fix.steps.find(
+    (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
+  );
+  const prompt = step.with?.prompt ?? '';
+
+  assert.match(prompt, /gh pr create/, 'the prompt must name the command that opens the pull request');
+  assert.match(prompt, /--base testing/, 'and it must open it against testing');
+
+  // The instruction that actually does the work: forbidding the fallback.
+  // Naming the command without ruling out the link leaves the agent free to do
+  // what it did on #12, which read as success on every other measure.
+  assert.match(
+    prompt,
+    /Do NOT post a "Create PR" link/,
+    'the prompt must forbid posting a link instead of opening the pull request'
+  );
+});
