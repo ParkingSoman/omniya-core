@@ -68,10 +68,18 @@ Runs draw on your Claude subscription quota, not on API billing. There is no
 `anthropic_api_key` input anywhere in these workflows, and a unit test fails if
 one is added.
 
-The workflows and the issue form must be on `main`. GitHub only starts an
+The issue form and the fix workflow must be on `main`. GitHub only starts an
 `on: issues` workflow, and only offers an issue form, from the default branch's
-copy. App code stays on `testing`; the `.github` plumbing is merged to `main`
-once and left there.
+copy. App code stays on `testing`; those files are merged to `main` once and
+left there. That is already done.
+
+The gates and the build are the other way round. They trigger on
+`pull_request`, and GitHub runs the pull request's own copy of those files, so
+they live on `testing` with everything else and never go near `main`.
+
+One label has to exist: `needs-design`. The fix workflow puts it on a report
+that turns out to be a feature request. Adding a label that does not exist
+fails, and the contributor gets silence instead of an answer.
 
 ### Adding a contributor
 
@@ -112,12 +120,16 @@ who presses merge.
 
 ### The files
 
-| File | What it does |
-|---|---|
-| `.github/ISSUE_TEMPLATE/bug-report.yml` | The form. Three required fields. |
-| `.github/contributors.yml` | Who may drive the pipeline. |
-| `scripts/ci/allowlist.mjs` | Reads that file and decides. Fails closed. |
-| `.github/workflows/contributor-fix.yml` | Issue to pull request. Must be on `main`. |
-| `.github/workflows/pr-checks.yml` | The four gates. Runs on the pull request's own copy. |
-| `scripts/ci/nemeth-gate.mjs` | Makes the two Nemeth reports able to fail. |
-| `.github/workflows/pr-build.yml` | Publishes a per-pull-request build to install. |
+The `Lives on` column is not a detail. A file on the wrong branch does not warn
+you; it just never runs.
+
+| File | Lives on | What it does |
+|---|---|---|
+| `.github/ISSUE_TEMPLATE/bug-report.yml` | `main` | The form. Three required fields. |
+| `.github/ISSUE_TEMPLATE/config.yml` | `main` | Keeps blank issues on, so a feature request has somewhere to go. |
+| `.github/contributors.yml` | `main` | Who may drive the pipeline. |
+| `scripts/ci/allowlist.mjs` | `main` | Reads that file and decides. Fails closed. |
+| `.github/workflows/contributor-fix.yml` | `main` | Issue to pull request. |
+| `.github/workflows/pr-checks.yml` | `testing` | The four gates. |
+| `scripts/ci/nemeth-gate.mjs` | `testing` | Makes the two Nemeth reports able to fail. |
+| `.github/workflows/pr-build.yml` | `testing` | Publishes a per-pull-request build to install. |
