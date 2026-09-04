@@ -2,16 +2,21 @@ name: token-check
 
 # TEMPORARY. Delete this once the fix pipeline is known to authenticate.
 #
-# `contributor-fix.yml` failed on its first two real reports in about two
+# `contributor-fix.yml` failed on both of its first real reports in about two
 # seconds each, with `num_turns: 1`, `is_error: true` and `modelUsage: {}`.
-# Zero tokens means the model was never reached, so the cause is the credential
-# and not the prompt. The action prints "Running Claude Code via SDK (full
-# output hidden for security)", so the message that would name the cause never
-# reaches the log.
+# Zero tokens means the model was never reached. This job ran the CLI directly
+# with the same secret and got the message the action hides:
 #
-# This runs the CLI directly with the same secret and prints what it says.
-# It asks for one word, so nothing about the repository is exposed by the
-# output. GitHub masks the secret itself in logs.
+#   "api_error_status": 401
+#   "result": "Failed to authenticate. API Error: 401 Invalid bearer token"
+#
+# That was still true after the secret was replaced, so the next question is
+# what kind of value is actually stored. The first step below answers that
+# WITHOUT printing the secret: it reports the length and which known prefix it
+# carries, nothing more. A subscription token from `claude setup-token` begins
+# `sk-ant-oat01-`; an API key begins `sk-ant-api03-`. Those two are not
+# interchangeable, and pasting one where the other belongs gives exactly this
+# 401.
 on:
   workflow_dispatch:
 
@@ -22,6 +27,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Say what shape the stored value is, without printing it
+        env:
+          TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN}" ]; then echo "shape: EMPTY"; exit 0; fi
+          echo "length: ${#TOKEN}"
+          case "$TOKEN" in
+            sk-ant-oat01-*) echo "shape: subscription token (sk-ant-oat01-), which is the right kind" ;;
+            sk-ant-api03-*) echo "shape: API KEY (sk-ant-api03-), which is the WRONG kind for this input" ;;
+            sk-ant-*)       echo "shape: some other sk-ant- credential" ;;
+            *)              echo "shape: does not start with sk-ant- at all" ;;
+          esac
+          # Whitespace is the other common cause: a copied line often carries a
+          # trailing newline, and the API rejects the token with it attached.
+          case "$TOKEN" in
+            *[[:space:]]*) echo "whitespace: PRESENT somewhere in the value" ;;
+            *)             echo "whitespace: none" ;;
+          esac
+
       - name: Install the Claude Code CLI
         run: curl -fsSL https://claude.ai/install.sh | bash
 
