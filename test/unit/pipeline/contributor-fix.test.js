@@ -88,3 +88,43 @@ test('the agent is told to classify before it writes anything', () => {
   // broken, which is worse than either.
   assert.match(prompt, /comment/i);
 });
+
+test('the agent can edit files and run the gates', () => {
+  // Measured on run 33835963064, the first real bug report. The action logged
+  // `Auto-detected mode: tag for event: issues` and handed Claude this preset:
+  //
+  //   Glob, Grep, LS, Read, four mcp__github_* tools,
+  //   Bash(git add:*), Bash(git commit:*), Bash(git-push.sh:*), Bash(git rm:*)
+  //
+  // No Bash, no Edit, no Write. The action's docs state it outright: "Claude
+  // does not have access to execute arbitrary Bash commands by default."
+  // Setting `prompt` does not change it, because the mode is chosen by the
+  // event, not by the inputs.
+  //
+  // The result was a run that could not do a single step it was instructed to
+  // do -- not read the issue with `gh`, not write the failing test, not edit a
+  // file, not run one of the four gates. It failed in two seconds and left a
+  // comment saying only that Claude had encountered an error.
+  //
+  // So this asserts the widening is present. Every tool named here is one a
+  // step of the prompt cannot be done without.
+  const step = workflow.jobs.fix.steps.find(
+    (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
+  );
+  const args = step.with?.claude_args ?? '';
+  assert.match(args, /--allowedTools/, 'claude_args must widen the tag-mode tool preset');
+
+  for (const tool of ['Bash', 'Edit', 'Write', 'Read']) {
+    assert.match(
+      args,
+      new RegExp(`(^|[",])${tool}([",]|$)`, 'm'),
+      `the agent cannot follow its own instructions without ${tool}`
+    );
+  }
+
+  // Bash must be unrestricted, not a `Bash(npm test:*)` pattern list. The gates
+  // shell out further -- npm to node, to electron, to a brew-installed
+  // liblouis -- and a pattern list covering that is one nobody keeps correct.
+  // The containment is the allowlist job, not the tool patterns.
+  assert.doesNotMatch(args, /Bash\(/, 'Bash patterns cannot cover what the gates shell out to');
+});
