@@ -70,24 +70,26 @@ utility gate exists so that cannot recur, and its core set must stay 100%.
 
 ## Known rot (pre-existing, not caused by this branch)
 
-`npm run test:e2e` is 33/44. 11 failures are `enterCommand` timeouts across
-`ueb-text-command-mode`, `unified-composer` and `mathjax-navigation`. They reproduce identically at
-`7f49e09` (before this work began) and at HEAD — verified by running the same files at both commits.
-They belong to a separate piece of work.
-
-Since amended (2026-08-25): `test/e2e/app.test.js` has **four more** pre-existing failures, which
-this note previously missed by saying "all 11" — `Ctrl+L mid-word commits an island`, both
-`Escape … World` cases, and `Ctrl+E after clearing middle live text`. All four are 30s timeouts, not
-assertion failures, and all four reproduce on a clean detached checkout of `22b0e84` with an empty
-`git status`. Also: `npm run test:e2e` as a whole **hangs** rather than completing when run outside a
-normal logged-in terminal (e.g. from a background job) — individual files run fine, so verify a
-change with the specific e2e files it touches and leave the full suite to a real terminal.
+Since amended (2026-09-04): the failures and the hang described in this section are gone.
+`npm run test:e2e` is **65/65**, measured twice locally and once on a GitHub macOS runner. This
+section previously said 33/44 with 11 `enterCommand` timeouts, then amended to 15 failures across
+`test/e2e/app.test.js` and others, and said the full suite hung outside a logged-in terminal. If
+`test:e2e` goes red or hangs again, treat it as new rot to diagnose, not a reproduction of the
+failures once listed here — they no longer apply to this codebase.
 
 ## Input path
 
 Nemeth entry is **braille cells only** (`U+2800–U+28FF`); QWERTY letters are rejected by design.
-Cells arrive three ways: a hardware braille display, paste, or **six-key chording on a plain
-keyboard**, which is live for Nemeth authoring. `src/domain/ueb-cell-buffer.js` must **not** be used
+Cells arrive two ways: a hardware braille display, or paste. A third way, **six-key chording on a
+plain keyboard** (`f d s` / `j k l` as dots), shipped and was later removed on purpose: those six
+letters are ordinary characters in computer braille, and while chording existed a keystroke of `f`
+was either dot 1 or the letter `f` with nothing in the event to tell them apart, which silently
+corrupted `f(x)` and the Nemeth equals sign `.k`. Typing the computer-braille spelling (see below,
+`?a/b#`) reaches the parser without that ambiguity and without holding multiple keys, so chording
+had no remaining job once it shipped. There is no cells-only fallback left in its place — the
+status-line readback named below (see the computer-braille paragraph) is now what contains a wrong
+reading, not a refusal mode. See `CLAUDE.md` for the full account. `src/domain/ueb-cell-buffer.js`
+must **not** be used
 to feed the Nemeth parser — it flushes on `U+2800`, which Nemeth uses as a *token* (Rule 20/21
 comparison spacing, present in 263 of 613 corpus cases); feeding Nemeth through it truncates every
 expression at its first space. `src/domain/nemeth-input.js` is the correct accumulator.
@@ -95,13 +97,21 @@ expression at its first space. `src/domain/nemeth-input.js` is the correct accum
 "A hardware braille display" above means one sending raw Unicode braille cells. A braille
 *keyboard* whose driver is configured for a "computer braille" input table instead translates dot
 chords into plain text (its own device-side dots→character step, following a table like liblouis's
-`en-us-comp8`) before the OS delivers a keystroke — indistinguishable from QWERTY typing, and
-rejected the same way. `toNemethCells`/`classifyNemethInput` accept an opt-in
-`brailleInputTable` parameter (persisted via `src/main/settings-storage.js`, toggled from the
-composer with Ctrl+D) that decodes through a specific, verified table —
-`src/domain/nemeth/computer-braille-en-us.js` for `en-us-comp8` — instead of rejecting. It is
-off by default and stays a manual, per-user choice: there is no way to detect at runtime which
-table a given device used, and decoding through the wrong one would silently produce the wrong
-symbol rather than today's honest rejection. Do not reuse `braille-ascii.js` for this — it is
-6-dot only and case-folds (`a`/`A` both decode to the same cell), which loses information a real
-8-dot computer braille keyboard preserves via dot 7.
+`en-us-comp8`) before the OS delivers a keystroke — indistinguishable from QWERTY typing on its
+own. `toNemethCells`/`classifyNemethInput` decode this through a specific, verified table —
+`src/domain/nemeth/computer-braille-en-us.js` for `en-us-comp8` — instead of rejecting it.
+
+This used to be an opt-in `brailleInputTable` parameter, persisted via
+`src/main/settings-storage.js` and toggled from the composer with Ctrl+D, off by default. It is
+not anymore: `settings-storage.js` persists nothing today (see its own doc-comment), there is no
+Ctrl+D toggle, and **there is no input-table setting at all**. `nemethBrailleInputTable` defaults
+to `'auto'`, and `resolveBrailleInputTable` (`src/domain/nemeth-input.js`) picks between cells and
+the known table by measurement instead of asking — safe only because cells (`U+2800`–`U+28FF`) and
+ASCII are disjoint ranges. It still never guesses between two *text* tables: unexplained input
+resolves to `'none'` and is refused rather than half-decoded. The reading is always named on the
+status line, because that readback is now the only containment for a wrong detection — do not
+remove it. This was changed because a contributor whose display was correctly configured was
+refused on every keystroke and had no way to discover a picker existed; see `CLAUDE.md` for the
+full account. Do not reuse `braille-ascii.js` for the decode itself — it is 6-dot only and
+case-folds (`a`/`A` both decode to the same cell), which loses information a real 8-dot computer
+braille keyboard preserves via dot 7.
