@@ -1,0 +1,77 @@
+name: Bug report
+description: Something in Omniya Core behaves wrongly. Braille input, Nemeth reading, navigation, anything.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      # Every field below carries a real label and a real description. Nothing
+      # is explained by placeholder text alone: placeholders are not reliably
+      # announced, and a form whose instructions only exist in grey text is a
+      # form a screen-reader user fills in blind.
+      value: |
+        Three questions, then the diagnostics dump. All three are needed.
+
+        An agent reads this report, reproduces the bug, writes a failing test,
+        fixes it, and opens a pull request against the `testing` branch. You get
+        a comment on this issue with a link to a build you can install and try
+        on your own hardware.
+
+        If you are asking for something new rather than reporting something
+        broken, this is the wrong form. Open a blank issue instead. Feature
+        requests are design decisions and a person answers those.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: >-
+        What you did, and what the app did. Include the keys you pressed, in
+        order, if the bug is about typing or navigation. Write it however is
+        comfortable; sentences are fine and so is a list.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: >-
+        What should have happened. This is the field that separates a bug from a
+        preference, so it decides whether the report is worked on automatically
+        or handed to a person. If a braille rule or a textbook says what the
+        right answer is, name it here.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      # Placed BEFORE the paste box on purpose. The app already tells the person
+      # that the dump contains what they typed, but it says so about a file they
+      # copy to their own clipboard. Pasting it here changes who can read it,
+      # and that change has to be said before the box, not under it.
+      value: |
+        ### Before you paste the diagnostics
+
+        The dump contains what you typed: the mathematics, any other text in
+        those fields, and your napkin names. It does not contain your files.
+
+        Please read it and take out anything you would not want public, because
+        this issue is public. Anyone on the internet can read it, and it stays
+        readable after the bug is fixed.
+
+        If the dump is the only way to show the bug and you would rather not
+        publish it, say so in the field above and send it by email instead.
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >-
+        Open the Help menu and choose "Copy braille input diagnostics", then
+        paste here. It records the app version, which braille input table was
+        detected, and what the writing fields received. Paste the whole thing;
+        the parts that look irrelevant are often the ones that identify the bug.
+      render: text
+    validations:
+      required: true
