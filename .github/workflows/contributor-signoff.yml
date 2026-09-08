@@ -1,0 +1,195 @@
+name: contributor-signoff
+
+# The end of the loop. The contributor installed the build, the bug is gone, and
+# she closes the issue. That close is what merges the fix into `testing`.
+#
+# Closing is the signal because it is the one she already reaches for. Every
+# other candidate -- a magic word in a comment, a label, an approval on the pull
+# request -- is a second thing to learn, and the person learning it is testing
+# builds on a braille display and has no reason to care which GitHub control
+# means "done".
+#
+# What this file does NOT do is decide whether the fix is good. It has no
+# `--admin` anywhere, so every rule on the `testing-guard` ruleset still applies:
+# the pull request must exist, its checks must have passed, and anything else
+# that ruleset requires must be satisfied. A close asks GitHub to merge. GitHub
+# still says no.
+#
+# ONE THING THE MAINTAINER HAS TO DO. `testing-guard` currently lists exactly one
+# bypass actor: the maintainer. `github-actions[bot]` is not one, so until it is
+# added, every merge here is refused and this workflow posts the refusal on the
+# pull request instead. That is a working state, not a broken one -- it is the
+# pipeline as it was before this file, with a comment saying so -- but nothing
+# merges by itself until that ruleset changes. See docs/contributor-pipeline.md.
+#
+# Like `contributor-fix.yml`, this file must live on the DEFAULT BRANCH to run at
+# all. GitHub starts an `on: issues` workflow from the default branch's copy
+# only. A copy on `testing` alone never fires.
+on:
+  issues:
+    types: [closed]
+
+concurrency:
+  group: contributor-signoff-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  allowlist:
+    # `not_planned` is GitHub's own word for "closed without doing it". Somebody
+    # tidying a stale report is not signing anything off, and this is the only
+    # close reason the API distinguishes, so it is the one this reads.
+    if: github.event.issue.state_reason != 'not_planned'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        # The CLOSER, not the author. This workflow acts on the authority of
+        # whoever pressed close, and that is the person whose name has to be on
+        # the list that says who may spend and ship. The maintainer is on that
+        # list too, so their own close merges as well -- which is the behaviour
+        # that existed before this file, said in one place instead of by hand.
+        #
+        # Through `env`, never straight into the command line, and before any
+        # install: the same rule the other two workflows in this pipeline carry.
+        env:
+          CLOSED_BY: ${{ github.event.sender.login }}
+        run: node scripts/ci/allowlist.mjs "$CLOSED_BY" --github || true
+
+  merge:
+    needs: allowlist
+    if: needs.allowlist.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Find the pull request this issue's fix lives on.
+      #
+      # GitHub offers no way to ask an issue which pull requests claim it, so
+      # the join is the `Fixes #<n>` line `contributor-fix.yml` requires in every
+      # body it writes. The search below narrows; the `jq` filter after it is
+      # what actually decides, because a text search for `#12` also returns
+      # `#120` and a body that merely mentions the number in a sentence.
+      - id: find
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Safe to interpolate: GitHub guarantees the issue number is an
+          # integer. Nothing else from the event is.
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          OPEN="$(gh pr list --repo "$REPO" --base testing --state open --limit 100 --json number,body)"
+          MATCHES="$(printf '%s' "$OPEN" | jq -c --arg n "$ISSUE_NUMBER" \
+            '[ .[] | select((.body // "") | test("(^|\n)[Ff]ixes #" + $n + "[[:space:]]*$")) | .number ]')"
+          COUNT="$(printf '%s' "$MATCHES" | jq 'length')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "pr=$(printf '%s' "$MATCHES" | jq -r '.[0] // ""')" >> "$GITHUB_OUTPUT"
+          echo "found $COUNT open pull request(s) claiming issue #${ISSUE_NUMBER}"
+
+      # Nothing to merge. Say so on the ISSUE, because that is the thing she just
+      # closed and the thing she is watching. Silence here is the worst outcome
+      # in this file: she believes she shipped a fix, and nothing happened.
+      - if: steps.find.outputs.count != '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          COUNT: ${{ steps.find.outputs.count }}
+        run: |
+          set -euo pipefail
+          if [ "$COUNT" = "0" ]; then
+            BODY="Closing this did not merge anything.
+
+          No open pull request into \`testing\` carries a \`Fixes #${ISSUE_NUMBER}\` line, so
+          there was nothing to find. If a fix for this exists, it needs that line in its
+          body before closing the issue will merge it. Re-open this issue, add the line to
+          the pull request, and close it again."
+          else
+            BODY="Closing this did not merge anything.
+
+          ${COUNT} open pull requests into \`testing\` carry a \`Fixes #${ISSUE_NUMBER}\` line, and
+          this pipeline will not guess which one you meant. Close the ones that do not
+          apply, then re-open and close this issue again."
+          fi
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "$BODY"
+
+      # Exactly one. Ask GitHub to merge it.
+      #
+      # `--auto` first, so a pull request whose checks are still running lands
+      # when they go green rather than being refused for being early. A plain
+      # `--squash` is the fallback for a repository with auto-merge switched off.
+      #
+      # There is deliberately NO `--admin`. That flag is what would make this
+      # file the thing deciding whether a fix is good enough to ship, and it is
+      # not: the reporter can tell you the bug is gone on her machine, which is
+      # exactly the one thing nobody else can tell you, and exactly not the same
+      # question as whether the change is safe for everybody. Without `--admin`,
+      # `testing-guard` still requires the checks to have passed, and a red pull
+      # request is refused here the same as it would be under a person's finger.
+      - id: merge
+        if: steps.find.outputs.count == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.find.outputs.pr }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -uo pipefail
+          if OUT="$(gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch --auto 2>&1)"; then
+            echo "merged=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          FIRST="$OUT"
+          if OUT="$(gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch 2>&1)"; then
+            echo "merged=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "merged=false" >> "$GITHUB_OUTPUT"
+          {
+            echo 'error<<GH_MERGE_ERROR'
+            printf '%s\n%s\n' "$FIRST" "$OUT"
+            echo 'GH_MERGE_ERROR'
+          } >> "$GITHUB_OUTPUT"
+          echo "merge refused; the next step reports it on the pull request" >&2
+
+      # A refusal is reported, in words, on the pull request. It does NOT fail
+      # the job.
+      #
+      # Both halves of that matter. A refused merge that shows only as a red
+      # tick in the Actions tab is invisible to the person who closed the issue
+      # and thinks she is finished -- and the most likely refusal, by a wide
+      # margin, is `testing-guard` not listing `github-actions[bot]` as a bypass
+      # actor, which is a setting nobody watching this thread can see. And a
+      # failed job here would paint the Actions tab red every time somebody
+      # closes an issue, which reads as a broken pipeline and trains everyone to
+      # ignore it.
+      - if: steps.merge.outputs.merged == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.find.outputs.pr }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          MERGE_ERROR: ${{ steps.merge.outputs.error }}
+        run: |
+          set -euo pipefail
+          BODY="Issue #${ISSUE_NUMBER} was closed, so this was meant to merge. GitHub refused it.
+
+          \`\`\`
+          ${MERGE_ERROR}
+          \`\`\`
+
+          Nothing has been merged and nothing is broken. A person can merge this by hand.
+
+          If the message above mentions a ruleset or protection rule, the cause is
+          \`testing-guard\`: it lists the maintainer as its only bypass actor, and this
+          workflow runs as \`github-actions[bot]\`. Adding that actor to the ruleset is what
+          makes closing an issue merge on its own. Until then, closing an issue posts this
+          comment instead."
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$BODY"
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "Closing this did not merge #${PR_NUMBER}. GitHub refused the merge, and the reason is posted on the pull request. Nothing is broken, and a person can finish it by hand."

@@ -176,6 +176,21 @@ jobs:
                The body must say what the bug was, what the diagnostics showed,
                what you changed, and which gates you ran.
 
+               THE LAST LINE OF THE BODY MUST BE EXACTLY:
+
+                 Fixes #${{ github.event.issue.number }}
+
+               Nothing else on that line. It is not decoration. The reporter
+               closes the issue when the build is right, and
+               `contributor-signoff.yml` then has to find this pull request from
+               that issue and merge it. That line is the only thing joining the
+               two. Without it the close does nothing, and the contributor is
+               left believing they shipped a fix that is still sitting open.
+
+               Then say, in a comment on the issue, that closing the issue is
+               what merges this, and that they should close it only once they
+               have installed the build and checked.
+
                If `gh pr create` fails, say so in a comment with the exact error.
                Do not fall back to a link.
 

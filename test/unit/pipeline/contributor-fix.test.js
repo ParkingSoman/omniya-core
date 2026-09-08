@@ -157,3 +157,35 @@ test('the agent opens the pull request itself', () => {
     'the prompt must forbid posting a link instead of opening the pull request'
   );
 });
+
+test('the pull request names the issue it closes', () => {
+  // The contributor closes the issue when the build is right, and
+  // `contributor-signoff.yml` then has to get from that issue to this pull
+  // request. GitHub does not offer that direction: an issue does not know which
+  // pull requests claim it. A `Fixes #<n>` line in the body is what the sign-off
+  // workflow searches for, so it is the only join between the two halves.
+  //
+  // Without it a close is silent. Nothing merges, nothing fails, and the
+  // contributor is left believing they shipped a fix that is still open.
+  const step = workflow.jobs.fix.steps.find(
+    (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
+  );
+  const prompt = step.with?.prompt ?? '';
+
+  assert.match(
+    prompt,
+    /Fixes #\$\{\{\s*github\.event\.issue\.number\s*\}\}/,
+    'the prompt must require a Fixes line carrying the issue number'
+  );
+  // "must" rather than "should". An instruction the agent can read as optional
+  // is one it will drop on the round it is short of turns.
+  assert.match(prompt, /MUST BE EXACTLY/, 'the requirement must not read as a suggestion');
+
+  // And the contributor has to be told what closing does, or the mechanism
+  // exists and nobody uses it.
+  assert.match(
+    prompt,
+    /closing\s+the\s+issue\s+is\s+what\s+merges\s+this/i,
+    'the agent must tell the reporter that closing the issue is the merge'
+  );
+});
