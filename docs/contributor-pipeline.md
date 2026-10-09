@@ -120,6 +120,25 @@ One label has to exist: `needs-design`. The fix workflow puts it on a report
 that turns out to be a feature request. Adding a label that does not exist
 fails, and the contributor gets silence instead of an answer.
 
+### Why the pipeline starts its own checks
+
+GitHub does not run a pull request's checks on its own when the Actions bot
+opened it. The run waits for a person to approve it, and a push made with the
+bot's token starts no run at all. Without a fix, the required `unit`, `nemeth`
+and `e2e` checks would never report, and no test build would be made.
+
+So after the agent opens or revises a pull request, the pipeline starts
+`pr-checks.yml` and `pr-build.yml` itself, on the pull request's branch, with
+`workflow_dispatch`. GitHub neither holds nor skips a run started that way, and
+the checks report on the branch's latest commit, which is what the pull request
+is waiting for. This is why the two stubs that run an agent ask for
+`actions: write`. Only a small `start-checks` job holds that permission. The job
+that runs the agent does not, so the agent cannot start or cancel workflows.
+
+If a pull request shows no checks, its branch may be older than that change. Use
+the "Update branch" button, then start `pr-checks` and `pr-build` from the
+Actions tab on that branch.
+
 ### A report was missed
 
 If a report did not start a run, open the Actions tab, choose

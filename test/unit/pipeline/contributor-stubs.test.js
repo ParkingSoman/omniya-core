@@ -50,9 +50,13 @@ test('each stub only calls its workflow on testing, and passes only the secret i
 });
 
 test('a stub grants no more than the workflow it calls needs', () => {
+  const base = { contents: 'write', 'pull-requests': 'write', issues: 'write' };
   for (const stub of Object.keys(STUBS)) {
     const { permissions } = Object.values(load(stub).jobs)[0];
-    assert.deepEqual(permissions, { contents: 'write', 'pull-requests': 'write', issues: 'write' }, stub);
+    // The two that run an agent also start the checks and the build, which needs
+    // `actions: write`. Sign-off only merges, so it does not get it.
+    const expected = stub === 'contributor-signoff.yml' ? base : { ...base, actions: 'write' };
+    assert.deepEqual(permissions, expected, stub);
   }
 });
 
@@ -112,3 +116,32 @@ test('a called workflow declares the secret it is given, and sign-off declares n
   }
 });
 
+
+test('every job states its own permissions, and the small ones hold almost none', () => {
+  // The stub grants a ceiling and the workflow's top-level block is its default.
+  // A job that does not state its own inherits the default, which is write
+  // access to contents, pull requests and issues. The gate that only reads a
+  // list, and the job that only posts a comment, should not hold that.
+  const expected = {
+    'pipeline-fix.yml': {
+      allowlist: { contents: 'read', issues: 'read' },
+      refused: { issues: 'write' },
+      fix: { contents: 'write', 'pull-requests': 'write', issues: 'write' },
+      'start-checks': { actions: 'write', contents: 'read', 'pull-requests': 'read' }
+    },
+    'pipeline-followup.yml': {
+      allowlist: { contents: 'read' },
+      revise: { contents: 'write', 'pull-requests': 'write', issues: 'write' },
+      'start-checks': { actions: 'write', contents: 'read', 'pull-requests': 'read' }
+    },
+    'pipeline-signoff.yml': {
+      allowlist: { contents: 'read' }
+    }
+  };
+  for (const [file, jobs] of Object.entries(expected)) {
+    const workflow = loadYaml(readFileSync(`.github/workflows/${file}`, 'utf8'));
+    for (const [name, permissions] of Object.entries(jobs)) {
+      assert.deepEqual(workflow.jobs[name]?.permissions, permissions, `${file} job ${name}`);
+    }
+  }
+});
