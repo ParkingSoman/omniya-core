@@ -63,6 +63,9 @@ jobs:
       github.event.comment.user.type != 'Bot' &&
       contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
+    # Least privilege. This job only reads the allowlist. It runs no agent and writes nothing.
+    permissions:
+      contents: read
     timeout-minutes: 5
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}

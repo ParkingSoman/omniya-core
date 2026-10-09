@@ -49,6 +49,11 @@ jobs:
   # subscription quota should not wait on an install that can fail or be slow.
   allowlist:
     runs-on: ubuntu-latest
+    # Least privilege. This job only reads the allowlist and, for a hand-started
+    # run, the issue. It runs no agent and writes nothing.
+    permissions:
+      contents: read
+      issues: read
     timeout-minutes: 5
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
@@ -109,6 +114,9 @@ jobs:
       needs.allowlist.outputs.number != '' &&
       !endsWith(needs.allowlist.outputs.author, '[bot]')
     runs-on: ubuntu-latest
+    # Least privilege. This job only posts one comment.
+    permissions:
+      issues: write
     timeout-minutes: 5
     steps:
       - env:
