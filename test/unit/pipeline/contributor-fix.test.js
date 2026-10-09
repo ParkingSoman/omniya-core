@@ -273,23 +273,35 @@ test('the pipeline starts the checks and the build itself, on the pull request b
   // could never merge, and no test build existed for the reporter to install.
   //
   // `workflow_dispatch` is the one start that is neither held nor skipped.
-  const steps = workflow.jobs.fix.steps;
-  const start = steps.find((s) => /pr-checks\.yml/.test(s.run ?? ''));
-  assert.ok(start, 'expected a step that starts pr-checks');
-  assert.match(start.run, /gh workflow run pr-build\.yml[^\n]*pr_number/);
-  assert.match(start.run, /--ref "\$BRANCH"/, 'both must run on the pull request branch, not on testing');
-  assert.equal(start.if, 'success()', 'only after the agent finished');
+  const job = workflow.jobs['start-checks'];
+  assert.ok(job, 'expected a `start-checks` job');
+  assert.deepEqual(job.needs, ['allowlist', 'fix'], 'it runs after the agent, and only if the agent job succeeded');
+  assert.equal(job.if, undefined, 'the default success() of its needs is what we want');
 
-  // After the agent, so there is a pull request to find.
-  const agent = steps.findIndex((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
-  assert.ok(steps.indexOf(start) > agent);
+  const run = job.steps.map((s) => s.run ?? '').join('\n');
+  assert.match(run, /gh workflow run pr-checks\.yml/);
+  assert.match(run, /gh workflow run pr-build\.yml[^\n]*pr_number/);
+  assert.match(run, /--ref "\$BRANCH"/, 'both must run on the pull request branch, not on testing');
 
   // It must find the pull request the same strict way sign-off does: same
   // repository, a `claude/fix-` branch, and the `Fixes #N` line.
-  assert.match(start.run, /isCrossRepository == false/);
-  assert.match(start.run, /startswith\("claude\/fix-"\)/);
-
-  // And the permission to do it has to be requested, or `gh workflow run` fails.
-  assert.equal(workflow.permissions?.actions, 'write');
+  assert.match(run, /isCrossRepository == false/);
+  assert.match(run, /startswith\("claude\/fix-"\)/);
 });
 
+test('the agent cannot start, cancel or re-run workflows', () => {
+  // The agent runs unrestricted Bash. `actions: write` would let a prompt that
+  // talked its way past the rules start other workflows or cancel the gates.
+  // The permission is held by `start-checks`, a few lines of shell that read no
+  // untrusted text, and by nothing else.
+  assert.equal(workflow.permissions?.actions, undefined, 'not at workflow level');
+  assert.equal(workflow.jobs.fix.permissions?.actions, undefined, 'not in the job that runs the agent');
+  assert.ok(workflow.jobs.fix.permissions, 'the agent job must state its permissions rather than inherit');
+  assert.deepEqual(workflow.jobs['start-checks'].permissions, {
+    actions: 'write',
+    contents: 'read',
+    'pull-requests': 'read'
+  });
+  const agentJobUses = JSON.stringify(workflow.jobs['start-checks'].steps);
+  assert.doesNotMatch(agentJobUses, /claude-code-action/, 'the job that holds actions: write must not run an agent');
+});

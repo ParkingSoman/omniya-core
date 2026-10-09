@@ -42,8 +42,6 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
-  # To start the checks and the build on the pull request. See the last step.
-  actions: write
 
 jobs:
   # The gate. Nothing else in this file runs without it, and it deliberately
@@ -123,6 +121,13 @@ jobs:
   fix:
     needs: allowlist
     if: needs.allowlist.outputs.allowed == 'true'
+    # Explicit, and without `actions`. The agent in this job runs unrestricted Bash,
+    # so it must not be able to start, cancel or re-run other workflows. That
+    # permission belongs to the small `start-checks` job below.
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     runs-on: macos-latest
     # macOS because the gates below include the Electron e2e suite, and
     # `scripts/stage-liblouis.mjs` supports darwin and win32 only.
@@ -295,19 +300,29 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      # GitHub holds a pull request's own checks for approval when the Actions
-      # bot opened it, so the required `unit`, `nemeth` and `e2e` checks would
-      # never report and no test build would be made. A run started by
-      # `workflow_dispatch` is not held. So this step starts both, on the
-      # branch, and they report on the pull request's head commit.
-      #
-      # The branch has to be one that already has `workflow_dispatch` in these
-      # two files, which any branch cut from `testing` after this was added has.
-      # If this step fails the pull request still exists; it is the checks that
-      # are missing, and the run turns red so that is not silent.
-      - name: Start the checks and the build on the pull request
-        if: success()
-        env:
+  # GitHub holds a pull request's own checks for approval when the Actions bot
+  # opened it, so the required `unit`, `nemeth` and `e2e` checks would never
+  # report and no test build would be made. A run started by `workflow_dispatch`
+  # is not held. So this job starts both, on the branch, and they report on the
+  # pull request's head commit.
+  #
+  # It is a job of its own so that `actions: write` is held by a few lines of
+  # shell that read no untrusted text, and not by the agent above.
+  #
+  # The branch has to be one that already has `workflow_dispatch` in these two
+  # files, which any branch cut from `testing` after this was added has. If this
+  # job fails the pull request still exists; it is the checks that are missing,
+  # and the run turns red so that is not silent.
+  start-checks:
+    needs: [allowlist, fix]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
         run: |

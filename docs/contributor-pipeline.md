@@ -132,7 +132,8 @@ So after the agent opens or revises a pull request, the pipeline starts
 `workflow_dispatch`. GitHub neither holds nor skips a run started that way, and
 the checks report on the branch's latest commit, which is what the pull request
 is waiting for. This is why the two stubs that run an agent ask for
-`actions: write`.
+`actions: write`. Only a small `start-checks` job holds that permission. The job
+that runs the agent does not, so the agent cannot start or cancel workflows.
 
 If a pull request shows no checks, its branch may be older than that change. Use
 the "Update branch" button, then start `pr-checks` and `pr-build` from the

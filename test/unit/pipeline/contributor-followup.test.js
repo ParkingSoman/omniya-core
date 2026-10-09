@@ -253,24 +253,38 @@ test('the agent reads a thread filtered to people on the list, built from main',
 
 test('a revision starts the checks and the build, and an answer does not', () => {
   // A push made with the bot's token starts no `pull_request` run, so without
-  // this step a revision would never be checked or rebuilt and the reporter's
+  // this job a revision would never be checked or rebuilt and the reporter's
   // links would keep serving the old build.
-  const steps = workflow.jobs.revise.steps;
-  const before = steps.find((s) => s.id === 'before');
+  const before = workflow.jobs.revise.steps.find((s) => s.id === 'before');
   assert.ok(before, 'expected a step that records where the branch stood');
+  assert.equal(workflow.jobs.revise.outputs?.before, '${{ steps.before.outputs.sha }}');
+  assert.equal(workflow.jobs.revise.outputs?.branch, '${{ steps.pr.outputs.branch }}');
 
-  const start = steps.find((s) => /pr-checks\.yml/.test(s.run ?? ''));
-  assert.ok(start, 'expected a step that starts pr-checks');
-  assert.match(start.run, /gh workflow run pr-build\.yml[^\n]*pr_number/);
-  assert.match(start.run, /--ref "\$BRANCH"/);
-  assert.equal(start.if, 'success()');
+  const job = workflow.jobs['start-checks'];
+  assert.ok(job, 'expected a `start-checks` job');
+  assert.deepEqual(job.needs, ['allowlist', 'revise']);
+  const run = job.steps.map((s) => s.run ?? '').join('\n');
+  assert.match(run, /gh workflow run pr-checks\.yml/);
+  assert.match(run, /gh workflow run pr-build\.yml[^\n]*pr_number/);
+  assert.match(run, /--ref "\$BRANCH"/);
 
   // Rebuilding on a question would spend two packaging jobs on a reply.
-  assert.match(start.run, /AFTER" = "\$BEFORE"/, 'it must compare the branch before and after');
-  assert.equal(start.env?.BEFORE, '${{ steps.before.outputs.sha }}');
-
-  const agent = steps.findIndex((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
-  assert.ok(steps.indexOf(before) < agent && agent < steps.indexOf(start));
-  assert.equal(workflow.permissions?.actions, 'write');
+  assert.match(run, /AFTER" = "\$BEFORE"/, 'it must compare the branch before and after');
+  assert.equal(job.steps[0].env?.BEFORE, '${{ needs.revise.outputs.before }}');
 });
 
+test('the agent cannot start, cancel or re-run workflows', () => {
+  assert.equal(workflow.permissions?.actions, undefined, 'not at workflow level');
+  assert.equal(workflow.jobs.revise.permissions?.actions, undefined, 'not in the job that runs the agent');
+  assert.ok(workflow.jobs.revise.permissions, 'the agent job must state its permissions rather than inherit');
+  assert.deepEqual(workflow.jobs['start-checks'].permissions, {
+    actions: 'write',
+    contents: 'read',
+    'pull-requests': 'read'
+  });
+  assert.doesNotMatch(
+    JSON.stringify(workflow.jobs['start-checks'].steps),
+    /claude-code-action/,
+    'the job that holds actions: write must not run an agent'
+  );
+});
