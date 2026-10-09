@@ -4,7 +4,8 @@ import test from 'node:test';
 
 import { load as loadYaml } from 'js-yaml';
 
-const PATH = '.github/workflows/contributor-signoff.yml';
+const PATH = '.github/workflows/pipeline-signoff.yml';
+const STUB = '.github/pipeline-stubs/contributor-signoff.yml';
 const source = readFileSync(PATH, 'utf8');
 const workflow = loadYaml(source);
 
@@ -16,7 +17,8 @@ const code = source
   .filter((line) => !/^\s*#/.test(line))
   .join('\n');
 
-const triggers = workflow.on ?? workflow[true];
+const stub = loadYaml(readFileSync(STUB, 'utf8'));
+const triggers = stub.on ?? stub[true];
 const allowlistJob = workflow.jobs?.allowlist;
 const mergeJob = workflow.jobs?.merge;
 const steps = mergeJob?.steps ?? [];
@@ -116,3 +118,29 @@ test('a refused merge says why', () => {
   );
   assert.match(merge.run ?? '', /merged=false/, 'a refusal is carried in an output, not in the exit code');
 });
+
+test('a close only merges a pull request this pipeline made', () => {
+  // The allowlist vets who CLOSED the issue. It says nothing about who wrote a
+  // pull request, and anyone may open one into `testing` with a `Fixes #N` line
+  // in its body. Without these two conditions a listed contributor closing
+  // their own issue would merge a stranger's pull request.
+  assert.match(source, /isCrossRepository/, 'a pull request from a fork must never match');
+  assert.match(source, /isCrossRepository == false/);
+  assert.match(source, /startswith\("claude\/fix-"\)/, 'only the branches the fix workflow creates may match');
+});
+
+test('the merge takes the commit that was found, and nothing newer', () => {
+  // Found at close time, merged a moment later. A push in between would ship
+  // code the contributor never installed: they tested one build and closed the
+  // issue about that build. `--match-head-commit` makes GitHub refuse instead.
+  const merge = workflow.jobs.merge.steps.find((s) => s.id === 'merge');
+  assert.equal(merge.env?.PR_SHA, '${{ steps.find.outputs.sha }}');
+  const calls = merge.run.match(/gh pr merge[^\n]*/g) ?? [];
+  assert.equal(calls.length, 2, 'expected the auto and the direct merge attempt');
+  for (const call of calls) {
+    assert.match(call, /--match-head-commit "\$PR_SHA"/, `every merge must pin the commit: ${call}`);
+  }
+  const find = workflow.jobs.merge.steps.find((s) => s.id === 'find');
+  assert.match(find.run, /headRefOid/, 'the commit must be read when the pull request is found');
+});
+

@@ -8,7 +8,7 @@ name: pr-checks
 # a bad merge, it is already installed. So the window has to be before the
 # merge, which is here.
 #
-# Unlike `contributor-fix.yml`, this triggers on `pull_request` and therefore
+# Unlike `pipeline-fix.yml`, this triggers on `pull_request` and therefore
 # runs the PULL REQUEST's own copy of this file. It does not need to live on the
 # default branch.
 on:
@@ -77,3 +77,14 @@ jobs:
       - run: brew install liblouis
       - run: npm ci
       - run: npm run test:e2e
+
+  # The contributor pipeline runs from `main`, not from this branch. A change to
+  # it that never reaches `main` does nothing, and nothing says so: see
+  # docs/contributor-pipeline.md. This job is the thing that says so.
+  pipeline-on-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: git fetch --no-tags --depth=1 origin main:refs/remotes/origin/main
+      - run: node scripts/ci/pipeline-drift.mjs

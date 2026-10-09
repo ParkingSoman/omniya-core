@@ -1,4 +1,4 @@
-name: contributor-signoff
+name: pipeline-signoff
 
 # The end of the loop. The contributor installed the build, the bug is gone, and
 # she closes the issue. That close is what merges the fix into `testing`.
@@ -15,19 +15,16 @@ name: contributor-signoff
 # that ruleset requires must be satisfied. A close asks GitHub to merge. GitHub
 # still says no.
 #
-# ONE THING THE MAINTAINER HAS TO DO. `testing-guard` currently lists exactly one
-# bypass actor: the maintainer. `github-actions[bot]` is not one, so until it is
-# added, every merge here is refused and this workflow posts the refusal on the
-# pull request instead. That is a working state, not a broken one -- it is the
-# pipeline as it was before this file, with a comment saying so -- but nothing
-# merges by itself until that ruleset changes. See docs/contributor-pipeline.md.
+# `testing-guard` requires a pull request and passing checks, and no human
+# approval, so a merge here succeeds once the checks are green. If GitHub does
+# refuse, this workflow posts the reason on the pull request. See
+# docs/contributor-pipeline.md.
 #
-# Like `contributor-fix.yml`, this file must live on the DEFAULT BRANCH to run at
-# all. GitHub starts an `on: issues` workflow from the default branch's copy
-# only. A copy on `testing` alone never fires.
+# Called from the stub on `main` (`.github/pipeline-stubs/contributor-signoff.yml`),
+# for the same reason as `pipeline-fix.yml`: GitHub starts an `on: issues`
+# workflow from the default branch only.
 on:
-  issues:
-    types: [closed]
+  workflow_call:
 
 concurrency:
   group: contributor-signoff-${{ github.event.issue.number }}
@@ -72,25 +69,40 @@ jobs:
       # Find the pull request this issue's fix lives on.
       #
       # GitHub offers no way to ask an issue which pull requests claim it, so
-      # the join is the `Fixes #<n>` line `contributor-fix.yml` requires in every
+      # the join is the `Fixes #<n>` line `pipeline-fix.yml` requires in every
       # body it writes. The search below narrows; the `jq` filter after it is
       # what actually decides, because a text search for `#12` also returns
       # `#120` and a body that merely mentions the number in a sentence.
       - id: find
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           # Safe to interpolate: GitHub guarantees the issue number is an
           # integer. Nothing else from the event is.
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          OPEN="$(gh pr list --repo "$REPO" --base testing --state open --limit 100 --json number,body)"
+          # Only a pull request this pipeline made can be merged by a close.
+          # The allowlist above vets who CLOSED the issue. It says nothing about
+          # who wrote a pull request, and anyone may open one into `testing`
+          # with a `Fixes #N` line in the body. So the match also requires the
+          # branch to live in this repository (not a fork) and to carry the
+          # `claude/fix-` prefix that `pipeline-fix.yml` creates.
+          OPEN="$(gh pr list --repo "$REPO" --base testing --state open --limit 100 --json number,body,headRefName,headRefOid,isCrossRepository)"
           MATCHES="$(printf '%s' "$OPEN" | jq -c --arg n "$ISSUE_NUMBER" \
-            '[ .[] | select((.body // "") | test("(^|\n)[Ff]ixes #" + $n + "[[:space:]]*$")) | .number ]')"
+            '[ .[]
+               | select(.isCrossRepository == false)
+               | select(.headRefName | startswith("claude/fix-"))
+               | select((.body // "") | test("(^|\n)[Ff]ixes #" + $n + "[[:space:]]*$"))
+               | {number, sha: .headRefOid} ]')"
           COUNT="$(printf '%s' "$MATCHES" | jq 'length')"
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          echo "pr=$(printf '%s' "$MATCHES" | jq -r '.[0] // ""')" >> "$GITHUB_OUTPUT"
+          echo "pr=$(printf '%s' "$MATCHES" | jq -r '.[0].number // ""')" >> "$GITHUB_OUTPUT"
+          # The exact commit that was found. The merge below is told to take
+          # this commit and nothing newer. Without it, a push between "found"
+          # and "merged" would ship code nobody tested: the contributor
+          # installed one build and closed the issue about that build.
+          echo "sha=$(printf '%s' "$MATCHES" | jq -r '.[0].sha // ""')" >> "$GITHUB_OUTPUT"
           echo "found $COUNT open pull request(s) claiming issue #${ISSUE_NUMBER}"
 
       # Nothing to merge. Say so on the ISSUE, because that is the thing she just
@@ -98,7 +110,7 @@ jobs:
       # in this file: she believes she shipped a fix, and nothing happened.
       - if: steps.find.outputs.count != '1'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
           COUNT: ${{ steps.find.outputs.count }}
@@ -136,17 +148,18 @@ jobs:
       - id: merge
         if: steps.find.outputs.count == '1'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.find.outputs.pr }}
+          PR_SHA: ${{ steps.find.outputs.sha }}
           REPO: ${{ github.repository }}
         run: |
           set -uo pipefail
-          if OUT="$(gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch --auto 2>&1)"; then
+          if OUT="$(gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch --match-head-commit "$PR_SHA" --auto 2>&1)"; then
             echo "merged=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           FIRST="$OUT"
-          if OUT="$(gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch 2>&1)"; then
+          if OUT="$(gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch --match-head-commit "$PR_SHA" 2>&1)"; then
             echo "merged=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -171,7 +184,7 @@ jobs:
       # ignore it.
       - if: steps.merge.outputs.merged == 'false'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.find.outputs.pr }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}

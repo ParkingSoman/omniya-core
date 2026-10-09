@@ -1,0 +1,26 @@
+name: contributor-followup
+
+# A STUB. Copy this file to `.github/workflows/` on `main` and leave it there.
+# See `contributor-fix.yml` in this folder for why. The same rules apply: it only
+# calls `pipeline-followup.yml` on `testing`, and no logic belongs here.
+#
+# The `if` is the cheap filter. Without it every comment on every issue would
+# start a run that does nothing. `pipeline-followup.yml` checks the same things
+# again, because a stub is not a place to rely on for safety.
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  call:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.comment.user.type != 'Bot' &&
+      contains(github.event.comment.body, '@claude')
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-followup.yml@testing
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

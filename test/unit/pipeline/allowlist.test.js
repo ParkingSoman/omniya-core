@@ -1,10 +1,17 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { AllowlistError, isAllowed, parseAllowlist } from '../../../scripts/ci/allowlist.mjs';
 
-const shipped = readFileSync('.github/contributors.yml', 'utf8');
+// The real list lives on `main` only (see scripts/ci/pipeline-drift.mjs, which
+// checks that it parses there). A copy here would look editable and do nothing.
+// This fixture has the same shape, including the commented example line.
+const shipped = `# comment
+
+contributors:
+  - ParkingSoman
+  # - example-handle
+`;
 
 test('the shipped allowlist parses and names the maintainer', () => {
   const handles = parseAllowlist(shipped);
