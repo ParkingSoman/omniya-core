@@ -8,7 +8,7 @@ name: pr-checks
 # a bad merge, it is already installed. So the window has to be before the
 # merge, which is here.
 #
-# Unlike `contributor-fix.yml`, this triggers on `pull_request` and therefore
+# Unlike `pipeline-fix.yml`, this triggers on `pull_request` and therefore
 # runs the PULL REQUEST's own copy of this file. It does not need to live on the
 # default branch.
 on:

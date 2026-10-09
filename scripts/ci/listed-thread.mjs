@@ -2,7 +2,7 @@
  * Build the text a follow-up agent reads, from people on the contributor list
  * only.
  *
- * `contributor-followup.yml` checks who wrote the `@claude` comment. The agent
+ * `pipeline-followup.yml` checks who wrote the `@claude` comment. The agent
  * then used to read the WHOLE pull request thread, and anyone can comment on a
  * public pull request. The gate vetted one comment and the agent obeyed
  * hundreds of words from strangers. So the agent is now handed a file built

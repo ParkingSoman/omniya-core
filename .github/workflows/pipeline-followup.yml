@@ -1,27 +1,20 @@
-name: contributor-followup
+name: pipeline-followup
 
 # Round two, and every round after it.
 #
-# `contributor-fix.yml` turns one bug report into one pull request, and
+# `pipeline-fix.yml` turns one bug report into one pull request, and
 # `pr-build.yml` turns that pull request into something the reporter can
-# install. Then the pipeline used to stop. If the build was still wrong, the
-# reporter had a comment box and nothing behind it, and a person had to read
-# that comment and start the work again by hand. This file is what closes the
-# loop: she says what is still wrong, the agent revises the SAME branch, and the
-# build behind her existing download links is replaced.
+# install. If the build is still wrong, she says what, the agent revises the
+# SAME branch, and the build behind her existing download links is replaced.
 #
-# Like `contributor-fix.yml`, this file must live on the DEFAULT BRANCH to run
-# at all. GitHub starts an `on: issue_comment` workflow from the default
-# branch's copy only, whatever branch the work happens on. A copy on `testing`
-# alone never fires. `docs/contributor-pipeline.md` lists which files live
-# where; that column is the difference between a workflow that works and one
-# that is silently never read.
+# Called from the stub on `main` (`.github/pipeline-stubs/contributor-followup.yml`),
+# for the same reason as `pipeline-fix.yml`: GitHub starts an `on: issue_comment`
+# workflow from the default branch only.
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 # One run per pull request. These runs spend the maintainer's own Claude
-# subscription quota, exactly as `contributor-fix.yml` does. Queued rather than
+# subscription quota, exactly as `pipeline-fix.yml` does. Queued rather than
 # cancelled, and for a sharper reason here than there: this job pushes to a
 # branch that already has a pull request open on it, so a killed run can leave
 # half a revision committed on the branch the reporter is downloading builds
@@ -85,13 +78,13 @@ jobs:
     needs: allowlist
     if: needs.allowlist.outputs.allowed == 'true'
     runs-on: macos-latest
-    # macOS for the same reason `contributor-fix.yml` uses it: the gates below
+    # macOS for the same reason `pipeline-fix.yml` uses it: the gates below
     # include the Electron e2e suite, and `scripts/stage-liblouis.mjs` supports
     # darwin and win32 only.
     timeout-minutes: 60
     steps:
       # Find the branch this pull request is already on. This is the whole
-      # difference between this file and `contributor-fix.yml`, which starts a
+      # difference between this file and `pipeline-fix.yml`, which starts a
       # new branch. `pr-build.yml` publishes to a release tagged `pr-<number>`
       # and its comment tells the reporter, in writing, that her links stay the
       # same and the files behind them are replaced. That promise holds only if
@@ -117,7 +110,7 @@ jobs:
           BRANCH="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq .headRefName)"
           # A branch name reaches `actions/checkout` as a `ref:`, and the agent
           # after it is told to push wherever this leaves it. So it is checked
-          # against a shape, and the shape is the one `contributor-fix.yml`
+          # against a shape, and the shape is the one `pipeline-fix.yml`
           # creates with `branch_prefix: claude/fix-`.
           #
           # That prefix is not cosmetic. It is what stops this workflow from
@@ -148,7 +141,7 @@ jobs:
       # Build the thread the agent will read, from people on the contributor
       # list only. Anyone can comment on a public pull request, and the gate
       # above vetted exactly one comment. The helper scripts and the list come
-      # out of `origin/main`, not out of the pull request branch just checked
+      # out of `origin/main` and `origin/testing`, not out of the pull request branch just checked
       # out: that branch is the thing under discussion, and a branch that could
       # rewrite the list or the filter could admit itself.
       - id: thread
@@ -160,9 +153,9 @@ jobs:
           set -euo pipefail
           T="$RUNNER_TEMP/thread"
           mkdir -p "$T/scripts/ci" "$T/.github"
-          git fetch --no-tags origin main
+          git fetch --no-tags origin main testing
           git show origin/main:scripts/ci/allowlist.mjs > "$T/scripts/ci/allowlist.mjs"
-          git show origin/main:scripts/ci/listed-thread.mjs > "$T/scripts/ci/listed-thread.mjs"
+          git show origin/testing:scripts/ci/listed-thread.mjs > "$T/scripts/ci/listed-thread.mjs"
           git show origin/main:.github/contributors.yml > "$T/.github/contributors.yml"
 
           gh pr view "$PR_NUMBER" --repo "$REPO" --json number,body,author \
@@ -196,7 +189,7 @@ jobs:
           # same bug. The agent commits where the checkout above put it.
           #
           # `--allowedTools` is not optional decoration, for the same measured
-          # reason `contributor-fix.yml` gives at length: on a comment event
+          # reason `pipeline-fix.yml` gives at length: on a comment event
           # this action picks "tag" mode, whose preset has no Bash, no Edit and
           # no Write. Without this list every step of the prompt below is
           # impossible. Do not trim it back without re-reading that note.

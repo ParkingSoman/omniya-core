@@ -88,18 +88,25 @@ Runs draw on your Claude subscription quota, not on API billing. There is no
 `anthropic_api_key` input anywhere in these workflows, and a unit test fails if
 one is added.
 
-The issue form and the three agent workflows must be on `main`. GitHub only
-starts an `on: issues` or `on: issue_comment` workflow, and only offers an issue
-form, from the default branch's copy. App code stays on `testing`; those files
-have to be merged to `main` again every time they change.
+GitHub starts an `on: issues` or `on: issue_comment` workflow only from the
+default branch, and the default branch is `main`. That is a GitHub rule, not a
+choice made here. So `main` holds three small stubs, and each stub does one
+thing: it calls the real workflow on `testing`. The prompts, the tools and the
+gates all live on `testing`. Changing what the pipeline does is an ordinary pull
+request into `testing`, and nothing is copied to `main`.
 
-That second part is easy to forget, and forgetting it is exactly what broke issue
-#22. The allowlist entry for its author reached `testing` and never reached
-`main`, so the gate on `main` refused them, and nobody was told for 23 days. The
-`pipeline-on-main` job in `pr-checks.yml` now fails any pull request into
-`testing` whose copy of these files differs from `main`. When it fails, open a
-pull request into `main` that carries the files it names, merge that first, then
-re-run the check.
+Three things live on `main`. The stubs, the allowlist, and the issue form. The
+stubs are copied there once from `.github/pipeline-stubs/`, and only again if a
+stub itself is edited. The allowlist exists on `main` only, on purpose, so that
+the people who can merge to `testing` cannot add themselves to it.
+
+Forgetting to copy a stub is what broke issue #22: an allowlist entry reached
+`testing` and never reached `main`, the gate on `main` refused its author, and
+nobody was told for 23 days. The `pipeline-on-main` job in `pr-checks.yml` now
+fails a pull request into `testing` when a stub on `testing` differs from its
+copy on `main`, when a stub is missing there, or when the allowlist on `main`
+cannot be read. It names the file. Fix that file on `main`, then run the check
+again.
 
 A file on the wrong branch does not warn you. It just never runs. If a
 contributor writes `@claude` and nothing happens, check that
@@ -120,22 +127,28 @@ If a report did not start a run, open the Actions tab, choose
 like an automatic run: the allowlist checks who wrote the issue, not who pressed
 the button.
 
-When the gate refuses an author, the issue now gets one comment saying so. It
-costs no Claude quota. A report that gets no comment at all means the workflow
-never started, so check that the files are on `main`.
+When the gate refuses an author, the issue gets one comment saying so. It costs
+no Claude quota. A report that gets no comment at all means the workflow never
+started, so check that the stubs are on `main`.
 
 ### Adding a contributor
 
-Two steps, and both are needed.
+Run one command from any checkout, logged in to the GitHub CLI as the
+maintainer.
 
-Add their GitHub handle to `.github/contributors.yml`. That file is the one
-place that says who may spend your subscription quota.
+```
+node scripts/ci/add-contributor.mjs <github-handle>
+```
 
-Then invite them to the repository as a collaborator with write access.
+It does two things. It adds the handle to `.github/contributors.yml` on `main`,
+which is the one place that says who may spend your subscription quota. Then it
+invites them to the repository as a collaborator with write access, so they can
+close their own issue.
 
-The two are deliberately separate. Taking somebody off the allowlist stops them
-driving the pipeline without removing their repository access, and the reverse
-is also true.
+Add `--dry-run` first to see what it would do, or `--no-invite` to skip the
+invitation. The two are deliberately separate things. Removing somebody from the
+list stops them driving the pipeline without removing their repository access.
+To remove them, delete their line from `.github/contributors.yml` on `main`.
 
 ### What protects the branches
 
@@ -151,14 +164,14 @@ with Windows installing it in the background.
 the pull request carrying a `Fixes #<number>` line for that issue and asks GitHub
 to merge it into `testing`.
 
-It runs as `github-actions[bot]`. The `testing-guard` ruleset lists exactly one
-bypass actor, you, so that merge is refused until you add
-`github-actions[bot]` to the ruleset's bypass actors.
-
-Until you do, closing an issue posts a comment on the pull request with the exact
-refusal, and a comment on the issue pointing at it. Nothing merges and nothing
-breaks. That is the pipeline as it was before this workflow existed, with the
-addition that the contributor is told rather than left waiting.
+It runs as `github-actions[bot]`. The `testing-guard` ruleset asks for a pull
+request and for the `unit`, `nemeth` and `e2e` checks to pass. It asks for no
+human approval, so the merge should go through once those checks are green. That
+has not been watched happening yet. If GitHub does refuse, for example because a
+ruleset change added a requirement, closing the issue posts the exact refusal on
+the pull request and a comment on the issue pointing at it. Nothing merges and
+nothing breaks. If the refusal names a bypass rule, the fix is to add
+`github-actions[bot]` to the bypass actors of `testing-guard`.
 
 There is deliberately no `--admin` anywhere in that workflow. A close asks GitHub
 to merge; GitHub still applies every rule on the ruleset, so a pull request whose
@@ -174,8 +187,10 @@ being the person who presses merge.
 
 ### Giving a contributor merge access
 
-The same ruleset, and the same one change. To let somebody merge by hand, add
-them to `testing-guard`'s bypass actors.
+Anybody on the allowlist can merge their own fix by closing their issue, as
+described above. To let somebody merge by hand, give them write access to the
+repository. Neither needs a ruleset change while `testing-guard` asks for no
+approvals.
 
 ### The files
 
@@ -186,13 +201,19 @@ you; it just never runs.
 |---|---|---|
 | `.github/ISSUE_TEMPLATE/bug-report.yml` | `main` | The form. Three required fields. |
 | `.github/ISSUE_TEMPLATE/config.yml` | `main` | Keeps blank issues on, so a feature request has somewhere to go. |
-| `.github/contributors.yml` | `main` | Who may drive the pipeline. |
-| `scripts/ci/allowlist.mjs` | `main` | Reads that file and decides. Fails closed. |
-| `.github/workflows/contributor-fix.yml` | `main` | Issue to pull request. |
-| `.github/workflows/contributor-followup.yml` | `main` | An `@claude` comment on the pull request to a revision of the same branch. |
-| `.github/workflows/contributor-signoff.yml` | `main` | A closed issue to a merge into `testing`. |
+| `.github/contributors.yml` | `main` | Who may drive the pipeline. Exists on `main` only. |
+| `scripts/ci/allowlist.mjs` | `main` | Reads that file and decides. Fails closed. Also kept on `testing`, and the two must match. |
+| `.github/workflows/contributor-fix.yml` | `main` | Stub. Issue opened, or run by hand, calls `pipeline-fix.yml`. |
+| `.github/workflows/contributor-followup.yml` | `main` | Stub. An `@claude` comment on a pull request calls `pipeline-followup.yml`. |
+| `.github/workflows/contributor-signoff.yml` | `main` | Stub. A closed issue calls `pipeline-signoff.yml`. |
+| `.github/pipeline-stubs/` | `testing` | The source of the three stubs above, with tests. Not read by GitHub from here. |
+| `.github/workflows/pipeline-fix.yml` | `testing` | Issue to pull request. |
+| `.github/workflows/pipeline-followup.yml` | `testing` | A comment on the pull request to a revision of the same branch. |
+| `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue to a merge into `testing`. |
+| `scripts/ci/listed-thread.mjs` | `testing` | Builds the thread the follow-up agent reads, from allowlisted people only. |
+| `scripts/ci/add-contributor.mjs` | `testing` | The one command that adds a person. |
 | `.github/workflows/pr-checks.yml` | `testing` | The four gates. |
-| `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when the files above differ from `main`. |
+| `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when a stub differs from its copy on `main`, or the allowlist there cannot be read. |
 | `scripts/ci/nemeth-gate.mjs` | `testing` | Makes the two Nemeth reports able to fail. |
 | `.github/workflows/pr-build.yml` | `testing` | Publishes a per-pull-request build to install. |
 | `.github/workflows/testing-app.yml` | `testing` | Fires on every push to `testing` and publishes the alpha build. This is what a merge reaches. |

@@ -4,7 +4,8 @@ import test from 'node:test';
 
 import { load as loadYaml } from 'js-yaml';
 
-const PATH = '.github/workflows/contributor-signoff.yml';
+const PATH = '.github/workflows/pipeline-signoff.yml';
+const STUB = '.github/pipeline-stubs/contributor-signoff.yml';
 const source = readFileSync(PATH, 'utf8');
 const workflow = loadYaml(source);
 
@@ -16,7 +17,8 @@ const code = source
   .filter((line) => !/^\s*#/.test(line))
   .join('\n');
 
-const triggers = workflow.on ?? workflow[true];
+const stub = loadYaml(readFileSync(STUB, 'utf8'));
+const triggers = stub.on ?? stub[true];
 const allowlistJob = workflow.jobs?.allowlist;
 const mergeJob = workflow.jobs?.merge;
 const steps = mergeJob?.steps ?? [];

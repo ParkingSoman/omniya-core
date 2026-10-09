@@ -1,0 +1,18 @@
+name: contributor-signoff
+
+# A STUB. Copy this file to `.github/workflows/` on `main` and leave it there.
+# See `contributor-fix.yml` in this folder for why. The same rules apply: it only
+# calls `pipeline-signoff.yml` on `testing`, and no logic belongs here.
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  call:
+    if: github.event.issue.state_reason != 'not_planned'
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-signoff.yml@testing
+    secrets: inherit

@@ -4,14 +4,18 @@ import test from 'node:test';
 
 import { load as loadYaml } from 'js-yaml';
 
-const PATH = '.github/workflows/contributor-fix.yml';
+const PATH = '.github/workflows/pipeline-fix.yml';
+const STUB = '.github/pipeline-stubs/contributor-fix.yml';
 const source = readFileSync(PATH, 'utf8');
 const workflow = loadYaml(source);
 
 // `on: issues` parses as the boolean true in YAML 1.1, because `on` is one of
 // its reserved truthy words. Reach the trigger by whichever key survived rather
 // than asserting one and getting a confusing undefined.
-const triggers = workflow.on ?? workflow[true];
+// The trigger lives in the stub that is copied to `main`; this file is only ever
+// called. Every assertion about WHEN a run starts reads the stub.
+const stub = loadYaml(readFileSync(STUB, 'utf8'));
+const triggers = stub.on ?? stub[true];
 
 test('one run per issue, bounded', () => {
   // These runs spend the maintainer's own Claude subscription quota. An
@@ -221,8 +225,11 @@ test('the fix job still needs the gate to say yes', () => {
 
 test('a run can be started by hand, and the gate still checks the issue author', () => {
   const dispatch = triggers?.workflow_dispatch;
-  assert.ok(dispatch, 'expected a workflow_dispatch trigger');
+  assert.ok(dispatch, 'expected a workflow_dispatch trigger on the stub');
   assert.equal(dispatch.inputs?.issue_number?.required, true);
+  // And the typed number has to reach the workflow that does the work.
+  assert.equal(stub.jobs.call.with?.issue_number, "${{ github.event.inputs.issue_number || '' }}");
+  assert.equal(workflow.on.workflow_call.inputs.issue_number.type, 'string');
 
   // The gate must read the author of the ISSUE. If it read the actor who
   // pressed the button, anyone with write access could spend the quota on a

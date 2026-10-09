@@ -4,7 +4,8 @@ import test from 'node:test';
 
 import { load as loadYaml } from 'js-yaml';
 
-const PATH = '.github/workflows/contributor-followup.yml';
+const PATH = '.github/workflows/pipeline-followup.yml';
+const STUB = '.github/pipeline-stubs/contributor-followup.yml';
 const source = readFileSync(PATH, 'utf8');
 const workflow = loadYaml(source);
 
@@ -20,7 +21,8 @@ const code = source
 // `on:` parses as the boolean true in YAML 1.1, because `on` is one of its
 // reserved truthy words. Reach the trigger by whichever key survived rather
 // than asserting one and getting a confusing undefined.
-const triggers = workflow.on ?? workflow[true];
+const stub = loadYaml(readFileSync(STUB, 'utf8'));
+const triggers = stub.on ?? stub[true];
 
 const allowlistJob = workflow.jobs?.allowlist;
 const reviseJob = workflow.jobs?.revise;
@@ -37,6 +39,13 @@ test('only a @claude comment on a pull request starts a run', () => {
   // GitHub does not have a separate one.
   assert.deepEqual(triggers?.issue_comment?.types, ['created']);
 
+  // The stub filters first, so a comment that cannot cost anything never starts
+  // a run. The workflow that does the work checks the same things again, because
+  // a stub is not a place to rely on for safety. Both must say it.
+  for (const condition of [stub.jobs.call.if ?? '', allowlistJob?.if ?? '']) {
+    assert.match(condition, /github\.event\.issue\.pull_request/, 'limited to comments on pull requests');
+    assert.match(condition, /contains\(\s*github\.event\.comment\.body\s*,\s*'@claude'\s*\)/, 'only a comment naming @claude may spend a run');
+  }
   const condition = allowlistJob?.if ?? '';
 
   // `github.event.issue.pull_request` is present only when the comment is on a
@@ -221,7 +230,8 @@ test('the agent reads a thread filtered to people on the list, built from main',
 
   // The filter and the list come from main. Taken from the pull request branch,
   // a branch under discussion could rewrite the list that judges it.
-  assert.match(thread.run, /git show origin\/main:scripts\/ci\/listed-thread\.mjs/);
+  assert.match(thread.run, /git show origin\/testing:scripts\/ci\/listed-thread\.mjs/);
+  assert.match(thread.run, /git show origin\/main:scripts\/ci\/allowlist\.mjs/);
   assert.match(thread.run, /git show origin\/main:\.github\/contributors\.yml/);
   assert.doesNotMatch(thread.run, /\|\|\s*true/, 'a failed filter must stop the run, not fall through');
 
