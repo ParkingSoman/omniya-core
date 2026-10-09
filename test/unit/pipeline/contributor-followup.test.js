@@ -210,3 +210,34 @@ test('a pull request from a fork is refused before anything is checked out', () 
   assert.ok(crossCheck > -1, 'the fork check must exist');
   assert.ok(crossCheck < checkout, 'and it must come before the checkout it protects');
 });
+
+test('the agent reads a thread filtered to people on the list, built from main', () => {
+  // The gate vets who wrote the `@claude` comment. Anyone can comment on a
+  // public pull request, and the agent used to read all of it with Bash and a
+  // write token. Two things keep that closed, and both are pinned here.
+  const reviseSteps = workflow.jobs.revise.steps;
+  const thread = reviseSteps.find((s) => s.id === 'thread');
+  assert.ok(thread, 'expected a `thread` step in the revise job');
+
+  // The filter and the list come from main. Taken from the pull request branch,
+  // a branch under discussion could rewrite the list that judges it.
+  assert.match(thread.run, /git show origin\/main:scripts\/ci\/listed-thread\.mjs/);
+  assert.match(thread.run, /git show origin\/main:\.github\/contributors\.yml/);
+  assert.doesNotMatch(thread.run, /\|\|\s*true/, 'a failed filter must stop the run, not fall through');
+
+  // It runs before the agent, and the agent is told to read only its output.
+  const names = reviseSteps.map((s) => s.id ?? s.uses ?? '');
+  assert.ok(
+    names.indexOf('thread') < names.findIndex((n) => String(n).startsWith('anthropics/claude-code-action')),
+    'the thread must be built before the agent starts'
+  );
+  const agent = reviseSteps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
+  assert.match(agent.with.prompt, /thread\.md/);
+  assert.match(agent.with.prompt, /Do NOT read the thread any other way/);
+  assert.doesNotMatch(
+    agent.with.prompt,
+    /Read it\s+with `gh pr view/,
+    'the old instruction to read the raw thread must be gone'
+  );
+});
+

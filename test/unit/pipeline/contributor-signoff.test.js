@@ -126,3 +126,19 @@ test('a close only merges a pull request this pipeline made', () => {
   assert.match(source, /isCrossRepository == false/);
   assert.match(source, /startswith\("claude\/fix-"\)/, 'only the branches the fix workflow creates may match');
 });
+
+test('the merge takes the commit that was found, and nothing newer', () => {
+  // Found at close time, merged a moment later. A push in between would ship
+  // code the contributor never installed: they tested one build and closed the
+  // issue about that build. `--match-head-commit` makes GitHub refuse instead.
+  const merge = workflow.jobs.merge.steps.find((s) => s.id === 'merge');
+  assert.equal(merge.env?.PR_SHA, '${{ steps.find.outputs.sha }}');
+  const calls = merge.run.match(/gh pr merge[^\n]*/g) ?? [];
+  assert.equal(calls.length, 2, 'expected the auto and the direct merge attempt');
+  for (const call of calls) {
+    assert.match(call, /--match-head-commit "\$PR_SHA"/, `every merge must pin the commit: ${call}`);
+  }
+  const find = workflow.jobs.merge.steps.find((s) => s.id === 'find');
+  assert.match(find.run, /headRefOid/, 'the commit must be read when the pull request is found');
+});
+

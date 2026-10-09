@@ -22,7 +22,8 @@ export const PIPELINE_FILES = [
   '.github/workflows/contributor-fix.yml',
   '.github/workflows/contributor-followup.yml',
   '.github/workflows/contributor-signoff.yml',
-  'scripts/ci/allowlist.mjs'
+  'scripts/ci/allowlist.mjs',
+  'scripts/ci/listed-thread.mjs'
 ];
 
 /**
