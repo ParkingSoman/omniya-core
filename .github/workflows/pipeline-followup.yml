@@ -12,6 +12,11 @@ name: pipeline-followup
 # workflow from the default branch only.
 on:
   workflow_call:
+    # Only the subscription token, and the stub passes only that. Not every
+    # secret in the repository, and not `inherit`.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
 
 # One run per pull request. These runs spend the maintainer's own Claude
 # subscription quota, exactly as `pipeline-fix.yml` does. Queued rather than
@@ -91,7 +96,7 @@ jobs:
       # every round lands on this same branch.
       - id: pr
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           # Safe to interpolate: GitHub guarantees the issue number is an
           # integer. Nothing else from the event is.
           PR_NUMBER: ${{ github.event.issue.number }}
@@ -146,7 +151,7 @@ jobs:
       # rewrite the list or the filter could admit itself.
       - id: thread
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
         run: |
@@ -180,7 +185,7 @@ jobs:
           # ANTHROPIC_API_KEY anywhere in this file: a key present would bill
           # per token instead of drawing on the subscription.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
           base_branch: testing
           track_progress: true
           # No `branch_prefix`. That input is what makes the action cut a new
@@ -321,4 +326,4 @@ jobs:
             That paragraph is what makes the trade visible before it ships to
             everybody else.
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}

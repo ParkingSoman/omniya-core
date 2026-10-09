@@ -13,6 +13,11 @@ name: pipeline-fix
 # (`.github/contributors.yml`) or the stubs themselves.
 on:
   workflow_call:
+    # Only the subscription token, and the stub passes only that. Not every
+    # secret in the repository, and not `inherit`.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
     inputs:
       # Set only by a hand-started run ("Run workflow" in the Actions tab). An
       # automatic run leaves it empty and the issue comes from the event. It is
@@ -139,7 +144,7 @@ jobs:
           # ANTHROPIC_API_KEY anywhere in this file: a key present would bill
           # per token instead of drawing on the subscription.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
           base_branch: testing
           branch_prefix: claude/fix-
           # `track_progress` is only valid for pull request and issue events.
@@ -286,4 +291,4 @@ jobs:
             works. Disclosure is what makes that visible to the maintainer
             before it ships to everybody else.
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}

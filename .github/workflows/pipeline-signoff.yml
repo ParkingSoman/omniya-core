@@ -75,7 +75,7 @@ jobs:
       # `#120` and a body that merely mentions the number in a sentence.
       - id: find
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           # Safe to interpolate: GitHub guarantees the issue number is an
           # integer. Nothing else from the event is.
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -110,7 +110,7 @@ jobs:
       # in this file: she believes she shipped a fix, and nothing happened.
       - if: steps.find.outputs.count != '1'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
           COUNT: ${{ steps.find.outputs.count }}
@@ -148,7 +148,7 @@ jobs:
       - id: merge
         if: steps.find.outputs.count == '1'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.find.outputs.pr }}
           PR_SHA: ${{ steps.find.outputs.sha }}
           REPO: ${{ github.repository }}
@@ -184,7 +184,7 @@ jobs:
       # ignore it.
       - if: steps.merge.outputs.merged == 'false'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.find.outputs.pr }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
