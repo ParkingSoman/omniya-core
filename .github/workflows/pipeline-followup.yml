@@ -63,6 +63,9 @@ jobs:
       github.event.comment.user.type != 'Bot' &&
       contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
+    # Least privilege. This job only reads the allowlist. It runs no agent and writes nothing.
+    permissions:
+      contents: read
     timeout-minutes: 5
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
@@ -82,6 +85,15 @@ jobs:
   revise:
     needs: allowlist
     if: needs.allowlist.outputs.allowed == 'true'
+    # Explicit, and without `actions`: the agent in this job runs unrestricted Bash.
+    # Starting the checks is the small `start-checks` job below.
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      branch: ${{ steps.pr.outputs.branch }}
+      before: ${{ steps.before.outputs.sha }}
     runs-on: macos-latest
     # macOS for the same reason `pipeline-fix.yml` uses it: the gates below
     # include the Electron e2e suite, and `scripts/stage-liblouis.mjs` supports
@@ -136,6 +148,11 @@ jobs:
         with:
           ref: ${{ steps.pr.outputs.branch }}
           fetch-depth: 0
+      # Remember where the remote branch stood, so the last step can tell a
+      # revision from an answered question. Rebuilding on every `@claude`
+      # comment would spend two macOS packaging jobs on a reply.
+      - id: before
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -327,3 +344,32 @@ jobs:
             everybody else.
         env:
           GH_TOKEN: ${{ github.token }}
+
+  # A push made with the bot's token starts no `pull_request` run, so a revision
+  # would never be checked or rebuilt. Start both by hand, on the branch, but
+  # only when the branch actually moved. Its own job, so `actions: write` is not
+  # held by the agent above.
+  start-checks:
+    needs: [allowlist, revise]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          BRANCH: ${{ needs.revise.outputs.branch }}
+          BEFORE: ${{ needs.revise.outputs.before }}
+        run: |
+          set -euo pipefail
+          AFTER="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${BRANCH}" --jq .object.sha)"
+          if [ "$AFTER" = "$BEFORE" ]; then
+            echo "The branch did not change, so there is nothing to rebuild."
+            exit 0
+          fi
+          gh workflow run pr-checks.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
+          gh workflow run pr-build.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH" -f pr_number="$PR_NUMBER"
+          echo "Started the checks and the build for pull request #${PR_NUMBER} on ${BRANCH}."

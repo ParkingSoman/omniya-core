@@ -49,6 +49,11 @@ jobs:
   # subscription quota should not wait on an install that can fail or be slow.
   allowlist:
     runs-on: ubuntu-latest
+    # Least privilege. This job only reads the allowlist and, for a hand-started
+    # run, the issue. It runs no agent and writes nothing.
+    permissions:
+      contents: read
+      issues: read
     timeout-minutes: 5
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
@@ -109,6 +114,9 @@ jobs:
       needs.allowlist.outputs.number != '' &&
       !endsWith(needs.allowlist.outputs.author, '[bot]')
     runs-on: ubuntu-latest
+    # Least privilege. This job only posts one comment.
+    permissions:
+      issues: write
     timeout-minutes: 5
     steps:
       - env:
@@ -121,6 +129,13 @@ jobs:
   fix:
     needs: allowlist
     if: needs.allowlist.outputs.allowed == 'true'
+    # Explicit, and without `actions`. The agent in this job runs unrestricted Bash,
+    # so it must not be able to start, cancel or re-run other workflows. That
+    # permission belongs to the small `start-checks` job below.
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     runs-on: macos-latest
     # macOS because the gates below include the Electron e2e suite, and
     # `scripts/stage-liblouis.mjs` supports darwin and win32 only.
@@ -292,3 +307,48 @@ jobs:
             before it ships to everybody else.
         env:
           GH_TOKEN: ${{ github.token }}
+
+  # GitHub holds a pull request's own checks for approval when the Actions bot
+  # opened it, so the required `unit`, `nemeth` and `e2e` checks would never
+  # report and no test build would be made. A run started by `workflow_dispatch`
+  # is not held. So this job starts both, on the branch, and they report on the
+  # pull request's head commit.
+  #
+  # It is a job of its own so that `actions: write` is held by a few lines of
+  # shell that read no untrusted text, and not by the agent above.
+  #
+  # The branch has to be one that already has `workflow_dispatch` in these two
+  # files, which any branch cut from `testing` after this was added has. If this
+  # job fails the pull request still exists; it is the checks that are missing,
+  # and the run turns red so that is not silent.
+  start-checks:
+    needs: [allowlist, fix]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
+        run: |
+          set -euo pipefail
+          FOUND="$(gh pr list --repo "$GITHUB_REPOSITORY" --base testing --state open --limit 100 \
+            --json number,body,headRefName,isCrossRepository \
+            | jq -r --arg n "$ISSUE_NUMBER" '
+                [ .[]
+                  | select(.isCrossRepository == false)
+                  | select(.headRefName | startswith("claude/fix-"))
+                  | select((.body // "") | test("(^|\n)[Ff]ixes #" + $n + "[[:space:]]*$")) ]
+                | .[0] // empty | "\(.number) \(.headRefName)"')"
+          if [ -z "$FOUND" ]; then
+            echo "The agent opened no pull request for issue #${ISSUE_NUMBER}, so there is nothing to check."
+            exit 0
+          fi
+          NUMBER="${FOUND%% *}"
+          BRANCH="${FOUND#* }"
+          gh workflow run pr-checks.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
+          gh workflow run pr-build.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH" -f pr_number="$NUMBER"
+          echo "Started the checks and the build for pull request #${NUMBER} on ${BRANCH}."

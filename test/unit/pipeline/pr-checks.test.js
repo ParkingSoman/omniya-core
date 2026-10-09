@@ -88,3 +88,15 @@ test('every gate job has a timeout, so a hang fails instead of hanging', () => {
     assert.equal(typeof workflow.jobs[job]['timeout-minutes'], 'number', `${job} needs timeout-minutes`);
   }
 });
+
+test('a gate started by the pipeline is the same gate', () => {
+  // `workflow_dispatch` lets the pipeline run the checks on a bot-opened pull
+  // request, which GitHub otherwise holds for approval. It must not become a way
+  // to run a smaller set: the jobs are the same ones, with nothing added that
+  // could skip one.
+  assert.ok(triggers?.workflow_dispatch !== undefined, 'expected a workflow_dispatch trigger');
+  for (const { job } of REQUIRED) {
+    assert.equal(workflow.jobs[job].if, undefined, `${job} must run on a dispatched run too`);
+  }
+});
+

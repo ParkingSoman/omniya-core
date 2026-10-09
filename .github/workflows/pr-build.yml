@@ -15,9 +15,21 @@ on:
   pull_request:
     branches: [testing]
     types: [opened, synchronize, reopened]
+  # Started by `pipeline-fix.yml` and `pipeline-followup.yml` after the agent
+  # opens or revises a pull request. GitHub does not run a pull request's own
+  # checks when the Actions bot opened it: the run waits for a person to approve
+  # it, and a push made with the bot's token starts no run at all. A run started
+  # by `workflow_dispatch` is neither held nor skipped, so the pipeline starts
+  # the build itself, on the pull request's branch.
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Number of the pull request this build is for
+        required: true
+        type: string
 
 concurrency:
-  group: pr-build-${{ github.event.pull_request.number }}
+  group: pr-build-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: true
 
 permissions:
@@ -42,8 +54,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Through env, never inline in the command: a branch name is
           # attacker-controlled text and `run:` is a shell.
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           TAG="pr-${PR_NUMBER}"
@@ -77,8 +89,8 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           $tag = "pr-$env:PR_NUMBER"
           gh release view $tag > $null 2>&1
@@ -104,7 +116,7 @@ jobs:
       - name: Post one comment with a direct link per platform
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
