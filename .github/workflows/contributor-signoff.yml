@@ -2,7 +2,8 @@ name: contributor-signoff
 
 # A STUB. Copy this file to `.github/workflows/` on `main` and leave it there.
 # See `contributor-fix.yml` in this folder for why. The same rules apply: it only
-# calls `pipeline-signoff.yml` on `testing`, and no logic belongs here.
+# calls `pipeline-signoff.yml` on `testing`, and no logic belongs here. It passes
+# no secrets at all: merging needs only the workflow's own token.
 on:
   issues:
     types: [closed]
@@ -15,4 +16,3 @@ jobs:
       pull-requests: write
       issues: write
     uses: ParkingSoman/omniya-core/.github/workflows/pipeline-signoff.yml@testing
-    secrets: inherit
