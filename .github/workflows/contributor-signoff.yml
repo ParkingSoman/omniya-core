@@ -85,9 +85,19 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          OPEN="$(gh pr list --repo "$REPO" --base testing --state open --limit 100 --json number,body)"
+          # Only a pull request this pipeline made can be merged by a close.
+          # The allowlist above vets who CLOSED the issue. It says nothing about
+          # who wrote a pull request, and anyone may open one into `testing`
+          # with a `Fixes #N` line in the body. So the match also requires the
+          # branch to live in this repository (not a fork) and to carry the
+          # `claude/fix-` prefix that `contributor-fix.yml` creates.
+          OPEN="$(gh pr list --repo "$REPO" --base testing --state open --limit 100 --json number,body,headRefName,isCrossRepository)"
           MATCHES="$(printf '%s' "$OPEN" | jq -c --arg n "$ISSUE_NUMBER" \
-            '[ .[] | select((.body // "") | test("(^|\n)[Ff]ixes #" + $n + "[[:space:]]*$")) | .number ]')"
+            '[ .[]
+               | select(.isCrossRepository == false)
+               | select(.headRefName | startswith("claude/fix-"))
+               | select((.body // "") | test("(^|\n)[Ff]ixes #" + $n + "[[:space:]]*$"))
+               | .number ]')"
           COUNT="$(printf '%s' "$MATCHES" | jq 'length')"
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "pr=$(printf '%s' "$MATCHES" | jq -r '.[0] // ""')" >> "$GITHUB_OUTPUT"

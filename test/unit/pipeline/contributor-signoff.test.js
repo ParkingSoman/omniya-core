@@ -116,3 +116,13 @@ test('a refused merge says why', () => {
   );
   assert.match(merge.run ?? '', /merged=false/, 'a refusal is carried in an output, not in the exit code');
 });
+
+test('a close only merges a pull request this pipeline made', () => {
+  // The allowlist vets who CLOSED the issue. It says nothing about who wrote a
+  // pull request, and anyone may open one into `testing` with a `Fixes #N` line
+  // in its body. Without these two conditions a listed contributor closing
+  // their own issue would merge a stranger's pull request.
+  assert.match(source, /isCrossRepository/, 'a pull request from a fork must never match');
+  assert.match(source, /isCrossRepository == false/);
+  assert.match(source, /startswith\("claude\/fix-"\)/, 'only the branches the fix workflow creates may match');
+});

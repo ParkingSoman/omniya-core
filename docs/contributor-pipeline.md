@@ -91,7 +91,15 @@ one is added.
 The issue form and the three agent workflows must be on `main`. GitHub only
 starts an `on: issues` or `on: issue_comment` workflow, and only offers an issue
 form, from the default branch's copy. App code stays on `testing`; those files
-are merged to `main` once and left there.
+have to be merged to `main` again every time they change.
+
+That second part is easy to forget, and forgetting it is exactly what broke issue
+#22. The allowlist entry for its author reached `testing` and never reached
+`main`, so the gate on `main` refused them, and nobody was told for 23 days. The
+`pipeline-on-main` job in `pr-checks.yml` now fails any pull request into
+`testing` whose copy of these files differs from `main`. When it fails, open a
+pull request into `main` that carries the files it names, merge that first, then
+re-run the check.
 
 A file on the wrong branch does not warn you. It just never runs. If a
 contributor writes `@claude` and nothing happens, check that
@@ -104,6 +112,17 @@ they live on `testing` with everything else and never go near `main`.
 One label has to exist: `needs-design`. The fix workflow puts it on a report
 that turns out to be a feature request. Adding a label that does not exist
 fails, and the contributor gets silence instead of an answer.
+
+### A report was missed
+
+If a report did not start a run, open the Actions tab, choose
+`contributor-fix`, press "Run workflow", and type the issue number. It is gated
+like an automatic run: the allowlist checks who wrote the issue, not who pressed
+the button.
+
+When the gate refuses an author, the issue now gets one comment saying so. It
+costs no Claude quota. A report that gets no comment at all means the workflow
+never started, so check that the files are on `main`.
 
 ### Adding a contributor
 
@@ -173,6 +192,7 @@ you; it just never runs.
 | `.github/workflows/contributor-followup.yml` | `main` | An `@claude` comment on the pull request to a revision of the same branch. |
 | `.github/workflows/contributor-signoff.yml` | `main` | A closed issue to a merge into `testing`. |
 | `.github/workflows/pr-checks.yml` | `testing` | The four gates. |
+| `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when the files above differ from `main`. |
 | `scripts/ci/nemeth-gate.mjs` | `testing` | Makes the two Nemeth reports able to fail. |
 | `.github/workflows/pr-build.yml` | `testing` | Publishes a per-pull-request build to install. |
 | `.github/workflows/testing-app.yml` | `testing` | Fires on every push to `testing` and publishes the alpha build. This is what a merge reaches. |

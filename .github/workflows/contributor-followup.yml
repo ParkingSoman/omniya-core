@@ -105,6 +105,15 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          # A branch NAME does not say where the branch is. A fork can name its
+          # branch `claude/fix-anything`, and `actions/checkout` below would then
+          # check out a different branch from the pull request whose thread the
+          # agent reads. Refuse any pull request that is not from this repository.
+          CROSS="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json isCrossRepository --jq .isCrossRepository)"
+          if [ "$CROSS" != "false" ]; then
+            echo "PR #${PR_NUMBER} comes from a fork, which this pipeline did not create. Refusing." >&2
+            exit 1
+          fi
           BRANCH="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq .headRefName)"
           # A branch name reaches `actions/checkout` as a `ref:`, and the agent
           # after it is told to push wherever this leaves it. So it is checked

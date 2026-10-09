@@ -174,7 +174,7 @@ test('the pull request names the issue it closes', () => {
 
   assert.match(
     prompt,
-    /Fixes #\$\{\{\s*github\.event\.issue\.number\s*\}\}/,
+    /Fixes #\$\{\{\s*needs\.allowlist\.outputs\.number\s*\}\}/,
     'the prompt must require a Fixes line carrying the issue number'
   );
   // "must" rather than "should". An instruction the agent can read as optional
@@ -188,4 +188,72 @@ test('the pull request names the issue it closes', () => {
     /closing\s+the\s+issue\s+is\s+what\s+merges\s+this/i,
     'the agent must tell the reporter that closing the issue is the merge'
   );
+});
+
+test('a refused author is told, at no cost to the quota', () => {
+  // Issue #22 sat for 23 days. The gate refused its author, the fix job was
+  // skipped, and nothing on the issue said so. A refusal nobody can see looks
+  // exactly like a pipeline that is broken.
+  const refused = workflow.jobs?.refused;
+  assert.ok(refused, 'expected a `refused` job');
+  assert.equal(refused.needs, 'allowlist');
+  assert.match(refused.if, /allowed\s*!=\s*'true'/, 'it must run exactly when the gate said no');
+
+  // It must not spend the quota it exists to protect.
+  const uses = (refused.steps ?? []).map((s) => s.uses ?? '').join(' ');
+  assert.doesNotMatch(uses, /claude-code-action/, 'the refusal comment must not start an agent');
+  assert.ok(
+    (refused.steps ?? []).some((s) => /gh issue comment/.test(s.run ?? '')),
+    'it must post a comment'
+  );
+
+  // A bot-opened issue must not start a comment exchange.
+  assert.match(refused.if, /\[bot\]/, 'bot authors must be skipped');
+  assert.equal(typeof refused['timeout-minutes'], 'number');
+});
+
+test('the fix job still needs the gate to say yes', () => {
+  // The refusal job was added next to it. This pins that the new path did not
+  // loosen the old one.
+  assert.equal(workflow.jobs.fix.needs, 'allowlist');
+  assert.equal(workflow.jobs.fix.if, "needs.allowlist.outputs.allowed == 'true'");
+});
+
+test('a run can be started by hand, and the gate still checks the issue author', () => {
+  const dispatch = triggers?.workflow_dispatch;
+  assert.ok(dispatch, 'expected a workflow_dispatch trigger');
+  assert.equal(dispatch.inputs?.issue_number?.required, true);
+
+  // The gate must read the author of the ISSUE. If it read the actor who
+  // pressed the button, anyone with write access could spend the quota on a
+  // stranger's report, which is the thing the allowlist exists to stop.
+  const check = workflow.jobs.allowlist.steps.find((s) => s.id === 'check');
+  assert.equal(check.env?.ISSUE_AUTHOR, '${{ steps.issue.outputs.author }}');
+  assert.doesNotMatch(source, /github\.actor|github\.triggering_actor/, 'the button-presser is never the subject of the gate');
+
+  // The number typed into the form must be checked to be digits before it is
+  // used for anything.
+  const resolve = workflow.jobs.allowlist.steps.find((s) => s.id === 'issue');
+  assert.match(resolve.run, /\*\[!0-9\]\*/, 'the dispatch input must be validated as digits');
+});
+
+test('track_progress is not set on an event the action rejects', () => {
+  // claude-code-action throws "track_progress is only supported for events:
+  // pull_request, issues, ..." on anything else. A hand-started run is such an
+  // event, so a literal `true` would make every manual run fail at once.
+  const step = workflow.jobs.fix.steps.find(
+    (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
+  );
+  assert.notEqual(step.with?.track_progress, true);
+  assert.match(String(step.with?.track_progress), /github\.event_name\s*==\s*'issues'/);
+});
+
+test('every use of the issue number comes from the gate job, not the event', () => {
+  // On a hand-started run `github.event.issue` does not exist, so a prompt that
+  // still read it would tell the agent to work on issue "#". The concurrency
+  // group is the one place allowed to read the event, because it runs before any
+  // job and falls back to the input.
+  const body = source.split('\njobs:\n')[1] ?? '';
+  const uses = body.match(/\$\{\{[^}]*github\.event\.issue\.number[^}]*\}\}/g) ?? [];
+  assert.equal(uses.length, 1, 'only the allowlist job may read the event number, once, into env');
 });

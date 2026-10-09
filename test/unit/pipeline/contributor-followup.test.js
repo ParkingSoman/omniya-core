@@ -200,3 +200,13 @@ test("the follow-up run pushes to the pull request's own branch", () => {
     'the resolved branch must be checked against the prefix this pipeline creates'
   );
 });
+
+test('a pull request from a fork is refused before anything is checked out', () => {
+  // A branch NAME does not say where the branch is. A fork can call its branch
+  // `claude/fix-anything`, pass the name check, and have the agent read the
+  // fork's thread while `actions/checkout` fetches a different branch.
+  const crossCheck = source.indexOf('isCrossRepository');
+  const checkout = source.indexOf('actions/checkout@v4', source.indexOf('revise:'));
+  assert.ok(crossCheck > -1, 'the fork check must exist');
+  assert.ok(crossCheck < checkout, 'and it must come before the checkout it protects');
+});
