@@ -84,3 +84,25 @@ test('a new push replaces the assets under the same tag', () => {
   assert.match(commentRun, /--edit-last/, 'the build comment must be edited in place');
   assert.match(commentRun, /--create-if-none/, 'and written the first time');
 });
+
+test('the pipeline can start a build by hand, for a pull request number', () => {
+  // See the comment in pr-build.yml: a bot-opened pull request's own run is held
+  // for approval, so `pipeline-fix.yml` and `pipeline-followup.yml` dispatch it.
+  const dispatch = triggers?.workflow_dispatch;
+  assert.ok(dispatch, 'expected a workflow_dispatch trigger');
+  assert.equal(dispatch.inputs?.pr_number?.required, true);
+  // A dispatched run has no `github.event.pull_request`, so each place that read
+  // it must fall back, or the release tag would be `pr-` and the build for #26
+  // would overwrite the next one.
+  const uses = (needle) =>
+    [...source.matchAll(/\$\{\{[^}]*\}\}/g)].map((m) => m[0]).filter((expr) => expr.includes(needle));
+
+  const numbers = uses('github.event.pull_request.number');
+  assert.ok(numbers.length >= 4, 'expected the number to be read in the group and in three jobs');
+  for (const expr of numbers) assert.match(expr, /inputs\.pr_number/, `needs the dispatch fallback: ${expr}`);
+
+  const shas = uses('github.event.pull_request.head.sha');
+  assert.ok(shas.length >= 2, 'expected the head sha in both packaging jobs');
+  for (const expr of shas) assert.match(expr, /github\.sha/, `needs the dispatch fallback: ${expr}`);
+});
+

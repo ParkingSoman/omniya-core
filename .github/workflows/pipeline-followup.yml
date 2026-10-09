@@ -32,6 +32,8 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  # To start the checks and the build on the pull request. See the last step.
+  actions: write
 
 jobs:
   # The gate, and it is doing three separate jobs at once. Read the `if` before
@@ -136,6 +138,11 @@ jobs:
         with:
           ref: ${{ steps.pr.outputs.branch }}
           fetch-depth: 0
+      # Remember where the remote branch stood, so the last step can tell a
+      # revision from an answered question. Rebuilding on every `@claude`
+      # comment would spend two macOS packaging jobs on a reply.
+      - id: before
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -327,3 +334,24 @@ jobs:
             everybody else.
         env:
           GH_TOKEN: ${{ github.token }}
+
+      # A push made with the bot's token starts no `pull_request` run, so the
+      # revision would never be checked or rebuilt. Start both by hand, on the
+      # branch, but only when the branch actually moved.
+      - name: Start the checks and the build if the branch changed
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          BRANCH: ${{ steps.pr.outputs.branch }}
+          BEFORE: ${{ steps.before.outputs.sha }}
+        run: |
+          set -euo pipefail
+          AFTER="$(git ls-remote origin "refs/heads/${BRANCH}" | cut -f1)"
+          if [ "$AFTER" = "$BEFORE" ]; then
+            echo "The branch did not change, so there is nothing to rebuild."
+            exit 0
+          fi
+          gh workflow run pr-checks.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
+          gh workflow run pr-build.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH" -f pr_number="$PR_NUMBER"
+          echo "Started the checks and the build for pull request #${PR_NUMBER} on ${BRANCH}."

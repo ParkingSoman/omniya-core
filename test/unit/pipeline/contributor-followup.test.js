@@ -251,3 +251,26 @@ test('the agent reads a thread filtered to people on the list, built from main',
   );
 });
 
+test('a revision starts the checks and the build, and an answer does not', () => {
+  // A push made with the bot's token starts no `pull_request` run, so without
+  // this step a revision would never be checked or rebuilt and the reporter's
+  // links would keep serving the old build.
+  const steps = workflow.jobs.revise.steps;
+  const before = steps.find((s) => s.id === 'before');
+  assert.ok(before, 'expected a step that records where the branch stood');
+
+  const start = steps.find((s) => /pr-checks\.yml/.test(s.run ?? ''));
+  assert.ok(start, 'expected a step that starts pr-checks');
+  assert.match(start.run, /gh workflow run pr-build\.yml[^\n]*pr_number/);
+  assert.match(start.run, /--ref "\$BRANCH"/);
+  assert.equal(start.if, 'success()');
+
+  // Rebuilding on a question would spend two packaging jobs on a reply.
+  assert.match(start.run, /AFTER" = "\$BEFORE"/, 'it must compare the branch before and after');
+  assert.equal(start.env?.BEFORE, '${{ steps.before.outputs.sha }}');
+
+  const agent = steps.findIndex((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
+  assert.ok(steps.indexOf(before) < agent && agent < steps.indexOf(start));
+  assert.equal(workflow.permissions?.actions, 'write');
+});
+

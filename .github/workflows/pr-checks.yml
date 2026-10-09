@@ -14,9 +14,15 @@ name: pr-checks
 on:
   pull_request:
     branches: [testing]
+  # Started by `pipeline-fix.yml` and `pipeline-followup.yml` on the pull
+  # request's branch. See `pr-build.yml` for why: a pull request opened by the
+  # Actions bot is held for approval, and the required `unit`, `nemeth` and
+  # `e2e` checks would never report. A run started this way reports on the
+  # branch's head commit, which is what the pull request is waiting for.
+  workflow_dispatch:
 
 concurrency:
-  group: pr-checks-${{ github.event.pull_request.number }}
+  group: pr-checks-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:

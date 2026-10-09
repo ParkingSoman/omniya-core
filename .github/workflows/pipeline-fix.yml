@@ -42,6 +42,8 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  # To start the checks and the build on the pull request. See the last step.
+  actions: write
 
 jobs:
   # The gate. Nothing else in this file runs without it, and it deliberately
@@ -292,3 +294,38 @@ jobs:
             before it ships to everybody else.
         env:
           GH_TOKEN: ${{ github.token }}
+
+      # GitHub holds a pull request's own checks for approval when the Actions
+      # bot opened it, so the required `unit`, `nemeth` and `e2e` checks would
+      # never report and no test build would be made. A run started by
+      # `workflow_dispatch` is not held. So this step starts both, on the
+      # branch, and they report on the pull request's head commit.
+      #
+      # The branch has to be one that already has `workflow_dispatch` in these
+      # two files, which any branch cut from `testing` after this was added has.
+      # If this step fails the pull request still exists; it is the checks that
+      # are missing, and the run turns red so that is not silent.
+      - name: Start the checks and the build on the pull request
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
+        run: |
+          set -euo pipefail
+          FOUND="$(gh pr list --repo "$GITHUB_REPOSITORY" --base testing --state open --limit 100 \
+            --json number,body,headRefName,isCrossRepository \
+            | jq -r --arg n "$ISSUE_NUMBER" '
+                [ .[]
+                  | select(.isCrossRepository == false)
+                  | select(.headRefName | startswith("claude/fix-"))
+                  | select((.body // "") | test("(^|\n)[Ff]ixes #" + $n + "[[:space:]]*$")) ]
+                | .[0] // empty | "\(.number) \(.headRefName)"')"
+          if [ -z "$FOUND" ]; then
+            echo "The agent opened no pull request for issue #${ISSUE_NUMBER}, so there is nothing to check."
+            exit 0
+          fi
+          NUMBER="${FOUND%% *}"
+          BRANCH="${FOUND#* }"
+          gh workflow run pr-checks.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
+          gh workflow run pr-build.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH" -f pr_number="$NUMBER"
+          echo "Started the checks and the build for pull request #${NUMBER} on ${BRANCH}."

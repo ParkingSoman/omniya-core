@@ -21,6 +21,10 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
+      # So the called workflow can start the checks and the build on the pull
+      # request it opens or revises. GitHub holds a bot-opened pull request's own
+      # checks for approval; a dispatched run is not held.
+      actions: write
     uses: ParkingSoman/omniya-core/.github/workflows/pipeline-followup.yml@testing
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

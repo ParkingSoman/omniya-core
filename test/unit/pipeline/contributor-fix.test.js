@@ -264,3 +264,32 @@ test('every use of the issue number comes from the gate job, not the event', () 
   const uses = body.match(/\$\{\{[^}]*github\.event\.issue\.number[^}]*\}\}/g) ?? [];
   assert.equal(uses.length, 1, 'only the allowlist job may read the event number, once, into env');
 });
+
+test('the pipeline starts the checks and the build itself, on the pull request branch', () => {
+  // Measured on the first real run (issue #22, PR #26). GitHub held the pull
+  // request's own `pr-checks` and `pr-build` runs as `action_required` because
+  // the Actions bot opened it, and a run waiting for approval reports nothing.
+  // `testing-guard` requires `unit`, `nemeth` and `e2e`, so the pull request
+  // could never merge, and no test build existed for the reporter to install.
+  //
+  // `workflow_dispatch` is the one start that is neither held nor skipped.
+  const steps = workflow.jobs.fix.steps;
+  const start = steps.find((s) => /pr-checks\.yml/.test(s.run ?? ''));
+  assert.ok(start, 'expected a step that starts pr-checks');
+  assert.match(start.run, /gh workflow run pr-build\.yml[^\n]*pr_number/);
+  assert.match(start.run, /--ref "\$BRANCH"/, 'both must run on the pull request branch, not on testing');
+  assert.equal(start.if, 'success()', 'only after the agent finished');
+
+  // After the agent, so there is a pull request to find.
+  const agent = steps.findIndex((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
+  assert.ok(steps.indexOf(start) > agent);
+
+  // It must find the pull request the same strict way sign-off does: same
+  // repository, a `claude/fix-` branch, and the `Fixes #N` line.
+  assert.match(start.run, /isCrossRepository == false/);
+  assert.match(start.run, /startswith\("claude\/fix-"\)/);
+
+  // And the permission to do it has to be requested, or `gh workflow run` fails.
+  assert.equal(workflow.permissions?.actions, 'write');
+});
+
