@@ -68,11 +68,19 @@ jobs:
     #    refuses `*[bot]` too -- this is the same rule said one step earlier, so
     #    the loop is cut before a runner is even claimed.
     #
-    # 4. (the steps) There is exactly one open fix for this issue. Found below.
+    # 4. The comment is not one of the pipeline's own. Its status comment and its
+    #    notice both tell the contributor to write `@claude`, and both carry a
+    #    hidden `<!-- omniya-pipeline-` marker. A bot posts them, so rule 3 already
+    #    skips them. But two of them were once posted by hand under the
+    #    maintainer's name, which is a person, and each started an agent run that
+    #    answered a comment nobody had written. The marker holds whoever posts it.
+    #
+    # 5. (the steps) There is exactly one open fix for this issue. Found below.
     if: >-
       !github.event.issue.pull_request &&
       github.event.comment.user.type != 'Bot' &&
-      contains(github.event.comment.body, '@claude')
+      contains(github.event.comment.body, '@claude') &&
+      !contains(github.event.comment.body, '<!-- omniya-pipeline-')
     runs-on: ubuntu-latest
     # Least privilege. This job only reads the allowlist and the pull request
     # list. It runs no agent and writes nothing.

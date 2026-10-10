@@ -179,3 +179,14 @@ test('a crashed agent run is told, without rewriting the comment that holds the 
   assert.match(run, /earlier download links still work/);
   assert.doesNotMatch(JSON.stringify(failed.steps), /claude-code-action/, 'saying so costs no quota');
 });
+
+test("the pipeline's own comments never start a run, even when a person posts them", () => {
+  // Measured on issue #22. The status comment and the notice both say `@claude`.
+  // They were posted by hand under the maintainer's name, which is a person and
+  // not a Bot, so the bot filter let them through and each started an agent run.
+  assert.match(
+    allowlistJob.if,
+    /!contains\(\s*github\.event\.comment\.body\s*,\s*'<!-- omniya-pipeline-'\s*\)/,
+    'the gate must skip a comment carrying a pipeline marker'
+  );
+});

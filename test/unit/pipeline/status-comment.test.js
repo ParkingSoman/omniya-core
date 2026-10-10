@@ -4,7 +4,9 @@ import test from 'node:test';
 import {
   AUTHOR,
   MARKER,
+  NOTICE_MARKER,
   NOTIFY,
+  PIPELINE_PREFIX,
   STATES,
   findStatusComment,
   renderNotice,
@@ -101,4 +103,15 @@ test('no notice talks about checks, logs, pull requests, files or branches', () 
     const text = renderNotice(state, { repo: 'a/b', issue: 22, statusId: 99 }).replace(/\(https[^)]*\)/g, '');
     assert.doesNotMatch(text, /pull request|branch|\blog\b|workflow|\.yml|\.js\b|\bPR\b/i, state);
   }
+});
+
+test('both texts carry a marker the follow-up gate skips, so neither can start a run', () => {
+  // Both tell the contributor to write @claude. Posted by a person, not a bot,
+  // they once started two agent runs.
+  assert.ok(MARKER.startsWith(PIPELINE_PREFIX));
+  assert.ok(NOTICE_MARKER.startsWith(PIPELINE_PREFIX));
+  for (const state of NOTIFY) {
+    assert.ok(renderNotice(state, { repo: 'a/b', issue: 22, statusId: 99 }).startsWith(NOTICE_MARKER), state);
+  }
+  for (const state of STATES) assert.ok(renderStatus(state, { repo: 'a/b', pr: 7 }).startsWith(MARKER), state);
 });
