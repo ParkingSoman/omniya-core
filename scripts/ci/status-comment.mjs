@@ -31,6 +31,16 @@ import { pathToFileURL } from 'node:url';
 import { gh, requireNumber } from './gh.mjs';
 
 export const MARKER = '<!-- omniya-pipeline-status -->';
+
+/**
+ * On the short new comment. Both texts tell the contributor to write `@claude`,
+ * which is the word that starts a run. The gate in `pipeline-followup.yml` skips
+ * any comment that carries `PIPELINE_PREFIX`, so these can never start one, even
+ * if somebody posts them by hand from their own account. That happened once: two
+ * comments posted by hand under the maintainer's name each started a run.
+ */
+export const NOTICE_MARKER = '<!-- omniya-pipeline-notice -->';
+export const PIPELINE_PREFIX = '<!-- omniya-pipeline-';
 export const AUTHOR = 'github-actions[bot]';
 
 const WORDS = {
@@ -116,11 +126,12 @@ export function renderStatus(state, { repo, pr } = {}) {
  */
 export function renderNotice(state, { repo, issue, statusId } = {}) {
   if (!NOTIFY.includes(state)) throw new Error(`no notice for state: ${state}`);
-  if (state !== 'ready') return `${WORDS[state].join('\n')}\n`;
+  if (state !== 'ready') return `${NOTICE_MARKER}\n${WORDS[state].join('\n')}\n`;
   const n = requireNumber(issue, 'issue number');
   const id = requireNumber(statusId, 'comment id');
   if (!repo) throw new Error('repo is required for the ready notice');
   return [
+    NOTICE_MARKER,
     'A test build is ready. All the automatic checks passed.',
     '',
     `[Open the download links](https://github.com/${repo}/issues/${n}#issuecomment-${id})`,
