@@ -444,3 +444,23 @@ test('Rule 13: each order of fraction indicator carries its own order', () => {
     ['fracOpen:complex', 'fracOpen:simple', 'fracLine:simple', 'fracClose:simple', 'fracLine:complex', 'fracClose:complex']
   );
 });
+
+// Issue #22: a blind contributor typed `⠰⠭` (English-letter indicator, then x) and
+// was refused. BANA Rule 6.3.1 requires the indicator on a single letter that is
+// preceded and followed by a space, so `x = 3` is written `;x .k #3` and a refusal
+// there is a refusal of ordinary homework, not of an exotic construct.
+test('an English-letter indicator at the start or after a blank governs the letter it precedes (Rule 6.3.1)', () => {
+  const tokens = lex('⠰⠭⠀⠨⠅⠀⠼⠒');
+  assert.deepEqual(shape(tokens).slice(0, 2), ['letter:x', 'blank: ']);
+  assert.deepEqual(tokens[0].marks, { alphabet: 'english' });
+  assert.equal(tokens[0].cells, '⠰⠭');
+  assert.equal(shape(lex('⠁⠀⠰⠭'))[2], 'letter:x');
+});
+
+test('the same cell directly after a sign is still the subscript indicator', () => {
+  assert.deepEqual(shape(lex('⠭⠰⠂')), ['letter:x', 'level:_', 'digit:1']);
+});
+
+test('a leading `⠰` + letter followed by a baseline indicator is a left subscript, not the English-letter indicator', () => {
+  assert.notEqual(shape(lex('⠰⠭⠐⠝⠰⠽'))[0], 'letter:x');
+});
