@@ -1,0 +1,269 @@
+name: pipeline-verify
+
+# Check the fix, and repair it until the checks pass or the repairs run out.
+#
+# The contributor must never see a red check. So after the agent pushes, this
+# starts the automatic checks and the build, waits, and reads the result. If
+# something failed, an agent repairs the CAUSE and the checks run again. After
+# 3 repairs it stops and hands the problem to the maintainer, in words the
+# contributor can follow, and does not leave a red tick on the issue.
+#
+#   verify-1 -> repair-1 -> verify-2 -> repair-2 -> verify-3 -> repair-3 -> verify-4 -> report
+#
+# GitHub Actions has no job loops, so the jobs are written out. They are
+# identical but for their number. A repair job runs only when the verify before
+# it was red, and the next verify runs only when the repair changed the branch.
+# The last verify has no repair after it, so 3 is the cap.
+#
+# Verify jobs hold `actions: write`, because they start workflows, and they run
+# no agent. Repair jobs run an agent, and hold no `actions`. That split is the
+# point: see `pipeline-agent.yml`. The permissions the CALLER gives this file
+# are only a ceiling. Every job below states its own.
+#
+# There is no `concurrency` here. The caller holds the one group for the issue.
+# A called workflow given the caller's group waits on itself forever.
+#
+# Helper scripts are checked out from `testing`, which is a protected branch.
+# The default checkout would be `main`, which does not have them.
+on:
+  workflow_call:
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+    inputs:
+      issue_number:
+        required: true
+        type: string
+      pr_number:
+        required: true
+        type: string
+      branch:
+        required: true
+        type: string
+      # The state to write on the issue before the first check starts. Empty
+      # leaves the comment as it is.
+      status_before:
+        required: false
+        type: string
+        default: ''
+    outputs:
+      green:
+        description: true when the last check and build passed
+        value: ${{ jobs.report.outputs.green }}
+
+permissions:
+  contents: read
+
+jobs:
+  verify-1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+      issues: write
+    outputs:
+      green: ${{ steps.v.outputs.green }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - if: inputs.status_before != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ inputs.issue_number }}
+          STATUS: ${{ inputs.status_before }}
+        run: node scripts/ci/status-comment.mjs "$ISSUE" "$STATUS"
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ inputs.branch }}
+          PR: ${{ inputs.pr_number }}
+        run: node scripts/ci/verify-branch.mjs "$BRANCH" "$PR" "$RUNNER_TEMP/verify"
+      - if: steps.v.outputs.green == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-checks-1
+          path: ${{ runner.temp }}/verify/failed.log
+
+  repair-1:
+    needs: [verify-1]
+    if: needs.verify-1.outputs.green == 'false'
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    with:
+      mode: checks-failed
+      issue_number: ${{ inputs.issue_number }}
+      pr_number: ${{ inputs.pr_number }}
+      branch: ${{ inputs.branch }}
+      log_artifact: failed-checks-1
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  verify-2:
+    needs: [repair-1]
+    if: needs.repair-1.outputs.result == 'revised'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+      issues: write
+    outputs:
+      green: ${{ steps.v.outputs.green }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ inputs.branch }}
+          PR: ${{ inputs.pr_number }}
+        run: node scripts/ci/verify-branch.mjs "$BRANCH" "$PR" "$RUNNER_TEMP/verify"
+      - if: steps.v.outputs.green == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-checks-2
+          path: ${{ runner.temp }}/verify/failed.log
+
+  repair-2:
+    needs: [verify-2]
+    if: needs.verify-2.outputs.green == 'false'
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    with:
+      mode: checks-failed
+      issue_number: ${{ inputs.issue_number }}
+      pr_number: ${{ inputs.pr_number }}
+      branch: ${{ inputs.branch }}
+      log_artifact: failed-checks-2
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  verify-3:
+    needs: [repair-2]
+    if: needs.repair-2.outputs.result == 'revised'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+      issues: write
+    outputs:
+      green: ${{ steps.v.outputs.green }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ inputs.branch }}
+          PR: ${{ inputs.pr_number }}
+        run: node scripts/ci/verify-branch.mjs "$BRANCH" "$PR" "$RUNNER_TEMP/verify"
+      - if: steps.v.outputs.green == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-checks-3
+          path: ${{ runner.temp }}/verify/failed.log
+
+  repair-3:
+    needs: [verify-3]
+    if: needs.verify-3.outputs.green == 'false'
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    with:
+      mode: checks-failed
+      issue_number: ${{ inputs.issue_number }}
+      pr_number: ${{ inputs.pr_number }}
+      branch: ${{ inputs.branch }}
+      log_artifact: failed-checks-3
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  verify-4:
+    needs: [repair-3]
+    if: needs.repair-3.outputs.result == 'revised'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+      issues: write
+    outputs:
+      green: ${{ steps.v.outputs.green }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ inputs.branch }}
+          PR: ${{ inputs.pr_number }}
+        run: node scripts/ci/verify-branch.mjs "$BRANCH" "$PR" "$RUNNER_TEMP/verify"
+      - if: steps.v.outputs.green == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-checks-4
+          path: ${{ runner.temp }}/verify/failed.log
+
+  # Says the result on the issue, in plain words. The last verify that ran
+  # decides: green means a test build is ready, anything else means a person has
+  # to look. A verify that could not find its run at all leaves no answer, and
+  # no answer is not green.
+  report:
+    needs: [verify-1, repair-1, verify-2, repair-2, verify-3, repair-3, verify-4]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    outputs:
+      green: ${{ steps.final.outputs.green }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - id: final
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ inputs.issue_number }}
+          PR: ${{ inputs.pr_number }}
+          V1: ${{ needs.verify-1.outputs.green }}
+          V2: ${{ needs.verify-2.outputs.green }}
+          V3: ${{ needs.verify-3.outputs.green }}
+          V4: ${{ needs.verify-4.outputs.green }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          final=""
+          for v in "$V4" "$V3" "$V2" "$V1"; do
+            if [ -n "$v" ]; then final="$v"; break; fi
+          done
+          if [ "$final" = "true" ]; then
+            node scripts/ci/status-comment.mjs "$ISSUE" ready "$PR"
+            echo "green=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          gh label create needs-maintainer --force --description "A person has to look at this" || true
+          gh pr edit "$PR" --add-label needs-maintainer
+          gh pr comment "$PR" --body "The automatic checks or the build are still red after 3 repair attempts, or the repair agent asked for a person. The maintainer has to look. Run: $RUN_URL"
+          node scripts/ci/status-comment.mjs "$ISSUE" maintainer
+          echo "green=false" >> "$GITHUB_OUTPUT"

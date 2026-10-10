@@ -12,10 +12,15 @@ body:
       value: |
         Three questions, then the diagnostics dump. All three are needed.
 
-        An agent reads this report, reproduces the bug, writes a failing test,
-        fixes it, and opens a pull request against the `testing` branch. You get
-        a comment on this issue with a link to a build you can install and try
-        on your own hardware.
+        An agent reads this report, reproduces the bug, writes a test that fails
+        for your reason, fixes it, and checks its own work. Then a comment on
+        this issue gives you a link to a build you can install and try on your
+        own computer. You never need to leave this issue.
+
+        If the build is still wrong, write a comment here that starts with
+        @claude and say what you found. The agent changes the fix, and the links
+        stay the same. If the build works, write @claude it works. The
+        maintainer then reviews it and merges it.
 
         If you are asking for something new rather than reporting something
         broken, this is the wrong form. Open a blank issue instead. Feature
