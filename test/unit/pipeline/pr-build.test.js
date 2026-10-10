@@ -106,3 +106,38 @@ test('the pipeline can start a build by hand, for a pull request number', () => 
   for (const expr of shas) assert.match(expr, /github\.sha/, `needs the dispatch fallback: ${expr}`);
 });
 
+
+test('the pull request run and the dispatched run do not cancel each other', () => {
+  // Measured on pull request #26. Every real check was green, and the pull
+  // request still showed red `pack-mac`, `pack-win` and `comment`. They were
+  // cancelled runs: the run the pipeline dispatched shared a concurrency group
+  // with the pull request's own run, and `cancel-in-progress` killed one for the
+  // other. A cancelled run is red on a pull request.
+  const group = workflow.concurrency?.group ?? '';
+  assert.match(group, /github\.event_name/, 'the event must be part of the group');
+  assert.match(group, /inputs\.pr_number/);
+  assert.equal(workflow.concurrency['cancel-in-progress'], true, 'a newer push still replaces an older build of the same kind');
+});
+
+test('a pull request run is skipped for the pipeline\'s own branches, and nothing else is', () => {
+  // The pipeline builds its own pull requests by dispatch. Letting the
+  // `pull_request` run build them too built every fix twice, and the second run
+  // is the one GitHub holds for approval. A pull request written by hand still
+  // builds as before.
+  const skip = "github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/fix-')";
+  assert.equal(workflow.jobs['pack-mac'].if, skip);
+  assert.equal(workflow.jobs['pack-win'].if, skip);
+  // No `if:` may be put on the required checks to do the same. A skipped job
+  // satisfies a required status check, which would let a red pull request merge.
+  // They are in `pr-checks.yml`, and that file has no `if` on `unit`, `nemeth` or `e2e`.
+  const checks = loadYaml(readFileSync('.github/workflows/pr-checks.yml', 'utf8'));
+  for (const name of ['unit', 'nemeth', 'e2e']) assert.equal(checks.jobs[name].if, undefined, name);
+});
+
+test('the pipeline can ask for a build that does not comment on the pull request', () => {
+  // The links go on the ISSUE, in the status comment, once the checks AND the
+  // build are green. A comment on the pull request is one the contributor never
+  // reads, and one more thing for the maintainer to scroll past.
+  assert.equal(triggers.workflow_dispatch.inputs.quiet.required, false);
+  assert.equal(workflow.jobs.comment.if, "inputs.quiet != 'true'");
+});
