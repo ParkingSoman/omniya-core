@@ -47,7 +47,13 @@ jobs:
             || gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "$NOTES" --target "$GITHUB_SHA"
           gh release edit testing-app --notes "$NOTES"
           git tag -f testing-app "$GITHUB_SHA"
-          git push origin testing-app --force
+          # `pack-win` moves this same tag to this same commit at the same time. Git
+          # refuses whichever push loses ("cannot lock ref"), and that failure used
+          # to stop this job BEFORE the upload below, so the Mac zip was never
+          # published and the run was red. If the tag is already where it should
+          # be, the other job did the work and there is nothing to fail about.
+          git push origin testing-app --force \
+            || [ "$(git ls-remote origin refs/tags/testing-app | cut -f1)" = "$GITHUB_SHA" ]
           gh release upload testing-app dist/*.zip dist/version.json --clobber
 
   pack-win:
@@ -68,7 +74,15 @@ jobs:
         run: |
           gh release view testing-app >$null 2>&1; if ($LASTEXITCODE -ne 0) { gh release create testing-app --prerelease --title "Testing alpha (unsigned)" --notes "Rolling unsigned builds for the testing branch. Windows installs auto-update in the background; macOS testers get an in-app notice to re-download. Apple Silicon Mac and Windows x64 only." --target $env:GITHUB_SHA }
           git tag -f testing-app $env:GITHUB_SHA
+          # `pack-mac` moves this same tag to this same commit at the same time. Git
+          # refuses whichever push loses ("cannot lock ref"). If the tag is already
+          # where it should be, the other job did the work.
           git push origin testing-app --force
+          if ($LASTEXITCODE -ne 0) {
+            $remote = (git ls-remote origin refs/tags/testing-app) -split "`t" | Select-Object -First 1
+            if ($remote -ne $env:GITHUB_SHA) { throw "could not move the testing-app tag" }
+            $global:LASTEXITCODE = 0
+          }
           # Top-level dist\* only (no -Recurse): dist\win-unpacked holds the NSIS
           # target's intermediate build (bundled liblouis/elevate helpers, the raw
           # unpacked app exe) which must never be uploaded as if it were a release asset.
