@@ -83,6 +83,13 @@ const WORDS = {
   ]
 };
 
+/** The one-line headline on the new comment. Never a copy of the status words. */
+const HEADLINE = {
+  sent: 'Your fix went to the maintainer.',
+  maintainer: 'The maintainer needs to look at this fix.',
+  failed: 'Something went wrong on my side.'
+};
+
 export const STATES = ['ready', ...Object.keys(WORDS)];
 
 /** States that also post a new comment, because an edit sends no notification. */
@@ -126,10 +133,20 @@ export function renderStatus(state, { repo, pr } = {}) {
  */
 export function renderNotice(state, { repo, issue, statusId } = {}) {
   if (!NOTIFY.includes(state)) throw new Error(`no notice for state: ${state}`);
-  if (state !== 'ready') return `${NOTICE_MARKER}\n${WORDS[state].join('\n')}\n`;
   const n = requireNumber(issue, 'issue number');
   const id = requireNumber(statusId, 'comment id');
-  if (!repo) throw new Error('repo is required for the ready notice');
+  if (!repo) throw new Error('repo is required for the notice');
+  // One line of headline and a link. The words live in the status comment only,
+  // so the thread never says the same thing twice.
+  if (state !== 'ready') {
+    return [
+      NOTICE_MARKER,
+      HEADLINE[state],
+      '',
+      `[Read the details](https://github.com/${repo}/issues/${n}#issuecomment-${id})`,
+      ''
+    ].join('\n');
+  }
   return [
     NOTICE_MARKER,
     'A test build is ready. All the automatic checks passed.',

@@ -93,6 +93,17 @@ test('the ready notice points at the one comment that holds the links, and says 
   assert.doesNotMatch(notice, /releases\/download/, 'the links live in one place');
 });
 
+test('a notice never repeats the words of the status comment', () => {
+  for (const state of NOTIFY.filter((s) => s !== 'ready')) {
+    const notice = renderNotice(state, { repo: 'a/b', issue: 22, statusId: 99 });
+    const status = renderStatus(state, { repo: 'a/b', pr: 7 });
+    assert.match(notice, /issues\/22#issuecomment-99/, state);
+    for (const line of notice.split('\n').filter((l) => l && !l.startsWith('<!--') && !l.startsWith('['))) {
+      assert.ok(!status.includes(line), `${state}: "${line}" is also in the status comment`);
+    }
+  }
+});
+
 test('a state that has no notice is refused, and an id that is not digits is refused', () => {
   assert.throws(() => renderNotice('working'), /no notice/);
   assert.throws(() => renderNotice('ready', { repo: 'a/b', issue: 22, statusId: '9; x' }), /digits/);
