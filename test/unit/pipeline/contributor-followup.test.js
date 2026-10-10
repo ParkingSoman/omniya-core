@@ -24,123 +24,91 @@ const code = source
 const stub = loadYaml(readFileSync(STUB, 'utf8'));
 const triggers = stub.on ?? stub[true];
 
+const AGENT = 'ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing';
+const VERIFY = 'ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing';
+
 const allowlistJob = workflow.jobs?.allowlist;
-const reviseJob = workflow.jobs?.revise;
 
-const actionStep = (reviseJob?.steps ?? []).find(
-  (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
-);
-
-test('only a @claude comment on a pull request starts a run', () => {
-  // Three separate filters, and each one is load-bearing for a different
-  // reason. This test is what notices when a later edit drops one of them.
-
-  // The event. `issue_comment` covers comments on issues AND on pull requests;
-  // GitHub does not have a separate one.
+test('only a @claude comment on an ISSUE starts a run', () => {
+  // Three filters, and each is load-bearing for a different reason. This test is
+  // what notices when a later edit drops one of them.
   assert.deepEqual(triggers?.issue_comment?.types, ['created']);
 
   // The stub filters first, so a comment that cannot cost anything never starts
   // a run. The workflow that does the work checks the same things again, because
   // a stub is not a place to rely on for safety. Both must say it.
   for (const condition of [stub.jobs.call.if ?? '', allowlistJob?.if ?? '']) {
-    assert.match(condition, /github\.event\.issue\.pull_request/, 'limited to comments on pull requests');
+    // `issue.pull_request` exists only when the comment is on a pull request. The
+    // contributor writes on the issue, so this is the NEGATION of the old rule:
+    // a comment on a pull request is the maintainer's conversation.
+    assert.match(condition, /!github\.event\.issue\.pull_request/, 'a comment on a pull request must not start a run');
+    // `@claude` is what makes a comment cost anything.
     assert.match(condition, /contains\(\s*github\.event\.comment\.body\s*,\s*'@claude'\s*\)/, 'only a comment naming @claude may spend a run');
+    // The status comment and the agent's own comments are by a bot, and one of
+    // them quotes `@claude`.
+    assert.match(condition, /github\.event\.comment\.user\.type\s*!=\s*'Bot'/, 'a bot comment must not start a run');
   }
-  const condition = allowlistJob?.if ?? '';
-
-  // `github.event.issue.pull_request` is present only when the comment is on a
-  // pull request. Without this line, a comment on the original bug report would
-  // start a run, and there is no branch to push to from there -- the build the
-  // contributor is answering lives on the pull request.
-  assert.match(
-    condition,
-    /github\.event\.issue\.pull_request/,
-    'the run must be limited to comments on pull requests'
-  );
-
-  // `@claude` is what makes a comment cost anything. Without it every "thanks,
-  // testing tonight" spends a run of the maintainer's subscription quota.
-  assert.match(
-    condition,
-    /contains\(\s*github\.event\.comment\.body\s*,\s*'@claude'\s*\)/,
-    'only a comment naming @claude may spend a run'
-  );
 });
 
 test('the allowlist gate runs before anything is installed', () => {
   assert.ok(allowlistJob, 'expected an `allowlist` job');
 
   // The decision about whether to spend somebody's subscription quota must not
-  // wait on an install that can fail, be slow, or be tampered with. The script
-  // parses `.github/contributors.yml` itself for exactly this reason, so the
-  // job it runs in needs nothing but a checkout.
+  // wait on an install that can fail, be slow, or be tampered with.
   const runs = (allowlistJob.steps ?? []).map((s) => s.run ?? '').join('\n');
   const uses = (allowlistJob.steps ?? []).map((s) => s.uses ?? '').join('\n');
   assert.doesNotMatch(runs, /npm ci|npm install|brew install/, 'the gate must not wait on an install');
   assert.doesNotMatch(uses, /setup-node/, 'the gate must not wait on a toolchain');
   assert.match(runs, /scripts\/ci\/allowlist\.mjs/, 'the gate must be the allowlist script');
+  assert.equal(allowlistJob.steps.find((s) => s.id === 'check').env.COMMENT_AUTHOR, '${{ github.event.comment.user.login }}');
 
   // And the expensive job must actually wait on it. A `needs` without the `if`,
   // or an `if` without the `needs`, both read as gated and are not.
-  assert.ok(
-    [].concat(reviseJob?.needs ?? []).includes('allowlist'),
-    'the revise job must need the allowlist job'
-  );
-  assert.match(
-    reviseJob?.if ?? '',
-    /needs\.allowlist\.outputs\.allowed\s*==\s*'true'/,
-    'the revise job must run only when the gate said true'
-  );
+  const agent = workflow.jobs.agent;
+  assert.ok([].concat(agent.needs).includes('allowlist'), 'the agent job must need the allowlist job');
+  assert.match(agent.if, /needs\.allowlist\.outputs\.allowed\s*==\s*'true'/, 'and run only when the gate said true');
 });
 
-test('a follow-up run is bounded', () => {
-  // Each of these is one way the maintainer's bill could run away. They are the
-  // same three `contributor-fix.yml` carries, plus one this file adds.
+test('exactly one open fix is continued, and no fix is answered in words', () => {
+  // The gate finds the fix for this issue with the one shared helper, from
+  // `testing`, because `main` does not have it.
+  const find = allowlistJob.steps.find((s) => s.id === 'find');
+  assert.equal(find.if, "steps.check.outputs.allowed == 'true'", 'no lookup for a person the gate refused');
+  assert.match(find.run, /git show "origin\/testing:scripts\/ci\/\$f"/);
+  assert.match(find.run, /find-fix-pr\.mjs/);
+  assert.doesNotMatch(code, /isCrossRepository/, 'the strict rule lives in the helper, not in a fourth copy');
 
-  // One run per pull request. A second comment queues behind the first instead
-  // of racing it -- and racing matters more here than on the first round,
-  // because two runs would be pushing to the same branch.
+  assert.match(workflow.jobs.agent.if, /needs\.allowlist\.outputs\.count\s*==\s*'1'/, 'two candidates are not guessed between');
+
+  // Silence is the failure this repository has had once already.
+  const nofix = workflow.jobs.nofix;
+  assert.match(nofix.if, /count\s*!=\s*'1'/);
+  assert.ok(nofix.steps.some((s) => /gh issue comment/.test(s.run ?? '')), 'the contributor is told');
+  assert.doesNotMatch(JSON.stringify(nofix.steps), /claude-code-action/, 'saying so costs no quota');
+});
+
+test('a follow-up run is bounded, and shares the fix workflow group', () => {
+  // One run per issue. A second comment queues behind the first instead of
+  // racing it. And it is the SAME group as `pipeline-fix.yml`, so a comment that
+  // arrives during a fix or a repair waits for it: they push to one branch.
   const group = workflow.concurrency?.group ?? '';
-  assert.match(group, /github\.event\.issue\.number/, 'concurrency group must be keyed on the pull request number');
-  assert.equal(
-    workflow.concurrency?.['cancel-in-progress'],
-    false,
-    'a cancelled run can leave half a revision committed on the branch being downloaded from'
-  );
+  assert.match(group, /github\.event\.issue\.number/);
+  assert.match(group, /^contributor-issue-/);
+  assert.equal(workflow.concurrency?.['cancel-in-progress'], false, 'a killed run can leave half a revision on the branch');
 
-  // The run ends. A job with no timeout can sit until GitHub's own limit.
-  assert.equal(typeof reviseJob?.['timeout-minutes'], 'number', 'the revise job needs timeout-minutes');
-  assert.ok(reviseJob['timeout-minutes'] <= 120, 'the revise job timeout is too generous to be a budget');
-
-  // The agent stops. --max-turns is the ceiling on the agent's own loop, which
-  // a job timeout does not bound -- the job can end while the quota is spent.
-  assert.ok(actionStep, 'expected the claude-code-action step');
-  assert.match(actionStep.with?.claude_args ?? '', /--max-turns\s+\d+/, 'claude_args must set --max-turns');
-
-  // And it draws on the subscription, not on API billing. An API key present
-  // would bill per token, which is a different budget from the one every
-  // comment on the thread is understood to spend.
-  assert.equal(actionStep.with?.anthropic_api_key, undefined, 'no API key input: runs draw on the subscription');
-  assert.doesNotMatch(code, /ANTHROPIC_API_KEY/, 'no API key anywhere in this file');
-  assert.match(actionStep.with?.claude_code_oauth_token ?? '', /CLAUDE_CODE_OAUTH_TOKEN/);
+  // The agent's own limits (timeout, turns, subscription token) are in the shared
+  // file and tested there.
+  assert.equal(workflow.jobs.agent.uses, AGENT);
+  assert.equal(workflow.jobs.agent.with.mode, 'comment');
+  assert.deepEqual(Object.keys(workflow.jobs.agent.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
 });
 
 test('the loop cannot feed itself', () => {
-  // This file pushes, which rebuilds, which comments. `pr-build.yml` leaves a
-  // comment on this same pull request, and the agent's own progress comment is
-  // written by `github-actions[bot]`. Either could quote `@claude`.
-  assert.match(
-    allowlistJob?.if ?? '',
-    /github\.event\.comment\.user\.type\s*!=\s*'Bot'/,
-    'a bot comment must not start a run'
-  );
-
-  // `isAllowed` in the allowlist script refuses `*[bot]` too. This is the same
-  // rule said one step earlier, so the loop is cut before a runner is claimed.
-  // `allowed_bots` defaults to empty, which is what makes the action refuse bot
-  // actors as well. Setting it would undo that, so assert nobody has.
-  assert.equal(actionStep.with?.allowed_bots, undefined, 'allowed_bots must stay unset');
-
+  // This file pushes, which rebuilds, which writes to the issue. The status
+  // comment and the agent's comments are by `github-actions[bot]`, and the
+  // status comment quotes `@claude`.
+  assert.match(allowlistJob.if, /github\.event\.comment\.user\.type\s*!=\s*'Bot'/);
+  // `isAllowed` in the allowlist script refuses `*[bot]` too, a step later.
   // And nothing else starts this workflow. A `pull_request` trigger would fire
   // on the push this file makes.
   assert.equal(triggers?.pull_request, undefined);
@@ -148,143 +116,51 @@ test('the loop cannot feed itself', () => {
   assert.equal(triggers?.issues, undefined);
 });
 
-test('no untrusted comment text reaches a run step or the prompt', () => {
+test('no untrusted comment text reaches a run step', () => {
   // Comment bodies, issue titles and issue bodies are written by whoever typed
-  // them. In a `run:` they are shell injection; in the prompt they are
-  // instructions the agent may follow. Only the NUMBER is safe, because GitHub
-  // guarantees it is an integer.
+  // them. Only the NUMBER is safe, because GitHub guarantees it is an integer.
+  // The comment body appears in the `if:` conditions, which are not a shell.
   const unsafe = /\$\{\{\s*github\.event\.(comment\.body|issue\.(title|body))\b/;
   assert.doesNotMatch(source, unsafe, 'the agent reads the thread itself; it is never pasted in');
-
-  // The wider rule, and the one that catches the next field nobody thought
-  // about: no event data inline in a shell at all. It goes through `env`.
   for (const job of Object.values(workflow.jobs)) {
     for (const step of job.steps ?? []) {
       if (typeof step.run !== 'string') continue;
-      assert.doesNotMatch(
-        step.run,
-        /\$\{\{\s*github\.event\./,
-        `run step must take event data through env, not inline: ${step.run}`
-      );
+      assert.doesNotMatch(step.run, /\$\{\{\s*github\.event\./, `run step must take event data through env, not inline: ${step.run}`);
     }
   }
 });
 
-test("the follow-up run pushes to the pull request's own branch", () => {
-  // This is the whole difference between this file and `contributor-fix.yml`.
-  // `pr-build.yml` publishes to a release tagged `pr-<number>` and its comment
-  // tells the contributor, in writing, that her download links stay the same
-  // and the files behind them are replaced. That promise holds only if every
-  // round lands on the branch the pull request is already on.
-  const checkout = (reviseJob?.steps ?? []).find(
-    (s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout') && s.with?.ref
-  );
-  assert.ok(checkout, 'expected a checkout of the pull request branch');
-  assert.match(
-    checkout.with.ref,
-    /steps\.pr\.outputs\.branch/,
-    'the checkout must use the branch resolved from the pull request'
-  );
-
-  // `branch_prefix` is what makes the action cut a NEW branch. Present here it
-  // would mean a second pull request, a second `pr-<n>` release, and a second
-  // set of links for one bug.
-  assert.equal(actionStep.with?.branch_prefix, undefined, 'a follow-up must not start a new branch');
-  assert.doesNotMatch(code, /gh pr create/, 'a follow-up must not open a second pull request');
-
-  const prompt = actionStep.with?.prompt ?? '';
-  assert.match(prompt, /Do not\s+create\s+a\s+branch/i);
-  assert.match(prompt, /Do not\s+open\s+a\s+pull\s+request/i);
-  assert.match(prompt, /git push origin HEAD/, 'the prompt must name the push that triggers the rebuild');
-
-  // The branch name is checked against the shape `contributor-fix.yml` creates
-  // before it is used as a `ref:`. That prefix is what stops a `@claude`
-  // comment on a hand-written pull request from getting an agent's commits
-  // pushed onto its branch.
-  const resolve = (reviseJob?.steps ?? []).find((s) => s.id === 'pr');
-  assert.ok(resolve, 'expected a step that resolves the head branch');
-  assert.match(
-    resolve.run ?? '',
-    /claude\/fix-\*/,
-    'the resolved branch must be checked against the prefix this pipeline creates'
-  );
-});
-
-test('a pull request from a fork is refused before anything is checked out', () => {
-  // A branch NAME does not say where the branch is. A fork can call its branch
-  // `claude/fix-anything`, pass the name check, and have the agent read the
-  // fork's thread while `actions/checkout` fetches a different branch.
-  const crossCheck = source.indexOf('isCrossRepository');
-  const checkout = source.indexOf('actions/checkout@v4', source.indexOf('revise:'));
-  assert.ok(crossCheck > -1, 'the fork check must exist');
-  assert.ok(crossCheck < checkout, 'and it must come before the checkout it protects');
-});
-
-test('the agent reads a thread filtered to people on the list, built from main', () => {
-  // The gate vets who wrote the `@claude` comment. Anyone can comment on a
-  // public pull request, and the agent used to read all of it with Bash and a
-  // write token. Two things keep that closed, and both are pinned here.
-  const reviseSteps = workflow.jobs.revise.steps;
-  const thread = reviseSteps.find((s) => s.id === 'thread');
-  assert.ok(thread, 'expected a `thread` step in the revise job');
-
-  // The filter and the list come from main. Taken from the pull request branch,
-  // a branch under discussion could rewrite the list that judges it.
-  assert.match(thread.run, /git show origin\/testing:scripts\/ci\/listed-thread\.mjs/);
-  assert.match(thread.run, /git show origin\/main:scripts\/ci\/allowlist\.mjs/);
-  assert.match(thread.run, /git show origin\/main:\.github\/contributors\.yml/);
-  assert.doesNotMatch(thread.run, /\|\|\s*true/, 'a failed filter must stop the run, not fall through');
-
-  // It runs before the agent, and the agent is told to read only its output.
-  const names = reviseSteps.map((s) => s.id ?? s.uses ?? '');
-  assert.ok(
-    names.indexOf('thread') < names.findIndex((n) => String(n).startsWith('anthropics/claude-code-action')),
-    'the thread must be built before the agent starts'
-  );
-  const agent = reviseSteps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
-  assert.match(agent.with.prompt, /thread\.md/);
-  assert.match(agent.with.prompt, /Do NOT read the thread any other way/);
-  assert.doesNotMatch(
-    agent.with.prompt,
-    /Read it\s+with `gh pr view/,
-    'the old instruction to read the raw thread must be gone'
-  );
-});
-
-test('a revision starts the checks and the build, and an answer does not', () => {
+test('a revision is checked and rebuilt, and an answer is not', () => {
   // A push made with the bot's token starts no `pull_request` run, so without
-  // this job a revision would never be checked or rebuilt and the reporter's
+  // this job a revision would never be checked or rebuilt and the contributor's
   // links would keep serving the old build.
-  const before = workflow.jobs.revise.steps.find((s) => s.id === 'before');
-  assert.ok(before, 'expected a step that records where the branch stood');
-  assert.equal(workflow.jobs.revise.outputs?.before, '${{ steps.before.outputs.sha }}');
-  assert.equal(workflow.jobs.revise.outputs?.branch, '${{ steps.pr.outputs.branch }}');
+  const verify = workflow.jobs.verify;
+  assert.equal(verify.uses, VERIFY);
+  assert.equal(verify.if, "needs.agent.outputs.result == 'revised'", 'rebuilding on a question spends two packaging jobs on a reply');
+  assert.equal(verify.with.status_before, 'revising', 'the contributor is told the build is being replaced');
+  assert.equal(verify.with.pr_number, '${{ needs.agent.outputs.pr }}');
+  assert.equal(verify.with.branch, '${{ needs.agent.outputs.branch }}');
+  assert.doesNotMatch(source, /gh workflow run/, 'verify starts the checks');
+});
 
-  const job = workflow.jobs['start-checks'];
-  assert.ok(job, 'expected a `start-checks` job');
-  assert.deepEqual(job.needs, ['allowlist', 'revise']);
-  const run = job.steps.map((s) => s.run ?? '').join('\n');
-  assert.match(run, /gh workflow run pr-checks\.yml/);
-  assert.match(run, /gh workflow run pr-build\.yml[^\n]*pr_number/);
-  assert.match(run, /--ref "\$BRANCH"/);
-
-  // Rebuilding on a question would spend two packaging jobs on a reply.
-  assert.match(run, /AFTER" = "\$BEFORE"/, 'it must compare the branch before and after');
-  assert.equal(job.steps[0].env?.BEFORE, '${{ needs.revise.outputs.before }}');
+test('"it works" hands the fix to the maintainer, and does not merge it', () => {
+  const handoff = workflow.jobs.handoff;
+  assert.equal(handoff.if, "needs.agent.outputs.result == 'approved'");
+  const run = handoff.steps.map((s) => s.run ?? '').join('\n');
+  assert.match(run, /scripts\/ci\/hand-off\.mjs "\$ISSUE" "\$PR"/);
+  // The helper is not on `main`.
+  assert.equal(handoff.steps[0].with?.ref, 'testing');
+  assert.doesNotMatch(code, /gh pr merge|--admin|--auto/, 'the maintainer merges, and nobody else');
+  assert.equal(handoff.permissions?.actions, undefined);
 });
 
 test('the agent cannot start, cancel or re-run workflows', () => {
   assert.equal(workflow.permissions?.actions, undefined, 'not at workflow level');
-  assert.equal(workflow.jobs.revise.permissions?.actions, undefined, 'not in the job that runs the agent');
-  assert.ok(workflow.jobs.revise.permissions, 'the agent job must state its permissions rather than inherit');
-  assert.deepEqual(workflow.jobs['start-checks'].permissions, {
-    actions: 'write',
-    contents: 'read',
-    'pull-requests': 'read'
-  });
+  assert.equal(workflow.jobs.agent.permissions?.actions, undefined, 'not in the job that runs the agent');
+  assert.deepEqual(workflow.jobs.agent.permissions, { contents: 'write', 'pull-requests': 'write', issues: 'write' });
   assert.doesNotMatch(
-    JSON.stringify(workflow.jobs['start-checks'].steps),
+    JSON.stringify([workflow.jobs.verify, workflow.jobs.handoff].map((j) => j.steps ?? [])),
     /claude-code-action/,
-    'the job that holds actions: write must not run an agent'
+    'a job that can start workflows must not run an agent'
   );
 });

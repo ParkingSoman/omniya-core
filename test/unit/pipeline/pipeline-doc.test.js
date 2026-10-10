@@ -29,38 +29,39 @@ test('every workflow file is listed with the branch it must live on', () => {
   }
 });
 
-test('the contributor is told the two words that drive the loop', () => {
-  // The whole loop rests on two things the contributor has to know, and neither
-  // is discoverable from the GitHub interface. `@claude` in a comment is what
-  // starts another round. Closing the issue is what merges.
+test('the contributor is told the two phrases that drive the loop, and not to close the issue', () => {
+  // The whole loop rests on things the contributor has to know, and none is
+  // discoverable from the GitHub interface. `@claude` in a comment starts another
+  // round. `@claude it works` sends the fix to the maintainer. Closing the issue
+  // does neither, and a contributor who closes it believes they shipped.
   //
   // A pipeline whose controls are only in the maintainer's half of this page is
   // a pipeline the contributor cannot drive.
   const [contributorHalf] = doc.split('## If you maintain this repository');
 
   assert.match(contributorHalf, /@claude/, 'the contributor half must name the word that starts a round');
-  assert.match(
-    contributorHalf,
-    /[Cc]losing the issue is what merges/,
-    'the contributor half must say what closing the issue does'
-  );
+  assert.match(contributorHalf, /@claude it works/, 'and the phrase that says it is done');
+  assert.match(contributorHalf, /Do not close the issue/);
+  assert.doesNotMatch(contributorHalf, /[Cc]losing the issue is what merges/, 'closing no longer merges anything');
   // And that the links do not change, because the alternative is her hunting for
   // a new comment that will never be posted.
-  assert.match(contributorHalf, /same links|links already in the thread/i);
+  assert.match(contributorHalf, /same links|links already in the/i);
+  // The contributor never needs the pull request, so the half they hear does not send them there.
+  assert.doesNotMatch(contributorHalf, /pull request|branch|workflow/i);
 });
 
-test('the maintainer is told what the auto-merge needs before it can work', () => {
-  // `contributor-signoff.yml` runs as `github-actions[bot]`, and `testing-guard`
-  // lists only the maintainer as a bypass actor. So it is refused out of the
-  // box. That is a working state, not a broken one, but it is invisible: the
-  // setting is in the repository configuration, not in any file here.
+test('the maintainer is told that they merge, what the pipeline does first, and what to change on main', () => {
   const maintainerHalf = doc.split('## If you maintain this repository')[1] ?? '';
 
-  assert.match(maintainerHalf, /testing-guard/, 'the ruleset must be named');
-  assert.match(maintainerHalf, /github-actions\[bot\]/, 'and the actor that has to be added to it');
-  assert.match(
-    maintainerHalf,
-    /contributor-signoff\.yml/,
-    'and the workflow that is refused until it is'
-  );
+  assert.match(maintainerHalf, /Nothing merges by itself/);
+  assert.match(maintainerHalf, /ready-for-maintainer/);
+  assert.match(maintainerHalf, /needs-maintainer/);
+  // The ruleset needs no bypass any more, because nothing here merges.
+  assert.match(maintainerHalf, /testing-guard/);
+  assert.match(maintainerHalf, /no `--admin` flag|uses no `--admin`/);
+  // GitHub closes an issue from `Fixes` only for the default branch.
+  assert.match(maintainerHalf, /pipeline-close-issue\.yml/);
+  // The rollout order is the one thing that breaks if it is guessed.
+  assert.match(maintainerHalf, /Merge the one into `main` first/);
+  assert.match(maintainerHalf, /pipeline-on-main/);
 });

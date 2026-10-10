@@ -68,6 +68,8 @@ test('each stub starts on exactly the event it should, and no event that could l
 
   assert.deepEqual(triggers('contributor-fix.yml').issues.types, ['opened']);
   assert.deepEqual(triggers('contributor-followup.yml').issue_comment.types, ['created']);
+  // The contributor writes on the ISSUE, not on a pull request.
+  assert.match(load('contributor-followup.yml').jobs.call.if, /!github\.event\.issue\.pull_request/);
   assert.deepEqual(triggers('contributor-signoff.yml').issues.types, ['closed']);
 
   // The pipeline opens pull requests, pushes branches and posts comments. A
@@ -126,16 +128,24 @@ test('every job states its own permissions, and the small ones hold almost none'
     'pipeline-fix.yml': {
       allowlist: { contents: 'read', issues: 'read' },
       refused: { issues: 'write' },
+      status: { contents: 'read', issues: 'write' },
       fix: { contents: 'write', 'pull-requests': 'write', issues: 'write' },
-      'start-checks': { actions: 'write', contents: 'read', 'pull-requests': 'read' }
+      stopped: { contents: 'read', issues: 'write' },
+      // A ceiling for a called workflow, whose own jobs state narrower ones.
+      verify: { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' }
     },
     'pipeline-followup.yml': {
-      allowlist: { contents: 'read' },
-      revise: { contents: 'write', 'pull-requests': 'write', issues: 'write' },
-      'start-checks': { actions: 'write', contents: 'read', 'pull-requests': 'read' }
+      allowlist: { contents: 'read', 'pull-requests': 'read' },
+      nofix: { issues: 'write' },
+      agent: { contents: 'write', 'pull-requests': 'write', issues: 'write' },
+      verify: { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' },
+      handoff: { contents: 'read', 'pull-requests': 'write', issues: 'write' }
     },
     'pipeline-signoff.yml': {
-      allowlist: { contents: 'read' }
+      explain: { contents: 'read', 'pull-requests': 'read', issues: 'write' }
+    },
+    'pipeline-agent.yml': {
+      agent: { contents: 'write', 'pull-requests': 'write', issues: 'write' }
     }
   };
   for (const [file, jobs] of Object.entries(expected)) {

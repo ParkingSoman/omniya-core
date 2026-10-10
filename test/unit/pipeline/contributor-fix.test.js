@@ -17,28 +17,27 @@ const workflow = loadYaml(source);
 const stub = loadYaml(readFileSync(STUB, 'utf8'));
 const triggers = stub.on ?? stub[true];
 
-test('one run per issue, bounded', () => {
-  // These runs spend the maintainer's own Claude subscription quota. An
-  // unbounded run costs them directly, and an issue that can start several runs
-  // multiplies that. Each of the three assertions below is one way that bill
-  // could run away.
+const AGENT = 'ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing';
+const VERIFY = 'ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing';
 
-  // One run per issue: the concurrency group is keyed on the issue number, so a
-  // re-open or a second event queues behind the first instead of racing it.
+test('one run per issue, in the group the follow-up shares', () => {
+  // These runs spend the maintainer's own Claude subscription quota. One run per
+  // issue: a re-open or a second event queues behind the first instead of racing
+  // it. And the SAME group as `pipeline-followup.yml`, so a comment that arrives
+  // during a fix waits for it instead of pushing to the same branch.
   const group = workflow.concurrency?.group ?? '';
   assert.match(group, /github\.event\.issue\.number/, 'concurrency group must be keyed on the issue number');
+  assert.match(group, /^contributor-issue-/);
+  assert.equal(workflow.concurrency?.['cancel-in-progress'], false, 'a killed fix leaves a branch nobody asked for');
+});
 
-  // The run ends. A job with no timeout can sit until GitHub's own limit.
-  const fix = workflow.jobs?.fix;
-  assert.ok(fix, 'expected a `fix` job');
-  assert.equal(typeof fix['timeout-minutes'], 'number', 'the fix job needs timeout-minutes');
-  assert.ok(fix['timeout-minutes'] <= 120, 'the fix job timeout is too generous to be a budget');
-
-  // The agent stops. --max-turns is the ceiling on the agent's own loop, which
-  // a job timeout does not bound -- the job can end while the quota is spent.
-  const step = fix.steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
-  assert.ok(step, 'expected the claude-code-action step');
-  assert.match(step.with?.claude_args ?? '', /--max-turns\s+\d+/, 'claude_args must set --max-turns');
+test('the agent job is a call to the shared agent workflow, in fix mode', () => {
+  const fix = workflow.jobs.fix;
+  assert.equal(fix.uses, AGENT);
+  assert.equal(fix.with?.mode, 'fix');
+  assert.equal(fix.with?.issue_number, '${{ needs.allowlist.outputs.number }}');
+  assert.deepEqual(Object.keys(fix.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+  assert.equal(fix.steps, undefined, 'a job that calls a workflow holds no steps');
 });
 
 test('the trigger cannot fire on its own output', () => {
@@ -47,18 +46,11 @@ test('the trigger cannot fire on its own output', () => {
   assert.deepEqual(triggers?.issues?.types, ['opened']);
   assert.equal(triggers?.pull_request, undefined);
   assert.equal(triggers?.issue_comment, undefined);
-
-  // `allowed_bots` defaults to empty, which is what makes the action refuse bot
-  // actors. Setting it would undo that, so assert nobody has.
-  const fixStep = workflow.jobs.fix.steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
-  assert.equal(fixStep.with?.allowed_bots, undefined, 'allowed_bots must stay unset so bot actors keep being refused');
 });
 
 test('no untrusted issue text is interpolated into a run step or the prompt', () => {
-  // Issue titles and bodies are written by whoever opened the issue. In a `run:`
-  // they are shell injection; in the prompt they are instructions the agent may
-  // follow. Only the issue NUMBER is safe, because GitHub guarantees it is an
-  // integer. This test is the thing that notices when a later edit adds one.
+  // Issue titles and bodies are written by whoever opened the issue. Only the
+  // issue NUMBER is safe, because GitHub guarantees it is an integer.
   const unsafe = /\$\{\{\s*github\.event\.issue\.(title|body)\b/;
   assert.doesNotMatch(source, unsafe, 'issue title/body must never be interpolated; the agent reads the issue itself');
 
@@ -72,126 +64,6 @@ test('no untrusted issue text is interpolated into a run step or the prompt', ()
       );
     }
   }
-});
-
-test('the pull request can only be based on testing', () => {
-  const step = workflow.jobs.fix.steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
-  assert.equal(step.with?.base_branch, 'testing');
-  // The checkout the agent works from is `testing` too. A run that checked out
-  // the default branch would be fixing app code that does not live there.
-  const checkout = workflow.jobs.fix.steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout'));
-  assert.equal(checkout.with?.ref, 'testing');
-});
-
-test('the agent is told to classify before it writes anything', () => {
-  const step = workflow.jobs.fix.steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action'));
-  const prompt = step.with?.prompt ?? '';
-  assert.match(prompt, /CLASSIFY FIRST/);
-  assert.match(prompt, /needs-design/);
-  // A refusal that says nothing is indistinguishable from the pipeline being
-  // broken, which is worse than either.
-  assert.match(prompt, /comment/i);
-});
-
-test('the agent can edit files and run the gates', () => {
-  // Measured on run 33835963064, the first real bug report. The action logged
-  // `Auto-detected mode: tag for event: issues` and handed Claude this preset:
-  //
-  //   Glob, Grep, LS, Read, four mcp__github_* tools,
-  //   Bash(git add:*), Bash(git commit:*), Bash(git-push.sh:*), Bash(git rm:*)
-  //
-  // No Bash, no Edit, no Write. The action's docs state it outright: "Claude
-  // does not have access to execute arbitrary Bash commands by default."
-  // Setting `prompt` does not change it, because the mode is chosen by the
-  // event, not by the inputs.
-  //
-  // The result was a run that could not do a single step it was instructed to
-  // do -- not read the issue with `gh`, not write the failing test, not edit a
-  // file, not run one of the four gates. It failed in two seconds and left a
-  // comment saying only that Claude had encountered an error.
-  //
-  // So this asserts the widening is present. Every tool named here is one a
-  // step of the prompt cannot be done without.
-  const step = workflow.jobs.fix.steps.find(
-    (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
-  );
-  const args = step.with?.claude_args ?? '';
-  assert.match(args, /--allowedTools/, 'claude_args must widen the tag-mode tool preset');
-
-  for (const tool of ['Bash', 'Edit', 'Write', 'Read']) {
-    assert.match(
-      args,
-      new RegExp(`(^|[",])${tool}([",]|$)`, 'm'),
-      `the agent cannot follow its own instructions without ${tool}`
-    );
-  }
-
-  // Bash must be unrestricted, not a `Bash(npm test:*)` pattern list. The gates
-  // shell out further -- npm to node, to electron, to a brew-installed
-  // liblouis -- and a pattern list covering that is one nobody keeps correct.
-  // The containment is the allowlist job, not the tool patterns.
-  assert.doesNotMatch(args, /Bash\(/, 'Bash patterns cannot cover what the gates shell out to');
-});
-
-test('the agent opens the pull request itself', () => {
-  // Measured on run 33837551762, issue #12. The agent classified correctly,
-  // verified every claim against the source, fixed the file, and passed all
-  // four gates -- 490/490 units, ERROR 0 with core 26/26, 65/65 e2e. Then it
-  // pushed its branch and posted a `Create PR` link.
-  //
-  // That link is not finishing. Somebody has to open it, read a prefilled form
-  // and press a button, which is the couriering this pipeline exists to remove.
-  // It comes from tag mode's own instructions, not from a missing capability:
-  // the agent already has unrestricted Bash and GH_TOKEN, so `gh pr create`
-  // works. It just was not told to prefer it.
-  const step = workflow.jobs.fix.steps.find(
-    (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
-  );
-  const prompt = step.with?.prompt ?? '';
-
-  assert.match(prompt, /gh pr create/, 'the prompt must name the command that opens the pull request');
-  assert.match(prompt, /--base testing/, 'and it must open it against testing');
-
-  // The instruction that actually does the work: forbidding the fallback.
-  // Naming the command without ruling out the link leaves the agent free to do
-  // what it did on #12, which read as success on every other measure.
-  assert.match(
-    prompt,
-    /Do NOT post a "Create PR" link/,
-    'the prompt must forbid posting a link instead of opening the pull request'
-  );
-});
-
-test('the pull request names the issue it closes', () => {
-  // The contributor closes the issue when the build is right, and
-  // `contributor-signoff.yml` then has to get from that issue to this pull
-  // request. GitHub does not offer that direction: an issue does not know which
-  // pull requests claim it. A `Fixes #<n>` line in the body is what the sign-off
-  // workflow searches for, so it is the only join between the two halves.
-  //
-  // Without it a close is silent. Nothing merges, nothing fails, and the
-  // contributor is left believing they shipped a fix that is still open.
-  const step = workflow.jobs.fix.steps.find(
-    (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
-  );
-  const prompt = step.with?.prompt ?? '';
-
-  assert.match(
-    prompt,
-    /Fixes #\$\{\{\s*needs\.allowlist\.outputs\.number\s*\}\}/,
-    'the prompt must require a Fixes line carrying the issue number'
-  );
-  // "must" rather than "should". An instruction the agent can read as optional
-  // is one it will drop on the round it is short of turns.
-  assert.match(prompt, /MUST BE EXACTLY/, 'the requirement must not read as a suggestion');
-
-  // And the contributor has to be told what closing does, or the mechanism
-  // exists and nobody uses it.
-  assert.match(
-    prompt,
-    /closing\s+the\s+issue\s+is\s+what\s+merges\s+this/i,
-    'the agent must tell the reporter that closing the issue is the merge'
-  );
 });
 
 test('a refused author is told, at no cost to the quota', () => {
@@ -217,10 +89,24 @@ test('a refused author is told, at no cost to the quota', () => {
 });
 
 test('the fix job still needs the gate to say yes', () => {
-  // The refusal job was added next to it. This pins that the new path did not
-  // loosen the old one.
-  assert.equal(workflow.jobs.fix.needs, 'allowlist');
-  assert.equal(workflow.jobs.fix.if, "needs.allowlist.outputs.allowed == 'true'");
+  // The refusal job was added next to it, and a status job in front of it. This
+  // pins that neither loosened the old path.
+  assert.deepEqual(workflow.jobs.fix.needs, ['allowlist', 'status']);
+  assert.match(workflow.jobs.fix.if, /needs\.allowlist\.outputs\.allowed\s*==\s*'true'/);
+  assert.equal(workflow.jobs.status.needs, 'allowlist');
+  assert.match(workflow.jobs.status.if, /needs\.allowlist\.outputs\.allowed\s*==\s*'true'/);
+});
+
+test('the contributor is told, first thing, that work has started, and a failed comment does not stop the fix', () => {
+  const status = workflow.jobs.status;
+  const post = status.steps.find((s) => /status-comment\.mjs/.test(s.run ?? ''));
+  assert.ok(post, 'expected a step that writes the status comment');
+  assert.match(post.run, /"\$ISSUE" working/);
+  assert.equal(post['continue-on-error'], true);
+  // The helper is not on `main`, which is what the default checkout would give.
+  assert.equal(status.steps[0].with?.ref, 'testing');
+  // And `fix` runs even if this job did not succeed.
+  assert.match(workflow.jobs.fix.if, /!cancelled\(\)/);
 });
 
 test('a run can be started by hand, and the gate still checks the issue author', () => {
@@ -244,17 +130,6 @@ test('a run can be started by hand, and the gate still checks the issue author',
   assert.match(resolve.run, /\*\[!0-9\]\*/, 'the dispatch input must be validated as digits');
 });
 
-test('track_progress is not set on an event the action rejects', () => {
-  // claude-code-action throws "track_progress is only supported for events:
-  // pull_request, issues, ..." on anything else. A hand-started run is such an
-  // event, so a literal `true` would make every manual run fail at once.
-  const step = workflow.jobs.fix.steps.find(
-    (s) => typeof s.uses === 'string' && s.uses.startsWith('anthropics/claude-code-action')
-  );
-  assert.notEqual(step.with?.track_progress, true);
-  assert.match(String(step.with?.track_progress), /github\.event_name\s*==\s*'issues'/);
-});
-
 test('every use of the issue number comes from the gate job, not the event', () => {
   // On a hand-started run `github.event.issue` does not exist, so a prompt that
   // still read it would tell the agent to work on issue "#". The concurrency
@@ -265,43 +140,37 @@ test('every use of the issue number comes from the gate job, not the event', () 
   assert.equal(uses.length, 1, 'only the allowlist job may read the event number, once, into env');
 });
 
-test('the pipeline starts the checks and the build itself, on the pull request branch', () => {
-  // Measured on the first real run (issue #22, PR #26). GitHub held the pull
-  // request's own `pr-checks` and `pr-build` runs as `action_required` because
-  // the Actions bot opened it, and a run waiting for approval reports nothing.
-  // `testing-guard` requires `unit`, `nemeth` and `e2e`, so the pull request
-  // could never merge, and no test build existed for the reporter to install.
-  //
-  // `workflow_dispatch` is the one start that is neither held nor skipped.
-  const job = workflow.jobs['start-checks'];
-  assert.ok(job, 'expected a `start-checks` job');
-  assert.deepEqual(job.needs, ['allowlist', 'fix'], 'it runs after the agent, and only if the agent job succeeded');
-  assert.equal(job.if, undefined, 'the default success() of its needs is what we want');
+test('a fix that stopped without a pull request says so on the issue', () => {
+  // Otherwise the contributor reads "I am working on a fix" for ever.
+  const stopped = workflow.jobs.stopped;
+  assert.ok(stopped, 'expected a `stopped` job');
+  assert.match(stopped.if, /needs\.fix\.outputs\.result == 'needs-design'/);
+  assert.match(stopped.if, /needs\.fix\.outputs\.result == 'stopped'/);
+  const run = stopped.steps.map((s) => s.run ?? '').join('\n');
+  assert.match(run, /status-comment\.mjs "\$ISSUE" design/);
+  assert.match(run, /status-comment\.mjs "\$ISSUE" stuck/);
+  assert.match(run, /needs-maintainer/);
+  assert.equal(stopped.permissions?.actions, undefined);
+  assert.doesNotMatch(JSON.stringify(stopped.steps), /claude-code-action/, 'saying so costs no quota');
+});
 
-  const run = job.steps.map((s) => s.run ?? '').join('\n');
-  assert.match(run, /gh workflow run pr-checks\.yml/);
-  assert.match(run, /gh workflow run pr-build\.yml[^\n]*pr_number/);
-  assert.match(run, /--ref "\$BRANCH"/, 'both must run on the pull request branch, not on testing');
-
-  // It must find the pull request the same strict way sign-off does: same
-  // repository, a `claude/fix-` branch, and the `Fixes #N` line.
-  assert.match(run, /isCrossRepository == false/);
-  assert.match(run, /startswith\("claude\/fix-"\)/);
+test('a pull request that was opened is checked and repaired, and nothing else is', () => {
+  const verify = workflow.jobs.verify;
+  assert.equal(verify.uses, VERIFY);
+  assert.equal(verify.if, "needs.fix.outputs.result == 'opened'");
+  assert.equal(verify.with.pr_number, '${{ needs.fix.outputs.pr }}');
+  assert.equal(verify.with.branch, '${{ needs.fix.outputs.branch }}');
+  assert.deepEqual(Object.keys(verify.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+  // The old design started the checks from this file with a copy of the lookup.
+  assert.equal(workflow.jobs['start-checks'], undefined);
+  assert.doesNotMatch(source, /gh workflow run/, 'verify starts the checks, from the one place that waits for them');
 });
 
 test('the agent cannot start, cancel or re-run workflows', () => {
-  // The agent runs unrestricted Bash. `actions: write` would let a prompt that
-  // talked its way past the rules start other workflows or cancel the gates.
-  // The permission is held by `start-checks`, a few lines of shell that read no
-  // untrusted text, and by nothing else.
+  // `actions: write` lets a prompt that talked its way past the rules start other
+  // workflows or cancel the gates. Only the verify jobs hold it, and they run no
+  // agent. Here the agent job is a call, so the ceiling is what it is given.
   assert.equal(workflow.permissions?.actions, undefined, 'not at workflow level');
   assert.equal(workflow.jobs.fix.permissions?.actions, undefined, 'not in the job that runs the agent');
-  assert.ok(workflow.jobs.fix.permissions, 'the agent job must state its permissions rather than inherit');
-  assert.deepEqual(workflow.jobs['start-checks'].permissions, {
-    actions: 'write',
-    contents: 'read',
-    'pull-requests': 'read'
-  });
-  const agentJobUses = JSON.stringify(workflow.jobs['start-checks'].steps);
-  assert.doesNotMatch(agentJobUses, /claude-code-action/, 'the job that holds actions: write must not run an agent');
+  assert.deepEqual(workflow.jobs.fix.permissions, { contents: 'write', 'pull-requests': 'write', issues: 'write' });
 });
