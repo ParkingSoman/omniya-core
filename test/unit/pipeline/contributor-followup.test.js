@@ -164,3 +164,18 @@ test('the agent cannot start, cancel or re-run workflows', () => {
     'a job that can start workflows must not run an agent'
   );
 });
+
+test('a crashed agent run is told, without rewriting the comment that holds the links', () => {
+  // Without this the contributor wrote `@claude` and heard nothing at all.
+  const failed = workflow.jobs.failed;
+  assert.ok(failed, 'expected a `failed` job');
+  assert.match(failed.if, /!cancelled\(\)/, 'a status function, or the failed agent job would skip this one too');
+  assert.match(failed.if, /needs\.agent\.result == 'failure'/);
+  const run = failed.steps.map((s) => s.run ?? '').join('\n');
+  assert.match(run, /gh issue comment/);
+  assert.match(run, /needs-maintainer/);
+  // The earlier links still work, and the status comment still shows them.
+  assert.doesNotMatch(run, /status-comment\.mjs/);
+  assert.match(run, /earlier download links still work/);
+  assert.doesNotMatch(JSON.stringify(failed.steps), /claude-code-action/, 'saying so costs no quota');
+});

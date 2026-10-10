@@ -8,8 +8,8 @@
  *
  * GitHub sends NO notification when a comment is edited. A contributor who works
  * from the issue and cannot glance at it would never learn that the build is
- * ready. So for the three states where somebody needs to know (`ready`, `sent`
- * and `maintainer`) a short NEW comment is posted as well. It carries no marker,
+ * ready. So for the states where somebody needs to know (`ready`, `sent`,
+ * `maintainer` and `failed`) a short NEW comment is posted as well. It carries no marker,
  * so it is never mistaken for the status comment, and the links stay in the one
  * place.
  *
@@ -61,6 +61,11 @@ const WORDS = {
     'You do not need to do anything.',
     'The maintainer will write here when there is news.'
   ],
+  failed: [
+    'Something went wrong on my side while I was working on this.',
+    'Nothing is wrong with your report.',
+    'The maintainer has been told and will look. You do not need to do anything.'
+  ],
   sent: [
     'Thank you. I sent this fix to the maintainer to review and merge.',
     'This issue closes when the maintainer merges the fix.',
@@ -71,7 +76,7 @@ const WORDS = {
 export const STATES = ['ready', ...Object.keys(WORDS)];
 
 /** States that also post a new comment, because an edit sends no notification. */
-export const NOTIFY = ['ready', 'sent', 'maintainer'];
+export const NOTIFY = ['ready', 'sent', 'maintainer', 'failed'];
 
 /**
  * @param {string} state one of STATES

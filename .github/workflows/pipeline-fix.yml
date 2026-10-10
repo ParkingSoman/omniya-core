@@ -169,12 +169,23 @@ jobs:
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-  # The agent stopped without a pull request. Say so on the issue, in the status
-  # comment, so the contributor is not left reading "I am working on a fix".
-  # A report that was not a bug, or one that could not be reproduced, ends here.
+  # The agent stopped without a pull request, or crashed. Say so on the issue, in
+  # the status comment, so the contributor is not left reading "I am working on a
+  # fix" for ever. A report that was not a bug, one that could not be reproduced,
+  # and a run that died (an install that failed, a timeout) all end here.
+  #
+  # `needs.fix.result` is what catches the crash: a job that failed has no
+  # outputs, so the result word is empty and would match neither of the others.
+  # The `allowed` guard is what keeps a refused author, whose `fix` job is
+  # skipped, from being reported as a failure.
   stopped:
     needs: [allowlist, fix]
-    if: needs.fix.outputs.result == 'needs-design' || needs.fix.outputs.result == 'stopped'
+    if: >-
+      ${{ !cancelled() &&
+      needs.allowlist.outputs.allowed == 'true' &&
+      (needs.fix.result != 'success' ||
+      needs.fix.outputs.result == 'needs-design' ||
+      needs.fix.outputs.result == 'stopped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -188,12 +199,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
           RESULT: ${{ needs.fix.outputs.result }}
+          FIX_JOB: ${{ needs.fix.result }}
         run: |
           set -euo pipefail
-          if [ "$RESULT" = "needs-design" ]; then
-            node scripts/ci/status-comment.mjs "$ISSUE" design
+          if [ "$FIX_JOB" != "success" ]; then
+            STATE=failed
+          elif [ "$RESULT" = "needs-design" ]; then
+            STATE=design
           else
-            node scripts/ci/status-comment.mjs "$ISSUE" stuck
+            STATE=stuck
+          fi
+          node scripts/ci/status-comment.mjs "$ISSUE" "$STATE"
+          if [ "$STATE" != "design" ]; then
             gh label create needs-maintainer --force --description "A person has to look at this" || true
             gh issue edit "$ISSUE" --add-label needs-maintainer
           fi

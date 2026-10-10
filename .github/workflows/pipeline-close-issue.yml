@@ -11,8 +11,9 @@ name: pipeline-close-issue
 # does not need to be on `main`. It runs only for a pull request that this
 # pipeline made: from this repository, on a `claude/fix-` branch, merged.
 #
-# The close then fires the `closed` stub on `main`, which calls
-# `pipeline-signoff.yml`. That finds no open fix, so it says nothing.
+# A close made with this workflow's own token starts no other workflow, so
+# `pipeline-signoff.yml` does not run for it. It would find no open fix and say
+# nothing anyway.
 on:
   pull_request:
     types: [closed]

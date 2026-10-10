@@ -22,6 +22,7 @@ name: pipeline-followup
 #   answered     a question               -> nothing more
 #   needs-design a request for something new -> nothing more (the agent commented)
 #   stopped      it could not go on       -> nothing more (the agent commented)
+#   (a crash)    the agent job failed     -> `failed` tells the contributor
 on:
   workflow_call:
     # Only the subscription token, and the stub passes only that. Not every
@@ -153,6 +154,28 @@ jobs:
       branch: ${{ needs.allowlist.outputs.branch }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  # The agent job crashed (an install that failed, a timeout). Without this the
+  # contributor wrote `@claude` and heard nothing at all. It posts a new comment
+  # and does NOT rewrite the status comment, so the download links stay where the
+  # contributor already knows to find them.
+  failed:
+    needs: [allowlist, agent]
+    if: ${{ !cancelled() && needs.agent.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
+        run: |
+          set -euo pipefail
+          gh label create needs-maintainer --force --description "A person has to look at this" || true
+          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-maintainer
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
+            "Something went wrong on my side while I was reading your comment. Nothing is wrong with your report. The earlier download links still work. The maintainer has been told and will look. You do not need to do anything."
 
   # The branch moved. A push made with the bot's token starts no `pull_request`
   # run, so the checks and the build are started from here, and repaired if red.

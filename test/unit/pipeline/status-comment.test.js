@@ -72,7 +72,7 @@ test('the agent explanation is never taken for the status comment', () => {
 test('an edit sends no notification, so the states that need one post a new comment', () => {
   // GitHub does not notify anybody when a comment is edited. A contributor who
   // cannot glance at the page would never learn the build is ready.
-  assert.deepEqual(NOTIFY, ['ready', 'sent', 'maintainer']);
+  assert.deepEqual(NOTIFY, ['ready', 'sent', 'maintainer', 'failed']);
   for (const state of NOTIFY) assert.ok(STATES.includes(state), state);
 });
 

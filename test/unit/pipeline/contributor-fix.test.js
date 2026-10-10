@@ -140,16 +140,26 @@ test('every use of the issue number comes from the gate job, not the event', () 
   assert.equal(uses.length, 1, 'only the allowlist job may read the event number, once, into env');
 });
 
-test('a fix that stopped without a pull request says so on the issue', () => {
-  // Otherwise the contributor reads "I am working on a fix" for ever.
+test('a fix that stopped, or crashed, says so on the issue', () => {
+  // Otherwise the contributor reads "I am working on a fix" for ever. The silence
+  // this repository was already burned by, made worse because the status comment
+  // now asserts that work is going on.
   const stopped = workflow.jobs.stopped;
   assert.ok(stopped, 'expected a `stopped` job');
-  assert.match(stopped.if, /needs\.fix\.outputs\.result == 'needs-design'/);
-  assert.match(stopped.if, /needs\.fix\.outputs\.result == 'stopped'/);
-  const run = stopped.steps.map((s) => s.run ?? '').join('\n');
-  assert.match(run, /status-comment\.mjs "\$ISSUE" design/);
-  assert.match(run, /status-comment\.mjs "\$ISSUE" stuck/);
-  assert.match(run, /needs-maintainer/);
+  const condition = stopped.if.replace(/\s+/g, ' ');
+  assert.match(condition, /!cancelled\(\)/, 'a status function, or a failed `fix` job would skip this one too');
+  assert.match(condition, /needs\.allowlist\.outputs\.allowed == 'true'/, 'a refused author, whose `fix` job is skipped, is not a failure');
+  assert.match(condition, /needs\.fix\.result != 'success'/, 'a crashed agent job has no result word, so it must be caught by its status');
+  assert.match(condition, /needs\.fix\.outputs\.result == 'needs-design'/);
+  assert.match(condition, /needs\.fix\.outputs\.result == 'stopped'/);
+
+  const step = stopped.steps.find((s) => /status-comment\.mjs/.test(s.run ?? ''));
+  assert.equal(step.env.FIX_JOB, '${{ needs.fix.result }}');
+  assert.match(step.run, /STATE=failed/);
+  assert.match(step.run, /STATE=design/);
+  assert.match(step.run, /STATE=stuck/);
+  assert.match(step.run, /status-comment\.mjs "\$ISSUE" "\$STATE"/);
+  assert.match(step.run, /needs-maintainer/);
   assert.equal(stopped.permissions?.actions, undefined);
   assert.doesNotMatch(JSON.stringify(stopped.steps), /claude-code-action/, 'saying so costs no quota');
 });
