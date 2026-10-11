@@ -101,12 +101,15 @@ blind person finds the flow good. The sign-off in `docs/HUMAN-TESTING.md` stays.
 
 ## Open questions
 
-- **VoiceOver.** In the first CI runs VoiceOver spoke on only some key presses through
-  Guidepup, and read the line as "Solve for x." without the equation. The plain
-  text box beside it was also silent, so the cause may be the test harness. The
-  walk now covers a plain box as a control. Read the transcript artifact before
-  trusting any VoiceOver result.
-- **NVDA.** It names the equation ("graphic, x squared") when the caret arrives.
-  After Left Arrow back onto the equation it did not name it again.
+- **VoiceOver.** No result yet. In CI run 4 VoiceOver spoke nothing at any step,
+  not even in the plain text input beside the editor, so the harness is not
+  capturing its speech. The test reports that as skipped, not passed. Earlier
+  runs captured some speech but read the line as "Solve for x." without the
+  equation, from an older build. A person with VoiceOver should try this.
+- **NVDA.** Works as designed, from CI run 4 on Windows. The line reads "Solve,
+  graphic, x squared, for x." Arrowing says "o", "l", "v", "e", "space", then
+  "graphic, x squared" as the caret arrives, then "out of graphic" as it passes.
+  The plain text input walks the same way. After Left Arrow back onto the
+  equation it said "space", not the equation name.
 - **Mac equation key.** `Control+=` is the most often reported key. Microsoft
   does not document it.

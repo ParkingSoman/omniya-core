@@ -94,7 +94,7 @@ async function voiceOverFocus(page, selector, namePattern) {
 
 const silentCount = (steps) => steps.filter((s) => s.spoken.length === 0).length;
 
-test('real screen reader walks a plain text input and the editor', async () => {
+test('real screen reader walks a plain text input and the editor', async (t) => {
   const dataDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'omniya-sr-'));
   await fs.writeFile(path.join(dataDirectory, 'napkins.json'), JSON.stringify(NAPKIN), 'utf8');
   const app = await electron.launch({
@@ -132,10 +132,17 @@ test('real screen reader walks a plain text input and the editor', async () => {
       const editor = await walk('editor');
 
       if (MAC) {
-        assert.ok(
-          silentCount(editor) <= silentCount(control),
-          `editor is silent on ${silentCount(editor)} steps, the plain control on ${silentCount(control)}`
-        );
+        if (silentCount(control) === control.length) {
+          // CI run 4: VoiceOver spoke nothing at any step, even in the plain
+          // input. Comparing the editor to a control that is itself silent proves
+          // nothing, so say so instead of passing.
+          t.skip('VoiceOver spoke nothing, even in the plain control. Inconclusive.');
+        } else {
+          assert.ok(
+            silentCount(editor) <= silentCount(control),
+            `editor is silent on ${silentCount(editor)} steps, the plain control on ${silentCount(control)}`
+          );
+        }
       } else {
         assert.deepEqual(editor.filter((s) => s.spoken.length === 0).map((s) => s.label), [], 'every step must speak');
         const arrive = editor.find((s) => s.label === 'arrow right 6');
