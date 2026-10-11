@@ -167,9 +167,18 @@ jobs:
           asked="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- omniya-pipeline-question -->")))] | length' \
             | awk '{ n += $1 } END { print n + 0 }')"
+          # Three things must all be true, and none of them is the contributor's
+          # word. A person with write access can add a label by hand, so the label
+          # alone proves nothing: there must also be a question the agent really
+          # asked (a comment by the bot, counted above). And an issue the agent
+          # labelled `needs-design` is the maintainer's to decide. Nobody on the
+          # contributor list can restart it by writing `@claude` or by adding
+          # `needs-info`. Only the maintainer can, by starting `contributor-fix`
+          # by hand.
+          resume=false
           case ",$labels," in
-            *,needs-info,*) resume=true ;;
-            *) resume=false ;;
+            *,needs-design,*) ;;
+            *,needs-info,*) [ "${asked:-0}" -ge 1 ] && resume=true ;;
           esac
           echo "resume=$resume" >> "$GITHUB_OUTPUT"
           echo "question_round=${asked:-0}" >> "$GITHUB_OUTPUT"

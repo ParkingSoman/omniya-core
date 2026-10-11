@@ -136,6 +136,29 @@ sends the invitation again, then the contributor accepts it, then run
 `contributor-fix` by hand for the issue. A hand-started run is checked as YOU, so
 it works as soon as you press the button.
 
+### Who can decide what the app does
+
+Only the maintainer. Contributors on the list have write access, so the pipeline
+cannot lean on what they are permitted to do. Three locks hold this, in order:
+
+1. **The prompt.** `pipeline-agent.yml` classifies a report first. Something new
+   gets `needs-design`, one plain comment, and no code. This is a request to the
+   agent, not a lock.
+2. **The workflow.** A comment resumes a fix only when the issue has the label
+   `needs-info` AND the agent really asked (a comment by the bot that starts with
+   the question marker) AND the issue does not have `needs-design`. A contributor
+   can add a label by hand, so the label alone proves nothing. An issue marked
+   `needs-design` restarts only when the maintainer runs `contributor-fix` by
+   hand.
+3. **The merge.** `.github/CODEOWNERS` names the maintainer, and the rulesets
+   `testing-guard` and `main-guard` require a review from a code owner. A
+   contributor cannot approve, so a contributor cannot merge into `testing`. The
+   maintainer is a bypass actor, so their own pull requests still merge. The
+   file has to be on the base branch of the pull request to count, so it is on
+   `testing` first and reaches `main` with the next merge of `testing`.
+
+If a design change gets past lock 1 by a wrong guess, lock 3 is what catches it.
+
 ### Merging a fix
 
 When the contributor writes `@claude it works`, the pipeline checks that `unit`,

@@ -97,6 +97,11 @@ test('an answer to the agent\'s question starts the fix, once, and only when a q
   assert.match(resume.if, /count == '0'/, 'with a fix open, a comment is a revision, not an answer');
   assert.match(resume.run, /needs-info/);
   assert.match(resume.run, /omniya-pipeline-question/);
+  // The design lock. A label can be added by anybody with write access, so it
+  // is not enough on its own, and a `needs-design` issue never resumes.
+  assert.match(resume.run, /\*,needs-design,\*\) ;;/, 'needs-design is checked before needs-info, and does nothing');
+  assert.match(resume.run, /\[ "\$\{asked:-0\}" -ge 1 \] && resume=true/, 'a real question from the agent must exist');
+  assert.ok(resume.run.indexOf('needs-design') < resume.run.indexOf('*,needs-info,*'));
   assert.equal(workflow.jobs['resume-start'].steps.at(-1).run.includes('--remove-label needs-info'), true);
   assert.match(workflow.jobs['resume-start'].if, /resume == 'true'/);
   assert.match(workflow.jobs['resume-start'].if, /access != 'false'/);
