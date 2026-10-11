@@ -132,12 +132,34 @@ test('real screen reader walks a plain text input and the editor', async (t) => 
       const editor = await walk('editor');
 
       if (MAC) {
-        if (silentCount(control) === control.length) {
-          // CI run 4: VoiceOver spoke nothing at any step, even in the plain
-          // input. Comparing the editor to a control that is itself silent proves
-          // nothing, so say so instead of passing.
-          t.skip('VoiceOver spoke nothing, even in the plain control. Inconclusive.');
+        // VoiceOver's own item-by-item reading works through Guidepup even where
+        // its echo of arrow-key caret moves is not captured (CI run 5). So read
+        // the document by items, a few back and a dozen forward from wherever the
+        // walk left its cursor, and require that the equation is named.
+        const items = [];
+        for (let i = 0; i < 6; i += 1) {
+          await voiceOver.previous();
+          items.push(await voiceOver.lastSpokenPhrase());
+        }
+        for (let i = 0; i < 12; i += 1) {
+          await voiceOver.next();
+          items.push(await voiceOver.lastSpokenPhrase());
+        }
+        for (const phrase of items) {
+          transcript.push({ walk: 'items', label: 'read by items', last: phrase, spoken: [phrase] });
+        }
+        const spokenItems = items.filter((phrase) => phrase.trim() !== '');
+        if (spokenItems.length === 0 && silentCount(control) === control.length) {
+          // CI run 4: VoiceOver spoke nothing anywhere. Nothing was measured, so
+          // say so instead of passing.
+          t.skip('VoiceOver spoke nothing at any step. Inconclusive.');
         } else {
+          assert.ok(
+            spokenItems.some((phrase) => /x squared/i.test(phrase)),
+            `reading by items, VoiceOver must name the equation. It said: ${JSON.stringify(spokenItems)}`
+          );
+          // Caret echo is not captured, so the editor can only be held to the
+          // plain control: no more silent than it.
           assert.ok(
             silentCount(editor) <= silentCount(control),
             `editor is silent on ${silentCount(editor)} steps, the plain control on ${silentCount(control)}`
