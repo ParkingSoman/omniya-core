@@ -1,8 +1,8 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { assertValidState, createInitialState } from '../domain/model.js';
-import { migrateState } from '../domain/migration.js';
+import { CURRENT_SCHEMA_VERSION, migrateState } from '../domain/migration.js';
 
 export function createStorage(directory, { idFactory, fileName = 'napkins.json' } = {}) {
   const dataFile = path.join(directory, fileName);
@@ -16,6 +16,19 @@ export function createStorage(directory, { idFactory, fileName = 'napkins.json' 
       const raw = JSON.parse(await readFile(dataFile, 'utf8'));
       const migrated = migrateState(raw);
       assertValidState(migrated);
+      // The first save after an upgrade overwrites the old format for good, and
+      // an older build cannot read the new one. Keep the original beside it.
+      if (raw?.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+        const backupFile = path.join(
+          directory,
+          `${baseName}.before-v${CURRENT_SCHEMA_VERSION}-${Date.now()}${extension}`
+        );
+        try {
+          await copyFile(dataFile, backupFile);
+        } catch {
+          // Best effort, like the corrupt-file copy below. The upgrade still goes ahead.
+        }
+      }
       const warning = migrated.warnings?.length ? migrated.warnings.map(({ message }) => message).join(' ') : null;
       const { warnings: _warnings, ...state } = migrated;
       return { state, warning };

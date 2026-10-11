@@ -1,11 +1,14 @@
 import { build } from 'esbuild';
 
-// The spike page lives under src/renderer/dev/, which electron-builder excludes
-// from packaged builds. The real editor entry is added in Phase 2.
+// The editor is bundled because the page's script policy is `script-src 'self'`
+// (no inline import map) and ProseMirror imports its parts by package name.
+// editor.bundle.js is an ES module that app.js imports. It is generated and is
+// not committed. This runs before `npm start`, `npm run test:e2e` and the
+// packaging scripts (see the `pre*` entries in package.json).
 await build({
-  entryPoints: ['src/renderer/editor/spike-entry.js'],
-  outfile: 'src/renderer/dev/spike.bundle.js',
   bundle: true,
-  format: 'iife',
   logLevel: 'warning',
+  entryPoints: ['src/renderer/editor/index.js'],
+  outfile: 'src/renderer/editor/editor.bundle.js',
+  format: 'esm',
 });

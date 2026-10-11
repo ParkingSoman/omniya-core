@@ -6,12 +6,15 @@ The usage notes below apply to **`testing` only**. They are not on `main`. This 
 
 ## How to use this alpha
 
-**Write text.** Type in the document under the napkin. **Enter** starts a new paragraph;
-**Shift+Enter** adds a line break within one. **Ctrl+T** toggles UEB grade 2 / grade 1.
+**Write text.** The napkin is one document, and it works like Word. Type in it. **Enter**
+starts a new paragraph. **Ctrl+Z** undoes and **Ctrl+Y** redoes (**Cmd+Z** and
+**Cmd+Shift+Z** on Mac), for typing and equations alike. **Ctrl+T** toggles UEB grade 2 /
+grade 1. [`docs/word-editor.md`](docs/word-editor.md) lists every key and why it is there.
 
-**Insert an equation.** **Ctrl+E** (Cmd+E on Mac) starts a Nemeth equation at the caret;
-**Ctrl+L** starts a LaTeX one. **Enter** commits it and returns you to text; **Escape**
-discards it.
+**Insert an equation.** **Alt+=** (Windows) or **Control+=** (Mac) opens a small field at the
+caret. Type Nemeth or LaTeX: **Ctrl+E** picks Nemeth and **Ctrl+L** picks LaTeX while the
+field is empty. **Enter** inserts the equation and puts you back in the document, right
+after it. **Escape** cancels. An equation sits inside the sentence as one unit.
 
 **Type Nemeth.** The field works in braille cells, and it works out how your input
 arrives on its own — there is nothing to configure. A braille display sending raw cells,
@@ -40,10 +43,11 @@ clipboard — paste that into your report. It is copied only when you ask, is ne
 to disk or sent anywhere, and you can read it first: it includes the mathematics you were
 typing.
 
-**Read and edit math.** In reading, **Up** and **Down** move between items. **Enter** on an
-equation explores inside it. There, **r** replaces the focused node, **a** inserts after it,
-and **o** inserts before it. On an equation you have not explored, those keys act on the
-whole expression. **Escape** leaves it unchanged. **r** on a text item opens it for editing.
+**Read and edit math.** Arrow keys move past an equation as one unit: the first press
+selects it, the next moves on. **Backspace** next to it selects it, and a second
+**Backspace** deletes it. With an equation selected, **Enter** explores inside it. There,
+**r** replaces the focused part, **a** inserts after it, and **o** inserts before it.
+**Escape** returns to the document with the equation still selected.
 
 Everything above is also in the application menus (Insert / Format / Help — Alt on Windows,
 menu bar on Mac) and in Keyboard help, the button under the napkin.
@@ -61,7 +65,7 @@ You are on **`testing`**, the alpha. Newer functionality lives here and has **no
 ## Which branch should I use?
 
 - **`main` (default).** Last human-signed-off snapshot. `git clone` lands there. Napkin read / add / edit shell, local MathJax, LaTeX equations, offline save. Later experiments are not on that branch.
-- **`testing` (alpha, this branch).** The current product assembly. Unified composer, literary UEB, Nemeth authoring, and BANA evidence grind. This functionality has not been completely verified by humans. It is not a BANA conformance release. If you want to try the current app, stay here.
+- **`testing` (alpha, this branch).** The current product assembly. A Word-style editor, literary UEB, Nemeth authoring, and BANA evidence grind. This functionality has not been completely verified by humans. It is not a BANA conformance release. If you want to try the current app, stay here.
 - **Feature / `codex/…` lanes.** Experimental work. Not for running the app.
 
 ## Run this alpha
@@ -106,7 +110,7 @@ The bullets below describe **this alpha**, not the signed-off `main` snapshot. N
 - **Platform:** Electron, vanilla HTML/CSS/JavaScript
 - **Storage:** Local JSON files
 - **Math:** LaTeX and Nemeth, native MathML, local MathJax explorer
-- **Braille:** Literary UEB via liblouis; Nemeth in the unified composer
+- **Braille:** Literary UEB via liblouis; Nemeth in the equation field
 - **Network:** No network access required
 - **Primary purpose:** Generate conversation about screen-reader-first mathematical workflows
 - **Best contributions now:** Community discussion, critique, assistive-technology testing on this branch
@@ -158,7 +162,7 @@ You do not need to be a programmer to contribute. The most valuable contribution
 
 ## The current document model
 
-The prototype stores named local documents. Each document contains a linear sequence of committed items; each item is plain text or a LaTeX equation and can have a freeform note. The interface calls these documents “napkins,” but the name is only a friendly label. Users can create and switch between documents, read earlier items, explore equations semantically, edit previous items, and save the work locally.
+The prototype stores named local documents. Each document is one Word-style document of paragraphs, with equations inside the text. The interface calls these documents “napkins,” but the name is only a friendly label. Users can create and switch between documents, type and undo as in any word processor, insert equations as Nemeth or LaTeX, explore equations semantically, edit part of an equation, and save the work locally.
 
 ## Why the approach is different
 
@@ -179,7 +183,7 @@ The point of the Electron app is to make these hypotheses testable. The architec
 
 This section is the **alpha** on `testing`, not the signed-off `main` snapshot. Humans have not completely verified it. The practical checklist is [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
-On this branch you can create, switch, and delete napkins; author text and equations in one unified composer (`#composer-source`); insert Nemeth with Ctrl+E or LaTeX with Ctrl+L; toggle UEB grade with Ctrl+T; explore MathML and press **r** to replace a subtree in the same composer; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind. Notes UI and type radios are hidden.
+On this branch you can create, switch, and delete napkins; write in a Word-style document with inline equations; insert an equation with Alt+= (Windows) or Control+= (Mac), as Nemeth or LaTeX; toggle UEB grade with Ctrl+T; explore MathML and press **r** to replace a part of an equation; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind.
 
 The interface uses semantic HTML, native form controls, labeled fields, visible focus indicators, a narrow preload bridge, context isolation, a sandboxed renderer, and a restrictive content-security policy.
 
@@ -195,7 +199,7 @@ This prototype deliberately does not include:
 - cloud sync, collaboration, or network services;
 - AI features or telemetry;
 - rich text, visual layout editing, or a conventional canvas;
-- item reordering, general import/export, search, or formal proof management;
+- general import/export, search, or formal proof management;
 - production-signed installers and Intel Mac zips (the testing prerelease is unsigned alpha packaging only);
 - a claim that the current interaction model is ready for sustained mathematical work.
 
@@ -263,9 +267,9 @@ Major interaction and document-model changes should begin as issues or small exp
 
 ## Testing with assistive technology
 
-Automated tests cover important invariants, but they cannot establish that the workflow is genuinely usable. Before expanding the prototype, manually complete the full flow with a screen reader: create and switch napkins; add text, an equation, and a note; explore nested expressions and matrix cells; edit and cancel; trigger a conversion error; delete an item and a napkin; then close and reopen saved work.
+Automated tests cover important invariants, but they cannot establish that the workflow is genuinely usable. Before expanding the prototype, manually complete the full flow with a screen reader: create and switch napkins; type a paragraph, put an equation inside a sentence, and undo and redo it; explore nested expressions and matrix cells; edit and cancel; trigger a conversion error; delete an equation and a napkin; then close and reopen saved work.
 
-Pay attention to item type and position announcements, equation structure, focus after every action, save status, and recovery instructions. Record the screen reader, operating system, Electron version, and keyboard used.
+Pay attention to how the equation is announced as the caret passes it, equation structure, focus after every action, save status, and recovery instructions. Record the screen reader, operating system, Electron version, and keyboard used.
 
 ## Run and test
 
@@ -292,16 +296,15 @@ On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In
 - Use Tab and Shift+Tab to move through ordinary controls.
 - In the napkin sidebar, focus a napkin and press Backspace to delete it after confirmation,
   or Ctrl+U (Cmd+U on macOS) to rename it.
-- Up and Down move between items. Home and End move to the first and last item; on compact Mac keyboards these are commonly Fn+Left Arrow and Fn+Right Arrow.
-- Press Enter on a focused text item to edit it.
-- Press Enter on a focused equation to enter MathJax’s expression explorer. MathJax handles movement through the expression; Escape returns to the item.
-- Press `r` on a focused equation to replace it (or the explorer focus). `a` inserts after that same node; `o` inserts before it. On a text item, `r` opens it for editing.
-- Press Backspace on a focused item to delete it; focus moves to a nearby remaining item.
-- Type in the composer to write. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX. Enter commits an equation and returns to text. Escape discards an unfinished equation.
+- Type in the document to write. Enter starts a new paragraph. Ctrl+Z (Cmd+Z) undoes. Ctrl+Y (Cmd+Shift+Z on Mac) redoes.
+- Alt+= (Windows) or Control+= (Mac) inserts an equation at the caret. In the field, Ctrl+E picks Nemeth and Ctrl+L picks LaTeX while it is empty. Enter inserts the equation. Escape cancels.
+- Arrow keys select an equation as one unit, then move past it. Backspace next to an equation selects it. A second Backspace deletes it.
+- Press Enter on a selected equation to enter MathJax’s expression explorer. MathJax handles movement through the expression; Escape returns to the document.
+- In the explorer, press `r` to replace the focused part. `a` inserts after that same node; `o` inserts before it. Backspace deletes the equation, and undo brings it back.
 - Ctrl+T toggles UEB G2 / G1 on text.
-- Arrow keys inside textareas retain normal text-cursor behavior.
+- Arrow keys inside the equation field retain normal text-cursor behavior.
 
-Only completed Add and Save actions are persisted. Unfinished drafts are not saved.
+The document is saved shortly after each change. An unfinished equation in the field is not saved.
 
 ## Tests
 
@@ -311,7 +314,7 @@ npm run test:e2e
 npm run test:all
 ```
 
-The unit tests cover the domain model, state validation, local JSON persistence, queued atomic writes, corrupt-data recovery, and LaTeX-to-MathML conversion. The Electron tests use isolated user-data directories and cover read/add/edit modes, notes, napkin deletion, semantic MathML, keyboard exploration, relaunch persistence, offline behavior, and accessibility checks with axe-core.
+The unit tests cover the domain model, state validation, local JSON persistence, queued atomic writes, corrupt-data recovery, and LaTeX-to-MathML conversion. The Electron tests use isolated user-data directories and cover typing and undo, inserting and editing equations, napkin deletion, upgrading old napkin files, semantic MathML, keyboard exploration, relaunch persistence, offline behavior, and accessibility checks with axe-core. `npm run test:screen-reader` drives real screen readers and is meant for CI; see `docs/word-editor.md`.
 
 The Electron test browser context is placed offline and records unexpected external HTTP requests. On macOS, run GUI tests from a normal logged-in terminal rather than a restricted GUI sandbox; the sandbox can abort GUI applications before the app’s JavaScript starts.
 
@@ -340,10 +343,11 @@ Committed changes made after opening a file are saved back to that file. A napki
 ## Repository structure
 
 - `src/main.js`, `src/preload.cjs`, and `src/main/` provide the secure Electron boundary, narrow bridge, MathML conversion, and local persistence.
-- `src/domain/model.js` contains state factories, validation, and immutable napkin/item operations.
-- `src/renderer/` contains the semantic page, restrained styling, application behavior, and local MathJax configuration.
+- `src/domain/model.js` contains state factories, validation, and immutable napkin operations. `src/domain/document.js` is the saved shape of a document.
+- `src/renderer/` contains the semantic page, restrained styling, application behavior, and local MathJax configuration. `src/renderer/editor/` is the Word-style editor, built on ProseMirror and bundled by `scripts/build-editor.mjs`.
 - `scripts/open-napkin.mjs` opens an existing napkin file in the normal application.
-- `test/unit/` covers model, persistence, MathML, and local assets; `test/e2e/` covers Electron workflows and accessibility acceptance.
+- `test/unit/` covers model, persistence, MathML, and local assets; `test/e2e/` covers Electron workflows and accessibility acceptance; `test/screen-reader/` drives real screen readers in CI.
+- `docs/word-editor.md` is the design record for the editor and its keys.
 - `test/inspect.mjs` generates the editable example napkin file.
 
 ## Project status, stewardship, and license

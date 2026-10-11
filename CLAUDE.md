@@ -6,13 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Omniya Core is an experimental local-first Electron app exploring screen-reader-first
 mathematical workspaces (research prototype, not a production product). Users write
-"napkins" — local JSON documents containing a sequence of text and equation items —
-and can author math in LaTeX or Nemeth braille, explore equation structure via MathJax,
-and read/write literary UEB via liblouis. No network access, no accounts, no cloud.
+"napkins" — local JSON documents, each one a Word-style document of paragraphs with
+inline equations — and can author math in LaTeX or Nemeth braille, explore equation
+structure via MathJax, and read/write literary UEB via liblouis. No network access, no
+accounts, no cloud.
+
+The editing experience is deliberately **not innovative**: it copies Word. Type, Enter
+for a new paragraph, undo and redo, Alt+= (Windows) or Control+= (Mac) to insert an
+equation. Before changing any key or editing behaviour read `docs/word-editor.md`,
+which lists every key and why it is what it is.
 
 You are almost always working on **`testing`**, the active alpha branch. `main` is the
-last human-signed-off snapshot; large parts of `testing` (Nemeth authoring, unified
-composer, UEB command mode) are not on `main`. Check `git branch` if in doubt — do not
+last human-signed-off snapshot; large parts of `testing` (Nemeth authoring, the Word-style
+editor) are not on `main`. Check `git branch` if in doubt — do not
 assume `main`'s behavior applies here.
 
 Accessibility work in this repo is evidence-driven, not sighted-developer guesswork.
@@ -39,6 +45,12 @@ Run a single unit test file directly, e.g.:
 node --test test/unit/nemeth/parser.test.js
 ```
 
+The renderer imports a generated bundle, `src/renderer/editor/editor.bundle.js`
+(ProseMirror, built by `scripts/build-editor.mjs`, gitignored). `npm start`,
+`npm run test:e2e` and the `dist:*` scripts build it first through `pre*` hooks. If you run
+a test file with `node --test` directly, run `node scripts/build-editor.mjs` once first, or
+the app fails to start with a missing-module error.
+
 Run a single e2e test file (still needs concurrency=1):
 ```bash
 node --test --test-concurrency=1 test/e2e/nemeth-composer.test.js
@@ -46,6 +58,12 @@ node --test --test-concurrency=1 test/e2e/nemeth-composer.test.js
 
 Headed/demo run of the thought-stream flow: `npm run test:demo:thought`
 (`OMNIYA_HEADLESS=0 OMNIYA_THOUGHT_DEMO=1`).
+
+`npm run test:screen-reader` drives a REAL screen reader (VoiceOver on macOS, NVDA on
+Windows) through Guidepup. It is meant for CI (`.github/workflows/screen-reader.yml`),
+which does the one-time machine setup. It takes over focus and sound, so do not run it
+on a working machine. The spoken transcript is saved to `test/artifacts/screen-reader/`
+and uploaded as a CI artifact.
 
 Notes on the test setup:
 - e2e tests run the Electron browser context **offline** and record unexpected external
@@ -55,11 +73,14 @@ Notes on the test setup:
 - `OMNIYA_TEST_USER_DATA_DIR` isolates persisted state for automated tests.
 - Local MathJax assets are vendored/installed, not CDN-loaded. If they're missing,
   `npm install` — do not add a network fallback.
-- Current baseline: `npm test` 439/439 green; `npm run test:e2e` has 11 pre-existing
-  failures unrelated to Nemeth — 10 `enterCommand` timeouts plus one assertion in
-  `mathjax-navigation.test.js`, all verified to fail identically on a clean tree (see
-  `docs/nemeth-v2/HANDOFF.md`, "Known rot"). Don't assume you broke something if you
-  see exactly those failures reproduce on a clean checkout too.
+- Current baseline: `npm test` 632/632 and `npm run test:e2e` 83/83, both green. The 11
+  old e2e failures (`enterCommand` timeouts and one `mathjax-navigation` assertion, see
+  `docs/nemeth-v2/HANDOFF.md`, "Known rot") are gone: those tests drove the old item-list
+  UI and were rewritten for the Word-style editor. A red test is now yours to explain.
+- Sending a key right after another action can race the editor: the browser tells it
+  about the caret just after the key. In tests, `settle`/`press` (in
+  `test/e2e/launch-electron.js`) wait for that, and `goToDocStart` checks that a
+  Cmd/Ctrl+Home arrived.
 
 ### Auto-commit hook
 
@@ -85,9 +106,13 @@ for the end, or your in-progress task checkpoints silently stop happening.
   napkin JSON persistence under `app.getPath('userData')`, or `OMNIYA_NAPKIN_FILE` when
   set), `settings-storage.js`, `mathml.js` (LaTeX→MathML via MathJax), `math-service.js`
   (import/export), `ueb-service.js` (liblouis translate/back-translate).
-- `src/renderer/` — the semantic HTML page and its behavior (`app.js`, largest file in
-  the repo), MathJax explorer wiring, braille input/display simulation, and styling. No
-  Node access; everything goes through `window.omniya`.
+- `src/renderer/` — the semantic HTML page and its behavior (`app.js`), the editor,
+  MathJax explorer wiring, input capture, and styling. No Node access; everything goes
+  through `window.omniya`.
+- `src/renderer/editor/` — the Word-style editor: ProseMirror view, history and keys
+  (`index.js`), the document schema, the inline equation node view
+  (`math-node-view.js`, `math-render.js`), and Word's "Backspace selects an equation
+  first" (`commands.js`). Bundled to `editor.bundle.js`.
 
 ### The `src/domain` boundary — the rule that matters most
 
@@ -162,22 +187,39 @@ used by both the model and the Nemeth pipeline.
   it — there is no cells-only mode left to fall back to. Its stated concern was input
   being *silently* reinterpreted as mathematics; what holds that line now is the status
   line naming the reading on every keystroke. **Do not remove that readback.**
-- `handleComposerUebCell` in `src/renderer/app.js` is unreachable and was already
-  unreachable before this work (its callers sat behind the never-set
-  `__omniyaBrailleSimulation`). The ⠿-inserts-Nemeth shortcut it implements has
-  therefore never run in a shipped build, despite being documented. Kept, marked, and
-  the docs corrected rather than deleting the only implementation.
+- `handleComposerUebCell` is gone. It was unreachable (its callers sat behind the
+  never-set `__omniyaBrailleSimulation`), so the ⠿-inserts-Nemeth shortcut it implemented
+  never ran in a shipped build. It went away with the item-list code it lived in. The
+  building block, `isBrailleInsertEquationCell` in `src/domain/ueb-cell-buffer.js`, and
+  the old function in git history remain. To revive the shortcut, ⠿ has to be noticed in
+  the editor's own input handling.
 - `src/renderer/input-capture.js` + `input-log.js` ship and record the input path in
-  memory (capped, never persisted). They exist so a remote blind contributor can send
+  memory (capped, never persisted). They watch the equation field and the napkin-name
+  field. Text typed in the document is NOT logged: the document is a rich editor, not
+  a field, and the log must not become a document-wide key log. They exist so a remote blind contributor can send
   Help → Copy braille input diagnostics instead of a description. The dev panel under
   `src/renderer/dev/` renders the same log and is excluded from packaged builds by
   `electron-builder.yml`; `npm run start:dev` is the only way to see it.
 
 ### Document model
 
-A napkin is a named local document with a linear sequence of items (`text` or
-`equation`, each with an optional note). State round-trips through `storage.js` as
-JSON; migrations live in `src/domain/migration.js` keyed off `SCHEMA_VERSION`.
+A napkin is a named local document. Schema v3 stores `{ id, name, doc }`, where `doc` is
+plain JSON: paragraphs of text and inline `math` nodes (`{ mathml, source, sourceKind }`).
+The shape, its validation and the conversion from the old item list are in
+`src/domain/document.js`, which deliberately does not import ProseMirror, so the domain
+stays standalone. State round-trips through `storage.js` as JSON; migrations live in
+`src/domain/migration.js` keyed off `SCHEMA_VERSION`.
+
+v1 and v2 napkins were a list of items (`text` or `equation`, each with a note). They are
+upgraded on load: text becomes paragraphs, an equation becomes a paragraph holding one
+math node, and a note becomes a paragraph of its own. `storage.js` copies the old file to
+`napkins.before-v3-<time>.json` before the first save overwrites it. Do not remove that
+copy: an older build cannot read v3.
+
+The editor is the source of truth while a napkin is open. `app.js` commits its document
+into `state` after a short pause (and before switching napkin or closing), then saves.
+One undo history, owned by the editor, covers typing and equation changes. It resets when
+another napkin is opened.
 
 ## Repository structure
 

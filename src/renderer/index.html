@@ -11,6 +11,9 @@
   </head>
   <body class="chrome-radios-hidden">
     <div id="app-shell" aria-busy="true">
+      <!-- Spoken confirmations for actions that move focus (an equation inserted or
+           deleted). WCAG 4.1.3 status messages. #save-status stays a plain readout. -->
+      <div id="announcer" class="sr-only" role="status" aria-live="polite"></div>
       <div id="update-banner" role="status" aria-live="polite" hidden>
         <p id="update-banner-text"></p>
         <button id="update-banner-action" type="button">Get the latest build</button>
@@ -40,90 +43,53 @@
             <h2 id="current-napkin-name">Loading…</h2>
           </div>
           <div class="header-meta">
-            <span id="item-count">0 items</span>
             <span id="mode-panel" tabindex="-1"></span>
             <span id="save-status"></span>
           </div>
         </header>
 
-        <section id="reading-section" aria-labelledby="reading-heading">
-          <div class="reading-heading">
-            <div>
-              <h3 id="reading-heading">Reading</h3>
-            </div>
-            <p id="reading-help">Up and Down move between items. Enter explores an equation; r replaces, a inserts after, o inserts before the focus.</p>
-          </div>
-          <p id="empty-message">No items yet. Start typing.</p>
-          <section id="transcript" aria-label="Napkin content"></section>
+        <section id="document-section" aria-labelledby="document-heading">
+          <h3 id="document-heading" class="sr-only">Document</h3>
+          <p id="empty-message" hidden>No napkin selected. Create one with New napkin.</p>
+          <div id="editor-host"></div>
           <div id="reading-actions" class="reading-actions">
             <button id="keyboard-help-button" type="button">Keyboard help</button>
           </div>
         </section>
 
-        <section id="replacement-dock" aria-labelledby="replacement-heading" hidden>
-          <div class="replacement-bar">
-            <h3 id="replacement-heading">Replace focused mathematics</h3>
-            <span id="replacement-scope" class="muted"></span>
-          </div>
-          <fieldset id="replacement-method" aria-describedby="replacement-method-help">
-            <legend class="sr-only">Authoring method</legend>
-            <label><input type="radio" name="replacement-method" value="nemeth" checked> Nemeth</label>
-            <label><input type="radio" name="replacement-method" value="latex"> LaTeX</label>
-          </fieldset>
-          <p id="replacement-method-help">Nemeth builds the replacement one cell at a time. LaTeX accepts the complete replacement expression.</p>
-          <label for="replacement-input" class="sr-only">Legacy replacement input</label>
-          <textarea id="replacement-input" rows="2" aria-describedby="replacement-status"></textarea>
-          <p id="replacement-status"></p>
-          <div id="replacement-choices" class="replacement-choices" aria-label="Nemeth choices" hidden></div>
-          <div class="replacement-actions">
-            <button id="replacement-submit" type="button">Replace</button>
-            <button id="replacement-cancel" type="button">Cancel</button>
-          </div>
-        </section>
-
         <section id="composer-dock" aria-labelledby="composer-heading" hidden>
-          <form id="composer-form" aria-label="Napkin item form">
+          <form id="composer-form" aria-label="Equation form">
             <div class="composer-bar">
-              <div>
-                <h3 id="composer-heading">Write</h3>
-              </div>
-              <button id="composer-back" type="button" hidden>Back to reading</button>
+              <h3 id="composer-heading">Equation</h3>
+              <span id="replacement-scope" class="muted"></span>
             </div>
-            <div class="composer-options">
-              <fieldset id="mode-switch" aria-label="Input type" aria-describedby="mode-help">
-                <legend class="sr-only">Input type</legend>
-                <span id="mode-help" class="sr-only">Use Left and Right Arrow keys to switch between Text and Equation.</span>
-                <label><input type="radio" name="item-type" value="text" checked> <span>Text</span></label>
-                <label><input type="radio" name="item-type" value="equation"> <span>Equation</span></label>
-              </fieldset>
-              <button id="note-toggle" type="button" aria-expanded="false" hidden>Add note</button>
-            </div>
+            <fieldset id="replacement-method" aria-describedby="replacement-method-help">
+              <legend class="sr-only">Authoring method</legend>
+              <label><input type="radio" name="replacement-method" value="nemeth" checked> Nemeth</label>
+              <label><input type="radio" name="replacement-method" value="latex"> LaTeX</label>
+            </fieldset>
+            <p id="replacement-method-help" class="sr-only">Nemeth builds the equation one cell at a time. LaTeX accepts the whole expression.</p>
 
-            <label for="composer-source" class="sr-only">Content</label>
-            <textarea id="composer-source" rows="1" required aria-describedby="composer-help composer-status composer-error"></textarea>
-            <div id="composer-choices" class="replacement-choices" aria-label="Nemeth choices" hidden></div>
-            <div id="note-row" hidden>
-              <label for="composer-note">Note</label>
-              <textarea id="composer-note" rows="2"></textarea>
-            </div>
+            <label for="composer-source" class="sr-only">Equation input</label>
+            <textarea id="composer-source" rows="1" aria-describedby="composer-help composer-status composer-error"></textarea>
             <p id="composer-status" class="composer-status" aria-live="polite"></p>
-            <p id="composer-help">Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts a Nemeth equation, Ctrl+L a LaTeX equation, at the caret.</p>
+            <p id="composer-help">Enter inserts the equation. Escape cancels. Ctrl+E picks Nemeth and Ctrl+L picks LaTeX while the field is empty.</p>
             <p id="composer-error" class="error" hidden></p>
             <div class="composer-footer">
               <span id="editing-indicator" class="muted"></span>
-              <button id="composer-submit" type="submit" hidden>Insert equation</button>
-              <button id="composer-discard" type="button">Discard</button>
-              <button id="composer-cancel" type="button" hidden>Cancel</button>
+              <button id="composer-submit" type="submit">Insert equation</button>
+              <button id="composer-cancel" type="button">Cancel</button>
             </div>
           </form>
         </section>
 
         <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
           <h3 id="keyboard-help-heading">Keyboard help</h3>
-          <p><strong>Reading:</strong> Enter explores an equation. MathJax arrows navigate its hierarchy. r replaces the exact focus. a inserts after it. o inserts before it.</p>
-          <p><strong>Authoring:</strong> Type in the document to write. Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts a Nemeth equation; Ctrl+L inserts LaTeX. Enter commits the equation and keeps the equation editor up in the same method, so the next expression needs no Ctrl+E. Escape returns to text, and discards an unfinished equation. Ctrl+T toggles UEB grade on text. The Nemeth field takes braille cells only; Backspace deletes the last cell as in any text field, and a braille display works whether it sends cells or the plain text a computer-braille table produces — the app tells them apart on its own and the status line says which reading it used. With no pending UEB cells, full cell ⠿ inserts Nemeth (same as Ctrl+E). The UEB word “for” is also ⠿ at the start of a word and will do the same; use Ctrl+E or Insert → Equation (Nemeth) if that collides. The application menu Insert / Format / Help (Alt on Windows; menu bar on Mac) does the same actions.</p>
+          <p><strong>Writing:</strong> Type in the document. Enter starts a new paragraph. Ctrl+Z (Cmd+Z on Mac) undoes. Ctrl+Y (Cmd+Shift+Z on Mac) redoes. Undo covers typing and equations in one history.</p>
+          <p><strong>Equations:</strong> Alt+= on Windows, or Control+= on Mac, inserts an equation at the caret. Type it as Nemeth braille or LaTeX. Enter inserts it. Escape cancels. While the field is empty, Ctrl+E picks Nemeth and Ctrl+L picks LaTeX. The Nemeth field takes braille cells only. A braille display works whether it sends cells or the plain text a computer-braille table produces. The status line says which reading the app used.</p>
+          <p><strong>Reading an equation:</strong> Arrow keys move past an equation as one unit. The first Backspace next to it selects it. A second Backspace deletes it. With an equation selected, Enter reads it by parts. The arrow keys then move through its structure. r replaces the part you are on. a inserts after it. o inserts before it. Escape returns to the document.</p>
+          <p><strong>Braille:</strong> Ctrl+T (Cmd+T on Mac) toggles UEB grade. The Insert, Format and Help menus (Alt on Windows; menu bar on Mac) run the same actions.</p>
           <div data-command-help></div>
-          <p><strong>History:</strong> Cmd/Ctrl+Z undoes a submitted replacement. Cmd/Ctrl+Shift+Z redoes it.</p>
           <p><strong>Build:</strong> <span id="app-build-identity">unknown</span>. If braille input misbehaves, Help → Copy braille input diagnostics puts this and the last few keystrokes on the clipboard for a bug report.</p>
           <button id="close-keyboard-help" type="button">Close</button>
         </dialog>

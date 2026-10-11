@@ -6,8 +6,8 @@ lands on `main`. It is **not** a BANA conformance release.
 Freeze tip: `testing-freeze-20260814` (tag is behind tip `2ef0efb`).
 Current tip includes the Nemeth engineering-gate coverage refresh at
 `011f226` (944 official examples with Electron creation/editing
-evidence), plus notepad-with-equation-islands authoring, unified composer,
-and paper-writing UX.
+evidence), plus a Word-style document editor with inline equations
+([`word-editor.md`](word-editor.md)).
 
 ## Branch convention
 
@@ -29,21 +29,30 @@ equations, offline autosave.
 
 **New on `testing`:**
 
-- One unified composer field for text, new equations, and subtree **r** replace
-  (Nemeth / LaTeX in `#composer-source`; no separate replacement-dock chrome)
-- MathJax explorer: Enter to explore, arrows through hierarchy, **r** to
-  replace the focused subtree, **a** to insert after it, **o** to insert
-  before it — same captured node, same composer.
-- Type in the document. Ctrl+E inserts a Nemeth equation island; Ctrl+L
-  inserts LaTeX. Enter commits the equation and **stays in equation mode**, in
-  the same method, ready for the next expression. Escape returns to text (and
-  discards an unfinished equation).
+- **The napkin is one document, edited like Word.** Type, Enter for a new
+  paragraph, Ctrl+Z / Ctrl+Y to undo and redo (Cmd+Z / Cmd+Shift+Z on Mac).
+  Equations sit inside sentences. The design and the reason for every key are in
+  [`word-editor.md`](word-editor.md).
+- **Alt+= (Windows) or Control+= (Mac) inserts an equation** at the caret. A
+  small field opens. Type Nemeth or LaTeX. Ctrl+E / Ctrl+L pick the method while
+  the field is empty. Enter inserts the equation and returns to the document,
+  caret after it. Escape cancels. The field no longer stays open for the next
+  equation.
+- **An equation is one unit.** An arrow key selects it, the next moves past it.
+  Backspace next to it selects it, a second Backspace deletes it. Undo brings it
+  back.
+- **MathJax explorer:** with an equation selected, Enter reads it by parts. Arrows
+  go through the hierarchy. **r** replaces the focused part, **a** inserts after
+  it, **o** inserts before it. Escape returns to the document.
+- Old napkins open as documents: each text item becomes paragraphs, each
+  equation becomes an equation, and each note becomes a paragraph of its own.
+  A copy of the old file is kept beside it (`napkins.before-v3-<time>.json`).
 - Braille: the Nemeth field reads raw cells and computer-braille text alike,
   detected from the input itself with nothing to configure. Command mode is
   gone; there is no Ctrl+[, no Command n/i/t/x, and no Add item.
-- Application menu: Insert → Equation (Nemeth / LaTeX); Format → UEB G2 / G1
-  (Ctrl+T); Help → Keyboard shortcuts.
-- Notes UI hidden; literary UEB G1 / G2 via Ctrl+T on text
+- Application menu: Insert → Equation (Alt+= / Control+=), Equation (Nemeth),
+  Equation (LaTeX); Format → UEB G2 / G1 (Ctrl+T); Help → Keyboard shortcuts.
+- Notes are gone; literary UEB G1 / G2 via Ctrl+T on text
 - Literary UEB G1 / G2 text via native liblouis (`lou_translate`)
 - Backspace deletes the last cell in the Nemeth field, as in any text field
 - Headed thought-stream demo scripts (`npm run test:demo:thought`)
@@ -86,43 +95,48 @@ npm run test:demo:thought
 
 ## Sighted PM checklist
 
-1. Launch the packaged app or `npm start`. Confirm notes / type radios are not visible chrome.
-2. Type in the document. `#mode-panel` shows Text · UEB G2 (or G1). Ctrl+E
-   inserts Nemeth; Ctrl+L inserts LaTeX. Enter commits the equation and the
-   composer stays in equation mode — type a second expression with no Ctrl+E
-   in between, and check `#composer-status` says so. Escape returns to text;
-   it also discards an unfinished equation. `#mode-panel` must say `editing`,
-   not `empty`, once there are cells in the field.
-3. Type print text; confirm the article has a UEB `aria-braillelabel`
-   (inspect or AT). Ctrl+T toggles UEB G2 / G1.
-4. Ctrl+E → author Nemeth in `#composer-source` → Enter. With no braille
-   hardware, type the computer-braille spelling: `?a/b#` is a fraction. The
-   status line names the reading it used. Empty equation submit refuses (no
-   second dock).
-5. Enter explorer → arrow to a term → **r** → same composer opens (status
-   shows replacing scope); Escape cancels unchanged. **a** / **o** insert
-   after / before the focused node.
-6. Still in the explorer, press **Backspace**: the equation you are reading is
-   deleted, as it is for any other focused item. Then press **+ New napkin**
-   and type a name containing an `a`, `o` or `r` — every letter must reach the
-   name field, and focus must stay in it. Both failed in alpha 14: r / a / o
-   were claimed as explorer shortcuts wherever focus happened to be, so the
-   name went into the writing field instead and the form kept asking for one.
-7. Commit an equation with Enter, then press **Backspace** on the now-empty
-   field: the equation leaves the document and its cells come back into the
-   field, with `#composer-status` saying so. A second Backspace is an ordinary
-   cell delete — it must NOT reach further back into the napkin. Ctrl+Z does
-   the same as the first Backspace. Reported in alpha 14: "pressing backspace
-   and control z didn't erase the expression I'd written."
-8. Help → Copy braille input diagnostics after typing in both the napkin-name
-   field and the writing field. The report must carry a `-- typing into:` line
+1. Launch the packaged app or `npm start`. The document has focus. There is no
+   equation field on screen. `#mode-panel` shows Text · UEB G2.
+2. Type two paragraphs, with Enter between them. Ctrl+Z (Cmd+Z) undoes. Ctrl+Y
+   (Cmd+Shift+Z) redoes.
+3. Put the caret in the middle of a sentence. Press Alt+= (Windows) or Control+=
+   (Mac). The equation field opens with focus in it, and `#mode-panel` says
+   `Equation · … · empty`. Press Ctrl+L, type `x^2`, press Enter. The equation
+   appears at the caret, the field closes, and the caret is after the equation.
+   Keep typing: the sentence goes on after the equation.
+4. Nemeth: Alt+= / Control+=, Ctrl+E, then type the computer-braille spelling
+   `?a/b#` (a fraction). `#composer-status` names the reading it used. Enter
+   inserts it. An empty field refuses with a message. Escape cancels and leaves
+   the document unchanged. `#mode-panel` must say `editing`, not `empty`, once
+   there are cells in the field.
+5. Arrow onto an equation: the first press selects it as one unit, the next
+   moves past it. With a screen reader, the equation is spoken once, by name,
+   as the caret arrives.
+6. Backspace right after an equation selects it. A second Backspace deletes it.
+   Undo brings it back as one step, separate from typing.
+7. Select an equation and press Enter: the explorer takes focus. Arrow to a
+   term and press **r**. The field opens, and its heading names the part
+   being replaced. Escape cancels and leaves the equation unchanged. **a** and
+   **o** insert after and before the focused part. After Enter, the explorer is
+   back on the part you edited. Escape returns to the document with the equation
+   still selected. Undo restores the equation as it was before the edit.
+8. While reading an equation, press **Backspace**: the equation is deleted, and
+   undo restores it. Then press **+ New napkin** and type a name containing an
+   `a`, `o` or `r`. Every letter must reach the name field, and focus must stay
+   in it. This failed in alpha 14: r / a / o were claimed as explorer shortcuts
+   wherever focus happened to be.
+9. Help → Copy braille input diagnostics after typing in both the napkin-name
+   field and the equation field. The report must carry a `-- typing into:` line
    for each, and must not say `read as none` for a session that decoded cells.
-9. Cmd/Ctrl+Z undoes a submitted replacement; Shift+Z redoes.
-10. Backspace in an open Nemeth draft undoes the last accepted step.
-11. Keyboard help (button, Help menu, or the dialog) lists Ctrl+E / L / T,
-   Enter, Escape, and the application menu. No Ctrl+[, Command keys, or Add
-   item.
-12. Quit, reopen, confirm the napkin persisted.
+10. Type print text. Confirm each paragraph has a UEB `aria-braillelabel`
+    (inspect or AT). Ctrl+T toggles UEB G2 / G1.
+11. Keyboard help (button, Help menu, or the dialog) lists Alt+= / Control+=,
+    Ctrl+E / Ctrl+L, Ctrl+T, undo and redo, and the explorer keys. No item
+    navigation, no Command keys.
+12. Quit, reopen, confirm the napkin persisted. Open a napkin made before this
+    build: its text and equations are there as paragraphs and equations, its
+    notes are paragraphs, and `napkins.before-v3-<time>.json` is in the data
+    folder.
 
 More detail: [`guided-nemeth-user-guide.md`](guided-nemeth-user-guide.md).
 
@@ -146,20 +160,25 @@ source before the task. Full protocol:
 **Core AT path to try:**
 
 1. Create a napkin; type in the document.
-2. Ctrl+E inserts Nemeth; Ctrl+L inserts LaTeX. Enter commits the equation
-   and keeps the equation editor up in the same method. Escape returns to
-   text; it also discards an unfinished equation.
-3. Ctrl+T toggles UEB grade on text. Insert / Format / Help menus (Alt on
+2. Press Alt+= (Windows) or Control+= (Mac) to insert an equation. Type Nemeth or
+   LaTeX. Ctrl+E picks Nemeth and Ctrl+L picks LaTeX while the field is empty.
+   Enter inserts it and returns you to the document. Escape cancels.
+3. Arrow across the equation. **Tell us exactly what your screen reader says**
+   as the caret arrives, as it passes, and when you arrow back. Say which screen
+   reader and which browser engine you used. This is the most useful report we
+   can get for this build.
+4. Ctrl+T toggles UEB grade on text. Insert / Format / Help menus (Alt on
    Windows; menu bar on Mac) do the same.
-4. For an equation: author cells in the unified composer from the braille
-   display; submit with Enter. If your display sends translated text rather than
-   cells, that is expected to work too — the status line will say "read as
-   computer braille". If it does not, send Help → Copy braille input diagnostics.
-5. Enter explorer; arrow to a subexpression; press **r**; author in the same
-   composer; submit. **a** / **o** insert after / before that node.
-6. Confirm the focused braille matches the **subtree**, not only the whole
+5. For an equation: author cells in the field from the braille display; submit
+   with Enter. If your display sends translated text rather than cells, that is
+   expected to work too — the status line will say "read as computer braille".
+   If it does not, send Help → Copy braille input diagnostics.
+6. Select an equation and press Enter to read it by parts. Arrow to a
+   subexpression; press **r**; author the replacement; submit. **a** / **o**
+   insert after / before that part.
+7. Confirm the focused braille matches the **subtree**, not only the whole
    expression.
-7. Undo / redo; save; quit; reopen.
+8. Backspace next to an equation, twice. Undo. Redo. Save; quit; reopen.
 
 **Honest limits for this gate:**
 
@@ -174,8 +193,14 @@ source before the task. Full protocol:
   disclosure — the status line names the reading on every keystroke, so nothing
   is reinterpreted silently.
 - ⠿ as a shortcut for "insert Nemeth" does **not** work and never did in a
-  shipped build: its only code path sat behind a simulation flag that was never
-  set. Use Ctrl+E or Insert → Equation (Nemeth).
+  shipped build. Use Alt+= / Control+= then Ctrl+E, or Insert → Equation (Nemeth).
+- The equation field no longer stays open after Enter. An alpha tester asked for
+  that in August 2026, because they wrote several equations in a row. In a
+  document, text follows an equation, so the caret now returns to the document.
+  Tell us if this slows you down.
+- Screen readers differ on equations inside a sentence. NVDA names the equation
+  as the caret arrives. VoiceOver has not been confirmed. See the open questions
+  in [`word-editor.md`](word-editor.md).
 - If braille input does not behave, **Help → Copy braille input diagnostics** captures
   the build, the input table in force, and everything the writing field received
   **since the app was opened** — not a tail of it. Three things changed after an alpha

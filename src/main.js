@@ -137,11 +137,18 @@ function buildApplicationMenu() {
       label: 'Insert',
       submenu: [
         {
-          label: `Equation (Nemeth)\t${mod}+E`,
+          // Word's own keys: Alt+= on Windows, Control+= on Mac. The key itself
+          // is handled in the editor (src/renderer/editor/index.js); this label
+          // is the menu's reminder of it. It uses the last method chosen.
+          label: `Equation\t${isMac ? 'Ctrl' : 'Alt'}+=`,
+          click: () => sendMenuCommand({ action: 'insert-equation' })
+        },
+        {
+          label: 'Equation (Nemeth)',
           click: () => sendMenuCommand({ action: 'insert-equation', method: 'nemeth' })
         },
         {
-          label: `Equation (LaTeX)\t${mod}+L`,
+          label: 'Equation (LaTeX)',
           click: () => sendMenuCommand({ action: 'insert-equation', method: 'latex' })
         }
       ]

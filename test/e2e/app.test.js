@@ -1,15 +1,28 @@
 import assert from 'node:assert/strict';
-import { copyFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
 
 import axe from 'axe-core';
-import { _electron as electron } from 'playwright';
-import { addEquationViaComposer, chooseMethod, chooseType, electronLaunchEnv } from './launch-electron.js';
+import {
+  DOC_END,
+  enterExplorer,
+  explorerSpeech,
+  focusDocument,
+  getDoc,
+  getMathNodes,
+  insertEquation,
+  launchApp,
+  mathNodeLocator,
+  openEquationDock,
+  paragraphTexts,
+  press,
+  projectRoot,
+  settle,
+  typeEquation
+} from './launch-electron.js';
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const artifactDirectory = path.join(projectRoot, 'test', 'artifacts', 'latest');
 
 async function resetArtifactDirectory() {
@@ -28,21 +41,12 @@ async function saveNapkinFile(dataDirectory) {
   }
 }
 
-async function launch(dataDirectory) {
-  const electronApp = await electron.launch({
-    args: ['.'],
-    cwd: projectRoot,
-    env: electronLaunchEnv({ OMNIYA_TEST_USER_DATA_DIR: dataDirectory })
-  });
-  const page = await electronApp.firstWindow();
-  const externalRequests = [];
-  page.on('request', (request) => {
-    if (/^https?:/i.test(request.url())) externalRequests.push(request.url());
-  });
-  await electronApp.context().setOffline(true);
-  await page.waitForLoadState('domcontentloaded');
-  await page.locator('#app-shell[aria-busy="false"]').waitFor();
-  return { electronApp, page, externalRequests };
+/** Launch on a fresh data directory. The app closes when the test ends. */
+async function start(t, prefix = 'omniya-e2e-') {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), prefix));
+  const session = await launchApp({ dataDirectory });
+  t.after(() => session.electronApp.close().catch(() => {}));
+  return { ...session, dataDirectory };
 }
 
 async function assertNoAxeViolations(page) {
@@ -51,10 +55,25 @@ async function assertNoAxeViolations(page) {
   assert.deepEqual(scan.violations, []);
 }
 
-test('supports a live-text offline napkin workflow', { timeout: 60_000 }, async (t) => {
+const modePanelText = (page) => page.locator('#mode-panel').textContent();
+const modePanelReads = (page, pattern) => page.waitForFunction(
+  (source) => new RegExp(source, 'i').test(document.querySelector('#mode-panel')?.textContent ?? ''),
+  pattern.source
+);
+const focusIsInDocument = (page) => page.evaluate(
+  () => document.activeElement?.closest('#editor-host') !== null
+);
+
+async function createNapkin(page, name) {
+  await page.getByRole('button', { name: 'New napkin' }).click();
+  await page.getByLabel('Napkin name').fill(name);
+  await page.getByRole('button', { name: 'Create napkin' }).click();
+}
+
+test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async (t) => {
   await resetArtifactDirectory();
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-e2e-'));
-  let session = await launch(dataDirectory);
+  let session = await launchApp({ dataDirectory });
   t.after(async () => {
     await saveNapkinFile(dataDirectory);
     await session.electronApp.close().catch(() => {});
@@ -62,528 +81,282 @@ test('supports a live-text offline napkin workflow', { timeout: 60_000 }, async 
 
   const { page } = session;
   const napkinRail = page.getByRole('complementary', { name: 'Napkins' });
-  const articles = page.locator('article.napkin-article');
-  const source = page.getByLabel('Content', { exact: true });
+  const editor = page.locator('#editor-host [contenteditable="true"]');
 
+  // The document is the first thing there is. No equation field until asked for.
   await napkinRail.waitFor();
-  await page.getByRole('heading', { name: 'Reading' }).waitFor();
-  assert.equal(await page.locator('#open-add-button').count(), 0);
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB G2/);
+  assert.equal(await editor.getAttribute('aria-label'), 'Untitled Napkin');
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
+  assert.equal(await focusIsInDocument(page), true);
+  assert.match(await modePanelText(page), /Text · UEB G2/);
   assert.equal(await page.locator('#mode-panel').getAttribute('aria-live'), null);
   assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 1);
   await assertNoAxeViolations(page);
 
-  await page.getByRole('button', { name: 'New napkin' }).click();
-  await page.getByLabel('Napkin name').fill('Proof ideas');
-  await page.getByRole('button', { name: 'Create napkin' }).click();
+  await createNapkin(page, 'Proof ideas');
   assert.equal(await napkinRail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
-  assert.equal(await page.locator('#open-add-button').count(), 0);
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB G2/);
-  assert.doesNotMatch(await page.locator('#composer-heading').textContent() ?? '', /Adding to/i);
-  assert.match(await page.locator('#composer-help').textContent() ?? '', /Enter starts a new paragraph/i);
-  assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 1);
+  assert.equal(await editor.getAttribute('aria-label'), 'Proof ideas');
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
+  assert.equal(await focusIsInDocument(page), true, 'a new napkin is ready to type in');
+  assert.match(await modePanelText(page), /Text · UEB G2/);
   await assertNoAxeViolations(page);
-  const modeSwitchChrome = await page.locator('#mode-switch').evaluate((el) => {
-    const style = getComputedStyle(el);
-    return { position: style.position, clip: style.clip, overflow: style.overflow };
-  });
-  assert.equal(modeSwitchChrome.position, 'absolute');
-  assert.equal(modeSwitchChrome.overflow, 'hidden');
-  assert.match(modeSwitchChrome.clip, /^rect\(0px[, ]+0px[, ]+0px[, ]+0px\)$/);
-  await source.fill('Let a be positive.');
-  assert.equal(await page.locator('#note-toggle').isVisible(), false);
-  assert.equal(await page.locator('#note-row').isVisible(), false);
-  await articles.first().waitFor();
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
-  assert.equal(await articles.count(), 1);
-  assert.match(await articles.first().textContent(), /Let a be positive/);
-  assert.equal(await articles.first().locator('.item-note').count(), 0);
 
-  await chooseType(page, 'equation');
-  assert.equal(await page.locator('#note-toggle').isVisible(), false);
-  const methodChrome = await page.locator('#replacement-method').evaluate((el) => {
-    const style = getComputedStyle(el);
-    return { position: style.position, clip: style.clip, overflow: style.overflow };
-  });
-  assert.equal(methodChrome.position, 'absolute');
-  assert.equal(methodChrome.overflow, 'hidden');
-  assert.match(methodChrome.clip, /^rect\(0px[, ]+0px[, ]+0px[, ]+0px\)$/);
-  await chooseMethod(page, 'latex');
-  await page.locator('#composer-source').fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await articles.nth(1).locator('mjx-container').waitFor();
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-
-  assert.equal(await articles.count(), 2);
-  assert.equal(await articles.nth(1).locator('h4').count(), 0);
-  assert.equal(await articles.nth(1).locator('.item-source').count(), 0);
-  assert.ok(await articles.nth(1).locator('mjx-container').count());
-  assert.ok(await articles.nth(1).locator('mjx-container math mfrac').count());
-  assert.ok(await articles.nth(1).locator('mjx-container math msubsup').count());
-  assert.equal(await articles.nth(1).locator('.item-note').count(), 0);
-
-  const firstArticle = articles.nth(0);
-  const secondArticle = articles.nth(1);
-  await firstArticle.click();
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.match(await source.inputValue(), /Let a be positive/);
-  await secondArticle.click();
-  await secondArticle.focus();
-  assert.equal(await secondArticle.getAttribute('tabindex'), '0');
-  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
+  // The equation field open, with an unreadable expression refused in words.
+  await openEquationDock(page, 'latex');
+  assert.match(await modePanelText(page), /Equation · LaTeX · empty/);
+  await assertNoAxeViolations(page);
+  await typeEquation(page, { method: 'latex', source: '\\frac{' });
   await page.keyboard.press('Enter');
-  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
-  assert.equal(await page.evaluate(() => document.activeElement?.closest?.('mjx-container')?.localName), 'mjx-container');
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => document.activeElement?.tagName === 'ARTICLE');
-  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
-  await page.keyboard.press('r');
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.locator('#replacement-dock').isVisible(), false);
-  assert.match(await page.locator('#mode-panel').textContent() ?? '', /replacing/i);
-  await assertNoAxeViolations(page);
-  await chooseMethod(page, 'latex');
-  await page.getByLabel('Replacement input', { exact: true }).fill('\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=3x^2');
-  await page.getByRole('button', { name: 'Replace' }).click();
-  await articles.nth(1).locator('mjx-container').waitFor();
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.getByRole('heading', { name: 'Reading' }).count(), 1);
-  assert.ok(await articles.nth(1).locator('mjx-container math').count());
-
-  await secondArticle.focus();
-  await secondArticle.press('ArrowUp');
-  assert.equal(await firstArticle.getAttribute('tabindex'), '0');
-  await firstArticle.press('Home');
-  assert.equal(await firstArticle.getAttribute('tabindex'), '0');
-  await firstArticle.press('End');
-  assert.equal(await secondArticle.getAttribute('tabindex'), '0');
-
-  await source.focus();
-  await source.press('Escape');
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'ARTICLE');
-  assert.equal(await secondArticle.evaluate((el) => el === document.activeElement), true);
-  assert.equal(await articles.count(), 2);
-
-  await chooseType(page, 'equation');
-  await chooseMethod(page, 'latex');
-  await page.locator('#composer-source').fill('\\frac{');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => !document.querySelector('#composer-error')?.hidden);
   assert.match(await page.locator('#composer-error').textContent(), /convert|incomplete|empty/i);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true, 'a refused equation keeps the field open');
   await assertNoAxeViolations(page);
   await page.keyboard.press('Escape');
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  assert.equal(await focusIsInDocument(page), true);
+  assert.deepEqual(await paragraphTexts(page), ['']);
 
+  // Keyboard help.
   await page.getByRole('button', { name: 'Keyboard help' }).click();
-  assert.equal(await page.getByRole('dialog', { name: 'Keyboard help' }).count(), 1);
+  const help = page.getByRole('dialog', { name: 'Keyboard help' });
+  await help.waitFor();
+  await assertNoAxeViolations(page);
+  const helpText = await help.innerText();
+  assert.match(helpText, /Ctrl\+E/);
+  assert.match(helpText, /Ctrl\+L/);
+  assert.match(helpText, /Ctrl\+T/);
+  assert.match(helpText, /Escape/);
   await page.getByRole('button', { name: 'Close' }).click();
+  await help.waitFor({ state: 'hidden' });
+  await focusDocument(page);
 
-  await page.getByRole('button', { name: 'New napkin' }).click();
-  await page.getByLabel('Napkin name').fill('Text notes');
-  await page.getByRole('button', { name: 'Create napkin' }).click();
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  await source.fill('The proof starts here.');
-  await source.press('Enter');
-  await source.type('Second line.');
-  const textNotesArticles = page.locator('article.napkin-article');
-  await textNotesArticles.first().waitFor();
-  assert.equal(await textNotesArticles.count(), 2);
-  assert.match(await textNotesArticles.nth(0).textContent(), /The proof starts here/);
-  assert.match(await textNotesArticles.nth(1).textContent(), /Second line/);
-  await textNotesArticles.nth(1).focus();
-  await textNotesArticles.nth(1).press('Backspace');
-  assert.equal(await textNotesArticles.count(), 1);
-  await textNotesArticles.nth(0).focus();
-  await textNotesArticles.nth(0).press('Backspace');
-  assert.equal(await textNotesArticles.count(), 0);
-  assert.equal(await page.getByText('No items yet. Start typing.').count(), 1);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-
-  await napkinRail.getByRole('button', { name: 'Proof ideas' }).click();
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.equal(await articles.count(), 2);
-  await articles.nth(1).locator('mjx-container').waitFor();
-  assert.ok(await articles.nth(1).locator('mjx-container math').count());
-  const ariaSnapshot = await page.getByRole('main').ariaSnapshot();
-  assert.match(ariaSnapshot, /Reading/);
-  assert.match(ariaSnapshot, /Napkin content/);
-
-  assert.deepEqual([...session.externalRequests], []);
-  await session.electronApp.close();
-  session = await launch(dataDirectory);
-  await session.page.getByRole('complementary', { name: 'Napkins' }).waitFor();
-  await session.page.getByRole('button', { name: 'Proof ideas' }).click();
-  await session.page.locator('article mjx-container').waitFor();
-  assert.ok(await session.page.locator('article mjx-container math').count());
-  assert.equal(await session.page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.deepEqual([...session.externalRequests], []);
-});
-
-test('Ctrl+L inserts LaTeX at the caret and Enter keeps the equation editor up', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-ctrl-l-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
-  const source = page.getByLabel('Content', { exact: true });
-  const articles = page.locator('article.napkin-article');
-  await source.waitFor();
-  await source.fill('Let x equal ');
-  await source.focus();
-  await page.keyboard.press('Control+l');
-  await page.waitForFunction(() => /Equation · LaTeX/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  await source.fill('2+2');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
-  assert.ok(await articles.locator('mjx-container, math').count());
-  // Equation mode is sticky, and sticky in the method that just committed.
-  // Reported by an alpha tester (2026-08-23): dropping to text after every
-  // Enter charged a Ctrl+L per equation, and someone writing mathematics is
-  // usually writing more than one expression.
-  await page.waitForFunction(() => /Equation · LaTeX/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.equal(await source.inputValue(), '', 'ready for the next expression, not holding the last');
-
-  // Escape is the way back to text, and it always was. The prose the equation
-  // was inserted into has to survive that -- sticky mode re-opens a draft at
-  // the caret after every commit, and discarding one must not take the
-  // surrounding text with it.
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  assert.match(
-    await page.locator('#transcript').textContent() ?? '',
-    /Let x equal/,
-    'the text the equation was written into is still in the napkin'
-  );
-});
-
-test('Ctrl+E opens Nemeth; Escape discards and returns to text', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-ctrl-e-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
-  const source = page.getByLabel('Content', { exact: true });
-  await source.waitFor();
-  await source.fill('Before equation');
-  await source.focus();
-  await page.keyboard.press('Control+e');
-  await page.waitForFunction(() => /Equation · Nemeth/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text/);
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
-  assert.equal(await page.locator('#composer-dock').isVisible(), true);
-});
-
-test('Ctrl+E mid-word does not split HelloWorld until commit; Escape leaves one article', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-defer-split-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
-  const source = page.getByLabel('Content', { exact: true });
-  const articles = page.locator('article.napkin-article');
-  await source.waitFor();
-  await source.fill('HelloWorld');
-  await articles.filter({ hasText: 'HelloWorld' }).waitFor();
-  await source.evaluate((el) => el.setSelectionRange(5, 5));
-  await page.keyboard.press('Control+e');
-  await page.waitForFunction(() => /Equation · Nemeth/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  assert.equal(await articles.count(), 1);
-  assert.equal((await articles.locator('.item-text').textContent())?.trim(), 'HelloWorld');
-
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  assert.equal(await articles.count(), 1);
-  assert.equal((await articles.locator('.item-text').textContent())?.trim(), 'HelloWorld');
-  assert.match(await source.inputValue(), /HelloWorld/);
-});
-
-test('Ctrl+L mid-word commits an island and puts the caret at the start of World', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-mid-commit-caret-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
-  const source = page.getByLabel('Content', { exact: true });
-  const articles = page.locator('article.napkin-article');
-  await source.waitFor();
-  await source.fill('HelloWorld');
-  await source.evaluate((el) => el.setSelectionRange(5, 5));
-  await page.keyboard.press('Control+l');
-  await page.waitForFunction(() => /Equation · LaTeX/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await source.fill('x');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
-  // Equation mode is sticky after Enter (5f8ab9c): the composer stays in the
-  // method that just committed, so the next expression needs no Ctrl+E or
-  // Ctrl+L. Escape is the way back to text, and what this test checks is what
-  // the text field holds once it is text again.
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-
-  assert.equal(await articles.count(), 3);
-  assert.equal((await articles.nth(0).locator('.item-text').textContent())?.trim(), 'Hello');
-  assert.ok(await articles.nth(1).locator('mjx-container, math').count());
-  assert.equal((await articles.nth(2).locator('.item-text').textContent())?.trim(), 'World');
-  assert.equal(await source.inputValue(), 'World');
-  const caret = await source.evaluate((el) => el.selectionStart);
-  assert.equal(caret, 0);
-  await source.pressSequentially('!');
-  assert.equal((await articles.nth(2).locator('.item-text').textContent())?.trim(), '!World');
-});
-
-test('Escape after Ctrl+E at the start of World does not merge it into Hello', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-escape-split-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
-  const source = page.getByLabel('Content', { exact: true });
-  const articles = page.locator('article.napkin-article');
-  await source.waitFor();
-  await source.fill('Hello');
-  await source.focus();
-  await page.keyboard.press('Control+l');
-  await page.waitForFunction(() => /Equation · LaTeX/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await source.fill('x');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
-  // Equation mode is sticky after Enter (5f8ab9c): the composer stays in the
-  // method that just committed, so the next expression needs no Ctrl+E or
-  // Ctrl+L. Escape is the way back to text, and what this test checks is what
-  // the text field holds once it is text again.
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await source.waitFor();
-  await source.fill('World');
-  await articles.filter({ hasText: 'World' }).waitFor();
-  assert.equal(await articles.count(), 3);
-
-  const equation = articles.nth(1);
-  await equation.click();
-  await equation.focus();
-  await equation.press('Backspace');
-  await articles.filter({ hasText: 'World' }).waitFor();
-  assert.equal(await articles.count(), 2);
-
-  await articles.filter({ hasText: 'World' }).click();
-  await source.waitFor();
-  assert.match(await source.inputValue(), /World/);
-  await source.evaluate((el) => el.setSelectionRange(0, 0));
-  await page.keyboard.press('Control+e');
-  await page.waitForFunction(() => /Equation · Nemeth/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-
-  const texts = articles.locator('.item-text');
-  assert.equal(await texts.count(), 2);
-  assert.equal((await texts.nth(0).textContent())?.trim(), 'Hello');
-  assert.equal((await texts.nth(1).textContent())?.trim(), 'World');
-  assert.equal(await articles.filter({ hasText: 'HelloWorld' }).count(), 0);
-});
-
-test('Escape at the start of World keeps Hello and World on either side of an equation', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-escape-island-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
-  const source = page.getByLabel('Content', { exact: true });
-  const articles = page.locator('article.napkin-article');
-  await source.waitFor();
-  await source.fill('Hello');
-  await source.focus();
-  await page.keyboard.press('Control+l');
-  await page.waitForFunction(() => /Equation · LaTeX/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await source.fill('x');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
-  // Equation mode is sticky after Enter (5f8ab9c): the composer stays in the
-  // method that just committed, so the next expression needs no Ctrl+E or
-  // Ctrl+L. Escape is the way back to text, and what this test checks is what
-  // the text field holds once it is text again.
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await source.fill('World');
-  await articles.filter({ hasText: 'World' }).waitFor();
-  assert.equal(await articles.count(), 3);
-
-  await articles.filter({ hasText: 'World' }).click();
-  await source.waitFor();
-  assert.match(await source.inputValue(), /World/);
-  await source.evaluate((el) => el.setSelectionRange(0, 0));
-  await page.keyboard.press('Control+e');
-  await page.waitForFunction(() => /Equation · Nemeth/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-
-  assert.equal(await articles.count(), 3);
-  assert.equal((await articles.nth(0).locator('.item-text').textContent())?.trim(), 'Hello');
-  assert.ok(await articles.nth(1).locator('mjx-container, math').count());
-  assert.equal((await articles.nth(2).locator('.item-text').textContent())?.trim(), 'World');
-});
-
-test('Ctrl+E after clearing middle live text inserts at the hole', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-middle-hole-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
-  const source = page.getByLabel('Content', { exact: true });
-  const articles = page.locator('article.napkin-article');
-  await source.waitFor();
-  await source.fill('Hello');
-  await source.focus();
-  await page.keyboard.press('Control+l');
-  await page.waitForFunction(() => /Equation · LaTeX/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await source.fill('x');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await articles.locator('mjx-container, math').first().waitFor({ timeout: 30_000 });
-  // Equation mode is sticky after Enter (5f8ab9c): the composer stays in the
-  // method that just committed, so the next expression needs no Ctrl+E or
-  // Ctrl+L. Escape is the way back to text, and what this test checks is what
-  // the text field holds once it is text again.
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => /Text/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await source.fill('World');
-  await articles.filter({ hasText: 'World' }).waitFor();
-
-  await articles.filter({ hasText: 'Hello' }).click();
-  await source.waitFor();
-  assert.match(await source.inputValue(), /Hello/);
-  await source.fill('   ');
-  await page.keyboard.press('Control+l');
-  await page.waitForFunction(() => /Equation · LaTeX/i.test(
-    document.querySelector('#mode-panel')?.textContent ?? ''
-  ));
-  await source.fill('y');
-  await page.locator('#composer-form').evaluate((form) => form.requestSubmit());
-  await articles.locator('mjx-container, math').nth(1).waitFor({ timeout: 30_000 });
-
-  assert.equal(await articles.count(), 3);
-  assert.ok(await articles.nth(0).locator('mjx-container, math').count());
-  assert.ok(await articles.nth(1).locator('mjx-container, math').count());
-  assert.equal((await articles.nth(2).locator('.item-text').textContent())?.trim(), 'World');
-});
-
-test('moves left and right between sibling expressions inside MathML', { timeout: 60_000 }, async (t) => {
-  await resetArtifactDirectory();
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-horizontal-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await saveNapkinFile(dataDirectory);
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
-  await addEquationViaComposer(page, { method: 'latex', source: 'a+b' });
-
-  const article = page.locator('article.napkin-article').first();
-  await article.locator('mjx-container').waitFor();
-  await article.locator('mjx-speech').waitFor();
-  await article.focus();
+  await page.keyboard.type('Let a be positive.');
   await page.keyboard.press('Enter');
-  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('mjx-container')));
+  await page.keyboard.type('Then ');
+  await insertEquation(page, {
+    method: 'latex',
+    source: '\\frac{d}{dx}\\left(\\int_0^x e^{t^2}\\,dt\\right)=e^{x^2}'
+  });
+  assert.deepEqual(await paragraphTexts(page), ['Let a be positive.', 'Then [math]']);
+  const equation = mathNodeLocator(page).first();
+  assert.ok(await equation.locator('mjx-container math mfrac').count());
+  assert.ok(await equation.locator('mjx-container math msubsup').count());
+  assert.equal(await equation.getAttribute('role'), 'img');
+  assert.ok((await equation.getAttribute('aria-label') ?? '').length > 0, 'the equation has a spoken name');
 
-  const speech = article.locator('mjx-speech');
+  // A second napkin holds its own document.
+  await createNapkin(page, 'Text notes');
+  assert.equal(await focusIsInDocument(page), true);
+  await page.keyboard.type('The proof starts here.');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('Second line.');
+  assert.deepEqual(await paragraphTexts(page), ['The proof starts here.', 'Second line.']);
+  // Select all and delete leaves one empty paragraph to type in, as Word does.
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('Backspace');
+  assert.deepEqual(await paragraphTexts(page), ['']);
+
+  // Switching back loads the first napkin's document, equation drawn.
+  await napkinRail.getByRole('button', { name: 'Proof ideas' }).click();
+  await mathNodeLocator(page).first().locator('mjx-container').waitFor();
+  assert.deepEqual(await paragraphTexts(page), ['Let a be positive.', 'Then [math]']);
+  assert.equal(await focusIsInDocument(page), true);
+  const ariaSnapshot = await page.getByRole('main').ariaSnapshot();
+  assert.match(ariaSnapshot, /textbox "Proof ideas"/);
+
+  assert.deepEqual([...session.externalRequests], []);
+  await page.evaluate(() => globalThis.__omniyaTesting.flush());
+  const before = await getDoc(page);
+  await session.electronApp.close();
+
+  session = await launchApp({ dataDirectory });
+  await session.page.getByRole('complementary', { name: 'Napkins' }).waitFor();
+  assert.deepEqual(await getDoc(session.page), before, 'the active napkin comes back as it was');
+  await mathNodeLocator(session.page).first().locator('mjx-container').waitFor();
+  assert.ok(await mathNodeLocator(session.page).first().locator('mjx-container math').count());
+  assert.equal(await focusIsInDocument(session.page), true);
+  await session.page.getByRole('button', { name: 'Text notes' }).click();
+  assert.deepEqual(await paragraphTexts(session.page), ['']);
+  assert.deepEqual([...session.externalRequests], []);
+});
+
+test('the equation key inserts at the caret, and the dock closes with the caret after the equation', { timeout: 60_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-insert-e2e-');
+
+  await page.keyboard.type('Let x equal ');
+  await openEquationDock(page, 'latex');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  assert.match(await modePanelText(page), /Equation · LaTeX/);
+  await typeEquation(page, { method: 'latex', source: '2+2' });
+  await page.keyboard.press('Enter');
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await mathNodeLocator(page).first().locator('mjx-container').waitFor({ timeout: 30_000 });
+
+  // Unlike the earlier editor, the field does not stay up. The document has text
+  // after an equation, so the caret goes back to it.
+  assert.equal(await focusIsInDocument(page), true);
+  assert.match(await modePanelText(page), /Text · UEB G2/);
+  assert.deepEqual(await paragraphTexts(page), ['Let x equal [math]']);
+  await page.keyboard.type('.');
+  assert.deepEqual(await paragraphTexts(page), ['Let x equal [math].']);
+});
+
+test('Ctrl+E in the equation field picks Nemeth; Escape cancels and keeps the text', { timeout: 60_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-pick-nemeth-e2e-');
+
+  await page.keyboard.type('Before equation');
+  await openEquationDock(page, 'latex');
+  await modePanelReads(page, /Equation · LaTeX/);
+  await page.keyboard.press('Control+e');
+  await modePanelReads(page, /Equation · Nemeth/);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'composer-source');
+  await page.keyboard.press('Control+l');
+  await modePanelReads(page, /Equation · LaTeX/);
+  await page.keyboard.press('Control+e');
+  await modePanelReads(page, /Equation · Nemeth/);
+
+  await page.keyboard.press('Escape');
+  await modePanelReads(page, /Text/);
+  assert.equal(await page.locator('#composer-dock').isVisible(), false);
+  assert.equal(await focusIsInDocument(page), true);
+  assert.deepEqual(await paragraphTexts(page), ['Before equation']);
+});
+
+test('an equation in the middle of a word splits it around the equation, and Escape does not', { timeout: 90_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-mid-word-e2e-');
+
+  await page.keyboard.type('HelloWorld');
+  await press(page, 'ArrowLeft', 'World'.length);
+
+  // Opening the field changes nothing in the document.
+  await openEquationDock(page, 'nemeth');
+  assert.deepEqual(await paragraphTexts(page), ['HelloWorld']);
+  await page.keyboard.press('Escape');
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  assert.deepEqual(await paragraphTexts(page), ['HelloWorld']);
+  assert.equal(await focusIsInDocument(page), true);
+
+  // Escape put the caret back where it was, so the equation goes between the words.
+  await insertEquation(page, { method: 'latex', source: 'x' });
+  assert.deepEqual(await paragraphTexts(page), ['Hello[math]World']);
+  assert.equal((await getDoc(page)).content.length, 1, 'still one paragraph');
+
+  // The caret is at the start of World, not at the end of the paragraph.
+  await page.keyboard.type('!');
+  assert.deepEqual(await paragraphTexts(page), ['Hello[math]!World']);
+});
+
+test('Escape at the start of World keeps Hello and World on either side of an equation', { timeout: 90_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-escape-island-e2e-');
+
+  await page.keyboard.type('Hello');
+  await insertEquation(page, { method: 'latex', source: 'x' });
+  await page.keyboard.type('World');
+  assert.deepEqual(await paragraphTexts(page), ['Hello[math]World']);
+
+  await press(page, 'ArrowLeft', 'World'.length);
+  await openEquationDock(page, 'nemeth');
+  await page.keyboard.press('Escape');
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await modePanelReads(page, /Text/);
+
+  assert.deepEqual(await paragraphTexts(page), ['Hello[math]World']);
+  assert.equal((await getMathNodes(page)).length, 1);
+  // Typing continues from the start of World, so nothing merged or moved.
+  await page.keyboard.type('>');
+  assert.deepEqual(await paragraphTexts(page), ['Hello[math]>World']);
+});
+
+test('an equation can be inserted into a paragraph that was cleared in the middle of the document', { timeout: 90_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-middle-hole-e2e-');
+
+  await page.keyboard.type('Hello');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('middle');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('World');
+  // Let the editor catch up with the typing before the first navigation key.
+  await settle(page, 300);
+  await press(page, 'ArrowUp');
+  await press(page, 'ArrowRight');
+  await press(page, 'Backspace', 'middle'.length);
+  assert.deepEqual(await paragraphTexts(page), ['Hello', '', 'World']);
+
+  await insertEquation(page, { method: 'latex', source: 'y' });
+  assert.deepEqual(await paragraphTexts(page), ['Hello', '[math]', 'World']);
+  await page.keyboard.press(DOC_END);
+  await page.keyboard.type('!');
+  assert.deepEqual(await paragraphTexts(page), ['Hello', '[math]', 'World!']);
+});
+
+test('moves left and right between sibling expressions inside MathML', { timeout: 90_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-horizontal-e2e-');
+
+  await insertEquation(page, { method: 'latex', source: 'a+b' });
+  const node = await enterExplorer(page, 0);
+  await node.locator('mjx-speech').waitFor();
+
+  const speech = node.locator('mjx-speech');
+  const labelIs = (label) => page.waitForFunction(
+    (expected) => document.querySelector('.math-node mjx-speech')?.getAttribute('aria-label') === expected,
+    label
+  );
   await page.keyboard.press('ArrowDown');
-  await page.waitForFunction(() => document.querySelector('article mjx-speech')?.getAttribute('aria-label') === 'a');
+  await labelIs('a');
   const first = await speech.getAttribute('aria-label');
   await page.keyboard.press('ArrowRight');
-  await page.waitForFunction(() => document.querySelector('article mjx-speech')?.getAttribute('aria-label') === 'plus');
-  const right = await speech.getAttribute('aria-label');
-  assert.equal(first, 'a');
-  assert.equal(right, 'plus');
+  await labelIs('plus');
+  assert.equal(await speech.getAttribute('aria-label'), 'plus');
   await page.keyboard.press('ArrowRight');
-  await page.waitForFunction(() => document.querySelector('article mjx-speech')?.getAttribute('aria-label') === 'b');
-  assert.equal(await speech.getAttribute('aria-label'), 'b');
+  await labelIs('b');
   await page.keyboard.press('ArrowLeft');
-  await page.waitForFunction(() => document.querySelector('article mjx-speech')?.getAttribute('aria-label') === 'plus');
+  await labelIs('plus');
   await page.keyboard.press('ArrowLeft');
-  await page.waitForFunction(() => document.querySelector('article mjx-speech')?.getAttribute('aria-label') === 'a');
+  await labelIs('a');
   assert.equal(await speech.getAttribute('aria-label'), first);
+  assert.equal(await explorerSpeech(page) !== null, true);
+});
+
+test('r on an equation read by parts replaces it through the equation field', { timeout: 90_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-replace-e2e-');
+
+  await insertEquation(page, { method: 'latex', source: 'a+b' });
+  const [{ attrs: original }] = await getMathNodes(page);
+  await enterExplorer(page, 0);
+
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor({ state: 'visible' });
+  await modePanelReads(page, /replacing/i);
+  await typeEquation(page, { method: 'latex', source: 'c' });
+  await page.keyboard.press('Enter');
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await page.waitForFunction(() => document.querySelector('#save-status')?.textContent === 'Replacement committed');
+
+  const nodes = await getMathNodes(page);
+  assert.equal(nodes.length, 1);
+  assert.notEqual(nodes[0].attrs.mathml, original.mathml);
+  assert.match(nodes[0].attrs.mathml, /<mi[^>]*>c<\/mi>/);
+});
+
+// The equation's drawing is hidden from readers (one named image stands for it)
+// until the explorer is entered. MathJax's container is focusable, so the hidden
+// drawing must also be inert, or axe reports aria-hidden-focus.
+test('axe finds no violations in a document that holds an equation', { timeout: 60_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-axe-equation-e2e-');
+  await insertEquation(page, { method: 'latex', source: 'x^2' });
+  await assertNoAxeViolations(page);
+  await openEquationDock(page, 'latex');
+  await assertNoAxeViolations(page);
 });
 
 test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-delete-napkin-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
+  const { page } = await start(t, 'omniya-delete-napkin-e2e-');
   const rail = page.getByRole('complementary', { name: 'Napkins' });
-  await page.getByRole('button', { name: 'New napkin' }).click();
-  await page.getByLabel('Napkin name').fill('Second napkin');
-  await page.getByRole('button', { name: 'Create napkin' }).click();
-  await page.getByRole('button', { name: 'New napkin' }).click();
-  await page.getByLabel('Napkin name').fill('Third napkin');
-  await page.getByRole('button', { name: 'Create napkin' }).click();
-  await page.locator('#composer-source').fill('notes on third');
-  await page.locator('article.napkin-article').first().waitFor();
+
+  await createNapkin(page, 'Second napkin');
+  await createNapkin(page, 'Third napkin');
+  await page.keyboard.type('notes on third');
+  assert.deepEqual(await paragraphTexts(page), ['notes on third']);
 
   const second = rail.getByRole('button', { name: 'Second napkin' });
   await second.focus();
@@ -596,18 +369,31 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
     second.press('Backspace')
   ]);
   assert.match(message, /delete.*Second napkin/i);
-  await assert.rejects(() => rail.getByRole('button', { name: 'Second napkin' }).waitFor({ timeout: 250 }));
+  await rail.getByRole('button', { name: 'Second napkin' }).waitFor({ state: 'detached' });
   assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Third napkin');
+  assert.deepEqual(await paragraphTexts(page), ['notes on third'], 'deleting another napkin leaves the open one alone');
 
+  // A declined confirmation deletes nothing.
   const third = rail.getByRole('button', { name: 'Third napkin' });
+  await Promise.all([
+    page.waitForEvent('dialog').then((dialog) => dialog.dismiss()),
+    third.press('Backspace')
+  ]);
+  await settle(page);
+  assert.equal(await rail.getByRole('button', { name: 'Third napkin' }).count(), 1);
+
   await Promise.all([
     page.waitForEvent('dialog').then((dialog) => dialog.accept()),
     third.press('Backspace')
   ]);
-  await assert.rejects(() => rail.getByRole('button', { name: 'Third napkin' }).waitFor({ timeout: 250 }));
-  await page.locator('#composer-source').waitFor();
-  await page.locator('#composer-source').fill('still works after delete');
-  await page.locator('article.napkin-article').filter({ hasText: 'still works after delete' }).waitFor();
+  await rail.getByRole('button', { name: 'Third napkin' }).waitFor({ state: 'detached' });
+  // The napkin that is left is open and takes typing.
+  await page.locator('#editor-host [contenteditable="true"]').waitFor();
+  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Untitled Napkin');
+  await focusDocument(page);
+  await page.keyboard.type('still works after delete');
+  assert.deepEqual(await paragraphTexts(page), ['still works after delete']);
+
   const first = rail.getByRole('button', { name: 'Untitled Napkin' });
   let finalMessage = '';
   await Promise.all([
@@ -618,24 +404,19 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
     first.press('Backspace')
   ]);
   assert.match(finalMessage, /delete.*Untitled Napkin/i);
-  await assert.rejects(() => rail.getByRole('button', { name: 'Untitled Napkin' }).waitFor({ timeout: 250 }));
+  await rail.getByRole('button', { name: 'Untitled Napkin' }).waitFor({ state: 'detached' });
   assert.equal(await rail.locator('[data-napkin-id]').count(), 0);
   assert.equal(await page.getByRole('heading', { name: 'No napkin selected' }).count(), 1);
+  assert.equal(await page.locator('#editor-host').isVisible(), false, 'no document without a napkin');
+  assert.equal(await page.locator('#empty-message').isVisible(), true);
 });
 
 test('renames a focused sidebar napkin with Ctrl+U', { timeout: 60_000 }, async (t) => {
-  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-rename-napkin-e2e-'));
-  const session = await launch(dataDirectory);
-  t.after(async () => {
-    await session.electronApp.close().catch(() => {});
-  });
-
-  const { page } = session;
+  const { page } = await start(t, 'omniya-rename-napkin-e2e-');
   const rail = page.getByRole('complementary', { name: 'Napkins' });
-  await page.getByRole('button', { name: 'New napkin' }).click();
-  await page.getByLabel('Napkin name').fill('Second napkin');
-  await page.getByRole('button', { name: 'Create napkin' }).click();
-  await page.locator('#composer-source').waitFor();
+
+  await createNapkin(page, 'Second napkin');
+  await page.locator('#editor-host [contenteditable="true"]').waitFor();
 
   const first = rail.getByRole('button', { name: 'Untitled Napkin' });
   await first.focus();
@@ -652,6 +433,7 @@ test('renames a focused sidebar napkin with Ctrl+U', { timeout: 60_000 }, async 
 
   await page.getByRole('button', { name: 'Second napkin' }).click();
   assert.match(await page.locator('#current-napkin-name').textContent() ?? '', /Second napkin/);
+  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Second napkin');
 
   const second = rail.getByRole('button', { name: 'Second napkin' });
   await second.focus();
@@ -661,4 +443,31 @@ test('renames a focused sidebar napkin with Ctrl+U', { timeout: 60_000 }, async 
   assert.match(await page.locator('#napkin-name-error').textContent() ?? '', /Napkin name is required/);
   await page.getByRole('button', { name: 'Cancel' }).click();
   assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
+});
+
+test('typing is saved on its own, without a save command', { timeout: 60_000 }, async (t) => {
+  const { page, dataDirectory } = await start(t, 'omniya-autosave-e2e-');
+
+  await page.keyboard.type('Saved by itself');
+  const file = path.join(dataDirectory, 'napkins.json');
+  const readSaved = async () => {
+    try {
+      return JSON.parse(await readFile(file, 'utf8'));
+    } catch {
+      return null;
+    }
+  };
+  // The editor saves a moment after typing stops. No flush here.
+  await assert.doesNotReject(async () => {
+    const deadline = Date.now() + 10_000;
+    for (;;) {
+      const saved = await readSaved();
+      if (saved?.napkins[0].doc.content[0].content?.[0]?.text === 'Saved by itself') return;
+      if (Date.now() > deadline) throw new Error('the typed text was never saved');
+      await settle(page, 100);
+    }
+  });
+  const saved = await readSaved();
+  assert.equal(saved.schemaVersion, 3);
+  assert.equal(saved.napkins[0].items, undefined);
 });

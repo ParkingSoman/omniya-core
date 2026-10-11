@@ -1,21 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { screenReader, voiceOver } from '@guidepup/guidepup';
 import { _electron as electron } from 'playwright';
 import { electronLaunchEnv } from '../e2e/launch-electron.js';
 
-// Phase 0 gate, layer 3: a REAL screen reader against the editor spike.
-// macOS runs VoiceOver. Windows runs NVDA. Guidepup picks by platform.
-// This file needs the CI setup in .github/workflows/screen-reader.yml.
-// It is not part of `npm run test:e2e`.
+// A REAL screen reader against the real app. macOS runs VoiceOver. Windows runs
+// NVDA. Guidepup picks by platform. This file needs the CI setup in
+// .github/workflows/screen-reader.yml. It is not part of `npm run test:e2e`.
 //
-// The page has two text boxes with the same words. "control" is a plain
-// contenteditable with no equation. "editor" is the ProseMirror spike with an
-// inline equation. Walking both tells a fault in the editor apart from a limit
-// of the test harness. Every step is saved as a transcript.
+// The app opens a napkin that reads "Solve [x squared] for x." The walk presses
+// Home, then Right Arrow across the line. It is run twice with the same keys:
+// first in a plain text input (the control), then in the editor. Walking both
+// tells a fault in the editor apart from a limit of the test harness. Every step
+// is saved as a transcript.
 //
 // What each platform asserts:
 //   NVDA       every step speaks, and the equation is named when the caret arrives.
@@ -26,6 +27,27 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const outDir = path.join(root, 'test/artifacts/screen-reader');
 const MAC = process.platform === 'darwin';
 const DOC_START = MAC ? 'Meta+ArrowUp' : 'Control+Home';
+
+const XSQ = '<math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mi>x</mi><mn>2</mn></msup></math>';
+const NAPKIN = {
+  schemaVersion: 3,
+  activeNapkinId: 'napkin-1',
+  napkins: [{
+    id: 'napkin-1',
+    name: 'Reader test',
+    doc: {
+      type: 'doc',
+      content: [{
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: 'Solve ' },
+          { type: 'math', attrs: { mathml: XSQ, source: 'x^2', sourceKind: 'latex' } },
+          { type: 'text', text: ' for x.' }
+        ]
+      }]
+    }
+  }]
+};
 
 const transcript = [];
 
@@ -45,11 +67,11 @@ async function step(walk, label, action) {
   return { label, last, spoken };
 }
 
-// Press keys the same way for both boxes. In the editor, the fifth right-arrow
-// leaves the caret before the space and the sixth arrives at the equation.
+// Press keys the same way in both boxes. In the editor, the sixth right-arrow
+// is the one that arrives at the equation.
 async function walk(name) {
   const steps = [];
-  steps.push(await step(name, 'go to start of document', () => screenReader.press(DOC_START)));
+  steps.push(await step(name, 'go to start of line', () => screenReader.press(DOC_START)));
   for (let i = 1; i <= 9; i += 1) {
     steps.push(await step(name, `arrow right ${i}`, () => screenReader.press('ArrowRight')));
   }
@@ -72,15 +94,22 @@ async function voiceOverFocus(page, selector, namePattern) {
 
 const silentCount = (steps) => steps.filter((s) => s.spoken.length === 0).length;
 
-test('real screen reader walks the control box and the editor', async () => {
+test('real screen reader walks a plain text input and the editor', async () => {
+  const dataDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'omniya-sr-'));
+  await fs.writeFile(path.join(dataDirectory, 'napkins.json'), JSON.stringify(NAPKIN), 'utf8');
   const app = await electron.launch({
-    args: [path.join(root, 'src/renderer/dev/spike-main.cjs')],
+    args: ['.'],
+    cwd: root,
     // A real reader needs a visible window, so override the headless default.
-    env: electronLaunchEnv({ OMNIYA_HEADLESS: '0' }),
+    env: electronLaunchEnv({ OMNIYA_HEADLESS: '0', OMNIYA_TEST_USER_DATA_DIR: dataDirectory })
   });
   try {
     const page = await app.firstWindow();
-    await page.waitForSelector('#editor [contenteditable="true"] .math-node');
+    await page.locator('#app-shell[aria-busy="false"]').waitFor();
+    const editorSelector = '#editor-host [contenteditable="true"]';
+    await page.waitForSelector(`${editorSelector} .math-node`);
+    // The equation's name comes from MathJax speech, which arrives just after drawing.
+    await page.waitForFunction(() => document.querySelector('.math-node')?.getAttribute('aria-label') === 'x squared');
     await app.evaluate(({ app: a, BrowserWindow }) => {
       a.focus({ steal: true });
       const win = BrowserWindow.getAllWindows()[0];
@@ -90,18 +119,22 @@ test('real screen reader walks the control box and the editor', async () => {
     await page.bringToFront();
     await screenReader.start();
     try {
-      if (MAC) await voiceOverFocus(page, '#control', /Control/i);
-      else await page.click('#control');
+      // The control: a plain input holding the same words, no equation.
+      await page.getByRole('button', { name: 'New napkin' }).click();
+      await page.locator('#napkin-name').fill('Solve for x.');
+      if (MAC) await voiceOverFocus(page, '#napkin-name', /Napkin name/i);
+      else await page.click('#napkin-name');
       const control = await walk('control');
+      await page.locator('#cancel-new-napkin').click();
 
-      if (MAC) await voiceOverFocus(page, '#editor [contenteditable="true"]', /Napkin/i);
-      else await page.click('#editor [contenteditable="true"]');
+      if (MAC) await voiceOverFocus(page, editorSelector, /Reader test/i);
+      else await page.click(editorSelector);
       const editor = await walk('editor');
 
       if (MAC) {
         assert.ok(
           silentCount(editor) <= silentCount(control),
-          `editor is silent on ${silentCount(editor)} steps, the plain control on ${silentCount(control)}`,
+          `editor is silent on ${silentCount(editor)} steps, the plain control on ${silentCount(control)}`
         );
       } else {
         assert.deepEqual(editor.filter((s) => s.spoken.length === 0).map((s) => s.label), [], 'every step must speak');
@@ -116,7 +149,7 @@ test('real screen reader walks the control box and the editor', async () => {
     await fs.mkdir(outDir, { recursive: true });
     await fs.writeFile(
       path.join(outDir, `${process.platform}.json`),
-      JSON.stringify(transcript, null, 2),
+      JSON.stringify(transcript, null, 2)
     );
   }
 });
