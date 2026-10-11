@@ -101,11 +101,14 @@ blind person finds the flow good. The sign-off in `docs/HUMAN-TESTING.md` stays.
 
 ## Open questions
 
-- **VoiceOver.** No result yet. In CI run 4 VoiceOver spoke nothing at any step,
-  not even in the plain text input beside the editor, so the harness is not
-  capturing its speech. The test reports that as skipped, not passed. Earlier
-  runs captured some speech but read the line as "Solve for x." without the
-  equation, from an older build. A person with VoiceOver should try this.
+- **VoiceOver.** Partly measured. In CI run 5, walking the page item by item,
+  VoiceOver read the equation inline as "x squared image", then "for x." Its echo
+  of arrow-key caret moves is not captured by Guidepup: the plain text input and
+  the editor each speak the same generic prompt on 5 of 11 steps, and nothing
+  else. So the editor is no worse than a plain input, but what VoiceOver says as
+  a caret passes the equation is unmeasured. The result varies between runs. In
+  run 4 VoiceOver said nothing at all, which the test reports as skipped. A person
+  with VoiceOver should try `docs/HUMAN-TESTING.md` step 5.
 - **NVDA.** Works as designed, from CI run 4 on Windows. The line reads "Solve,
   graphic, x squared, for x." Arrowing says "o", "l", "v", "e", "space", then
   "graphic, x squared" as the caret arrives, then "out of graphic" as it passes.
