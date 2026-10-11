@@ -296,11 +296,26 @@ async function translateForLabel(text) {
   return braille;
 }
 
+// When the person last pressed a key or clicked. Braille labels are applied by a
+// ProseMirror transaction. If that lands in the instant between the browser
+// moving the caret and the editor hearing about it, the editor puts the caret
+// back where it was, and an arrow key press is lost. So labels wait for a quiet
+// moment.
+let lastInputAt = 0;
+const QUIET_BEFORE_LABELS_MS = 300;
+for (const type of ['keydown', 'pointerdown']) {
+  document.addEventListener(type, () => { lastInputAt = performance.now(); }, true);
+}
+const inputIsRecent = () => performance.now() - lastInputAt < QUIET_BEFORE_LABELS_MS;
+
 async function labelParagraphs() {
   if (!editor || typeof window.omniya?.translateUeb !== 'function') return;
+  if (inputIsRecent()) { scheduleUebLabels(); return; }
   const missing = [...new Set(editor.paragraphTexts())].filter((text) => text.trim() && !brailleByText.has(text));
   if (brailleByText.size > MAX_CACHED_LABELS) brailleByText.clear();
   await Promise.all(missing.map(async (text) => { brailleByText.set(text, await translateForLabel(text)); }));
+  // Translating takes a moment, so check again that the person is not mid-action.
+  if (inputIsRecent()) { scheduleUebLabels(); return; }
   // The editor may have been closed or switched while translating. Labels are
   // keyed by text, so applying them to whatever is open now is still correct.
   editor?.setBrailleLabels(brailleByText);

@@ -278,6 +278,12 @@ test('an equation can be inserted into a paragraph that was cleared in the middl
   // Let the editor catch up with the typing before the first navigation key.
   await settle(page, 300);
   await press(page, 'ArrowUp');
+  // The caret must now be in the middle paragraph. A lost arrow key shows up here.
+  await page.waitForFunction(
+    () => globalThis.__omniyaTesting.editor.view.state.selection.$from.index(0) === 1,
+    null,
+    { timeout: 5_000 }
+  );
   await press(page, 'ArrowRight');
   await press(page, 'Backspace', 'middle'.length);
   assert.deepEqual(await paragraphTexts(page), ['Hello', '', 'World']);
