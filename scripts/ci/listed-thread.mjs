@@ -13,6 +13,7 @@
  *   - the original issue, if a person on the list wrote it
  *   - the pull request body, if a person on the list or this pipeline's own
  *     bot wrote it (the first round opens it, so the bot is its normal author)
+ *   - this pipeline's own earlier QUESTION, and no other comment of its bot
  *
  * What is dropped is dropped without its text and without its author, and
  * counted, so the agent can say "something was left out" without being able to
@@ -21,13 +22,20 @@
  * Usage:
  *   node scripts/ci/listed-thread.mjs <thread.json> <contributors.yml>
  *
- * thread.json: { pr: {number, author, body}, issue: {number, author, body}|null,
+ * thread.json: { pr: {number, author, body}|null, issue: {number, author, body}|null,
  *                comments: [{author, body, createdAt}] }
  */
 
 import { readFileSync } from 'node:fs';
 
 import { isAllowed, parseAllowlist } from './allowlist.mjs';
+
+/**
+ * Repeated from `status-comment.mjs` on purpose. The workflow copies this file
+ * out of `origin/testing` with `gh.mjs` and little else, so it cannot import its
+ * neighbours. A test keeps the two strings equal.
+ */
+export const QUESTION_MARKER = '<!-- omniya-pipeline-question -->';
 
 /** Authors of a pull request body that are this pipeline itself. */
 export const PIPELINE_BOTS = ['github-actions[bot]', 'claude[bot]'];
@@ -41,13 +49,17 @@ const section = (heading, text) => `## ${heading}\n\n${(text ?? '').trim() || '(
  */
 export function buildThread({ pr, issue, comments }, handles) {
   const listed = (author) => isAllowed(author, handles);
-  const out = [`# Pull request #${pr.number}\n`];
+  // Before the first fix there is no pull request. The agent is reading the
+  // report to decide whether to start, or reading the answer to its question.
+  const out = [pr ? `# Pull request #${pr.number}\n` : `# Issue #${issue?.number}\n`];
   let omitted = 0;
 
-  if (listed(pr.author) || PIPELINE_BOTS.includes(pr.author)) {
-    out.push(section('Pull request description', pr.body));
-  } else {
-    omitted += 1;
+  if (pr) {
+    if (listed(pr.author) || PIPELINE_BOTS.includes(pr.author)) {
+      out.push(section('Pull request description', pr.body));
+    } else {
+      omitted += 1;
+    }
   }
 
   if (issue) {
@@ -57,8 +69,16 @@ export function buildThread({ pr, issue, comments }, handles) {
 
   const kept = [];
   for (const comment of comments ?? []) {
-    if (listed(comment.author)) kept.push(comment);
-    else omitted += 1;
+    if (listed(comment.author)) {
+      kept.push(comment);
+    } else if (PIPELINE_BOTS.includes(comment.author) && (comment.body ?? '').startsWith(QUESTION_MARKER)) {
+      // The agent's own earlier question, so the answer can be read next to it.
+      // Both halves are needed: anyone can paste the marker, only a workflow can
+      // post as the bot. Status comments and notices stay out, as boilerplate.
+      kept.push({ ...comment, author: 'You, earlier (your question)' });
+    } else if (!PIPELINE_BOTS.includes(comment.author)) {
+      omitted += 1;
+    }
   }
   kept.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
 

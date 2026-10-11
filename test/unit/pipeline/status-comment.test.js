@@ -41,6 +41,15 @@ test('the ready state refuses a pull request number that is not digits', () => {
   assert.throws(() => renderStatus('ready', { repo: 'a/b' }), /digits/);
 });
 
+test('while the agent waits for an answer, the status says so and how to answer', () => {
+  const text = renderStatus('asking');
+  assert.match(text, /I have a question/);
+  assert.match(text, /starts with @claude/);
+  assert.doesNotMatch(text, /maintainer/, 'a person is not needed: the contributor is');
+  // The question is its own new comment, which is heard. A second notice would be noise.
+  assert.ok(!NOTIFY.includes('asking'));
+});
+
 test('an unknown state is refused', () => {
   assert.throws(() => renderStatus('done'), /unknown state/);
 });

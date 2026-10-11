@@ -116,7 +116,8 @@ test('the helper scripts and the list come out of testing and main, never the br
 test('the agent reads a thread filtered to people on the list, and only that', () => {
   const thread = steps.find((s) => /listed-thread\.mjs/.test(s.run ?? '') && /thread\.md/.test(s.run ?? ''));
   assert.ok(thread, 'expected a step that builds the filtered thread');
-  assert.equal(thread.if, "inputs.mode == 'comment'");
+  // Fix mode reads it too: the report, and the answer to a question it asked.
+  assert.equal(thread.if, "inputs.mode == 'comment' || inputs.mode == 'fix'");
   assert.match(thread.run, /T="\$RUNNER_TEMP\/trusted"/);
   assert.match(thread.run, /node "\$T\/scripts\/ci\/listed-thread\.mjs"/);
   // The thread is the ISSUE's comments, because that is where the contributor writes.
@@ -129,6 +130,35 @@ test('the agent reads a thread filtered to people on the list, and only that', (
   );
   assert.match(prompt, /Do NOT read the thread any other way/);
   assert.match(prompt, /thread\.md/);
+  // The first round used to say `gh issue view`, which returns strangers' text too.
+  const fixSection = prompt.slice(prompt.indexOf('MODE fix'), prompt.indexOf('MODE comment'));
+  assert.match(fixSection, /Do NOT read the report any other way/);
+  assert.match(fixSection, /not `gh issue view`/);
+  assert.doesNotMatch(fixSection, /Read it with `gh issue view/);
+});
+
+test('the agent may ask, rarely, at most twice, and the cap is held outside the prompt', () => {
+  const fixSection = prompt.slice(prompt.indexOf('MODE fix'), prompt.indexOf('MODE comment'));
+  assert.match(fixSection, /ASK ONLY IF YOU MUST/);
+  assert.match(fixSection, /do NOT ask\. Start\./);
+  assert.match(fixSection, /not a planning\s+session/);
+  assert.match(fixSection, /at most three short numbered questions/);
+  assert.match(fixSection, /<!-- omniya-pipeline-question -->/, 'the marker is how the next round finds its own question');
+  assert.match(fixSection, /Do not push a branch/);
+  assert.match(fixSection, /at most twice/);
+  assert.ok(prompt.indexOf('ASK ONLY IF YOU MUST') < prompt.indexOf('REPRODUCE WITH A FAILING TEST'), 'asking is decided before the reproduction');
+
+  const inputs = call.inputs;
+  assert.equal(inputs.question_round.default, '0');
+  assert.match(steps[0].run, /question_round must be digits/, 'a number that reaches the prompt is checked first');
+
+  // `asked` is a word only in mode fix, and a third question becomes `stopped`.
+  assert.match(prompt, /mode fix\s+opened, asked, needs-design, stopped/);
+  assert.match(prompt, /mode comment\s+revised, answered, approved, needs-design, stopped/);
+  const result = steps.find((s) => s.id === 'result');
+  assert.match(result.run, /fix\) allowed="opened asked needs-design stopped"/);
+  assert.match(result.run, /\[ "\$word" = "asked" \] && \[ "\$QUESTION_ROUND" -ge 2 \]/);
+  assert.equal(result.env.QUESTION_ROUND, '${{ inputs.question_round }}');
 });
 
 test('no untrusted text is interpolated into a run step or the prompt', () => {

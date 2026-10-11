@@ -41,6 +41,15 @@ export const MARKER = '<!-- omniya-pipeline-status -->';
  */
 export const NOTICE_MARKER = '<!-- omniya-pipeline-notice -->';
 export const PIPELINE_PREFIX = '<!-- omniya-pipeline-';
+
+/**
+ * The first line of a question the agent asks the contributor. It carries the
+ * pipeline prefix, so the followup gate never treats the question itself as a
+ * run to start. `listed-thread.mjs` keeps a bot comment ONLY when it starts with
+ * this, so the next round can read its own question and the status boilerplate
+ * stays out of the thread.
+ */
+export const QUESTION_MARKER = '<!-- omniya-pipeline-question -->';
 export const AUTHOR = 'github-actions[bot]';
 
 const WORDS = {
@@ -54,6 +63,12 @@ const WORDS = {
     'I am changing the fix, using your last comment.',
     'The download links below stay the same.',
     'I will edit this comment when the new build is ready.'
+  ],
+  asking: [
+    'I have a question before I start.',
+    'It is in the comment below this one.',
+    'Answer it in a comment that starts with @claude.',
+    'I will start as soon as you answer.'
   ],
   design: [
     'This looks like a request for something new, not a fault.',

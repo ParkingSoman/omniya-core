@@ -12,6 +12,12 @@
  *   2. Invites the handle to the repository as a collaborator with write access,
  *      so they can open the pull request page and close their own issue.
  *
+ * The invitation is not access until the person ACCEPTS it, and it expires after
+ * seven days. Until then the agent action refuses them ("Actor does not have
+ * write permissions", issue #33). Check with
+ * `gh api repos/<owner>/<repo>/invitations`. The pipeline now says so on the
+ * issue and fails a job when a listed person cannot write.
+ *
  * `--dry-run` prints what would change and changes nothing. `--no-invite` skips
  * step 2. Removing somebody is deleting their line from the same file on `main`.
  */
