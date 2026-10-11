@@ -13,6 +13,7 @@ import {
   launchApp,
   mathNodeLocator,
   paragraphTexts,
+  press,
   selectEquation,
   settle
 } from './launch-electron.js';
@@ -71,7 +72,7 @@ test('recovers from corrupt local napkin data without leaving the app unusable',
   const { electronApp, page } = await launchApp({ dataDirectory });
   t.after(() => electronApp.close().catch(() => {}));
 
-  assert.equal(await page.getByRole('heading', { name: 'Untitled Napkin' }).count(), 1);
+  assert.equal(await page.getByRole('heading', { name: 'Untitled note' }).count(), 1);
   assert.equal(await page.getByRole('alert').filter({ hasText: 'could not be read' }).count(), 1);
   // A default napkin is usable: the document opens empty and takes typing.
   assert.equal(await mathNodeLocator(page).count(), 0);
@@ -341,6 +342,40 @@ test('keys pressed before the explorer is ready are not typed over the selected 
   assert.deepEqual(await paragraphTexts(page), ['[math]'], 'no letter was typed into the document');
   await page.keyboard.press('Escape');
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+});
+
+// MathJax's reading tree has an invisible multiplication sign between 2 and y.
+// It has no spoken name and nothing in the equation behind it, so stopping on it
+// felt like a dead spot in the middle of "2y", and r answered "cannot be replaced".
+test('arrow keys never stop on a nameless spot between two parts', { timeout: 90_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-invisible-stop-e2e-');
+  await insertEquation(page, { method: 'latex', source: 'y+1+y' });
+  await enterExplorer(page);
+  await moveAndRead(page, 'ArrowDown', await explorerSpeech(page));
+  // Walk right to the last y.
+  for (let i = 0; i < 4; i += 1) await press(page, 'ArrowRight');
+  assert.equal(await explorerSpeech(page), 'y');
+
+  await page.keyboard.press('o');
+  await page.locator('#composer-dock').waitFor({ state: 'visible' });
+  await chooseMethod(page, 'latex');
+  await page.locator('#composer-source').fill('2');
+  await page.keyboard.press('Enter');
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest('.math-node')), null, { timeout: 5_000 });
+
+  // The equation reads 2y now. Left from the y must reach the 2, never a blank stop.
+  await page.waitForFunction(() => {
+    const holder = document.querySelector('.math-node .math-render');
+    const item = globalThis.MathJax.startup.document.getMathItemsWithin(holder)[0];
+    return item.explorers.speech.current?.getAttribute?.('data-semantic-speech-none') === 'y';
+  });
+  await press(page, 'ArrowLeft', 1);
+  await page.waitForTimeout(300);
+  assert.equal(await explorerSpeech(page), '2', 'one Left from y reaches 2');
+  await press(page, 'ArrowRight', 1);
+  await page.waitForTimeout(300);
+  assert.equal(await explorerSpeech(page), 'y', 'one Right from 2 reaches y');
 });
 
 test('r on the y^2 term replaces that term, not the whole equation', { timeout: 90_000 }, async (t) => {

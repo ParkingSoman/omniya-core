@@ -22,7 +22,7 @@ export function createInitialState({ idFactory = defaultIdFactory } = {}) {
     activeNapkinId: napkinId,
     napkins: [{
       id: napkinId,
-      name: 'Untitled Napkin',
+      name: 'Untitled note',
       doc: emptyDoc()
     }]
   };
@@ -90,7 +90,7 @@ export function getActiveNapkin(state) {
 
 export function createNapkin(state, name, { idFactory = defaultIdFactory } = {}) {
   assertValidState(state);
-  const normalizedName = requiredTrimmed(name, 'Napkin name is required');
+  const normalizedName = requiredTrimmed(name, 'Note name is required');
   const id = idFactory();
   return {
     ...state,
@@ -101,7 +101,7 @@ export function createNapkin(state, name, { idFactory = defaultIdFactory } = {})
 
 export function renameNapkin(state, napkinId, name) {
   assertValidState(state);
-  const normalizedName = requiredTrimmed(name, 'Napkin name is required');
+  const normalizedName = requiredTrimmed(name, 'Note name is required');
   if (!state.napkins.some(({ id }) => id === napkinId)) {
     throw new RangeError('Napkin not found');
   }

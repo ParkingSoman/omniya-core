@@ -21,6 +21,8 @@
     "test:screen-reader": "node --test --test-concurrency=1 test/screen-reader/editor.test.js",
     "test:all": "npm test && npm run test:e2e",
     "test:inspect": "node test/inspect.mjs",
+    "prejudge:capture": "node scripts/build-editor.mjs",
+    "judge:capture": "node scripts/judge-capture.mjs",
     "nemeth:coverage": "node scripts/nemeth-coverage.mjs",
     "nemeth:utility": "node scripts/nemeth-utility.mjs"
   },

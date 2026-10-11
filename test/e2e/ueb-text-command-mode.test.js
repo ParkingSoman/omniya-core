@@ -135,10 +135,10 @@ test('Ctrl+T toggles UEB grade in the document, announces it, and does nothing i
   assert.match(await mode.textContent() ?? '', /Text · UEB G2/);
   await page.keyboard.press('Control+t');
   await modePanelReads(page, /Text · UEB G1/);
-  assert.match(await savedStatus(page) ?? '', /Text · UEB G1/);
+  assert.match(await savedStatus(page) ?? '', /UEB grade 1/);
   await page.keyboard.press('Control+t');
   await modePanelReads(page, /Text · UEB G2/);
-  assert.match(await savedStatus(page) ?? '', /Text · UEB G2/);
+  assert.match(await savedStatus(page) ?? '', /UEB grade 2/);
   // Toggling the grade is not an edit.
   assert.deepEqual(await paragraphTexts(page), ['']);
 
@@ -173,7 +173,7 @@ test('the mode panel is quiet and the help dialog lists the keys that exist', { 
   assert.notEqual(save.role, 'status');
 
   await page.locator('#keyboard-help-button').click();
-  const dialog = page.getByRole('dialog', { name: 'Keyboard help' });
+  const dialog = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
   await dialog.waitFor();
   const help = await dialog.innerText();
   assert.match(help, /Ctrl\+E/i);
@@ -189,7 +189,9 @@ test('the mode panel is quiet and the help dialog lists the keys that exist', { 
   assert.doesNotMatch(help, /Command mode/i);
   // The removed list model must not be described either.
   assert.doesNotMatch(help, /Up\/Down between items/i);
-  assert.doesNotMatch(help, /\bnotes?\b/i);
+  // "Return to the note" is the document now, not a per-item note field.
+  assert.doesNotMatch(help, /\bitems?\b/i);
+  assert.doesNotMatch(help, /per-item/i);
   assert.match(await page.locator('#app-build-identity').textContent() ?? '', /\S/);
 });
 

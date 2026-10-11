@@ -65,9 +65,9 @@ const focusIsInDocument = (page) => page.evaluate(
 );
 
 async function createNapkin(page, name) {
-  await page.getByRole('button', { name: 'New napkin' }).click();
-  await page.getByLabel('Napkin name').fill(name);
-  await page.getByRole('button', { name: 'Create napkin' }).click();
+  await page.getByRole('button', { name: 'New note' }).click();
+  await page.getByLabel('Note name').fill(name);
+  await page.getByRole('button', { name: 'Create note' }).click();
 }
 
 test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async (t) => {
@@ -80,22 +80,24 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   });
 
   const { page } = session;
-  const napkinRail = page.getByRole('complementary', { name: 'Napkins' });
+  const napkinRail = page.getByRole('complementary', { name: 'Notes' });
   const editor = page.locator('#editor-host [contenteditable="true"]');
 
   // The document is the first thing there is. No equation field until asked for.
   await napkinRail.waitFor();
-  assert.equal(await editor.getAttribute('aria-label'), 'Untitled Napkin');
+  assert.equal(await editor.getAttribute('aria-label'), 'Note text');
+  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Untitled note');
   assert.equal(await page.locator('#composer-dock').isVisible(), false);
   assert.equal(await focusIsInDocument(page), true);
   assert.match(await modePanelText(page), /Text · UEB G2/);
   assert.equal(await page.locator('#mode-panel').getAttribute('aria-live'), null);
-  assert.equal(await page.getByRole('button', { name: 'Keyboard help' }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Shortcuts' }).count(), 1);
   await assertNoAxeViolations(page);
 
   await createNapkin(page, 'Proof ideas');
   assert.equal(await napkinRail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
-  assert.equal(await editor.getAttribute('aria-label'), 'Proof ideas');
+  assert.equal(await editor.getAttribute('aria-label'), 'Note text');
+  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Proof ideas');
   assert.equal(await page.locator('#composer-dock').isVisible(), false);
   assert.equal(await focusIsInDocument(page), true, 'a new napkin is ready to type in');
   assert.match(await modePanelText(page), /Text · UEB G2/);
@@ -117,8 +119,8 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   assert.deepEqual(await paragraphTexts(page), ['']);
 
   // Keyboard help.
-  await page.getByRole('button', { name: 'Keyboard help' }).click();
-  const help = page.getByRole('dialog', { name: 'Keyboard help' });
+  await page.getByRole('button', { name: 'Shortcuts' }).click();
+  const help = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
   await help.waitFor();
   await assertNoAxeViolations(page);
   const helpText = await help.innerText();
@@ -162,7 +164,8 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   assert.deepEqual(await paragraphTexts(page), ['Let a be positive.', 'Then [math]']);
   assert.equal(await focusIsInDocument(page), true);
   const ariaSnapshot = await page.getByRole('main').ariaSnapshot();
-  assert.match(ariaSnapshot, /textbox "Proof ideas"/);
+  assert.match(ariaSnapshot, /textbox "Note text"/);
+  assert.match(ariaSnapshot, /heading "Proof ideas"/);
 
   assert.deepEqual([...session.externalRequests], []);
   await page.evaluate(() => globalThis.__omniyaTesting.flush());
@@ -170,7 +173,7 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   await session.electronApp.close();
 
   session = await launchApp({ dataDirectory });
-  await session.page.getByRole('complementary', { name: 'Napkins' }).waitFor();
+  await session.page.getByRole('complementary', { name: 'Notes' }).waitFor();
   assert.deepEqual(await getDoc(session.page), before, 'the active napkin comes back as it was');
   await mathNodeLocator(session.page).first().locator('mjx-container').waitFor();
   assert.ok(await mathNodeLocator(session.page).first().locator('mjx-container math').count());
@@ -351,13 +354,20 @@ test('axe finds no violations in a document that holds an equation', { timeout: 
   const { page } = await start(t, 'omniya-axe-equation-e2e-');
   await insertEquation(page, { method: 'latex', source: 'x^2' });
   await assertNoAxeViolations(page);
+});
+
+// The panel sits above the note's title in the page, so its heading is a level 2.
+// As a level 3 it broke heading order (h1 Notes, then h3, then h2).
+test('axe finds no violations with the equation panel open over an equation', { timeout: 60_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-axe-equation-dock-e2e-');
+  await insertEquation(page, { method: 'latex', source: 'x^2' });
   await openEquationDock(page, 'latex');
   await assertNoAxeViolations(page);
 });
 
 test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_000 }, async (t) => {
   const { page } = await start(t, 'omniya-delete-napkin-e2e-');
-  const rail = page.getByRole('complementary', { name: 'Napkins' });
+  const rail = page.getByRole('complementary', { name: 'Notes' });
 
   await createNapkin(page, 'Second napkin');
   await createNapkin(page, 'Third napkin');
@@ -374,7 +384,7 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
     }),
     second.press('Backspace')
   ]);
-  assert.match(message, /delete.*Second napkin/i);
+  assert.match(message, /delete the note.*Second napkin/i);
   await rail.getByRole('button', { name: 'Second napkin' }).waitFor({ state: 'detached' });
   assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Third napkin');
   assert.deepEqual(await paragraphTexts(page), ['notes on third'], 'deleting another napkin leaves the open one alone');
@@ -395,12 +405,12 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
   await rail.getByRole('button', { name: 'Third napkin' }).waitFor({ state: 'detached' });
   // The napkin that is left is open and takes typing.
   await page.locator('#editor-host [contenteditable="true"]').waitFor();
-  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Untitled Napkin');
+  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Untitled note');
   await focusDocument(page);
   await page.keyboard.type('still works after delete');
   assert.deepEqual(await paragraphTexts(page), ['still works after delete']);
 
-  const first = rail.getByRole('button', { name: 'Untitled Napkin' });
+  const first = rail.getByRole('button', { name: 'Untitled note' });
   let finalMessage = '';
   await Promise.all([
     page.waitForEvent('dialog').then(async (dialog) => {
@@ -409,29 +419,29 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
     }),
     first.press('Backspace')
   ]);
-  assert.match(finalMessage, /delete.*Untitled Napkin/i);
-  await rail.getByRole('button', { name: 'Untitled Napkin' }).waitFor({ state: 'detached' });
+  assert.match(finalMessage, /delete the note.*Untitled note/i);
+  await rail.getByRole('button', { name: 'Untitled note' }).waitFor({ state: 'detached' });
   assert.equal(await rail.locator('[data-napkin-id]').count(), 0);
-  assert.equal(await page.getByRole('heading', { name: 'No napkin selected' }).count(), 1);
+  assert.equal(await page.getByRole('heading', { name: 'No note open' }).count(), 1);
   assert.equal(await page.locator('#editor-host').isVisible(), false, 'no document without a napkin');
   assert.equal(await page.locator('#empty-message').isVisible(), true);
 });
 
 test('renames a focused sidebar napkin with Ctrl+U', { timeout: 60_000 }, async (t) => {
   const { page } = await start(t, 'omniya-rename-napkin-e2e-');
-  const rail = page.getByRole('complementary', { name: 'Napkins' });
+  const rail = page.getByRole('complementary', { name: 'Notes' });
 
   await createNapkin(page, 'Second napkin');
   await page.locator('#editor-host [contenteditable="true"]').waitFor();
 
-  const first = rail.getByRole('button', { name: 'Untitled Napkin' });
+  const first = rail.getByRole('button', { name: 'Untitled note' });
   await first.focus();
   await first.press('Control+u');
-  const nameField = page.getByLabel('Napkin name');
+  const nameField = page.getByLabel('Note name');
   await nameField.waitFor();
-  assert.equal(await nameField.inputValue(), 'Untitled Napkin');
+  assert.equal(await nameField.inputValue(), 'Untitled note');
   await nameField.fill('Proof ideas');
-  await page.getByRole('button', { name: 'Rename napkin' }).click();
+  await page.locator('#new-napkin-form').getByRole('button', { name: 'Rename note' }).click();
 
   assert.equal(await rail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
   assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
@@ -439,14 +449,14 @@ test('renames a focused sidebar napkin with Ctrl+U', { timeout: 60_000 }, async 
 
   await page.getByRole('button', { name: 'Second napkin' }).click();
   assert.match(await page.locator('#current-napkin-name').textContent() ?? '', /Second napkin/);
-  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Second napkin');
+  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Note text');
 
   const second = rail.getByRole('button', { name: 'Second napkin' });
   await second.focus();
   await second.press('Control+u');
-  await page.getByLabel('Napkin name').fill('   ');
-  await page.getByRole('button', { name: 'Rename napkin' }).click();
-  assert.match(await page.locator('#napkin-name-error').textContent() ?? '', /Napkin name is required/);
+  await page.getByLabel('Note name').fill('   ');
+  await page.locator('#new-napkin-form').getByRole('button', { name: 'Rename note' }).click();
+  assert.equal(await page.locator('#napkin-name-error').textContent(), 'Note name is required');
   await page.getByRole('button', { name: 'Cancel' }).click();
   assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
 });

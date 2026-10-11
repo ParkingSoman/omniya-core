@@ -16,6 +16,15 @@ for a new paragraph, undo and redo, Alt+= (Windows) or Control+= (Mac) to insert
 equation. Before changing any key or editing behaviour read `docs/word-editor.md`,
 which lists every key and why it is what it is.
 
+The screen is meant to *feel* like a note-taking app and to be discoverable by Tab: a notes
+list, one toolbar of labelled buttons, a white page, a status bar. The interface says
+**note**. The code, the files and the schema still say **napkin**; do not rename those. Layout
+and wording are checked by blind judges who see only screenshots and the accessibility tree
+(`npm run judge:capture -- <dir>`, then fresh judge agents; see `docs/judging.md`). Change
+the look, rerun a round, and compare with the table there. Buttons with nothing to do are
+`aria-disabled`, never `disabled`. Bold, italic, headings, find, and export are NOT built;
+adding any is a decision for the owner, not polish.
+
 You are almost always working on **`testing`**, the active alpha branch. `main` is the
 last human-signed-off snapshot; large parts of `testing` (Nemeth authoring, the Word-style
 editor) are not on `main`. Check `git branch` if in doubt — do not

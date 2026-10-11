@@ -1,7 +1,7 @@
 import { EditorState, NodeSelection, Plugin, PluginKey } from 'prosemirror-state';
 import { Decoration, DecorationSet, EditorView } from 'prosemirror-view';
 import { Node as PMNode } from 'prosemirror-model';
-import { closeHistory, history, undo, redo } from 'prosemirror-history';
+import { closeHistory, history, redo, redoDepth, undo, undoDepth } from 'prosemirror-history';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
 import { editorSchema } from './schema.js';
@@ -50,10 +50,28 @@ const brailleLabels = new Plugin({
   },
 });
 
+// A paragraph that holds nothing but one equation is a display equation, centred
+// as in Word. CSS cannot tell that from a sentence with one equation in it, so
+// the editor marks it.
+const displayEquations = new Plugin({
+  props: {
+    decorations(state) {
+      const decorations = [];
+      state.doc.forEach((node, offset) => {
+        if (node.childCount === 1 && node.firstChild.type.name === 'math') {
+          decorations.push(Decoration.node(offset, offset + node.nodeSize, { class: 'display-equation' }));
+        }
+      });
+      return DecorationSet.create(state.doc, decorations);
+    },
+  },
+});
+
 function makePlugins(handlers) {
   return [
     history(),
     brailleLabels,
+    displayEquations,
     new Plugin({
       props: {
         handleKeyDown(view, event) {
@@ -101,7 +119,7 @@ function makePlugins(handlers) {
  *   onEnterMath(pos)       Enter on a selected equation: read it by parts
  *   onToggleGrade()        Ctrl/Cmd+T
  */
-export function createNapkinEditor({ host, doc, label = 'Napkin', handlers = {} }) {
+export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = '', handlers = {} }) {
   const plugins = makePlugins(handlers);
   const stateFor = (json) => EditorState.create({
     schema: editorSchema,
@@ -109,17 +127,45 @@ export function createNapkinEditor({ host, doc, label = 'Napkin', handlers = {} 
     plugins,
   });
 
+  // What the page needs to know after each change: whether Undo and Redo have
+  // anything to do, and whether the note is empty (it then shows a hint).
+  const isEmpty = (state) => state.doc.childCount === 1
+    && state.doc.firstChild.type.name === 'paragraph'
+    && state.doc.firstChild.content.size === 0;
+  const historyState = (state) => ({
+    canUndo: undoDepth(state) > 0,
+    canRedo: redoDepth(state) > 0,
+  });
+  function announceState(target) {
+    target.dom.dataset.empty = String(isEmpty(target.state));
+    handlers.onStateChange?.({
+      ...historyState(target.state),
+      equationSelected: target.state.selection instanceof NodeSelection
+        && target.state.selection.node.type.name === 'math',
+    });
+  }
+
   const view = new EditorView(host, {
     state: stateFor(doc),
-    attributes: { role: 'textbox', 'aria-multiline': 'true', 'aria-label': label },
+    attributes: {
+      role: 'textbox',
+      'aria-multiline': 'true',
+      'aria-label': label,
+      ...(placeholder ? { 'aria-placeholder': placeholder } : {}),
+    },
     nodeViews: { math: (node) => new MathNodeView(node) },
     // `this` is the view. The outer `view` does not exist yet if a transaction
     // fires while ProseMirror is still constructing it.
     dispatchTransaction(tr) {
       this.updateState(this.state.apply(tr));
       if (tr.docChanged) handlers.onChange?.(this.state.doc.toJSON());
+      announceState(this);
     },
   });
+
+  // The hint is drawn by CSS (see styles.css), so it is a custom property.
+  if (placeholder) view.dom.style.setProperty('--placeholder', JSON.stringify(placeholder));
+  announceState(view);
 
   const mathAttrs = ({ mathml, source = '', sourceKind = 'latex' }) => ({ mathml, source, sourceKind });
 
@@ -138,7 +184,8 @@ export function createNapkinEditor({ host, doc, label = 'Napkin', handlers = {} 
     view,
     getJSON: () => view.state.doc.toJSON(),
     /** Load another document. History starts empty, so undo never crosses napkins. */
-    setDoc(json) { view.updateState(stateFor(json)); },
+    setDoc(json) { view.updateState(stateFor(json)); announceState(view); },
+    historyState: () => historyState(view.state),
     setLabel(text) { view.dom.setAttribute('aria-label', text); },
     focus() { view.focus(); },
     /** Give each paragraph its braille label. `labels` maps paragraph text to braille. Not an undo step. */

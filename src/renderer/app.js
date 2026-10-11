@@ -46,7 +46,9 @@ import { createNapkinEditor } from './editor/editor.bundle.js';
 const elements = Object.fromEntries([
   'app-shell', 'announcer', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'new-napkin-submit', 'napkin-name',
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name',
-  'mode-panel', 'save-status', 'document-section', 'empty-message', 'editor-host', 'reading-actions',
+  'mode-panel', 'save-status', 'document-section', 'empty-message', 'editor-host',
+  'undo-button', 'redo-button', 'insert-equation-button', 'insert-equation-key', 'grade-button', 'grade-button-label',
+  'rename-button', 'delete-button', 'skip-to-note', 'status-hint',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'app-build-identity',
   'composer-dock', 'composer-form', 'composer-heading', 'composer-source',
   'composer-help', 'composer-status', 'composer-error', 'editing-indicator', 'composer-submit',
@@ -54,6 +56,12 @@ const elements = Object.fromEntries([
   'app-error', 'app-error-message', 'retry-save',
   'update-banner', 'update-banner-text', 'update-banner-action', 'update-banner-dismiss'
 ].map((id) => [id, document.getElementById(id)]));
+
+const IS_MAC = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '');
+// Word's own key for inserting an equation: Alt+= on Windows, Control+= on Mac.
+const EQUATION_KEY = IS_MAC ? 'Control+=' : 'Alt+=';
+// The heading above the page already names the note, so the text box does not repeat it.
+const NOTE_TEXT_LABEL = 'Note text';
 
 let state;
 let editor = null;
@@ -65,6 +73,7 @@ let docTimer;
 let labelTimer;
 let saveChain = Promise.resolve();
 let renamingNapkinId = null;
+let lastEquationSelected = false;
 /** `{ pos }` while an equation is being read by parts with MathJax's explorer. */
 let exploring = null;
 /**
@@ -189,7 +198,7 @@ function renderNapkins() {
 
 function renderHeader() {
   const napkin = activeNapkin();
-  elements['current-napkin-name'].textContent = napkin?.name ?? 'No napkin selected';
+  elements['current-napkin-name'].textContent = napkin?.name ?? 'No note open';
 }
 
 function renderAll() {
@@ -242,7 +251,6 @@ function loadEditor() {
   const napkin = activeNapkin();
   elements['empty-message'].hidden = Boolean(napkin);
   elements['editor-host'].hidden = !napkin;
-  elements['reading-actions'].hidden = !napkin;
   if (!napkin) {
     editor?.destroy();
     editor = null;
@@ -253,9 +261,11 @@ function loadEditor() {
     editor = createNapkinEditor({
       host: elements['editor-host'],
       doc: napkin.doc,
-      label: napkin.name,
+      label: NOTE_TEXT_LABEL,
+      placeholder: `Start writing. Press ${EQUATION_KEY} to add an equation.`,
       handlers: {
         onChange: onEditorChange,
+        onStateChange: updateToolbar,
         onInsertEquation: () => applyEquationInsert(preferredAuthoringMethod),
         onEnterMath: (pos) => { void enterExplorer(pos); },
         onToggleGrade: toggleGrade
@@ -264,11 +274,9 @@ function loadEditor() {
   } else if (editorNapkinId === napkin.id) {
     // Same napkin (a rename, say): keep the document, the caret and the undo
     // history exactly as they are.
-    editor.setLabel(napkin.name);
     return;
   } else {
     editor.setDoc(napkin.doc);
-    editor.setLabel(napkin.name);
   }
   editorNapkinId = napkin.id;
   pendingDoc = null;
@@ -326,11 +334,12 @@ function toggleGrade() {
   const toggled = toggleUebGrade(commandState);
   commandState = toggled.state;
   syncModePanel();
-  announce(toggled.announcement);
+  announce(gradeLabel());
 }
 
 function syncModePanel() {
   if (elements['mode-panel']) elements['mode-panel'].textContent = formatStatus(commandState);
+  updateToolbar();
 }
 
 // ---- Reading an equation by parts (MathJax explorer) -----------------------
@@ -435,6 +444,47 @@ document.addEventListener('focusin', (event) => {
   if (event.target.closest('.math-node, #composer-dock')) return;
   leaveExplorer({ refocus: false });
 });
+
+/**
+ * MathJax's reading tree has stops that are not parts of the equation: the
+ * invisible multiplication sign between 2 and y, an invisible function sign.
+ * They have no spoken name and nothing behind them to edit, so landing on one
+ * is a dead stop (and r, a, o refuse there). After an arrow key lands on one,
+ * take the same step once more. Done on key release, when MathJax has moved.
+ */
+const ARROW_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+
+function currentExplorerSpeech() {
+  const view = exploring && editor?.mathView(exploring.pos);
+  const holder = view?.holder;
+  if (!holder) return undefined;
+  const item = globalThis.MathJax?.startup?.document?.getMathItemsWithin?.(holder)?.[0];
+  const current = item?.explorers?.speech?.current;
+  if (!current) return undefined;
+  return (current.getAttribute?.('data-semantic-speech-none') ?? '').trim();
+}
+
+document.addEventListener('keyup', (event) => {
+  if (!exploring || exploring.pending || mathSession) return;
+  if (!ARROW_KEYS.includes(event.key) || event.repeat || event.__omniyaSkip) return;
+  const speech = currentExplorerSpeech();
+  if (speech !== '') return; // undefined: no explorer yet. Non-empty: a real part.
+  const target = document.activeElement;
+  if (!(target instanceof Element) || !target.closest('.math-node')) return;
+  const init = {
+    key: event.key,
+    code: event.code,
+    shiftKey: event.shiftKey,
+    ctrlKey: event.ctrlKey,
+    altKey: event.altKey,
+    metaKey: event.metaKey,
+    bubbles: true,
+    cancelable: true
+  };
+  const again = new KeyboardEvent('keydown', init);
+  again.__omniyaSkip = true;
+  target.dispatchEvent(again);
+}, true);
 
 function placementFromKey(event) {
   if (event.altKey || event.ctrlKey || event.metaKey) return null;
@@ -603,7 +653,7 @@ function startEquation(method) {
   replacementSession.isNew = true;
   replacementHasContent = false;
   commandState = enterEquationSurface(createAuthoringState({ surface: 'text', contentEmpty: true }), method).state;
-  openDock({ heading: 'Equation', submit: 'Insert equation', indicator: 'Escape cancels.', scope: '' });
+  openDock({ heading: 'Equation', submit: 'Insert', indicator: '', scope: '' });
 }
 
 /** r, a, or o on an equation being read: replace the focused part, or insert beside it. */
@@ -621,7 +671,7 @@ async function startEquationEdit(placement) {
   try {
     focus = await captureExplorerFocusWithRetry(view.dom);
   } catch {
-    announce('This focus cannot be replaced.');
+    announce('Nothing here to edit. Move to a number, letter or sign, then try again.');
     return;
   }
   if (!focus?.target) return;
@@ -887,13 +937,68 @@ elements['composer-form'].addEventListener('submit', (event) => {
 });
 elements['composer-cancel'].addEventListener('click', () => cancelEquation());
 
+// ---- Toolbar --------------------------------------------------------------
+
+// The buttons are plain, labelled and in the tab order. A button that has
+// nothing to do is marked aria-disabled, not disabled: a disabled button that
+// has focus drops focus to the page, and a person pressing Undo until it runs
+// out must not lose their place.
+function setActionEnabled(button, enabled) {
+  button.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+}
+
+function updateToolbar(history = editor?.historyState?.() ?? { canUndo: false, canRedo: false }) {
+  if (history.equationSelected !== undefined) lastEquationSelected = history.equationSelected;
+  elements['status-hint'].textContent = lastEquationSelected && !mathSession && !exploring
+    ? 'Equation selected. Enter reads it by parts. Backspace deletes it.'
+    : '';
+  const hasNote = Boolean(activeNapkin()) && Boolean(editor);
+  const idle = hasNote && !mathSession;
+  setActionEnabled(elements['undo-button'], idle && history.canUndo);
+  setActionEnabled(elements['redo-button'], idle && history.canRedo);
+  setActionEnabled(elements['insert-equation-button'], hasNote);
+  setActionEnabled(elements['grade-button'], idle);
+  setActionEnabled(elements['rename-button'], Boolean(activeNapkin()));
+  setActionEnabled(elements['delete-button'], Boolean(activeNapkin()));
+  elements['grade-button-label'].textContent = gradeLabel();
+}
+
+/** The braille grade in plain words, for the button and for the spoken message. */
+function gradeLabel() {
+  return commandState.g1Passage ? 'UEB grade 1 passage' : `UEB grade ${commandState.uebGrade === 'g1' ? 1 : 2}`;
+}
+
+function onToolbarClick(id, action) {
+  elements[id].addEventListener('click', () => {
+    if (elements[id].getAttribute('aria-disabled') === 'true') return;
+    action();
+  });
+}
+
+elements['insert-equation-key'].textContent = EQUATION_KEY;
+elements['skip-to-note'].addEventListener('click', () => focusEditor());
+
+// Double-click an equation to read it by parts, as Enter does. The first click
+// of the pair has already selected it.
+elements['editor-host'].addEventListener('dblclick', (event) => {
+  if (!(event.target instanceof Element) || !event.target.closest('.math-node') || !editor) return;
+  const selected = editor.selectedMath();
+  if (selected) void enterExplorer(selected.pos);
+});
+onToolbarClick('undo-button', () => performHistory('undo'));
+onToolbarClick('redo-button', () => performHistory('redo'));
+onToolbarClick('insert-equation-button', () => applyEquationInsert(preferredAuthoringMethod));
+onToolbarClick('grade-button', () => toggleGrade());
+onToolbarClick('rename-button', () => renameFocusedNapkin(state.activeNapkinId));
+onToolbarClick('delete-button', () => { void deleteFocusedNapkin(state.activeNapkinId); });
+
 // ---- Napkin rail handlers -------------------------------------------------
 
 async function deleteFocusedNapkin(napkinId) {
   if (mathSession) return;
   const napkin = state.napkins.find(({ id }) => id === napkinId);
   if (!napkin) return;
-  if (!globalThis.confirm(`Delete napkin “${napkin.name}”? This cannot be undone.`)) return;
+  if (!globalThis.confirm(`Delete the note “${napkin.name}”? This cannot be undone.`)) return;
 
   commitPendingDoc();
   leaveExplorer({ refocus: false });
@@ -913,7 +1018,7 @@ function renameFocusedNapkin(napkinId) {
   if (!napkin) return;
   renamingNapkinId = napkinId;
   elements['new-napkin-form'].hidden = false;
-  elements['new-napkin-submit'].textContent = 'Rename napkin';
+  elements['new-napkin-submit'].textContent = 'Rename note';
   elements['napkin-name'].value = napkin.name;
   setFieldError(elements['napkin-name'], elements['napkin-name-error']);
   elements['napkin-name'].focus();
@@ -924,7 +1029,7 @@ elements['new-napkin-button'].addEventListener('click', () => {
   cancelEquation();
   renamingNapkinId = null;
   elements['new-napkin-form'].hidden = false;
-  elements['new-napkin-submit'].textContent = 'Create napkin';
+  elements['new-napkin-submit'].textContent = 'Create note';
   elements['napkin-name'].value = '';
   setFieldError(elements['napkin-name'], elements['napkin-name-error']);
   elements['napkin-name'].focus();
@@ -1054,16 +1159,34 @@ async function copyInputDiagnostics() {
   }
 }
 
+/**
+ * Edit > Undo and Edit > Redo (and the toolbar buttons). In a text field the
+ * browser's own history is the right one. Anywhere else it is the document's,
+ * which covers typing and equations together.
+ */
+function performHistory(direction) {
+  const active = document.activeElement;
+  if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+    document.execCommand(direction);
+    return;
+  }
+  if (!editor) return;
+  if (mathSession) return;
+  leaveExplorer({ refocus: false });
+  const done = direction === 'undo' ? editor.undo() : editor.redo();
+  editor.focus();
+  if (done) announce(direction === 'undo' ? 'Undid the last change' : 'Redid the last change');
+  else announce(direction === 'undo' ? 'Nothing to undo' : 'Nothing to redo');
+}
+
 function openContextualHelp() {
   const box = elements['keyboard-help'];
-  const el = box.querySelector('[data-command-help]');
-  if (el) {
-    const status = document.createElement('p');
-    status.textContent = formatStatus(commandState);
-    el.replaceChildren(status);
-  }
   if (typeof box.showModal === 'function') box.showModal();
   else box.hidden = false;
+  // Start at the top, on the title. The only other focusable item is Close, at
+  // the bottom, and the browser would otherwise scroll the dialog down to it.
+  box.scrollTop = 0;
+  box.querySelector('#keyboard-help-heading')?.focus();
 }
 
 elements['keyboard-help-button'].addEventListener('click', openContextualHelp);
@@ -1081,6 +1204,14 @@ window.omniya?.onMenuCommand?.((payload) => {
   if (!payload?.action) return;
   if (payload.action === 'insert-equation') {
     applyEquationInsert(payload.method === 'latex' ? 'latex' : (payload.method === 'nemeth' ? 'nemeth' : preferredAuthoringMethod));
+    return;
+  }
+  if (payload.action === 'new-note') {
+    elements['new-napkin-button'].click();
+    return;
+  }
+  if (payload.action === 'undo' || payload.action === 'redo') {
+    performHistory(payload.action);
     return;
   }
   if (payload.action === 'toggle-ueb-grade') {
@@ -1131,6 +1262,7 @@ if (!globalThis.omniya?.loadState) {
     const loaded = await window.omniya.loadState();
     state = loaded.state;
     renderAll();
+    elements['save-status'].textContent = 'Saved';
     if (activeNapkin()) focusEditor();
     if (loaded.warning) showError(loaded.warning);
   } catch {

@@ -54,7 +54,8 @@ test('opens in the document, ready to type', { timeout: 60_000 }, async (t) => {
   const editor = page.locator('#editor-host [contenteditable="true"]');
   assert.equal(await editor.getAttribute('role'), 'textbox');
   assert.equal(await editor.getAttribute('aria-multiline'), 'true');
-  assert.equal(await editor.getAttribute('aria-label'), 'Untitled Napkin');
+  assert.equal(await editor.getAttribute('aria-label'), 'Note text');
+  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Untitled note');
   assert.equal(await page.locator('#composer-dock').isVisible(), false, 'no equation dock until asked');
   assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB G2/);
   assert.equal(await page.evaluate(() => document.activeElement?.closest('#editor-host') !== null), true);
@@ -83,8 +84,13 @@ test('Word\'s key inserts an equation at the caret, in the middle of a sentence'
 
   await page.keyboard.type('Solve  for x.');
   for (let i = 0; i < 'Solve  for x.'.length - 'Solve '.length; i += 1) await page.keyboard.press('ArrowLeft');
-  // The browser reports the caret to the editor just after each key.
-  await settle(page);
+  // The browser reports the caret to the editor just after each key. Wait until
+  // it has arrived, instead of guessing how long that takes on a busy machine.
+  await page.waitForFunction(
+    () => globalThis.__omniyaTesting.editor.view.state.selection.from === 7,
+    null,
+    { timeout: 5_000 }
+  );
   await insertLatexEquation(page, 'x^2');
 
   assert.deepEqual(await paragraphTexts(page), ['Solve [math] for x.']);

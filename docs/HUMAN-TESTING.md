@@ -7,7 +7,7 @@ Freeze tip: `testing-freeze-20260814` (tag is behind tip `2ef0efb`).
 Current tip includes the Nemeth engineering-gate coverage refresh at
 `011f226` (944 official examples with Electron creation/editing
 evidence), plus a Word-style document editor with inline equations
-([`word-editor.md`](word-editor.md)).
+([`word-editor.md`](word-editor.md)), judged for feel in [`judging.md`](judging.md).
 
 ## Branch convention
 
@@ -88,48 +88,62 @@ npm start
 
 ## Sighted PM checklist
 
-1. Launch the packaged app or `npm start`. The document has focus. There is no
-   equation field on screen. `#mode-panel` shows Text · UEB G2.
+1. Launch the packaged app or `npm start`. The note has focus. There is no
+   equation panel on screen. The toolbar has Undo, Redo, Insert equation and
+   Shortcuts. The status bar says Saved and shows the UEB grade button. An
+   empty note says "Start writing".
 2. Type two paragraphs, with Enter between them. Ctrl+Z (Cmd+Z) undoes. Ctrl+Y
-   (Cmd+Shift+Z) redoes.
+   (Cmd+Shift+Z) redoes. Do the same from the Edit menu and from the Undo and
+   Redo buttons. Each must work, and a button with nothing to do must look dim
+   but keep focus.
 3. Put the caret in the middle of a sentence. Press Alt+= (Windows) or Control+=
-   (Mac). The equation field opens with focus in it, and `#mode-panel` says
-   `Equation · … · empty`. Press Ctrl+L, type `x^2`, press Enter. The equation
-   appears at the caret, the field closes, and the caret is after the equation.
-   Keep typing: the sentence goes on after the equation.
+   (Mac), or press the Insert equation button. The equation panel opens under
+   the toolbar with focus in the field. Choose LaTeX (Ctrl+L), type `x^2`, press
+   Enter. The equation appears at the caret, the panel closes, and the caret is
+   after the equation. Keep typing: the sentence goes on after the equation.
 4. Nemeth: Alt+= / Control+=, Ctrl+E, then type the computer-braille spelling
-   `?a/b#` (a fraction). `#composer-status` names the reading it used. Enter
-   inserts it. An empty field refuses with a message. Escape cancels and leaves
-   the document unchanged. `#mode-panel` must say `editing`, not `empty`, once
-   there are cells in the field.
+   `?a/b#` (a fraction). The line under the field names the reading it used.
+   Enter inserts it. An empty field refuses with a message. Escape cancels and
+   leaves the note unchanged.
 5. Arrow onto an equation: the first press selects it as one unit, the next
    moves past it. With a screen reader, the equation is spoken once, by name,
-   as the caret arrives.
+   as the caret arrives. The status bar tells a sighted person what Enter and
+   Backspace will do.
 6. Backspace right after an equation selects it. A second Backspace deletes it.
    Undo brings it back as one step, separate from typing.
-7. Select an equation and press Enter: the explorer takes focus. Arrow to a
-   term and press **r**. The field opens, and its heading names the part
-   being replaced. Escape cancels and leaves the equation unchanged. **a** and
-   **o** insert after and before the focused part. After Enter, the explorer is
-   back on the part you edited. Escape returns to the document with the equation
-   still selected. Undo restores the equation as it was before the edit.
+7. Select an equation and press Enter, or double-click it: the explorer takes
+   focus. Arrow to a term and press **r**. The panel opens, and its heading
+   names the part being replaced. Escape cancels and leaves the equation
+   unchanged. **a** and **o** insert after and before the focused part. After
+   Enter, the explorer is back on the part you edited. Arrow keys never stop on
+   a spot with no name (the invisible sign between 2 and y). Escape returns to
+   the note with the equation still selected. Undo restores the equation as it
+   was before the edit.
 8. While reading an equation, press **Backspace**: the equation is deleted, and
-   undo restores it. Then press **+ New napkin** and type a name containing an
+   undo restores it. Then press **New note** and type a name containing an
    `a`, `o` or `r`. Every letter must reach the name field, and focus must stay
    in it. This failed in alpha 14: r / a / o were claimed as explorer shortcuts
    wherever focus happened to be.
-9. Help → Copy braille input diagnostics after typing in both the napkin-name
-   field and the equation field. The report must carry a `-- typing into:` line
-   for each, and must not say `read as none` for a session that decoded cells.
-10. Type print text. Confirm each paragraph has a UEB `aria-braillelabel`
-    (inspect or AT). Ctrl+T toggles UEB G2 / G1.
-11. Keyboard help (button, Help menu, or the dialog) lists Alt+= / Control+=,
-    Ctrl+E / Ctrl+L, Ctrl+T, undo and redo, and the explorer keys. No item
-    navigation, no Command keys.
-12. Quit, reopen, confirm the napkin persisted. Open a napkin made before this
+9. Notes: Ctrl+N (Cmd+N) starts a new note. Rename and Delete beside the title
+   act on the open note, and Delete asks first. Tab from the top reaches "Skip
+   to note" first. Press Enter on it and focus lands in the note.
+10. Help → Copy braille input diagnostics after typing in both the note-name
+    field and the equation field. The report must carry a `-- typing into:`
+    line for each, and must not say `read as none` for a session that decoded
+    cells.
+11. Type print text. Confirm each paragraph has a UEB `aria-braillelabel`
+    (inspect or AT). Ctrl+T, or the UEB grade button, switches grade 2 and
+    grade 1. Hover or focus the button: it explains what it changes.
+12. Shortcuts (toolbar button or Help menu) opens a short table of keys:
+    Alt+= / Control+=, Ctrl+E / Ctrl+L, Ctrl+T, undo and redo, and the explorer
+    keys. It opens at the top, on its title. Escape closes it and focus returns
+    to the button.
+13. Dark mode and a narrow window: switch the system to dark, and narrow the
+    window. Nothing is cut off, and the toolbar shows icons only when narrow.
+14. Quit, reopen, confirm the notes persisted. Open a note made before this
     build: its text and equations are there as paragraphs and equations, its
-    notes are paragraphs, and `napkins.before-v3-<time>.json` is in the data
-    folder.
+    old notes are paragraphs, and `napkins.before-v3-<time>.json` is in the
+    data folder.
 
 More detail: [`guided-nemeth-user-guide.md`](guided-nemeth-user-guide.md).
 

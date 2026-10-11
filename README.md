@@ -6,7 +6,7 @@ The usage notes below apply to **`testing` only**. They are not on `main`. This 
 
 ## How to use this alpha
 
-**Write text.** The napkin is one document, and it works like Word. Type in it. **Enter**
+**Write text.** Each note is one document, and it works like Word. Type in it. **Enter**
 starts a new paragraph. **Ctrl+Z** undoes and **Ctrl+Y** redoes (**Cmd+Z** and
 **Cmd+Shift+Z** on Mac), for typing and equations alike. **Ctrl+T** toggles UEB grade 2 /
 grade 1. [`docs/word-editor.md`](docs/word-editor.md) lists every key and why it is there.
@@ -50,7 +50,7 @@ selects it, the next moves on. **Backspace** next to it selects it, and a second
 **Escape** returns to the document with the equation still selected.
 
 Everything above is also in the application menus (Insert / Format / Help — Alt on Windows,
-menu bar on Mac) and in Keyboard help, the button under the napkin.
+menu bar on Mac) and in Shortcuts, the button in the toolbar. Ctrl+N (Cmd+N) starts a new note. Double-click an equation to read it by parts.
 
 Download the alpha (or run from source): [Run this alpha](#run-this-alpha). Longer walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
@@ -183,7 +183,7 @@ The point of the Electron app is to make these hypotheses testable. The architec
 
 This section is the **alpha** on `testing`, not the signed-off `main` snapshot. Humans have not completely verified it. The practical checklist is [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
-On this branch you can create, switch, and delete napkins; write in a Word-style document with inline equations; insert an equation with Alt+= (Windows) or Control+= (Mac), as Nemeth or LaTeX; toggle UEB grade with Ctrl+T; explore MathML and press **r** to replace a part of an equation; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind.
+On this branch you can create, switch, rename and delete notes; write in a Word-style document with inline equations; insert an equation with Alt+= (Windows) or Control+= (Mac), as Nemeth or LaTeX; toggle UEB grade with Ctrl+T; explore MathML and press **r** to replace a part of an equation; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind.
 
 The interface uses semantic HTML, native form controls, labeled fields, visible focus indicators, a narrow preload bridge, context isolation, a sandboxed renderer, and a restrictive content-security policy.
 
@@ -291,10 +291,10 @@ By default, committed state is stored as `napkins.json` under Electron’s platf
 
 ## Keyboard interaction
 
-On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In the app, **Keyboard help** (under the napkin, or Help → Keyboard shortcuts) is the live list.
+On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In the app, **Shortcuts** (the toolbar button, or Help → Keyboard shortcuts) is the live list.
 
 - Use Tab and Shift+Tab to move through ordinary controls.
-- In the napkin sidebar, focus a napkin and press Backspace to delete it after confirmation,
+- In the notes list, focus a note and press Backspace to delete it after confirmation,
   or Ctrl+U (Cmd+U on macOS) to rename it.
 - Type in the document to write. Enter starts a new paragraph. Ctrl+Z (Cmd+Z) undoes. Ctrl+Y (Cmd+Shift+Z on Mac) redoes.
 - Alt+= (Windows) or Control+= (Mac) inserts an equation at the caret. In the field, Ctrl+E picks Nemeth and Ctrl+L picks LaTeX while it is empty. Enter inserts the equation. Escape cancels.

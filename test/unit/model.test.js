@@ -26,7 +26,7 @@ test('creates one active untitled napkin with one empty paragraph', () => {
 
   assert.equal(state.schemaVersion, 3);
   assert.equal(state.activeNapkinId, 'napkin-1');
-  assert.deepEqual(state.napkins, [{ id: 'napkin-1', name: 'Untitled Napkin', doc: emptyDoc() }]);
+  assert.deepEqual(state.napkins, [{ id: 'napkin-1', name: 'Untitled note', doc: emptyDoc() }]);
 });
 
 test('creates and switches between independent napkins without mutating prior state', () => {
@@ -65,7 +65,7 @@ test('deletes a napkin immutably, including the final napkin', () => {
 
 test('rejects a blank napkin name', () => {
   const initial = createInitialState({ idFactory: ids('napkin-1') });
-  assert.throws(() => createNapkin(initial, '   '), /Napkin name is required/);
+  assert.throws(() => createNapkin(initial, '   '), /Note name is required/);
 });
 
 test('renames a napkin immutably, trimming the name and leaving other napkins alone', () => {
@@ -74,7 +74,7 @@ test('renames a napkin immutably, trimming the name and leaving other napkins al
 
   const renamed = renameNapkin(withSecond, 'napkin-1', '  Proof ideas  ');
   assert.notEqual(renamed, withSecond);
-  assert.equal(withSecond.napkins[0].name, 'Untitled Napkin');
+  assert.equal(withSecond.napkins[0].name, 'Untitled note');
   assert.equal(renamed.napkins.find(({ id }) => id === 'napkin-1').name, 'Proof ideas');
   assert.equal(renamed.napkins.find(({ id }) => id === 'napkin-2').name, 'Second napkin');
   assert.equal(renamed.activeNapkinId, withSecond.activeNapkinId);
@@ -82,7 +82,7 @@ test('renames a napkin immutably, trimming the name and leaving other napkins al
 
 test('rejects a blank rename and an unknown napkin id', () => {
   const initial = createInitialState({ idFactory: ids('napkin-1') });
-  assert.throws(() => renameNapkin(initial, 'napkin-1', '   '), /Napkin name is required/);
+  assert.throws(() => renameNapkin(initial, 'napkin-1', '   '), /Note name is required/);
   assert.throws(() => renameNapkin(initial, 'missing', 'New name'), /Napkin not found/);
 });
 

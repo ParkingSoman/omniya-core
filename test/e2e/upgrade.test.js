@@ -27,12 +27,12 @@ async function start(t, prefix, { seed } = {}) {
 }
 
 async function createNapkin(page, name) {
-  await page.getByRole('button', { name: 'New napkin' }).click();
-  await page.getByLabel('Napkin name').fill(name);
-  await page.getByRole('button', { name: 'Create napkin' }).click();
+  await page.getByRole('button', { name: 'New note' }).click();
+  await page.getByLabel('Note name').fill(name);
+  await page.getByRole('button', { name: 'Create note' }).click();
 }
 
-const rail = (page) => page.getByRole('complementary', { name: 'Napkins' });
+const rail = (page) => page.getByRole('complementary', { name: 'Notes' });
 
 test('a v2 napkins.json opens as a document, the old file is kept, and the next save is schema 3', { timeout: 90_000 }, async (t) => {
   // The shape the app wrote before the document editor: a list of items, each
@@ -67,7 +67,8 @@ test('a v2 napkins.json opens as a document, the old file is kept, and the next 
   assert.equal((await getMathNodes(page)).length, 1);
   assert.match((await getMathNodes(page))[0].attrs.mathml, /<msup/);
   await mathNodeLocator(page).first().locator('mjx-container').waitFor({ timeout: 30_000 });
-  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Old napkin');
+  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Note text');
+  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Old napkin');
   assert.equal(await rail(page).getByRole('button', { name: 'Old napkin' }).count(), 1);
   assert.equal(await page.locator('#app-error').isVisible(), false, 'a clean upgrade shows no warning');
 
@@ -99,8 +100,8 @@ test('each napkin keeps its own document, and undo does not cross napkins', { ti
   await page.keyboard.type('beta');
   assert.deepEqual(await paragraphTexts(page), ['beta']);
 
-  await rail(page).getByRole('button', { name: 'Untitled Napkin' }).click();
-  await page.waitForFunction(() => document.querySelector('#current-napkin-name')?.textContent === 'Untitled Napkin');
+  await rail(page).getByRole('button', { name: 'Untitled note' }).click();
+  await page.waitForFunction(() => document.querySelector('#current-napkin-name')?.textContent === 'Untitled note');
   assert.deepEqual(await paragraphTexts(page), ['alpha one', 'alpha two']);
   assert.equal(await page.evaluate(() => document.activeElement?.closest('#editor-host') !== null), true);
 
@@ -132,8 +133,8 @@ test('each napkin keeps its own document, and undo does not cross napkins', { ti
   assert.equal((await paragraphTexts(page))[0], 'beta');
 
   // And A was never touched by any of it.
-  await rail(page).getByRole('button', { name: 'Untitled Napkin' }).click();
-  await page.waitForFunction(() => document.querySelector('#current-napkin-name')?.textContent === 'Untitled Napkin');
+  await rail(page).getByRole('button', { name: 'Untitled note' }).click();
+  await page.waitForFunction(() => document.querySelector('#current-napkin-name')?.textContent === 'Untitled note');
   assert.deepEqual(await paragraphTexts(page), ['alpha one', 'alpha two']);
 });
 
@@ -147,15 +148,15 @@ test('renaming a napkin does not reset the open document or its undo history', {
   assert.deepEqual(await paragraphTexts(page), typed);
   const before = await getDoc(page);
 
-  const button = rail(page).getByRole('button', { name: 'Untitled Napkin' });
+  const button = rail(page).getByRole('button', { name: 'Untitled note' });
   await button.focus();
   await button.press('Control+u');
-  await page.getByLabel('Napkin name').fill('Renamed napkin');
-  await page.getByRole('button', { name: 'Rename napkin' }).click();
+  await page.getByLabel('Note name').fill('Renamed napkin');
+  await page.locator('#new-napkin-form').getByRole('button', { name: 'Rename note' }).click();
   await rail(page).getByRole('button', { name: 'Renamed napkin' }).waitFor();
 
   assert.deepEqual(await getDoc(page), before, 'the document is untouched');
-  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Renamed napkin');
+  assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Note text');
   assert.equal(await page.locator('#current-napkin-name').textContent(), 'Renamed napkin');
 
   // The caret is where it was, and typing continues there.

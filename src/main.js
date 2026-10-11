@@ -123,7 +123,10 @@ function checkForMacUpdateBanner(window) {
 }
 
 function sendMenuCommand(payload) {
-  BrowserWindow.getFocusedWindow()?.webContents.send('menu:command', payload);
+  // The window that has focus. A menu item can also run with no focused window
+  // (a hidden test window, or the app just activated), so fall back to the only one.
+  const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+  window?.webContents.send('menu:command', payload);
 }
 
 function buildApplicationMenu() {
@@ -131,7 +134,46 @@ function buildApplicationMenu() {
   const mod = isMac ? 'Cmd' : 'Ctrl';
   const template = [];
   if (isMac) template.push({ role: 'appMenu' });
-  template.push({ role: 'editMenu' });
+  // Edit is built by hand, not with `role: 'editMenu'`. That role's Undo and Redo
+  // run the browser's own undo, which knows nothing about the editor's history:
+  // Cmd/Ctrl+Z did nothing for equations and Redo did nothing at all. These two
+  // go to the app, which sends them to the editor. Cut, Copy, Paste and Select All
+  // are the browser's own and work as they are.
+  // File, as in Word: a new document is Ctrl/Cmd+N. A note is a document.
+  template.push({
+    label: 'File',
+    submenu: [
+      {
+        label: 'New note',
+        accelerator: 'CmdOrCtrl+N',
+        click: () => sendMenuCommand({ action: 'new-note' })
+      },
+      { type: 'separator' },
+      isMac ? { role: 'close' } : { role: 'quit' }
+    ]
+  });
+  template.push({
+    label: 'Edit',
+    submenu: [
+      {
+        id: 'undo',
+        label: 'Undo',
+        accelerator: 'CmdOrCtrl+Z',
+        click: () => sendMenuCommand({ action: 'undo' })
+      },
+      {
+        id: 'redo',
+        label: 'Redo',
+        accelerator: isMac ? 'Shift+Cmd+Z' : 'Ctrl+Y',
+        click: () => sendMenuCommand({ action: 'redo' })
+      },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectAll' }
+    ]
+  });
   template.push(
     {
       label: 'Insert',
