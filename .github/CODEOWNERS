@@ -1,0 +1,12 @@
+# Who must approve a change before it can merge.
+#
+# The maintainer decides what the app does and means. Contributors report faults
+# and test builds. Nothing a contributor writes, and nothing the agent opens on a
+# contributor's behalf, may reach `testing` without the maintainer. That is how a
+# design decision stays the maintainer's, even for contributors with write access.
+#
+# This file does nothing alone. The `testing-guard` and `main-guard` rulesets
+# must have "require review from Code Owners" on, with one approving review. The
+# maintainer is a bypass actor on both, so their own pull requests still merge.
+# See docs/contributor-pipeline.md, "Who can merge".
+* @ParkingSoman
