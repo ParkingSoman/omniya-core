@@ -56,9 +56,6 @@ Run a single e2e test file (still needs concurrency=1):
 node --test --test-concurrency=1 test/e2e/nemeth-composer.test.js
 ```
 
-Headed/demo run of the thought-stream flow: `npm run test:demo:thought`
-(`OMNIYA_HEADLESS=0 OMNIYA_THOUGHT_DEMO=1`).
-
 `npm run test:screen-reader` drives a REAL screen reader (VoiceOver on macOS, NVDA on
 Windows) through Guidepup. It is meant for CI (`.github/workflows/screen-reader.yml`),
 which does the one-time machine setup. It takes over focus and sound, so do not run it

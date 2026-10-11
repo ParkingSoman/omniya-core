@@ -55,7 +55,6 @@ equations, offline autosave.
 - Notes are gone; literary UEB G1 / G2 via Ctrl+T on text
 - Literary UEB G1 / G2 text via native liblouis (`lou_translate`)
 - Backspace deletes the last cell in the Nemeth field, as in any text field
-- Headed thought-stream demo scripts (`npm run test:demo:thought`)
 - BANA audit ledger, Electron evidence shards, and coverage reports as of
   merge `2ef0efb` (Nemeth gate pass `011f226`)
 
@@ -85,12 +84,6 @@ git fetch origin
 git checkout testing
 npm install
 npm start
-```
-
-Optional headed writing demo:
-
-```bash
-npm run test:demo:thought
 ```
 
 ## Sighted PM checklist
@@ -202,8 +195,9 @@ source before the task. Full protocol:
   as the caret arrives. VoiceOver has not been confirmed. See the open questions
   in [`word-editor.md`](word-editor.md).
 - If braille input does not behave, **Help → Copy braille input diagnostics** captures
-  the build, the input table in force, and everything the writing field received
-  **since the app was opened** — not a tail of it. Three things changed after an alpha
+  the build, the input table in force, and everything the equation field received
+  **since the app was opened** — not a tail of it. Text typed in the document itself
+  is not recorded. Three things changed after an alpha
   report on 2026-08-23 arrived with a log that could not contain the answer:
   - it holds the whole session, where it used to keep 50 entries and print 20;
   - it records text mode as well as Nemeth, with a `-- mode:` line at each change,
@@ -224,8 +218,6 @@ These already fail on the pure Nemeth tip and remain on `testing`:
 
 - 2 unit cases (Rule 15.12 hollow arrow modifier; Rule 21.12 superposition
   choice vs applied)
-- A few `inline-editing` e2e cases (Replace-button MathML id assertion,
-  some bound / spacing projection mismatches)
 
 UEB authoring e2e on this branch is green. Full BANA Electron corpus is
 evidence grind, not a human-gate blocker.
