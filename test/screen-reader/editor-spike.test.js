@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { screenReader } from '@guidepup/guidepup';
+import { screenReader, voiceOver } from '@guidepup/guidepup';
 import { _electron as electron } from 'playwright';
 import { electronLaunchEnv } from '../e2e/launch-electron.js';
 
@@ -51,6 +51,20 @@ test('real screen reader walks text, equation and text again', async () => {
     await screenReader.start();
     try {
       await page.click('#editor [contenteditable="true"]');
+
+      if (MAC) {
+        // The first CI run showed VoiceOver parked on the window ("web content,
+        // inside of a group") and silent on every key. VoiceOver must enter
+        // the web area and put its cursor on the editor before it follows the
+        // caret. Setup steps are recorded but not asserted.
+        await voiceOver.interact();
+        for (let i = 0; i < 12; i += 1) {
+          await voiceOver.next();
+          const phrase = await voiceOver.lastSpokenPhrase();
+          transcript.push({ label: `find the editor (${i + 1})`, last: phrase, spoken: [phrase] });
+          if (/Napkin/i.test(phrase)) break;
+        }
+      }
 
       await step('go to start of document', () => screenReader.press(DOC_START));
       for (let i = 1; i <= 6; i += 1) {
