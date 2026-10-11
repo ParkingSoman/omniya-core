@@ -23,13 +23,17 @@ const transcript = [];
 async function step(label, action) {
   await screenReader.clearSpokenPhraseLog();
   await action();
-  // The reader speaks after the key lands. Give it a moment.
-  await new Promise((r) => setTimeout(r, 600));
-  const spoken = await screenReader.spokenPhraseLog();
+  // The reader speaks after the key lands. Wait for speech, up to 3 seconds.
+  let spoken = [];
+  for (let i = 0; i < 10; i += 1) {
+    await new Promise((r) => setTimeout(r, 300));
+    spoken = (await screenReader.spokenPhraseLog()).filter((p) => p.trim() !== '');
+    if (spoken.length > 0) break;
+  }
   const last = await screenReader.lastSpokenPhrase();
   transcript.push({ label, last, spoken });
-  assert.ok(spoken.length > 0, `${label}: the reader said nothing`);
-  return { last, spoken };
+  // Judged at the end, so one silent step does not hide the rest of the walk.
+  return { label, last, spoken };
 }
 
 test('real screen reader walks text, equation and text again', async () => {
@@ -66,18 +70,23 @@ test('real screen reader walks text, equation and text again', async () => {
         }
       }
 
-      await step('go to start of document', () => screenReader.press(DOC_START));
+      const steps = [];
+      steps.push(await step('go to start of document', () => screenReader.press(DOC_START)));
       for (let i = 1; i <= 6; i += 1) {
-        await step(`arrow right ${i} (inside "Solve ")`, () => screenReader.press('ArrowRight'));
+        steps.push(await step(`arrow right ${i} (inside "Solve ")`, () => screenReader.press('ArrowRight')));
       }
       const onMath = await step('arrow right 7 (onto the equation)', () => screenReader.press('ArrowRight'));
-      assert.match(
-        onMath.spoken.join(' '),
-        /x squared/i,
-        'moving onto the equation must speak it by name',
-      );
-      await step('arrow right 8 (past the equation)', () => screenReader.press('ArrowRight'));
-      await step('arrow left (back onto the equation)', () => screenReader.press('ArrowLeft'));
+      steps.push(onMath);
+      steps.push(await step('arrow right 8 (past the equation)', () => screenReader.press('ArrowRight')));
+      const back = await step('arrow left (back onto the equation)', () => screenReader.press('ArrowLeft'));
+      steps.push(back);
+
+      const silent = steps.filter((s) => s.spoken.length === 0).map((s) => s.label);
+      assert.deepEqual(silent, [], 'every step must speak');
+      // Each time the caret arrives at the equation, the reader must name it.
+      for (const s of [onMath, back]) {
+        assert.match(s.spoken.join(' '), /x squared/i, `${s.label}: must speak the equation by name`);
+      }
     } finally {
       await screenReader.stop();
     }

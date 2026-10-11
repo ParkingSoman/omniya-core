@@ -6,7 +6,10 @@ export class MathNodeView {
     this.dom = document.createElement('span');
     this.dom.className = 'math-node';
     this.dom.contentEditable = 'false';
-    this.dom.setAttribute('role', 'math');
+    // CI run 2: NVDA said "line feed" and VoiceOver dropped the equation from
+    // the line when this was role="math". An inline image with a name is the
+    // pattern readers already announce inside text.
+    this.dom.setAttribute('role', 'img');
     this.render();
   }
 
