@@ -101,14 +101,13 @@ blind person finds the flow good. The sign-off in `docs/HUMAN-TESTING.md` stays.
 
 ## Open questions
 
-- **VoiceOver.** Partly measured. In CI run 5, walking the page item by item,
-  VoiceOver read the equation inline as "x squared image", then "for x." Its echo
-  of arrow-key caret moves is not captured by Guidepup: the plain text input and
-  the editor each speak the same generic prompt on 5 of 11 steps, and nothing
-  else. So the editor is no worse than a plain input, but what VoiceOver says as
-  a caret passes the equation is unmeasured. The result varies between runs. In
-  run 4 VoiceOver said nothing at all, which the test reports as skipped. A person
-  with VoiceOver should try `docs/HUMAN-TESTING.md` step 5.
+- **VoiceOver.** Measured for reading, not for caret echo. In CI run 6, reading by
+  items, VoiceOver said "Solve", then "x squared image", then "for x.", in order.
+  The macOS job now asserts that the equation is named this way. Guidepup does not
+  capture VoiceOver's echo of arrow-key caret moves, in a plain text input or in
+  the editor, so what VoiceOver says as the caret passes the equation is still
+  unmeasured. A run where VoiceOver says nothing at all is reported as skipped
+  (run 4 did). A person with VoiceOver should try `docs/HUMAN-TESTING.md` step 5.
 - **NVDA.** Works as designed, from CI run 4 on Windows. The line reads "Solve,
   graphic, x squared, for x." Arrowing says "o", "l", "v", "e", "space", then
   "graphic, x squared" as the caret arrives, then "out of graphic" as it passes.
