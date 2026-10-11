@@ -41,6 +41,15 @@ test('the ready state refuses a pull request number that is not digits', () => {
   assert.throws(() => renderStatus('ready', { repo: 'a/b' }), /digits/);
 });
 
+test('while the agent waits for an answer, the status says so and how to answer', () => {
+  const text = renderStatus('asking');
+  assert.match(text, /I have a question/);
+  assert.match(text, /starts with @claude/);
+  assert.doesNotMatch(text, /maintainer/, 'a person is not needed: the contributor is');
+  // The question is its own new comment, which is heard. A second notice would be noise.
+  assert.ok(!NOTIFY.includes('asking'));
+});
+
 test('an unknown state is refused', () => {
   assert.throws(() => renderStatus('done'), /unknown state/);
 });
@@ -91,6 +100,17 @@ test('the ready notice points at the one comment that holds the links, and says 
   assert.match(notice, /\[Open the download links\]\(https:\/\/github\.com\/a\/b\/issues\/22#issuecomment-99\)/);
   assert.match(notice, /@claude it works/);
   assert.doesNotMatch(notice, /releases\/download/, 'the links live in one place');
+});
+
+test('a notice never repeats the words of the status comment', () => {
+  for (const state of NOTIFY.filter((s) => s !== 'ready')) {
+    const notice = renderNotice(state, { repo: 'a/b', issue: 22, statusId: 99 });
+    const status = renderStatus(state, { repo: 'a/b', pr: 7 });
+    assert.match(notice, /issues\/22#issuecomment-99/, state);
+    for (const line of notice.split('\n').filter((l) => l && !l.startsWith('<!--') && !l.startsWith('['))) {
+      assert.ok(!status.includes(line), `${state}: "${line}" is also in the status comment`);
+    }
+  }
 });
 
 test('a state that has no notice is refused, and an id that is not digits is refused', () => {

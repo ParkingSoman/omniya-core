@@ -41,6 +41,15 @@ export const MARKER = '<!-- omniya-pipeline-status -->';
  */
 export const NOTICE_MARKER = '<!-- omniya-pipeline-notice -->';
 export const PIPELINE_PREFIX = '<!-- omniya-pipeline-';
+
+/**
+ * The first line of a question the agent asks the contributor. It carries the
+ * pipeline prefix, so the followup gate never treats the question itself as a
+ * run to start. `listed-thread.mjs` keeps a bot comment ONLY when it starts with
+ * this, so the next round can read its own question and the status boilerplate
+ * stays out of the thread.
+ */
+export const QUESTION_MARKER = '<!-- omniya-pipeline-question -->';
 export const AUTHOR = 'github-actions[bot]';
 
 const WORDS = {
@@ -54,6 +63,12 @@ const WORDS = {
     'I am changing the fix, using your last comment.',
     'The download links below stay the same.',
     'I will edit this comment when the new build is ready.'
+  ],
+  asking: [
+    'I have a question before I start.',
+    'It is in the comment below this one.',
+    'Answer it in a comment that starts with @claude.',
+    'I will start as soon as you answer.'
   ],
   design: [
     'This looks like a request for something new, not a fault.',
@@ -81,6 +96,13 @@ const WORDS = {
     'This issue closes when the maintainer merges the fix.',
     'You do not need to do anything.'
   ]
+};
+
+/** The one-line headline on the new comment. Never a copy of the status words. */
+const HEADLINE = {
+  sent: 'Your fix went to the maintainer.',
+  maintainer: 'The maintainer needs to look at this fix.',
+  failed: 'Something went wrong on my side.'
 };
 
 export const STATES = ['ready', ...Object.keys(WORDS)];
@@ -126,10 +148,20 @@ export function renderStatus(state, { repo, pr } = {}) {
  */
 export function renderNotice(state, { repo, issue, statusId } = {}) {
   if (!NOTIFY.includes(state)) throw new Error(`no notice for state: ${state}`);
-  if (state !== 'ready') return `${NOTICE_MARKER}\n${WORDS[state].join('\n')}\n`;
   const n = requireNumber(issue, 'issue number');
   const id = requireNumber(statusId, 'comment id');
-  if (!repo) throw new Error('repo is required for the ready notice');
+  if (!repo) throw new Error('repo is required for the notice');
+  // One line of headline and a link. The words live in the status comment only,
+  // so the thread never says the same thing twice.
+  if (state !== 'ready') {
+    return [
+      NOTICE_MARKER,
+      HEADLINE[state],
+      '',
+      `[Read the details](https://github.com/${repo}/issues/${n}#issuecomment-${id})`,
+      ''
+    ].join('\n');
+  }
   return [
     NOTICE_MARKER,
     'A test build is ready. All the automatic checks passed.',

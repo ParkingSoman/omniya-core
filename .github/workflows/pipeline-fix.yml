@@ -64,6 +64,7 @@ jobs:
       allowed: ${{ steps.check.outputs.allowed }}
       number: ${{ steps.issue.outputs.number }}
       author: ${{ steps.issue.outputs.author }}
+      access: ${{ steps.access.outputs.access }}
     steps:
       - uses: actions/checkout@v4
       # Work out which issue this run is about and who wrote it. An `issues`
@@ -107,6 +108,59 @@ jobs:
         env:
           ISSUE_AUTHOR: ${{ steps.issue.outputs.author }}
         run: node scripts/ci/allowlist.mjs "$ISSUE_AUTHOR" --github || true
+      # Being on the list is not enough. `claude-code-action` refuses any actor
+      # who cannot write to the repository, and the list and the repository
+      # invitation are two separate steps. Issue #33 passed the list, then the
+      # action crashed, and the contributor read "something went wrong on my
+      # side". Check the same actor the action checks, and say the true reason.
+      #
+      # The script is not on `main`, where this job checks out, so it comes out of
+      # `testing` like the helpers elsewhere. `unknown` lets the run go on: the
+      # action makes the same check itself.
+      - id: access
+        if: steps.check.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin testing
+          mkdir -p "$RUNNER_TEMP/access"
+          for f in gh.mjs can-run-agent.mjs; do
+            git show "origin/testing:scripts/ci/$f" > "$RUNNER_TEMP/access/$f"
+          done
+          node "$RUNNER_TEMP/access/can-run-agent.mjs" "$ACTOR"
+
+  # A listed contributor the agent cannot run for. This is a set-up mistake by the
+  # maintainer, not a stranger, so the job FAILS: the failure email is how the
+  # maintainer learns, and the comment below says "the maintainer has been told".
+  noaccess:
+    needs: allowlist
+    if: needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.access == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
+          AUTHOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          gh label create needs-maintainer --force --description "A person has to look at this" || true
+          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-maintainer
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
+            "Thank you for the report. I did not start, because the maintainer has not finished adding you yet. Nothing is wrong with your report. The maintainer has been told. I will pick this up after that. You do not need to do anything."
+          {
+            echo "### The fixer did not start on #$ISSUE_NUMBER"
+            echo
+            echo "$AUTHOR is on the contributor list but cannot write to the repository. The agent action refuses that."
+            echo "Run: node scripts/ci/add-contributor.mjs $AUTHOR"
+            echo "Then they must accept the invitation. Then run contributor-fix by hand for issue $ISSUE_NUMBER."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "$AUTHOR cannot write to the repository. See the job summary." >&2
+          exit 1
 
   # A refusal that says nothing looks the same as a pipeline that is broken.
   # Issue #22 sat for 23 days because the gate refused its author and nobody
@@ -136,7 +190,7 @@ jobs:
   # write access, and a failed comment never stops the fix.
   status:
     needs: allowlist
-    if: needs.allowlist.outputs.allowed == 'true'
+    if: needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.access != 'false'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -155,7 +209,7 @@ jobs:
 
   fix:
     needs: [allowlist, status]
-    if: ${{ !cancelled() && needs.allowlist.outputs.allowed == 'true' }}
+    if: ${{ !cancelled() && needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.access != 'false' }}
     # Without `actions`: the agent runs unrestricted Bash. Starting the checks
     # is the `verify` job below, which runs no agent.
     permissions:
@@ -169,21 +223,25 @@ jobs:
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-  # The agent stopped without a pull request, or crashed. Say so on the issue, in
+  # The agent ended without a pull request, or crashed. Say so on the issue, in
   # the status comment, so the contributor is not left reading "I am working on a
-  # fix" for ever. A report that was not a bug, one that could not be reproduced,
-  # and a run that died (an install that failed, a timeout) all end here.
+  # fix" for ever. A report that was not a bug, a question the agent asked, one it
+  # could not reproduce, and a run that died (an install that failed, a timeout)
+  # all end here. `scripts/ci/fix-outcome.mjs` decides the words and the label,
+  # and `pipeline-followup.yml` uses the same script after an answered question.
   #
   # `needs.fix.result` is what catches the crash: a job that failed has no
-  # outputs, so the result word is empty and would match neither of the others.
-  # The `allowed` guard is what keeps a refused author, whose `fix` job is
+  # outputs, so the result word is empty and would match none of the others.
+  # The `allowed` and `access` guards keep a refused author, whose `fix` job is
   # skipped, from being reported as a failure.
-  stopped:
+  outcome:
     needs: [allowlist, fix]
     if: >-
       ${{ !cancelled() &&
       needs.allowlist.outputs.allowed == 'true' &&
+      needs.allowlist.outputs.access != 'false' &&
       (needs.fix.result != 'success' ||
+      needs.fix.outputs.result == 'asked' ||
       needs.fix.outputs.result == 'needs-design' ||
       needs.fix.outputs.result == 'stopped') }}
     runs-on: ubuntu-latest
@@ -200,20 +258,7 @@ jobs:
           ISSUE: ${{ needs.allowlist.outputs.number }}
           RESULT: ${{ needs.fix.outputs.result }}
           FIX_JOB: ${{ needs.fix.result }}
-        run: |
-          set -euo pipefail
-          if [ "$FIX_JOB" != "success" ]; then
-            STATE=failed
-          elif [ "$RESULT" = "needs-design" ]; then
-            STATE=design
-          else
-            STATE=stuck
-          fi
-          node scripts/ci/status-comment.mjs "$ISSUE" "$STATE"
-          if [ "$STATE" != "design" ]; then
-            gh label create needs-maintainer --force --description "A person has to look at this" || true
-            gh issue edit "$ISSUE" --add-label needs-maintainer
-          fi
+        run: node scripts/ci/fix-outcome.mjs "$ISSUE" "$FIX_JOB" "$RESULT"
 
   # Check the pull request and build it, and repair it until both pass. This is
   # what keeps a red tick away from the contributor. It is its own job so that
