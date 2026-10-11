@@ -341,29 +341,43 @@ async function captureExplorerFocusWithRetry(container) {
 async function enterExplorer(pos) {
   const view = editor?.mathView(pos);
   if (!view) return false;
-  await view.ready;
-  // A container is not an explorer. MathJax starts the speech explorer when
-  // <mjx-container> takes focus, and it can only do that once it has attached
-  // <mjx-speech> underneath. Focusing it before then leaves arrow keys doing
-  // nothing at all, and r, a and o addressing the whole equation instead of the
-  // part the author believed they were on -- silently. Bounded, and it falls
-  // through rather than refusing: an equation that renders without a speech
-  // proxy must still be focusable.
-  let container = null;
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    container = view.dom.querySelector('mjx-container');
-    if (container?.querySelector('mjx-speech')) break;
-    await new Promise((resolve) => setTimeout(resolve, 20));
-  }
-  if (!container) {
-    announce('Equation is still loading.');
-    return false;
-  }
-  view.setExploring(true);
-  exploring = { pos };
-  moveFocusTo(container);
-  announce('Equation entered. Use arrow keys to explore it. Escape returns to the document.');
-  return true;
+  if (exploring?.pos === pos) return true;
+  // Claim the equation NOW. Getting MathJax's explorer going takes a moment, and
+  // a key pressed in that gap (r, a, o, Escape, Backspace) must still reach the
+  // explorer's handler below. If it fell through to the editor, a typed letter
+  // would replace the selected equation. `pending` makes the handler skip its
+  // "is this a text field?" guard until focus has really moved into the equation.
+  const claim = { pos, pending: true, entering: null };
+  exploring = claim;
+  const cancelled = () => exploring !== claim;
+  claim.entering = (async () => {
+    await view.ready;
+    // A container is not an explorer. MathJax starts the speech explorer when
+    // <mjx-container> takes focus, and it can only do that once it has attached
+    // <mjx-speech> underneath. Focusing it before then leaves arrow keys doing
+    // nothing at all, and r, a and o addressing the whole equation instead of the
+    // part the author believed they were on -- silently. Bounded, and it falls
+    // through rather than refusing: an equation that renders without a speech
+    // proxy must still be focusable.
+    let container = null;
+    for (let attempt = 0; attempt < 100 && !cancelled(); attempt += 1) {
+      container = view.dom.querySelector('mjx-container');
+      if (container?.querySelector('mjx-speech')) break;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    if (cancelled()) return false;
+    if (!container) {
+      exploring = null;
+      announce('Equation is still loading.');
+      return false;
+    }
+    view.setExploring(true);
+    claim.pending = false;
+    moveFocusTo(container);
+    announce('Equation entered. Use arrow keys to explore it. Escape returns to the document.');
+    return true;
+  })();
+  return claim.entering;
 }
 
 /**
@@ -436,7 +450,7 @@ document.addEventListener('keydown', (event) => {
   if (!exploring) return;
   const focused = event.target instanceof Element ? event.target : document.activeElement;
   if (focused instanceof Element && focused.closest('#composer-dock')) return;
-  if (typingIntoAField(focused)) return;
+  if (!exploring.pending && typingIntoAField(focused)) return;
   const placement = placementFromKey(event);
   if (placement) {
     event.preventDefault();
@@ -580,6 +594,10 @@ function startEquation(method) {
 /** r, a, or o on an equation being read: replace the focused part, or insert beside it. */
 async function startEquationEdit(placement) {
   if (!exploring || mathSession || !editor) return;
+  // r can arrive while the explorer is still starting. Let it finish first.
+  const claim = exploring;
+  if (claim.pending) await claim.entering;
+  if (exploring !== claim) return;
   const { pos } = exploring;
   const view = editor.mathView(pos);
   const node = editor.mathNode(pos);

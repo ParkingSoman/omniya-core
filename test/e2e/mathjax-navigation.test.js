@@ -12,6 +12,7 @@ import {
   insertEquation,
   launchApp,
   mathNodeLocator,
+  paragraphTexts,
   selectEquation,
   settle
 } from './launch-electron.js';
@@ -313,6 +314,32 @@ test('r opens the dock on the focused part during the explorer focus handoff', {
   assert.match(await page.locator('#replacement-scope').textContent(), /^Selected: \S/);
   assert.doesNotMatch(await page.locator('#save-status').textContent(), /cannot be edited safely|unsafe/i);
   await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  // The key that arrived early must not have been typed over the selected equation.
+  assert.equal((await getMathNodes(page)).length, 1, 'the equation is still there');
+  assert.deepEqual(await paragraphTexts(page), ['[math]'], 'no letter was typed into the document');
+});
+
+// The race behind the CI failure of the test above, made certain: the explorer
+// is held back for 1.5s, so a key pressed in that gap would reach the editor.
+// With an equation selected, an ordinary letter there replaces the equation.
+test('keys pressed before the explorer is ready are not typed over the selected equation', { timeout: 90_000 }, async (t) => {
+  const { page } = await startSession(t, 'omniya-mathjax-early-key-e2e-');
+  await insertEquation(page, { method: 'latex', source: 'a+b' });
+  await selectEquation(page);
+  await page.evaluate(() => {
+    const editor = globalThis.__omniyaTesting.editor;
+    const { pos } = editor.selectedMath();
+    editor.mathView(pos).ready = new Promise((resolve) => setTimeout(resolve, 1500));
+  });
+
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor({ state: 'visible', timeout: 15_000 });
+  assert.match(await page.locator('#composer-heading').textContent(), /Replacing/i);
+  assert.equal((await getMathNodes(page)).length, 1, 'the equation is still there');
+  assert.deepEqual(await paragraphTexts(page), ['[math]'], 'no letter was typed into the document');
+  await page.keyboard.press('Escape');
   await page.locator('#composer-dock').waitFor({ state: 'hidden' });
 });
 
