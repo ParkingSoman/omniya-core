@@ -48,9 +48,9 @@ rules behind it, and how they were checked, are in `docs/judging.md`.
 
 | Part | What it is | Why |
 |---|---|---|
-| Notes list (left) | A plain list under "Notes", with "New note" | Apple Notes and Bear. The interface says "note"; the code, files and schema still say "napkin". |
+| Notes list (left) | A list under "Notes", with "New note". Each row shows the name, and under it the first line of the body in grey. | Apple Notes and Bear. The interface says "note"; the code, files and schema still say "napkin". |
 | Toolbar (top) | Undo, Redo, Insert equation (shows its key), Find, Export and Shortcuts. Real, labelled buttons in the Tab order. | Word's quick-access bar. Discoverable without help. |
-| Note title | The note's name, as large text at the top of the page. It is plain text: click it and type to rename, as with any line. Enter or Down goes to the note. Up from the first line comes back. The list follows as you type. There is no Rename button and no name prompt: New note makes a note at once and puts the caret in its title. | Apple Notes has no separate name box. The first line is the title. |
+| Note title | The first line of the note, in large bold text. It is part of the document, so click it and type to rename, as with any line. Enter or Down goes to the body, Up from the first line comes back, and Backspace at the start of the body never joins it to the title. An empty title shows the hint "Title" and the note is called "Untitled note". There is no Rename button and no name prompt: New note makes a note at once with the caret in its title. A small grey date and time sit above it. | Apple Notes has no separate name box. The first line is the title. |
 | The page | The page fills the window beside the notes list. No border, no side columns. An empty note shows what to do. | Writing is the whole screen, as in Notes. |
 | Find bar | A strip under the toolbar: one field, "2 of 5", Previous, Next, Close. Every match is highlighted. Escape closes it and leaves the match selected. | Word's find, kept as small as it can be. It also finds text inside equations the person typed. |
 | Equation field | A small box in the line, at the caret (or right after the equation being edited). One field, a preview of the equation, a Nemeth braille / LaTeX choice, Insert, Cancel. Enter inserts and the caret goes after the equation. | Word's equation input, typed where the equation will be. The Nemeth reading is still announced on every key, and refusals still show. |
@@ -119,10 +119,13 @@ not committed.
 ```
 { schemaVersion: 3, activeNapkinId, napkins: [ { id, name, doc } ] }
 doc       = { type: 'doc', content: [ paragraph, ... ] }
+title     = { type: 'title', content?: [ text ] }       first block only, optional
 paragraph = { type: 'paragraph', content?: [ text | math, ... ] }
 text      = { type: 'text', text }
 math      = { type: 'math', attrs: { mathml, source, sourceKind: 'nemeth' | 'latex' } }
 ```
+
+The title is optional in the saved file, so the schema stays at version 3. A note without one gets its name as a title when it is opened, and the file gains the title at the next save. A note's name follows its title (`withDoc` in `src/domain/model.js`). Export leaves the title out, because the name is already the heading.
 
 `source` is what the person typed. After an edit by parts (replace, append or
 prepend) it is the whole equation written back as LaTeX: the edit is written out
