@@ -77,6 +77,23 @@ export function leafNodes(tree) {
   return out;
 }
 
+/** Positions, in reading order, of the leaves at or under any node whose id is in `ids`. */
+export function leafPositionsUnder(tree, ids) {
+  const out = [];
+  let position = 0;
+  const visit = (node, inside) => {
+    if (node.text !== undefined) return;
+    const here = inside || ids.has(node.attrs?.['data-omniya-id']);
+    const kids = elements(node);
+    if (!kids.length) {
+      if (here) out.push(position);
+      position += 1;
+    } else kids.forEach((child) => visit(child, here));
+  };
+  visit(tree, false);
+  return out;
+}
+
 /** Remove `data-latex` from every node that has a descendant whose id is in `ids`. */
 export function dropStaleLatex(tree, ids) {
   const visit = (node) => {

@@ -89,7 +89,7 @@ test('edits can follow one another, and each is a fresh parse', async () => {
   const prepended = await edit(document, (t) => findMathNode(t, replaced.focus.nodeId), 'prepend', 'a');
   await assertFresh(prepended, 'x+a-y');
   const appended = await edit(prepended.document, (t) => findMathNode(t, prepended.focus.nodeId), 'append', 'b');
-  await assertFresh(appended, 'x+ab-y');
+  await assertFresh(appended, 'x+a-by');
 });
 
 test('a Nemeth fragment is placed the same way', async () => {
@@ -114,7 +114,13 @@ test('an expression the writer cannot rebuild still takes the edit', async () =>
 });
 
 test('the focus lands on a box that holds exactly what was typed', async () => {
-  const committed = await edit(await equation('x+y'), last, 'append', '\\frac{1}{2}');
+  const committed = await edit(await equation('x+y'), last, 'replace', '\\frac{1}{2}');
   const tree = parseMathML(committed.document.mathml);
   assert.equal(findMathNode(tree, committed.focus.nodeId).name, 'mfrac');
+});
+
+test('after an append or a prepend the focus stays on the part it was on', async () => {
+  const committed = await edit(await equation('x+y'), last, 'prepend', 'z');
+  const tree = parseMathML(committed.document.mathml);
+  assert.equal(findMathNode(tree, committed.focus.nodeId).children[0].text, 'y');
 });

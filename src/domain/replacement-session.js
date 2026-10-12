@@ -7,7 +7,7 @@ import {
 } from './math-tree.js';
 import { resolveBrailleInputTable, toNemethCells } from './nemeth-input.js';
 import { parseNemeth } from './nemeth/index.js';
-import { dropStaleLatex, latexFromTree, leafNodes, nodeForInserted } from './math-latex.js';
+import { dropStaleLatex, latexFromTree, leafNodes, leafPositionsUnder, nodeForInserted } from './math-latex.js';
 
 const KEEP = { keepLatex: true };
 
@@ -215,7 +215,14 @@ export async function submitReplacement(session, { convertLatexToMathML, braille
     try {
       const fresh = parseMathML(canonicalizeMathML(await convertLatexToMathML(written), KEEP), KEEP);
       const leaves = leafNodes(spliced);
-      const inserted = leaves.flatMap((leaf, i) => (made.has(leaf.attrs['data-omniya-id']) ? [i] : []));
+      // Where the reader lands: on the new part after a replace, and still on the
+      // part they were on after an append or prepend.
+      const stays = placement === 'replace'
+        ? made
+        : new Set([session.target.kind === 'node'
+          ? session.target.nodeId
+          : (placement === 'append' ? session.target.lastNodeId : session.target.firstNodeId)]);
+      const inserted = leafPositionsUnder(spliced, stays);
       const freshLeaves = leafNodes(fresh);
       nextTree = fresh;
       latex = written;

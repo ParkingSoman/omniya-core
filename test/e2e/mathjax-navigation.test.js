@@ -422,8 +422,8 @@ test('r replaces the x^4 term, not the whole x^4+x^3 equation', { timeout: 90_00
   assert.doesNotMatch(text, /x4/);
   assert.notEqual(text, 'y');
   assert.match(text, /y/);
-  // What was typed replaced a part, so the equation has no single source.
-  assert.equal((await getMathNodes(page))[0].attrs.source, '');
+  // The edit is written back as one expression, and that is the source now.
+  assert.equal((await getMathNodes(page))[0].attrs.source, 'y + x^3');
 });
 
 test('a inserts after the focused node instead of replacing it', { timeout: 90_000 }, async (t) => {
