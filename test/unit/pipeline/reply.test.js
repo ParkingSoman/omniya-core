@@ -11,7 +11,8 @@ import {
   STATES,
   cleanMessage,
   postReply,
-  renderReply
+  renderReply,
+  resolveState
 } from '../../../scripts/ci/reply.mjs';
 
 const where = { repo: 'a/b', pr: 7 };
@@ -188,6 +189,29 @@ test('postReply posts exactly one comment, never edits, and labels only where th
     const labelled = calls.filter((a) => a[0] === 'issue' && a[1] === 'edit');
     assert.equal(labelled.length, LABELS[state] ? 1 : 0, `${state}: label`);
   }
+});
+
+test('the label follows the state that was posted, not the one that was asked for', () => {
+  // A forgotten message.md turns `asked` and `answered` into `stuck`. If the label
+  // followed the request, an issue that says "the maintainer has been told" would
+  // carry `needs-info`, which says the agent is waiting for the contributor, and
+  // would carry no `needs-maintainer` at all.
+  assert.equal(resolveState('asked', ''), 'stuck');
+  assert.equal(resolveState('asked', undefined), 'stuck');
+  assert.equal(resolveState('answered', '   '), 'stuck');
+  assert.equal(resolveState('asked', 'Which key?'), 'asked');
+  assert.equal(resolveState('ready', ''), 'ready', 'a state with optional words does not fall back');
+  for (const [state, expected] of [['asked', 'needs-maintainer'], ['answered', 'needs-maintainer']]) {
+    const calls = [];
+    postReply({ issue: 5, state, repo: 'a/b', message: '' }, (args) => { calls.push(args); return ''; });
+    const labelled = calls.filter((a) => a[0] === 'issue' && a[1] === 'edit').map((a) => a[a.indexOf('--add-label') + 1]);
+    assert.deepEqual(labelled, [expected], `${state} with no words`);
+    assert.ok(calls.find((a) => a[0] === 'api').some((a) => /maintainer has been told/.test(a)), state);
+  }
+  // And with words, a question still waits on the contributor.
+  const calls = [];
+  postReply({ issue: 5, state: 'asked', repo: 'a/b', message: 'Which key?' }, (args) => { calls.push(args); return ''; });
+  assert.deepEqual(calls.filter((a) => a[1] === 'edit').map((a) => a[a.indexOf('--add-label') + 1]), ['needs-info']);
 });
 
 test('the pipeline puts the labels on, so the agent never has to', () => {

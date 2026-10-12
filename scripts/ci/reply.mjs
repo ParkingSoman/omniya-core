@@ -229,15 +229,30 @@ export function cleanMessage(text) {
 }
 
 /**
+ * The state that is actually posted. A state that needs the agent's words and
+ * has none (`asked`, `answered`) is posted as `stuck`, so a person is told. The
+ * label has to follow the state that was posted and not the one that was asked
+ * for, or a forgotten `message.md` would put `needs-info` on an issue that is
+ * waiting for nobody to answer.
+ *
+ * @param {string} state one of STATES
+ * @param {string|undefined} message
+ * @returns {string} one of STATES
+ */
+export function resolveState(state, message) {
+  const def = STATES_DEF[state];
+  if (!def) throw new Error(`unknown state: ${state}`);
+  return def.message === 'required' && !cleanMessage(message) ? def.fallback : state;
+}
+
+/**
  * @param {string} state one of STATES
  * @param {{repo?: string, pr?: string|number, message?: string}} [where] `repo` and `pr` are needed for the states with links
  * @returns {string}
  */
 export function renderReply(state, { repo, pr, message } = {}) {
-  let def = STATES_DEF[state];
-  if (!def) throw new Error(`unknown state: ${state}`);
+  const def = STATES_DEF[resolveState(state, message)];
   const words = cleanMessage(message);
-  if (def.message === 'required' && !words) def = STATES_DEF[def.fallback];
 
   const parts = [];
   if (def.message !== 'none') {
@@ -269,7 +284,7 @@ export function postReply({ issue, state, repo, pr, message }, run = gh) {
   const number = requireNumber(issue, 'issue number');
   const body = renderReply(state, { repo, pr, message });
   run(['api', `repos/${repo}/issues/${number}/comments`, '-f', `body=${body}`]);
-  const label = LABELS[state];
+  const label = LABELS[resolveState(state, message)];
   if (label) {
     run(['label', 'create', label.name, '--repo', repo, '--force', '--description', label.description]);
     run(['issue', 'edit', number, '--repo', repo, '--add-label', label.name]);
