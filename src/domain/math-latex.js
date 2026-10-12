@@ -49,6 +49,9 @@ const escapeTex = (text) => text.replace(/[\\{}#$%&_^~]/g, (c) => (c === '\\' ? 
 function leafLatex(node) {
   const text = textOf(node);
   if (node.name === 'none') return '{}';
+  // An empty root or cell is still that part.
+  if (node.name === 'msqrt') return '\\sqrt{}';
+  if (node.name === 'mtd') return '{}';
   if (node.name === 'mspace') return '\\,';
   if (node.name === 'mtext') return text === '' ? '{}' : `\\text{${escapeTex(text)}}`;
   if (text === '') return '{}';
@@ -82,6 +85,8 @@ function tableLatex(node, table, rows) {
     ?? 'matrix';
   return `\\begin{${env}} ${rows.join(' \\\\ ')} \\end{${env}}`;
 }
+
+const isNoBar = (thickness) => /^0+(\.0*)?(pt|px|em|ex)?$/.test(thickness);
 
 /** The LaTeX of one node, or null when it cannot be written. */
 function write(node, trust) {
@@ -139,7 +144,13 @@ function write(node, trust) {
       return `${group(parts[0])}^${group(parts[1])}`;
     case 'msub': return kids.length === 2 ? `${group(parts[0])}_${group(parts[1])}` : null;
     case 'msubsup': return kids.length === 3 ? `${group(parts[0])}_${group(parts[1])}^${group(parts[2])}` : null;
-    case 'mfrac': return kids.length === 2 ? `\\frac${group(parts[0])}${group(parts[1])}` : null;
+    case 'mfrac': {
+      if (kids.length !== 2) return null;
+      // No bar, as in a binomial or a stack, is not a fraction.
+      const bar = String(node.attrs?.linethickness ?? '');
+      if (isNoBar(bar)) return `\\genfrac{}{}{0pt}{}${group(parts[0])}${group(parts[1])}`;
+      return `\\frac${group(parts[0])}${group(parts[1])}`;
+    }
     case 'msqrt': return `\\sqrt${group(parts.join(' '))}`;
     case 'mroot': return kids.length === 2 ? `\\sqrt[${parts[1]}]${group(parts[0])}` : null;
     case 'mover': {
@@ -154,7 +165,8 @@ function write(node, trust) {
       if (kids[1].name === 'mo' && textOf(kids[1]) === UNDERBRACE) return `\\underbrace${group(parts[0])}`;
       return `\\underset${group(parts[1])}${group(parts[0])}`;
     case 'munderover':
-      return kids.length === 3 ? `\\overset${group(parts[2])}{\\underset${group(parts[1])}${group(parts[0])}}` : null;
+      // Limits above and below one symbol, as one part.
+      return kids.length === 3 ? `\\mathop${group(parts[0])}\\limits_${group(parts[1])}^${group(parts[2])}` : null;
     case 'menclose':
       return node.attrs?.notation === 'box' || node.attrs?.['data-latex-was']?.startsWith('\\boxed')
         ? `\\boxed${group(parts.join(' '))}`
@@ -211,6 +223,29 @@ export function symbolText(tree) {
     .map((leaf) => textOf(leaf))
     .join('')
     .replace(/[⁡⁢⁣\s]/g, '');
+}
+
+/**
+ * The kinds of part an equation is made of, in order: fractions with or without a
+ * bar, roots, scripts, accents, tables and so on. Wrappers that only group are left
+ * out. A rebuilt equation must have the same ones as the equation the edit made, or
+ * the rebuild changed what was there (a binomial turned into a fraction, say).
+ */
+export function structureSignature(tree) {
+  // Wrappers that only group, and the symbols themselves (the symbol text is checked on its own).
+  const GROUPING = new Set(['math', 'mrow', 'mstyle', 'mpadded', 'semantics', 'none', 'mi', 'mn', 'mo', 'mtext', 'mspace']);
+  const out = [];
+  const visit = (node) => {
+    if (node.text !== undefined) return;
+    if (!GROUPING.has(node.name)) {
+      const thickness = String(node.attrs?.linethickness ?? '1');
+      const bar = node.name === 'mfrac' ? (isNoBar(thickness) ? ':no-bar' : ':bar') : '';
+      out.push(`${node.name}${bar}`);
+    }
+    node.children.forEach(visit);
+  };
+  visit(tree);
+  return out.join(' ');
 }
 
 /** Positions, in reading order, of the leaves at or under any node whose id is in `ids`. */

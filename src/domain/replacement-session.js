@@ -8,7 +8,7 @@ import {
 } from './math-tree.js';
 import { resolveBrailleInputTable, toNemethCells } from './nemeth-input.js';
 import { parseNemeth } from './nemeth/index.js';
-import { dropStaleLatex, latexFromTree, symbolText, withoutStretchyFences, leafNodes, leafPositionsUnder, nodeForInserted } from './math-latex.js';
+import { dropStaleLatex, latexFromTree, structureSignature, symbolText, withoutStretchyFences, leafNodes, leafPositionsUnder, nodeForInserted } from './math-latex.js';
 
 const KEEP = { keepLatex: true };
 
@@ -152,8 +152,35 @@ async function materializeDraft(session, convertLatexToMathML, brailleInputTable
   return parseMathML(mathml, KEEP);
 }
 
-function applyDraftToDocument(document, target, tree, placement = 'replace') {
+const newId = () => `omniya-${globalThis.crypto.randomUUID()}`;
+const wrapper = (name, children) => ({ name, attrs: { 'data-omniya-id': newId() }, children });
+
+/**
+ * What a table needs in a slot: a row holds cells, a table holds rows. Typed content
+ * is not a row or a cell, so it is put in one, or the table would have a part that
+ * is not a part of a table.
+ */
+function fitToTable(tree, slot) {
+  const content = tree.children.filter((child) => child.text === undefined);
+  if (slot === 'mtr') return { ...tree, children: [wrapper('mtr', [wrapper('mtd', content)])] };
+  if (slot === 'mtd') return { ...tree, children: [wrapper('mtd', content)] };
+  return tree;
+}
+
+/** What the slot that `target` stands in needs: the part itself when replacing, its parent when adding beside it. */
+function slotFor(current, target, placement) {
+  const index = buildMathIndex(current);
+  const id = target.kind === 'node' ? target.nodeId : target.firstNodeId;
+  const entry = index.get(id);
+  if (!entry) return null;
+  const name = placement === 'replace' ? entry.node.name : entry.parent?.name;
+  if (placement === 'replace') return name === 'mtr' || name === 'mtd' ? name : null;
+  return name === 'mtable' ? 'mtr' : name === 'mtr' ? 'mtd' : null;
+}
+
+function applyDraftToDocument(document, target, drafted, placement = 'replace') {
   const current = parseMathML(document.mathml, KEEP);
+  const tree = fitToTable(drafted, slotFor(current, target, placement));
   if (placement === 'append' || placement === 'prepend') {
     return insertMathRelative(current, target, tree, placement);
   }
@@ -222,7 +249,10 @@ async function applyAndRebuild({ session, tree, target, placement, convertLatexT
         const mathml = canonicalizeMathML(await convertLatexToMathML(candidate), KEEP);
         // The rebuilt equation must hold exactly the symbols the edit left. If the
         // writer lost or made up a symbol, this form is not used.
-        if (symbolText(parseMathML(mathml, KEEP)) !== symbolText(spliced)) continue;
+        const rebuilt = parseMathML(mathml, KEEP);
+        if (symbolText(rebuilt) !== symbolText(spliced)) continue;
+        // And the same kinds of part, so a rebuild cannot change what was there.
+        if (structureSignature(rebuilt) !== structureSignature(spliced)) continue;
         return { spliced, made, converted: { mathml, latex: candidate } };
       } catch {
         // try the next form

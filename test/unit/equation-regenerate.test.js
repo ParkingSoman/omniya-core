@@ -124,3 +124,40 @@ test('after an append or a prepend the focus stays on the part it was on', async
   const tree = parseMathML(committed.document.mathml);
   assert.equal(findMathNode(tree, committed.focus.nodeId).children[0].text, 'y');
 });
+
+// Parts that must stay what they were when something beside them is edited.
+import { structureSignature, symbolText } from '../../src/domain/math-latex.js';
+
+test('editing inside a binomial keeps it a binomial, with no fraction bar', async () => {
+  const document = await equation('\\binom{n}{k}', { withLatexAttributes: true });
+  const tree = parseMathML(document.mathml, KEEP);
+  const find = (node) => (node.name === 'mn' || node.name === 'mi') && node.children[0]?.text === 'n' ? node : (node.children ?? []).map((c) => c.text === undefined ? find(c) : null).find(Boolean);
+  const n = find(tree);
+  const session = setLatexSource(startReplacementSession({
+    document, target: { kind: 'node', nodeId: n.attrs['data-omniya-id'] }, method: 'latex'
+  }), 'm');
+  const committed = await submitReplacement(session, { convertLatexToMathML });
+  const stored = parseMathML(committed.document.mathml, KEEP);
+  const fresh = parseMathML(canonicalizeMathML(await convertLatexToMathML('\\binom{m}{k}'), KEEP), KEEP);
+  assert.equal(structureSignature(stored), structureSignature(fresh));
+  assert.equal(structureSignature(stored), 'mfrac:no-bar');
+  assert.equal(symbolText(stored), symbolText(fresh));
+});
+
+test('content that replaces a matrix row becomes a row, and one that replaces a cell becomes a cell', async () => {
+  const document = await equation('\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}');
+  const tree = parseMathML(document.mathml, KEEP);
+  const names = (node, name, out = []) => { if (node.text === undefined) { if (node.name === name) out.push(node); node.children.forEach((c) => names(c, name, out)); } return out; };
+  for (const [name, expected] of [['mtr', 'mtable'], ['mtd', 'mtable']]) {
+    const target = names(tree, name)[0];
+    const session = setLatexSource(startReplacementSession({
+      document, target: { kind: 'node', nodeId: target.attrs['data-omniya-id'] }, method: 'latex'
+    }), 'q');
+    const committed = await submitReplacement(session, { convertLatexToMathML });
+    assert.ok(committed.latex, `${name}: the edit was rebuilt`);
+    const stored = parseMathML(committed.document.mathml);
+    for (const row of names(stored, 'mtr')) assert.ok(row.children.every((c) => c.name === 'mtd'), 'every row holds only cells');
+    assert.equal(structureSignature(stored).startsWith(expected), true);
+    assert.match(symbolText(stored), /q/);
+  }
+});
