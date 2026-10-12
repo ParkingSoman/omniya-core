@@ -123,27 +123,6 @@ test('Insert equation button opens the dock and inserts at the caret', { timeout
   assert.deepEqual(await paragraphTexts(page), ['Solve [math]']);
 });
 
-test('UEB grade button switches grade, announces, and is off while the dock is open', { timeout: 60_000 }, async (t) => {
-  const { page } = await start(t);
-  const button = page.locator('#grade-button');
-  const label = page.locator('#grade-button-label');
-  assert.equal((await label.textContent()).trim(), 'UEB grade 2');
-
-  await button.click();
-  assert.equal((await label.textContent()).trim(), 'UEB grade 1');
-  await page.waitForFunction(() => /UEB grade 1/.test(document.querySelector('#announcer').textContent));
-
-  await button.click();
-  assert.equal((await label.textContent()).trim(), 'UEB grade 2');
-  await page.waitForFunction(() => /UEB grade 2/.test(document.querySelector('#announcer').textContent));
-
-  await page.locator('#insert-equation-button').click();
-  await page.locator('#composer-dock').waitFor({ state: 'visible' });
-  assert.equal(await button.getAttribute('aria-disabled'), 'true');
-  await button.click({ force: true });
-  assert.equal((await label.textContent()).trim(), 'UEB grade 2');
-});
-
 test('Rename and Delete act on the open note', { timeout: 90_000 }, async (t) => {
   const { page } = await start(t);
   await createNote(page, 'Alpha');
@@ -335,7 +314,7 @@ test('Keyboard shortcuts dialog opens on its title and closes with Escape', { ti
   }));
   assert.ok(height <= windowHeight, `dialog ${height} fits window ${windowHeight}`);
   const headings = (await dialog.locator('h4').allTextContents()).map((s) => s.trim());
-  for (const name of ['Writing', 'Equations', 'Reading and editing an equation', 'Braille']) {
+  for (const name of ['Writing', 'Equations', 'Reading and editing an equation']) {
     assert.ok(headings.includes(name), `heading ${name}`);
   }
 

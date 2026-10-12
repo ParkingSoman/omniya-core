@@ -29,7 +29,7 @@
   --find-current: #ffc94d;
 
   --radius: 0.5rem;
-  --page-width: 46rem;
+  --page-width: 56rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -213,9 +213,9 @@ kbd {
 
 /* ---- The page ------------------------------------------------------------ */
 
-#document-section { flex: 1; min-height: 0; overflow-y: auto; }
+#document-section { background: var(--sidebar); display: flex; flex: 1; flex-direction: column; min-height: 0; overflow-y: auto; }
 
-.page { margin: 0 auto; max-width: var(--page-width); padding: 2.4rem 2rem 7rem; }
+.page { background: var(--page); border-inline: 1px solid var(--line); display: flex; flex: 1; flex-direction: column; margin: 0 auto; max-width: var(--page-width); padding: 2.6rem 3.25rem 3rem; width: 100%; }
 
 .title-row { align-items: flex-start; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; justify-content: space-between; margin: 0 0 1.1rem; }
 #current-napkin-name { flex: 1; font-size: 1.9rem; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; margin: 0; min-width: 12rem; overflow-wrap: anywhere; }
@@ -224,11 +224,12 @@ kbd {
 .title-actions button:hover { color: var(--ink); }
 #empty-message { color: var(--muted); margin: 2rem 0; }
 
-#editor-host { margin: 0; }
+#editor-host { display: flex; flex: 1; flex-direction: column; margin: 0; }
 #editor-host .ProseMirror {
   caret-color: var(--accent);
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   font-variant-ligatures: none;
+  flex: 1;
   line-height: 1.7;
   min-height: 14rem;
   outline: none;
@@ -269,12 +270,11 @@ img.ProseMirror-separator { border: none !important; display: inline !important;
 .math-node mjx-container mjx-mspace { width: 0 !important; }
 .math-node mjx-container:focus, .math-node mjx-focus:focus { outline: 2px solid var(--accent); outline-offset: 0.2rem; }
 
-/* ---- Status bar ---------------------------------------------------------- */
+/* ---- Save status and hint ------------------------------------------------ */
 
-#status-hint { color: var(--muted); flex: 1; text-align: center; }
-#status-bar { align-items: center; background: var(--sidebar); border-top: 1px solid var(--line); color: var(--muted); display: flex; font-size: 0.85rem; gap: 1rem; justify-content: space-between; padding: 0.15rem 0.75rem 0.15rem 1rem; }
-#status-bar button { color: var(--muted); }
-#status-bar button:hover { color: var(--ink); }
+.save-status { align-self: center; color: var(--muted); font-size: 0.85rem; margin-right: 0.4rem; }
+.status-hint { background: var(--page); bottom: 0; color: var(--muted); font-size: 0.9rem; margin: 0; padding: 0.5rem 0 0; position: sticky; }
+.status-hint:empty { display: none; }
 
 #app-error { align-items: center; background: var(--danger-soft); border-top: 1px solid var(--danger); color: var(--danger); display: flex; gap: 0.6rem; padding: 0.45rem 1rem; }
 
@@ -297,7 +297,7 @@ img.ProseMirror-separator { border: none !important; display: inline !important;
 
 @media (max-width: 52rem) {
   #app-shell { grid-template-columns: 11.5rem minmax(0, 1fr); }
-  .page { padding: 1.6rem 1.1rem 5rem; }
+  .page { border-inline: 0; padding: 1.6rem 1.1rem 5rem; }
   #toolbar button span:not(#insert-equation-key) { font-size: 0.88rem; }
   #insert-equation-key { display: none; }
 }
@@ -317,7 +317,7 @@ img.ProseMirror-separator { border: none !important; display: inline !important;
 }
 
 @media print {
-  #napkin-rail, #toolbar, #find-bar, #composer-dock, #status-bar, .title-actions, .skip-link,
+  #napkin-rail, #toolbar, #find-bar, #composer-dock, #status-hint, .title-actions, .skip-link,
   #app-error, #update-banner, #announcer, dialog { display: none !important; }
   #app-shell, #workspace { display: block; height: auto; }
   #document-section { overflow: visible; }

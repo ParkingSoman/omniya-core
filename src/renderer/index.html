@@ -121,6 +121,7 @@
             <div class="title-row">
               <h2 id="current-napkin-name">Loading…</h2>
               <div class="title-actions" role="group" aria-label="This note">
+                <span id="save-status" class="save-status"></span>
                 <button id="rename-button" type="button" class="button-quiet button-small" aria-label="Rename note">
                   <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="m4 16 1-4 8-8 3 3-8 8zM12 5l3 3" /></svg>
                   <span>Rename</span>
@@ -131,22 +132,13 @@
                 </button>
               </div>
             </div>
+            <!-- Kept for the braille-input diagnostics and for tests. The equation panel says the same thing in plain words. -->
+            <span id="mode-panel" tabindex="-1" class="sr-only" aria-hidden="true"></span>
             <p id="empty-message" hidden>No note is open. Choose New note to start one.</p>
             <div id="editor-host"></div>
+            <p id="status-hint" class="status-hint" aria-hidden="true"></p>
           </div>
         </div>
-
-        <footer id="status-bar">
-          <span id="save-status"></span>
-          <span id="status-hint" aria-hidden="true"></span>
-          <!-- Kept for the braille-input diagnostics and for tests. The grade button
-               beside it, and the equation panel, say the same thing in plain words. -->
-          <span id="mode-panel" tabindex="-1" class="sr-only" aria-hidden="true"></span>
-          <span id="grade-button-help" class="sr-only">Braille for your text. Grade 2 is contracted. Grade 1 is not. Press to switch.</span>
-          <button id="grade-button" type="button" class="button-quiet button-small" aria-keyshortcuts="Control+T Meta+T" aria-describedby="grade-button-help" title="Braille for your text. Grade 2 is contracted, grade 1 is not. Press to switch.">
-            <span id="grade-button-label">UEB grade 2</span>
-          </button>
-        </footer>
 
         <div id="app-error" role="alert" hidden>
           <span id="app-error-message"></span>
@@ -195,11 +187,6 @@
           <div><dt>Return to the note</dt><dd><kbd>Escape</kbd></dd></div>
         </dl>
 
-        <h4>Braille</h4>
-        <dl class="keys">
-          <div><dt>Switch between UEB grade 1 and grade 2</dt><dd><kbd>Ctrl+T</kbd> or <kbd>Cmd+T</kbd></dd></div>
-        </dl>
-
         <h4>Finding and sharing</h4>
         <dl class="keys">
           <div><dt>Find in the note</dt><dd><kbd>Ctrl+F</kbd> or <kbd>Cmd+F</kbd></dd></div>
@@ -209,7 +196,7 @@
           <div><dt>New note</dt><dd><kbd>Ctrl+N</kbd> or <kbd>Cmd+N</kbd></dd></div>
         </dl>
 
-        <p class="muted">The Insert, Format and Help menus run the same actions (Alt on Windows, the menu bar on Mac). If braille input misbehaves, choose Help, then Copy braille input diagnostics, and paste it into your report. This build: <span id="app-build-identity">unknown</span>.</p>
+        <p class="muted">The Insert and Help menus run the same actions (Alt on Windows, the menu bar on Mac). If braille input misbehaves, choose Help, then Copy braille input diagnostics, and paste it into your report. This build: <span id="app-build-identity">unknown</span>.</p>
         <button id="close-keyboard-help" type="button" class="button-primary">Close</button>
       </dialog>
     </div>

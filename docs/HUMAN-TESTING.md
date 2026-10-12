@@ -51,8 +51,8 @@ equations, offline autosave.
   detected from the input itself with nothing to configure. Command mode is
   gone; there is no Ctrl+[, no Command n/i/t/x, and no Add item.
 - Application menu: Insert → Equation (Alt+= / Control+=), Equation (Nemeth),
-  Equation (LaTeX); Format → UEB G2 / G1 (Ctrl+T); Help → Keyboard shortcuts.
-- Notes are gone; literary UEB G1 / G2 via Ctrl+T on text
+  Equation (LaTeX); Help → Keyboard shortcuts. There is no Format menu.
+- Notes are gone. There is no UEB grade switch: your screen reader's own braille table translates the text
 - Literary UEB G1 / G2 text via native liblouis (`lou_translate`)
 - Backspace deletes the last cell in the Nemeth field, as in any text field
 - BANA audit ledger, Electron evidence shards, and coverage reports as of
@@ -90,7 +90,7 @@ npm start
 
 1. Launch the packaged app or `npm start`. The note has focus. There is no
    equation panel on screen. The toolbar has Undo, Redo, Insert equation and
-   Shortcuts. The status bar says Saved and shows the UEB grade button. An
+   Shortcuts. "Saved" sits beside the note title. There is no status bar. An
    empty note says "Start writing".
 2. Type two paragraphs, with Enter between them. Ctrl+Z (Cmd+Z) undoes. Ctrl+Y
    (Cmd+Shift+Z) redoes. Do the same from the Edit menu and from the Undo and
@@ -131,11 +131,12 @@ npm start
     field and the equation field. The report must carry a `-- typing into:`
     line for each, and must not say `read as none` for a session that decoded
     cells.
-11. Type print text. Confirm each paragraph has a UEB `aria-braillelabel`
-    (inspect or AT). Ctrl+T, or the UEB grade button, switches grade 2 and
-    grade 1. Hover or focus the button: it explains what it changes.
+11. Type print text with a braille display connected. The display shows the text in
+    the table set in your screen reader (contracted or not, any table you choose).
+    The app has no grade switch and puts no braille label on text. Change the table in
+    the screen reader and confirm the display follows.
 12. Shortcuts (toolbar button or Help menu) opens a short table of keys:
-    Alt+= / Control+=, Ctrl+E / Ctrl+L, Ctrl+T, undo and redo, and the explorer
+    Alt+= / Control+=, Ctrl+E / Ctrl+L, undo and redo, and the explorer
     keys. It opens at the top, on its title. Escape closes it and focus returns
     to the button.
 13. Equation preview: in the equation panel type `\frac{a}{b}+\sqrt{x}` as LaTeX.
@@ -187,7 +188,7 @@ source before the task. Full protocol:
    as the caret arrives, as it passes, and when you arrow back. Say which screen
    reader and which browser engine you used. This is the most useful report we
    can get for this build.
-4. Ctrl+T toggles UEB grade on text. Insert / Format / Help menus (Alt on
+4. Insert / Help menus (Alt on
    Windows; menu bar on Mac) do the same.
 5. For an equation: author cells in the field from the braille display; submit
    with Enter. If your display sends translated text rather than cells, that is
@@ -237,7 +238,6 @@ source before the task. Full protocol:
   The report is long by design and states its own size. Paste it into the report
   rather than describing the symptom, which historically took several rounds.
 - This is usability / workflow feedback, **not** a BANA certification session.
-- Grade preference (`uebGrade`) is session-only and not persisted yet.
 
 ## Known inherited gaps (not introduced by the gate merge)
 

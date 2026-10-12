@@ -7,7 +7,9 @@ import test from 'node:test';
 import {
   launchApp,
   openEquationDock,
-  paragraphTexts
+  paragraphTexts,
+  press,
+  settle
 } from './launch-electron.js';
 
 // This file used to drive a "Command mode" reached with Ctrl+[ , where a single
@@ -15,7 +17,7 @@ import {
 // composer that replaced it: the napkin is now one document, and the equation
 // field opens only on Word's equation key. The behaviours that still exist are
 // pinned here against the keys that exist: Ctrl+E and Ctrl+L inside the equation
-// field, and Ctrl+T in the document.
+// field.
 //
 // "command s focuses mode panel" is not carried forward. Nothing focuses the
 // mode panel, by design: it is a quiet status line.
@@ -76,24 +78,19 @@ test('there is no Command button, and the field is the only equation surface', {
   assert.equal(await page.getByRole('button', { name: 'Command' }).count(), 0);
 });
 
-// The label has to survive ProseMirror redrawing the paragraph. An attribute set
-// by hand on a ProseMirror-owned element is dropped, so the editor applies it as a
-// node decoration. Without it a braille display user would get no UEB.
-test('typed text carries a UEB braille label on its paragraph', { timeout: 60_000 }, async (t) => {
+// The screen reader owns the braille table, so the app must not force one. A label
+// on a paragraph would override the person's own table (grade 1, grade 2, or any other).
+test('typed text carries no braille label, so the screen reader\'s own table applies', { timeout: 60_000 }, async (t) => {
   const { page } = await launch(t, 'omniya-ueb-text-submit-');
 
   await page.keyboard.type('hello world');
-  const labeled = page.locator('#editor-host [contenteditable="true"] p[aria-braillelabel]');
-  await labeled.first().waitFor({ timeout: 5_000 });
-  const labels = await labeled.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('aria-braillelabel') ?? ''));
-  assert.ok(labels.some((label) => /⠓/.test(label)), `expected UEB ⠓ on a paragraph, got ${JSON.stringify(labels)}`);
-
-  // The label follows the text: a second paragraph gets its own.
-  await page.keyboard.press('Enter');
+  await settle(page);
+  await press(page, 'Enter');
   await page.keyboard.type('good day');
-  await page.waitForFunction(() => document.querySelectorAll(
-    '#editor-host [contenteditable="true"] p[aria-braillelabel]'
-  ).length === 2, null, { timeout: 15_000 });
+  await page.waitForTimeout(1_500);
+  assert.equal(await page.locator('#editor-host [aria-braillelabel]').count(), 0);
+  assert.equal(await page.locator('#grade-button').count(), 0, 'there is no grade control');
+  assert.deepEqual(await paragraphTexts(page), ['hello world', 'good day']);
 });
 
 test('Ctrl+E and Ctrl+L switch authoring method while the equation field is empty', { timeout: 60_000 }, async (t) => {
@@ -128,29 +125,6 @@ test('Ctrl+E and Ctrl+L do nothing in the document, where they are not Word keys
   assert.deepEqual(await paragraphTexts(page), ['abc']);
 });
 
-test('Ctrl+T toggles UEB grade in the document, announces it, and does nothing in the equation field', { timeout: 60_000 }, async (t) => {
-  const { page } = await launch(t, 'omniya-ueb-grade-');
-  const mode = page.locator('#mode-panel');
-
-  assert.match(await mode.textContent() ?? '', /Text · UEB G2/);
-  await page.keyboard.press('Control+t');
-  await modePanelReads(page, /Text · UEB G1/);
-  assert.match(await savedStatus(page) ?? '', /UEB grade 1/);
-  await page.keyboard.press('Control+t');
-  await modePanelReads(page, /Text · UEB G2/);
-  assert.match(await savedStatus(page) ?? '', /UEB grade 2/);
-  // Toggling the grade is not an edit.
-  assert.deepEqual(await paragraphTexts(page), ['']);
-
-  await openEquationDock(page, 'nemeth');
-  await modePanelReads(page, /Equation · Nemeth · empty/);
-  await page.keyboard.press('Control+t');
-  await page.waitForTimeout(150);
-  assert.match(await mode.textContent() ?? '', /Equation · Nemeth · empty/);
-  await page.keyboard.press('Escape');
-  await modePanelReads(page, /Text · UEB G2/);
-});
-
 test('the mode panel is quiet and the help dialog lists the keys that exist', { timeout: 60_000 }, async (t) => {
   const { page } = await launch(t, 'omniya-ueb-help-quiet-');
 
@@ -178,7 +152,7 @@ test('the mode panel is quiet and the help dialog lists the keys that exist', { 
   const help = await dialog.innerText();
   assert.match(help, /Ctrl\+E/i);
   assert.match(help, /Ctrl\+L/i);
-  assert.match(help, /Ctrl\+T/i);
+  assert.doesNotMatch(help, /Ctrl\+T/i);
   assert.match(help, /Escape/i);
   assert.match(help, /Alt\+=/);
   assert.match(help, /Control\+=/);

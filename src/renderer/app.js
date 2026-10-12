@@ -5,7 +5,6 @@ import {
   switchNapkin
 } from '../domain/model.js';
 import { emptyDoc } from '../domain/document.js';
-import { applyUebBrailleLabel } from './ueb-braille-projection.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { attachInputCapture } from './input-capture.js';
 import { createInputLog } from './input-log.js';
@@ -23,8 +22,7 @@ import {
 import {
   createAuthoringState,
   enterEquationSurface,
-  formatStatus,
-  toggleUebGrade
+  formatStatus
 } from '../domain/authoring-state.js';
 import { classifyNemethInput, nemethStatusMessage } from '../domain/nemeth-input.js';
 import { clearMathWithin, createNapkinEditor, renderMathInto, waitForSpeechLabel } from './editor/editor.bundle.js';
@@ -48,7 +46,7 @@ const elements = Object.fromEntries([
   'app-shell', 'announcer', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'new-napkin-submit', 'napkin-name',
   'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name',
   'mode-panel', 'save-status', 'document-section', 'empty-message', 'editor-host',
-  'undo-button', 'redo-button', 'insert-equation-button', 'insert-equation-key', 'grade-button', 'grade-button-label',
+  'undo-button', 'redo-button', 'insert-equation-button', 'insert-equation-key', 
   'rename-button', 'delete-button', 'skip-to-note', 'status-hint',
   'find-bar', 'find-input', 'find-count', 'find-previous', 'find-next', 'find-close', 'find-button',
   'export-button', 'export-dialog', 'export-heading', 'export-html', 'export-latex', 'export-text', 'export-print', 'close-export',
@@ -74,7 +72,6 @@ let editor = null;
 let editorNapkinId = null;
 let pendingDoc = null;
 let docTimer;
-let labelTimer;
 let saveChain = Promise.resolve();
 let renamingNapkinId = null;
 let lastEquationSelected = false;
@@ -177,7 +174,6 @@ function onEditorChange(doc) {
   docTimer = setTimeout(() => {
     if (commitPendingDoc()) void saveState({ announce: false }).catch(() => {});
   }, 250);
-  scheduleUebLabels();
   if (!elements['find-bar'].hidden && editor) renderFindCount(editor.findState());
 }
 
@@ -273,7 +269,6 @@ function loadEditor() {
         onStateChange: updateToolbar,
         onInsertEquation: () => applyEquationInsert(preferredAuthoringMethod),
         onEnterMath: (pos) => { void enterExplorer(pos); },
-        onToggleGrade: toggleGrade
       }
     });
   } else if (editorNapkinId === napkin.id) {
@@ -286,62 +281,8 @@ function loadEditor() {
   }
   editorNapkinId = napkin.id;
   pendingDoc = null;
-  scheduleUebLabels();
 }
 
-/**
- * UEB braille label for each paragraph, so a braille display reads the writing
- * as braille. Equations are skipped here: they carry their own label.
- */
-function scheduleUebLabels() {
-  clearTimeout(labelTimer);
-  labelTimer = setTimeout(labelParagraphs, 400);
-}
-
-// Braille by paragraph text. A paragraph keeps its label while its words stay the same.
-const brailleByText = new Map();
-const MAX_CACHED_LABELS = 500;
-
-async function translateForLabel(text) {
-  let braille = '';
-  // The projection owns the error handling; it only needs something to write to.
-  const sink = { setAttribute: (_name, value) => { braille = value; }, removeAttribute: () => { braille = ''; } };
-  await applyUebBrailleLabel(sink, text, 'g2', (value, grade) => window.omniya.translateUeb(value, grade));
-  return braille;
-}
-
-// When the person last pressed a key or clicked. Braille labels are applied by a
-// ProseMirror transaction. If that lands in the instant between the browser
-// moving the caret and the editor hearing about it, the editor puts the caret
-// back where it was, and an arrow key press is lost. So labels wait for a quiet
-// moment.
-let lastInputAt = 0;
-const QUIET_BEFORE_LABELS_MS = 300;
-for (const type of ['keydown', 'pointerdown']) {
-  document.addEventListener(type, () => { lastInputAt = performance.now(); }, true);
-}
-const inputIsRecent = () => performance.now() - lastInputAt < QUIET_BEFORE_LABELS_MS;
-
-async function labelParagraphs() {
-  if (!editor || typeof window.omniya?.translateUeb !== 'function') return;
-  if (inputIsRecent()) { scheduleUebLabels(); return; }
-  const missing = [...new Set(editor.paragraphTexts())].filter((text) => text.trim() && !brailleByText.has(text));
-  if (brailleByText.size > MAX_CACHED_LABELS) brailleByText.clear();
-  await Promise.all(missing.map(async (text) => { brailleByText.set(text, await translateForLabel(text)); }));
-  // Translating takes a moment, so check again that the person is not mid-action.
-  if (inputIsRecent()) { scheduleUebLabels(); return; }
-  // The editor may have been closed or switched while translating. Labels are
-  // keyed by text, so applying them to whatever is open now is still correct.
-  editor?.setBrailleLabels(brailleByText);
-}
-
-function toggleGrade() {
-  if (mathSession || commandState.surface !== 'text') return;
-  const toggled = toggleUebGrade(commandState);
-  commandState = toggled.state;
-  syncModePanel();
-  announce(gradeLabel());
-}
 
 function syncModePanel() {
   if (elements['mode-panel']) elements['mode-panel'].textContent = formatStatus(commandState);
@@ -1023,18 +964,12 @@ function updateToolbar(history = editor?.historyState?.() ?? { canUndo: false, c
   setActionEnabled(elements['undo-button'], idle && history.canUndo);
   setActionEnabled(elements['redo-button'], idle && history.canRedo);
   setActionEnabled(elements['insert-equation-button'], hasNote);
-  setActionEnabled(elements['grade-button'], idle);
   setActionEnabled(elements['find-button'], hasNote);
   setActionEnabled(elements['export-button'], Boolean(activeNapkin()));
   setActionEnabled(elements['rename-button'], Boolean(activeNapkin()));
   setActionEnabled(elements['delete-button'], Boolean(activeNapkin()));
-  elements['grade-button-label'].textContent = gradeLabel();
 }
 
-/** The braille grade in plain words, for the button and for the spoken message. */
-function gradeLabel() {
-  return commandState.g1Passage ? 'UEB grade 1 passage' : `UEB grade ${commandState.uebGrade === 'g1' ? 1 : 2}`;
-}
 
 function onToolbarClick(id, action) {
   elements[id].addEventListener('click', () => {
@@ -1049,14 +984,19 @@ elements['skip-to-note'].addEventListener('click', () => focusEditor());
 // Double-click an equation to read it by parts, as Enter does. The first click
 // of the pair has already selected it.
 elements['editor-host'].addEventListener('dblclick', (event) => {
-  if (!(event.target instanceof Element) || !event.target.closest('.math-node') || !editor) return;
-  const selected = editor.selectedMath();
+  const target = event.target instanceof Element ? event.target.closest('.math-node') : null;
+  if (!target || !editor) return;
+  // Normally the first click has selected it. If it did not, select the one under the pointer.
+  let selected = editor.selectedMath();
+  if (!selected) {
+    try { editor.selectMath(editor.view.posAtDOM(target, 0)); } catch { return; }
+    selected = editor.selectedMath();
+  }
   if (selected) void enterExplorer(selected.pos);
 });
 onToolbarClick('undo-button', () => performHistory('undo'));
 onToolbarClick('redo-button', () => performHistory('redo'));
 onToolbarClick('insert-equation-button', () => applyEquationInsert(preferredAuthoringMethod));
-onToolbarClick('grade-button', () => toggleGrade());
 onToolbarClick('find-button', () => openFind());
 onToolbarClick('export-button', () => openExport());
 onToolbarClick('rename-button', () => renameFocusedNapkin(state.activeNapkinId));
@@ -1403,10 +1343,6 @@ window.omniya?.onMenuCommand?.((payload) => {
   }
   if (payload.action === 'undo' || payload.action === 'redo') {
     performHistory(payload.action);
-    return;
-  }
-  if (payload.action === 'toggle-ueb-grade') {
-    toggleGrade();
     return;
   }
   if (payload.action === 'keyboard-help') {

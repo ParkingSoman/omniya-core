@@ -126,7 +126,7 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   const helpText = await help.innerText();
   assert.match(helpText, /Ctrl\+E/);
   assert.match(helpText, /Ctrl\+L/);
-  assert.match(helpText, /Ctrl\+T/);
+  assert.doesNotMatch(helpText, /Ctrl\+T/, 'Ctrl+T is no longer a shortcut');
   assert.match(helpText, /Escape/);
   await page.getByRole('button', { name: 'Close' }).click();
   await help.waitFor({ state: 'hidden' });

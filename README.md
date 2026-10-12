@@ -8,8 +8,8 @@ The usage notes below apply to **`testing` only**. They are not on `main`. This 
 
 **Write text.** Each note is one document, and it works like Word. Type in it. **Enter**
 starts a new paragraph. **Ctrl+Z** undoes and **Ctrl+Y** redoes (**Cmd+Z** and
-**Cmd+Shift+Z** on Mac), for typing and equations alike. **Ctrl+T** toggles UEB grade 2 /
-grade 1. [`docs/word-editor.md`](docs/word-editor.md) lists every key and why it is there.
+**Cmd+Shift+Z** on Mac), for typing and equations alike. Braille for your text is
+your screen reader's job, in the table you chose there. [`docs/word-editor.md`](docs/word-editor.md) lists every key and why it is there.
 
 **Insert an equation.** **Alt+=** (Windows) or **Control+=** (Mac) opens a small field at the
 caret. Type Nemeth or LaTeX: **Ctrl+E** picks Nemeth and **Ctrl+L** picks LaTeX while the
@@ -183,7 +183,7 @@ The point of the Electron app is to make these hypotheses testable. The architec
 
 This section is the **alpha** on `testing`, not the signed-off `main` snapshot. Humans have not completely verified it. The practical checklist is [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 
-On this branch you can create, switch, rename and delete notes; write in a Word-style document with inline equations; insert an equation with Alt+= (Windows) or Control+= (Mac), as Nemeth or LaTeX; toggle UEB grade with Ctrl+T; explore MathML and press **r** to replace a part of an equation; project literary UEB labels via liblouis; save locally; and run the BANA evidence grind.
+On this branch you can create, switch, rename and delete notes; write in a Word-style document with inline equations; insert an equation with Alt+= (Windows) or Control+= (Mac), as Nemeth or LaTeX; explore MathML and press **r** to replace a part of an equation; save locally; and run the BANA evidence grind.
 
 The interface uses semantic HTML, native form controls, labeled fields, visible focus indicators, a narrow preload bridge, context isolation, a sandboxed renderer, and a restrictive content-security policy.
 
@@ -301,7 +301,6 @@ On **`testing`**, start with [How to use this alpha](#how-to-use-this-alpha). In
 - Arrow keys select an equation as one unit, then move past it. Backspace next to an equation selects it. A second Backspace deletes it.
 - Press Enter on a selected equation to enter MathJax’s expression explorer. MathJax handles movement through the expression; Escape returns to the document.
 - In the explorer, press `r` to replace the focused part. `a` inserts after that same node; `o` inserts before it. Backspace deletes the equation, and undo brings it back.
-- Ctrl+T toggles UEB G2 / G1 on text.
 - Arrow keys inside the equation field retain normal text-cursor behavior.
 
 The document is saved shortly after each change. An unfinished equation in the field is not saved.

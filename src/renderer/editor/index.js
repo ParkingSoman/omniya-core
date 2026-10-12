@@ -20,38 +20,6 @@ function isInsertEquationChord(event) {
     : event.altKey && !event.ctrlKey && !event.metaKey;
 }
 
-/** The text of a paragraph, equations left out. Braille labels are keyed by it. */
-export function paragraphText(node) {
-  let text = '';
-  node.forEach((child) => { if (child.isText) text += child.text; });
-  return text;
-}
-
-// A braille label is an attribute on the paragraph's element. ProseMirror owns
-// those elements and drops attributes it did not put there, so a label set by
-// hand vanishes on the next redraw. A node decoration is the supported way.
-const brailleKey = new PluginKey('braille-labels');
-const brailleLabels = new Plugin({
-  key: brailleKey,
-  state: {
-    init: () => new Map(),
-    apply: (tr, value) => tr.getMeta(brailleKey) ?? value,
-  },
-  props: {
-    decorations(state) {
-      const labels = brailleKey.getState(state);
-      const decorations = [];
-      state.doc.forEach((node, offset) => {
-        const label = labels.get(paragraphText(node));
-        if (label) {
-          decorations.push(Decoration.node(offset, offset + node.nodeSize, { 'aria-braillelabel': label }));
-        }
-      });
-      return DecorationSet.create(state.doc, decorations);
-    },
-  },
-});
-
 // Find in note. The plugin keeps the query and the matches, and draws them: every
 // match is highlighted and the current one is stronger. A match is a range of
 // text, or a whole equation when the query is in the equation's source (the
@@ -132,7 +100,6 @@ const displayEquations = new Plugin({
 function makePlugins(handlers) {
   return [
     history(),
-    brailleLabels,
     displayEquations,
     findPlugin,
     new Plugin({
@@ -142,11 +109,6 @@ function makePlugins(handlers) {
           if (isInsertEquationChord(event)) {
             event.preventDefault();
             handlers.onInsertEquation?.();
-            return true;
-          }
-          if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 't') {
-            event.preventDefault();
-            handlers.onToggleGrade?.();
             return true;
           }
           const { selection } = view.state;
@@ -180,7 +142,6 @@ function makePlugins(handlers) {
  *   onChange(docJSON)      the document changed
  *   onInsertEquation()     the insert-equation chord was pressed
  *   onEnterMath(pos)       Enter on a selected equation: read it by parts
- *   onToggleGrade()        Ctrl/Cmd+T
  */
 export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = '', handlers = {} }) {
   const plugins = makePlugins(handlers);
@@ -291,16 +252,6 @@ export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = 
     },
     setLabel(text) { view.dom.setAttribute('aria-label', text); },
     focus() { view.focus(); },
-    /** Give each paragraph its braille label. `labels` maps paragraph text to braille. Not an undo step. */
-    setBrailleLabels(labels) {
-      view.dispatch(view.state.tr.setMeta(brailleKey, new Map(labels)).setMeta('addToHistory', false));
-    },
-    /** The text of each paragraph, equations left out. */
-    paragraphTexts() {
-      const texts = [];
-      view.state.doc.forEach((node) => texts.push(paragraphText(node)));
-      return texts;
-    },
     /** Put an equation at the caret, replacing any selected text. The caret lands after it. */
     insertMath(attrs) {
       const node = editorSchema.nodes.math.create(mathAttrs(attrs));

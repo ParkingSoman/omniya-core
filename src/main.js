@@ -249,15 +249,6 @@ function buildApplicationMenu() {
         }
       ]
     },
-    {
-      label: 'Format',
-      submenu: [
-        {
-          label: `UEB G2 / G1\t${mod}+T`,
-          click: () => sendMenuCommand({ action: 'toggle-ueb-grade' })
-        }
-      ]
-    },
     { role: 'windowMenu' },
     {
       role: 'help',

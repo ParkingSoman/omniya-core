@@ -8,7 +8,7 @@ Omniya Core is an experimental local-first Electron app exploring screen-reader-
 mathematical workspaces (research prototype, not a production product). Users write
 "napkins" — local JSON documents, each one a Word-style document of paragraphs with
 inline equations — and can author math in LaTeX or Nemeth braille, explore equation
-structure via MathJax, and read/write literary UEB via liblouis. No network access, no
+structure via MathJax, and read literary text in the screen reader's own braille table (the app sets none; see `docs/word-editor.md`, "Braille for ordinary text"). No network access, no
 accounts, no cloud.
 
 The editing experience is deliberately **not innovative**: it copies Word. Type, Enter
