@@ -1212,11 +1212,13 @@ elements['close-export'].addEventListener('click', closeExport);
 
 async function deleteFocusedNapkin(napkinId) {
   if (mathSession) return;
+  // A title typed a moment ago is not saved to the note until the pending edit is
+  // committed, and the question must name the note as it is now.
+  commitPendingDoc();
   const napkin = state.napkins.find(({ id }) => id === napkinId);
   if (!napkin) return;
   if (!globalThis.confirm(`Delete the note “${napkin.name}”? This cannot be undone.`)) return;
 
-  commitPendingDoc();
   leaveExplorer({ refocus: false });
   const index = state.napkins.findIndex(({ id }) => id === napkinId);
   const remaining = state.napkins.filter(({ id }) => id !== napkinId);

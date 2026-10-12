@@ -335,3 +335,15 @@ test('Dark mode changes the colours and keeps the text readable', { timeout: 60_
     assert.ok(ratio >= 4.5, `contrast ${ratio.toFixed(2)} for ${scheme.color} on ${scheme.background}`);
   }
 });
+
+test('Delete names the note as it is now, even straight after its title was typed', { timeout: 60_000 }, async (t) => {
+  const { page } = await start(t);
+  await createNote(page, 'Alpha');
+  // Type a new title and press Delete in the same breath, before the editor has saved it.
+  await page.evaluate(() => globalThis.__omniyaTesting.editor.focusTitle());
+  await page.keyboard.type('Quick rename');
+  let message = '';
+  page.once('dialog', (dialog) => { message = dialog.message(); void dialog.dismiss(); });
+  await page.locator('#delete-button').click();
+  assert.match(message, /Quick rename/);
+});

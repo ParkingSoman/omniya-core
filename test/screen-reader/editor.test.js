@@ -68,10 +68,12 @@ async function step(walk, label, action) {
 }
 
 // Press keys the same way in both boxes. In the editor, the sixth right-arrow
-// is the one that arrives at the equation.
-async function walk(name) {
+// after the start of the body is the one that arrives at the equation.
+async function walk(name, { intoBody = false } = {}) {
   const steps = [];
   steps.push(await step(name, 'go to start of line', () => screenReader.press(DOC_START)));
+  // A note starts with its title line. The walk to the equation starts at the body under it.
+  if (intoBody) steps.push(await step(name, 'arrow down to the note', () => screenReader.press('ArrowDown')));
   for (let i = 1; i <= 9; i += 1) {
     steps.push(await step(name, `arrow right ${i}`, () => screenReader.press('ArrowRight')));
   }
@@ -129,7 +131,7 @@ test('real screen reader walks a plain text input and the editor', async (t) => 
 
       if (MAC) await voiceOverFocus(page, editorSelector, /Note text/i);
       else await page.click(editorSelector);
-      const editor = await walk('editor');
+      const editor = await walk('editor', { intoBody: true });
 
       if (MAC) {
         // VoiceOver's own item-by-item reading works through Guidepup even where
