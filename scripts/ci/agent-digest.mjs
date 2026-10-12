@@ -41,7 +41,7 @@ function knownSecrets() {
 /** Replace anything shaped like a credential, and every known secret value. Applied after cleaning. */
 export function scrub(text, secrets = knownSecrets()) {
   let out = String(text);
-  for (const value of secrets) out = out.split(value).join('[secret removed]');
+  for (const value of secrets.filter((v) => v.length >= 6)) out = out.split(value).join('[secret removed]');
   return out
     .replace(/\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]{10,}/g, '[token removed]')
     .replace(/\bsk-[A-Za-z0-9_-]{10,}/g, '[token removed]')
