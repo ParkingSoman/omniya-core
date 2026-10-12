@@ -194,7 +194,7 @@ kbd {
 #composer-dock[hidden] { display: none; }
 #composer-form { align-items: center; display: flex; flex-wrap: wrap; gap: 0.2rem 0.5rem; margin: 0; }
 .composer-bar { align-items: center; display: flex; flex: 1 1 auto; flex-wrap: wrap; gap: 0.2rem 0.6rem; order: 3; }
-.composer-bar h2, #composer-help, .composer-status { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
+#composer-heading, #composer-help, .composer-status { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
 .composer-bar .muted { font-size: 0.8rem; margin-right: auto; }
 
 #replacement-method { border: 0; display: inline-flex; font-size: 0.8rem; gap: 0; margin: 0 0 0 auto; padding: 0; }
@@ -234,7 +234,7 @@ kbd {
   font-size: 1.1875rem;
   font-variant-ligatures: none;
   flex: 1;
-  line-height: 1.7;
+  line-height: 1.55;
   min-height: 14rem;
   outline: none;
   position: relative;
@@ -242,7 +242,7 @@ kbd {
   white-space: break-spaces;
   word-wrap: break-word;
 }
-#editor-host .ProseMirror p { margin: 0 0 0.8rem; }
+#editor-host .ProseMirror p { margin: 0 0 0.45rem; }
 
 /* An empty note shows what to do. It is a hint on screen, not content. */
 #editor-host .ProseMirror[data-empty="true"] > p:first-of-type::before {

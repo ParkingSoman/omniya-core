@@ -12,7 +12,7 @@ import {
   switchNapkin,
   validateState
 } from '../../src/domain/model.js';
-import { emptyDoc, docWithTitle, nameFromDoc } from '../../src/domain/document.js';
+import { emptyDoc, docSnippet, docWithTitle, nameFromDoc } from '../../src/domain/document.js';
 
 function ids(...values) {
   let index = 0;
@@ -135,4 +135,15 @@ test('renaming also writes the new name into the title', () => {
   const initial = createInitialState({ idFactory: ids('napkin-1') });
   const renamed = renameNapkin(setNapkinDoc(initial, 'napkin-1', docWithTitle(hello, 'Old')), 'napkin-1', 'New name');
   assert.equal(renamed.napkins[0].doc.content[0].content[0].text, 'New name');
+});
+
+test('the list preview is the first line of the body, with equations as a word, never their source', () => {
+  const doc = docWithTitle({ type: 'doc', content: [
+    { type: 'paragraph' },
+    { type: 'paragraph', content: [
+      { type: 'text', text: 'Roots of ' },
+      { type: 'math', attrs: { mathml: '<math/>', source: 'a \\neq 0', sourceKind: 'latex' } }
+    ] }
+  ] }, 'Quadratic');
+  assert.equal(docSnippet(doc), 'Roots of [equation]');
 });

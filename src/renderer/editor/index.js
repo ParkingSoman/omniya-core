@@ -142,7 +142,7 @@ const emptyTitle = new Plugin({
     decorations(state) {
       const title = state.doc.firstChild;
       if (title?.type.name !== 'title' || title.content.size > 0) return null;
-      return DecorationSet.create(state.doc, [Decoration.node(0, title.nodeSize, { class: 'title-empty', 'aria-label': 'Title, empty' })]);
+      return DecorationSet.create(state.doc, [Decoration.node(0, title.nodeSize, { class: 'title-empty', 'aria-label': 'Untitled note' })]);
     },
   },
 });

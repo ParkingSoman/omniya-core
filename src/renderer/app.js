@@ -208,6 +208,8 @@ function renderNapkins() {
     name.textContent = napkin.name;
     const snippet = document.createElement('span');
     snippet.className = 'note-snippet';
+    // The name already names the button. Reading the preview as well is noise.
+    snippet.setAttribute('aria-hidden', 'true');
     snippet.textContent = docSnippet(napkin.doc);
     button.append(name, snippet);
     if (napkin.id === state.activeNapkinId) button.setAttribute('aria-current', 'page');
