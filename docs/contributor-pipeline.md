@@ -481,6 +481,7 @@ you; it just never runs.
 | `.github/workflows/pipeline-close-issue.yml` | `testing` | Your merge of a fix closes its issue. |
 | `scripts/ci/find-fix-pr.mjs` | `testing` | The one rule for "which open pull request is the fix for issue N". |
 | `scripts/ci/reply.mjs` | `testing` | Posts the one comment an event gets, with the agent's words inside. Labels the issue. |
+| `scripts/ci/agent-digest.mjs` | `testing` | Writes what the agent did into the job summary, so a silent stop can be diagnosed. Keeps the agent's own words and tool names. Drops every tool result and command, and scrubs anything shaped like a credential. |
 | `scripts/ci/issue-kind.mjs` | `testing` | Reads the form's label and says `bug`, `nemeth` or `routed`. |
 | `scripts/ci/verify-branch.mjs` | `testing` | Starts the checks and the build, waits, and keeps the log of what failed. |
 | `scripts/ci/hand-off.mjs` | `testing` | Takes the pull request out of draft when the contributor says it works. |
