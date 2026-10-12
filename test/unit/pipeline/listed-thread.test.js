@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildThread, QUESTION_MARKER } from '../../../scripts/ci/listed-thread.mjs';
-import { QUESTION_MARKER as STATUS_QUESTION_MARKER } from '../../../scripts/ci/status-comment.mjs';
+import { QUESTION_MARKER as REPLY_QUESTION_MARKER } from '../../../scripts/ci/reply.mjs';
 
 const handles = ['HayleeRM', 'ParkingSoman'];
 const pr = { number: 40, author: 'github-actions[bot]', body: 'Fixes #12\n\nWhat changed.' };
@@ -100,5 +100,5 @@ test('a stranger cannot get text in by pasting the question marker', () => {
 });
 
 test('the question marker is the same string in both files', () => {
-  assert.equal(QUESTION_MARKER, STATUS_QUESTION_MARKER);
+  assert.equal(QUESTION_MARKER, REPLY_QUESTION_MARKER);
 });

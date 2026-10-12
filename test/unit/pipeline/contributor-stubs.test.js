@@ -128,8 +128,11 @@ test('every job states its own permissions, and the small ones hold almost none'
     'pipeline-fix.yml': {
       allowlist: { contents: 'read', issues: 'read' },
       refused: { issues: 'write' },
+      kind: { contents: 'read', issues: 'read' },
+      routed: { contents: 'read', issues: 'write' },
       status: { contents: 'read', issues: 'write' },
-      fix: { contents: 'write', 'pull-requests': 'write', issues: 'write' },
+      // `issues: read`: the agent posts nothing on the issue.
+      fix: { contents: 'write', 'pull-requests': 'write', issues: 'read' },
       noaccess: { issues: 'write' },
       outcome: { contents: 'read', issues: 'write' },
       // A ceiling for a called workflow, whose own jobs state narrower ones.
@@ -139,9 +142,10 @@ test('every job states its own permissions, and the small ones hold almost none'
       allowlist: { contents: 'read', 'pull-requests': 'read', issues: 'read' },
       nofix: { issues: 'write' },
       noaccess: { issues: 'write' },
-      agent: { contents: 'write', 'pull-requests': 'write', issues: 'write' },
+      agent: { contents: 'write', 'pull-requests': 'write', issues: 'read' },
+      reply: { contents: 'read', issues: 'write' },
       'resume-start': { contents: 'read', issues: 'write' },
-      resume: { contents: 'write', 'pull-requests': 'write', issues: 'write' },
+      resume: { contents: 'write', 'pull-requests': 'write', issues: 'read' },
       'resume-outcome': { contents: 'read', issues: 'write' },
       'resume-verify': { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' },
       verify: { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' },
@@ -151,7 +155,7 @@ test('every job states its own permissions, and the small ones hold almost none'
       explain: { contents: 'read', 'pull-requests': 'read', issues: 'write' }
     },
     'pipeline-agent.yml': {
-      agent: { contents: 'write', 'pull-requests': 'write', issues: 'write' }
+      agent: { contents: 'write', 'pull-requests': 'write', issues: 'read' }
     }
   };
   for (const [file, jobs] of Object.entries(expected)) {

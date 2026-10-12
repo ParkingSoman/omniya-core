@@ -6,6 +6,16 @@ name: pipeline-fix
 # on the issue that a test build is ready. Nobody couriers anything, and the
 # contributor never leaves the issue.
 #
+# There are four kinds of report, told apart by the label the form put on the
+# issue (`scripts/ci/issue-kind.mjs`). A bug and a missing Nemeth symbol go to the
+# agent. A design idea and anything else do not: a person answers those, and no
+# subscription quota is spent.
+#
+# THE ISSUE GETS ONE COMMENT PER EVENT, AND THE PIPELINE WRITES IT. The agent
+# posts nothing. It leaves its words in a file, `pipeline-agent.yml` returns them
+# as the `message` output, and `scripts/ci/reply.mjs` puts them inside the one
+# comment the event gets. See that script for why.
+#
 # THIS FILE IS CALLED, IT DOES NOT TRIGGER. GitHub starts an `on: issues`
 # workflow from the default branch's copy only, so the trigger has to live on
 # `main`. What lives there is a stub, `.github/pipeline-stubs/contributor-fix.yml`,
@@ -135,8 +145,13 @@ jobs:
   # maintainer, not a stranger, so the job FAILS: the failure email is how the
   # maintainer learns, and the comment below says "the maintainer has been told".
   noaccess:
-    needs: allowlist
-    if: needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.access == 'false'
+    # Not for a report routed to a person: no agent runs for it, so the contributor
+    # having no write access costs nothing and the `routed` comment is the answer.
+    needs: [allowlist, kind]
+    if: >-
+      needs.allowlist.outputs.allowed == 'true' &&
+      needs.allowlist.outputs.access == 'false' &&
+      needs.kind.outputs.kind != 'routed'
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -185,12 +200,69 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Thank you for the report. The automatic fixer did not start on this issue, because its author is not on the contributor list yet. Nothing is wrong with your report. The maintainer will read it and decide what happens next."
 
+  # Which kind of report is this? Read from the labels the form set. It is a job
+  # of its own because it needs the helper from `testing`, and the gate above
+  # checks out `main`. It reads one issue and writes nothing.
+  kind:
+    needs: allowlist
+    if: needs.allowlist.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+    timeout-minutes: 5
+    outputs:
+      kind: ${{ steps.kind.outputs.kind }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - id: kind
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.allowlist.outputs.number }}
+        # If the labels cannot be read, treat the report as a bug: the same as an
+        # issue with no type label, and what every report was before there were
+        # types. The other way is silence, because nothing downstream matches an
+        # empty kind and a skipped `fix` is not a failure. Silence is what hid
+        # issue #22 for 23 days.
+        run: node scripts/ci/issue-kind.mjs "$ISSUE" || echo "kind=bug" >> "$GITHUB_OUTPUT"
+
+  # A design idea, or anything else. A person answers. No agent starts and no
+  # quota is spent. One short comment, so it is not read as the pipeline being
+  # broken, which is how issue #22 sat for 23 days.
+  routed:
+    needs: [allowlist, kind]
+    if: needs.allowlist.outputs.allowed == 'true' && needs.kind.outputs.kind == 'routed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.allowlist.outputs.number }}
+        run: node scripts/ci/reply.mjs "$ISSUE" routed
+
   # Tell the contributor, on the issue, that work has started. This is the
   # first thing they read. It is a job of its own so the gate stays free of
   # write access, and a failed comment never stops the fix.
+  #
+  # Everything that is not explicitly `routed` goes to the agent, as a bug. If the
+  # `kind` job itself failed, its output is empty, and the only other way is
+  # silence, which is what hid issue #22 for 23 days. `!cancelled()` is what lets
+  # this run after a failed `kind` job.
   status:
-    needs: allowlist
-    if: needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.access != 'false'
+    needs: [allowlist, kind]
+    if: >-
+      ${{ !cancelled() &&
+      needs.allowlist.outputs.allowed == 'true' &&
+      needs.allowlist.outputs.access != 'false' &&
+      needs.kind.outputs.kind != 'routed' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -205,42 +277,52 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
-        run: node scripts/ci/status-comment.mjs "$ISSUE" working
+        run: node scripts/ci/reply.mjs "$ISSUE" started
 
   fix:
-    needs: [allowlist, status]
-    if: ${{ !cancelled() && needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.access != 'false' }}
+    needs: [allowlist, kind, status]
+    if: >-
+      ${{ !cancelled() &&
+      needs.allowlist.outputs.allowed == 'true' &&
+      needs.allowlist.outputs.access != 'false' &&
+      needs.kind.outputs.kind != 'routed' }}
     # Without `actions`: the agent runs unrestricted Bash. Starting the checks
     # is the `verify` job below, which runs no agent.
+    #
+    # Without `issues: write` either. The agent posts nothing on the issue, and
+    # this is what makes that true rather than requested.
     permissions:
       contents: write
       pull-requests: write
-      issues: write
+      issues: read
     uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: fix
+      kind: ${{ needs.kind.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
       issue_number: ${{ needs.allowlist.outputs.number }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-  # The agent ended without a pull request, or crashed. Say so on the issue, in
-  # the status comment, so the contributor is not left reading "I am working on a
-  # fix" for ever. A report that was not a bug, a question the agent asked, one it
-  # could not reproduce, and a run that died (an install that failed, a timeout)
-  # all end here. `scripts/ci/fix-outcome.mjs` decides the words and the label,
-  # and `pipeline-followup.yml` uses the same script after an answered question.
+  # The agent ended without a pull request, or crashed. Say so on the issue, so
+  # the contributor is not left reading "I started on this" for ever. A report
+  # that was not a bug, a question the agent asked, one it could not reproduce,
+  # and a run that died (an install that failed, a timeout) all end here. The
+  # agent's own words ride in the one comment. `scripts/ci/fix-outcome.mjs`
+  # decides which comment and which label, and `pipeline-followup.yml` uses the
+  # same script after an answered question.
   #
   # `needs.fix.result` is what catches the crash: a job that failed has no
   # outputs, so the result word is empty and would match none of the others.
-  # The `allowed` and `access` guards keep a refused author, whose `fix` job is
-  # skipped, from being reported as a failure.
+  # A skipped `fix` job is not a failure. It is skipped for a refused author, for
+  # one the agent cannot run for, and for a report that is routed to a person,
+  # and none of those is a fault.
   outcome:
     needs: [allowlist, fix]
     if: >-
       ${{ !cancelled() &&
       needs.allowlist.outputs.allowed == 'true' &&
       needs.allowlist.outputs.access != 'false' &&
-      (needs.fix.result != 'success' ||
+      (needs.fix.result == 'failure' ||
       needs.fix.outputs.result == 'asked' ||
       needs.fix.outputs.result == 'needs-design' ||
       needs.fix.outputs.result == 'stopped') }}
@@ -258,6 +340,8 @@ jobs:
           ISSUE: ${{ needs.allowlist.outputs.number }}
           RESULT: ${{ needs.fix.outputs.result }}
           FIX_JOB: ${{ needs.fix.result }}
+          # Agent text. It reaches the script through `env` only.
+          MESSAGE: ${{ needs.fix.outputs.message }}
         run: node scripts/ci/fix-outcome.mjs "$ISSUE" "$FIX_JOB" "$RESULT"
 
   # Check the pull request and build it, and repair it until both pass. This is
@@ -278,5 +362,6 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.fix.outputs.pr }}
       branch: ${{ needs.fix.outputs.branch }}
+      message: ${{ needs.fix.outputs.message }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

@@ -24,6 +24,9 @@ export const PAIRED_FILES = [
   ['.github/pipeline-stubs/contributor-followup.yml', '.github/workflows/contributor-followup.yml'],
   ['.github/pipeline-stubs/contributor-signoff.yml', '.github/workflows/contributor-signoff.yml'],
   ['.github/ISSUE_TEMPLATE/bug-report.yml', '.github/ISSUE_TEMPLATE/bug-report.yml'],
+  ['.github/ISSUE_TEMPLATE/nemeth-feature.yml', '.github/ISSUE_TEMPLATE/nemeth-feature.yml'],
+  ['.github/ISSUE_TEMPLATE/design.yml', '.github/ISSUE_TEMPLATE/design.yml'],
+  ['.github/ISSUE_TEMPLATE/other.yml', '.github/ISSUE_TEMPLATE/other.yml'],
   ['.github/ISSUE_TEMPLATE/config.yml', '.github/ISSUE_TEMPLATE/config.yml'],
   ['scripts/ci/allowlist.mjs', 'scripts/ci/allowlist.mjs']
 ];

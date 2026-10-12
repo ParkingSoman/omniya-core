@@ -40,12 +40,18 @@ on:
       branch:
         required: true
         type: string
-      # The state to write on the issue before the first check starts. Empty
-      # leaves the comment as it is.
-      status_before:
+      # What the agent wanted the contributor to hear. It rides in the one comment
+      # that announces the build. Agent text, so it is only ever passed through
+      # `env`, never written into a `run:` line.
+      message:
         required: false
         type: string
         default: ''
+      # `ready` for a first build, `revised` for a replacement behind the same links.
+      reply_state:
+        required: false
+        type: string
+        default: ready
     outputs:
       green:
         description: true when the last check and build passed
@@ -62,19 +68,13 @@ jobs:
       actions: write
       contents: read
       pull-requests: read
-      issues: write
+      issues: read
     outputs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: testing
-      - if: inputs.status_before != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE: ${{ inputs.issue_number }}
-          STATUS: ${{ inputs.status_before }}
-        run: node scripts/ci/status-comment.mjs "$ISSUE" "$STATUS"
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -93,7 +93,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      issues: write
+      issues: read
     uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: checks-failed
@@ -113,7 +113,7 @@ jobs:
       actions: write
       contents: read
       pull-requests: read
-      issues: write
+      issues: read
     outputs:
       green: ${{ steps.v.outputs.green }}
     steps:
@@ -138,7 +138,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      issues: write
+      issues: read
     uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: checks-failed
@@ -158,7 +158,7 @@ jobs:
       actions: write
       contents: read
       pull-requests: read
-      issues: write
+      issues: read
     outputs:
       green: ${{ steps.v.outputs.green }}
     steps:
@@ -183,7 +183,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      issues: write
+      issues: read
     uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: checks-failed
@@ -203,7 +203,7 @@ jobs:
       actions: write
       contents: read
       pull-requests: read
-      issues: write
+      issues: read
     outputs:
       green: ${{ steps.v.outputs.green }}
     steps:
@@ -222,10 +222,10 @@ jobs:
           name: failed-checks-4
           path: ${{ runner.temp }}/verify/failed.log
 
-  # Says the result on the issue, in plain words. The last verify that ran
-  # decides: green means a test build is ready, anything else means a person has
-  # to look. A verify that could not find its run at all leaves no answer, and
-  # no answer is not green.
+  # Says the result on the issue, in plain words, in ONE new comment. The last
+  # verify that ran decides: green means a test build is ready, anything else
+  # means a person has to look. A verify that could not find its run at all
+  # leaves no answer, and no answer is not green.
   report:
     needs: [verify-1, repair-1, verify-2, repair-2, verify-3, repair-3, verify-4]
     if: ${{ !cancelled() }}
@@ -251,6 +251,8 @@ jobs:
           V3: ${{ needs.verify-3.outputs.green }}
           V4: ${{ needs.verify-4.outputs.green }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPLY_STATE: ${{ inputs.reply_state }}
+          MESSAGE: ${{ inputs.message }}
         run: |
           set -euo pipefail
           final=""
@@ -258,12 +260,12 @@ jobs:
             if [ -n "$v" ]; then final="$v"; break; fi
           done
           if [ "$final" = "true" ]; then
-            node scripts/ci/status-comment.mjs "$ISSUE" ready "$PR"
+            node scripts/ci/reply.mjs "$ISSUE" "$REPLY_STATE" "$PR"
             echo "green=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           gh label create needs-maintainer --force --description "A person has to look at this" || true
           gh pr edit "$PR" --add-label needs-maintainer
           gh pr comment "$PR" --body "The automatic checks or the build are still red after 3 repair attempts, or the repair agent asked for a person. The maintainer has to look. Run: $RUN_URL"
-          node scripts/ci/status-comment.mjs "$ISSUE" maintainer
+          node scripts/ci/reply.mjs "$ISSUE" maintainer
           echo "green=false" >> "$GITHUB_OUTPUT"

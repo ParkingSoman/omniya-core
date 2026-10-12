@@ -88,20 +88,56 @@ test('a refused author is told, at no cost to the quota', () => {
   assert.equal(typeof refused['timeout-minutes'], 'number');
 });
 
-test('the fix job still needs the gate to say yes', () => {
-  // The refusal job was added next to it, and a status job in front of it. This
-  // pins that neither loosened the old path.
-  assert.deepEqual(workflow.jobs.fix.needs, ['allowlist', 'status']);
+test('the fix job still needs the gate to say yes, and only a bug or a Nemeth report starts it', () => {
+  // The refusal job was added next to it, a kind job and a status job in front.
+  // This pins that none of them loosened the old path.
+  assert.deepEqual(workflow.jobs.fix.needs, ['allowlist', 'kind', 'status']);
   assert.match(workflow.jobs.fix.if, /needs\.allowlist\.outputs\.allowed\s*==\s*'true'/);
-  assert.equal(workflow.jobs.status.needs, 'allowlist');
+  // Only an explicit `routed` stays off the agent. If the `kind` job itself fails,
+  // its output is empty, and silence is the one outcome this repository has been
+  // burned by. So anything else runs as a bug, as an issue with no label does.
+  assert.match(workflow.jobs.fix.if, /kind\.outputs\.kind\s*!=\s*'routed'/);
+  assert.match(workflow.jobs.status.if, /kind\.outputs\.kind\s*!=\s*'routed'/);
+  assert.match(workflow.jobs.fix.if, /!cancelled\(\)/);
+  assert.match(workflow.jobs.status.if, /!cancelled\(\)/, 'or a failed kind job would skip it');
+  assert.equal(workflow.jobs.fix.with.kind, "${{ needs.kind.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}", 'the agent only ever sees bug or nemeth');
+  assert.deepEqual(workflow.jobs.status.needs, ['allowlist', 'kind']);
   assert.match(workflow.jobs.status.if, /needs\.allowlist\.outputs\.allowed\s*==\s*'true'/);
+});
+
+test('the kind comes from the labels on the issue, read through the API, by the copy on testing', () => {
+  const kind = workflow.jobs.kind;
+  assert.equal(kind.needs, 'allowlist');
+  assert.match(kind.if, /allowed\s*==\s*'true'/, 'a refused author costs nothing, not even this');
+  assert.equal(kind.steps[0].with?.ref, 'testing', 'the helper is not on `main`');
+  const step = kind.steps.find((s) => s.id === 'kind');
+  assert.match(step.run, /scripts\/ci\/issue-kind\.mjs "\$ISSUE"/);
+  assert.equal(kind.permissions?.issues, 'read');
+  assert.equal(kind.outputs.kind, '${{ steps.kind.outputs.kind }}');
+  // An unreadable label must not mean silence: nothing downstream matches an
+  // empty kind, and a skipped `fix` is not a failure.
+  assert.match(step.run, /\|\| echo "kind=bug" >> "\$GITHUB_OUTPUT"/);
+});
+
+test('a design idea, or anything else, gets one comment and no agent', () => {
+  const routed = workflow.jobs.routed;
+  assert.ok(routed, 'expected a `routed` job');
+  assert.deepEqual(routed.needs, ['allowlist', 'kind']);
+  assert.match(routed.if, /kind\.outputs\.kind\s*==\s*'routed'/);
+  assert.match(routed.if, /allowed\s*==\s*'true'/);
+  const post = routed.steps.find((s) => /reply\.mjs/.test(s.run ?? ''));
+  assert.match(post.run, /reply\.mjs "\$ISSUE" routed/);
+  assert.doesNotMatch(JSON.stringify(routed.steps), /claude-code-action|pipeline-agent/, 'it must not spend the quota');
+  // And nothing downstream of the agent runs for it.
+  assert.doesNotMatch(workflow.jobs.outcome.if, /routed/);
+  assert.match(workflow.jobs.outcome.if.replace(/\s+/g, ' '), /needs\.fix\.result == 'failure'/, 'a skipped fix is not a failure');
 });
 
 test('the contributor is told, first thing, that work has started, and a failed comment does not stop the fix', () => {
   const status = workflow.jobs.status;
-  const post = status.steps.find((s) => /status-comment\.mjs/.test(s.run ?? ''));
-  assert.ok(post, 'expected a step that writes the status comment');
-  assert.match(post.run, /"\$ISSUE" working/);
+  const post = status.steps.find((s) => /reply\.mjs/.test(s.run ?? ''));
+  assert.ok(post, 'expected a step that posts the short "started" comment');
+  assert.match(post.run, /"\$ISSUE" started/);
   assert.equal(post['continue-on-error'], true);
   // The helper is not on `main`, which is what the default checkout would give.
   assert.equal(status.steps[0].with?.ref, 'testing');
@@ -160,7 +196,7 @@ test('a fix that ended without a pull request says so on the issue', () => {
   assert.match(condition, /!cancelled\(\)/, 'a status function, or a failed `fix` job would skip this one too');
   assert.match(condition, /needs\.allowlist\.outputs\.allowed == 'true'/, 'a refused author, whose `fix` job is skipped, is not a failure');
   assert.match(condition, /needs\.allowlist\.outputs\.access != 'false'/, 'a skipped `fix` for want of access is reported by `noaccess`, not as a crash');
-  assert.match(condition, /needs\.fix\.result != 'success'/, 'a crashed agent job has no result word, so it must be caught by its status');
+  assert.match(condition, /needs\.fix\.result == 'failure'/, 'a crashed agent job has no result word, so it must be caught by its status. A SKIPPED fix is not a crash');
   for (const word of ['asked', 'needs-design', 'stopped']) {
     assert.match(condition, new RegExp(`needs\\.fix\\.outputs\\.result == '${word}'`), word);
   }
@@ -170,6 +206,10 @@ test('a fix that ended without a pull request says so on the issue', () => {
   const step = outcome.steps.find((s) => /fix-outcome\.mjs/.test(s.run ?? ''));
   assert.equal(step.env.FIX_JOB, '${{ needs.fix.result }}');
   assert.match(step.run, /fix-outcome\.mjs "\$ISSUE" "\$FIX_JOB" "\$RESULT"/);
+  // The agent's own words ride in this one comment, through env and nowhere else.
+  assert.equal(step.env.MESSAGE, '${{ needs.fix.outputs.message }}');
+  assert.doesNotMatch(step.run, /\$\{\{/, 'agent text must never be written into a run line');
+  assert.doesNotMatch(step.run, /gh issue|gh label/, 'the script labels the issue, once');
   assert.equal(outcome.steps[0].with?.ref, 'testing', 'the script is not on `main`');
   assert.equal(outcome.permissions?.actions, undefined);
   assert.doesNotMatch(JSON.stringify(outcome.steps), /claude-code-action/, 'saying so costs no quota');
@@ -180,6 +220,10 @@ test('a listed contributor who cannot write is told the true reason, and the mai
   // contributor read "something went wrong on my side".
   const noaccess = workflow.jobs.noaccess;
   assert.match(noaccess.if, /allowed == 'true' && needs\.allowlist\.outputs\.access == 'false'/);
+  // Only where an agent would have run. A Design or Other report starts none, so
+  // it gets its one `routed` comment and not this one as well.
+  assert.deepEqual(noaccess.needs, ['allowlist', 'kind']);
+  assert.match(noaccess.if, /kind\.outputs\.kind != 'routed'/);
   const step = noaccess.steps[0];
   assert.match(step.run, /gh issue comment/);
   assert.match(step.run, /needs-maintainer/);
@@ -187,9 +231,11 @@ test('a listed contributor who cannot write is told the true reason, and the mai
   assert.equal(noaccess.permissions.issues, 'write');
   assert.doesNotMatch(JSON.stringify(noaccess.steps), /claude-code-action/);
 
-  // Nothing that costs quota or writes a "working" comment starts for them.
+  // Nothing that costs quota or writes a "started" comment starts for them.
   assert.match(workflow.jobs.status.if, /access != 'false'/);
   assert.match(workflow.jobs.fix.if, /access != 'false'/);
+  // `routed` does not depend on access: it starts no agent.
+  assert.doesNotMatch(workflow.jobs.routed.if, /access/);
   // `unknown` is not `false`: if GitHub did not answer, the action checks again.
   assert.doesNotMatch(source, /access\s*==\s*'true'/);
 });
@@ -200,6 +246,7 @@ test('a pull request that was opened is checked and repaired, and nothing else i
   assert.equal(verify.if, "needs.fix.outputs.result == 'opened'");
   assert.equal(verify.with.pr_number, '${{ needs.fix.outputs.pr }}');
   assert.equal(verify.with.branch, '${{ needs.fix.outputs.branch }}');
+  assert.equal(verify.with.message, '${{ needs.fix.outputs.message }}');
   assert.deepEqual(Object.keys(verify.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
   // The old design started the checks from this file with a copy of the lookup.
   assert.equal(workflow.jobs['start-checks'], undefined);
@@ -212,5 +259,5 @@ test('the agent cannot start, cancel or re-run workflows', () => {
   // agent. Here the agent job is a call, so the ceiling is what it is given.
   assert.equal(workflow.permissions?.actions, undefined, 'not at workflow level');
   assert.equal(workflow.jobs.fix.permissions?.actions, undefined, 'not in the job that runs the agent');
-  assert.deepEqual(workflow.jobs.fix.permissions, { contents: 'write', 'pull-requests': 'write', issues: 'write' });
+  assert.deepEqual(workflow.jobs.fix.permissions, { contents: 'write', 'pull-requests': 'write', issues: 'read' });
 });

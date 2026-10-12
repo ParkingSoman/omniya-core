@@ -17,12 +17,18 @@ name: pipeline-followup
 #
 # What the agent answers, as one word the jobs below act on:
 #
-#   revised      it changed the branch   -> verify, and edit the status comment
+#   revised      it changed the branch   -> verify, then ONE comment with the new build
 #   approved     "it works"              -> hand the fix to the maintainer
-#   answered     a question               -> nothing more
-#   needs-design a request for something new -> nothing more (the agent commented)
-#   stopped      it could not go on       -> nothing more (the agent commented)
+#   answered     a question               -> ONE comment, the agent's answer
+#   needs-design a request for something new -> ONE comment, and the label
+#   stopped      it could not go on       -> ONE comment, and the label
 #   (a crash)    the agent job failed     -> `failed` tells the contributor
+#
+# The agent posts nothing itself. It leaves its words in a file, and the jobs
+# below put them inside the one comment the contributor's comment gets. A
+# contributor who writes `@claude` therefore hears one reply, and every reply is
+# new. There is no "I am changing the fix" comment in between: their own comment
+# started the round, and the next thing they hear is the result.
 on:
   workflow_call:
     # Only the subscription token, and the stub passes only that. Not every
@@ -97,6 +103,7 @@ jobs:
       count: ${{ steps.find.outputs.count }}
       pr: ${{ steps.find.outputs.pr }}
       branch: ${{ steps.find.outputs.branch }}
+      kind: ${{ steps.kind.outputs.kind }}
       resume: ${{ steps.resume.outputs.resume }}
       question_round: ${{ steps.resume.outputs.question_round }}
     steps:
@@ -149,6 +156,22 @@ jobs:
             git show "origin/testing:scripts/ci/$f" > "$RUNNER_TEMP/find/$f"
           done
           node "$RUNNER_TEMP/find/find-fix-pr.mjs" "$ISSUE_NUMBER"
+      # From the labels the form set, so the agent reads the follow-up the way it
+      # read the report. The agent jobs below map `routed` to `bug`: a report that
+      # was routed to a person has no fix to continue, and `nofix` answers it.
+      - id: kind
+        if: steps.check.outputs.allowed == 'true' && steps.access.outputs.access != 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/find"
+          # If the labels cannot be read, `bug`. See the same step in `pipeline-fix.yml`.
+          { git show origin/testing:scripts/ci/issue-kind.mjs > "$RUNNER_TEMP/find/issue-kind.mjs" \
+            && git show origin/testing:scripts/ci/gh.mjs > "$RUNNER_TEMP/find/gh.mjs" \
+            && node "$RUNNER_TEMP/find/issue-kind.mjs" "$ISSUE_NUMBER"; } \
+            || echo "kind=bug" >> "$GITHUB_OUTPUT"
       # No fix yet, and the agent asked a question. This comment may be the
       # answer. It is one only when the issue carries `needs-info`, which the
       # pipeline puts there when the agent asks and takes off when it resumes.
@@ -243,23 +266,63 @@ jobs:
       needs.allowlist.outputs.count == '1'
     # Without `actions`: the agent runs unrestricted Bash. Starting the checks
     # is the `verify` job below, which runs no agent.
+    #
+    # Without `issues: write` either. The agent posts nothing on the issue, and
+    # this is what makes that true rather than requested.
     permissions:
       contents: write
       pull-requests: write
-      issues: write
+      issues: read
     uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: comment
+      kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.allowlist.outputs.pr }}
       branch: ${{ needs.allowlist.outputs.branch }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
+  # The agent answered, refused as design, or stopped. It wrote words for the
+  # contributor and did not post them. Post them, once. A `stopped` or a design
+  # refusal also gets its label here, because the agent labels nothing.
+  reply:
+    needs: [allowlist, agent]
+    if: >-
+      ${{ !cancelled() &&
+      (needs.agent.outputs.result == 'answered' ||
+      needs.agent.outputs.result == 'needs-design' ||
+      needs.agent.outputs.result == 'stopped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.allowlist.outputs.number }}
+          RESULT: ${{ needs.agent.outputs.result }}
+          # Agent text. It reaches the script through `env` only.
+          MESSAGE: ${{ needs.agent.outputs.message }}
+        run: |
+          set -euo pipefail
+          case "$RESULT" in
+            needs-design) STATE=design ;;
+            stopped) STATE=stuck ;;
+            *) STATE=answered ;;
+          esac
+          node scripts/ci/reply.mjs "$ISSUE" "$STATE"
+
   # The contributor answered a question the agent asked. There is no pull request
   # yet, so this is the first round again, with the answer in front of the agent.
   # The label comes off first, so a second comment while this runs is not taken
-  # for another answer. The status comment goes back to "working".
+  # for another answer. Then the one short "I started on this" comment goes back
+  # on the issue, because the contributor has not heard anything since the
+  # question.
   resume-start:
     needs: allowlist
     if: >-
@@ -282,19 +345,21 @@ jobs:
         run: |
           set -euo pipefail
           gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-info
-          node scripts/ci/status-comment.mjs "$ISSUE" working
+          node scripts/ci/reply.mjs "$ISSUE" started
 
   resume:
     needs: [allowlist, resume-start]
     if: needs.resume-start.result == 'success'
-    # Without `actions`, for the same reason as `agent` above.
+    # Without `actions`, for the same reason as `agent` above. And `issues: read`,
+    # for the same reason too.
     permissions:
       contents: write
       pull-requests: write
-      issues: write
+      issues: read
     uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: fix
+      kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
       issue_number: ${{ needs.allowlist.outputs.number }}
       question_round: ${{ needs.allowlist.outputs.question_round }}
     secrets:
@@ -325,6 +390,8 @@ jobs:
           ISSUE: ${{ needs.allowlist.outputs.number }}
           RESULT: ${{ needs.resume.outputs.result }}
           FIX_JOB: ${{ needs.resume.result }}
+          # Agent text. It reaches the script through `env` only.
+          MESSAGE: ${{ needs.resume.outputs.message }}
         run: node scripts/ci/fix-outcome.mjs "$ISSUE" "$FIX_JOB" "$RESULT"
 
   # The answer was enough, and the agent opened the pull request. From here it is
@@ -343,6 +410,7 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.resume.outputs.pr }}
       branch: ${{ needs.resume.outputs.branch }}
+      message: ${{ needs.resume.outputs.message }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
@@ -386,7 +454,8 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.agent.outputs.pr }}
       branch: ${{ needs.agent.outputs.branch }}
-      status_before: revising
+      message: ${{ needs.agent.outputs.message }}
+      reply_state: revised
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
