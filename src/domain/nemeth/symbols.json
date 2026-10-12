@@ -675,5 +675,11 @@
       "value": "〜",
       "banaRef": "20"
     }
+  },
+  {
+    "cells": "⠿",
+    "kind": "omission",
+    "value": "?",
+    "banaRef": "11.1.1"
   }
 ]

@@ -93,7 +93,7 @@ The reason each one gives, verbatim from the pipeline. A `refuses` is honest and
 expected for an unimplemented construct; a `WRONG ANSWER` or `ERROR` is a bug.
 
 - `integral` (tail): refuses -- no Nemeth symbol starts at cell 0 (U+282E)
-- `infinity` (tail): refuses -- no Nemeth symbol starts at cell 1 (U+283F)
+- `infinity` (tail): refuses -- an alphabetic or capitalization indicator governs a omission, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a omission either
 - `prime` (tail): refuses -- no Nemeth symbol starts at cell 1 (U+2804)
 - `absolute-value` (tail): refuses -- no Nemeth symbol starts at cell 0 (U+2833)
 - `greek-theta` (tail): refuses -- an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a fracOpen either

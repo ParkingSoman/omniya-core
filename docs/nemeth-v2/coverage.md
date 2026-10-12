@@ -14,9 +14,9 @@ maximize.
 
 | Outcome | Count | % of 613 |
 |---|---:|---:|
-| PASS | 214 | 34.9% |
-| REFUSE | 349 | 56.9% |
-| DISAGREE | 50 | 8.2% |
+| PASS | 215 | 35.1% |
+| REFUSE | 344 | 56.1% |
+| DISAGREE | 54 | 8.8% |
 | ERROR | 0 | 0.0% |
 | **Total** | **613** | **100.0%** |
 
@@ -24,7 +24,7 @@ maximize.
 
 | Source | PASS | REFUSE | DISAGREE | ERROR | Total |
 |---|---:|---:|---:|---:|---:|
-| mathcat-rules | 40 | 202 | 31 | 0 | 273 |
+| mathcat-rules | 41 | 197 | 35 | 0 | 273 |
 | sre-aata | 174 | 147 | 19 | 0 | 340 |
 
 ## REFUSE by cause
@@ -42,18 +42,17 @@ position, not a category; the offending codepoint is kept since it is).
 | 21 | no Nemeth symbol starts at cell N (U+2831 "⠱") | `mathcat-rules:bar_97_b_1` |
 | 20 | no Nemeth symbol starts at cell N (U+2804 "⠄") | `mathcat-rules:ellipsis_43_b_3` |
 | 19 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:above_and_below_88_2` |
-| 17 | a blank stands where BANA Rule 21.13 does not put one -- it spaces a comparison symbol and nothing else here, and Rule 20.1.1 spaces an operation symbol only next to a function name, an abbreviation, an ellipsis or a dash, none of which this parser reads | `mathcat-rules:log_77_4_8` |
+| 18 | a blank stands where BANA Rule 21.13 does not put one -- it spaces a comparison symbol and nothing else here, and Rule 20.1.1 spaces an operation symbol only next to a function name, an abbreviation, an ellipsis or a dash, none of which this parser reads | `mathcat-rules:log_77_4_8` |
 | 16 | BANA 7.1 and Appendix C read the script-type indicator on a letter as script type, but every corpus case written that way targets double-struck, which the Code writes with a different indicator; neither reading is established, so this refuses rather than picking one | `sre-aata:AataExpression_13` |
 | 13 | an alphabetic or capitalization indicator governs a op, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a op either | `mathcat-rules:degrees_165_1` |
 | 12 | the grouping symbol "(" has no right grouping symbol at level ""; BANA 19.1.2 preserves an unpaired one and this parser has no node for it | `sre-aata:AataExpression_1` |
 | 11 | no Nemeth symbol starts at cell N (U+2833 "⠳") | `mathcat-rules:comparison_ops_151_14` |
 | 10 | expected the start of a term at level "^" | `mathcat-rules:nested_super_space_79_d_3` |
 | 8 | an alphabetic or capitalization indicator governs a fracLine, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:beveled_frac_62_b_1` |
-| 8 | no Nemeth symbol starts at cell N (U+283F "⠿") | `mathcat-rules:omission_57_1` |
 | 6 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a baseline either | `mathcat-rules:dots_99_a_1` |
+| 6 | an alphabetic or capitalization indicator governs a digit, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:ms_38_4_8` |
 | 6 | no Nemeth symbol starts at cell N (U+282A "⠪") | `mathcat-rules:comma_78_2` |
 | 5 | a typeform indicator governs a fracClose; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:num_indicator_9_d_3` |
-| 5 | an alphabetic or capitalization indicator governs a digit, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:ms_38_4_8` |
 | 4 | a typeform indicator governs a op; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:tilde_137_2` |
 | 4 | indicator "," cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:cap_roman_numeral_18_a_3` |
 | 3 | a "_" script between two baseline indicators is a left script | `mathcat-rules:left_sub_14_104` |
@@ -75,6 +74,7 @@ position, not a category; the offending codepoint is kept since it is).
 | 1 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a fracOpen either | `mathcat-rules:hyper_complex_frac_68_a_1` |
 | 1 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a fracOpen either | `sre-aata:AataExpression_270` |
 | 1 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a groupOpen either | `sre-aata:AataExpression_304` |
+| 1 | an alphabetic or capitalization indicator governs a omission, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:proportional_151_12` |
 | 1 | an alphabetic or capitalization indicator governs a radIndex, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:carrot_98_1` |
 | 1 | expected the start of a term at level "_" | `sre-aata:AataExpression_266` |
 | 1 | indicator "@" cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:russian_24_a_10` |
@@ -111,7 +111,7 @@ Code and the corpus write the same sign with two different Unicode codepoints), 
 `text-vs-math` (the case targets literary text, which this math-only pipeline does not
 model). The authoritative list is `MANY_TO_ONE_CAUSES` in the gate itself.
 
-## DISAGREE (50)
+## DISAGREE (54)
 
 Parsed successfully, but the resulting mathematics differs from the corpus case's
 own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
@@ -440,6 +440,58 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math><mo>(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>+</mo><mn>1</mn><mo>)</mo></math>
+  ```
+
+### `mathcat-rules:omission_57_1`
+
+- cells: `⠷⠿⠾⠘⠒⠀⠨⠅⠀⠼⠆⠶`
+- our LaTeX: `{(?)}^{3}=27`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mrow><mo stretchy="false">(</mo><mo>?</mo><mo stretchy="false">)</mo></mrow><mrow><mn>3</mn></mrow></msup><mo>=</mo><mn>27</mn></math>
+  ```
+- their MathML:
+  ```xml
+  <math><msup><mrow><mo>(</mo><mo>?</mo><mo>)</mo></mrow><mn>3</mn></msup><mo>=</mo><mn>27</mn></math>
+  ```
+
+### `mathcat-rules:omission_57_5`
+
+- cells: `⠼⠶⠤⠿⠀⠨⠅⠀⠼⠢`
+- our LaTeX: `7-?=5`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>7</mn><mo>−</mo><mo>?</mo><mo>=</mo><mn>5</mn></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mn>7</mn><mo>-</mo><menclose notation="bottom"><mo>?</mo></menclose><mo>=</mo><mn>5</mn></math>
+  ```
+
+### `mathcat-rules:omission_57_6`
+
+- cells: `⠼⠔⠤⠢⠀⠨⠅⠀⠿`
+- our LaTeX: `9-5=?`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>9</mn><mo>−</mo><mn>5</mn><mo>=</mo><mo>?</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mn>9</mn><mo>-</mo><mn>5</mn><mo>=</mo><mtext>-?-</mtext></math>
+  ```
+
+### `mathcat-rules:omission_57_8`
+
+- cells: `⠼⠢⠈⠡⠆⠢⠀⠨⠅⠀⠿`
+- our LaTeX: `5×25=?`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>5</mn><mo>×</mo><mn>25</mn><mo>=</mo><mo>?</mo></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mn>5</mn><mo>×</mo><mn>25</mn><mo>=</mo><mspace width="1.5em"/></math>
   ```
 
 ### `mathcat-rules:product_77_4_24`
