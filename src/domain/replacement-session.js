@@ -1,4 +1,5 @@
 import {
+  buildMathIndex,
   canonicalizeMathML,
   insertMathRelative,
   parseMathML,
@@ -7,7 +8,7 @@ import {
 } from './math-tree.js';
 import { resolveBrailleInputTable, toNemethCells } from './nemeth-input.js';
 import { parseNemeth } from './nemeth/index.js';
-import { dropStaleLatex, latexFromTree, leafNodes, leafPositionsUnder, nodeForInserted } from './math-latex.js';
+import { dropStaleLatex, latexFromTree, symbolText, withoutStretchyFences, leafNodes, leafPositionsUnder, nodeForInserted } from './math-latex.js';
 
 const KEEP = { keepLatex: true };
 
@@ -176,6 +177,61 @@ export async function previewDraftMathML(session, { convertLatexToMathML, braill
   return serializeMathML(tree);
 }
 
+const idOf = (node) => node.attrs['data-omniya-id'];
+
+/** The ids of the nodes above `nodeId`, nearest first, not counting the root. */
+function ancestorIds(tree, nodeId) {
+  const index = buildMathIndex(tree);
+  const out = [];
+  for (let at = index.get(nodeId)?.parent; at && at !== tree; at = index.get(idOf(at))?.parent) out.push(idOf(at));
+  return out;
+}
+
+/**
+ * Put the draft where the edit says, write the whole expression as LaTeX and
+ * read it again, the way a new equation is read. The tree is then what a fresh
+ * parse gives, whatever the splice produced, and this holds for every symbol the
+ * converter knows. Returns the spliced tree, and `converted` when the rebuild worked.
+ */
+async function applyAndRebuild({ session, tree, target, placement, convertLatexToMathML }) {
+  const spliced = applyDraftToDocument(session.originalDocument, target, tree, placement);
+
+  // Nodes this edit made. A replacement takes the id of what it replaced.
+  const made = new Set();
+  const collect = (node) => {
+    if (node.text !== undefined) return;
+    made.add(idOf(node));
+    node.children.forEach(collect);
+  };
+  collect(tree);
+  if (placement === 'replace') made.add(target.kind === 'node' ? target.nodeId : target.firstNodeId);
+  // Every node above the edit now describes something else, so what MathJax
+  // wrote for it no longer applies.
+  dropStaleLatex(spliced, made);
+
+  if (typeof convertLatexToMathML !== 'function') return { spliced, made, converted: null };
+  // First as MathJax wrote the parts that were not touched, so the equation keeps the
+  // form it was typed in. Then from the structure alone, in case a label was wrong.
+  // Each written text is tried as it is, then without \left ... \right, because
+  // editing one fence of a pair leaves the other with nothing to match.
+  for (const trust of [true, false]) {
+    const written = latexFromTree(spliced, { trust });
+    if (!written) continue;
+    for (const candidate of new Set([written, withoutStretchyFences(written)])) {
+      try {
+        const mathml = canonicalizeMathML(await convertLatexToMathML(candidate), KEEP);
+        // The rebuilt equation must hold exactly the symbols the edit left. If the
+        // writer lost or made up a symbol, this form is not used.
+        if (symbolText(parseMathML(mathml, KEEP)) !== symbolText(spliced)) continue;
+        return { spliced, made, converted: { mathml, latex: candidate } };
+      } catch {
+        // try the next form
+      }
+    }
+  }
+  return { spliced, made, converted: null };
+}
+
 export async function submitReplacement(session, { convertLatexToMathML, brailleInputTable } = {}) {
   const tree = await materializeDraft(session, convertLatexToMathML, brailleInputTable);
   if (!session.originalDocument) {
@@ -187,58 +243,47 @@ export async function submitReplacement(session, { convertLatexToMathML, braille
   }
   const previous = structuredClone(session.originalDocument);
   const placement = session.placement ?? 'replace';
-  const spliced = applyDraftToDocument(session.originalDocument, session.target, tree, placement);
+  const original = parseMathML(previous.mathml, KEEP);
 
-  // Nodes this edit made. A replacement takes the id of what it replaced.
-  const made = new Set();
-  const collect = (node) => {
-    if (node.text !== undefined) return;
-    made.add(node.attrs['data-omniya-id']);
-    node.children.forEach(collect);
-  };
-  collect(tree);
-  if (placement === 'replace') {
-    made.add(session.target.kind === 'node' ? session.target.nodeId : session.target.firstNodeId);
+  // Inserting beside a part that has no outline of its own (the accent on a letter,
+  // say) is inserting beside the part it belongs to. So if the rebuild cannot be
+  // done where the person pointed, it is tried one level up, then another.
+  const targets = [session.target];
+  if (placement !== 'replace' && session.target.kind === 'node') {
+    for (const id of ancestorIds(original, session.target.nodeId).slice(0, 3)) targets.push({ kind: 'node', nodeId: id });
   }
-  // Every node above the edit now describes something else, so what MathJax
-  // wrote for it no longer applies.
-  dropStaleLatex(spliced, made);
+  let attempt = null;
+  for (const target of targets) {
+    const tried = await applyAndRebuild({ session, tree, target, placement, convertLatexToMathML });
+    attempt ??= tried; // if nothing can be rebuilt, the first splice is what the edit keeps
+    if (tried.converted) { attempt = tried; break; }
+  }
 
-  // Write the whole expression as LaTeX and read it again, the way a new
-  // equation is read. The tree is then what a fresh parse gives, whatever the
-  // splice produced, and this holds for every symbol the converter knows.
-  let nextTree = spliced;
+  let nextTree = attempt.spliced;
   let latex = null;
   let focus = session.target;
-  const written = latexFromTree(spliced);
-  if (written && typeof convertLatexToMathML === 'function') {
-    try {
-      const fresh = parseMathML(canonicalizeMathML(await convertLatexToMathML(written), KEEP), KEEP);
-      const leaves = leafNodes(spliced);
-      // Where the reader lands: on the new part after a replace, and still on the
-      // part they were on after an append or prepend.
-      const stays = placement === 'replace'
-        ? made
-        : new Set([session.target.kind === 'node'
-          ? session.target.nodeId
-          : (placement === 'append' ? session.target.lastNodeId : session.target.firstNodeId)]);
-      const inserted = leafPositionsUnder(spliced, stays);
-      const freshLeaves = leafNodes(fresh);
-      nextTree = fresh;
-      latex = written;
-      // Fresh ids, so find the inserted part by where its leaves sit in reading order.
-      // If the two readings disagree on the leaf count, stand on the whole expression.
-      // Where no node holds exactly the typed part, stand on its first leaf.
-      const covering = inserted.length && freshLeaves.length === leaves.length
-        ? nodeForInserted(fresh, inserted[0], inserted.at(-1))
-        : fresh;
-      focus = { kind: 'node', nodeId: covering.attrs['data-omniya-id'] };
-    } catch {
-      // The converter refused the rebuilt text. Keep the spliced tree: the edit
-      // still happens, it just keeps the shape the splice gave it.
-      nextTree = spliced;
-    }
+  if (attempt.converted) {
+    const fresh = parseMathML(attempt.converted.mathml, KEEP);
+    // Where the reader lands: on the new part after a replace, and still on the
+    // part they were on after an append or prepend.
+    const stays = placement === 'replace'
+      ? attempt.made
+      : new Set([session.target.kind === 'node'
+        ? session.target.nodeId
+        : (placement === 'append' ? session.target.lastNodeId : session.target.firstNodeId)]);
+    const inserted = leafPositionsUnder(attempt.spliced, stays);
+    nextTree = fresh;
+    latex = attempt.converted.latex;
+    // Fresh ids, so find the part by where its leaves sit in reading order. If the
+    // two readings disagree on the leaf count, stand on the whole expression. Where
+    // no node holds exactly the part, stand on its first leaf.
+    const covering = inserted.length && leafNodes(fresh).length === leafNodes(attempt.spliced).length
+      ? nodeForInserted(fresh, inserted[0], inserted.at(-1))
+      : fresh;
+    focus = { kind: 'node', nodeId: idOf(covering) };
   }
+  // Otherwise the converter refused every form. The edit still happens, and keeps
+  // the shape the splice gave it.
   const document = { ...previous, formatVersion: 2, mathml: serializeMathML(nextTree), focus };
   return {
     document,
