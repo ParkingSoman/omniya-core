@@ -168,7 +168,7 @@ jobs:
           T="$RUNNER_TEMP/trusted"
           mkdir -p "$T/scripts/ci" "$T/.github"
           git fetch --no-tags origin main testing
-          for f in gh.mjs find-fix-pr.mjs listed-thread.mjs; do
+          for f in gh.mjs find-fix-pr.mjs listed-thread.mjs reply.mjs agent-digest.mjs; do
             git show "origin/testing:scripts/ci/$f" > "$T/scripts/ci/$f"
           done
           git show origin/main:scripts/ci/allowlist.mjs > "$T/scripts/ci/allowlist.mjs"
@@ -211,7 +211,8 @@ jobs:
           name: ${{ inputs.log_artifact }}
           path: ${{ runner.temp }}/failed-checks
 
-      - uses: anthropics/claude-code-action@v1
+      - id: agent
+        uses: anthropics/claude-code-action@v1
         env:
           GH_TOKEN: ${{ github.token }}
           # Agent mode names the DEFAULT branch to its own tools unless told.
@@ -592,6 +593,20 @@ jobs:
             ships to everybody else. It matters most in a later round, when a
             contributor who has tested twice is impatient and "just put the old
             behaviour back" is the fastest thing you could do.
+
+      # Show what the agent did, so a silent stop can be diagnosed. The action
+      # hides its own output because tool results can hold secrets. This keeps only
+      # the agent's words and the names of its tools, scrubbed, and drops the
+      # rest. It runs even when the agent step failed, and it can never fail the
+      # job. See `scripts/ci/agent-digest.mjs` for what is kept and what is not.
+      - if: always()
+        continue-on-error: true
+        env:
+          EXECUTION_FILE: ${{ steps.agent.outputs.execution_file }}
+        run: |
+          node "$RUNNER_TEMP/trusted/scripts/ci/agent-digest.mjs" \
+            "${EXECUTION_FILE:-$RUNNER_TEMP/claude-execution-output.json}" \
+            "$RUNNER_TEMP/result.txt" "$RUNNER_TEMP/message.md"
 
       # A fix opened a pull request. Find it the strict way, from the trusted
       # copy of the helper, not from the branch the agent could have edited.

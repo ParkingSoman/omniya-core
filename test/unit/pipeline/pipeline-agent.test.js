@@ -126,7 +126,7 @@ test('the agent reads a thread filtered to people on the list, and only that', (
   // The thread is the ISSUE's comments, because that is where the contributor writes.
   assert.match(thread.run, /issues\/\$ISSUE_NUMBER\/comments/);
   assert.doesNotMatch(thread.run, /\|\|\s*true/, 'a failed filter must stop the run, not fall through');
-  const names = steps.map((s) => s.id ?? s.uses ?? s.run ?? '');
+  const names = steps.map((s) => s.uses ?? s.run ?? '');
   assert.ok(
     names.findIndex((n) => /listed-thread/.test(String(n))) < names.findIndex((n) => String(n).startsWith('anthropics/claude-code-action')),
     'the thread must be built before the agent starts'
@@ -284,4 +284,15 @@ test('the download artifact is fetched only for a repair', () => {
   const download = steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/download-artifact'));
   assert.equal(download.if, "inputs.mode == 'checks-failed'");
   assert.match(download.with.path, /failed-checks/);
+});
+
+test('the digest step shows what the agent did, always, from the trusted copy, and never fails the job', () => {
+  const step = steps.find((s) => /node "\$RUNNER_TEMP\/trusted\/scripts\/ci\/agent-digest/.test(s.run ?? ''));
+  assert.ok(step, 'expected a digest step');
+  assert.equal(step.if, 'always()');
+  assert.equal(step['continue-on-error'], true);
+  assert.match(step.run, /\$RUNNER_TEMP\/trusted\/scripts\/ci\/agent-digest\.mjs/);
+  const copy = steps.find((s) => /git show "origin\/testing:scripts\/ci\/\$f"/.test(s.run ?? ''));
+  assert.match(copy.run, /agent-digest\.mjs/);
+  assert.match(copy.run, /reply\.mjs/);
 });
