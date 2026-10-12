@@ -26,6 +26,10 @@ function authoredNodeBySemanticId(sourceRoot, semanticId) {
     .find((node) => node.getAttribute('data-semantic-id') === semanticId) || null;
 }
 
+/** Every element in the article that carries this semantic id. */
+const withSemanticId = (article, id) => (id ? [...article.querySelectorAll('[data-semantic-id]')] : [])
+  .filter((element) => element.getAttribute('data-semantic-id') === id);
+
 function authoredNodeBySlotId(sourceRoot, slotId) {
   if (!sourceRoot || !slotId) return null;
   return [sourceRoot, ...sourceRoot.querySelectorAll('[data-omniya-id], [id^="omniya-source-"]')]
@@ -61,8 +65,8 @@ function authoredCover(article, sourceRoot, semanticId, seen = new Set()) {
   seen.add(semanticId);
   const direct = authoredNodeBySemanticId(sourceRoot, semanticId);
   if (direct && direct !== sourceRoot) return [direct];
-  const holder = [...article.querySelectorAll(`[data-semantic-id="${CSS.escape(semanticId)}"]`)]
-    .find((element) => element.hasAttribute('data-semantic-owns') || element.hasAttribute('data-semantic-children'));
+  const holder = withSemanticId(article, semanticId)
+    .find((element) => element.getAttribute('data-semantic-owns') != null || element.getAttribute('data-semantic-children') != null);
   // `owns` is everything inside the group, signs included. `children` leaves the signs out.
   const owned = (holder?.getAttribute('data-semantic-owns') ?? holder?.getAttribute('data-semantic-children') ?? '')
     .split(/[\s,]+/).filter(Boolean);
@@ -103,8 +107,7 @@ function coverTarget(sourceRoot, nodes) {
 function gapTarget(article, sourceRoot, focused) {
   const id = focused.getAttribute('data-semantic-id');
   const parentId = focused.getAttribute('data-semantic-parent');
-  const parent = [...article.querySelectorAll(`[data-semantic-id="${CSS.escape(parentId ?? '')}"]`)]
-    .find((element) => element.hasAttribute('data-semantic-owns'));
+  const parent = withSemanticId(article, parentId).find((element) => element.getAttribute('data-semantic-owns') != null);
   const owned = (parent?.getAttribute('data-semantic-owns') ?? '').split(/[\s,]+/).filter(Boolean);
   const at = owned.indexOf(id);
   if (at < 0) return null;
