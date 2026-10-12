@@ -162,6 +162,17 @@ function applyDraftToDocument(document, target, tree, placement = 'replace') {
   return replaceMathTarget(current, target, replacement);
 }
 
+/**
+ * What the draft would draw, without inserting it: the MathML of the new part.
+ * It goes through the same conversion as `submitReplacement`, so the preview and
+ * the result cannot disagree. It throws what a submit would throw (an empty or
+ * unfinished draft), and the caller treats that as "nothing to show yet".
+ */
+export async function previewDraftMathML(session, { convertLatexToMathML, brailleInputTable } = {}) {
+  const tree = await materializeDraft(session, convertLatexToMathML, brailleInputTable);
+  return serializeMathML(tree);
+}
+
 export async function submitReplacement(session, { convertLatexToMathML, brailleInputTable } = {}) {
   const tree = await materializeDraft(session, convertLatexToMathML, brailleInputTable);
   if (!session.originalDocument) {

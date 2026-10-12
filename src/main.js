@@ -1,8 +1,10 @@
-import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { checkForNewerMacBuild, RELEASE_PAGE_URL } from './main/mac-update-check.js';
+import { buildExport } from './main/export-service.js';
 import { convertLatexToMathML } from './main/mathml.js';
 import { exportLatex, importLatex } from './main/math-service.js';
 import { createSettingsStorage } from './main/settings-storage.js';
@@ -18,6 +20,9 @@ const isAutomatedTest = Boolean(process.env.OMNIYA_TEST_USER_DATA_DIR);
 // Test-only knob: hold math:convert open for N ms so e2e tests can land input
 // (e.g. Escape) inside the real IPC round-trip window without racing a fast
 // local conversion. Zero/unset in every non-test run.
+// Test-only: when set, an export is written straight into this folder instead of
+// asking where to save it, and printing is skipped. Unset in every normal run.
+const testExportDirectory = process.env.OMNIYA_TEST_EXPORT_DIR || '';
 const mathConvertDelayMs = Number(process.env.OMNIYA_TEST_MATH_CONVERT_DELAY_MS) || 0;
 // E2E / corpus runs should not steal focus or flash windows on the desktop.
 // Playwright still drives the hidden BrowserWindow and can capture screenshots.
@@ -71,6 +76,30 @@ function registerIpc(storage, settingsStorage) {
   ipcMain.handle('ueb:backTranslate', async (event, { braille, grade }) => {
     assertTrustedSender(event);
     return { text: await backTranslateUeb(braille, grade) };
+  });
+  ipcMain.handle('export:note', async (event, request) => {
+    assertTrustedSender(event);
+    const { fileName, content, spec } = buildExport(request ?? {});
+    if (testExportDirectory) {
+      const target = path.join(testExportDirectory, fileName);
+      await writeFile(target, content, 'utf8');
+      return { saved: true, fileName, path: target };
+    }
+    const window = BrowserWindow.fromWebContents(event.sender);
+    const choice = await dialog.showSaveDialog(window, {
+      title: 'Export note',
+      defaultPath: fileName,
+      filters: [{ name: spec.label, extensions: [spec.extension] }]
+    });
+    if (choice.canceled || !choice.filePath) return { saved: false };
+    await writeFile(choice.filePath, content, 'utf8');
+    return { saved: true, fileName: path.basename(choice.filePath) };
+  });
+  ipcMain.handle('export:print', async (event) => {
+    assertTrustedSender(event);
+    if (testExportDirectory) return { printed: false, skipped: true };
+    event.sender.print({ printBackground: false });
+    return { printed: true };
   });
   ipcMain.handle('update:openReleasePage', async (event) => {
     assertTrustedSender(event);
@@ -148,6 +177,15 @@ function buildApplicationMenu() {
         accelerator: 'CmdOrCtrl+N',
         click: () => sendMenuCommand({ action: 'new-note' })
       },
+      {
+        label: 'Export note…',
+        click: () => sendMenuCommand({ action: 'export' })
+      },
+      {
+        label: 'Print…',
+        accelerator: 'CmdOrCtrl+P',
+        click: () => sendMenuCommand({ action: 'print' })
+      },
       { type: 'separator' },
       isMac ? { role: 'close' } : { role: 'quit' }
     ]
@@ -166,6 +204,22 @@ function buildApplicationMenu() {
         label: 'Redo',
         accelerator: isMac ? 'Shift+Cmd+Z' : 'Ctrl+Y',
         click: () => sendMenuCommand({ action: 'redo' })
+      },
+      { type: 'separator' },
+      {
+        label: 'Find in note…',
+        accelerator: 'CmdOrCtrl+F',
+        click: () => sendMenuCommand({ action: 'find' })
+      },
+      {
+        label: 'Find next',
+        accelerator: isMac ? 'Cmd+G' : 'F3',
+        click: () => sendMenuCommand({ action: 'find-next' })
+      },
+      {
+        label: 'Find previous',
+        accelerator: isMac ? 'Shift+Cmd+G' : 'Shift+F3',
+        click: () => sendMenuCommand({ action: 'find-previous' })
       },
       { type: 'separator' },
       { role: 'cut' },

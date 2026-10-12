@@ -17,6 +17,7 @@ import {
   setReplacementMethod,
   startReplacementSession,
   submitReplacement,
+  previewDraftMathML,
   replacementSessionHasDraftMath
 } from '../domain/replacement-session.js';
 import {
@@ -26,7 +27,7 @@ import {
   toggleUebGrade
 } from '../domain/authoring-state.js';
 import { classifyNemethInput, nemethStatusMessage } from '../domain/nemeth-input.js';
-import { createNapkinEditor } from './editor/editor.bundle.js';
+import { clearMathWithin, createNapkinEditor, renderMathInto, waitForSpeechLabel } from './editor/editor.bundle.js';
 
 // The napkin body is one document, edited like a word processor: type, undo,
 // redo, select. Equations are inline atoms in that document. Writing or
@@ -49,10 +50,13 @@ const elements = Object.fromEntries([
   'mode-panel', 'save-status', 'document-section', 'empty-message', 'editor-host',
   'undo-button', 'redo-button', 'insert-equation-button', 'insert-equation-key', 'grade-button', 'grade-button-label',
   'rename-button', 'delete-button', 'skip-to-note', 'status-hint',
+  'find-bar', 'find-input', 'find-count', 'find-previous', 'find-next', 'find-close', 'find-button',
+  'export-button', 'export-dialog', 'export-heading', 'export-html', 'export-latex', 'export-text', 'export-print', 'close-export',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'app-build-identity',
   'composer-dock', 'composer-form', 'composer-heading', 'composer-source',
   'composer-help', 'composer-status', 'composer-error', 'editing-indicator', 'composer-submit',
   'composer-cancel', 'replacement-scope', 'replacement-method',
+  'equation-preview-box', 'equation-preview', 'equation-preview-text',
   'app-error', 'app-error-message', 'retry-save',
   'update-banner', 'update-banner-text', 'update-banner-action', 'update-banner-dismiss'
 ].map((id) => [id, document.getElementById(id)]));
@@ -174,6 +178,7 @@ function onEditorChange(doc) {
     if (commitPendingDoc()) void saveState({ announce: false }).catch(() => {});
   }, 250);
   scheduleUebLabels();
+  if (!elements['find-bar'].hidden && editor) renderFindCount(editor.findState());
 }
 
 /** Save now. For switching napkins, closing, and tests. */
@@ -277,6 +282,7 @@ function loadEditor() {
     return;
   } else {
     editor.setDoc(napkin.doc);
+    if (!elements['find-bar'].hidden) runFind();
   }
   editorNapkinId = napkin.id;
   pendingDoc = null;
@@ -590,12 +596,71 @@ function replacementDraftIsEmpty() {
   return !(elements['composer-source']?.value ?? '').trim();
 }
 
+// ---- Equation preview -----------------------------------------------------
+
+// While the person types, the draft is drawn under the field, and its spoken form
+// is kept in a hidden line the field points at. Someone typing LaTeX can then hear
+// what it means before inserting it. It is not announced as it changes: a braille
+// typist already hears a line per keystroke, and this would talk over it.
+let previewTimer;
+let previewRun = 0;
+elements['equation-preview-box'].inert = true;
+
+function clearPreview() {
+  clearTimeout(previewTimer);
+  previewRun += 1;
+  clearMathWithin(elements['equation-preview']);
+  elements['equation-preview'].replaceChildren();
+  elements['equation-preview-box'].hidden = true;
+  elements['equation-preview-text'].textContent = '';
+}
+
+function schedulePreview() {
+  clearTimeout(previewTimer);
+  if (replacementDraftIsEmpty()) {
+    clearPreview();
+    return;
+  }
+  previewTimer = setTimeout(() => void updatePreview(), 350);
+}
+
+async function updatePreview() {
+  const run = ++previewRun;
+  const session = replacementSession;
+  if (!session) return;
+  const stale = () => run !== previewRun;
+  let mathml;
+  try {
+    mathml = await previewDraftMathML(session, {
+      convertLatexToMathML: async (latex) => {
+        const converted = await window.omniya.latexToMathML(latex);
+        return converted?.mathml ?? converted;
+      },
+      brailleInputTable: NEMETH_INPUT_MODE
+    });
+  } catch {
+    // An unfinished draft is the normal state while typing. Show nothing yet.
+    if (!stale()) {
+      elements['equation-preview-box'].hidden = true;
+      elements['equation-preview-text'].textContent = '';
+    }
+    return;
+  }
+  if (stale()) return;
+  clearMathWithin(elements['equation-preview']);
+  const drawn = await renderMathInto(elements['equation-preview'], mathml, { isStale: stale });
+  if (stale() || !drawn) return;
+  elements['equation-preview-box'].hidden = false;
+  const label = await waitForSpeechLabel(elements['equation-preview'], { timeoutMs: 4000, isStale: stale });
+  if (!stale()) elements['equation-preview-text'].textContent = label ? `Reads as: ${label}` : '';
+}
+
 function syncCommandContentEmpty() {
   commandState = { ...commandState, contentEmpty: replacementDraftIsEmpty() };
   // Repaint, don't just record. #mode-panel is the state readout a braille
   // reader queries when they want to know where they are, so a stale one is not
   // cosmetic.
-  syncModePanel();
+  syncModePanel();  schedulePreview();
 }
 
 function openDock({ heading, submit, indicator, scope }) {
@@ -624,6 +689,7 @@ function closeDock() {
   elements['replacement-scope'].textContent = '';
   setComposerMathStatus('');
   setFieldError(elements['composer-source'], elements['composer-error']);
+  clearPreview();
   syncModePanel();
 }
 
@@ -958,6 +1024,8 @@ function updateToolbar(history = editor?.historyState?.() ?? { canUndo: false, c
   setActionEnabled(elements['redo-button'], idle && history.canRedo);
   setActionEnabled(elements['insert-equation-button'], hasNote);
   setActionEnabled(elements['grade-button'], idle);
+  setActionEnabled(elements['find-button'], hasNote);
+  setActionEnabled(elements['export-button'], Boolean(activeNapkin()));
   setActionEnabled(elements['rename-button'], Boolean(activeNapkin()));
   setActionEnabled(elements['delete-button'], Boolean(activeNapkin()));
   elements['grade-button-label'].textContent = gradeLabel();
@@ -989,8 +1057,126 @@ onToolbarClick('undo-button', () => performHistory('undo'));
 onToolbarClick('redo-button', () => performHistory('redo'));
 onToolbarClick('insert-equation-button', () => applyEquationInsert(preferredAuthoringMethod));
 onToolbarClick('grade-button', () => toggleGrade());
+onToolbarClick('find-button', () => openFind());
+onToolbarClick('export-button', () => openExport());
 onToolbarClick('rename-button', () => renameFocusedNapkin(state.activeNapkinId));
 onToolbarClick('delete-button', () => { void deleteFocusedNapkin(state.activeNapkinId); });
+
+// ---- Find in note ---------------------------------------------------------
+
+function renderFindCount(found) {
+  elements['find-count'].textContent = !found.query
+    ? ''
+    : found.count === 0 ? 'No matches' : `${found.index + 1} of ${found.count}`;
+}
+
+function runFind() {
+  if (editor) renderFindCount(editor.setFind(elements['find-input'].value));
+}
+
+function openFind() {
+  if (!editor) return;
+  if (mathSession) {
+    announce('Finish or cancel the equation first.');
+    return;
+  }
+  leaveExplorer({ refocus: false });
+  const selected = editor.selectedText();
+  elements['find-bar'].hidden = false;
+  if (selected) elements['find-input'].value = selected;
+  moveFocusTo(elements['find-input']);
+  elements['find-input'].select();
+  runFind();
+}
+
+function stepFind(delta) {
+  if (elements['find-bar'].hidden) {
+    openFind();
+    return;
+  }
+  if (editor) renderFindCount(editor.findStep(delta));
+}
+
+/** Close the bar. The current match stays selected, so the caret is where the search ended. */
+function closeFind() {
+  if (elements['find-bar'].hidden) return;
+  elements['find-bar'].hidden = true;
+  elements['find-count'].textContent = '';
+  editor?.clearFind();
+  focusEditor();
+}
+
+elements['find-input'].addEventListener('input', runFind);
+elements['find-input'].addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    stepFind(event.shiftKey ? -1 : 1);
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    closeFind();
+  }
+});
+elements['find-previous'].addEventListener('click', () => stepFind(-1));
+elements['find-next'].addEventListener('click', () => stepFind(1));
+elements['find-close'].addEventListener('click', closeFind);
+
+// The page also takes Ctrl/Cmd+F itself, for platforms and tests where the menu's
+// accelerator does not reach it.
+document.addEventListener('keydown', (event) => {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'f') {
+    event.preventDefault();
+    openFind();
+  }
+}, true);
+
+// ---- Export and print -----------------------------------------------------
+
+function openExport() {
+  if (!activeNapkin()) return;
+  commitPendingDoc();
+  const box = elements['export-dialog'];
+  if (typeof box.showModal === 'function') box.showModal();
+  else box.hidden = false;
+  box.scrollTop = 0;
+  elements['export-heading'].focus();
+}
+
+function closeExport() {
+  const box = elements['export-dialog'];
+  if (box.open && typeof box.close === 'function') box.close();
+  elements['export-button'].focus();
+}
+
+async function exportAs(format) {
+  commitPendingDoc();
+  const napkin = activeNapkin();
+  if (!napkin) return;
+  closeExport();
+  try {
+    const result = await window.omniya.exportNote({ format, name: napkin.name, doc: napkin.doc });
+    announce(result.saved ? `Exported as ${result.fileName}` : 'Export cancelled');
+  } catch {
+    announce('The note could not be exported.');
+  }
+}
+
+async function printNote() {
+  if (!activeNapkin()) return;
+  commitPendingDoc();
+  leaveExplorer({ refocus: false });
+  closeExport();
+  try {
+    await window.omniya.printNote();
+  } catch {
+    announce('The note could not be printed.');
+  }
+}
+
+elements['export-html'].addEventListener('click', () => void exportAs('html'));
+elements['export-latex'].addEventListener('click', () => void exportAs('latex'));
+elements['export-text'].addEventListener('click', () => void exportAs('text'));
+elements['export-print'].addEventListener('click', () => void printNote());
+elements['close-export'].addEventListener('click', closeExport);
 
 // ---- Napkin rail handlers -------------------------------------------------
 
@@ -1206,6 +1392,11 @@ window.omniya?.onMenuCommand?.((payload) => {
     applyEquationInsert(payload.method === 'latex' ? 'latex' : (payload.method === 'nemeth' ? 'nemeth' : preferredAuthoringMethod));
     return;
   }
+  if (payload.action === 'find') { openFind(); return; }
+  if (payload.action === 'find-next') { stepFind(1); return; }
+  if (payload.action === 'find-previous') { stepFind(-1); return; }
+  if (payload.action === 'export') { openExport(); return; }
+  if (payload.action === 'print') { void printNote(); return; }
   if (payload.action === 'new-note') {
     elements['new-napkin-button'].click();
     return;

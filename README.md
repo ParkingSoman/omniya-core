@@ -50,7 +50,7 @@ selects it, the next moves on. **Backspace** next to it selects it, and a second
 **Escape** returns to the document with the equation still selected.
 
 Everything above is also in the application menus (Insert / Format / Help — Alt on Windows,
-menu bar on Mac) and in Shortcuts, the button in the toolbar. Ctrl+N (Cmd+N) starts a new note. Double-click an equation to read it by parts.
+menu bar on Mac) and in Shortcuts, the button in the toolbar. Ctrl+N (Cmd+N) starts a new note. Ctrl+F (Cmd+F) finds in the note. Ctrl+P (Cmd+P) prints. **Export** saves a web page, a LaTeX file or plain text. Double-click an equation to read it by parts.
 
 Download the alpha (or run from source): [Run this alpha](#run-this-alpha). Longer walkthrough: [`docs/HUMAN-TESTING.md`](docs/HUMAN-TESTING.md).
 

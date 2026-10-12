@@ -138,9 +138,22 @@ npm start
     Alt+= / Control+=, Ctrl+E / Ctrl+L, Ctrl+T, undo and redo, and the explorer
     keys. It opens at the top, on its title. Escape closes it and focus returns
     to the button.
-13. Dark mode and a narrow window: switch the system to dark, and narrow the
+13. Equation preview: in the equation panel type `\frac{a}{b}+\sqrt{x}` as LaTeX.
+    After a short pause the equation is drawn under the field. With a screen
+    reader, the field's description says "Reads as: a over b plus the square
+    root of x". Type `\frac{a` and nothing is drawn, and nothing is announced.
+14. Find: press Ctrl+F (Cmd+F). The find bar opens with focus in its field.
+    Type a word that appears twice. Every match is highlighted, and the count
+    says "1 of 2". Enter goes to the next, Shift+Enter to the previous, and both
+    wrap. A screen reader says the count as it changes. Escape closes the bar and
+    leaves the match selected. The word inside an equation you typed is found too.
+15. Export and print: press Export and choose Web page. Save it, open it in a
+    browser, and read the equation with a screen reader. Do the same with LaTeX
+    document and Plain text. Press Ctrl+P (Cmd+P): the print window shows only
+    the title and the note. Save as PDF from there.
+16. Dark mode and a narrow window: switch the system to dark, and narrow the
     window. Nothing is cut off, and the toolbar shows icons only when narrow.
-14. Quit, reopen, confirm the notes persisted. Open a note made before this
+17. Quit, reopen, confirm the notes persisted. Open a note made before this
     build: its text and equations are there as paragraphs and equations, its
     old notes are paragraphs, and `napkins.before-v3-<time>.json` is in the
     data folder.

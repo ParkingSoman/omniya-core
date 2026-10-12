@@ -30,5 +30,7 @@ contextBridge.exposeInMainWorld('omniya', {
   onUpdateNotice: (cb) => {
     ipcRenderer.on('update:notice', (_e, payload) => cb(payload));
   },
+  exportNote: (request) => ipcRenderer.invoke('export:note', request),
+  printNote: () => ipcRenderer.invoke('export:print'),
   openReleasePage: () => ipcRenderer.invoke('update:openReleasePage')
 });

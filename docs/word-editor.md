@@ -19,6 +19,8 @@ editor uses that key. Every key below is listed with the reason it is there.
 | Move past an equation | one arrow press selects it, the next moves past it | same | Word treats an equation as one object |
 | Delete an equation | first `Backspace` or `Delete` selects it, the second deletes it | same | Word selects an object before it deletes it |
 | New note | `Ctrl+N` | `Cmd+N` | Word's new document. File > New note runs it. |
+| Find in the note | `Ctrl+F` | `Cmd+F` | Word. Next match: `Enter`, or `F3` / `Cmd+G`. Previous: `Shift+Enter`, or `Shift+F3` / `Shift+Cmd+G`. |
+| Print | `Ctrl+P` | `Cmd+P` | Word |
 | Undo and redo from the menu | Edit > Undo, Edit > Redo | same | Word. The menu items go to the editor's history, not the browser's. |
 
 One undo step covers typing. Each equation insert, edit or delete is its own
@@ -46,10 +48,12 @@ rules behind it, and how they were checked, are in `docs/judging.md`.
 | Part | What it is | Why |
 |---|---|---|
 | Notes list (left) | A plain list under "Notes", with "New note" | Apple Notes and Bear. The interface says "note"; the code, files and schema still say "napkin". |
-| Toolbar (top) | Undo, Redo, Insert equation (shows its key), and Shortcuts. Real, labelled buttons in the Tab order. | Word's quick-access bar. Discoverable without help. |
+| Toolbar (top) | Undo, Redo, Insert equation (shows its key), Find, Export and Shortcuts. Real, labelled buttons in the Tab order. | Word's quick-access bar. Discoverable without help. |
 | Note title | The note's name as a heading, with Rename and Delete beside it | The actions sit next to the thing they change. |
 | The page | One reading column on a white page. No border, no side bar on focus. An empty note shows what to do. | Writing is the whole screen. |
-| Equation panel | A strip under the toolbar. A visible Nemeth braille / LaTeX choice, one field, Insert, Cancel. | Word's equation input. It pushes the page down so it never covers the line being edited. |
+| Find bar | A strip under the toolbar: one field, "2 of 5", Previous, Next, Close. Every match is highlighted. Escape closes it and leaves the match selected. | Word's find, kept as small as it can be. It also finds text inside equations the person typed. |
+| Equation panel | A strip under the toolbar. A visible Nemeth braille / LaTeX choice, one field, a preview of the equation, Insert, Cancel. | Word's equation input with its preview. It pushes the page down so it never covers the line being edited. |
+| Export dialog | Web page, LaTeX document, plain text, Print | Word's Save As and Print, in one short list |
 | Status bar (bottom) | "Saved", a hint when an equation is selected, and the UEB grade button | Word's status bar: state on the left, a setting on the right. |
 | Shortcuts | A dialog of short tables | Word's shortcut sheet |
 
@@ -57,10 +61,28 @@ Equations alone on a line are centred, as in Word. Light and dark follow the
 system. A button with nothing to do is `aria-disabled`, not `disabled`, so a
 person who presses Undo until it runs out does not lose their place.
 
+### Find, preview and export
+
+- **Find** matches text without regard to case. It also matches an equation whose
+  typed source (the LaTeX, or the braille cells) holds the words. The count is a
+  polite live region, so a screen reader says "2 of 5" as you move. There is no
+  replace.
+- **Preview.** While you type in the equation panel, the draft is drawn under the
+  field after a short pause. A hidden line, "Reads as: a over b plus the square
+  root of x", holds what a screen reader would say. It is read with the field,
+  not announced as you type, because a braille typist already hears a line per
+  keystroke. An unfinished draft shows nothing, not an error.
+- **Export** writes a web page (equations stay MathML, which a screen reader
+  reads), a LaTeX document, or plain text with equations between dollar signs.
+  An equation typed as LaTeX exports as typed. Others are worked out from their
+  MathML, which handles common forms and is not complete. **Print** hides
+  everything except the title and the note, and the system print window can save
+  a PDF.
+
 **Not done on purpose, because each is a new capability and not polish:** bold,
-italic, headings and lists; find and replace; export and print; an equation
-preview or symbol picker; searching the list of notes. Blind judges named all of
-them as the main gap to Word. They are the owner's call.
+italic, headings and lists (UEB marks emphasis with typeform indicators, so this
+needs a braille decision first); replace; a symbol picker; searching the list of
+notes; a braille file (BRF) export.
 
 ## What changed for people who used the earlier editor
 

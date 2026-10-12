@@ -60,12 +60,29 @@
             <span>Insert equation</span>
             <kbd id="insert-equation-key" aria-hidden="true"></kbd>
           </button>
+          <button id="find-button" type="button" class="button-quiet" aria-keyshortcuts="Control+F Meta+F">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><circle cx="8.5" cy="8.5" r="5" /><path d="m12.3 12.3 4.2 4.2" /></svg>
+            <span>Find</span>
+          </button>
           <span class="toolbar-fill" aria-hidden="true"></span>
+          <button id="export-button" type="button" class="button-quiet" aria-haspopup="dialog">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M10 3v10M6 7l4-4 4 4M4 13v3h12v-3" /></svg>
+            <span>Export</span>
+          </button>
           <button id="keyboard-help-button" type="button" class="button-quiet">
             <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M3 6h14v9H3zM6 9h1M9 9h2M13 9h1M6 12h8" /></svg>
             <span>Shortcuts</span>
           </button>
         </div>
+
+        <section id="find-bar" role="search" aria-label="Find in note" hidden>
+          <label for="find-input" class="sr-only">Find in note</label>
+          <input id="find-input" type="text" autocomplete="off" spellcheck="false" placeholder="Find in note" aria-describedby="find-count">
+          <span id="find-count" class="muted" aria-live="polite"></span>
+          <button id="find-previous" type="button" class="button-quiet button-small">Previous</button>
+          <button id="find-next" type="button" class="button-quiet button-small">Next</button>
+          <button id="find-close" type="button" class="button-quiet button-small">Close</button>
+        </section>
 
         <section id="composer-dock" aria-labelledby="composer-heading" hidden>
           <form id="composer-form">
@@ -81,7 +98,13 @@
             <p id="replacement-method-help" class="sr-only">Nemeth: type braille cells. LaTeX: type the whole expression. Control E picks Nemeth and Control L picks LaTeX while the field is empty.</p>
 
             <label for="composer-source" class="sr-only">Equation input</label>
-            <textarea id="composer-source" rows="1" aria-describedby="composer-help composer-status composer-error"></textarea>
+            <textarea id="composer-source" rows="1" aria-describedby="composer-help composer-status composer-error equation-preview-text"></textarea>
+            <div id="equation-preview-box" class="preview" aria-hidden="true" hidden>
+              <span class="preview-caption">Preview</span>
+              <div id="equation-preview"></div>
+            </div>
+            <!-- What the preview says, for a screen reader. Read on demand with the field, not announced as it changes. -->
+            <span id="equation-preview-text" class="sr-only"></span>
             <p id="composer-status" class="composer-status" aria-live="polite"></p>
             <p id="composer-error" class="error" hidden></p>
             <div class="composer-footer">
@@ -131,6 +154,18 @@
         </div>
       </main>
 
+      <dialog id="export-dialog" aria-labelledby="export-heading">
+        <h3 id="export-heading" tabindex="-1">Export this note</h3>
+        <p class="muted">Equations are kept. Choose a file type, then choose where to save it.</p>
+        <div class="export-choices">
+          <button id="export-html" type="button" class="button-quiet export-choice"><strong>Web page</strong><span>.html. Equations stay readable by a screen reader. Opens in any browser.</span></button>
+          <button id="export-latex" type="button" class="button-quiet export-choice"><strong>LaTeX document</strong><span>.tex. For papers and for other mathematics tools.</span></button>
+          <button id="export-text" type="button" class="button-quiet export-choice"><strong>Plain text</strong><span>.txt. Equations written as LaTeX between dollar signs.</span></button>
+          <button id="export-print" type="button" class="button-quiet export-choice"><strong>Print</strong><span>Print the note, or save it as a PDF from the print window.</span></button>
+        </div>
+        <button id="close-export" type="button" class="button-primary">Close</button>
+      </dialog>
+
       <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
         <h3 id="keyboard-help-heading" tabindex="-1">Keyboard shortcuts</h3>
 
@@ -163,6 +198,15 @@
         <h4>Braille</h4>
         <dl class="keys">
           <div><dt>Switch between UEB grade 1 and grade 2</dt><dd><kbd>Ctrl+T</kbd> or <kbd>Cmd+T</kbd></dd></div>
+        </dl>
+
+        <h4>Finding and sharing</h4>
+        <dl class="keys">
+          <div><dt>Find in the note</dt><dd><kbd>Ctrl+F</kbd> or <kbd>Cmd+F</kbd></dd></div>
+          <div><dt>Next or previous match</dt><dd><kbd>Enter</kbd> or <kbd>Shift+Enter</kbd>, in the find box</dd></div>
+          <div><dt>Close the find box</dt><dd><kbd>Escape</kbd>. The match stays selected.</dd></div>
+          <div><dt>Print</dt><dd><kbd>Ctrl+P</kbd> or <kbd>Cmd+P</kbd></dd></div>
+          <div><dt>New note</dt><dd><kbd>Ctrl+N</kbd> or <kbd>Cmd+N</kbd></dd></div>
         </dl>
 
         <p class="muted">The Insert, Format and Help menus run the same actions (Alt on Windows, the menu bar on Mac). If braille input misbehaves, choose Help, then Copy braille input diagnostics, and paste it into your report. This build: <span id="app-build-identity">unknown</span>.</p>

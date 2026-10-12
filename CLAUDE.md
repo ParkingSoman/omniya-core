@@ -22,8 +22,9 @@ list, one toolbar of labelled buttons, a white page, a status bar. The interface
 and wording are checked by blind judges who see only screenshots and the accessibility tree
 (`npm run judge:capture -- <dir>`, then fresh judge agents; see `docs/judging.md`). Change
 the look, rerun a round, and compare with the table there. Buttons with nothing to do are
-`aria-disabled`, never `disabled`. Bold, italic, headings, find, and export are NOT built;
-adding any is a decision for the owner, not polish.
+`aria-disabled`, never `disabled`. Find in note (Ctrl/Cmd+F), export (web page, LaTeX, plain text) and
+print, and an equation preview are built. Bold, italic, headings, lists, replace, a symbol picker and
+note search are NOT; adding any is a decision for the owner, not polish.
 
 You are almost always working on **`testing`**, the active alpha branch. `main` is the
 last human-signed-off snapshot; large parts of `testing` (Nemeth authoring, the Word-style

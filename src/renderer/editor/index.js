@@ -1,4 +1,4 @@
-import { EditorState, NodeSelection, Plugin, PluginKey } from 'prosemirror-state';
+import { EditorState, NodeSelection, Plugin, PluginKey, TextSelection } from 'prosemirror-state';
 import { Decoration, DecorationSet, EditorView } from 'prosemirror-view';
 import { Node as PMNode } from 'prosemirror-model';
 import { closeHistory, history, redo, redoDepth, undo, undoDepth } from 'prosemirror-history';
@@ -6,6 +6,8 @@ import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
 import { editorSchema } from './schema.js';
 import { MathNodeView } from './math-node-view.js';
+
+export { clearMathWithin, renderMathInto, waitForSpeechLabel } from './math-render.js';
 import { backspaceSelectsMath, deleteSelectsMath } from './commands.js';
 
 const IS_MAC = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '');
@@ -50,6 +52,66 @@ const brailleLabels = new Plugin({
   },
 });
 
+// Find in note. The plugin keeps the query and the matches, and draws them: every
+// match is highlighted and the current one is stronger. A match is a range of
+// text, or a whole equation when the query is in the equation's source (the
+// LaTeX or the braille cells that were typed). Case does not matter.
+const findKey = new PluginKey('find');
+
+function findMatches(doc, query) {
+  const needle = query.toLowerCase();
+  if (!needle) return [];
+  const matches = [];
+  doc.descendants((node, pos) => {
+    if (node.isText) {
+      const hay = node.text.toLowerCase();
+      for (let at = hay.indexOf(needle); at !== -1; at = hay.indexOf(needle, at + needle.length)) {
+        matches.push({ from: pos + at, to: pos + at + needle.length, equation: false });
+      }
+    } else if (node.type.name === 'math' && node.attrs.source.toLowerCase().includes(needle)) {
+      matches.push({ from: pos, to: pos + node.nodeSize, equation: true });
+    }
+  });
+  return matches;
+}
+
+const firstFrom = (matches, from) => {
+  const index = matches.findIndex((m) => m.from >= from);
+  return index === -1 ? (matches.length ? 0 : -1) : index;
+};
+
+const findPlugin = new Plugin({
+  key: findKey,
+  state: {
+    init: () => ({ query: '', matches: [], current: -1 }),
+    apply(tr, value, _old, state) {
+      const meta = tr.getMeta(findKey);
+      if (meta?.query !== undefined) {
+        const matches = findMatches(state.doc, meta.query);
+        return { query: meta.query, matches, current: firstFrom(matches, state.selection.from) };
+      }
+      if (meta?.current !== undefined) return { ...value, current: meta.current };
+      if (tr.docChanged && value.query) {
+        const matches = findMatches(state.doc, value.query);
+        return { ...value, matches, current: Math.min(value.current, matches.length - 1) };
+      }
+      return value;
+    },
+  },
+  props: {
+    decorations(state) {
+      const { matches, current } = findKey.getState(state);
+      if (!matches.length) return null;
+      return DecorationSet.create(state.doc, matches.map((m, i) => {
+        const attrs = { class: i === current ? 'find-match find-current' : 'find-match' };
+        return m.equation
+          ? Decoration.node(m.from, m.to, attrs)
+          : Decoration.inline(m.from, m.to, attrs);
+      }));
+    },
+  },
+});
+
 // A paragraph that holds nothing but one equation is a display equation, centred
 // as in Word. CSS cannot tell that from a sentence with one equation in it, so
 // the editor marks it.
@@ -72,6 +134,7 @@ function makePlugins(handlers) {
     history(),
     brailleLabels,
     displayEquations,
+    findPlugin,
     new Plugin({
       props: {
         handleKeyDown(view, event) {
@@ -186,6 +249,46 @@ export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = 
     /** Load another document. History starts empty, so undo never crosses napkins. */
     setDoc(json) { view.updateState(stateFor(json)); announceState(view); },
     historyState: () => historyState(view.state),
+    /** Search for text. All matches are highlighted and the first one at or after the caret is current and selected. */
+    setFind(query) {
+      view.dispatch(view.state.tr.setMeta(findKey, { query }).setMeta('addToHistory', false));
+      return this.selectCurrentMatch();
+    },
+    /** Move to the next (+1) or previous (-1) match, wrapping round. */
+    findStep(delta) {
+      const { matches, current } = findKey.getState(view.state);
+      if (!matches.length) return this.findState();
+      const next = (current + delta + matches.length) % matches.length;
+      view.dispatch(view.state.tr.setMeta(findKey, { current: next }).setMeta('addToHistory', false));
+      return this.selectCurrentMatch();
+    },
+    /** Select the current match so that closing the search leaves the caret on it. */
+    selectCurrentMatch() {
+      const { matches, current } = findKey.getState(view.state);
+      const match = matches[current];
+      if (match) {
+        const tr = view.state.tr.setMeta('addToHistory', false).scrollIntoView();
+        tr.setSelection(match.equation
+          ? NodeSelection.create(tr.doc, match.from)
+          : TextSelection.create(tr.doc, match.from, match.to));
+        view.dispatch(tr);
+      }
+      return this.findState();
+    },
+    clearFind() {
+      view.dispatch(view.state.tr.setMeta(findKey, { query: '' }).setMeta('addToHistory', false));
+    },
+    findState() {
+      const { query, matches, current } = findKey.getState(view.state);
+      return { query, count: matches.length, index: current };
+    },
+    /** The selected text if it is a short single line, to start a search with. */
+    selectedText() {
+      const { from, to, empty } = view.state.selection;
+      if (empty || to - from > 80) return '';
+      const text = view.state.doc.textBetween(from, to, ' ', '');
+      return text.trim() === '' ? '' : text;
+    },
     setLabel(text) { view.dom.setAttribute('aria-label', text); },
     focus() { view.focus(); },
     /** Give each paragraph its braille label. `labels` maps paragraph text to braille. Not an undo step. */

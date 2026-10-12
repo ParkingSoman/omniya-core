@@ -72,10 +72,14 @@ and the floating help button. The later rounds fixed: a crowded toolbar (rename
 and delete moved beside the title, the braille grade moved to the status bar),
 a note title spoken three times, a wall of prose in the shortcuts dialog, a
 hint that never showed in an empty note, and a centring rule that caught
-sentences. Round 3 judges asked for these, which are **not** done and are
-capabilities, not polish: bold, italic, headings and lists; find and replace;
-export and print; an equation preview or symbol picker; searching the list of
-notes. The Word-parity scores stay at 2 to 3 until some of them exist.
+sentences. Round 3 judges named a set of capabilities, not polish: bold, italic, headings
+and lists; find and replace; export and print; an equation preview or symbol
+picker; searching the list of notes. The owner chose three of them: **find in the
+note, export and print, and an equation preview**. They are built. Still not
+built, and still the owner's call: bold and italic (UEB marks emphasis with
+typeform indicators, so a braille decision comes first), headings and lists,
+replace, a symbol picker, and searching the list of notes. The Word-parity scores
+should move once a new round judges the screens with find, export and preview.
 
 ## What this cannot tell you
 

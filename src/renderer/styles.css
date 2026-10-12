@@ -25,6 +25,8 @@
   --on-accent: #ffffff;
   --danger: #b42318;
   --danger-soft: #fdecea;
+  --find: #fff0a6;
+  --find-current: #ffc94d;
 
   --radius: 0.5rem;
   --page-width: 46rem;
@@ -46,6 +48,8 @@
     --on-accent: #0d1b36;
     --danger: #ff8a7d;
     --danger-soft: #3a1f1c;
+    --find: #5a4b12;
+    --find-current: #8a6d1b;
   }
 }
 
@@ -164,6 +168,24 @@ kbd {
 .toolbar-fill { flex: 1; }
 #insert-equation-key { margin-left: 0.15rem; }
 
+/* ---- Find bar ------------------------------------------------------------ */
+
+#find-bar { align-items: center; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.45rem 0.9rem; }
+#find-input { background: var(--page); border: 1px solid var(--line-strong); border-radius: var(--radius); color: var(--ink); flex: 1; max-width: 24rem; min-width: 8rem; padding: 0.35rem 0.6rem; }
+#find-count { min-width: 5.5rem; }
+.find-match { background: var(--find); border-radius: 0.2rem; }
+.find-current { background: var(--find-current); outline: 2px solid var(--find-current); }
+
+/* ---- Export dialog ------------------------------------------------------- */
+
+#export-dialog { background: var(--page); border: 1px solid var(--line-strong); border-radius: 0.75rem; color: var(--ink); line-height: 1.5; max-width: 30rem; padding: 1.4rem 1.6rem; }
+#export-dialog::backdrop { background: rgba(10, 14, 20, 0.45); }
+#export-dialog h3 { font-size: 1.2rem; margin: 0 0 0.3rem; }
+#export-dialog h3:focus { outline: none; }
+.export-choices { display: grid; gap: 0.4rem; margin: 0.8rem 0 1rem; }
+.export-choice { align-items: flex-start; border-color: var(--line); display: flex; flex-direction: column; gap: 0.1rem; padding: 0.6rem 0.8rem; text-align: left; width: 100%; }
+.export-choice span { color: var(--muted); font-size: 0.85rem; }
+
 /* ---- Equation panel ------------------------------------------------------ */
 
 #composer-dock { background: var(--panel); border-bottom: 1px solid var(--line); padding: 0.75rem 1rem 0.85rem; }
@@ -182,6 +204,9 @@ kbd {
 
 #composer-source { background: var(--page); border: 1px solid var(--line-strong); border-radius: var(--radius); color: var(--ink); display: block; font-size: 1.1rem; min-height: 2.7rem; padding: 0.55rem 0.75rem; resize: none; width: 100%; }
 .nemeth-inline-editor { font-family: 'Braille', var(--font); font-size: 1.25rem; }
+.preview { align-items: center; border: 1px dashed var(--line-strong); border-radius: var(--radius); display: flex; gap: 0.8rem; margin-top: 0.5rem; min-height: 2.6rem; padding: 0.35rem 0.75rem; }
+.preview-caption { color: var(--muted); font-size: 0.78rem; }
+#equation-preview mjx-container { font-size: 1.15rem; }
 .composer-status { color: var(--muted); font-size: 0.85rem; margin: 0.4rem 0 0; min-height: 1.2rem; }
 .composer-footer { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
 #composer-help { color: var(--muted); flex: 1; font-size: 0.8rem; margin: 0; min-width: 12rem; }
@@ -289,6 +314,16 @@ img.ProseMirror-separator { border: none !important; display: inline !important;
   #workspace { grid-row: 3; }
   #toolbar button:not(#insert-equation-button) span,
   #new-napkin-button .button-text { clip: rect(0, 0, 0, 0); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+}
+
+@media print {
+  #napkin-rail, #toolbar, #find-bar, #composer-dock, #status-bar, .title-actions, .skip-link,
+  #app-error, #update-banner, #announcer, dialog { display: none !important; }
+  #app-shell, #workspace { display: block; height: auto; }
+  #document-section { overflow: visible; }
+  body { background: #fff; color: #000; }
+  .page { max-width: none; padding: 0; }
+  .math-node-selected, .ProseMirror-selectednode.math-node, .find-match, .find-current { background: none; outline: none; }
 }
 
 @media (forced-colors: active) {
