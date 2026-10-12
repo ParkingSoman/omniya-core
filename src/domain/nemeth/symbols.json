@@ -132,6 +132,20 @@
     "banaRef": null
   },
   {
+    "cells": "⠱",
+    "kind": "letter",
+    "value": ":",
+    "greekOnly": true,
+    "banaRef": "6.1.4"
+  },
+  {
+    "cells": "⠯",
+    "kind": "letter",
+    "value": "&",
+    "greekOnly": true,
+    "banaRef": "6.1.4"
+  },
+  {
     "cells": "⠇",
     "kind": "letter",
     "value": "l",

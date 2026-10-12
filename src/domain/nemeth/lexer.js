@@ -451,7 +451,24 @@ function readPrefixed(cells, index) {
         leadingReading(cells, index, match.kind)
     });
   }
+  requireGreek(match, marks, cells, at);
   return { match, marks, end: at + match.len };
+}
+
+/**
+ * Eta `:` (U+2831) and chi `&` (U+282F) are letters only in the Greek alphabet
+ * (BANA 6.1.4, Nemeth_2022.txt lines 3023-3048). Their rows are `greekOnly`
+ * because neither cell is an English letter, so reading them anywhere else as a
+ * letter would invent a letter the Code does not have. Everywhere else they
+ * stay refused, exactly as they were before the rows existed.
+ */
+function requireGreek(match, marks, cells, at) {
+  if (!match.greekOnly || marks.alphabet === 'greek') return;
+  throw new NemethUnsupportedError({
+    offset: at,
+    cells,
+    detail: `the cell "${match.value}" is a letter only after the Greek-letter indicator (BANA ${match.banaRef})`
+  });
 }
 
 /**
@@ -487,7 +504,7 @@ function englishLetterAlone(cells, index) {
   if (index > 0 && cells[index - 1] !== BLANK) return null;
   if (index + 1 >= cells.length) return null;
   const letter = symbolAt(cells, index + 1);
-  if (!letter || letter.kind !== 'letter') return null;
+  if (!letter || letter.kind !== 'letter' || letter.greekOnly) return null;
   const after = cells[index + 1 + letter.len];
   return after === undefined || after === BLANK ? letter : null;
 }
@@ -511,6 +528,7 @@ export function lex(input, context = {}) {
       index = run.end;
       continue;
     }
+    requireGreek(match, {}, cells, index);
     tokens.push(makeToken(match, cells, index, index + match.len));
     index += match.len;
   }
