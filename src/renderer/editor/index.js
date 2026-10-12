@@ -97,9 +97,46 @@ const displayEquations = new Plugin({
   },
 });
 
-function makePlugins(handlers) {
+// The equation field. Typing an equation happens in the line, at the caret, as
+// in Word: the field is drawn as a widget inside the paragraph, so it sits where
+// the equation will be. The plugin only keeps where it goes. The field itself is
+// an element the page owns and passes in, which is why its ids and its screen
+// reader wiring did not have to change when it moved out of the top panel.
+const fieldKey = new PluginKey('equation-field');
+
+function makeFieldPlugin(element) {
+  // The field is a form inside the editable page. It must not be editable itself.
+  element?.setAttribute('contenteditable', 'false');
+  return new Plugin({
+    key: fieldKey,
+    state: {
+      init: () => ({ pos: null }),
+      apply(tr, value) {
+        const meta = tr.getMeta(fieldKey);
+        if (meta !== undefined) return meta;
+        return value.pos === null ? value : { pos: tr.mapping.map(value.pos) };
+      },
+    },
+    props: {
+      decorations(state) {
+        const { pos } = fieldKey.getState(state);
+        if (pos === null || !element) return null;
+        return DecorationSet.create(state.doc, [Decoration.widget(pos, element, {
+          key: 'equation-field',
+          side: 1,
+          // Keys and mouse go to the field, not to the document behind it.
+          stopEvent: () => true,
+          ignoreSelection: true,
+        })]);
+      },
+    },
+  });
+}
+
+function makePlugins(handlers, fieldElement) {
   return [
     history(),
+    makeFieldPlugin(fieldElement),
     displayEquations,
     findPlugin,
     new Plugin({
@@ -143,8 +180,8 @@ function makePlugins(handlers) {
  *   onInsertEquation()     the insert-equation chord was pressed
  *   onEnterMath(pos)       Enter on a selected equation: read it by parts
  */
-export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = '', handlers = {} }) {
-  const plugins = makePlugins(handlers);
+export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = '', handlers = {}, equationField = null }) {
+  const plugins = makePlugins(handlers, equationField);
   const stateFor = (json) => EditorState.create({
     schema: editorSchema,
     doc: PMNode.fromJSON(editorSchema, json),
@@ -190,6 +227,14 @@ export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = 
   // The hint is drawn by CSS (see styles.css), so it is a custom property.
   if (placeholder) view.dom.style.setProperty('--placeholder', JSON.stringify(placeholder));
   announceState(view);
+
+  // When the field is not in the line, it goes back where the page put it, hidden.
+  // The page keeps looking it up by id, and a field that left the document
+  // altogether would make every one of those lookups come back empty.
+  const fieldHome = equationField?.parentNode ?? null;
+  const parkField = () => {
+    if (fieldHome && equationField.parentNode !== fieldHome) fieldHome.appendChild(equationField);
+  };
 
   const mathAttrs = ({ mathml, source = '', sourceKind = 'latex' }) => ({ mathml, source, sourceKind });
 
@@ -249,6 +294,17 @@ export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = 
       if (empty || to - from > 80) return '';
       const text = view.state.doc.textBetween(from, to, ' ', '');
       return text.trim() === '' ? '' : text;
+    },
+    /** Draw the equation field in the line. `pos` is where it goes, or after the caret. */
+    showEquationField(pos = null) {
+      const at = pos ?? view.state.selection.to;
+      view.dispatch(view.state.tr.setMeta(fieldKey, { pos: at }).setMeta('addToHistory', false));
+      equationField?.scrollIntoView?.({ block: 'nearest' });
+    },
+    hideEquationField() {
+      if (fieldKey.getState(view.state).pos === null) return;
+      view.dispatch(view.state.tr.setMeta(fieldKey, { pos: null }).setMeta('addToHistory', false));
+      parkField();
     },
     setLabel(text) { view.dom.setAttribute('aria-label', text); },
     focus() { view.focus(); },

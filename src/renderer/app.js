@@ -264,6 +264,7 @@ function loadEditor() {
       doc: napkin.doc,
       label: NOTE_TEXT_LABEL,
       placeholder: `Start writing. Press ${EQUATION_KEY} to add an equation.`,
+      equationField: elements['composer-dock'],
       handlers: {
         onChange: onEditorChange,
         onStateChange: updateToolbar,
@@ -610,6 +611,10 @@ function openDock({ heading, submit, indicator, scope }) {
   elements['editing-indicator'].textContent = indicator;
   elements['replacement-scope'].textContent = scope;
   elements['composer-dock'].hidden = false;
+  // The field sits in the line: after the caret for a new equation, right after
+  // the equation being edited otherwise.
+  const editing = mathSession?.kind === 'edit' ? editor.mathNode(mathSession.pos) : null;
+  editor.showEquationField(editing ? mathSession.pos + editing.nodeSize : null);
   elements['composer-source'].value = '';
   setFieldError(elements['composer-source'], elements['composer-error']);
   styleField(replacementSession.method);
@@ -626,6 +631,7 @@ function closeDock() {
   composerMathInputProcessing = Promise.resolve();
   commandState = createAuthoringState({ surface: 'text', contentEmpty: true, uebGrade: commandState.uebGrade });
   elements['composer-dock'].hidden = true;
+  editor?.hideEquationField();
   elements['composer-source'].value = '';
   elements['replacement-scope'].textContent = '';
   setComposerMathStatus('');

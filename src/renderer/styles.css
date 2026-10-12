@@ -188,28 +188,30 @@ kbd {
 
 /* ---- Equation panel ------------------------------------------------------ */
 
-#composer-dock { background: var(--panel); border-bottom: 1px solid var(--line); padding: 0.75rem 1rem 0.85rem; }
-#composer-form { margin: 0 auto; max-width: var(--page-width); }
-.composer-bar { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; margin-bottom: 0.5rem; }
-.composer-bar h2 { font-size: 0.98rem; font-weight: 650; margin: 0; }
-.composer-bar .muted { margin-right: auto; }
+/* The equation field sits in the line, where the equation will be (see makeFieldPlugin). */
+#composer-dock { background: var(--page); border: 1px solid var(--accent); border-radius: 0.6rem; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12); display: inline-block; font-size: 1rem; line-height: 1.4; margin: 0.15rem 0.1rem; max-width: 100%; padding: 0.3rem 0.5rem; vertical-align: middle; width: min(34rem, 100%); }
+#composer-dock[hidden] { display: none; }
+#composer-form { display: flex; flex-direction: column; gap: 0.2rem; margin: 0; }
+.composer-bar { align-items: center; display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; order: 3; }
+.composer-bar h2, #composer-help, .composer-status { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
+.composer-bar .muted { font-size: 0.8rem; margin-right: auto; }
 
-#replacement-method { border: 0; display: inline-flex; gap: 0; margin: 0 0 0 auto; padding: 0; }
-#replacement-method label { border: 1px solid var(--line-strong); cursor: pointer; display: inline-flex; padding: 0.2rem 0.8rem; position: relative; }
+#replacement-method { border: 0; display: inline-flex; font-size: 0.8rem; gap: 0; margin: 0 0 0 auto; padding: 0; }
+#replacement-method label { border: 1px solid var(--line-strong); cursor: pointer; display: inline-flex; padding: 0.05rem 0.6rem; position: relative; }
 #replacement-method label:first-of-type { border-radius: var(--radius) 0 0 var(--radius); }
 #replacement-method label:last-of-type { border-left: 0; border-radius: 0 var(--radius) var(--radius) 0; }
 #replacement-method input { cursor: pointer; inset: 0; margin: 0; opacity: 0; position: absolute; }
 #replacement-method label:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 #replacement-method label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-#composer-source { background: var(--page); border: 1px solid var(--line-strong); border-radius: var(--radius); color: var(--ink); display: block; font-size: 1.1rem; min-height: 2.7rem; padding: 0.55rem 0.75rem; resize: none; width: 100%; }
+#composer-source { background: transparent; border: 0; color: var(--ink); display: block; font-family: inherit; font-size: 1.1rem; min-height: 1.8rem; order: 1; outline: none; padding: 0.15rem 0.2rem; resize: none; width: 100%; }
 .nemeth-inline-editor { font-family: 'Braille', var(--font); font-size: 1.25rem; }
-.preview { align-items: center; border: 1px dashed var(--line-strong); border-radius: var(--radius); display: flex; gap: 0.8rem; margin-top: 0.5rem; min-height: 2.6rem; padding: 0.35rem 0.75rem; }
+.preview { align-items: center; border-top: 1px solid var(--line); display: flex; gap: 0.6rem; min-height: 2.2rem; order: 2; padding: 0.2rem 0.2rem 0; }
+#composer-error { font-size: 0.85rem; margin: 0; order: 4; }
+.composer-footer { align-items: center; display: flex; gap: 0.4rem; justify-content: flex-end; order: 5; }
+.composer-footer .button-primary, .composer-footer .button-quiet { font-size: 0.8rem; padding: 0.1rem 0.6rem; }
 .preview-caption { color: var(--muted); font-size: 0.78rem; }
 #equation-preview mjx-container { font-size: 1.15rem; }
-.composer-status { color: var(--muted); font-size: 0.85rem; margin: 0.4rem 0 0; min-height: 1.2rem; }
-.composer-footer { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
-#composer-help { color: var(--muted); flex: 1; font-size: 0.8rem; margin: 0; min-width: 12rem; }
 
 /* ---- The page ------------------------------------------------------------ */
 
