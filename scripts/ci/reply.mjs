@@ -34,6 +34,17 @@ import { gh, requireNumber } from './gh.mjs';
 
 export const PIPELINE_PREFIX = '<!-- omniya-pipeline-';
 export const MARKER = `${PIPELINE_PREFIX}reply -->`;
+
+/**
+ * The first line of a question the agent asks the contributor. It carries the
+ * pipeline prefix, so the follow-up gate never treats the question itself as a
+ * run to start. Two things read it from GitHub: `listed-thread.mjs` keeps a bot
+ * comment ONLY when it starts with this, so the answer can be read next to the
+ * question, and the follow-up gate counts the comments that start with it, so the
+ * agent cannot ask more than twice. Both read it from the comment as posted, and
+ * only a workflow can post as the bot.
+ */
+export const QUESTION_MARKER = `${PIPELINE_PREFIX}question -->`;
 export const AUTHOR = 'github-actions[bot]';
 
 /** The agent's words are cut to this many characters. A reply is read aloud. */
@@ -55,6 +66,7 @@ const TRY_IT = [
  *   message  'none'      the agent's words are not used
  *            'optional'  used when the agent wrote some
  *            'required'  used, or the state falls back to `fallback`
+ *   marker   the first line, when it is not `MARKER`
  *   intro    fixed words that come before the links, after the agent's words
  *   lines    fixed words that always follow
  */
@@ -87,6 +99,18 @@ const STATES_DEF = {
     ]
   },
   answered: { message: 'required', fallback: 'stuck', lines: [] },
+  // The question IS the one comment. The agent writes it to `message.md`, and it
+  // goes out under the question marker. With no question there is nothing to ask,
+  // so it falls back to `stuck` and a person is told.
+  asked: {
+    marker: QUESTION_MARKER,
+    message: 'required',
+    fallback: 'stuck',
+    lines: [
+      'Reply in a comment that starts with @claude.',
+      'I will start as soon as you answer.'
+    ]
+  },
   design: {
     message: 'optional',
     defaultMessage: 'This looks like a request for something new, not a fault.',
@@ -137,40 +161,68 @@ export const STATES = Object.keys(STATES_DEF);
 
 /** The label the pipeline puts on the issue for a state. The agent labels nothing. */
 export const LABELS = {
+  // A person is NOT needed here: the contributor is, and the agent waits for them.
+  asked: { name: 'needs-info', description: 'The agent asked the reporter a question and is waiting' },
   design: { name: 'needs-design', description: 'Not a bug: a design decision for the maintainer to answer' },
   stuck: { name: 'needs-maintainer', description: 'A person has to look at this' },
   failed: { name: 'needs-maintainer', description: 'A person has to look at this' }
 };
 
 /**
+ * One pass of the cleaning rules. `cleanMessage` repeats it until nothing changes,
+ * because a rule can build what an earlier rule removed: `@@claude` becomes
+ * `@claude` when the first `@` is taken out, and `<!<b>-- omniya-pipeline-`
+ * becomes the marker when the tag is taken out.
+ */
+function cleanOnce(text) {
+  return text
+    // Control and zero-width characters, which hide text from a reader and a filter alike.
+    .replace(/[\u0000-\u0008\u000b-\u001f\u007f\u200b-\u200f\u2028-\u202e\u2060-\u2064\ufeff]/g, '')
+    // A reference-style link definition: `[1]: https://...`.
+    .replace(/^[ \t]*\[[^\]\n]*\]:[ \t]*\S.*$/gm, '')
+    // A markdown link or image keeps its words and loses its address.
+    .replace(/!?\[([^\]\n]*)\]\([^\n]*?\)/g, '$1')
+    .replace(/!?\[([^\]\n]*)\]\[[^\]\n]*\]/g, '$1')
+    // HTML, including a comment. An unclosed tag is cut to the end of its line.
+    .replace(/<[A-Za-z!/?][^>\n]*>?/g, '')
+    // Any address with a scheme, and any `www.` address.
+    .replace(/\b[A-Za-z][A-Za-z0-9+.-]*:\/\/\S*/g, '')
+    .replace(/\bwww\.\S*/gi, '')
+    // Every `@`. Agent words never need one, and a lone `@` next to another can
+    // rebuild a mention.
+    .replace(/@/g, '')
+    .replace(/[ \t]+$/gm, '');
+}
+
+/**
  * The agent's words are text from a model that has read untrusted reports, and
  * they are posted in a public comment under the project's name. So:
  *
- *  - A line that carries the pipeline's marker prefix is dropped, so the words
- *    cannot dress up as a comment the gate trusts.
  *  - No link survives. The prompt says never to write one, and the only links a
  *    contributor should ever be sent are the two this script builds. A link in
  *    agent text would be a link a hostile report talked the agent into writing.
  *    A markdown link keeps its words. A bare address is removed.
- *  - No `@` mention survives. A mention notifies a stranger, and `@claude` is
- *    the word that starts a run. The fixed words are the only place either may
- *    appear.
+ *  - No `@` survives. A mention notifies a stranger, and `@claude` is the word
+ *    that starts a run. The fixed words are the only place either may appear.
  *  - No HTML survives, so nothing can hide, restyle or inject into the comment.
+ *  - The rules run until nothing changes, and the marker check runs LAST. A line
+ *    that carries the pipeline's marker prefix is dropped, so the words cannot
+ *    dress up as a comment the gate trusts, however the prefix was assembled.
  *  - It is cut to size.
  *
  * @param {string|undefined} text
  */
 export function cleanMessage(text) {
-  const kept = String(text ?? '')
-    .replace(/\r/g, '')
+  let kept = String(text ?? '').replace(/\r/g, '');
+  for (let i = 0; i < 20; i += 1) {
+    const next = cleanOnce(kept);
+    if (next === kept) break;
+    kept = next;
+  }
+  kept = kept
     .split('\n')
-    .filter((line) => !line.includes(PIPELINE_PREFIX))
+    .filter((line) => !line.includes(PIPELINE_PREFIX) && !line.includes('<!--'))
     .join('\n')
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/<[^>\n]*>/g, '')
-    .replace(/\b(?:https?:\/\/|www\.)\S+/gi, '')
-    .replace(/@(?=\w)/g, '')
-    .replace(/[ \t]+\n/g, '\n')
     .trim();
   if (kept.length <= MAX_MESSAGE) return kept;
   return `${kept.slice(0, MAX_MESSAGE).replace(/\s+\S*$/, '')} ...`;
@@ -203,7 +255,7 @@ export function renderReply(state, { repo, pr, message } = {}) {
     ].join('\n'));
   }
   if (def.lines.length > 0) parts.push(def.lines.join('\n'));
-  return `${MARKER}\n${parts.join('\n\n')}\n`;
+  return `${def.marker ?? MARKER}\n${parts.join('\n\n')}\n`;
 }
 
 /**

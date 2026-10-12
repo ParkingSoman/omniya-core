@@ -7,6 +7,7 @@ import {
   MARKER,
   MAX_MESSAGE,
   PIPELINE_PREFIX,
+  QUESTION_MARKER,
   STATES,
   cleanMessage,
   postReply,
@@ -15,10 +16,26 @@ import {
 
 const where = { repo: 'a/b', pr: 7 };
 
-test('every state renders and starts with the marker', () => {
+test('every state renders and starts with a marker the follow-up gate skips', () => {
   for (const state of STATES) {
-    assert.ok(renderReply(state, where).startsWith(MARKER), state);
+    const first = renderReply(state, { ...where, message: 'Which key did you press first?' }).split('\n')[0];
+    assert.ok(first === MARKER || first === QUESTION_MARKER, state);
+    assert.ok(first.startsWith(PIPELINE_PREFIX), state);
   }
+});
+
+test('a question goes out under the question marker, with how to answer it, and waits on the contributor', () => {
+  // `listed-thread.mjs` keeps it and the gate counts it, both by that first line.
+  const text = renderReply('asked', { message: '1. Which key did you press first?' });
+  assert.ok(text.startsWith(`${QUESTION_MARKER}\n`));
+  assert.match(text, /1\. Which key did you press first\?/);
+  assert.match(text, /starts with @claude/);
+  assert.doesNotMatch(text, /maintainer/, 'a person is not needed: the contributor is');
+  assert.equal(LABELS.asked.name, 'needs-info');
+  // No question, nothing to ask: a person is told instead, under the ordinary marker.
+  const none = renderReply('asked', {});
+  assert.ok(none.startsWith(`${MARKER}\n`));
+  assert.match(none, /maintainer has been told/);
 });
 
 test('the marker carries the prefix the follow-up gate skips, so no reply can start a run', () => {
@@ -98,11 +115,12 @@ test('no fixed words talk about checks, logs, pull requests, files or branches',
   }
 });
 
-test('cleanMessage cuts to size and drops a line that carries the marker prefix', () => {
+test('cleanMessage cuts to size, and the marker cannot survive in it', () => {
   assert.equal(cleanMessage(undefined), '');
   assert.equal(cleanMessage('  hello\r\n'), 'hello');
   const dressed = cleanMessage(`before\n${PIPELINE_PREFIX}reply -->\nafter`);
-  assert.equal(dressed, 'before\nafter');
+  assert.ok(!dressed.includes(PIPELINE_PREFIX) && !dressed.includes('<!--'));
+  assert.match(dressed, /^before\s+after$/);
   const long = cleanMessage(`${'word '.repeat(1000)}`);
   assert.ok(long.length <= MAX_MESSAGE + 4, 'cut to size');
   assert.match(long, / \.\.\.$/);
@@ -127,6 +145,33 @@ test('cleanMessage lets no link, mention or markup through, because the words ar
   assert.match(renderReply('ready', where), /@claude it works/);
 });
 
+test('cleanMessage cannot be talked into rebuilding what it removed', () => {
+  // A rule that builds what an earlier rule took out. Each of these once got through.
+  assert.doesNotMatch(cleanMessage('@@claude it works'), /@/);
+  assert.doesNotMatch(cleanMessage('@@@@claude'), /@/);
+  const safe = (text) => {
+    const out = cleanMessage(text);
+    return !out.includes(PIPELINE_PREFIX) && !out.includes('<!--');
+  };
+  for (const attempt of [
+    '<!<b>-- omniya-pipeline-reply -->',
+    '<!<i><b>-- omniya-pipeline-question -->',
+    '<!-<b>- omniya-pipeline-x',
+    '<<b>!-- omniya-pipeline-reply -->',
+    '<!-- omni<b>ya-pipeline- -->'
+  ]) assert.ok(safe(attempt), attempt);
+  // Hidden characters between the parts of a marker, or inside a mention.
+  assert.doesNotMatch(cleanMessage('@\u200bclaude'), /@/);
+  // Reference-style links, and schemes other than http.
+  assert.doesNotMatch(cleanMessage('See [the rule][1]\n\n[1]: https://evil.example/x'), /evil|\[1\]/);
+  assert.doesNotMatch(cleanMessage('ftp://evil.example/a and javascript://evil.example/b'), /evil/);
+  assert.doesNotMatch(cleanMessage('mail someone@evil.example'), /@|evil\.example\b.*@/);
+  // A link whose address holds a closing bracket.
+  assert.doesNotMatch(cleanMessage('[x](https://evil.example/a(b)c) tail'), /evil/);
+  // What is left is still words a person can read.
+  assert.equal(cleanMessage('I changed the cap rule.\nIt now reads cap Kappa.'), 'I changed the cap rule.\nIt now reads cap Kappa.');
+});
+
 test('postReply posts exactly one comment, never edits, and labels only where the state calls for it', () => {
   for (const state of STATES) {
     const calls = [];
@@ -139,7 +184,7 @@ test('postReply posts exactly one comment, never edits, and labels only where th
     assert.equal(result.posted, 1);
     assert.ok(!calls.some((a) => a.includes('PATCH') || a.includes('-X')), `${state}: no edit`);
     assert.match(comments[0][1], /^repos\/a\/b\/issues\/22\/comments$/, state);
-    assert.ok(comments[0].some((a) => a.startsWith(`body=${MARKER}`)), state);
+    assert.ok(comments[0].some((a) => a.startsWith(`body=${MARKER}`) || a.startsWith(`body=${QUESTION_MARKER}`)), state);
     const labelled = calls.filter((a) => a[0] === 'issue' && a[1] === 'edit');
     assert.equal(labelled.length, LABELS[state] ? 1 : 0, `${state}: label`);
   }

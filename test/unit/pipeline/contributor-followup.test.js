@@ -73,7 +73,8 @@ test('exactly one open fix is continued, and no fix is answered in words', () =>
   // The gate finds the fix for this issue with the one shared helper, from
   // `testing`, because `main` does not have it.
   const find = allowlistJob.steps.find((s) => s.id === 'find');
-  assert.equal(find.if, "steps.check.outputs.allowed == 'true'", 'no lookup for a person the gate refused');
+  assert.match(find.if, /^steps\.check\.outputs\.allowed == 'true'/, 'no lookup for a person the gate refused');
+  assert.match(find.if, /steps\.access\.outputs\.access != 'false'/, 'nor for one the agent action would refuse');
   assert.match(find.run, /git show "origin\/testing:scripts\/ci\/\$f"/);
   assert.match(find.run, /find-fix-pr\.mjs/);
   assert.doesNotMatch(code, /isCrossRepository/, 'the strict rule lives in the helper, not in a fourth copy');
@@ -83,8 +84,51 @@ test('exactly one open fix is continued, and no fix is answered in words', () =>
   // Silence is the failure this repository has had once already.
   const nofix = workflow.jobs.nofix;
   assert.match(nofix.if, /count\s*!=\s*'1'/);
+  assert.match(nofix.if, /resume\s*!=\s*'true'/, 'a comment that answers a question is not "no fix found"');
   assert.ok(nofix.steps.some((s) => /gh issue comment/.test(s.run ?? '')), 'the contributor is told');
   assert.doesNotMatch(JSON.stringify(nofix.steps), /claude-code-action/, 'saying so costs no quota');
+});
+
+test('an answer to the agent\'s question starts the fix, once, and only when a question is open', () => {
+  // The label is the memory. The pipeline sets `needs-info` when the agent asks
+  // and takes it off here, before the agent starts, so a second comment while the
+  // run is going is not taken for another answer.
+  const resume = allowlistJob.steps.find((s) => s.id === 'resume');
+  assert.match(resume.if, /count == '0'/, 'with a fix open, a comment is a revision, not an answer');
+  assert.match(resume.run, /needs-info/);
+  assert.match(resume.run, /omniya-pipeline-question/);
+  // The design lock. A label can be added by anybody with write access, so it
+  // is not enough on its own, and a `needs-design` issue never resumes.
+  assert.match(resume.run, /\*,needs-design,\*\) ;;/, 'needs-design is checked before needs-info, and does nothing');
+  assert.match(resume.run, /\[ "\$\{asked:-0\}" -ge 1 \] && resume=true/, 'a real question from the agent must exist');
+  assert.ok(resume.run.indexOf('needs-design') < resume.run.indexOf('*,needs-info,*'));
+  assert.equal(workflow.jobs['resume-start'].steps.at(-1).run.includes('--remove-label needs-info'), true);
+  assert.match(workflow.jobs['resume-start'].if, /resume == 'true'/);
+  assert.match(workflow.jobs['resume-start'].if, /access != 'false'/);
+
+  const job = workflow.jobs.resume;
+  assert.equal(job.uses, AGENT);
+  assert.equal(job.with.mode, 'fix');
+  assert.equal(job.with.question_round, '${{ needs.allowlist.outputs.question_round }}');
+  assert.deepEqual(Object.keys(job.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+  assert.equal(job.permissions?.actions, undefined, 'the agent never holds `actions`');
+
+  // The agent can open the pull request this time, so the same checks follow.
+  assert.equal(workflow.jobs['resume-verify'].if, "needs.resume.outputs.result == 'opened'");
+  assert.equal(workflow.jobs['resume-verify'].with.pr_number, '${{ needs.resume.outputs.pr }}');
+
+  // And every other ending is told, with the same script the first round uses.
+  const outcome = workflow.jobs['resume-outcome'];
+  assert.match(outcome.steps.at(-1).run, /fix-outcome\.mjs/);
+  assert.match(outcome.if.replace(/\s+/g, ' '), /needs\.resume\.outputs\.result == 'asked'/);
+});
+
+test('a listed contributor who cannot write is told, and the job is red', () => {
+  const noaccess = workflow.jobs.noaccess;
+  assert.match(noaccess.if, /access == 'false'/);
+  assert.match(noaccess.steps[0].run, /exit 1/);
+  assert.match(workflow.jobs.agent.if, /access != 'false'/);
+  assert.match(allowlistJob.steps.find((s) => s.id === 'access').env.ACTOR, /github\.actor/);
 });
 
 test('a follow-up run is bounded, and shares the fix workflow group', () => {

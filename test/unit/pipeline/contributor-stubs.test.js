@@ -133,15 +133,21 @@ test('every job states its own permissions, and the small ones hold almost none'
       status: { contents: 'read', issues: 'write' },
       // `issues: read`: the agent posts nothing on the issue.
       fix: { contents: 'write', 'pull-requests': 'write', issues: 'read' },
-      stopped: { contents: 'read', issues: 'write' },
+      noaccess: { issues: 'write' },
+      outcome: { contents: 'read', issues: 'write' },
       // A ceiling for a called workflow, whose own jobs state narrower ones.
       verify: { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' }
     },
     'pipeline-followup.yml': {
       allowlist: { contents: 'read', 'pull-requests': 'read', issues: 'read' },
       nofix: { issues: 'write' },
+      noaccess: { issues: 'write' },
       agent: { contents: 'write', 'pull-requests': 'write', issues: 'read' },
       reply: { contents: 'read', issues: 'write' },
+      'resume-start': { contents: 'read', issues: 'write' },
+      resume: { contents: 'write', 'pull-requests': 'write', issues: 'read' },
+      'resume-outcome': { contents: 'read', issues: 'write' },
+      'resume-verify': { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' },
       verify: { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' },
       handoff: { contents: 'read', 'pull-requests': 'write', issues: 'write' }
     },

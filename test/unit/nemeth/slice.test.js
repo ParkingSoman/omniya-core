@@ -72,3 +72,8 @@ test('every failure reaches the user as the same message, with detail kept for d
     assert.equal(error.message.includes(error.detail), false);
   }
 });
+
+test('issue #22: `x = 3` written with the English-letter indicator parses (BANA 6.3.1)', () => {
+  assert.equal(parseNemeth('⠰⠭⠀⠨⠅⠀⠼⠒').latex, 'x=3');
+  assert.equal(parseNemeth('⠰⠭').latex, 'x');
+});

@@ -93,15 +93,19 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      # To read the labels and the agent's own earlier questions on the issue.
       issues: read
     timeout-minutes: 5
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
+      access: ${{ steps.access.outputs.access }}
       number: ${{ steps.issue.outputs.number }}
       count: ${{ steps.find.outputs.count }}
       pr: ${{ steps.find.outputs.pr }}
       branch: ${{ steps.find.outputs.branch }}
       kind: ${{ steps.kind.outputs.kind }}
+      resume: ${{ steps.resume.outputs.resume }}
+      question_round: ${{ steps.resume.outputs.question_round }}
     steps:
       - uses: actions/checkout@v4
       - id: issue
@@ -120,10 +124,27 @@ jobs:
         env:
           COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
         run: node scripts/ci/allowlist.mjs "$COMMENT_AUTHOR" --github || true
+      # Being on the list is not enough: `claude-code-action` refuses any actor
+      # who cannot write to the repository (issue #33). Check the same actor, and
+      # say the true reason. The script is not on `main`, so it comes out of
+      # `testing`. `unknown` lets the run go on: the action checks again.
+      - id: access
+        if: steps.check.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin testing
+          mkdir -p "$RUNNER_TEMP/access"
+          for f in gh.mjs can-run-agent.mjs; do
+            git show "origin/testing:scripts/ci/$f" > "$RUNNER_TEMP/access/$f"
+          done
+          node "$RUNNER_TEMP/access/can-run-agent.mjs" "$ACTOR"
       # Which pull request is this issue's fix? The default checkout is `main`,
       # which does not have the helper, so it comes out of `testing`.
       - id: find
-        if: steps.check.outputs.allowed == 'true'
+        if: steps.check.outputs.allowed == 'true' && steps.access.outputs.access != 'false'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
@@ -136,25 +157,95 @@ jobs:
           done
           node "$RUNNER_TEMP/find/find-fix-pr.mjs" "$ISSUE_NUMBER"
       # From the labels the form set, so the agent reads the follow-up the way it
-      # read the report. The agent job below maps `routed` to `bug`: a report that
+      # read the report. The agent jobs below map `routed` to `bug`: a report that
       # was routed to a person has no fix to continue, and `nofix` answers it.
       - id: kind
-        if: steps.check.outputs.allowed == 'true'
+        if: steps.check.outputs.allowed == 'true' && steps.access.outputs.access != 'false'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
         run: |
           set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/find"
           # If the labels cannot be read, `bug`. See the same step in `pipeline-fix.yml`.
           { git show origin/testing:scripts/ci/issue-kind.mjs > "$RUNNER_TEMP/find/issue-kind.mjs" \
+            && git show origin/testing:scripts/ci/gh.mjs > "$RUNNER_TEMP/find/gh.mjs" \
             && node "$RUNNER_TEMP/find/issue-kind.mjs" "$ISSUE_NUMBER"; } \
             || echo "kind=bug" >> "$GITHUB_OUTPUT"
+      # No fix yet, and the agent asked a question. This comment may be the
+      # answer. It is one only when the issue carries `needs-info`, which the
+      # pipeline puts there when the agent asks and takes off when it resumes.
+      # The number of questions already asked is how many comments of the agent
+      # start with the question marker, counted from GitHub and not from the
+      # comment, so nobody can reset the cap by writing text.
+      - id: resume
+        if: steps.check.outputs.allowed == 'true' && steps.access.outputs.access != 'false' && steps.find.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          labels="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq '[.labels[].name] | join(",")')"
+          asked="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
+            --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- omniya-pipeline-question -->")))] | length' \
+            | awk '{ n += $1 } END { print n + 0 }')"
+          # Three things must all be true, and none of them is the contributor's
+          # word. A person with write access can add a label by hand, so the label
+          # alone proves nothing: there must also be a question the agent really
+          # asked (a comment by the bot, counted above). And an issue the agent
+          # labelled `needs-design` is the maintainer's to decide. Nobody on the
+          # contributor list can restart it by writing `@claude` or by adding
+          # `needs-info`. Only the maintainer can, by starting `contributor-fix`
+          # by hand.
+          resume=false
+          case ",$labels," in
+            *,needs-design,*) ;;
+            *,needs-info,*) [ "${asked:-0}" -ge 1 ] && resume=true ;;
+          esac
+          echo "resume=$resume" >> "$GITHUB_OUTPUT"
+          echo "question_round=${asked:-0}" >> "$GITHUB_OUTPUT"
+
+  # The maintainer has to finish adding a listed contributor. Same reason as the
+  # job of the same name in `pipeline-fix.yml`, and it fails for the same reason.
+  noaccess:
+    needs: allowlist
+    if: needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.access == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          gh label create needs-maintainer --force --description "A person has to look at this" || true
+          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-maintainer
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
+            "Thank you for the comment. I did not start, because the maintainer has not finished adding you yet. Nothing is wrong with your comment. The maintainer has been told. Write to me again after that. You do not need to do anything else."
+          {
+            echo "### The fixer did not start on #$ISSUE_NUMBER"
+            echo
+            echo "$ACTOR is on the contributor list but cannot write to the repository. The agent action refuses that."
+            echo "Run: node scripts/ci/add-contributor.mjs $ACTOR"
+            echo "Then they must accept the invitation."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "$ACTOR cannot write to the repository. See the job summary." >&2
+          exit 1
 
   # A listed contributor wrote `@claude` and there is no fix to continue. Say so.
-  # Silence is the failure this repository has already had once.
+  # Silence is the failure this repository has already had once. Not when the
+  # comment is the answer to a question: `resume` below handles that.
   nofix:
     needs: allowlist
-    if: needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.count != '1'
+    if: >-
+      needs.allowlist.outputs.allowed == 'true' &&
+      needs.allowlist.outputs.access != 'false' &&
+      needs.allowlist.outputs.count != '1' &&
+      needs.allowlist.outputs.resume != 'true'
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -169,7 +260,10 @@ jobs:
 
   agent:
     needs: allowlist
-    if: needs.allowlist.outputs.allowed == 'true' && needs.allowlist.outputs.count == '1'
+    if: >-
+      needs.allowlist.outputs.allowed == 'true' &&
+      needs.allowlist.outputs.access != 'false' &&
+      needs.allowlist.outputs.count == '1'
     # Without `actions`: the agent runs unrestricted Bash. Starting the checks
     # is the `verify` job below, which runs no agent.
     #
@@ -222,6 +316,103 @@ jobs:
             *) STATE=answered ;;
           esac
           node scripts/ci/reply.mjs "$ISSUE" "$STATE"
+
+  # The contributor answered a question the agent asked. There is no pull request
+  # yet, so this is the first round again, with the answer in front of the agent.
+  # The label comes off first, so a second comment while this runs is not taken
+  # for another answer. Then the one short "I started on this" comment goes back
+  # on the issue, because the contributor has not heard anything since the
+  # question.
+  resume-start:
+    needs: allowlist
+    if: >-
+      needs.allowlist.outputs.allowed == 'true' &&
+      needs.allowlist.outputs.access != 'false' &&
+      needs.allowlist.outputs.count == '0' &&
+      needs.allowlist.outputs.resume == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.allowlist.outputs.number }}
+        run: |
+          set -euo pipefail
+          gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-info
+          node scripts/ci/reply.mjs "$ISSUE" started
+
+  resume:
+    needs: [allowlist, resume-start]
+    if: needs.resume-start.result == 'success'
+    # Without `actions`, for the same reason as `agent` above. And `issues: read`,
+    # for the same reason too.
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    with:
+      mode: fix
+      kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
+      issue_number: ${{ needs.allowlist.outputs.number }}
+      question_round: ${{ needs.allowlist.outputs.question_round }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  # What `outcome` does in `pipeline-fix.yml`: the agent asked again, stopped, or
+  # crashed, and the contributor has to be told.
+  resume-outcome:
+    needs: [allowlist, resume]
+    if: >-
+      ${{ !cancelled() &&
+      needs.resume.result != 'skipped' &&
+      (needs.resume.result != 'success' ||
+      needs.resume.outputs.result == 'asked' ||
+      needs.resume.outputs.result == 'needs-design' ||
+      needs.resume.outputs.result == 'stopped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.allowlist.outputs.number }}
+          RESULT: ${{ needs.resume.outputs.result }}
+          FIX_JOB: ${{ needs.resume.result }}
+          # Agent text. It reaches the script through `env` only.
+          MESSAGE: ${{ needs.resume.outputs.message }}
+        run: node scripts/ci/fix-outcome.mjs "$ISSUE" "$FIX_JOB" "$RESULT"
+
+  # The answer was enough, and the agent opened the pull request. From here it is
+  # the same as a first round.
+  resume-verify:
+    needs: [allowlist, resume]
+    if: needs.resume.outputs.result == 'opened'
+    # A ceiling, not a grant: every job inside states its own permissions.
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing
+    with:
+      issue_number: ${{ needs.allowlist.outputs.number }}
+      pr_number: ${{ needs.resume.outputs.pr }}
+      branch: ${{ needs.resume.outputs.branch }}
+      message: ${{ needs.resume.outputs.message }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
   # The agent job crashed (an install that failed, a timeout). Without this the
   # contributor wrote `@claude` and heard nothing at all. It posts a new comment

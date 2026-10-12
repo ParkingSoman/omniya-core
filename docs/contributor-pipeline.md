@@ -102,11 +102,16 @@ comment with links in it reminds you of the word.
 
 You can go round this as many times as it takes.
 
-Two more things can appear. The agent may say that it could not reproduce the
-problem, and ask one question. Answer it with a comment that starts with
-`@claude`. Or a comment may say that the maintainer needs to look at a technical
-problem. That means the checks failed in a way the agent could not repair.
-Nothing is wrong with your report and you do not need to do anything. The
+Sometimes the agent needs to ask you something before it starts. That is rare.
+It happens when your report can be read two ways, or when the agent cannot see
+what went wrong. You get one comment, and it is the question. It has at most
+three short questions, and it says how to answer. Answer in a comment that starts
+with `@claude`. The agent starts as soon as you answer. It asks at most twice. If
+you do not know an answer, say so. That is a good answer.
+
+One more thing can appear. A comment may say that the maintainer needs to look at
+a technical problem. That means the checks failed in a way the agent could not
+repair. Nothing is wrong with your report and you do not need to do anything. The
 maintainer will write on the issue when there is news.
 
 ## If you maintain this repository
@@ -172,6 +177,64 @@ that the Code agrees.
 
 To change what a label does, change `issue-kind.mjs` and its test. Do not add
 logic to a stub.
+
+### When the agent asks, and when it cannot start
+
+**A question.** In mode `fix` the agent may decide a report is too vague to work
+from. It writes the questions to `message.md`, writes the result `asked`, and
+stops. It opens no branch and no pull request. The pipeline posts the questions
+as the one comment, with `<!-- omniya-pipeline-question -->` as its first line
+and how to answer after them. It sets the label `needs-info`. It does not set
+`needs-maintainer`, because the contributor is the one who is needed.
+
+The contributor answers with `@claude`. `pipeline-followup.yml` sees an issue with
+no open fix and the label `needs-info`, takes the label off, posts the short
+"I started on this" comment, and calls the agent in mode `fix` again. This time `listed-thread.mjs` hands it the report and the
+question and the answer, together. The number of questions already asked is
+counted from the marker comments on the issue, not from anything the contributor
+wrote, and `pipeline-agent.yml` turns a third `asked` into `stopped`.
+
+The prompt tells the agent to ask only when it must. Most reports are bugs with
+enough detail. If you see it asking about things the diagnostics already show,
+tighten the "ASK ONLY IF YOU MUST" step in `pipeline-agent.yml`.
+
+**No write access.** `claude-code-action` refuses any actor who cannot write to
+the repository. Being on `.github/contributors.yml` is not enough: the person
+also has to be a collaborator, and has to accept the invitation. Issue #33 was a
+contributor on the list with read access only. The run now checks this first
+(`scripts/ci/can-run-agent.mjs`). If it fails for a bug or a Nemeth report, the contributor gets a plain
+comment, the issue gets `needs-maintainer`, and the job `noaccess` fails red so
+you get the failure email. A Design or Other report needs no agent, so it skips
+this check and gets its one comment as usual. Fix: `node scripts/ci/add-contributor.mjs <handle>`
+sends the invitation again, then the contributor accepts it, then run
+`contributor-fix` by hand for the issue. A hand-started run is checked as YOU, so
+it works as soon as you press the button.
+
+### Who can decide what the app does
+
+Only the maintainer. Contributors on the list have write access, so the pipeline
+cannot lean on what they are permitted to do. Three locks hold this, in order:
+
+1. **The prompt, and the form.** The form decides first: Design and Other never
+   start an agent. For a bug, `pipeline-agent.yml` classifies the report. Something
+   new gets `needs-design`, one plain comment, and no code. This is a request to
+   the agent, not a lock. A missing symbol of the Nemeth Code is the one thing
+   handed to the agent on purpose, because the Code settles it. Locks 2 and 3
+   still hold for it.
+2. **The workflow.** A comment resumes a fix only when the issue has the label
+   `needs-info` AND the agent really asked (a comment by the bot that starts with
+   the question marker) AND the issue does not have `needs-design`. A contributor
+   can add a label by hand, so the label alone proves nothing. An issue marked
+   `needs-design` restarts only when the maintainer runs `contributor-fix` by
+   hand.
+3. **The merge.** `.github/CODEOWNERS` names the maintainer, and the rulesets
+   `testing-guard` and `main-guard` require a review from a code owner. A
+   contributor cannot approve, so a contributor cannot merge into `testing`. The
+   maintainer is a bypass actor, so their own pull requests still merge. The
+   file has to be on the base branch of the pull request to count, so it is on
+   `testing` first and reaches `main` with the next merge of `testing`.
+
+If a design change gets past lock 1 by a wrong guess, lock 3 is what catches it.
 
 ### Merging a fix
 
@@ -422,7 +485,9 @@ you; it just never runs.
 | `scripts/ci/verify-branch.mjs` | `testing` | Starts the checks and the build, waits, and keeps the log of what failed. |
 | `scripts/ci/hand-off.mjs` | `testing` | Takes the pull request out of draft when the contributor says it works. |
 | `scripts/ci/gh.mjs` | `testing` | Runs `gh` without a shell. Shared by the scripts above. |
-| `scripts/ci/listed-thread.mjs` | `testing` | Builds the thread the agent reads, from allowlisted people only. |
+| `scripts/ci/listed-thread.mjs` | `testing` | Builds the thread the agent reads, from allowlisted people only, and the agent's own earlier questions. |
+| `scripts/ci/can-run-agent.mjs` | `testing` | Says whether the actor can write to the repository, which the agent action requires. |
+| `scripts/ci/fix-outcome.mjs` | `testing` | Picks which reply the contributor gets when a round ends without a pull request, and posts it through `reply.mjs`. |
 | `scripts/ci/add-contributor.mjs` | `testing` | The one command that adds a person. |
 | `.github/workflows/pr-checks.yml` | `testing` | The gates: `unit`, `nemeth`, `e2e`, and `pipeline-on-main`. |
 | `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when a stub differs from its copy on `main`, or the allowlist there cannot be read. |

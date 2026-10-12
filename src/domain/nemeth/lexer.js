@@ -454,11 +454,56 @@ function readPrefixed(cells, index) {
   return { match, marks, end: at + match.len };
 }
 
+/**
+ * The English-letter indicator standing ALONE (Rule 6.3.1), read where its
+ * position leaves no other reading.
+ *
+ * The header note above explains why this cell was refused: `⠰` is also the
+ * subscript indicator, and 6.3.1's criteria (d) and (e) are about spacing. The
+ * subscript reading, though, needs a base for the subscript to hang from, and
+ * 6.3.1(d) puts the English-letter indicator after a space or at the start --
+ * exactly where no base can be. So the two readings are separated by what
+ * precedes the cell, which is evidence the cells carry, not a guess. A blind
+ * contributor typing `x = 3` as `;x .k #3` (issue #22) was refused on the first
+ * two cells before this existed.
+ *
+ * It is read only when a plain letter follows AND that letter is followed by the
+ * end of the input or a blank (criterion (e)). The second condition is not
+ * pedantry: "preceded by a blank" does not rule out the subscript reading, since
+ * a LEFT subscript (Rule 11) also opens with `⠰` and no base before it.
+ * `mathcat-rules:left_sup_75_4`, `⠰⠭⠐⠝⠰⠽`, is exactly that -- subscript x, a
+ * baseline indicator, then n -- and without (e) it silently parsed as the letter
+ * x, turning an honest refusal into a wrong answer. A left script is always
+ * followed by the baseline indicator, never by a space, so (e) separates them.
+ * Punctuation after the letter, which (e) also allows, is not accepted: Rule 8's
+ * punctuation signs share cells with other signs, and refusing is the safe side
+ * of that. `⠀⠰⠆⠀` (the proportion sign, Rule 21) and `⠀⠰⠨⠅⠀` are not letters
+ * after the cell, so they fall through to the table unchanged.
+ *
+ * Returns the letter match, or null when the cell is not this indicator.
+ */
+function englishLetterAlone(cells, index) {
+  if (cells[index] !== '⠰') return null;
+  if (index > 0 && cells[index - 1] !== BLANK) return null;
+  if (index + 1 >= cells.length) return null;
+  const letter = symbolAt(cells, index + 1);
+  if (!letter || letter.kind !== 'letter') return null;
+  const after = cells[index + 1 + letter.len];
+  return after === undefined || after === BLANK ? letter : null;
+}
+
 export function lex(input, context = {}) {
   const cells = normalize(input);
   const tokens = [];
   let index = 0;
   while (index < cells.length) {
+    const alone = englishLetterAlone(cells, index);
+    if (alone) {
+      const end = index + 1 + alone.len;
+      tokens.push(makeToken(alone, cells, index, end, { alphabet: 'english' }));
+      index = end;
+      continue;
+    }
     const match = resolve(cells, index);
     if (match.kind === 'prefix') {
       const run = readPrefixed(cells, index);
