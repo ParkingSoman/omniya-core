@@ -21,7 +21,11 @@ test('MathJax accessibility runtime assets are present locally', async () => {
 
   const html = await readFile(path.join(projectRoot, 'src/renderer/index.html'), 'utf8');
   const config = await readFile(path.join(projectRoot, 'src/renderer/mathjax-config.js'), 'utf8');
-  const renderer = await readFile(path.join(projectRoot, 'src/renderer/app.js'), 'utf8');
+  // The app draws equations in the editor's math renderer, and `app.js` drives it.
+  const renderer = [
+    await readFile(path.join(projectRoot, 'src/renderer/app.js'), 'utf8'),
+    await readFile(path.join(projectRoot, 'src/renderer/editor/math-render.js'), 'utf8')
+  ].join('\n');
   assert.match(html, /src="\.\/mathjax-config\.js"/);
   assert.match(html, /src="\.\.\/\.\.\/node_modules\/@mathjax\/src\/bundle\/tex-mml-chtml\.js"/);
   assert.match(html, /connect-src 'self'/);
