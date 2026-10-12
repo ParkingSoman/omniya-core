@@ -212,7 +212,8 @@ export function insertMathChild(tree, parentNodeId, child, index = null) {
   return next;
 }
 
-const FLEXIBLE_MATH_PARENTS = new Set(['math', 'mrow']);
+// Rows of a table take cells beside a cell, and a table takes rows beside a row.
+const FLEXIBLE_MATH_PARENTS = new Set(['math', 'mrow', 'mtr', 'mtable']);
 
 function mathElementChildren(node) {
   return (node?.children ?? []).filter((child) => child.text === undefined);

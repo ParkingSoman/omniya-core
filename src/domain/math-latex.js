@@ -46,7 +46,21 @@ const textOf = (node) => (node.children ?? []).map((child) => child.text ?? '').
 // TeX's own special characters, for a leaf whose text is not a plain letter or digit.
 const escapeTex = (text) => text.replace(/[\\{}#$%&_^~]/g, (c) => (c === '\\' ? '\\backslash ' : `\\${c}`));
 
+// The style a letter was written in, named by the command that makes it.
+const VARIANTS = new Map([
+  ['double-struck', 'mathbb'], ['bold', 'mathbf'], ['script', 'mathcal'], ['bold-script', 'mathcal'], ['fraktur', 'mathfrak'],
+  ['bold-fraktur', 'mathfrak'], ['sans-serif', 'mathsf'], ['monospace', 'mathtt'], ['normal', 'mathrm']
+]);
+
 function leafLatex(node) {
+  const base = plainLeafLatex(node);
+  const command = node.name === 'mi' ? VARIANTS.get(node.attrs?.mathvariant) : null;
+  // Upright is the normal look of a name such as sin, so only a single upright letter is written as one.
+  if (command && base && /^[A-Za-z]$/.test(textOf(node))) return `\\${command}{${base}}`;
+  return base;
+}
+
+function plainLeafLatex(node) {
   const text = textOf(node);
   if (node.name === 'none') return '{}';
   // An empty root or cell is still that part.
@@ -57,7 +71,7 @@ function leafLatex(node) {
   if (text === '') return '{}';
   // Invisible function application and multiplication: TeX supplies them itself.
   if (node.name === 'mo' && /^[⁡⁢⁣]+$/.test(text)) return '';
-  if (node.name === 'mo' && MO.has(text)) return MO.get(text);
+  if ((node.name === 'mo' || node.name === 'mi') && MO.has(text)) return MO.get(text);
   // A name such as sin or lim is one word, not three letters.
   if ((node.name === 'mi' || node.name === 'mo') && /^[A-Za-z]{2,}$/.test(text)) {
     return OPERATOR_NAMES.has(text) ? `\\${text}` : `\\operatorname{${text}}`;
@@ -193,6 +207,13 @@ export function withoutStretchyFences(latex) {
  * keeps the exact form it was typed in. Without it, everything is written from the
  * structure alone.
  */
+/** A big operator (sum, product, integral, limit...) that carries its limits as scripts. */
+export function isLargeOperator(node) {
+  if (node?.name !== 'mo') return false;
+  const text = textOf(node);
+  return node.attrs?.movablelimits === 'true' || /^[\u2211\u220f\u2210\u222b-\u2233\u22c0-\u22c3\u2a00-\u2a0c]$/.test(text) || OPERATOR_NAMES.has(text);
+}
+
 export function latexFromTree(tree, { trust = true } = {}) {
   if (!tree || tree.name !== 'math') return null;
   const latex = write(tree, trust);
@@ -233,11 +254,15 @@ export function symbolText(tree) {
  */
 export function structureSignature(tree) {
   // Wrappers that only group, and the symbols themselves (the symbol text is checked on its own).
-  const GROUPING = new Set(['math', 'mrow', 'mstyle', 'mpadded', 'semantics', 'none', 'mi', 'mn', 'mo', 'mtext', 'mspace']);
+  const GROUPING = new Set(['math', 'mrow', 'mstyle', 'mpadded', 'semantics', 'none', 'mn', 'mo', 'mtext', 'mspace']);
   const out = [];
   const visit = (node) => {
     if (node.text !== undefined) return;
-    if (!GROUPING.has(node.name)) {
+    // A letter is only listed when it is in a style of its own (blackboard bold, say).
+    if (node.name === 'mi' && node.attrs?.mathvariant && /^[A-Za-z]$/.test(textOf(node))) {
+      out.push(`mi:${node.attrs.mathvariant}`);
+    }
+    if (!GROUPING.has(node.name) && node.name !== 'mi') {
       const thickness = String(node.attrs?.linethickness ?? '1');
       const bar = node.name === 'mfrac' ? (isNoBar(thickness) ? ':no-bar' : ':bar') : '';
       out.push(`${node.name}${bar}`);

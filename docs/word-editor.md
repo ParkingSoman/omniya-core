@@ -193,3 +193,47 @@ and the screen reader owns the table. See the sources in the pull request for #3
 Left in place and now unused by the editor: `src/main/ueb-service.js` (liblouis), the
 `ueb:translate` bridge, `src/renderer/ueb-braille-projection.js`, and the grade fields in
 `src/domain/authoring-state.js`. Delete them when you are sure no other feature needs them.
+
+
+## How r, a and o keep the boxes right
+
+The reader's boxes (what the explorer highlights, and what it says) are worked out
+by MathJax from the equation's MathML alone. So the only way to keep them right
+after an edit is to keep the MathML right. There is one rule, and no list of cases:
+
+> After any edit, the equation is exactly what a fresh parse of its own source gives.
+
+How it is kept (`submitReplacement` in `src/domain/replacement-session.js`, writer in
+`src/domain/math-latex.js`):
+
+1. The typed part is put where the edit says, which gives a spliced tree.
+2. The whole spliced tree is written back as one LaTeX expression. Parts nobody touched
+   keep the LaTeX MathJax wrote for them (`data-latex`). Parts above the edit are written
+   from their children. If that fails, the whole equation is written from structure alone.
+3. The text is converted the way a new equation is. The result is the stored equation, and
+   the text is its `source`.
+4. The result is used only if it holds the same symbols (`symbolText`) and the same kinds
+   of part (`structureSignature`: fractions with or without a bar, roots, scripts, tables,
+   letters in their own style) as the spliced tree. Otherwise the next form is tried, and
+   at the very end the spliced tree is kept, so nothing typed is ever lost or made up.
+5. Beside a part that has no outline of its own (the accent on a letter, the symbol of a sum
+   with limits), the edit goes beside the part it belongs to.
+
+The reader can also stand on groups that MathJax makes for itself ("x plus 1" in a root,
+"negative y") and on spots that are not in the equation at all (the invisible "times"
+between two brackets). `captureExplorerFocus` in `src/renderer/math-explorer-bridge.js`
+maps the first to the run of parts it covers, and the second to "after the part before it".
+
+### How it is checked
+
+| What | Command | What it does |
+|---|---|---|
+| Thousands of edits, no browser | `node --test test/unit/equation-regenerate-fuzz.test.js` | Every part of 26 equations, three operations, 60 fragments, and chains of edits. Set `OMNIYA_FUZZ_SEED` and `OMNIYA_FUZZ_CHAINS` for a longer hunt. |
+| Live edits in the real app | `node scripts/fuzz-explorer-edits.mjs [seed] [rounds]` | Reads equations by parts, presses r, a and o, and compares each result with a fresh parse. Also reports any key that did nothing. |
+| A blind judge | `scripts/judge-drive.mjs` | A small driver. Give it to an agent that has read nothing else, and ask it to break the editing. |
+
+A new symbol or Nemeth construct needs no new rule here. Add it to the pools in the fuzz
+test, and the check covers it.
+
+Known limits: a fragment with `&` (a new column) in a matrix cell is refused. Replacing a
+matrix row with one entry makes a ragged table, as typed.

@@ -18,6 +18,7 @@ const STARTS = [
   '\\sum_{i=1}^{n} i', '\\left(x+1\\right)^2', 'x=-b', '2y', '\\frac{1}{2}+\\frac{1}{3}',
   '|x|', 'f(x)=x^2', 'a<b<c', '\\int_0^1 x\\,dx', 'x^{y^z}', '-x', 'a\\cdot b-c',
   '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}', '\\sqrt[3]{x}', 'x\\text{ if }y', '\\overline{AB}+1',
+  '\\mathbb{R}^n', '\\prod_{k=1}^{m} a_k', '\\begin{bmatrix}1&2\\\\3&4\\end{bmatrix}', '\\lim_{x\\to 0} f(x)',
   '\\binom{n}{k}', "f'(x)", 'a_{i,j}', '\\lim_{x\\to 0} \\frac{\\sin x}{x}', '\\mathbb{R}^n', '\\vec{v}\\cdot\\hat{u}',
   '\\begin{cases} x & x>0 \\\\ -x & x\\le 0 \\end{cases}', '\\boxed{x+1}', '\\underbrace{a+b}_{n}', '\\frac{d}{dx}x^2',
   '\\left[\\frac{a}{b}\\right]', '1+2+3+4+5', 'a=b=c', '\\pi r^2', '\\sqrt{\\frac{a}{b}}', 'x^{2}_{1}', '\\left|x\\right|'

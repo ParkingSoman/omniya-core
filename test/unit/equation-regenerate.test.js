@@ -161,3 +161,46 @@ test('content that replaces a matrix row becomes a row, and one that replaces a 
     assert.match(symbolText(stored), /q/);
   }
 });
+
+const partsNamed = (tree, name, out = []) => {
+  if (tree.text === undefined) { if (tree.name === name) out.push(tree); tree.children.forEach((c) => partsNamed(c, name, out)); }
+  return out;
+};
+
+async function editNode(latex, pickNode, placement, typed) {
+  const document = await equation(latex, { withLatexAttributes: true });
+  const tree = parseMathML(document.mathml, KEEP);
+  const target = pickNode(tree);
+  const session = setLatexSource(startReplacementSession({
+    document, target: { kind: 'node', nodeId: target.attrs['data-omniya-id'] }, method: 'latex', placement
+  }), typed);
+  const committed = await submitReplacement(session, { convertLatexToMathML });
+  return { committed, stored: parseMathML(committed.document.mathml, KEEP) };
+}
+
+test('a letter keeps its style when the part around it is rebuilt', async () => {
+  const { committed } = await editNode('\\mathbb{R}^n', (t) => partsNamed(t, 'mi')[0], 'append', '+');
+  assert.match(committed.latex, /\\mathbb\{R\}/);
+});
+
+test('adding beside the symbol of a sum goes beside the whole sum, not into the symbol', async () => {
+  for (const [latex, name] of [['\\sum_{i=1}^{n} i^2', 'munderover'], ['\\prod_{k=1}^{m} a_k', 'munderover']]) {
+    for (const placement of ['append', 'prepend']) {
+      const { stored } = await editNode(latex, (t) => partsNamed(t, 'mo')[0], placement, '+');
+      assert.match(structureSignature(stored), new RegExp(name), `${latex} ${placement}: still a sum with limits`);
+      assert.doesNotMatch(structureSignature(stored), /mover|munder(?!over)/, `${latex} ${placement}: not rebuilt as another kind of part`);
+    }
+  }
+});
+
+test('adding beside a matrix cell or row adds a cell or a row, and the matrix stays a bracketed matrix', async () => {
+  for (const [part, extra] of [['mtd', 'cell'], ['mtr', 'row']]) {
+    for (const placement of ['append', 'prepend']) {
+      const { committed, stored } = await editNode('\\begin{bmatrix}1&2\\\\3&4\\end{bmatrix}', (t) => partsNamed(t, part)[0], placement, '5');
+      assert.match(committed.latex, /\\begin\{bmatrix\}/, `${part} ${placement}: still a bmatrix`);
+      assert.equal(partsNamed(stored, 'mtable').length, 1);
+      for (const row of partsNamed(stored, 'mtr')) assert.ok(row.children.every((c) => c.name === 'mtd'), `${extra}: every row holds only cells`);
+      assert.match(symbolText(stored), /5/);
+    }
+  }
+});

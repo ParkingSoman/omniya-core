@@ -8,7 +8,7 @@ import {
 } from './math-tree.js';
 import { resolveBrailleInputTable, toNemethCells } from './nemeth-input.js';
 import { parseNemeth } from './nemeth/index.js';
-import { dropStaleLatex, latexFromTree, structureSignature, symbolText, withoutStretchyFences, leafNodes, leafPositionsUnder, nodeForInserted } from './math-latex.js';
+import { dropStaleLatex, isLargeOperator, latexFromTree, structureSignature, symbolText, withoutStretchyFences, leafNodes, leafPositionsUnder, nodeForInserted } from './math-latex.js';
 
 const KEEP = { keepLatex: true };
 
@@ -280,7 +280,14 @@ export async function submitReplacement(session, { convertLatexToMathML, braille
   // done where the person pointed, it is tried one level up, then another.
   const targets = [session.target];
   if (placement !== 'replace' && session.target.kind === 'node') {
-    for (const id of ancestorIds(original, session.target.nodeId).slice(0, 3)) targets.push({ kind: 'node', nodeId: id });
+    const chain = ancestorIds(original, session.target.nodeId);
+    // The symbol of a sum, product, integral or limit is not a part to add beside: its
+    // limits belong to it. Adding beside it is adding beside the whole.
+    const entry = buildMathIndex(original).get(session.target.nodeId);
+    const carriesScripts = entry && isLargeOperator(entry.node) && entry.parent && entry.childIndex === 0
+      && ['munderover', 'munder', 'mover', 'msubsup', 'msub', 'msup'].includes(entry.parent.name);
+    if (carriesScripts) targets.unshift({ kind: 'node', nodeId: chain[0] });
+    for (const id of chain.slice(0, 3)) targets.push({ kind: 'node', nodeId: id });
   }
   let attempt = null;
   for (const target of targets) {
