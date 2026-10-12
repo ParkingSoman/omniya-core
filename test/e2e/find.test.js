@@ -322,9 +322,8 @@ test('switching to another note runs the search again on that note', { timeout: 
   const firstName = (await page.locator('#current-napkin-name').textContent()).trim();
 
   await page.locator('#new-napkin-button').click();
-  await page.locator('#napkin-name').fill('Second');
-  await page.locator('#new-napkin-submit').click();
-  await page.locator('#new-napkin-form').waitFor({ state: 'hidden' });
+  await page.locator('#current-napkin-name').fill('Second');
+  await page.locator('#current-napkin-name').press('Enter');
   await page.waitForFunction(
     () => document.querySelector('#current-napkin-name')?.textContent === 'Second');
   await focusDocument(page);

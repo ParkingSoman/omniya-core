@@ -28,8 +28,8 @@ async function start(t, prefix, { seed } = {}) {
 
 async function createNapkin(page, name) {
   await page.getByRole('button', { name: 'New note' }).click();
-  await page.getByLabel('Note name').fill(name);
-  await page.getByRole('button', { name: 'Create note' }).click();
+  await page.locator('#current-napkin-name').fill(name);
+  await page.locator('#current-napkin-name').press('Enter');
 }
 
 const rail = (page) => page.getByRole('complementary', { name: 'Notes' });
@@ -151,8 +151,8 @@ test('renaming a napkin does not reset the open document or its undo history', {
   const button = rail(page).getByRole('button', { name: 'Untitled note' });
   await button.focus();
   await button.press('Control+u');
-  await page.getByLabel('Note name').fill('Renamed napkin');
-  await page.locator('#new-napkin-form').getByRole('button', { name: 'Rename note' }).click();
+  await page.locator('#current-napkin-name').fill('Renamed napkin');
+  await page.locator('#current-napkin-name').press('Enter');
   await rail(page).getByRole('button', { name: 'Renamed napkin' }).waitFor();
 
   assert.deepEqual(await getDoc(page), before, 'the document is untouched');

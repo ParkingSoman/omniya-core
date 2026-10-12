@@ -121,11 +121,10 @@ test('real screen reader walks a plain text input and the editor', async (t) => 
     try {
       // The control: a plain input holding the same words, no equation.
       await page.getByRole('button', { name: 'New note' }).click();
-      await page.locator('#napkin-name').fill('Solve for x.');
-      if (MAC) await voiceOverFocus(page, '#napkin-name', /Napkin name/i);
-      else await page.click('#napkin-name');
+      await page.locator('#current-napkin-name').fill('Solve for x.');
+      if (MAC) await voiceOverFocus(page, '#current-napkin-name', /Solve for x/i);
+      else await page.click('#current-napkin-name');
       const control = await walk('control');
-      await page.locator('#cancel-new-napkin').click();
 
       if (MAC) await voiceOverFocus(page, editorSelector, /Note text/i);
       else await page.click(editorSelector);

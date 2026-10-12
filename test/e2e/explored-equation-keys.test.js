@@ -45,16 +45,16 @@ test('a napkin name typed after exploring an equation reaches the name field', {
   await enterExplorer(page);
 
   await page.locator('#new-napkin-button').click();
-  await page.locator('#napkin-name').waitFor();
+  await page.waitForFunction(() => document.activeElement?.id === 'current-napkin-name');
   // "Algebra" leads with a, and also carries r -- two of the letters the
   // explorer claims for append and replace.
   await page.keyboard.type('Algebra');
 
-  assert.equal(await page.locator('#napkin-name').inputValue(), 'Algebra', 'every letter of the name reaches the name field');
-  assert.equal(await activeId(page), 'napkin-name', 'and focus stays in it');
+  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Algebra', 'every letter of the name reaches the title');
+  assert.equal(await activeId(page), 'current-napkin-name', 'and focus stays in it');
   assert.equal(await page.locator('#composer-dock').isVisible(), false, 'no equation dock opened');
   assert.equal(await page.locator('#composer-source').inputValue(), '', 'nothing leaks into the equation field');
-  assert.deepEqual(await paragraphTexts(page), ['[math]'], 'nor into the document');
+  assert.deepEqual(await paragraphTexts(page), [''], 'nor into the new, empty note');
 });
 
 test('the explorer keys r, a and o are plain letters in the equation field', { timeout: 120_000 }, async (t) => {
@@ -131,55 +131,10 @@ test('the diagnostics report shows a napkin name reaching the name field', { tim
   const { page } = await launch(t, 'omniya-report-fields-');
 
   await page.locator('#new-napkin-button').click();
-  await page.locator('#napkin-name').waitFor();
+  await page.waitForFunction(() => document.activeElement?.id === 'current-napkin-name');
   await page.keyboard.type('Algebra');
 
   const report = await page.evaluate(() => globalThis.__omniyaTesting?.inputDiagnostics?.());
-  assert.match(report, /-- typing into: napkin-name/, 'the name field is recorded and named');
+  assert.match(report, /-- typing into: current-napkin-name/, 'the name field is recorded and named');
   assert.match(report, /keydown key="A"/, 'and its keystrokes are in the report at all');
-});
-
-test('nothing pulls focus out of the new-napkin form while it is open', { timeout: 120_000 }, async (t) => {
-  // A guard, not a fix for one path. Three alpha reports of "I couldn't make a
-  // new napkin, what I typed never appeared" all reduce to something in the app
-  // moving focus out of the name field while the person was typing into it. The
-  // form is the one place where a stolen focus is silent and unrecoverable for
-  // someone who cannot see, so programmatic focus is refused wholesale while it
-  // is up.
-  //
-  // The Insert > Equation menu is a real app path that ends in
-  // composer-source.focus(). It reaches the page as a menu command.
-  const { electronApp, page } = await launch(t, 'omniya-focus-guard-');
-  await insertEquation(page, { method: 'latex', source: 'x+1' });
-
-  await page.locator('#new-napkin-button').click();
-  await page.locator('#napkin-name').waitFor();
-  await page.keyboard.type('Alg');
-
-  await electronApp.evaluate(({ BrowserWindow }) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('menu:command', { action: 'insert-equation' });
-  });
-  await page.locator('#composer-dock').waitFor({ state: 'visible' });
-  await settle(page, 300);
-
-  assert.equal(await activeId(page), 'napkin-name', 'focus stays where the person put it');
-  await page.keyboard.type('ebra');
-  assert.equal(await page.locator('#napkin-name').inputValue(), 'Algebra', 'and the whole name lands');
-  assert.equal(await page.locator('#composer-source').inputValue(), '', 'nothing lands in the equation field');
-});
-
-test('the form still hands focus on when the person closes it', { timeout: 120_000 }, async (t) => {
-  // The guard must not outlive the form, or Cancel strands focus on nothing.
-  const { page } = await launch(t, 'omniya-focus-guard-cancel-');
-  await page.locator('#new-napkin-button').click();
-  await page.locator('#napkin-name').waitFor();
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  assert.equal(await activeId(page), 'new-napkin-button');
-
-  await page.locator('#new-napkin-button').click();
-  await page.keyboard.type('Second');
-  await page.keyboard.press('Enter');
-  await page.waitForFunction(() => document.querySelector('#new-napkin-form')?.hidden === true);
-  await page.waitForFunction(() => Boolean(document.activeElement?.closest('#editor-host')));
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Second');
 });

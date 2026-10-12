@@ -32,15 +32,6 @@
             <span class="button-text">New note</span>
           </button>
         </div>
-        <form id="new-napkin-form" hidden>
-          <label for="napkin-name">Note name</label>
-          <input id="napkin-name" required autocomplete="off">
-          <p id="napkin-name-error" class="error" hidden></p>
-          <div class="form-actions">
-            <button id="new-napkin-submit" type="submit" class="button-primary">Create note</button>
-            <button id="cancel-new-napkin" type="button" class="button-quiet">Cancel</button>
-          </div>
-        </form>
         <nav id="napkin-list" aria-label="Your notes"></nav>
       </aside>
 
@@ -119,13 +110,9 @@
         <div id="document-section">
           <div class="page">
             <div class="title-row">
-              <h2 id="current-napkin-name">Loading…</h2>
+              <h2 id="current-napkin-name" contenteditable="plaintext-only" spellcheck="false">Loading…</h2>
               <div class="title-actions" role="group" aria-label="This note">
                 <span id="save-status" class="save-status"></span>
-                <button id="rename-button" type="button" class="button-quiet button-small" aria-label="Rename note">
-                  <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="m4 16 1-4 8-8 3 3-8 8zM12 5l3 3" /></svg>
-                  <span>Rename</span>
-                </button>
                 <button id="delete-button" type="button" class="button-quiet button-small" aria-label="Delete note">
                   <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" /></svg>
                   <span>Delete</span>

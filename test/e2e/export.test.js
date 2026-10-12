@@ -15,11 +15,8 @@ async function start(t) {
 }
 
 async function renameNote(page, name) {
-  await page.locator('#rename-button').click();
-  await page.locator('#new-napkin-form').waitFor({ state: 'visible' });
-  await page.locator('#napkin-name').fill(name);
-  await page.locator('#new-napkin-submit').click();
-  await page.locator('#new-napkin-form').waitFor({ state: 'hidden' });
+  await page.locator('#current-napkin-name').fill(name);
+  await page.locator('#current-napkin-name').press('Enter');
   await page.waitForFunction(
     (n) => document.querySelector('#current-napkin-name')?.textContent.trim() === n, name);
 }

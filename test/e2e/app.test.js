@@ -66,8 +66,8 @@ const focusIsInDocument = (page) => page.evaluate(
 
 async function createNapkin(page, name) {
   await page.getByRole('button', { name: 'New note' }).click();
-  await page.getByLabel('Note name').fill(name);
-  await page.getByRole('button', { name: 'Create note' }).click();
+  await page.locator('#current-napkin-name').fill(name);
+  await page.locator('#current-napkin-name').press('Enter');
 }
 
 test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async (t) => {
@@ -427,7 +427,7 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
   assert.equal(await page.locator('#empty-message').isVisible(), true);
 });
 
-test('renames a focused sidebar napkin with Ctrl+U', { timeout: 60_000 }, async (t) => {
+test('typing in the title renames the note, and Ctrl+U on the list goes to the title', { timeout: 60_000 }, async (t) => {
   const { page } = await start(t, 'omniya-rename-napkin-e2e-');
   const rail = page.getByRole('complementary', { name: 'Notes' });
 
@@ -437,28 +437,32 @@ test('renames a focused sidebar napkin with Ctrl+U', { timeout: 60_000 }, async 
   const first = rail.getByRole('button', { name: 'Untitled note' });
   await first.focus();
   await first.press('Control+u');
-  const nameField = page.getByLabel('Note name');
-  await nameField.waitFor();
-  assert.equal(await nameField.inputValue(), 'Untitled note');
-  await nameField.fill('Proof ideas');
-  await page.locator('#new-napkin-form').getByRole('button', { name: 'Rename note' }).click();
-
-  assert.equal(await rail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
+  await page.waitForFunction(() => document.activeElement?.id === 'current-napkin-name');
+  await page.keyboard.type('Proof ideas');
+  // The list follows as the title is typed.
+  await rail.getByRole('button', { name: 'Proof ideas' }).waitFor();
   assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
-  assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Proof ideas');
 
   await page.getByRole('button', { name: 'Second napkin' }).click();
   assert.match(await page.locator('#current-napkin-name').textContent() ?? '', /Second napkin/);
   assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Note text');
 
-  const second = rail.getByRole('button', { name: 'Second napkin' });
-  await second.focus();
-  await second.press('Control+u');
-  await page.getByLabel('Note name').fill('   ');
-  await page.locator('#new-napkin-form').getByRole('button', { name: 'Rename note' }).click();
-  assert.equal(await page.locator('#napkin-name-error').textContent(), 'Note name is required');
-  await page.getByRole('button', { name: 'Cancel' }).click();
+  // An empty title is allowed while typing, and the note gets its name back when the title is left.
+  await page.locator('#current-napkin-name').fill('');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Second napkin');
   assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
+});
+
+test('Enter in the title moves to the note, and Up from the first line comes back', { timeout: 60_000 }, async (t) => {
+  const { page } = await start(t, 'omniya-title-keys-e2e-');
+  await createNapkin(page, 'Algebra');
+  assert.equal(await focusIsInDocument(page), true, 'Enter in the title lands in the note');
+  await page.keyboard.type('first line');
+  await page.keyboard.press('ArrowUp');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'current-napkin-name');
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await focusIsInDocument(page), true);
 });
 
 test('typing is saved on its own, without a save command', { timeout: 60_000 }, async (t) => {

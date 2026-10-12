@@ -41,9 +41,8 @@ async function tabToSkipLink(page) {
 
 async function createNote(page, name) {
   await page.locator('#new-napkin-button').click();
-  await page.locator('#napkin-name').fill(name);
-  await page.locator('#new-napkin-submit').click();
-  await page.locator('#new-napkin-form').waitFor({ state: 'hidden' });
+  await page.locator('#current-napkin-name').fill(name);
+  await page.locator('#current-napkin-name').press('Enter');
   await page.waitForFunction(
     (n) => document.querySelector('#current-napkin-name')?.textContent === n, name);
 }
@@ -123,20 +122,16 @@ test('Insert equation button opens the dock and inserts at the caret', { timeout
   assert.deepEqual(await paragraphTexts(page), ['Solve [math]']);
 });
 
-test('Rename and Delete act on the open note', { timeout: 90_000 }, async (t) => {
+test('Typing in the title renames, and Delete acts on the open note', { timeout: 90_000 }, async (t) => {
   const { page } = await start(t);
   await createNote(page, 'Alpha');
   await createNote(page, 'Beta');
   const before = await noteNames(page);
   assert.ok(before.length >= 2);
 
-  // Rename the open note (Beta).
-  await page.locator('#rename-button').click();
-  await page.locator('#new-napkin-form').waitFor({ state: 'visible' });
-  assert.equal(await page.locator('#napkin-name').inputValue(), 'Beta');
-  assert.equal((await page.locator('#new-napkin-submit').textContent()).trim(), 'Rename note');
-  await page.locator('#napkin-name').fill('Gamma');
-  await page.locator('#new-napkin-submit').click();
+  // Rename the open note (Beta) by typing in its title. There is no Rename button.
+  assert.equal(await page.locator('#rename-button').count(), 0);
+  await page.locator('#current-napkin-name').fill('Gamma');
   await page.waitForFunction(() => document.querySelector('#current-napkin-name').textContent === 'Gamma');
   const renamed = await noteNames(page);
   assert.ok(renamed.some((n) => n.includes('Gamma')));
@@ -184,7 +179,7 @@ test('Skip link is the first Tab stop, off-screen until focused, and reaches the
   assert.equal(await page.evaluate(() => document.activeElement?.closest('#editor-host') !== null), true);
 });
 
-test('File > New note opens the form with the name field focused', { timeout: 60_000 }, async (t) => {
+test('File > New note makes a note and puts the caret in its title', { timeout: 60_000 }, async (t) => {
   const { electronApp, page } = await start(t);
   const found = await electronApp.evaluate(({ Menu }) => {
     const file = Menu.getApplicationMenu().items.find((item) => item.label === 'File');
@@ -194,8 +189,7 @@ test('File > New note opens the form with the name field focused', { timeout: 60
     return true;
   });
   assert.equal(found, true, 'File > New note exists');
-  await page.locator('#new-napkin-form').waitFor({ state: 'visible' });
-  await page.waitForFunction(() => document.activeElement?.id === 'napkin-name');
+  await page.waitForFunction(() => document.activeElement?.id === 'current-napkin-name');
 });
 
 test('Double-clicking an equation reads it by parts; Escape returns with it selected', { timeout: 120_000 }, async (t) => {

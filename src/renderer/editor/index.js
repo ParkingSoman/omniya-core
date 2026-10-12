@@ -149,6 +149,13 @@ function makePlugins(handlers, fieldElement) {
             return true;
           }
           const { selection } = view.state;
+          // Up from the first line of the note goes to the title above it.
+          if (event.key === 'ArrowUp' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey
+              && selection.empty && selection.$from.index(0) === 0 && view.endOfTextblock('up')) {
+            event.preventDefault();
+            handlers.onLeaveStart?.();
+            return true;
+          }
           const plain = !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey;
           if (event.key === 'Enter' && plain
               && selection instanceof NodeSelection && selection.node.type.name === 'math') {

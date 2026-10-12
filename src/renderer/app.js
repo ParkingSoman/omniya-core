@@ -43,11 +43,10 @@ import { clearMathWithin, createNapkinEditor, renderMathInto, waitForSpeechLabel
 // identically however it was typed.
 
 const elements = Object.fromEntries([
-  'app-shell', 'announcer', 'napkin-list', 'new-napkin-button', 'new-napkin-form', 'new-napkin-submit', 'napkin-name',
-  'napkin-name-error', 'cancel-new-napkin', 'current-napkin-name',
+  'app-shell', 'announcer', 'napkin-list', 'new-napkin-button', 'current-napkin-name',
   'mode-panel', 'save-status', 'document-section', 'empty-message', 'editor-host',
   'undo-button', 'redo-button', 'insert-equation-button', 'insert-equation-key', 
-  'rename-button', 'delete-button', 'skip-to-note', 'status-hint',
+  'delete-button', 'skip-to-note', 'status-hint',
   'find-bar', 'find-input', 'find-count', 'find-previous', 'find-next', 'find-close', 'find-button',
   'export-button', 'export-dialog', 'export-heading', 'export-html', 'export-latex', 'export-text', 'export-print', 'close-export',
   'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'app-build-identity',
@@ -73,7 +72,6 @@ let editorNapkinId = null;
 let pendingDoc = null;
 let docTimer;
 let saveChain = Promise.resolve();
-let renamingNapkinId = null;
 let lastEquationSelected = false;
 /** `{ pos }` while an equation is being read by parts with MathJax's explorer. */
 let exploring = null;
@@ -199,7 +197,12 @@ function renderNapkins() {
 
 function renderHeader() {
   const napkin = activeNapkin();
-  elements['current-napkin-name'].textContent = napkin?.name ?? 'No note open';
+  const title = elements['current-napkin-name'];
+  const text = napkin?.name ?? 'No note open';
+  // Someone typing in the title must not have it rewritten under their caret.
+  if (document.activeElement === title && title.textContent === text) return;
+  title.textContent = text;
+  title.contentEditable = napkin ? 'plaintext-only' : 'false';
 }
 
 function renderAll() {
@@ -224,8 +227,6 @@ function renderAll() {
  */
 function moveFocusTo(element) {
   if (!element) return false;
-  const form = elements['new-napkin-form'];
-  if (form && !form.hidden && !form.contains(element)) return false;
   element.focus();
   return true;
 }
@@ -235,8 +236,6 @@ function focusEditor() {
     moveFocusTo(elements['new-napkin-button']);
     return;
   }
-  const form = elements['new-napkin-form'];
-  if (form && !form.hidden) return;
   editor.focus();
 }
 
@@ -270,6 +269,7 @@ function loadEditor() {
         onStateChange: updateToolbar,
         onInsertEquation: () => applyEquationInsert(preferredAuthoringMethod),
         onEnterMath: (pos) => { void enterExplorer(pos); },
+        onLeaveStart: () => focusTitle(),
       }
     });
   } else if (editorNapkinId === napkin.id) {
@@ -454,7 +454,7 @@ function placementFromKey(event) {
 function typingIntoAField(element) {
   if (!(element instanceof Element)) return false;
   if (element.isContentEditable) return true;
-  return Boolean(element.closest('input, textarea, select, #new-napkin-form, #napkin-rail, dialog'));
+  return Boolean(element.closest('input, textarea, select, #napkin-rail, dialog'));
 }
 
 // MathJax swallows unmapped keys (r) on the explorer node, so these are taken
@@ -974,7 +974,6 @@ function updateToolbar(history = editor?.historyState?.() ?? { canUndo: false, c
   setActionEnabled(elements['insert-equation-button'], hasNote);
   setActionEnabled(elements['find-button'], hasNote);
   setActionEnabled(elements['export-button'], Boolean(activeNapkin()));
-  setActionEnabled(elements['rename-button'], Boolean(activeNapkin()));
   setActionEnabled(elements['delete-button'], Boolean(activeNapkin()));
 }
 
@@ -1007,7 +1006,6 @@ onToolbarClick('redo-button', () => performHistory('redo'));
 onToolbarClick('insert-equation-button', () => applyEquationInsert(preferredAuthoringMethod));
 onToolbarClick('find-button', () => openFind());
 onToolbarClick('export-button', () => openExport());
-onToolbarClick('rename-button', () => renameFocusedNapkin(state.activeNapkinId));
 onToolbarClick('delete-button', () => { void deleteFocusedNapkin(state.activeNapkinId); });
 
 // ---- Find in note ---------------------------------------------------------
@@ -1146,60 +1144,53 @@ async function deleteFocusedNapkin(napkinId) {
   await saveState().catch(() => {});
 }
 
-function renameFocusedNapkin(napkinId) {
-  if (mathSession) return;
-  const napkin = state.napkins.find(({ id }) => id === napkinId);
-  if (!napkin) return;
-  renamingNapkinId = napkinId;
-  elements['new-napkin-form'].hidden = false;
-  elements['new-napkin-submit'].textContent = 'Rename note';
-  elements['napkin-name'].value = napkin.name;
-  setFieldError(elements['napkin-name'], elements['napkin-name-error']);
-  elements['napkin-name'].focus();
-  elements['napkin-name'].select();
+/** Put the caret in the note's title with the name selected, ready to type over. */
+function focusTitle() {
+  const title = elements['current-napkin-name'];
+  title.focus();
+  getSelection().selectAllChildren(title);
 }
 
-elements['new-napkin-button'].addEventListener('click', () => {
-  cancelEquation();
-  renamingNapkinId = null;
-  elements['new-napkin-form'].hidden = false;
-  elements['new-napkin-submit'].textContent = 'Create note';
-  elements['napkin-name'].value = '';
-  setFieldError(elements['napkin-name'], elements['napkin-name-error']);
-  elements['napkin-name'].focus();
+// The title is plain text on the page, as the first line of a note is in Apple
+// Notes. Typing in it renames the note, and the list follows as you type.
+let titleTimer;
+elements['current-napkin-name'].addEventListener('input', () => {
+  const napkin = activeNapkin();
+  if (!napkin) return;
+  const name = elements['current-napkin-name'].textContent.replace(/\s+/g, ' ').trim();
+  // An empty title is allowed while typing. The note keeps its last name until
+  // the title is left, and then it gets that name back.
+  if (!name || name === napkin.name) return;
+  state = renameNapkin(state, napkin.id, name);
+  const button = elements['napkin-list'].querySelector(`[data-napkin-id="${CSS.escape(napkin.id)}"]`);
+  if (button) button.textContent = name;
+  clearTimeout(titleTimer);
+  titleTimer = setTimeout(() => void saveState({ announce: false }).catch(() => {}), 250);
 });
 
-elements['cancel-new-napkin'].addEventListener('click', () => {
-  elements['new-napkin-form'].hidden = true;
-  const napkinId = renamingNapkinId;
-  renamingNapkinId = null;
-  if (napkinId) focusNapkinButton(napkinId);
-  else elements['new-napkin-button'].focus();
-});
-
-elements['new-napkin-form'].addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const napkinId = renamingNapkinId;
-  commitPendingDoc();
-  try {
-    state = napkinId
-      ? renameNapkin(state, napkinId, elements['napkin-name'].value)
-      : createNapkin(state, elements['napkin-name'].value);
-  } catch (error) {
-    setFieldError(elements['napkin-name'], elements['napkin-name-error'], error.message);
-    elements['napkin-name'].focus();
-    return;
-  }
-  elements['new-napkin-form'].hidden = true;
-  renamingNapkinId = null;
-  leaveExplorer({ refocus: false });
-  renderAll();
-  if (napkinId) {
-    focusNapkinButton(napkinId);
-    elements['save-status'].textContent = `Renamed to ${state.napkins.find(({ id }) => id === napkinId)?.name ?? ''}`;
-  } else {
+elements['current-napkin-name'].addEventListener('keydown', (event) => {
+  // Enter ends the line, as it does in any text. The next line is the note.
+  if (event.key === 'Enter' || (event.key === 'ArrowDown' && !event.shiftKey)) {
+    event.preventDefault();
     focusEditor();
   }
+});
+
+elements['current-napkin-name'].addEventListener('blur', () => {
+  // Leaving the title shows the name the note actually has: an empty title gets
+  // its last name back, and stray spaces are tidied.
+  const napkin = activeNapkin();
+  if (napkin) elements['current-napkin-name'].textContent = napkin.name;
+});
+
+elements['new-napkin-button'].addEventListener('click', async () => {
+  cancelEquation();
+  commitPendingDoc();
+  leaveExplorer({ refocus: false });
+  state = createNapkin(state, 'Untitled note');
+  renderAll();
+  focusTitle();
+  elements['save-status'].textContent = 'New note';
   await saveState().catch(() => {});
 });
 
@@ -1232,7 +1223,9 @@ elements['napkin-list'].addEventListener('keydown', (event) => {
   // in the application menu, and `role: 'editMenu'` does not define one.
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'u') {
     event.preventDefault();
-    renameFocusedNapkin(button.dataset.napkinId);
+    // Rename is typing in the title. Open the note and put the caret there.
+    button.click();
+    queueMicrotask(() => setTimeout(focusTitle, 0));
   }
 });
 
