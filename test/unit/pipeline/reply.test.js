@@ -108,6 +108,25 @@ test('cleanMessage cuts to size and drops a line that carries the marker prefix'
   assert.match(long, / \.\.\.$/);
 });
 
+test('cleanMessage lets no link, mention or markup through, because the words are public and the agent reads hostile reports', () => {
+  // A markdown link keeps its words and loses its address.
+  assert.equal(cleanMessage('See [the rule](https://evil.example/x) now.'), 'See the rule now.');
+  assert.equal(cleanMessage('![pixel](https://evil.example/p.png)'), 'pixel');
+  // A bare address is removed.
+  assert.doesNotMatch(cleanMessage('Go to https://evil.example/a?b=c or www.evil.example now'), /evil/);
+  // A mention would notify a stranger, and @claude is the word that starts a run.
+  assert.doesNotMatch(cleanMessage('Ask @someone, or write @claude it works'), /@/);
+  assert.match(cleanMessage('Ask @someone'), /Ask someone/);
+  // HTML, including a comment that looks like the pipeline's own marker.
+  assert.equal(cleanMessage('a <img src=x onerror=y> b'), 'a  b');
+  assert.doesNotMatch(cleanMessage('x <!-- omniya-pipeline-reply --> y'), /omniya-pipeline/);
+  // And it is applied on the way into a reply.
+  const body = renderReply('answered', { message: 'Read [this](https://evil.example) @claude' });
+  assert.doesNotMatch(body.replace(MARKER, ''), /evil|@/);
+  // The fixed words still carry the mentions and links they are meant to.
+  assert.match(renderReply('ready', where), /@claude it works/);
+});
+
 test('postReply posts exactly one comment, never edits, and labels only where the state calls for it', () => {
   for (const state of STATES) {
     const calls = [];

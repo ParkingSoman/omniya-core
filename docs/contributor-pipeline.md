@@ -142,9 +142,12 @@ shared one issue. So the agent no longer has a way to post. Its job has
 `issues: read`. It writes `message.md`. `pipeline-agent.yml` returns that text as
 the `message` output, and `scripts/ci/reply.mjs` posts it once.
 
-The agent's text is untrusted. It reaches the next jobs through `env` and never
-inside a `run:` line. `reply.mjs` cuts it to 2000 characters and drops any line
-that carries the pipeline's marker.
+The agent's text is untrusted, because the agent reads hostile reports and the
+words are posted in public. It reaches the next jobs through `env` and never
+inside a `run:` line. `reply.mjs` cuts it to 2000 characters. It drops any line
+that carries the pipeline's marker. It removes links, `@` mentions and HTML. The
+only links a contributor is sent are the two download links that `reply.mjs`
+builds itself.
 
 ### The four kinds
 
@@ -366,6 +369,17 @@ start with a permission error from the Claude action, look there first. The
 action might need to write on the issue even in agent mode. If it does, restore
 `issues: write` on that one job and keep the prompt rule. The unit tests pin the
 `read` value, so they will fail until they are changed with it.
+
+A repair agent adds `needs-maintainer` to the pull request with `gh pr edit`,
+under `pull-requests: write` alone. That should work, because GitHub scopes a
+pull request's labels to that permission. It was not proved offline. The agent no
+longer creates the label, because that needs `issues: write`. The label already
+exists, and the `report` job recreates it with `--force`.
+
+When a revision ends red after three repairs, the `report` job posts the fixed
+"maintainer needs to look" comment and the agent's words are dropped. The
+contributor hears that a person will look, and never hears what the agent
+changed. That is a known gap, not a fault.
 
 The agent's words travel as a multi-line job output. If a reply arrives with the
 agent's part empty, check that the `result` step wrote `message<<` to

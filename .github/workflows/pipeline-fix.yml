@@ -162,7 +162,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
-        run: node scripts/ci/issue-kind.mjs "$ISSUE"
+        # If the labels cannot be read, treat the report as a bug: the same as an
+        # issue with no type label, and what every report was before there were
+        # types. The other way is silence, because nothing downstream matches an
+        # empty kind and a skipped `fix` is not a failure. Silence is what hid
+        # issue #22 for 23 days.
+        run: node scripts/ci/issue-kind.mjs "$ISSUE" || echo "kind=bug" >> "$GITHUB_OUTPUT"
 
   # A design idea, or anything else. A person answers. No agent starts and no
   # quota is spent. One short comment, so it is not read as the pipeline being

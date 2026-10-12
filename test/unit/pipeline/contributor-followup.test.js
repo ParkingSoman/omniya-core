@@ -170,6 +170,7 @@ test('the kind is read from the labels, and a routed report is read as a bug by 
   const step = workflow.jobs.allowlist.steps.find((s) => s.id === 'kind');
   assert.ok(step, 'expected a step that reads the kind');
   assert.match(step.run, /issue-kind\.mjs/);
+  assert.match(step.run, /\|\| echo "kind=bug" >> "\$GITHUB_OUTPUT"/, 'an unreadable label must not fail the gate');
   assert.equal(workflow.jobs.allowlist.permissions.issues, 'read');
   assert.equal(workflow.jobs.agent.with.kind, "${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}");
 });

@@ -145,8 +145,10 @@ jobs:
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
         run: |
           set -euo pipefail
-          git show origin/testing:scripts/ci/issue-kind.mjs > "$RUNNER_TEMP/find/issue-kind.mjs"
-          node "$RUNNER_TEMP/find/issue-kind.mjs" "$ISSUE_NUMBER"
+          # If the labels cannot be read, `bug`. See the same step in `pipeline-fix.yml`.
+          { git show origin/testing:scripts/ci/issue-kind.mjs > "$RUNNER_TEMP/find/issue-kind.mjs" \
+            && node "$RUNNER_TEMP/find/issue-kind.mjs" "$ISSUE_NUMBER"; } \
+            || echo "kind=bug" >> "$GITHUB_OUTPUT"
 
   # A listed contributor wrote `@claude` and there is no fix to continue. Say so.
   # Silence is the failure this repository has already had once.

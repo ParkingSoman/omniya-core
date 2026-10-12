@@ -472,7 +472,6 @@ jobs:
                check broken on its own, a rule no correct fix could meet, or a
                failure caused by something outside this branch such as `main`
                or the GitHub runner. Then run
-                 gh label create needs-maintainer --force
                  gh pr edit ${{ inputs.pr_number }} --add-label needs-maintainer
                write the technical case as a comment on the pull request
                (technical words are fine there: which check, what it expects,

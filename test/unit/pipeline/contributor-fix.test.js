@@ -110,6 +110,9 @@ test('the kind comes from the labels on the issue, read through the API, by the 
   assert.match(step.run, /scripts\/ci\/issue-kind\.mjs "\$ISSUE"/);
   assert.equal(kind.permissions?.issues, 'read');
   assert.equal(kind.outputs.kind, '${{ steps.kind.outputs.kind }}');
+  // An unreadable label must not mean silence: nothing downstream matches an
+  // empty kind, and a skipped `fix` is not a failure.
+  assert.match(step.run, /\|\| echo "kind=bug" >> "\$GITHUB_OUTPUT"/);
 });
 
 test('a design idea, or anything else, gets one comment and no agent', () => {

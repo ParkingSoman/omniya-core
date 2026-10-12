@@ -143,9 +143,20 @@ export const LABELS = {
 };
 
 /**
- * The agent's words are text from a model that has read untrusted reports. Cut it
- * to size, and drop any line that carries the pipeline's marker prefix, so the
- * words cannot dress up as a comment the gate trusts.
+ * The agent's words are text from a model that has read untrusted reports, and
+ * they are posted in a public comment under the project's name. So:
+ *
+ *  - A line that carries the pipeline's marker prefix is dropped, so the words
+ *    cannot dress up as a comment the gate trusts.
+ *  - No link survives. The prompt says never to write one, and the only links a
+ *    contributor should ever be sent are the two this script builds. A link in
+ *    agent text would be a link a hostile report talked the agent into writing.
+ *    A markdown link keeps its words. A bare address is removed.
+ *  - No `@` mention survives. A mention notifies a stranger, and `@claude` is
+ *    the word that starts a run. The fixed words are the only place either may
+ *    appear.
+ *  - No HTML survives, so nothing can hide, restyle or inject into the comment.
+ *  - It is cut to size.
  *
  * @param {string|undefined} text
  */
@@ -155,6 +166,11 @@ export function cleanMessage(text) {
     .split('\n')
     .filter((line) => !line.includes(PIPELINE_PREFIX))
     .join('\n')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/<[^>\n]*>/g, '')
+    .replace(/\b(?:https?:\/\/|www\.)\S+/gi, '')
+    .replace(/@(?=\w)/g, '')
+    .replace(/[ \t]+\n/g, '\n')
     .trim();
   if (kept.length <= MAX_MESSAGE) return kept;
   return `${kept.slice(0, MAX_MESSAGE).replace(/\s+\S*$/, '')} ...`;
