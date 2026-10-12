@@ -40,15 +40,16 @@ async function fixture() {
   };
   const shopping = { type: 'doc', content: [para(text('Ask about the lab meeting.')), para(text('Book the room for Thursday.'))] };
   const empty = { type: 'doc', content: [para()] };
-  const note = (id, name, doc) => ({ id, name, doc });
+  const day = 86_400_000;
+  const note = (id, name, doc, ago = 0) => ({ id, name, doc, updatedAt: new Date(Date.now() - ago * day).toISOString() });
   return {
     schemaVersion: 3,
     activeNapkinId: 'n1',
     napkins: [
       note('n1', 'Quadratic formula', quadratic),
-      note('n2', 'Meeting follow-ups', shopping),
-      note('n3', 'Reading list', shopping),
-      note('n4', 'Untitled note', empty)
+      note('n2', 'Meeting follow-ups', shopping, 2),
+      note('n3', 'Reading list', { type: 'doc', content: [para(text('Papers to read this week.'))] }, 9),
+      note('n4', 'Untitled note', empty, 30)
     ]
   };
 }

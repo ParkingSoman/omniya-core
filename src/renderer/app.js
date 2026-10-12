@@ -4,7 +4,7 @@ import {
   switchNapkin,
   withDoc
 } from '../domain/model.js';
-import { docSnippet, docWithTitle, emptyDoc, nameFromDoc } from '../domain/document.js';
+import { docPlainText, docSnippet, docWithTitle, emptyDoc, nameFromDoc } from '../domain/document.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { attachInputCapture } from './input-capture.js';
 import { createInputLog } from './input-log.js';
@@ -43,7 +43,7 @@ import { clearMathWithin, createNapkinEditor, renderMathInto, waitForSpeechLabel
 // identically however it was typed.
 
 const elements = Object.fromEntries([
-  'app-shell', 'announcer', 'napkin-list', 'new-napkin-button', 'no-note-title', 'note-date',
+  'app-shell', 'announcer', 'napkin-list', 'new-napkin-button', 'no-note-title', 'note-date', 'note-search', 'note-search-status',
   'mode-panel', 'save-status', 'document-section', 'empty-message', 'editor-host',
   'undo-button', 'redo-button', 'insert-equation-button', 'insert-equation-key', 
   'delete-button', 'skip-to-note', 'status-hint',
@@ -184,6 +184,7 @@ function showLiveRow(doc) {
   row.setAttribute('aria-label', name);
   row.querySelector('.note-name').textContent = name;
   row.querySelector('.note-snippet').textContent = docSnippet(doc);
+  row.querySelector('.note-when').textContent = shortWhen(new Date().toISOString());
 }
 
 /** Save now. For switching napkins, closing, and tests. */
@@ -193,6 +194,38 @@ async function flushDocument() {
 }
 
 // ---- Napkin rail ----------------------------------------------------------
+
+/** Today shows the time, any other day the short date, as in the Apple Notes list. */
+function shortWhen(iso) {
+  const when = iso ? new Date(iso) : null;
+  if (!when || Number.isNaN(when.valueOf())) return '';
+  return when.toDateString() === new Date().toDateString()
+    ? when.toLocaleTimeString([], { timeStyle: 'short' })
+    : when.toLocaleDateString([], { dateStyle: 'short' });
+}
+
+/** Show only the notes whose name or first lines match what is typed in the search box. */
+function applyNoteFilter() {
+  const query = elements['note-search'].value.trim().toLowerCase();
+  let shown = 0;
+  for (const button of elements['napkin-list'].querySelectorAll('[data-napkin-id]')) {
+    const napkin = state.napkins.find(({ id }) => id === button.dataset.napkinId);
+    const text = `${napkin?.name ?? ''} ${docPlainText(napkin?.doc)}`.toLowerCase();
+    const match = !query || text.includes(query);
+    button.hidden = !match;
+    if (match) shown += 1;
+  }
+  elements['note-search-status'].textContent = query ? `${shown} ${shown === 1 ? 'note' : 'notes'} found` : '';
+}
+
+elements['note-search'].addEventListener('input', applyNoteFilter);
+elements['note-search'].addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && elements['note-search'].value) {
+    event.preventDefault();
+    elements['note-search'].value = '';
+    applyNoteFilter();
+  }
+});
 
 function renderNapkins() {
   elements['napkin-list'].replaceChildren();
@@ -206,15 +239,22 @@ function renderNapkins() {
     const name = document.createElement('span');
     name.className = 'note-name';
     name.textContent = napkin.name;
+    // Under the name, as Apple Notes shows it: when the note changed, then its first line.
+    const line = document.createElement('span');
+    line.className = 'note-line';
+    line.setAttribute('aria-hidden', 'true');
+    const when = document.createElement('span');
+    when.className = 'note-when';
+    when.textContent = shortWhen(napkin.updatedAt);
     const snippet = document.createElement('span');
     snippet.className = 'note-snippet';
-    // The name already names the button. Reading the preview as well is noise.
-    snippet.setAttribute('aria-hidden', 'true');
     snippet.textContent = docSnippet(napkin.doc);
-    button.append(name, snippet);
+    line.append(when, snippet);
+    button.append(name, line);
     if (napkin.id === state.activeNapkinId) button.setAttribute('aria-current', 'page');
     elements['napkin-list'].append(button);
   }
+  applyNoteFilter();
 }
 
 function renderHeader() {
@@ -1011,6 +1051,21 @@ function onToolbarClick(id, action) {
 }
 
 elements['insert-equation-key'].textContent = EQUATION_KEY;
+
+// Tooltips for the icon-only toolbar: what it does, and its key on this computer.
+const MOD = IS_MAC ? 'Cmd' : 'Ctrl';
+const TOOLTIPS = {
+  'undo-button': `Undo (${MOD}+Z)`,
+  'redo-button': `Redo (${IS_MAC ? 'Cmd+Shift+Z' : 'Ctrl+Y'})`,
+  'insert-equation-button': `Insert equation (${EQUATION_KEY})`,
+  'find-button': `Find in note (${MOD}+F)`,
+  'delete-button': 'Delete note',
+  'export-button': 'Export or print',
+  'keyboard-help-button': 'Keyboard shortcuts',
+  'new-napkin-button': `New note (${MOD}+N)`
+};
+for (const [id, text] of Object.entries(TOOLTIPS)) elements[id].title = text;
+document.documentElement.dataset.platform = IS_MAC ? 'mac' : 'win';
 elements['skip-to-note'].addEventListener('click', () => focusEditor());
 
 // Double-click an equation to read it by parts, as Enter does. The first click

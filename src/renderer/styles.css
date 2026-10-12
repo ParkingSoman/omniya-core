@@ -155,15 +155,25 @@ kbd {
 #new-napkin-button { white-space: nowrap; }
 #napkin-list button { border-radius: var(--radius); display: block; overflow: hidden; padding: 0.45rem 0.7rem; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
 #napkin-list .note-name { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
-#napkin-list .note-snippet { color: var(--muted); display: block; font-size: 0.82rem; font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
-#napkin-list .note-snippet:empty { display: none; }
-#napkin-list button[aria-current="page"] .note-snippet { color: inherit; opacity: 0.75; }
+#napkin-list .note-line { color: var(--muted); display: flex; font-size: 0.82rem; font-weight: 400; gap: 0.45rem; overflow: hidden; }
+#napkin-list .note-when { flex: none; }
+#napkin-list .note-snippet { overflow: hidden; text-overflow: ellipsis; }
+#napkin-list .note-line:empty, #napkin-list .note-when:empty + .note-snippet:empty { display: none; }
+.rail-search { margin: 0 0.35rem 0.6rem; }
+.rail-search input { background: var(--page); border: 1px solid var(--line-strong); border-radius: var(--radius); color: var(--ink); font: inherit; font-size: 0.9rem; padding: 0.3rem 0.6rem; width: 100%; }
+#napkin-list button[aria-current="page"] .note-line { color: inherit; opacity: 0.75; }
 #napkin-list button[aria-current="page"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
 
 .form-actions { display: flex; gap: 0.35rem; margin-top: 0.5rem; }
 
 #workspace { display: flex; flex-direction: column; grid-row: 2; min-height: 0; min-width: 0; }
 
+/* Icon-only, as in Apple Notes. Every button keeps its name for a screen reader, and a tooltip says it and its key to everyone else. */
+#toolbar button { justify-content: center; min-height: 2.2rem; min-width: 2.2rem; padding: 0.3rem 0.5rem; }
+#toolbar button > span:not(.toolbar-gap):not(.toolbar-fill) { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
+#toolbar kbd { display: none; }
+#toolbar .button-accent { background: transparent; border-color: transparent; color: var(--accent-ink); }
+#toolbar .button-accent:hover { background: var(--accent-soft); }
 #toolbar { align-items: center; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 0.15rem; padding: 0.45rem 0.75rem; }
 .toolbar-gap { align-self: center; background: var(--line); height: 1.3rem; margin: 0 0.4rem; width: 1px; }
 .toolbar-fill { flex: 1; }
@@ -295,6 +305,7 @@ img.ProseMirror-separator { border: none !important; display: inline !important;
 .keys > div { align-items: baseline; border-bottom: 1px solid var(--line); display: flex; gap: 1rem; justify-content: space-between; padding: 0.4rem 0; }
 .keys dt { font-weight: 500; }
 .keys dd { color: var(--muted); margin: 0; text-align: right; }
+html[data-platform="win"] .keys-mac, html[data-platform="mac"] .keys-win { display: none; }
 #keyboard-help kbd { background: var(--panel); color: var(--ink); }
 
 /* ---- Narrow windows ------------------------------------------------------ */

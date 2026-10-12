@@ -154,8 +154,9 @@ test('the mode panel is quiet and the help dialog lists the keys that exist', { 
   assert.match(help, /Ctrl\+L/i);
   assert.doesNotMatch(help, /Ctrl\+T/i);
   assert.match(help, /Escape/i);
-  assert.match(help, /Alt\+=/);
-  assert.match(help, /Control\+=/);
+  // The sheet shows this computer's key only: Control+= on a Mac, Alt+= elsewhere.
+  assert.match(help, process.platform === 'darwin' ? /Control\+=/ : /Alt\+=/);
+  assert.doesNotMatch(help, process.platform === 'darwin' ? /Alt\+=/ : /Control\+=/);
   assert.match(help, /Ctrl\+Z/i);
   // The dead chord must not be advertised to someone who cannot see that
   // pressing it does nothing.
