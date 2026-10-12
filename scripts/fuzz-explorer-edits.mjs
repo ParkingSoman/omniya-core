@@ -100,7 +100,10 @@ try {
       const fragment = pick(FRAGMENTS);
       await page.keyboard.press(op);
       const opened = await page.locator('#composer-dock').waitFor({ state: 'visible', timeout: 3000 }).then(() => true, () => false);
-      if (!opened) continue;
+      if (!opened) {
+        findings.push({ kind: `${op} did nothing where the reader stood`, detail: `${start}  [${op}]  step ${step + 1}  seed ${seed}` });
+        continue;
+      }
       await chooseMethod(page, 'latex');
       await page.locator('#composer-source').fill(fragment);
       await page.keyboard.press('Enter');

@@ -753,13 +753,17 @@ async function startEquationEdit(placement) {
     return;
   }
   if (!focus?.target) return;
-  mathSession = { kind: 'edit', pos, placement };
+  // On a spot that is not part of the equation (the invisible "times" between two
+  // brackets) there is nothing to replace or to put something before. Whatever the
+  // key, what is typed goes in after the part just before the spot.
+  const how = focus.gap ? 'append' : placement;
+  mathSession = { kind: 'edit', pos, placement: how };
   replacementSession = startReplacementSession({
     document: { formatVersion: 2, mathml: node.attrs.mathml, focus: null },
     target: focus.target,
     explorerFocus: focus,
     method: preferredAuthoringMethod,
-    placement
+    placement: how
   });
   replacementSession.isNew = false;
   replacementHasContent = false;
@@ -769,11 +773,11 @@ async function startEquationEdit(placement) {
     equationMethod: preferredAuthoringMethod,
     contentEmpty: true,
     replaceScopeLabel: scopeLabel,
-    placement
+    placement: how
   });
   openDock({
-    heading: `${placementVerb(placement)}: ${scopeLabel}`,
-    submit: placement === 'replace' ? 'Replace' : 'Insert',
+    heading: focus.gap ? `Inserting at: ${scopeLabel}` : `${placementVerb(how)}: ${scopeLabel}`,
+    submit: how === 'replace' ? 'Replace' : 'Insert',
     indicator: 'Escape cancels without changing the equation.',
     scope: focus.speech ? `Selected: ${focus.speech}` : 'Selected mathematical scope'
   });
