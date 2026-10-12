@@ -412,6 +412,12 @@
     "banaRef": "2"
   },
   {
+    "cells": "⠠⠿",
+    "kind": "constant",
+    "value": "∞",
+    "banaRef": "23.11"
+  },
+  {
     "cells": "⠠",
     "kind": "comma",
     "value": ",",
