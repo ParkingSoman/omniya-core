@@ -879,12 +879,14 @@ async function submitEquation() {
     const session = mathSession;
     const method = replacementSession.method;
     if (session.kind === 'edit') {
-      // What was typed replaced a part, so it is not the whole equation's source.
+      // The edit was written back as one LaTeX expression and read again, so that
+      // expression is the equation's source now. If it could not be rebuilt, no
+      // source is kept, because what was typed is only a part of the equation.
       const existing = editor.mathNode(session.pos);
       editor.updateMath(session.pos, {
         mathml: result.document.mathml,
-        source: '',
-        sourceKind: existing?.attrs.sourceKind ?? method
+        source: result.latex ?? '',
+        sourceKind: result.latex ? 'latex' : (existing?.attrs.sourceKind ?? method)
       });
       const focus = result.focus;
       closeDock();

@@ -19,9 +19,13 @@ contextBridge.exposeInMainWorld('omniya', {
   saveState: (state) => ipcRenderer.invoke('state:save', state),
   loadSettings: () => ipcRenderer.invoke('settings:load'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
-  latexToMathML: (source) => ipcRenderer.invoke('math:convert', source)
-  ,importMath: (source) => ipcRenderer.invoke('math:import', source)
-  ,exportMathLatex: (document) => ipcRenderer.invoke('math:export', document),
+  latexToMathML: async (source) => {
+    const reply = await ipcRenderer.invoke('math:convert', source);
+    if (reply?.error) throw new Error(reply.error);
+    return reply;
+  },
+  importMath: (source) => ipcRenderer.invoke('math:import', source),
+  exportMathLatex: (document) => ipcRenderer.invoke('math:export', document),
   translateUeb: (text, grade) => ipcRenderer.invoke('ueb:translate', { text, grade }),
   backTranslateUeb: (braille, grade) => ipcRenderer.invoke('ueb:backTranslate', { braille, grade }),
   onMenuCommand: (cb) => {

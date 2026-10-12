@@ -65,7 +65,14 @@ function registerIpc(storage, settingsStorage) {
   ipcMain.handle('math:convert', async (event, source) => {
     assertTrustedSender(event);
     if (mathConvertDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, mathConvertDelayMs));
-    return { mathml: await convertLatexToMathML(source) };
+    // Half-typed LaTeX is the normal state of the live preview. Throwing here
+    // makes Electron print every one, so the refusal travels as a value and the
+    // preload turns it back into an error on the renderer side.
+    try {
+      return { mathml: await convertLatexToMathML(source) };
+    } catch (error) {
+      return { error: error.message };
+    }
   });
   ipcMain.handle('math:import', async (event, source) => { assertTrustedSender(event); return importLatex(source); });
   ipcMain.handle('math:export', async (event, document) => { assertTrustedSender(event); return exportLatex(document); });

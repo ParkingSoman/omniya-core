@@ -7,6 +7,9 @@ import {
 } from './math-tree.js';
 import { resolveBrailleInputTable, toNemethCells } from './nemeth-input.js';
 import { parseNemeth } from './nemeth/index.js';
+import { dropStaleLatex, latexFromTree, leafNodes, nodeForInserted } from './math-latex.js';
+
+const KEEP = { keepLatex: true };
 
 function emptyDraft() {
   const tree = parseMathML('<math xmlns="http://www.w3.org/1998/Math/MathML"/>');
@@ -103,8 +106,8 @@ async function materializeDraft(session, convertLatexToMathML, brailleInputTable
   if (session.method === 'latex') {
     if (!session.latexSource.trim()) throw new Error('Replacement draft is empty.');
     if (typeof convertLatexToMathML !== 'function') throw new Error('The local LaTeX converter is unavailable.');
-    const mathml = canonicalizeMathML(await convertLatexToMathML(session.latexSource));
-    return parseMathML(mathml);
+    const mathml = canonicalizeMathML(await convertLatexToMathML(session.latexSource), KEEP);
+    return parseMathML(mathml, KEEP);
   }
   // Nemeth: cells -> LaTeX -> the SAME convertLatexToMathML path the LaTeX
   // branch above uses. Deliberately not a second MathML generator: routing both
@@ -144,12 +147,12 @@ async function materializeDraft(session, convertLatexToMathML, brailleInputTable
   }
   if (typeof convertLatexToMathML !== 'function') throw new Error('The local LaTeX converter is unavailable.');
   const { latex } = parseNemeth(cells);
-  const mathml = canonicalizeMathML(await convertLatexToMathML(latex));
-  return parseMathML(mathml);
+  const mathml = canonicalizeMathML(await convertLatexToMathML(latex), KEEP);
+  return parseMathML(mathml, KEEP);
 }
 
 function applyDraftToDocument(document, target, tree, placement = 'replace') {
-  const current = parseMathML(document.mathml);
+  const current = parseMathML(document.mathml, KEEP);
   if (placement === 'append' || placement === 'prepend') {
     return insertMathRelative(current, target, tree, placement);
   }
@@ -183,16 +186,57 @@ export async function submitReplacement(session, { convertLatexToMathML, braille
     };
   }
   const previous = structuredClone(session.originalDocument);
-  const nextTree = applyDraftToDocument(
-    session.originalDocument,
-    session.target,
-    tree,
-    session.placement ?? 'replace'
-  );
-  const document = { ...previous, formatVersion: 2, mathml: serializeMathML(nextTree), focus: session.target };
+  const placement = session.placement ?? 'replace';
+  const spliced = applyDraftToDocument(session.originalDocument, session.target, tree, placement);
+
+  // Nodes this edit made. A replacement takes the id of what it replaced.
+  const made = new Set();
+  const collect = (node) => {
+    if (node.text !== undefined) return;
+    made.add(node.attrs['data-omniya-id']);
+    node.children.forEach(collect);
+  };
+  collect(tree);
+  if (placement === 'replace') {
+    made.add(session.target.kind === 'node' ? session.target.nodeId : session.target.firstNodeId);
+  }
+  // Every node above the edit now describes something else, so what MathJax
+  // wrote for it no longer applies.
+  dropStaleLatex(spliced, made);
+
+  // Write the whole expression as LaTeX and read it again, the way a new
+  // equation is read. The tree is then what a fresh parse gives, whatever the
+  // splice produced, and this holds for every symbol the converter knows.
+  let nextTree = spliced;
+  let latex = null;
+  let focus = session.target;
+  const written = latexFromTree(spliced);
+  if (written && typeof convertLatexToMathML === 'function') {
+    try {
+      const fresh = parseMathML(canonicalizeMathML(await convertLatexToMathML(written), KEEP), KEEP);
+      const leaves = leafNodes(spliced);
+      const inserted = leaves.flatMap((leaf, i) => (made.has(leaf.attrs['data-omniya-id']) ? [i] : []));
+      const freshLeaves = leafNodes(fresh);
+      nextTree = fresh;
+      latex = written;
+      // Fresh ids, so find the inserted part by where its leaves sit in reading order.
+      // If the two readings disagree on the leaf count, stand on the whole expression.
+      // Where no node holds exactly the typed part, stand on its first leaf.
+      const covering = inserted.length && freshLeaves.length === leaves.length
+        ? nodeForInserted(fresh, inserted[0], inserted.at(-1))
+        : fresh;
+      focus = { kind: 'node', nodeId: covering.attrs['data-omniya-id'] };
+    } catch {
+      // The converter refused the rebuilt text. Keep the spliced tree: the edit
+      // still happens, it just keeps the shape the splice gave it.
+      nextTree = spliced;
+    }
+  }
+  const document = { ...previous, formatVersion: 2, mathml: serializeMathML(nextTree), focus };
   return {
     document,
-    focus: session.target,
+    focus,
+    latex,
     inversePatch: { document: previous, focus: session.target }
   };
 }

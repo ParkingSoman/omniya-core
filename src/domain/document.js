@@ -23,7 +23,7 @@ export function mathNode({ mathml, source = '', sourceKind = 'latex' }) {
   }
   return {
     type: 'math',
-    attrs: { mathml: canonicalizeMathML(mathml), source, sourceKind },
+    attrs: { mathml: canonicalizeMathML(mathml, { keepLatex: true }), source, sourceKind },
   };
 }
 
