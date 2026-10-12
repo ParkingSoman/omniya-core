@@ -29,9 +29,20 @@ export const MAX_DIGEST = 12000;
 const MAX_BLOCK = 1500;
 const PATH_TOOLS = new Set(['Read', 'Write', 'Edit', 'NotebookEdit']);
 
-/** Replace anything shaped like a credential. Applied after cleaning. */
-export function scrub(text) {
-  return String(text)
+/**
+ * The exact values of the secrets this job holds, when the workflow names them
+ * in KNOWN_SECRETS (one per line). A value shorter than 6 characters is ignored,
+ * so an empty or trivial variable cannot blank out ordinary words.
+ */
+function knownSecrets() {
+  return String(process.env.KNOWN_SECRETS ?? '').split('\n').map((v) => v.trim()).filter((v) => v.length >= 6);
+}
+
+/** Replace anything shaped like a credential, and every known secret value. Applied after cleaning. */
+export function scrub(text, secrets = knownSecrets()) {
+  let out = String(text);
+  for (const value of secrets) out = out.split(value).join('[secret removed]');
+  return out
     .replace(/\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]{10,}/g, '[token removed]')
     .replace(/\bsk-[A-Za-z0-9_-]{10,}/g, '[token removed]')
     .replace(/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*/g, '[token removed]')

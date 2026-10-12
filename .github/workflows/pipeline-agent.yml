@@ -603,6 +603,11 @@ jobs:
         continue-on-error: true
         env:
           EXECUTION_FILE: ${{ steps.agent.outputs.execution_file }}
+          # Their exact values are cut out of whatever is shown, on top of the
+          # credential-shaped patterns. Only this trusted script sees them.
+          KNOWN_SECRETS: |
+            ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+            ${{ github.token }}
         run: |
           node "$RUNNER_TEMP/trusted/scripts/ci/agent-digest.mjs" \
             "${EXECUTION_FILE:-$RUNNER_TEMP/claude-execution-output.json}" \

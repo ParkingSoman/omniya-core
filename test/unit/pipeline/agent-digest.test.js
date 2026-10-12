@@ -41,3 +41,8 @@ test('bad input gives a line, not an error', () => {
   assert.match(digest(null), /no agent steps/);
   assert.match(digest({}), /no agent steps/);
 });
+
+test('scrub cuts out the exact secret values it is given, whatever their shape', () => {
+  assert.equal(scrub('the value is hunter2hunter2 ok', ['hunter2hunter2']), 'the value is [secret removed] ok');
+  assert.equal(scrub('short abc ok', ['abc']), 'short abc ok');
+});
