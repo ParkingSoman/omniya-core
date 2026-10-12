@@ -291,6 +291,8 @@ test('the digest step shows what the agent did, always, from the trusted copy, a
   assert.ok(step, 'expected a digest step');
   assert.equal(step.if, 'always()');
   assert.equal(step['continue-on-error'], true);
+  // The agent can write where this script is copied, so no secret may reach the step.
+  assert.ok(!JSON.stringify(step.env ?? {}).includes('secrets.') && !/token/i.test(JSON.stringify(step.env ?? {})), 'no secret in the digest step env');
   assert.match(step.run, /\$RUNNER_TEMP\/trusted\/scripts\/ci\/agent-digest\.mjs/);
   const copy = steps.find((s) => /git show "origin\/testing:scripts\/ci\/\$f"/.test(s.run ?? ''));
   assert.match(copy.run, /agent-digest\.mjs/);
