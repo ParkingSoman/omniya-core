@@ -137,10 +137,41 @@ test('a revision is checked and rebuilt, and an answer is not', () => {
   const verify = workflow.jobs.verify;
   assert.equal(verify.uses, VERIFY);
   assert.equal(verify.if, "needs.agent.outputs.result == 'revised'", 'rebuilding on a question spends two packaging jobs on a reply');
-  assert.equal(verify.with.status_before, 'revising', 'the contributor is told the build is being replaced');
+  // No "I am changing the fix" comment. The contributor's own comment started the
+  // round, and the one reply they hear is the new build, which says it is the
+  // same links.
+  assert.equal(verify.with.reply_state, 'revised');
+  assert.equal(verify.with.message, '${{ needs.agent.outputs.message }}');
+  assert.equal(verify.with.status_before, undefined);
   assert.equal(verify.with.pr_number, '${{ needs.agent.outputs.pr }}');
   assert.equal(verify.with.branch, '${{ needs.agent.outputs.branch }}');
   assert.doesNotMatch(source, /gh workflow run/, 'verify starts the checks');
+});
+
+test('an answer, a design refusal and a stop each get one comment, with the agent words inside', () => {
+  const reply = workflow.jobs.reply;
+  assert.ok(reply, 'expected a `reply` job');
+  const condition = reply.if.replace(/\s+/g, ' ');
+  for (const word of ['answered', 'needs-design', 'stopped']) {
+    assert.match(condition, new RegExp(`needs\\.agent\\.outputs\\.result == '${word}'`), word);
+  }
+  assert.doesNotMatch(condition, /'revised'|'approved'/, 'a revision is announced by the build, and approval by the hand-off');
+  const step = reply.steps.find((s) => /reply\.mjs/.test(s.run ?? ''));
+  assert.equal(step.env.MESSAGE, '${{ needs.agent.outputs.message }}');
+  assert.doesNotMatch(step.run, /\$\{\{/, 'agent text must never be written into a run line');
+  assert.match(step.run, /STATE=design/);
+  assert.match(step.run, /STATE=stuck/);
+  assert.doesNotMatch(step.run, /gh issue|gh label/, 'the script labels the issue, once');
+  assert.equal(reply.steps[0].with?.ref, 'testing', 'the helper is not on `main`');
+  assert.doesNotMatch(JSON.stringify(reply.steps), /claude-code-action/, 'saying so costs no quota');
+});
+
+test('the kind is read from the labels, and a routed report is read as a bug by the agent', () => {
+  const step = workflow.jobs.allowlist.steps.find((s) => s.id === 'kind');
+  assert.ok(step, 'expected a step that reads the kind');
+  assert.match(step.run, /issue-kind\.mjs/);
+  assert.equal(workflow.jobs.allowlist.permissions.issues, 'read');
+  assert.equal(workflow.jobs.agent.with.kind, "${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}");
 });
 
 test('"it works" hands the fix to the maintainer, and does not merge it', () => {
@@ -157,7 +188,7 @@ test('"it works" hands the fix to the maintainer, and does not merge it', () => 
 test('the agent cannot start, cancel or re-run workflows', () => {
   assert.equal(workflow.permissions?.actions, undefined, 'not at workflow level');
   assert.equal(workflow.jobs.agent.permissions?.actions, undefined, 'not in the job that runs the agent');
-  assert.deepEqual(workflow.jobs.agent.permissions, { contents: 'write', 'pull-requests': 'write', issues: 'write' });
+  assert.deepEqual(workflow.jobs.agent.permissions, { contents: 'write', 'pull-requests': 'write', issues: 'read' });
   assert.doesNotMatch(
     JSON.stringify([workflow.jobs.verify, workflow.jobs.handoff].map((j) => j.steps ?? [])),
     /claude-code-action/,
@@ -174,8 +205,8 @@ test('a crashed agent run is told, without rewriting the comment that holds the 
   const run = failed.steps.map((s) => s.run ?? '').join('\n');
   assert.match(run, /gh issue comment/);
   assert.match(run, /needs-maintainer/);
-  // The earlier links still work, and the status comment still shows them.
-  assert.doesNotMatch(run, /status-comment\.mjs/);
+  // The earlier links still work, and an earlier comment still holds them.
+  assert.doesNotMatch(run, /status-comment\.mjs|reply\.mjs/);
   assert.match(run, /earlier download links still work/);
   assert.doesNotMatch(JSON.stringify(failed.steps), /claude-code-action/, 'saying so costs no quota');
 });

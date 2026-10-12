@@ -10,7 +10,26 @@ aloud.
 
 You never need to leave your issue. Everything happens there.
 
-Open a bug report on GitHub. Use the "Bug report" form, not a blank issue.
+Open a new issue on GitHub. You must pick one of four forms. Pick the one that
+fits.
+
+| Form | Use it when | Who works on it |
+|---|---|---|
+| Bug report | Something the app says it does is missing or does not work. | An agent |
+| Nemeth feature | A symbol or rule from the Nemeth Code is missing. | An agent |
+| Design | You want something new, or want the app to look, sound or behave differently. | A person |
+| Other | It is none of the above. | A person |
+
+A Bug report and a Nemeth feature are worked on automatically. This is on
+purpose. A missing symbol is a question of whether the app is complete, and you
+know the Code. A new idea about how the app should feel is different. A person
+reads a Design report or an Other report, and answers it on the issue. No agent
+starts on those.
+
+Each issue gets one comment from the pipeline for each thing that happens. It
+does not say the same thing twice. Every comment has something new in it.
+
+### The Bug report form
 
 The form asks three things. What happened. What you expected instead. And a
 diagnostics dump.
@@ -25,28 +44,32 @@ anything you would rather not publish. If the dump is the only way to show the
 bug and you would rather not publish it, say so in the form and send it by
 email instead.
 
-The second field is the one that decides what happens next. If you describe what
-should have happened, the report is treated as a bug and worked on
-automatically. If you are asking for something the app does not do yet, that is
-a design decision, and a person answers it. You will get a comment saying so
-rather than silence.
+### The Nemeth feature form
 
-Here is what happens after you press submit.
+The form asks for the symbol in words, the braille cells, and what it means and
+how it should be read aloud. It can also take the section of the Nemeth Code, if
+you know it. The diagnostics are optional. You do not have to know how it should
+be read. If you do not, say so, and the agent will choose a reading the Code
+implies and tell you which one.
 
-Within a minute, a comment appears on your issue that starts with "Where this
-fix stands". It says that work has started. You do not need to do anything.
+The agent looks the rule up in the Nemeth Code itself. Your description tells it
+what is missing. The Code tells it what to add. If the two differ, the Code wins,
+and you will be told.
 
-An agent reads your report, reproduces the bug, writes a test that fails for
+### What happens after you press submit
+
+Within a minute, one short comment appears on your issue. It says that work has
+started. You do not need to do anything.
+
+An agent reads your report, reproduces the problem, writes a test that fails for
 your reason, and fixes it. Then it checks its own work. If a check fails, it
-repairs the fix and checks again. You do not see any of that.
+repairs the fix and checks again. You do not see any of that, and you hear
+nothing from the pipeline until it is done.
 
-About an hour later, the same comment changes. It now says that a test build is
-ready, and that all the automatic checks passed. It has two download links. One
-is for Mac and one is for Windows. GitHub does not notify you when a comment is
-edited. So the pipeline also writes one short new comment, which links to the
-one with the download links. You hear that one. Open the link in it. The
-download links are always in the same place, so come back to the same comment
-each time.
+About an hour later, one new comment appears. It says what the agent understood
+and what it changed. Under that are two download links. One is for Mac and one
+is for Windows. It also says that all the automatic checks passed, and what to
+write next. Open the links in that comment.
 
 Install the build and try the thing that was broken. You are the only person
 who can answer whether the bug is actually gone. That is why this step exists,
@@ -56,9 +79,9 @@ Now there are two things you can do. Both are a new comment on the same issue.
 
 If it is still wrong, write a comment that starts with `@claude` and say what
 you found. The agent reads your comment and the whole conversation, and changes
-the fix. A new build replaces the old one behind the same links. Download again
-from the links already in the "Where this fix stands" comment. They do not
-change. The comment says "I am changing the fix" while the new build is made.
+the fix. Then you get one new comment. It says what the agent changed, and that
+the links are the same links as before. Download again from them. Nothing is
+written to you while the new build is made.
 
 If it works, write `@claude it works`. Do not close the issue. The agent sends
 the fix to the maintainer, who reviews it and merges it. The issue closes by
@@ -69,34 +92,83 @@ reviews it first.
 If you close the issue yourself, the fix is not sent. You get a comment that
 says so and tells you what to write instead. Open the issue again and write it.
 
+If you ask a question, start it with `@claude` too. You get one comment with the
+answer. The code does not change.
+
 The word `@claude` is what starts the work. A comment without it is read by
 people, not by the agent. That is on purpose: each run costs the maintainer part
-of a paid quota, so "thanks, I will test tonight" should not spend one. The
-"Where this fix stands" comment reminds you of the word each time.
+of a paid quota, so "thanks, I will test tonight" should not spend one. Each
+comment with links in it reminds you of the word.
 
 You can go round this as many times as it takes.
 
-One more thing can appear. The comment may say that the maintainer needs to look
-at a technical problem. That means the checks failed in a way the agent could
-not repair. Nothing is wrong with your report and you do not need to do
-anything. The maintainer will write on the issue when there is news.
+Two more things can appear. The agent may say that it could not reproduce the
+problem, and ask one question. Answer it with a comment that starts with
+`@claude`. Or a comment may say that the maintainer needs to look at a technical
+problem. That means the checks failed in a way the agent could not repair.
+Nothing is wrong with your report and you do not need to do anything. The
+maintainer will write on the issue when there is news.
 
 ## If you maintain this repository
 
 ### What the contributor sees, and what you see
 
+One comment per event. The pipeline writes every comment on the issue, and the
+agent writes none. The agent leaves its plain words in a file. The pipeline puts
+them inside the one comment the event gets. Nothing is edited, because GitHub
+sends no notification for an edit and a blind contributor would never hear it.
+
+| Event | The one comment on the issue | You see |
+|---|---|---|
+| Bug or Nemeth report filed | "I started on this" | Nothing yet |
+| Design or Other report filed | "A person will answer here". No agent runs | The issue, labelled `design` or `other` |
+| Agent finishes, checks and build pass | The agent's words, then the links, then what to write next | A draft pull request into `testing`. Green `unit`, `nemeth`, `e2e` |
+| Agent says it is design, or could not finish | The agent's words, then that the maintainer will answer | Label `needs-design` or `needs-maintainer` |
+| Contributor writes `@claude` and a problem | One comment: what changed, the same links | New commits on the same branch |
+| Contributor writes `@claude` and a question | One comment: the answer | Nothing |
+| Contributor writes `@claude it works` | One comment: sent to the maintainer | Pull request out of draft, label `ready-for-maintainer`, you asked to review |
+| You merge | A closing comment, and the issue closes | The merge into `testing` |
+
 The contributor sees one issue. You see a pull request, and the pipeline keeps
 the two joined by a `Fixes #<number>` line, which is the last line of the pull
 request body.
 
-| Step | The contributor sees on the issue | You see |
+### Why the agent posts nothing
+
+The contributor used to hear everything twice or three times. The pipeline wrote
+an edited status comment and a notice about the edit, and the agent wrote its own
+comment as well. Asking the agent to stay quiet did not hold, because two writers
+shared one issue. So the agent no longer has a way to post. Its job has
+`issues: read`. It writes `message.md`. `pipeline-agent.yml` returns that text as
+the `message` output, and `scripts/ci/reply.mjs` posts it once.
+
+The agent's text is untrusted. It reaches the next jobs through `env` and never
+inside a `run:` line. `reply.mjs` cuts it to 2000 characters and drops any line
+that carries the pipeline's marker.
+
+### The four kinds
+
+The form puts a label on the issue, and `scripts/ci/issue-kind.mjs` reads it.
+
+| Label | Kind | What runs |
 |---|---|---|
-| Report filed | "Where this fix stands": working | Nothing yet |
-| Agent finishes | One short plain comment from the agent | A draft pull request into `testing` |
-| Checks and build pass | The same comment, edited: build ready, with links. Plus one short new comment, because an edit sends no notification | Green `unit`, `nemeth`, `e2e`. Draft still |
-| Contributor writes `@claude` and a problem | The same comment, edited: changing the fix | New commits on the same branch |
-| Contributor writes `@claude it works` | The same comment, edited, plus a short new comment: sent to the maintainer | Pull request out of draft, label `ready-for-maintainer`, you asked to review |
-| You merge | A closing comment, and the issue closes | The merge into `testing` |
+| `bug` | `bug` | The agent |
+| `nemeth` | `nemeth` | The agent, told that a missing symbol is its work, and where the Nemeth Code is |
+| `design`, `other` | `routed` | One comment. No agent, no quota |
+| none | `bug` | The agent. This is how every report was before there were types |
+
+Both `design` and `nemeth` on one issue is `routed`. When in doubt, a person
+decides.
+
+A `nemeth` agent reads `test/corpus/sources/Nemeth_2022.pdf` and the errata
+before it writes code, and the pull request must cite the section and page. It
+keeps every standing rule: `ERROR` stays 0, the utility core set must not
+regress, and no test or corpus row is weakened. Read the cited section at
+merge time. A contributor can say that the symbol works for them, and cannot say
+that the Code agrees.
+
+To change what a label does, change `issue-kind.mjs` and its test. Do not add
+logic to a stub.
 
 ### Merging a fix
 
@@ -162,7 +234,7 @@ thing: it calls the real workflow on `testing`. The prompts, the tools and the
 gates all live on `testing`. Changing what the pipeline does is an ordinary pull
 request into `testing`, and nothing is copied to `main`.
 
-Three things live on `main`. The stubs, the allowlist, and the issue form. The
+Three things live on `main`. The stubs, the allowlist, and the issue forms. The
 stubs are copied there once from `.github/pipeline-stubs/`, and only again if a
 stub itself is edited. The allowlist exists on `main` only, on purpose, so that
 the people who can merge to `testing` cannot add themselves to it.
@@ -183,20 +255,21 @@ The gates and the build are the other way round. They trigger on
 `pull_request`, and GitHub runs the pull request's own copy of those files, so
 they live on `testing` with everything else and never go near `main`.
 
-The labels `needs-design`, `needs-maintainer` and `ready-for-maintainer` have to
-exist, because adding a label that does not exist fails. The pipeline creates
-the last two itself when it needs them. `needs-design` is put on a report that
-turns out to be a feature request, and it has to be created by hand once.
+The labels `nemeth`, `design` and `other` have to exist, because a form cannot
+apply a label that does not exist, and GitHub does not warn. Create them by hand
+once. The pipeline creates `needs-design`, `needs-maintainer` and
+`ready-for-maintainer` itself when it needs them.
 
 ### Changing a stub
 
 The follow-up stub changed when the contributor moved from the pull request to
-the issue. The same is true of the issue form. A change to either has to reach
-`main`, and `pipeline-on-main` fails the `testing` pull request until it does.
+the issue. The same is true of the issue forms and `config.yml`. A change to any
+of them has to reach `main`, and `pipeline-on-main` fails the `testing` pull
+request until it does.
 
 The order is this. Open the pull request into `testing`. It shows a red
 `pipeline-on-main`, which is expected. Open a second pull request into `main`
-that carries only the changed stub and the changed issue form, copied byte for
+that carries only the changed stub and the changed issue forms, copied byte for
 byte. Merge the one into `main` first. Run `pr-checks` again on the `testing`
 pull request, and merge it when it is green.
 
@@ -288,6 +361,16 @@ The agent now runs with `track_progress` off. The action then chooses its "agent
 mode on every event, which makes no branch of its own. The fix prompt creates the
 branch itself. If a fix run ends with no pull request, read that first.
 
+The agent job now holds `issues: read`, not write. If a run dies at its very
+start with a permission error from the Claude action, look there first. The
+action might need to write on the issue even in agent mode. If it does, restore
+`issues: write` on that one job and keep the prompt rule. The unit tests pin the
+`read` value, so they will fail until they are changed with it.
+
+The agent's words travel as a multi-line job output. If a reply arrives with the
+agent's part empty, check that the `result` step wrote `message<<` to
+`$GITHUB_OUTPUT`, and that `message.md` existed.
+
 The comment path reads the thread from the issue, through `listed-thread.mjs`. The
 agent's own earlier comments are by a bot and are left out of it, so the agent
 reads the pull request body and the commits to remember what it changed.
@@ -302,8 +385,11 @@ you; it just never runs.
 
 | File | Lives on | What it does |
 |---|---|---|
-| `.github/ISSUE_TEMPLATE/bug-report.yml` | `main` | The form. Three required fields. Says where to write next. |
-| `.github/ISSUE_TEMPLATE/config.yml` | `main` | Keeps blank issues on, so a feature request has somewhere to go. |
+| `.github/ISSUE_TEMPLATE/bug-report.yml` | `main` | The Bug report form. Label `bug`. Three required fields. |
+| `.github/ISSUE_TEMPLATE/nemeth-feature.yml` | `main` | The Nemeth feature form. Label `nemeth`. The symbol, the cells, the reading. |
+| `.github/ISSUE_TEMPLATE/design.yml` | `main` | The Design form. Label `design`. A person answers. |
+| `.github/ISSUE_TEMPLATE/other.yml` | `main` | The Other form. Label `other`. A person answers. |
+| `.github/ISSUE_TEMPLATE/config.yml` | `main` | Turns blank issues off, so every report has a type. |
 | `.github/contributors.yml` | `main` | Who may drive the pipeline. Exists on `main` only. |
 | `scripts/ci/allowlist.mjs` | `main` | Reads that file and decides. Fails closed. Also kept on `testing`, and the two must match. |
 | `.github/workflows/contributor-fix.yml` | `main` | Stub. Issue opened, or run by hand, calls `pipeline-fix.yml`. |
@@ -317,7 +403,8 @@ you; it just never runs.
 | `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment saying closing sends nothing. |
 | `.github/workflows/pipeline-close-issue.yml` | `testing` | Your merge of a fix closes its issue. |
 | `scripts/ci/find-fix-pr.mjs` | `testing` | The one rule for "which open pull request is the fix for issue N". |
-| `scripts/ci/status-comment.mjs` | `testing` | Writes and edits the "Where this fix stands" comment. |
+| `scripts/ci/reply.mjs` | `testing` | Posts the one comment an event gets, with the agent's words inside. Labels the issue. |
+| `scripts/ci/issue-kind.mjs` | `testing` | Reads the form's label and says `bug`, `nemeth` or `routed`. |
 | `scripts/ci/verify-branch.mjs` | `testing` | Starts the checks and the build, waits, and keeps the log of what failed. |
 | `scripts/ci/hand-off.mjs` | `testing` | Takes the pull request out of draft when the contributor says it works. |
 | `scripts/ci/gh.mjs` | `testing` | Runs `gh` without a shell. Shared by the scripts above. |

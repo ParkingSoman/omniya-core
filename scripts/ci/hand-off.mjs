@@ -19,7 +19,7 @@
 import { pathToFileURL } from 'node:url';
 
 import { gh, requireNumber, setOutputs } from './gh.mjs';
-import { writeStatus } from './status-comment.mjs';
+import { postReply } from './reply.mjs';
 
 export const REQUIRED_CHECKS = ['unit', 'nemeth', 'e2e'];
 
@@ -80,7 +80,7 @@ export function handOff({ issue, pr, repo, reviewer }) {
     'pr', 'comment', prNumber, '--repo', repo, '--body',
     `The contributor installed the build and says it works.\n\nCommit tested: ${sha}\n\n${REQUIRED_CHECKS.join(', ')} are green on that commit. Closing issue #${issueNumber} is left to your merge, which closes it.`
   ]);
-  writeStatus({ issue: issueNumber, state: 'sent', repo });
+  postReply({ issue: issueNumber, state: 'sent', repo });
   return { sent: true, sha, missing: [] };
 }
 
