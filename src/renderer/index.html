@@ -56,6 +56,10 @@
             <span>Find</span>
           </button>
           <span class="toolbar-fill" aria-hidden="true"></span>
+          <button id="delete-button" type="button" class="button-quiet" aria-label="Delete note">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" /></svg>
+            <span>Delete</span>
+          </button>
           <button id="export-button" type="button" class="button-quiet" aria-haspopup="dialog">
             <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M10 3v10M6 7l4-4 4 4M4 13v3h12v-3" /></svg>
             <span>Export</span>
@@ -111,13 +115,7 @@
           <div class="page">
             <div class="title-row">
               <h2 id="current-napkin-name" contenteditable="plaintext-only" spellcheck="false">Loading…</h2>
-              <div class="title-actions" role="group" aria-label="This note">
-                <span id="save-status" class="save-status"></span>
-                <button id="delete-button" type="button" class="button-quiet button-small" aria-label="Delete note">
-                  <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" /></svg>
-                  <span>Delete</span>
-                </button>
-              </div>
+              <span id="save-status" class="save-status"></span>
             </div>
             <!-- Kept for the braille-input diagnostics and for tests. The equation panel says the same thing in plain words. -->
             <span id="mode-panel" tabindex="-1" class="sr-only" aria-hidden="true"></span>

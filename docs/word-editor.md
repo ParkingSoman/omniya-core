@@ -4,8 +4,10 @@ A napkin is one document. You type in it. You undo and redo in it. An equation
 sits inside a sentence, as one unit. Only two things are new: writing an
 equation as Nemeth or LaTeX, and reading or editing an equation by its parts.
 
-The rule for this editor is **do not innovate**. Where Word has a key, the
-editor uses that key. Every key below is listed with the reason it is there.
+The rule for this editor is **do not innovate**. The screen and the notes copy
+Apple Notes. The equation key, and typing an equation in the line, copy Word.
+Where Word has a key, the editor uses that key. Every key below is listed with
+the reason it is there.
 
 ## Keys that come from Word
 
@@ -41,19 +43,19 @@ undo step. Typing and equations share one history.
 
 ## The screen
 
-The page is built to look like a note-taking app and to work like Word. The
+The page is built to look and behave like Apple Notes, with Word's way of typing an equation. The
 rules behind it, and how they were checked, are in `docs/judging.md`.
 
 | Part | What it is | Why |
 |---|---|---|
 | Notes list (left) | A plain list under "Notes", with "New note" | Apple Notes and Bear. The interface says "note"; the code, files and schema still say "napkin". |
 | Toolbar (top) | Undo, Redo, Insert equation (shows its key), Find, Export and Shortcuts. Real, labelled buttons in the Tab order. | Word's quick-access bar. Discoverable without help. |
-| Note title | The note's name as a heading, with Rename and Delete beside it | The actions sit next to the thing they change. |
-| The page | One reading column on a white page. No border, no side bar on focus. An empty note shows what to do. | Writing is the whole screen. |
+| Note title | The note's name, as large text at the top of the page. It is plain text: click it and type to rename, as with any line. Enter or Down goes to the note. Up from the first line comes back. The list follows as you type. There is no Rename button and no name prompt: New note makes a note at once and puts the caret in its title. | Apple Notes has no separate name box. The first line is the title. |
+| The page | The page fills the window beside the notes list. No border, no side columns. An empty note shows what to do. | Writing is the whole screen, as in Notes. |
 | Find bar | A strip under the toolbar: one field, "2 of 5", Previous, Next, Close. Every match is highlighted. Escape closes it and leaves the match selected. | Word's find, kept as small as it can be. It also finds text inside equations the person typed. |
-| Equation panel | A strip under the toolbar. A visible Nemeth braille / LaTeX choice, one field, a preview of the equation, Insert, Cancel. | Word's equation input with its preview. It pushes the page down so it never covers the line being edited. |
+| Equation field | A small box in the line, at the caret (or right after the equation being edited). One field, a preview of the equation, a Nemeth braille / LaTeX choice, Insert, Cancel. Enter inserts and the caret goes after the equation. | Word's equation input, typed where the equation will be. The Nemeth reading is still announced on every key, and refusals still show. |
 | Export dialog | Web page, LaTeX document, plain text, Print | Word's Save As and Print, in one short list |
-| Save status | "Saved" beside the note title. A one-line hint under the title while an equation is selected. | Apple Notes and Word keep state next to the title, not in a bar. There is no status bar. |
+| Save status | Said to a screen reader, not shown. A one-line hint under the title while an equation is selected. Delete is a toolbar button. | Apple Notes shows no save state. There is no status bar. |
 | Shortcuts | A dialog of short tables | Word's shortcut sheet |
 
 Equations alone on a line are centred, as in Word. Light and dark follow the
@@ -122,8 +124,13 @@ text      = { type: 'text', text }
 math      = { type: 'math', attrs: { mathml, source, sourceKind: 'nemeth' | 'latex' } }
 ```
 
-`source` is what the person typed. It is empty after an edit by parts, because
-what was typed replaced only part of the equation. The spoken label is not
+`source` is what the person typed. After an edit by parts (replace, append or
+prepend) it is the whole equation written back as LaTeX: the edit is written out
+as one expression and converted again, as a new equation is, so the equation is
+always what a fresh parse of that expression gives. If the expression cannot be
+written back, `source` is empty and the edit keeps the shape the splice gave it.
+MathJax's `data-latex` on each node (kept in stored equations only) is what makes
+the write-back possible. The spoken label is not
 saved. MathJax makes it each time the equation is drawn.
 
 ### Reading an equation

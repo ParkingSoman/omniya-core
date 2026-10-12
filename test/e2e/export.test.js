@@ -138,7 +138,7 @@ test('print style hides the chrome and keeps the note', { timeout: 90_000 }, asy
   const { page } = await start(t);
   await writeSampleNote(page);
   await page.emulateMedia({ media: 'print' });
-  for (const selector of ['#napkin-rail', '#toolbar', '.title-actions']) {
+  for (const selector of ['#napkin-rail', '#toolbar']) {
     const display = await page.locator(selector).first().evaluate((el) => getComputedStyle(el).display);
     assert.equal(display, 'none', `${selector} is hidden in print`);
   }

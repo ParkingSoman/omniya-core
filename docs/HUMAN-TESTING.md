@@ -97,9 +97,9 @@ npm start
    Redo buttons. Each must work, and a button with nothing to do must look dim
    but keep focus.
 3. Put the caret in the middle of a sentence. Press Alt+= (Windows) or Control+=
-   (Mac), or press the Insert equation button. The equation panel opens under
-   the toolbar with focus in the field. Choose LaTeX (Ctrl+L), type `x^2`, press
-   Enter. The equation appears at the caret, the panel closes, and the caret is
+   (Mac), or press the Insert equation button. A small field opens in the line,
+   at the caret, with focus in it. Choose LaTeX (Ctrl+L), type `x^2`, press
+   Enter. The equation appears at the caret, the field closes, and the caret is
    after the equation. Keep typing: the sentence goes on after the equation.
 4. Nemeth: Alt+= / Control+=, Ctrl+E, then type the computer-braille spelling
    `?a/b#` (a fraction). The line under the field names the reading it used.
@@ -121,11 +121,13 @@ npm start
    was before the edit.
 8. While reading an equation, press **Backspace**: the equation is deleted, and
    undo restores it. Then press **New note** and type a name containing an
-   `a`, `o` or `r`. Every letter must reach the name field, and focus must stay
-   in it. This failed in alpha 14: r / a / o were claimed as explorer shortcuts
+   `a`, `o` or `r`. The caret is in the title. Every letter must reach the
+   title, and focus must stay in it. This failed in alpha 14: r / a / o were claimed as explorer shortcuts
    wherever focus happened to be.
-9. Notes: Ctrl+N (Cmd+N) starts a new note. Rename and Delete beside the title
-   act on the open note, and Delete asks first. Tab from the top reaches "Skip
+9. Notes: Ctrl+N (Cmd+N) starts a new note with the caret in its title. To
+   rename, click the title and type: the list follows. Enter in the title goes
+   to the note, and Up from the first line comes back. Delete is in the toolbar
+   and asks first. Tab from the top reaches "Skip
    to note" first. Press Enter on it and focus lands in the note.
 10. Help → Copy braille input diagnostics after typing in both the note-name
     field and the equation field. The report must carry a `-- typing into:`
