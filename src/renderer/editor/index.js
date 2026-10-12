@@ -3,12 +3,14 @@ import { Decoration, DecorationSet, EditorView } from 'prosemirror-view';
 import { Node as PMNode } from 'prosemirror-model';
 import { closeHistory, history, redo, redoDepth, undo, undoDepth } from 'prosemirror-history';
 import { keymap } from 'prosemirror-keymap';
-import { baseKeymap } from 'prosemirror-commands';
+import { baseKeymap, chainCommands } from 'prosemirror-commands';
 import { editorSchema } from './schema.js';
 import { MathNodeView } from './math-node-view.js';
 
 export { clearMathWithin, renderMathInto, waitForSpeechLabel } from './math-render.js';
-import { backspaceSelectsMath, deleteSelectsMath } from './commands.js';
+import {
+  backspaceSelectsMath, backspaceStopsAtTitle, deleteSelectsMath, deleteStopsAtTitle, enterLeavesTitle,
+} from './commands.js';
 
 const IS_MAC = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '');
 
@@ -133,11 +135,24 @@ function makeFieldPlugin(element) {
   });
 }
 
+// An empty title shows a hint. CSS cannot see that a node has no text, so the
+// editor marks it, as it does for display equations.
+const emptyTitle = new Plugin({
+  props: {
+    decorations(state) {
+      const title = state.doc.firstChild;
+      if (title?.type.name !== 'title' || title.content.size > 0) return null;
+      return DecorationSet.create(state.doc, [Decoration.node(0, title.nodeSize, { class: 'title-empty', 'aria-label': 'Title, empty' })]);
+    },
+  },
+});
+
 function makePlugins(handlers, fieldElement) {
   return [
     history(),
     makeFieldPlugin(fieldElement),
     displayEquations,
+    emptyTitle,
     findPlugin,
     new Plugin({
       props: {
@@ -149,13 +164,6 @@ function makePlugins(handlers, fieldElement) {
             return true;
           }
           const { selection } = view.state;
-          // Up from the first line of the note goes to the title above it.
-          if (event.key === 'ArrowUp' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey
-              && selection.empty && selection.$from.index(0) === 0 && view.endOfTextblock('up')) {
-            event.preventDefault();
-            handlers.onLeaveStart?.();
-            return true;
-          }
           const plain = !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey;
           if (event.key === 'Enter' && plain
               && selection instanceof NodeSelection && selection.node.type.name === 'math') {
@@ -171,8 +179,9 @@ function makePlugins(handlers, fieldElement) {
       'Mod-z': undo,
       'Mod-y': redo,
       'Mod-Shift-z': redo,
-      Backspace: backspaceSelectsMath,
-      Delete: deleteSelectsMath,
+      Enter: enterLeavesTitle,
+      Backspace: chainCommands(backspaceStopsAtTitle, backspaceSelectsMath),
+      Delete: chainCommands(deleteStopsAtTitle, deleteSelectsMath),
     }),
     keymap(baseKeymap),
   ];
@@ -189,17 +198,23 @@ function makePlugins(handlers, fieldElement) {
  */
 export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = '', handlers = {}, equationField = null }) {
   const plugins = makePlugins(handlers, equationField);
-  const stateFor = (json) => EditorState.create({
-    schema: editorSchema,
-    doc: PMNode.fromJSON(editorSchema, json),
-    plugins,
-  });
+  // A note opens with the caret at the start of the body. The title is reached
+  // with Up, a click, or by making a new note.
+  const stateFor = (json) => {
+    const node = PMNode.fromJSON(editorSchema, json);
+    return EditorState.create({
+      schema: editorSchema,
+      doc: node,
+      selection: TextSelection.create(node, node.firstChild.nodeSize + 1),
+      plugins,
+    });
+  };
 
   // What the page needs to know after each change: whether Undo and Redo have
   // anything to do, and whether the note is empty (it then shows a hint).
-  const isEmpty = (state) => state.doc.childCount === 1
-    && state.doc.firstChild.type.name === 'paragraph'
-    && state.doc.firstChild.content.size === 0;
+  const isEmpty = (state) => state.doc.childCount === 2
+    && state.doc.firstChild.content.size === 0
+    && state.doc.lastChild.content.size === 0;
   const historyState = (state) => ({
     canUndo: undoDepth(state) > 0,
     canRedo: redoDepth(state) > 0,
@@ -312,6 +327,13 @@ export function createNapkinEditor({ host, doc, label = 'Napkin', placeholder = 
       if (fieldKey.getState(view.state).pos === null) return;
       view.dispatch(view.state.tr.setMeta(fieldKey, { pos: null }).setMeta('addToHistory', false));
       parkField();
+    },
+    /** Put the caret in the title with its text selected, ready to type over. */
+    focusTitle() {
+      const title = view.state.doc.firstChild;
+      const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, 1, 1 + title.content.size));
+      view.dispatch(tr.scrollIntoView());
+      view.focus();
     },
     setLabel(text) { view.dom.setAttribute('aria-label', text); },
     focus() { view.focus(); },

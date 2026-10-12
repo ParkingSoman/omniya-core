@@ -58,7 +58,7 @@ export function isDisplayEquation(paragraph) {
   return paragraph.content?.length === 1 && paragraph.content[0].type === 'math';
 }
 
-const paragraphs = (doc) => doc?.content ?? [];
+const paragraphs = (doc) => (doc?.content ?? []).filter((block) => block.type !== 'title');
 const isEmpty = (paragraph) => !paragraph.content?.length;
 
 export function docToHtml(name, doc) {

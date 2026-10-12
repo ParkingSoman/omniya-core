@@ -30,7 +30,10 @@ async function launch(dataDirectory) {
   return { electronApp, page };
 }
 
-const doc = (page) => page.evaluate(() => globalThis.__omniyaTesting.editor.getJSON());
+const doc = async (page) => {
+  const full = await page.evaluate(() => globalThis.__omniyaTesting.editor.getJSON());
+  return { ...full, content: full.content.filter((block) => block.type !== 'title') };
+};
 const paragraphTexts = async (page) => (await doc(page)).content.map((p) =>
   (p.content ?? []).map((n) => (n.type === 'text' ? n.text : '[math]')).join(''));
 const settle = (page) => page.waitForTimeout(120);
@@ -55,7 +58,7 @@ test('opens in the document, ready to type', { timeout: 60_000 }, async (t) => {
   assert.equal(await editor.getAttribute('role'), 'textbox');
   assert.equal(await editor.getAttribute('aria-multiline'), 'true');
   assert.equal(await editor.getAttribute('aria-label'), 'Note text');
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Untitled note');
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Untitled note');
   assert.equal(await page.locator('#composer-dock').isVisible(), false, 'no equation dock until asked');
   assert.match(await page.locator('#mode-panel').textContent() ?? '', /Text · UEB G2/);
   assert.equal(await page.evaluate(() => document.activeElement?.closest('#editor-host') !== null), true);
@@ -87,7 +90,7 @@ test('Word\'s key inserts an equation at the caret, in the middle of a sentence'
   // The browser reports the caret to the editor just after each key. Wait until
   // it has arrived, instead of guessing how long that takes on a busy machine.
   await page.waitForFunction(
-    () => globalThis.__omniyaTesting.editor.view.state.selection.from === 7,
+    () => globalThis.__omniyaTesting.editor.view.state.selection.from === 9,
     null,
     { timeout: 5_000 }
   );
@@ -150,12 +153,13 @@ test('saves the document, and reloads it as the same document', { timeout: 120_0
   assert.equal(saved.schemaVersion, 3);
   assert.equal(saved.napkins[0].items, undefined);
   const before = saved.napkins[0].doc;
-  assert.equal(before.content[0].content[0].text, 'Keep ');
-  assert.equal(before.content[0].content[1].type, 'math');
+  assert.equal(before.content[0].type, 'title');
+  assert.equal(before.content[1].content[0].text, 'Keep ');
+  assert.equal(before.content[1].content[1].type, 'math');
 
   await session.electronApp.close();
   session = await launch(dataDirectory);
-  assert.deepEqual(await doc(session.page), before);
+  assert.deepEqual(await doc(session.page), { ...before, content: before.content.filter((block) => block.type !== 'title') });
   await session.page.locator('.math-node mjx-container').first().waitFor();
 });
 

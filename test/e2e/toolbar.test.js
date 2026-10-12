@@ -6,7 +6,8 @@ import test from 'node:test';
 
 import {
   MAC, editorRoot, insertEquation, launchApp, mathNodeLocator, paragraphTexts,
-  press, selectEquation, settle
+  press, selectEquation, settle,
+  retitleNote,
 } from './launch-electron.js';
 
 const EQUATION_KEY = MAC ? 'Control+=' : 'Alt+=';
@@ -41,10 +42,10 @@ async function tabToSkipLink(page) {
 
 async function createNote(page, name) {
   await page.locator('#new-napkin-button').click();
-  await page.locator('#current-napkin-name').fill(name);
-  await page.locator('#current-napkin-name').press('Enter');
+  await page.keyboard.type(name);
+  await page.keyboard.press('Enter');
   await page.waitForFunction(
-    (n) => document.querySelector('#current-napkin-name')?.textContent === n, name);
+    (n) => document.querySelector('#napkin-list [aria-current="page"] .note-name')?.textContent === n, name);
 }
 
 const noteButtons = (page) => page.locator('#napkin-list [data-napkin-id]');
@@ -131,8 +132,8 @@ test('Typing in the title renames, and Delete acts on the open note', { timeout:
 
   // Rename the open note (Beta) by typing in its title. There is no Rename button.
   assert.equal(await page.locator('#rename-button').count(), 0);
-  await page.locator('#current-napkin-name').fill('Gamma');
-  await page.waitForFunction(() => document.querySelector('#current-napkin-name').textContent === 'Gamma');
+  await retitleNote(page, 'Gamma');
+  await page.waitForFunction(() => document.querySelector('#napkin-list [aria-current="page"] .note-name').textContent === 'Gamma');
   const renamed = await noteNames(page);
   assert.ok(renamed.some((n) => n.includes('Gamma')));
   assert.ok(!renamed.some((n) => n.includes('Beta')));
@@ -143,7 +144,7 @@ test('Typing in the title renames, and Delete acts on the open note', { timeout:
   await page.locator('#delete-button').click();
   await settle(page);
   assert.equal((await noteNames(page)).length, before.length);
-  assert.equal((await page.locator('#current-napkin-name').textContent()).trim(), 'Gamma');
+  assert.equal((await page.locator('#napkin-list [aria-current="page"] .note-name').textContent()).trim(), 'Gamma');
 
   // Then accept.
   let message = '';
@@ -154,7 +155,7 @@ test('Typing in the title renames, and Delete acts on the open note', { timeout:
   assert.match(message, /Gamma/);
   const after = await noteNames(page);
   assert.ok(!after.some((n) => n.includes('Gamma')));
-  const current = (await page.locator('#current-napkin-name').textContent()).trim();
+  const current = (await page.locator('#napkin-list [aria-current="page"] .note-name').textContent()).trim();
   assert.notEqual(current, 'Gamma');
   assert.ok(current.length > 0 && current !== 'Loading…');
 });
@@ -189,7 +190,8 @@ test('File > New note makes a note and puts the caret in its title', { timeout: 
     return true;
   });
   assert.equal(found, true, 'File > New note exists');
-  await page.waitForFunction(() => document.activeElement?.id === 'current-napkin-name');
+  await page.waitForFunction(
+    () => Boolean((getSelection().anchorNode?.nodeType === 1 ? getSelection().anchorNode : getSelection().anchorNode?.parentElement)?.closest('#current-napkin-name')));
 });
 
 test('Double-clicking an equation reads it by parts; Escape returns with it selected', { timeout: 120_000 }, async (t) => {

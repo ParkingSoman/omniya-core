@@ -4,7 +4,8 @@ import { canonicalizeMathML } from './math-tree.js';
 // editor (ProseMirror) reads and writes, but nothing here imports it, so the
 // domain stays importable on its own.
 //
-//   { type: 'doc', content: [ paragraph, ... ] }
+//   { type: 'doc', content: [ title?, paragraph, ... ] }
+//   title:     { type: 'title', content?: [ text ] }     the first line, the note's name
 //   paragraph: { type: 'paragraph', content?: [ text | math, ... ] }
 //   text:      { type: 'text', text: '<non-empty string>' }
 //   math:      { type: 'math', attrs: { mathml, source, sourceKind } }
@@ -15,6 +16,48 @@ export const MATH_SOURCE_KINDS = ['latex', 'nemeth'];
 
 export function emptyDoc() {
   return { type: 'doc', content: [{ type: 'paragraph' }] };
+}
+
+/** The name a note has while its title is empty. */
+export const DEFAULT_NOTE_NAME = 'Untitled note';
+
+const isTitle = (block) => block?.type === 'title';
+
+/** The text of the title, or '' when there is none. */
+export function docTitle(doc) {
+  const block = doc?.content?.[0];
+  return isTitle(block) ? (block.content ?? []).map((n) => n.text ?? '').join('') : '';
+}
+
+/**
+ * The same doc with its first line as the title. A doc saved before titles
+ * existed has none, so the note's name becomes it. Passing the default name
+ * leaves the title empty, so a new note shows a placeholder, not "Untitled note".
+ * `replace` swaps an existing title, for a rename.
+ */
+export function docWithTitle(doc, name, { replace = false } = {}) {
+  const text = name === DEFAULT_NOTE_NAME ? '' : String(name ?? '').replace(/\s+/g, ' ').trim();
+  const block = text === '' ? { type: 'title' } : { type: 'title', content: [{ type: 'text', text }] };
+  const content = doc?.content ?? [];
+  if (isTitle(content[0])) {
+    return replace ? { ...doc, content: [block, ...content.slice(1)] } : doc;
+  }
+  return { ...doc, content: [block, ...content] };
+}
+
+/** The name a note should have, given its title. */
+export function nameFromDoc(doc) {
+  return docTitle(doc).replace(/\s+/g, ' ').trim() || DEFAULT_NOTE_NAME;
+}
+
+/** The first line of the body that has any text, for the notes list. */
+export function docSnippet(doc, max = 80) {
+  for (const block of doc?.content ?? []) {
+    if (isTitle(block)) continue;
+    const text = (block.content ?? []).map((n) => (n.type === 'text' ? n.text : n.attrs?.source ?? '')).join('').trim();
+    if (text) return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  }
+  return '';
 }
 
 export function mathNode({ mathml, source = '', sourceKind = 'latex' }) {
@@ -73,10 +116,18 @@ export function validateDoc(doc) {
   if (!doc || typeof doc !== 'object' || Array.isArray(doc) || doc.type !== 'doc') {
     return ['Document must be an object of type doc'];
   }
-  if (!Array.isArray(doc.content) || doc.content.length === 0) {
+  if (!Array.isArray(doc.content) || doc.content.length === 0
+      || (isTitle(doc.content[0]) && doc.content.length === 1)) {
     return ['Document needs at least one paragraph'];
   }
   doc.content.forEach((block, i) => {
+    if (i === 0 && isTitle(block)) {
+      const only = block.content === undefined
+        || (Array.isArray(block.content) && block.content.length > 0
+          && block.content.every((n) => n?.type === 'text' && typeof n.text === 'string' && n.text !== ''));
+      if (!only) issues.push('The title may hold only text');
+      return;
+    }
     if (!block || block.type !== 'paragraph') {
       issues.push(`Block ${i} must be a paragraph`);
       return;
@@ -111,6 +162,7 @@ export function validateDoc(doc) {
 /** Plain text of a doc, with equations as their source text, for counts and search. */
 export function docPlainText(doc) {
   return (doc?.content ?? [])
+    .filter((block) => !isTitle(block))
     .map((block) => (block.content ?? []).map((n) => (n.type === 'text' ? n.text : n.attrs?.source ?? '')).join(''))
     .join('\n');
 }

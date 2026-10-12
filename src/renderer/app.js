@@ -1,10 +1,10 @@
 import {
   createNapkin,
   deleteNapkin,
-  renameNapkin,
-  switchNapkin
+  switchNapkin,
+  withDoc
 } from '../domain/model.js';
-import { emptyDoc } from '../domain/document.js';
+import { docSnippet, docWithTitle, emptyDoc, nameFromDoc } from '../domain/document.js';
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { attachInputCapture } from './input-capture.js';
 import { createInputLog } from './input-log.js';
@@ -43,7 +43,7 @@ import { clearMathWithin, createNapkinEditor, renderMathInto, waitForSpeechLabel
 // identically however it was typed.
 
 const elements = Object.fromEntries([
-  'app-shell', 'announcer', 'napkin-list', 'new-napkin-button', 'current-napkin-name',
+  'app-shell', 'announcer', 'napkin-list', 'new-napkin-button', 'no-note-title', 'note-date',
   'mode-panel', 'save-status', 'document-section', 'empty-message', 'editor-host',
   'undo-button', 'redo-button', 'insert-equation-button', 'insert-equation-key', 
   'delete-button', 'skip-to-note', 'status-hint',
@@ -161,18 +161,29 @@ function commitPendingDoc() {
   pendingDoc = null;
   state = {
     ...state,
-    napkins: state.napkins.map((napkin) => (napkin.id === id ? { ...napkin, doc } : napkin))
+    napkins: state.napkins.map((napkin) => (napkin.id === id ? withDoc(napkin, doc) : napkin))
   };
   return true;
 }
 
 function onEditorChange(doc) {
   pendingDoc = doc;
+  showLiveRow(doc);
   clearTimeout(docTimer);
   docTimer = setTimeout(() => {
     if (commitPendingDoc()) void saveState({ announce: false }).catch(() => {});
   }, 250);
   if (!elements['find-bar'].hidden && editor) renderFindCount(editor.findState());
+}
+
+/** The notes list follows the title and the first line as they are typed. */
+function showLiveRow(doc) {
+  const row = elements['napkin-list'].querySelector(`[data-napkin-id="${CSS.escape(editorNapkinId ?? '')}"]`);
+  if (!row) return;
+  const name = nameFromDoc(doc);
+  row.setAttribute('aria-label', name);
+  row.querySelector('.note-name').textContent = name;
+  row.querySelector('.note-snippet').textContent = docSnippet(doc);
 }
 
 /** Save now. For switching napkins, closing, and tests. */
@@ -189,7 +200,16 @@ function renderNapkins() {
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.napkinId = napkin.id;
-    button.textContent = napkin.name;
+    // The name, and under it the first line of the note, as Apple Notes lists them.
+    // The button is named by the name alone, so a screen reader does not read both.
+    button.setAttribute('aria-label', napkin.name);
+    const name = document.createElement('span');
+    name.className = 'note-name';
+    name.textContent = napkin.name;
+    const snippet = document.createElement('span');
+    snippet.className = 'note-snippet';
+    snippet.textContent = docSnippet(napkin.doc);
+    button.append(name, snippet);
     if (napkin.id === state.activeNapkinId) button.setAttribute('aria-current', 'page');
     elements['napkin-list'].append(button);
   }
@@ -197,12 +217,16 @@ function renderNapkins() {
 
 function renderHeader() {
   const napkin = activeNapkin();
-  const title = elements['current-napkin-name'];
-  const text = napkin?.name ?? 'No note open';
-  // Someone typing in the title must not have it rewritten under their caret.
-  if (document.activeElement === title && title.textContent === text) return;
-  title.textContent = text;
-  title.contentEditable = napkin ? 'plaintext-only' : 'false';
+  elements['no-note-title'].hidden = Boolean(napkin);
+  renderDate(napkin);
+}
+
+/** The day and time the note last changed, small and grey above the title, as in Apple Notes. */
+function renderDate(napkin) {
+  const when = napkin?.updatedAt ? new Date(napkin.updatedAt) : null;
+  elements['note-date'].textContent = when && !Number.isNaN(when.valueOf())
+    ? when.toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })
+    : '';
 }
 
 function renderAll() {
@@ -260,7 +284,7 @@ function loadEditor() {
   if (!editor) {
     editor = createNapkinEditor({
       host: elements['editor-host'],
-      doc: napkin.doc,
+      doc: docWithTitle(napkin.doc, napkin.name),
       label: NOTE_TEXT_LABEL,
       placeholder: `Start writing. Press ${EQUATION_KEY} to add an equation.`,
       equationField: elements['composer-dock'],
@@ -269,7 +293,6 @@ function loadEditor() {
         onStateChange: updateToolbar,
         onInsertEquation: () => applyEquationInsert(preferredAuthoringMethod),
         onEnterMath: (pos) => { void enterExplorer(pos); },
-        onLeaveStart: () => focusTitle(),
       }
     });
   } else if (editorNapkinId === napkin.id) {
@@ -277,7 +300,7 @@ function loadEditor() {
     // history exactly as they are.
     return;
   } else {
-    editor.setDoc(napkin.doc);
+    editor.setDoc(docWithTitle(napkin.doc, napkin.name));
     if (!elements['find-bar'].hidden) runFind();
   }
   editorNapkinId = napkin.id;
@@ -1146,42 +1169,8 @@ async function deleteFocusedNapkin(napkinId) {
 
 /** Put the caret in the note's title with the name selected, ready to type over. */
 function focusTitle() {
-  const title = elements['current-napkin-name'];
-  title.focus();
-  getSelection().selectAllChildren(title);
+  editor?.focusTitle();
 }
-
-// The title is plain text on the page, as the first line of a note is in Apple
-// Notes. Typing in it renames the note, and the list follows as you type.
-let titleTimer;
-elements['current-napkin-name'].addEventListener('input', () => {
-  const napkin = activeNapkin();
-  if (!napkin) return;
-  const name = elements['current-napkin-name'].textContent.replace(/\s+/g, ' ').trim();
-  // An empty title is allowed while typing. The note keeps its last name until
-  // the title is left, and then it gets that name back.
-  if (!name || name === napkin.name) return;
-  state = renameNapkin(state, napkin.id, name);
-  const button = elements['napkin-list'].querySelector(`[data-napkin-id="${CSS.escape(napkin.id)}"]`);
-  if (button) button.textContent = name;
-  clearTimeout(titleTimer);
-  titleTimer = setTimeout(() => void saveState({ announce: false }).catch(() => {}), 250);
-});
-
-elements['current-napkin-name'].addEventListener('keydown', (event) => {
-  // Enter ends the line, as it does in any text. The next line is the note.
-  if (event.key === 'Enter' || (event.key === 'ArrowDown' && !event.shiftKey)) {
-    event.preventDefault();
-    focusEditor();
-  }
-});
-
-elements['current-napkin-name'].addEventListener('blur', () => {
-  // Leaving the title shows the name the note actually has: an empty title gets
-  // its last name back, and stray spaces are tidied.
-  const napkin = activeNapkin();
-  if (napkin) elements['current-napkin-name'].textContent = napkin.name;
-});
 
 elements['new-napkin-button'].addEventListener('click', async () => {
   cancelEquation();

@@ -138,7 +138,7 @@ test('the first match at or after the caret is the current one', { timeout: 60_0
   await search(page, 'cat');
   assert.equal(await count(page).textContent(), '2 of 3');
   assert.equal(await current(page).textContent(), 'cat');
-  assert.equal((await selection(page)).from, 9);
+  assert.equal((await selection(page)).from, 11);
 });
 
 test('no matches says so, and an empty query is silent', { timeout: 60_000 }, async (t) => {
@@ -319,13 +319,13 @@ test('editing the note while the bar is open updates the count',
 test('switching to another note runs the search again on that note', { timeout: 90_000 }, async (t) => {
   const { page } = await start(t);
   await writeNote(page);
-  const firstName = (await page.locator('#current-napkin-name').textContent()).trim();
+  const firstName = (await page.locator('#napkin-list [aria-current="page"] .note-name').textContent()).trim();
 
   await page.locator('#new-napkin-button').click();
-  await page.locator('#current-napkin-name').fill('Second');
-  await page.locator('#current-napkin-name').press('Enter');
+  await page.keyboard.type('Second');
+  await page.keyboard.press('Enter');
   await page.waitForFunction(
-    () => document.querySelector('#current-napkin-name')?.textContent === 'Second');
+    () => document.querySelector('#napkin-list [aria-current="page"] .note-name')?.textContent === 'Second');
   await focusDocument(page);
   await page.keyboard.type('one cat only');
   await settle(page);
@@ -336,7 +336,7 @@ test('switching to another note runs the search again on that note', { timeout: 
 
   await page.locator('#napkin-list [data-napkin-id]', { hasText: firstName }).first().click();
   await page.waitForFunction(
-    (n) => document.querySelector('#current-napkin-name')?.textContent === n, firstName);
+    (n) => document.querySelector('#napkin-list [aria-current="page"] .note-name')?.textContent === n, firstName);
   await page.waitForFunction(() => document.querySelector('#find-count').textContent === '1 of 3');
   assert.equal(await matches(page).count(), 3);
   assert.equal(await bar(page).isVisible(), true);

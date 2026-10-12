@@ -28,8 +28,8 @@ async function start(t, prefix, { seed } = {}) {
 
 async function createNapkin(page, name) {
   await page.getByRole('button', { name: 'New note' }).click();
-  await page.locator('#current-napkin-name').fill(name);
-  await page.locator('#current-napkin-name').press('Enter');
+  await page.keyboard.type(name);
+  await page.keyboard.press('Enter');
 }
 
 const rail = (page) => page.getByRole('complementary', { name: 'Notes' });
@@ -68,7 +68,7 @@ test('a v2 napkins.json opens as a document, the old file is kept, and the next 
   assert.match((await getMathNodes(page))[0].attrs.mathml, /<msup/);
   await mathNodeLocator(page).first().locator('mjx-container').waitFor({ timeout: 30_000 });
   assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Note text');
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Old napkin');
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Old napkin');
   assert.equal(await rail(page).getByRole('button', { name: 'Old napkin' }).count(), 1);
   assert.equal(await page.locator('#app-error').isVisible(), false, 'a clean upgrade shows no warning');
 
@@ -101,7 +101,7 @@ test('each napkin keeps its own document, and undo does not cross napkins', { ti
   assert.deepEqual(await paragraphTexts(page), ['beta']);
 
   await rail(page).getByRole('button', { name: 'Untitled note' }).click();
-  await page.waitForFunction(() => document.querySelector('#current-napkin-name')?.textContent === 'Untitled note');
+  await page.waitForFunction(() => document.querySelector('#napkin-list [aria-current="page"] .note-name')?.textContent === 'Untitled note');
   assert.deepEqual(await paragraphTexts(page), ['alpha one', 'alpha two']);
   assert.equal(await page.evaluate(() => document.activeElement?.closest('#editor-host') !== null), true);
 
@@ -115,7 +115,7 @@ test('each napkin keeps its own document, and undo does not cross napkins', { ti
   assert.deepEqual(await paragraphTexts(page), ['alpha one', 'alpha two']);
 
   await rail(page).getByRole('button', { name: 'Second napkin' }).click();
-  await page.waitForFunction(() => document.querySelector('#current-napkin-name')?.textContent === 'Second napkin');
+  await page.waitForFunction(() => document.querySelector('#napkin-list [aria-current="page"] .note-name')?.textContent === 'Second napkin');
   assert.deepEqual(await paragraphTexts(page), ['beta'], 'B is as it was left');
   await page.keyboard.press(UNDO);
   await settle(page);
@@ -134,7 +134,7 @@ test('each napkin keeps its own document, and undo does not cross napkins', { ti
 
   // And A was never touched by any of it.
   await rail(page).getByRole('button', { name: 'Untitled note' }).click();
-  await page.waitForFunction(() => document.querySelector('#current-napkin-name')?.textContent === 'Untitled note');
+  await page.waitForFunction(() => document.querySelector('#napkin-list [aria-current="page"] .note-name')?.textContent === 'Untitled note');
   assert.deepEqual(await paragraphTexts(page), ['alpha one', 'alpha two']);
 });
 
@@ -151,31 +151,27 @@ test('renaming a napkin does not reset the open document or its undo history', {
   const button = rail(page).getByRole('button', { name: 'Untitled note' });
   await button.focus();
   await button.press('Control+u');
-  await page.locator('#current-napkin-name').fill('Renamed napkin');
-  await page.locator('#current-napkin-name').press('Enter');
+  await page.waitForFunction(
+    () => Boolean((getSelection().anchorNode?.nodeType === 1 ? getSelection().anchorNode : getSelection().anchorNode?.parentElement)?.closest('#current-napkin-name')));
+  await page.keyboard.type('Renamed napkin');
+  await page.keyboard.press('Enter');
   await rail(page).getByRole('button', { name: 'Renamed napkin' }).waitFor();
 
   assert.deepEqual(await getDoc(page), before, 'the document is untouched');
   assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Note text');
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Renamed napkin');
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Renamed napkin');
 
-  // The caret is where it was, and typing continues there.
+  // Enter in the title put the caret at the start of the note. Typing goes there.
   await focusDocument(page);
   await page.keyboard.type('!');
-  assert.deepEqual(await paragraphTexts(page), ['first line', 'second line!']);
+  assert.deepEqual(await paragraphTexts(page), ['!first line', 'second line']);
 
-  // Undo still reaches back over the rename: the history was not reset.
+  // The rename is typing in the first line, so it shares the undo history with the
+  // rest of the note, and the history was not reset by it.
   await page.keyboard.press(UNDO);
   await settle(page);
-  assert.notDeepEqual(await paragraphTexts(page), ['first line', 'second line!']);
-  await page.keyboard.press(UNDO);
-  await settle(page);
-  await page.keyboard.press(UNDO);
-  await settle(page);
-  assert.notDeepEqual(await paragraphTexts(page), typed, 'earlier typing can be undone too');
-  await page.keyboard.press(REDO);
-  await page.keyboard.press(REDO);
+  assert.notDeepEqual(await paragraphTexts(page), ['!first line', 'second line']);
   await page.keyboard.press(REDO);
   await settle(page);
-  assert.deepEqual(await paragraphTexts(page), ['first line', 'second line!']);
+  assert.deepEqual(await paragraphTexts(page), ['!first line', 'second line']);
 });

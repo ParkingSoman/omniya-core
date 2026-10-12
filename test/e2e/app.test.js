@@ -66,8 +66,8 @@ const focusIsInDocument = (page) => page.evaluate(
 
 async function createNapkin(page, name) {
   await page.getByRole('button', { name: 'New note' }).click();
-  await page.locator('#current-napkin-name').fill(name);
-  await page.locator('#current-napkin-name').press('Enter');
+  await page.keyboard.type(name);
+  await page.keyboard.press('Enter');
 }
 
 test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async (t) => {
@@ -86,7 +86,7 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   // The document is the first thing there is. No equation field until asked for.
   await napkinRail.waitFor();
   assert.equal(await editor.getAttribute('aria-label'), 'Note text');
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Untitled note');
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Untitled note');
   assert.equal(await page.locator('#composer-dock').isVisible(), false);
   assert.equal(await focusIsInDocument(page), true);
   assert.match(await modePanelText(page), /Text · UEB G2/);
@@ -97,7 +97,7 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   await createNapkin(page, 'Proof ideas');
   assert.equal(await napkinRail.getByRole('button', { name: 'Proof ideas' }).count(), 1);
   assert.equal(await editor.getAttribute('aria-label'), 'Note text');
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Proof ideas');
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Proof ideas');
   assert.equal(await page.locator('#composer-dock').isVisible(), false);
   assert.equal(await focusIsInDocument(page), true, 'a new napkin is ready to type in');
   assert.match(await modePanelText(page), /Text · UEB G2/);
@@ -153,10 +153,12 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   await page.keyboard.press('Enter');
   await page.keyboard.type('Second line.');
   assert.deepEqual(await paragraphTexts(page), ['The proof starts here.', 'Second line.']);
-  // Select all and delete leaves one empty paragraph to type in, as Word does.
+  // Select all and delete leaves an empty title and one empty paragraph to type in.
+  // The note is then called "Untitled note", as it is in Apple Notes.
   await page.keyboard.press('ControlOrMeta+a');
   await page.keyboard.press('Backspace');
   assert.deepEqual(await paragraphTexts(page), ['']);
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Untitled note');
 
   // Switching back loads the first napkin's document, equation drawn.
   await napkinRail.getByRole('button', { name: 'Proof ideas' }).click();
@@ -178,7 +180,7 @@ test('supports a live-text offline napkin workflow', { timeout: 120_000 }, async
   await mathNodeLocator(session.page).first().locator('mjx-container').waitFor();
   assert.ok(await mathNodeLocator(session.page).first().locator('mjx-container math').count());
   assert.equal(await focusIsInDocument(session.page), true);
-  await session.page.getByRole('button', { name: 'Text notes' }).click();
+  await session.page.getByRole('button', { name: 'Untitled note' }).last().click();
   assert.deepEqual(await paragraphTexts(session.page), ['']);
   assert.deepEqual([...session.externalRequests], []);
 });
@@ -283,7 +285,7 @@ test('an equation can be inserted into a paragraph that was cleared in the middl
   await press(page, 'ArrowUp');
   // The caret must now be in the middle paragraph. A lost arrow key shows up here.
   await page.waitForFunction(
-    () => globalThis.__omniyaTesting.editor.view.state.selection.$from.index(0) === 1,
+    () => globalThis.__omniyaTesting.editor.view.state.selection.$from.index(0) === 2,
     null,
     { timeout: 5_000 }
   );
@@ -386,7 +388,7 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
   ]);
   assert.match(message, /delete the note.*Second napkin/i);
   await rail.getByRole('button', { name: 'Second napkin' }).waitFor({ state: 'detached' });
-  assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Third napkin');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Third napkin');
   assert.deepEqual(await paragraphTexts(page), ['notes on third'], 'deleting another napkin leaves the open one alone');
 
   // A declined confirmation deletes nothing.
@@ -405,7 +407,7 @@ test('deletes a focused sidebar napkin only after confirmation', { timeout: 60_0
   await rail.getByRole('button', { name: 'Third napkin' }).waitFor({ state: 'detached' });
   // The napkin that is left is open and takes typing.
   await page.locator('#editor-host [contenteditable="true"]').waitFor();
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Untitled note');
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Untitled note');
   await focusDocument(page);
   await page.keyboard.type('still works after delete');
   assert.deepEqual(await paragraphTexts(page), ['still works after delete']);
@@ -437,21 +439,22 @@ test('typing in the title renames the note, and Ctrl+U on the list goes to the t
   const first = rail.getByRole('button', { name: 'Untitled note' });
   await first.focus();
   await first.press('Control+u');
-  await page.waitForFunction(() => document.activeElement?.id === 'current-napkin-name');
+  await page.waitForFunction(
+    () => Boolean((getSelection().anchorNode?.nodeType === 1 ? getSelection().anchorNode : getSelection().anchorNode?.parentElement)?.closest('#current-napkin-name')));
   await page.keyboard.type('Proof ideas');
   // The list follows as the title is typed.
   await rail.getByRole('button', { name: 'Proof ideas' }).waitFor();
   assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
 
   await page.getByRole('button', { name: 'Second napkin' }).click();
-  assert.match(await page.locator('#current-napkin-name').textContent() ?? '', /Second napkin/);
+  assert.match(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent() ?? '', /Second napkin/);
   assert.equal(await page.locator('#editor-host [contenteditable="true"]').getAttribute('aria-label'), 'Note text');
 
-  // An empty title is allowed while typing, and the note gets its name back when the title is left.
-  await page.locator('#current-napkin-name').fill('');
-  await page.keyboard.press('Enter');
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Second napkin');
-  assert.equal(await rail.getByRole('button', { name: 'Second napkin' }).count(), 1);
+  // A note with an empty title is called "Untitled note", and the title shows a hint.
+  await page.evaluate(() => globalThis.__omniyaTesting.editor.focusTitle());
+  await page.keyboard.press('Backspace');
+  assert.equal(await page.locator('#current-napkin-name').textContent(), '');
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Untitled note');
 });
 
 test('Enter in the title moves to the note, and Up from the first line comes back', { timeout: 60_000 }, async (t) => {
@@ -460,7 +463,9 @@ test('Enter in the title moves to the note, and Up from the first line comes bac
   assert.equal(await focusIsInDocument(page), true, 'Enter in the title lands in the note');
   await page.keyboard.type('first line');
   await page.keyboard.press('ArrowUp');
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'current-napkin-name');
+  assert.equal(
+    await page.evaluate(() => Boolean((getSelection().anchorNode?.nodeType === 1 ? getSelection().anchorNode : getSelection().anchorNode?.parentElement)?.closest('#current-napkin-name'))),
+    true, 'Up from the first line reaches the title');
   await page.keyboard.press('ArrowDown');
   assert.equal(await focusIsInDocument(page), true);
 });
@@ -482,7 +487,7 @@ test('typing is saved on its own, without a save command', { timeout: 60_000 }, 
     const deadline = Date.now() + 10_000;
     for (;;) {
       const saved = await readSaved();
-      if (saved?.napkins[0].doc.content[0].content?.[0]?.text === 'Saved by itself') return;
+      if (saved?.napkins[0].doc.content[1].content?.[0]?.text === 'Saved by itself') return;
       if (Date.now() > deadline) throw new Error('the typed text was never saved');
       await settle(page, 100);
     }

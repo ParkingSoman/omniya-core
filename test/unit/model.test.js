@@ -12,7 +12,7 @@ import {
   switchNapkin,
   validateState
 } from '../../src/domain/model.js';
-import { emptyDoc } from '../../src/domain/document.js';
+import { emptyDoc, docWithTitle, nameFromDoc } from '../../src/domain/document.js';
 
 function ids(...values) {
   let index = 0;
@@ -37,7 +37,7 @@ test('creates and switches between independent napkins without mutating prior st
   assert.equal(initial.napkins.length, 1);
   assert.equal(created.activeNapkinId, 'napkin-2');
   assert.equal(getActiveNapkin(created).name, 'Scratch work');
-  assert.deepEqual(getActiveNapkin(created).doc, emptyDoc());
+  assert.deepEqual(getActiveNapkin(created).doc, docWithTitle(emptyDoc(), 'Scratch work'));
 
   const switched = switchNapkin(created, 'napkin-1');
   assert.equal(switched.activeNapkinId, 'napkin-1');
@@ -93,7 +93,7 @@ test('setNapkinDoc replaces one body and leaves the others and the input alone',
   const next = setNapkinDoc(withSecond, 'napkin-1', hello);
   assert.notEqual(next, withSecond);
   assert.deepEqual(next.napkins[0].doc, hello);
-  assert.deepEqual(next.napkins[1].doc, emptyDoc());
+  assert.deepEqual(next.napkins[1].doc, docWithTitle(emptyDoc(), 'Second'));
   assert.deepEqual(withSecond.napkins[0].doc, emptyDoc());
   assert.equal(next.activeNapkinId, 'napkin-2');
 });
@@ -119,4 +119,20 @@ test('validation rejects other schema versions, items-style napkins and bad docs
   const bad = { ...state, napkins: [{ ...state.napkins[0], doc: { type: 'doc', content: [{ type: 'heading' }] } }] };
   assert.match(validateState(bad).issues.join(';'), /must be a paragraph/);
   assert.throws(() => assertValidState(bad), /Invalid application state/);
+});
+
+test('a note takes its name from the first line, and keeps it when the body has no title', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const titled = docWithTitle(hello, 'Algebra', { replace: true });
+  const next = setNapkinDoc(initial, 'napkin-1', titled);
+  assert.equal(next.napkins[0].name, 'Algebra');
+  assert.equal(nameFromDoc(docWithTitle(hello, '')), 'Untitled note', 'an empty title gets the default name');
+  const untitled = setNapkinDoc(next, 'napkin-1', hello);
+  assert.equal(untitled.napkins[0].name, 'Algebra', 'a body with no title leaves the name alone');
+});
+
+test('renaming also writes the new name into the title', () => {
+  const initial = createInitialState({ idFactory: ids('napkin-1') });
+  const renamed = renameNapkin(setNapkinDoc(initial, 'napkin-1', docWithTitle(hello, 'Old')), 'napkin-1', 'New name');
+  assert.equal(renamed.napkins[0].doc.content[0].content[0].text, 'New name');
 });

@@ -69,12 +69,19 @@ export async function launchApp({ dataDirectory, napkinFile, env = {} } = {}) {
 export const editorRoot = (page) => page.locator('#editor-host [contenteditable="true"]');
 
 /** The editor's document as plain JSON (the same shape that is saved). */
-export const getDoc = (page) => page.evaluate(() => globalThis.__omniyaTesting.editor.getJSON());
+/** The whole saved document, title line first. */
+export const getFullDoc = (page) => page.evaluate(() => globalThis.__omniyaTesting.editor.getJSON());
+
+/** The body of the note: the document without its title line. */
+export const getDoc = async (page) => {
+  const doc = await getFullDoc(page);
+  return { ...doc, content: doc.content.filter((block) => block.type !== 'title') };
+};
 
 /** One string per paragraph. Text is as typed. An equation shows as `[math]`. */
 export async function paragraphTexts(page) {
   const doc = await getDoc(page);
-  return doc.content.map((paragraph) => (paragraph.content ?? [])
+  return doc.content.filter((block) => block.type === 'paragraph').map((paragraph) => (paragraph.content ?? [])
     .map((node) => (node.type === 'text' ? node.text : '[math]')).join(''));
 }
 
@@ -112,10 +119,17 @@ export async function press(page, key, times = 1) {
  * this checks instead of assuming.
  */
 export async function goToDocStart(page) {
+  // The start of the note is the start of its body. The title above it is its own line.
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await press(page, DOC_START);
-    const from = await page.evaluate(() => globalThis.__omniyaTesting.editor.view.state.selection.from);
-    if (from === 1) return;
+    const reached = await page.evaluate(() => {
+      const { view } = globalThis.__omniyaTesting.editor;
+      const bodyStart = view.state.doc.firstChild.nodeSize + 1;
+      const Selection = view.state.selection.constructor;
+      view.dispatch(view.state.tr.setSelection(Selection.create(view.state.doc, bodyStart)));
+      return view.state.selection.from === bodyStart;
+    });
+    if (reached) return;
   }
   throw new Error('The caret did not reach the start of the document');
 }
@@ -226,4 +240,26 @@ export function mathAuthoringStatus(page) {
 
 export function mathAuthoringSurface(page) {
   return page.locator('#composer-dock');
+}
+
+// ---- The title ----------------------------------------------------------------
+
+/** True while the caret is in the note's title, the first line of the note. */
+export const caretIsInTitle = (page) => page.evaluate(
+  () => Boolean((getSelection().anchorNode?.nodeType === 1 ? getSelection().anchorNode : getSelection().anchorNode?.parentElement)?.closest('#current-napkin-name')));
+
+/** Make a note and give it a name: type in the title, then Enter to go to the body. */
+export async function newNote(page, name) {
+  await page.locator('#new-napkin-button').click();
+  await page.waitForFunction(
+    () => Boolean((getSelection().anchorNode?.nodeType === 1 ? getSelection().anchorNode : getSelection().anchorNode?.parentElement)?.closest('#current-napkin-name')));
+  await page.keyboard.type(name);
+  await page.keyboard.press('Enter');
+}
+
+/** Rename the open note the way a person does: select its title and type over it. */
+export async function retitleNote(page, name) {
+  await page.evaluate(() => globalThis.__omniyaTesting.editor.focusTitle());
+  await page.keyboard.type(name);
+  await page.keyboard.press('Enter');
 }

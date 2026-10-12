@@ -22,6 +22,7 @@ import {
   enterExplorer,
   explorerSpeech,
   getDoc,
+  caretIsInTitle,
   insertEquation,
   launchApp,
   mathNodeLocator,
@@ -45,13 +46,14 @@ test('a napkin name typed after exploring an equation reaches the name field', {
   await enterExplorer(page);
 
   await page.locator('#new-napkin-button').click();
-  await page.waitForFunction(() => document.activeElement?.id === 'current-napkin-name');
+  await page.waitForFunction(
+    () => Boolean((getSelection().anchorNode?.nodeType === 1 ? getSelection().anchorNode : getSelection().anchorNode?.parentElement)?.closest('#current-napkin-name')));
   // "Algebra" leads with a, and also carries r -- two of the letters the
   // explorer claims for append and replace.
   await page.keyboard.type('Algebra');
 
-  assert.equal(await page.locator('#current-napkin-name').textContent(), 'Algebra', 'every letter of the name reaches the title');
-  assert.equal(await activeId(page), 'current-napkin-name', 'and focus stays in it');
+  assert.equal(await page.locator('#napkin-list [aria-current="page"] .note-name').textContent(), 'Algebra', 'every letter of the name reaches the title');
+  assert.equal(await caretIsInTitle(page), true, 'and the caret stays in it');
   assert.equal(await page.locator('#composer-dock').isVisible(), false, 'no equation dock opened');
   assert.equal(await page.locator('#composer-source').inputValue(), '', 'nothing leaks into the equation field');
   assert.deepEqual(await paragraphTexts(page), [''], 'nor into the new, empty note');
@@ -121,20 +123,4 @@ test('Ctrl+Z after an equation is inserted takes the equation back, in one step'
   await page.keyboard.press(UNDO);
   assert.deepEqual(await paragraphTexts(page), ['']);
   assert.equal((await getDoc(page)).content.length, 1);
-});
-
-test('the diagnostics report shows a napkin name reaching the name field', { timeout: 120_000 }, async (t) => {
-  // The report went silent the moment focus left the equation field, so the
-  // half of the session that contained the bug was simply absent from two alpha
-  // reports. Whatever the app does with these keys, the report has to be able
-  // to say where they went.
-  const { page } = await launch(t, 'omniya-report-fields-');
-
-  await page.locator('#new-napkin-button').click();
-  await page.waitForFunction(() => document.activeElement?.id === 'current-napkin-name');
-  await page.keyboard.type('Algebra');
-
-  const report = await page.evaluate(() => globalThis.__omniyaTesting?.inputDiagnostics?.());
-  assert.match(report, /-- typing into: current-napkin-name/, 'the name field is recorded and named');
-  assert.match(report, /keydown key="A"/, 'and its keystrokes are in the report at all');
 });

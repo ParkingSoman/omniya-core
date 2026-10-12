@@ -45,13 +45,13 @@ test('arrow keys select an equation first, then step past it', { timeout: 90_000
   const { page } = await startWithSentence(t);
   await goToDocStart(page);
   await press(page, 'ArrowRight', 6);
-  assert.deepEqual(await selection(page), { from: 7, to: 7, node: null }, 'caret before the equation');
+  assert.deepEqual(await selection(page), { from: 9, to: 9, node: null }, 'caret before the equation');
   await press(page, 'ArrowRight');
-  assert.deepEqual(await selection(page), { from: 7, to: 8, node: 'math' }, 'the first press selects it');
+  assert.deepEqual(await selection(page), { from: 9, to: 10, node: 'math' }, 'the first press selects it');
   await press(page, 'ArrowRight');
-  assert.deepEqual(await selection(page), { from: 8, to: 8, node: null }, 'the second press passes it');
+  assert.deepEqual(await selection(page), { from: 10, to: 10, node: null }, 'the second press passes it');
   await press(page, 'ArrowLeft');
-  assert.deepEqual(await selection(page), { from: 7, to: 8, node: 'math' }, 'going back selects it again');
+  assert.deepEqual(await selection(page), { from: 9, to: 10, node: 'math' }, 'going back selects it again');
 });
 
 test('the equation is one named image, so a reader says it once', { timeout: 90_000 }, async (t) => {
@@ -95,7 +95,7 @@ test('the explorer inside an equation keeps focus and its keys', { timeout: 90_0
   const { page } = await startWithSentence(t);
   await goToDocStart(page);
   await press(page, 'ArrowRight', 7);
-  assert.deepEqual(await selection(page), { from: 7, to: 8, node: 'math' });
+  assert.deepEqual(await selection(page), { from: 9, to: 10, node: 'math' });
   const docBefore = await getDoc(page);
 
   await enterExplorer(page, 0);
@@ -117,6 +117,6 @@ test('the explorer inside an equation keeps focus and its keys', { timeout: 90_0
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => document.activeElement?.closest('#editor-host [contenteditable="true"]')
     && !document.activeElement.closest('.math-node'));
-  assert.deepEqual(await selection(page), { from: 7, to: 8, node: 'math' });
+  assert.deepEqual(await selection(page), { from: 9, to: 10, node: 'math' });
   assert.equal(await page.locator('#editor-host .math-node').getAttribute('role'), 'img', 'the name returns');
 });

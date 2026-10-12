@@ -4,9 +4,11 @@ import test from 'node:test';
 import { EditorState, NodeSelection, TextSelection } from 'prosemirror-state';
 import { Node as PMNode } from 'prosemirror-model';
 
-import { backspaceSelectsMath, deleteSelectsMath } from '../../src/renderer/editor/commands.js';
+import {
+  backspaceSelectsMath, backspaceStopsAtTitle, deleteSelectsMath, deleteStopsAtTitle, enterLeavesTitle
+} from '../../src/renderer/editor/commands.js';
 import { editorSchema } from '../../src/renderer/editor/schema.js';
-import { docPlainText, itemsToDoc, validateDoc } from '../../src/domain/document.js';
+import { docPlainText, docWithTitle, itemsToDoc, validateDoc } from '../../src/domain/document.js';
 
 const XSQ = '<math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mi>x</mi><mn>2</mn></msup></math>';
 
@@ -49,10 +51,10 @@ test('the editor schema and the saved document shape agree', () => {
 });
 
 test('a document upgraded from items is a document the editor accepts', () => {
-  const upgraded = itemsToDoc([
+  const upgraded = docWithTitle(itemsToDoc([
     { id: 't', type: 'text', source: 'one\ntwo', note: 'a note', mathml: null },
     { id: 'e', type: 'equation', note: '', math: { formatVersion: 2, mathml: XSQ, focus: null } }
-  ]);
+  ]), 'A note');
   const node = PMNode.fromJSON(editorSchema, upgraded);
   node.check();
   assert.deepEqual(asSaved(node), upgraded);
@@ -87,4 +89,42 @@ test('Backspace and Delete leave ordinary text and a selected equation to the de
   // A text range is also left alone.
   const range = stateWith((state) => state.apply(state.tr.setSelection(TextSelection.create(state.doc, 1, 3))));
   assert.equal(run(backspaceSelectsMath, range).handled, false);
+});
+
+// The title is the first line. Its keys never join it to the body.
+const titled = {
+  type: 'doc',
+  content: [
+    { type: 'title', content: [{ type: 'text', text: 'Name' }] },
+    { type: 'paragraph', content: [{ type: 'text', text: 'body' }] }
+  ]
+};
+// Title text is at 1-5, the body paragraph starts at 6, its text at 7-11.
+const titledState = (pos) => caretAt(pos)(EditorState.create({ schema: editorSchema, doc: PMNode.fromJSON(editorSchema, titled) }));
+
+test('a titled document is valid, and the title is not body text', () => {
+  assert.deepEqual(validateDoc(titled), []);
+  assert.equal(docPlainText(titled), 'body');
+  assert.deepEqual(validateDoc({ type: 'doc', content: [{ type: 'title' }] }), ['Document needs at least one paragraph']);
+});
+
+test('Enter in the title moves to the start of the body and splits nothing', () => {
+  const { handled, selection } = run(enterLeavesTitle, titledState(3));
+  assert.equal(handled, true);
+  assert.equal(selection.from, 7);
+  assert.equal(run(enterLeavesTitle, titledState(8)).handled, false, 'in the body it is left alone');
+});
+
+test('Backspace at the start of the body goes to the end of the title and joins nothing', () => {
+  const { handled, selection } = run(backspaceStopsAtTitle, titledState(7));
+  assert.equal(handled, true);
+  assert.equal(selection.from, 5);
+  assert.equal(run(backspaceStopsAtTitle, titledState(9)).handled, false);
+});
+
+test('Delete at the end of the title goes to the body and joins nothing', () => {
+  const { handled, selection } = run(deleteStopsAtTitle, titledState(5));
+  assert.equal(handled, true);
+  assert.equal(selection.from, 7);
+  assert.equal(run(deleteStopsAtTitle, titledState(3)).handled, false);
 });

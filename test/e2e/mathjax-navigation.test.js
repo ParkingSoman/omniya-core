@@ -72,7 +72,7 @@ test('recovers from corrupt local napkin data without leaving the app unusable',
   const { electronApp, page } = await launchApp({ dataDirectory });
   t.after(() => electronApp.close().catch(() => {}));
 
-  assert.equal(await page.getByRole('heading', { name: 'Untitled note' }).count(), 1);
+  assert.equal(await page.getByRole('heading', { name: 'Title, empty' }).count(), 1);
   assert.equal(await page.getByRole('alert').filter({ hasText: 'could not be read' }).count(), 1);
   // A default napkin is usable: the document opens empty and takes typing.
   assert.equal(await mathNodeLocator(page).count(), 0);

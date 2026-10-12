@@ -113,10 +113,9 @@
 
         <div id="document-section">
           <div class="page">
-            <div class="title-row">
-              <h2 id="current-napkin-name" contenteditable="plaintext-only" spellcheck="false">Loading…</h2>
-              <span id="save-status" class="save-status"></span>
-            </div>
+            <p id="note-date" class="note-date" aria-hidden="true"></p>
+            <h2 id="no-note-title" hidden>No note open</h2>
+            <span id="save-status" class="save-status"></span>
             <!-- Kept for the braille-input diagnostics and for tests. The equation panel says the same thing in plain words. -->
             <span id="mode-panel" tabindex="-1" class="sr-only" aria-hidden="true"></span>
             <p id="empty-message" hidden>No note is open. Choose New note to start one.</p>

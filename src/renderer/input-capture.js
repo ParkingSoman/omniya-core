@@ -41,7 +41,7 @@ import { createInputLog } from './input-log.js';
  * is not a document-wide key log and must not become one -- buttons, menus and
  * the transcript are deliberately not here.
  */
-const FIELDS = ['#composer-source', '#current-napkin-name'];
+const FIELDS = ['#composer-source'];
 
 /**
  * The authoring mode in force, recorded on every entry.

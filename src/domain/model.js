@@ -1,4 +1,4 @@
-import { emptyDoc, validateDoc } from './document.js';
+import { DEFAULT_NOTE_NAME, docWithTitle, emptyDoc, nameFromDoc, validateDoc } from './document.js';
 
 // v3: a napkin body is one document (see document.js), not a list of items.
 export const SCHEMA_VERSION = 3;
@@ -22,7 +22,7 @@ export function createInitialState({ idFactory = defaultIdFactory } = {}) {
     activeNapkinId: napkinId,
     napkins: [{
       id: napkinId,
-      name: 'Untitled note',
+      name: DEFAULT_NOTE_NAME,
       doc: emptyDoc()
     }]
   };
@@ -95,7 +95,7 @@ export function createNapkin(state, name, { idFactory = defaultIdFactory } = {})
   return {
     ...state,
     activeNapkinId: id,
-    napkins: [...state.napkins, { id, name: normalizedName, doc: emptyDoc() }]
+    napkins: [...state.napkins, { id, name: normalizedName, doc: docWithTitle(emptyDoc(), normalizedName), updatedAt: new Date().toISOString() }]
   };
 }
 
@@ -108,7 +108,9 @@ export function renameNapkin(state, napkinId, name) {
   return {
     ...state,
     napkins: state.napkins.map((napkin) => (
-      napkin.id === napkinId ? { ...napkin, name: normalizedName } : napkin
+      napkin.id === napkinId
+        ? { ...napkin, name: normalizedName, doc: docWithTitle(napkin.doc, normalizedName, { replace: true }) }
+        : napkin
     ))
   };
 }
@@ -135,6 +137,15 @@ export function deleteNapkin(state, napkinId) {
   return { ...state, activeNapkinId, napkins };
 }
 
+/**
+ * A napkin with a new body. Its name follows the title, when the body has one.
+ * A body without a title leaves the name alone.
+ */
+export function withDoc(napkin, doc) {
+  const hasTitle = doc?.content?.[0]?.type === 'title';
+  return { ...napkin, ...(hasTitle ? { name: nameFromDoc(doc) } : {}), doc, updatedAt: new Date().toISOString() };
+}
+
 /** Replace the body of a napkin. The doc is checked, so a bad doc never reaches disk. */
 export function setNapkinDoc(state, napkinId, doc) {
   assertValidState(state);
@@ -146,7 +157,7 @@ export function setNapkinDoc(state, napkinId, doc) {
   return {
     ...state,
     napkins: state.napkins.map((napkin) => (
-      napkin.id === napkinId ? { ...napkin, doc } : napkin
+      napkin.id === napkinId ? withDoc(napkin, doc) : napkin
     ))
   };
 }

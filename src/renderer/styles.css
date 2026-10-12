@@ -153,7 +153,11 @@ kbd {
 
 #napkin-list { display: grid; gap: 0.1rem; }
 #new-napkin-button { white-space: nowrap; }
-#napkin-list button { border-radius: var(--radius); display: block; overflow: hidden; padding: 0.5rem 0.7rem; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+#napkin-list button { border-radius: var(--radius); display: block; overflow: hidden; padding: 0.45rem 0.7rem; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+#napkin-list .note-name { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+#napkin-list .note-snippet { color: var(--muted); display: block; font-size: 0.82rem; font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
+#napkin-list .note-snippet:empty { display: none; }
+#napkin-list button[aria-current="page"] .note-snippet { color: inherit; opacity: 0.75; }
 #napkin-list button[aria-current="page"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
 
 .form-actions { display: flex; gap: 0.35rem; margin-top: 0.5rem; }
@@ -216,8 +220,12 @@ kbd {
 
 .page { background: var(--page); display: flex; flex: 1; flex-direction: column; margin: 0; padding: 1.6rem clamp(1.5rem, 5vw, 3.5rem) 3rem; width: 100%; }
 
-.title-row { margin: 0 0 0.8rem; }
-#current-napkin-name { caret-color: var(--accent); font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; margin: 0; outline: none; overflow-wrap: anywhere; }
+.title-row { margin: 0; }
+.note-date { color: var(--muted); font-size: 0.8rem; margin: 0 0 0.9rem; text-align: center; }
+.note-date:empty { display: none; }
+#editor-host .ProseMirror h2.note-title { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; margin: 0 0 0.8rem; overflow-wrap: anywhere; }
+#editor-host .ProseMirror h2.title-empty::before { color: var(--muted); content: "Title" / ""; font-weight: 600; pointer-events: none; position: absolute; }
+#no-note-title { font-size: 1.75rem; margin: 0; }
 #empty-message { color: var(--muted); margin: 2rem 0; }
 
 #editor-host { display: flex; flex: 1; flex-direction: column; margin: 0; }
@@ -237,7 +245,7 @@ kbd {
 #editor-host .ProseMirror p { margin: 0 0 0.8rem; }
 
 /* An empty note shows what to do. It is a hint on screen, not content. */
-#editor-host .ProseMirror[data-empty="true"] > p:first-child::before {
+#editor-host .ProseMirror[data-empty="true"] > p:first-of-type::before {
   color: var(--muted);
   /* The empty alt text after the slash keeps the hint out of the accessibility
      tree. The textbox carries it as aria-placeholder, which is the proper channel. */

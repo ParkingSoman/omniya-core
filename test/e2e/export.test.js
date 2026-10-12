@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { editorRoot, focusDocument, insertEquation, launchApp, settle } from './launch-electron.js';
+import { editorRoot, focusDocument, insertEquation, launchApp, retitleNote, settle } from './launch-electron.js';
 
 async function start(t) {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-export-data-'));
@@ -15,10 +15,9 @@ async function start(t) {
 }
 
 async function renameNote(page, name) {
-  await page.locator('#current-napkin-name').fill(name);
-  await page.locator('#current-napkin-name').press('Enter');
+  await retitleNote(page, name);
   await page.waitForFunction(
-    (n) => document.querySelector('#current-napkin-name')?.textContent.trim() === n, name);
+    (n) => document.querySelector('#napkin-list [aria-current="page"] .note-name')?.textContent.trim() === n, name);
 }
 
 /** A note with a sentence and an inline equation (x^2). */
