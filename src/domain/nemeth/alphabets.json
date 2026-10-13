@@ -1,7 +1,7 @@
 {
   "greek": {
     "banaRef": "6.1.4",
-    "note": "BANA Nemeth 2022 (test/corpus/sources/Nemeth_2022.txt lines 3023-3048), Greek Alphabet (Standard). Keyed by the Braille-ASCII letter the Code assigns to each Greek letter; the value is [lowercase, capital]. Three letters of the table are absent because the Code writes them with a cell that is not an English letter -- eta ':' (U+2831), theta '?' (U+2839) and chi '&' (U+282F) -- and none of those cells has a symbol row yet. The capitals are taken from the Greek block throughout: the extracted table prints some of them as their Latin lookalikes (line 3025 shows capital alpha as 'A', while line 3026 shows capital beta as the Greek 'B'), which is a PDF text artifact, not two different alphabets.",
+    "note": "BANA Nemeth 2022 (test/corpus/sources/Nemeth_2022.txt lines 3023-3048), Greek Alphabet (Standard). Keyed by the Braille-ASCII letter the Code assigns to each Greek letter; the value is [lowercase, capital]. Eta ':' (U+2831) and chi '&' (U+282F) are keyed by their own Braille-ASCII character because the Code writes them with a cell that is not an English letter; their symbol rows are marked greekOnly, so the lexer refuses them anywhere but after the Greek-letter indicator. Theta '?' (U+2839) is still absent: that cell is the fraction-open indicator (Rule 13) and has no letter row yet. The capitals are taken from the Greek block throughout: the extracted table prints some of them as their Latin lookalikes (line 3025 shows capital alpha as 'A', while line 3026 shows capital beta as the Greek 'B'), which is a PDF text artifact, not two different alphabets.",
     "letters": {
       "a": ["α", "Α"],
       "b": ["β", "Β"],
@@ -22,6 +22,8 @@
       "t": ["τ", "Τ"],
       "u": ["υ", "Υ"],
       "f": ["ϕ", "Φ"],
+      ":": ["η", "Η"],
+      "&": ["χ", "Χ"],
       "y": ["ψ", "Ψ"],
       "w": ["ω", "Ω"]
     }
