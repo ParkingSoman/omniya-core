@@ -198,9 +198,11 @@ jobs:
           comment_id=
           comment_at=
           if [ "$ASSOCIATION" = "OWNER" ]; then owner=true; comment_id=$COMMENT_ID; comment_at=$COMMENT_AT; fi
-          echo "owner=$owner" >> "$GITHUB_OUTPUT"
-          echo "comment_id=$comment_id" >> "$GITHUB_OUTPUT"
-          echo "comment_updated_at=$comment_at" >> "$GITHUB_OUTPUT"
+          {
+            echo "owner=$owner"
+            echo "comment_id=$comment_id"
+            echo "comment_updated_at=$comment_at"
+          } >> "$GITHUB_OUTPUT"
       # No fix yet, and the agent asked a question. This comment may be the
       # answer. It is one only when the issue carries `needs-info`, which the
       # pipeline puts there when the agent asks and takes off when it resumes.
