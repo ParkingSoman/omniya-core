@@ -29,6 +29,10 @@ equations, offline autosave.
 
 **New on `testing`:**
 
+- **Help → About Omniya Core** opens a small message with the build number. Open it
+  before you test, and say what it shows in your report. An alpha build reads
+  `Alpha build`, version `0.1.0-alpha.<number>+<code>`. A pull-request test build
+  reads `Test build or release build`, version `0.1.0`.
 - **The napkin is one document, edited like Word.** Type, Enter for a new
   paragraph, Ctrl+Z / Ctrl+Y to undo and redo (Cmd+Z / Cmd+Shift+Z on Mac).
   Equations sit inside sentences. The design and the reason for every key are in
