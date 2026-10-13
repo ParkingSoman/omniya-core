@@ -16,13 +16,17 @@ fits.
 | Form | Use it when | Who works on it |
 |---|---|---|
 | Bug report | Something the app says it does is missing or does not work. | An agent |
-| Nemeth feature | A symbol or rule from the Nemeth Code is missing. | An agent |
-| Design | You want something new, or want the app to look, sound or behave differently. | A person |
+| Nemeth or speech | A symbol or rule from the Nemeth Code is missing, or you want an equation spoken in different words. | An agent |
+| Design | You want something new, or want the app to look or behave differently. | A person |
 | Other | It is none of the above. | A person |
 
-A Bug report and a Nemeth feature are worked on automatically. This is on
-purpose. A missing symbol is a question of whether the app is complete, and you
-know the Code. A new idea about how the app should feel is different. A person
+A Bug report and a Nemeth or speech report are worked on automatically. This is
+on purpose. A missing symbol is a question of whether the app is complete, and
+you know the Code. A request to change how an equation is spoken is the same kind
+of work: you say the words you want to hear, and the agent makes the app say
+them. The Code does not say how math is spoken, so no one else can settle it
+better than the person who listens to it. A new idea about how the app should
+feel is different. A person
 reads a Design report or an Other report, and answers it on the issue. No agent
 starts on those.
 
@@ -44,10 +48,13 @@ anything you would rather not publish. If the dump is the only way to show the
 bug and you would rather not publish it, say so in the form and send it by
 email instead.
 
-### The Nemeth feature form
+### The Nemeth or speech form
 
-The form asks for the symbol in words, the braille cells, and what it means and
-how it should be read aloud. It can also take the section of the Nemeth Code, if
+The form first asks which kind of request this is: a Nemeth symbol or rule the
+app cannot read, or how an equation is spoken. Then it asks for the symbol or
+equation in words, the braille cells (optional for speech), and what it means and
+how it should be read aloud. For speech, write the exact words you want to hear
+and spell them the way your screen reader says them correctly. It can also take the section of the Nemeth Code, if
 you know it. The diagnostics are optional. You do not have to know how it should
 be read. If you do not, say so, and the agent will choose a reading the Code
 implies and tell you which one.
@@ -55,6 +62,12 @@ implies and tell you which one.
 The agent looks the rule up in the Nemeth Code itself. Your description tells it
 what is missing. The Code tells it what to add. If the two differ, the Code wins,
 and you will be told.
+
+A speech request has no rule to look up. The Code is silent on speech. So your
+words are the specification, and the agent never hands it to the maintainer as a
+design question. This holds in a comment too: if you write `@claude` and say how
+something should be pronounced, the agent changes it. It may change how other
+equations sound as well. It tells the maintainer which ones.
 
 ### What happens after you press submit
 
@@ -582,7 +595,7 @@ you; it just never runs.
 | File | Lives on | What it does |
 |---|---|---|
 | `.github/ISSUE_TEMPLATE/bug-report.yml` | `main` | The Bug report form. Label `bug`. Three required fields. |
-| `.github/ISSUE_TEMPLATE/nemeth-feature.yml` | `main` | The Nemeth feature form. Label `nemeth`. The symbol, the cells, the reading. |
+| `.github/ISSUE_TEMPLATE/nemeth-feature.yml` | `main` | The Nemeth or speech form. Label `nemeth`. The kind of request, the symbol, the cells, the reading. |
 | `.github/ISSUE_TEMPLATE/design.yml` | `main` | The Design form. Label `design`. A person answers. |
 | `.github/ISSUE_TEMPLATE/other.yml` | `main` | The Other form. Label `other`. A person answers. |
 | `.github/ISSUE_TEMPLATE/config.yml` | `main` | Turns blank issues off, so every report has a type. |
@@ -598,6 +611,7 @@ you; it just never runs.
 | `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs, in mode `fix`, `comment`, `checks-failed` or `conflict`. |
 | `.github/workflows/pipeline-conflicts.yml` | `testing` | On every push to `testing`: finds fix branches that no longer merge, repairs them in one run, checks them again. Also started by hand, and by the hand-off. |
 | `.github/prompts/conflict-mode.md` | `testing` | The agent's instructions for mode `conflict`. In a file because GitHub refuses a prompt over 21000 characters, and `pipeline-agent.yml` was at the limit. Copied from `testing` before the agent starts. |
+| `.github/prompts/checks-failed-mode.md` | `testing` | The agent's instructions for mode `checks-failed`, the repair. Moved out of the workflow for the same length reason. |
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, then reports on the issue. |
 | `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment saying closing sends nothing. |
 | `.github/workflows/pipeline-close-issue.yml` | `testing` | Your merge of a fix closes its issue. |
