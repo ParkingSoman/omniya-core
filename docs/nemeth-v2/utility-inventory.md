@@ -16,8 +16,8 @@ plans.**
 | Tier | Green | Total | Gate |
 |---|---:|---:|---|
 | **core** | 26 | 26 | **fails the build below 100%** |
-| tail | 0 | 5 | reported, never blocking |
-| **All** | **26** | **31** | |
+| tail | 1 | 5 | reported, never blocking |
+| **All** | **27** | **31** | |
 
 **Core is 100%.** No task may add a long-tail symbol family while a core operation is
 missing; that is the standing rule this gate exists to enforce.
@@ -85,9 +85,9 @@ no gate, so the citation is part of the row, not a footnote.
 | infinity | `,=` | `⠠⠿` | refuses |  | 23 | 11376 (Infinity) |
 | prime | `x'` | `⠭⠄` | refuses |  | 23 | 11403 (Prime) |
 | absolute value | `\x\` | `⠳⠭⠳` | refuses |  | 19.5.2 | 9335-9336 (Vertical Bar, Single) |
-| Greek theta | `.?` | `⠨⠹` | refuses |  | 6.1.4 | 3032 (theta) |
+| Greek theta | `.?` | `⠨⠹` | yes | `θ` | 6.1.4 | 3032 (theta) |
 
-## Not green (5)
+## Not green (4)
 
 The reason each one gives, verbatim from the pipeline. A `refuses` is honest and
 expected for an unimplemented construct; a `WRONG ANSWER` or `ERROR` is a bug.
@@ -96,7 +96,6 @@ expected for an unimplemented construct; a `WRONG ANSWER` or `ERROR` is a bug.
 - `infinity` (tail): refuses -- no Nemeth symbol starts at cell 1 (U+283F)
 - `prime` (tail): refuses -- no Nemeth symbol starts at cell 1 (U+2804)
 - `absolute-value` (tail): refuses -- no Nemeth symbol starts at cell 0 (U+2833)
-- `greek-theta` (tail): refuses -- an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a fracOpen either
 
 ## The standing lesson
 

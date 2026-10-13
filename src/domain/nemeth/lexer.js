@@ -409,6 +409,34 @@ function leadingReading(cells, index, governedKind) {
 }
 
 /**
+ * `resolve`, for the cell right behind a Greek-letter indicator.
+ *
+ * Theta is the one Greek letter whose cell is also a sign of its own: BANA
+ * 6.1.4 gives it Braille-ASCII `?` (dots 1-4-5-6), the same cell as the
+ * simple-fraction opener (13.2.1), and capital theta is `.,?`, whose capital
+ * indicator plus that cell is the complex-fraction opener `⠠⠹` (13.6) to the
+ * trie. Behind the Greek indicator neither fraction reading can stand -- an
+ * indicator governs a letter -- so the cell is read as the letter, and the
+ * capital indicator is split off the complex opener. Everywhere else the
+ * cells keep their fraction meaning; this fires only after `⠨` has been read
+ * as the Greek indicator.
+ */
+function resolveBehindIndicator(cells, index, greek) {
+  if (greek) {
+    if (cells[index] === '⠹') {
+      return Object.freeze({ cells: '⠹', kind: 'letter', value: '?', len: 1, banaRef: '6.1.4' });
+    }
+    if (cells[index] === '⠠' && cells[index + 1] === '⠹') {
+      // The one-cell row is the comma with its capital-indicator alternative
+      // (5.1.1); a numeral cannot follow here, so the alternative is the reading.
+      const row = matchAt(cells.slice(0, index + 1), index);
+      return { ...row, ...row.unlessFollowedByNumeral };
+    }
+  }
+  return resolve(cells, index);
+}
+
+/**
  * Read a run of indicator cells and the single sign they govern.
  *
  * Returns the governed match, the composed marks, and the end offset. Refusal
@@ -421,7 +449,8 @@ function readPrefixed(cells, index) {
   let at = index;
   let match = resolve(cells, at);
   while (fills(match, 'typeform') || fills(match, 'alphabet') || fills(match, 'capitalization')) {
-    const next = at + match.len < cells.length ? resolve(cells, at + match.len) : null;
+    const greek = marks.alphabet === 'greek' || (match.slots && match.slots.alphabet === 'greek');
+    const next = at + match.len < cells.length ? resolveBehindIndicator(cells, at + match.len, greek) : null;
     const slot = chooseSlot(match, next, filledThrough);
     if (!slot) {
       throw new NemethUnsupportedError({
