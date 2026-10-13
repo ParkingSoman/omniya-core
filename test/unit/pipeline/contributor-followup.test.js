@@ -98,7 +98,8 @@ test('an answer to the agent\'s question starts the fix, once, and only when a q
   assert.match(resume.run, /needs-info/);
   assert.match(resume.run, /omniya-pipeline-question/);
   // The design lock. A label can be added by anybody with write access, so it
-  // is not enough on its own, and a `needs-design` issue never resumes.
+  // is not enough on its own, and a `needs-design` issue never resumes for a
+  // contributor. The owner's own comment is the one thing that lifts it.
   assert.match(resume.run, /\*,needs-design,\*\) ;;/, 'needs-design is checked before needs-info, and does nothing');
   assert.match(resume.run, /\[ "\$\{asked:-0\}" -ge 1 \] && resume=true/, 'a real question from the agent must exist');
   assert.ok(resume.run.indexOf('needs-design') < resume.run.indexOf('*,needs-info,*'));
@@ -121,6 +122,48 @@ test('an answer to the agent\'s question starts the fix, once, and only when a q
   const outcome = workflow.jobs['resume-outcome'];
   assert.match(outcome.steps.at(-1).run, /fix-outcome\.mjs/);
   assert.match(outcome.if.replace(/\s+/g, ' '), /needs\.resume\.outputs\.result == 'asked'/);
+  assert.match(outcome.if.replace(/\s+/g, ' '), /needs\.resume\.outputs\.result == 'blocked'/);
+  assert.doesNotMatch(outcome.if, /stopped/);
+});
+
+test('the owner\'s comment is the go-ahead for a design idea, and nobody else\'s is', () => {
+  // Issue #73: the owner wrote "start a fix" on a design idea and the pipeline
+  // answered "could not find exactly one fix in progress". The owner had no way to say yes.
+  const owner = allowlistJob.steps.find((s) => s.id === 'owner');
+  assert.ok(owner, 'expected a step that reads who wrote the comment');
+  // GitHub fills this in from the repository. Nobody can type it into a comment.
+  assert.equal(owner.env.ASSOCIATION, '${{ github.event.comment.author_association }}');
+  // The approval belongs to THIS comment, by id. A comment a contributor adds
+  // while the run waits in the queue must not inherit it.
+  assert.equal(owner.env.COMMENT_ID, '${{ github.event.comment.id }}');
+  assert.match(owner.run, /comment_id=\$COMMENT_ID/);
+  assert.equal(allowlistJob.outputs.owner_comment_id, '${{ steps.owner.outputs.comment_id }}');
+  // And for the text as the owner wrote it: an edit afterwards voids the approval.
+  assert.equal(owner.env.COMMENT_AT, '${{ github.event.comment.updated_at }}');
+  assert.equal(allowlistJob.outputs.owner_comment_updated_at, '${{ steps.owner.outputs.comment_updated_at }}');
+  assert.match(owner.run, /\[ "\$ASSOCIATION" = "OWNER" \]/);
+  assert.doesNotMatch(owner.run, /\$\{\{/, 'nothing from the comment text reaches the command');
+  assert.equal(allowlistJob.outputs.owner, '${{ steps.owner.outputs.owner }}');
+
+  // With no fix open, the owner resumes whatever the labels say. A contributor still cannot.
+  const resume = allowlistJob.steps.find((s) => s.id === 'resume');
+  assert.equal(resume.env.IS_OWNER, '${{ steps.owner.outputs.owner }}');
+  assert.match(resume.run, /\[ "\$IS_OWNER" = "true" \]/);
+  assert.ok(resume.run.indexOf('IS_OWNER') < resume.run.indexOf('*,needs-design,*'), 'the owner is decided before the labels');
+  assert.match(resume.if, /count == '0'/, 'with a fix open, the comment is a revision');
+
+  // The label that locked the issue comes off with the one that said "waiting".
+  const start = workflow.jobs['resume-start'].steps.at(-1).run;
+  assert.match(start, /--remove-label needs-design/);
+  assert.match(start, /--remove-label needs-info/);
+  assert.match(start, /\|\| true/, 'a label that is not there must not fail the start');
+
+  // Both agent calls are told, so it does not answer `needs-design` to a decision already made.
+  for (const name of ['agent', 'resume']) {
+    assert.equal(workflow.jobs[name].with.owner_comment_id, '${{ needs.allowlist.outputs.owner_comment_id }}', name);
+    assert.equal(workflow.jobs[name].with.owner_comment_updated_at, '${{ needs.allowlist.outputs.owner_comment_updated_at }}', name);
+    assert.equal(workflow.jobs[name].with.owner_go_ahead, undefined, 'a flag with no comment attached is the race this closes');
+  }
 });
 
 test('a listed contributor who cannot write is told, and the job is red', () => {
@@ -192,19 +235,20 @@ test('a revision is checked and rebuilt, and an answer is not', () => {
   assert.doesNotMatch(source, /gh workflow run/, 'verify starts the checks');
 });
 
-test('an answer, a design refusal and a stop each get one comment, with the agent words inside', () => {
+test('an answer, a design refusal and a block each get one comment, with the agent words inside', () => {
   const reply = workflow.jobs.reply;
   assert.ok(reply, 'expected a `reply` job');
   const condition = reply.if.replace(/\s+/g, ' ');
-  for (const word of ['answered', 'needs-design', 'stopped']) {
+  for (const word of ['answered', 'needs-design', 'blocked']) {
     assert.match(condition, new RegExp(`needs\\.agent\\.outputs\\.result == '${word}'`), word);
   }
+  assert.doesNotMatch(condition, /stopped/);
   assert.doesNotMatch(condition, /'revised'|'approved'/, 'a revision is announced by the build, and approval by the hand-off');
   const step = reply.steps.find((s) => /reply\.mjs/.test(s.run ?? ''));
   assert.equal(step.env.MESSAGE, '${{ needs.agent.outputs.message }}');
   assert.doesNotMatch(step.run, /\$\{\{/, 'agent text must never be written into a run line');
   assert.match(step.run, /STATE=design/);
-  assert.match(step.run, /STATE=stuck/);
+  assert.match(step.run, /blocked\) STATE=stuck/);
   assert.doesNotMatch(step.run, /gh issue|gh label/, 'the script labels the issue, once');
   assert.equal(reply.steps[0].with?.ref, 'testing', 'the helper is not on `main`');
   assert.doesNotMatch(JSON.stringify(reply.steps), /claude-code-action/, 'saying so costs no quota');

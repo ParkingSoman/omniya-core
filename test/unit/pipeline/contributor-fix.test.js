@@ -197,7 +197,7 @@ test('a fix that ended without a pull request says so on the issue', () => {
   assert.match(condition, /needs\.allowlist\.outputs\.allowed == 'true'/, 'a refused author, whose `fix` job is skipped, is not a failure');
   assert.match(condition, /needs\.allowlist\.outputs\.access != 'false'/, 'a skipped `fix` for want of access is reported by `noaccess`, not as a crash');
   assert.match(condition, /needs\.fix\.result == 'failure'/, 'a crashed agent job has no result word, so it must be caught by its status. A SKIPPED fix is not a crash');
-  for (const word of ['asked', 'needs-design', 'stopped']) {
+  for (const word of ['asked', 'needs-design', 'blocked']) {
     assert.match(condition, new RegExp(`needs\\.fix\\.outputs\\.result == '${word}'`), word);
   }
 

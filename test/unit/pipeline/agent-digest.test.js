@@ -15,7 +15,7 @@ const run = [
 ];
 
 test('keeps the agent words and tool names', () => {
-  const out = digest(run, { word: 'stopped', hadMessage: false });
+  const out = digest(run, { word: 'blocked', hadMessage: false });
   assert.match(out, /said: I will read the file and ping claude\./);
   assert.match(out, /tool: Read `src\/domain\/nemeth\/symbols\.json`/);
   assert.match(out, /tool: Bash/);

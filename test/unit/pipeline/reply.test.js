@@ -87,16 +87,26 @@ test('a state that ignores the agent message does not print it', () => {
   }
 });
 
-test('an answer with no words falls back, so silence is never the reply', () => {
+test('an answer with no words is a failure, so silence is never the reply', () => {
+  // The pipeline's own words say something went wrong. They do not claim the agent tried.
   const text = renderReply('answered', { ...where, message: '   ' });
-  assert.match(text, /could not finish/);
+  assert.match(text, /Something went wrong on my side/);
   assert.match(text, /maintainer has been told/);
-  assert.match(renderReply('answered', { ...where, message: 'The cap word comes first.' }), /^<!--.*-->\nThe cap word comes first\.\n$/);
+  assert.doesNotMatch(text, /could not finish/);
+  const said = renderReply('answered', { ...where, message: 'The cap word comes first.' });
+  assert.match(said, /^<!--.*-->\nThe cap word comes first\.\n/);
+  // An answer is the start of a conversation: it says how to go on.
+  assert.match(said, /starts with @claude/);
+  assert.doesNotMatch(said, /You do not need to do anything/);
 });
 
-test('design and stuck use plain defaults when the agent wrote nothing', () => {
+test('design uses a plain default, and stuck has no default at all', () => {
   assert.match(renderReply('design'), /request for something new/);
-  assert.match(renderReply('stuck'), /could not finish/);
+  // `stuck` is the agent saying which gate it cannot pass. Without its words
+  // there is nothing true to say except that the pipeline failed.
+  assert.match(renderReply('stuck'), /Something went wrong on my side/);
+  assert.doesNotMatch(renderReply('stuck'), /could not finish/);
+  assert.match(renderReply('stuck', { message: 'The end to end tests fail on the same line.' }), /^<!--.*-->\nThe end to end tests fail/);
 });
 
 test('one reply never says the same sentence twice', () => {
@@ -140,7 +150,8 @@ test('cleanMessage lets no link, mention or markup through, because the words ar
   assert.equal(cleanMessage('a <img src=x onerror=y> b'), 'a  b');
   assert.doesNotMatch(cleanMessage('x <!-- omniya-pipeline-reply --> y'), /omniya-pipeline/);
   // And it is applied on the way into a reply.
-  const body = renderReply('answered', { message: 'Read [this](https://evil.example) @claude' });
+  // `design` has no fixed `@claude` line, so any `@` left would be the agent's.
+  const body = renderReply('design', { message: 'Read [this](https://evil.example) @claude' });
   assert.doesNotMatch(body.replace(MARKER, ''), /evil|@/);
   // The fixed words still carry the mentions and links they are meant to.
   assert.match(renderReply('ready', where), /@claude it works/);
@@ -192,13 +203,14 @@ test('postReply posts exactly one comment, never edits, and labels only where th
 });
 
 test('the label follows the state that was posted, not the one that was asked for', () => {
-  // A forgotten message.md turns `asked` and `answered` into `stuck`. If the label
+  // A forgotten message.md turns `asked`, `answered` and `stuck` into `failed`. If the label
   // followed the request, an issue that says "the maintainer has been told" would
   // carry `needs-info`, which says the agent is waiting for the contributor, and
   // would carry no `needs-maintainer` at all.
-  assert.equal(resolveState('asked', ''), 'stuck');
-  assert.equal(resolveState('asked', undefined), 'stuck');
-  assert.equal(resolveState('answered', '   '), 'stuck');
+  assert.equal(resolveState('asked', ''), 'failed');
+  assert.equal(resolveState('asked', undefined), 'failed');
+  assert.equal(resolveState('answered', '   '), 'failed');
+  assert.equal(resolveState('stuck', ''), 'failed');
   assert.equal(resolveState('asked', 'Which key?'), 'asked');
   assert.equal(resolveState('ready', ''), 'ready', 'a state with optional words does not fall back');
   for (const [state, expected] of [['asked', 'needs-maintainer'], ['answered', 'needs-maintainer']]) {
@@ -207,6 +219,7 @@ test('the label follows the state that was posted, not the one that was asked fo
     const labelled = calls.filter((a) => a[0] === 'issue' && a[1] === 'edit').map((a) => a[a.indexOf('--add-label') + 1]);
     assert.deepEqual(labelled, [expected], `${state} with no words`);
     assert.ok(calls.find((a) => a[0] === 'api').some((a) => /maintainer has been told/.test(a)), state);
+    assert.ok(!calls.find((a) => a[0] === 'api').some((a) => /could not finish/.test(a)), state);
   }
   // And with words, a question still waits on the contributor.
   const calls = [];

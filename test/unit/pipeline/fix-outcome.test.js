@@ -20,9 +20,19 @@ test('a request for something new is a design decision', () => {
   assert.equal(LABELS.design.name, 'needs-design');
 });
 
-test('stopped, and any word that is not known, needs a person', () => {
-  assert.equal(decide('success', 'stopped'), 'stuck');
-  assert.equal(decide('success', ''), 'stuck');
+test('blocked needs a person, and says why', () => {
+  assert.equal(decide('success', 'blocked'), 'stuck');
+});
+
+test('a word that is not known is a failure, never a quiet hand-off', () => {
+  // `stopped` no longer exists. The agent job fails on it before this runs, so
+  // reaching here with it means something is wrong with the pipeline.
+  assert.equal(decide('success', 'stopped'), 'failed');
+  assert.equal(decide('success', ''), 'failed');
+  assert.equal(decide('success', 'anything else'), 'failed');
+});
+
+test('both states that need a person label the issue for the maintainer', () => {
   assert.equal(LABELS.stuck.name, 'needs-maintainer');
   assert.equal(LABELS.failed.name, 'needs-maintainer');
 });

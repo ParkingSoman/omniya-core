@@ -98,14 +98,22 @@ const STATES_DEF = {
       'If it works, write @claude it works.'
     ]
   },
-  answered: { message: 'required', fallback: 'stuck', lines: [] },
+  // An answer, or a question the agent could not settle on its own (it could not
+  // reproduce the fault and asks what the contributor saw). Either way the
+  // conversation goes on, so the comment says how. With no words there is nothing
+  // to go on from, and that is a failure of the pipeline, not a hand-off.
+  answered: {
+    message: 'required',
+    fallback: 'failed',
+    lines: ['Reply in a comment that starts with @claude.']
+  },
   // The question IS the one comment. The agent writes it to `message.md`, and it
   // goes out under the question marker. With no question there is nothing to ask,
   // so it falls back to `stuck` and a person is told.
   asked: {
     marker: QUESTION_MARKER,
     message: 'required',
-    fallback: 'stuck',
+    fallback: 'failed',
     lines: [
       'Reply in a comment that starts with @claude.',
       'I will start as soon as you answer.'
@@ -126,9 +134,14 @@ const STATES_DEF = {
       'The maintainer will answer here. You do not need to do anything.'
     ]
   },
+  // The agent is blocked: a check will not go green, or a pull request will not
+  // open. Its words say WHICH and why, and they are required. Silence is never
+  // an acceptable reason to hand a thread to a person, so with no words this
+  // becomes `failed`, which says that the pipeline went wrong and not that the
+  // report could not be done.
   stuck: {
-    message: 'optional',
-    defaultMessage: 'I could not finish this one by myself.',
+    message: 'required',
+    fallback: 'failed',
     lines: STUCK_TAIL
   },
   maintainer: {
@@ -230,7 +243,8 @@ export function cleanMessage(text) {
 
 /**
  * The state that is actually posted. A state that needs the agent's words and
- * has none (`asked`, `answered`) is posted as `stuck`, so a person is told. The
+ * has none (`asked`, `answered`, `stuck`) is posted as `failed`, so a person is
+ * told, and told the truth: the pipeline lost the words, the report is fine. The
  * label has to follow the state that was posted and not the one that was asked
  * for, or a forgotten `message.md` would put `needs-info` on an issue that is
  * waiting for nobody to answer.
