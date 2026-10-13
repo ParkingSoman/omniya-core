@@ -304,7 +304,27 @@ test('the digest step shows what the agent did, always, from the trusted copy, a
 
 // ---- mode conflict -------------------------------------------------------
 
-const conflictSection = prompt.slice(prompt.indexOf('MODE conflict'), prompt.indexOf('===== GATES'));
+// The instructions for this mode live in a file, because GitHub refuses a prompt
+// longer than 21000 characters. The workflow copies it from `testing` at run time.
+const conflictFile = '.github/prompts/conflict-mode.md';
+const conflictSection = readFileSync(conflictFile, 'utf8').replace(/\s+/g, ' ');
+
+test('the prompt stays under the length GitHub accepts, with room to spare', () => {
+  // GitHub refuses a workflow whose prompt, with its expressions, is over 21000
+  // characters: "Exceeded max expression length 21000". The file is then invalid.
+  // actionlint does not know this limit, and it broke every agent mode once.
+  const raw = actionStep.with.prompt;
+  assert.ok(raw.length < 20000, `the prompt is ${raw.length} characters. Move text into a file, as mode conflict does`);
+});
+
+test('conflict mode: its instructions are a file written by the maintainers and copied from testing', () => {
+  assert.match(prompt, /MODE conflict/);
+  assert.match(prompt, /trusted\/prompts\/conflict-mode\.md/);
+  assert.doesNotMatch(readFileSync(conflictFile, 'utf8'), /\$\{\{/, 'a file is not run through the expression engine');
+  const copy = steps.find((s) => /git show "origin\/testing:scripts\/ci\/\$f"/.test(s.run ?? ''));
+  assert.match(copy.run, /git show origin\/testing:\.github\/prompts\/conflict-mode\.md > "\$T\/prompts\/conflict-mode\.md"/);
+  assert.match(copy.run, /mkdir -p [^\n]*"\$T\/prompts"/);
+});
 
 test('conflict mode: the model and the effort are chosen by the caller and limited to a fixed list', () => {
   const check = steps[0];
@@ -361,7 +381,7 @@ test('conflict mode: it does not choose between two meanings, and does not edit 
 
 test('conflict mode: it posts nothing, leaves a line per branch, and the notes cannot grow past a line', () => {
   assert.match(conflictSection, /Write NO `message\.md`/);
-  assert.match(conflictSection, /conflict-notes\.json/);
+  assert.match(conflictSection, /TEMP\/conflict-notes\.json/);
   assert.match(conflictSection, /Every branch under `conflicting` gets a line/);
   const result = steps.find((s) => s.id === 'result');
   assert.match(result.run, /head -c 300/);

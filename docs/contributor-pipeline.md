@@ -564,6 +564,7 @@ you; it just never runs.
 | `.github/workflows/pipeline-followup.yml` | `testing` | A comment on the issue to a revision, an answer, or a hand-off. |
 | `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs, in mode `fix`, `comment`, `checks-failed` or `conflict`. |
 | `.github/workflows/pipeline-conflicts.yml` | `testing` | On every push to `testing`: finds fix branches that no longer merge, repairs them in one run, checks them again. Also started by hand, and by the hand-off. |
+| `.github/prompts/conflict-mode.md` | `testing` | The agent's instructions for mode `conflict`. In a file because GitHub refuses a prompt over 21000 characters, and `pipeline-agent.yml` was at the limit. Copied from `testing` before the agent starts. |
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, then reports on the issue. |
 | `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment saying closing sends nothing. |
 | `.github/workflows/pipeline-close-issue.yml` | `testing` | Your merge of a fix closes its issue. |
