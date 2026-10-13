@@ -121,7 +121,7 @@ test('real screen reader walks a plain text input and the editor', async (t) => 
     const editorSelector = '#editor-host [contenteditable="true"]';
     await page.waitForSelector(`${editorSelector} .math-node`);
     // The equation's name comes from MathJax speech, which arrives just after drawing.
-    await page.waitForFunction(() => document.querySelector('.math-node mjx-container')?.getAttribute('aria-label') === 'x squared');
+    await page.waitForFunction(() => document.querySelector('.math-node mjx-container')?.getAttribute('data-semantic-speech-none') === 'x squared');
     await app.evaluate(({ app: a, BrowserWindow }) => {
       a.focus({ steal: true });
       const win = BrowserWindow.getAllWindows()[0];
