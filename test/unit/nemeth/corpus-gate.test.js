@@ -522,22 +522,35 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'the same way: EQUAL with only the ratio character swapped, DIFFERENT once the operands b ' +
       'and d are transposed.'
   },
-  'mathcat-rules:degrees_165_1': {
+  'sre-aata:AataExpression_136': {
     cause: 'equivalent-encoding',
     reason:
-      'Cells `⠼⠔⠴⠘⠨⠡⠐⠬⠔⠴⠘⠨⠡⠀⠨⠅⠀⠼⠂⠦⠴⠘⠨⠡` are BANA Example 23-13 (Nemeth_2022.txt lines ' +
-      '11565-11570, `#90~.*"+90~.*  .k  #180~.*`). The Code writes the hollow dot at the ' +
-      'superscript level (Rule 23.10), so we emit 90^\\circ, an <msup>. MathCAT spells the same ' +
-      'print as a flat <mn>90</mn><mo>°</mo>. The SRE case sre-aata:AataExpression_136 has the same ' +
-      'cells for 180 and wants the <msup> with U+2218, and it PASSes; the two corpora disagree on ' +
-      'shape and the braille cannot say which was meant. The mathematics is the same: 90 degrees.'
+      'A degree sign written at the superscript level (Rule 23.10, Nemeth_2022.txt line 11565). ' +
+      'The SRE case holds the MathJax shape of the source LaTeX `^\\circ`, an <msup> with U+2218, ' +
+      'which a screen reader speaks as "raised to the composed with power" (a blind contributor ' +
+      'heard exactly that, issue #58). We emit the flat degree sign <mn/><mo>°</mo>, which reads ' +
+      '"degrees" and is what the MathCAT cases degrees_165_1 and function_space_119_c_3 hold, and ' +
+      'which PASS. Same mathematics, different encoding.'
   },
-  'mathcat-rules:function_space_119_c_3': {
+  'sre-aata:AataExpression_176': {
     cause: 'equivalent-encoding',
     reason:
-      'sin 30° cos 45° + cos 30° sin 45°, four degree signs written at the superscript level ' +
-      '(Rule 23.10, Nemeth_2022.txt line 11565). Same shape disagreement as degrees_165_1: we ' +
-      'emit each as an <msup> with U+2218, MathCAT as a flat <mo>°</mo>. Same mathematics.'
+      'A degree sign written at the superscript level (Rule 23.10, Nemeth_2022.txt line 11565). ' +
+      'The SRE case holds the MathJax shape of the source LaTeX `^\\circ`, an <msup> with U+2218, ' +
+      'which a screen reader speaks as "raised to the composed with power" (a blind contributor ' +
+      'heard exactly that, issue #58). We emit the flat degree sign <mn/><mo>°</mo>, which reads ' +
+      '"degrees" and is what the MathCAT cases degrees_165_1 and function_space_119_c_3 hold, and ' +
+      'which PASS. Same mathematics, different encoding.'
+  },
+  'sre-aata:AataExpression_229': {
+    cause: 'equivalent-encoding',
+    reason:
+      'A degree sign written at the superscript level (Rule 23.10, Nemeth_2022.txt line 11565). ' +
+      'The SRE case holds the MathJax shape of the source LaTeX `^\\circ`, an <msup> with U+2218, ' +
+      'which a screen reader speaks as "raised to the composed with power" (a blind contributor ' +
+      'heard exactly that, issue #58). We emit the flat degree sign <mn/><mo>°</mo>, which reads ' +
+      '"degrees" and is what the MathCAT cases degrees_165_1 and function_space_119_c_3 hold, and ' +
+      'which PASS. Same mathematics, different encoding.'
   },
   'mathcat-rules:num_indicator_9_a_4': {
     cause: 'equivalent-encoding',
@@ -596,7 +609,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 217;
+const PASS_BASELINE = 216;
 
 // The id SET this gate was written against, not just its size. PASS_BASELINE
 // alone is an aggregate floor: N cases regressing to REFUSE while N different
@@ -610,6 +623,8 @@ const PASS_IDS = new Set([
   "mathcat-rules:boldface_32_b_3",
   "mathcat-rules:comparison_79_g_2",
   "mathcat-rules:complex_frac_66_1",
+  "mathcat-rules:degrees_165_1",
+  "mathcat-rules:function_space_119_c_3",
   "mathcat-rules:greek_24_a_1",
   "mathcat-rules:greek_24_b_1",
   "mathcat-rules:list_num_ind_11_d_1",
@@ -672,7 +687,6 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_133",
   "sre-aata:AataExpression_134",
   "sre-aata:AataExpression_135",
-  "sre-aata:AataExpression_136",
   "sre-aata:AataExpression_137",
   "sre-aata:AataExpression_139",
   "sre-aata:AataExpression_140",
@@ -694,7 +708,6 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_169",
   "sre-aata:AataExpression_170",
   "sre-aata:AataExpression_173",
-  "sre-aata:AataExpression_176",
   "sre-aata:AataExpression_177",
   "sre-aata:AataExpression_178",
   "sre-aata:AataExpression_179",
@@ -737,7 +750,6 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_224",
   "sre-aata:AataExpression_227",
   "sre-aata:AataExpression_228",
-  "sre-aata:AataExpression_229",
   "sre-aata:AataExpression_230",
   "sre-aata:AataExpression_231",
   "sre-aata:AataExpression_232",
@@ -855,7 +867,7 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (31 equivalent-encoding, 7 formatting-only, 6 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
+test('DISAGREE: the many-to-one sub-causes are represented as expected (32 equivalent-encoding, 7 formatting-only, 6 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
   const byCause = {
     'equivalent-encoding': 0,
     'formatting-only': 0,
@@ -866,7 +878,7 @@ test('DISAGREE: the many-to-one sub-causes are represented as expected (31 equiv
     'text-vs-math': 0
   };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
-  assert.equal(byCause['equivalent-encoding'], 31);
+  assert.equal(byCause['equivalent-encoding'], 32);
   assert.equal(byCause['formatting-only'], 7);
   assert.equal(byCause['unencoded-boundary'], 6);
   assert.equal(byCause['unencoded-attribute'], 3);

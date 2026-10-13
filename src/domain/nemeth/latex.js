@@ -176,17 +176,21 @@ export const toLatex = defineBackend(
     // lines 808-810) describes. The decimal point needs no such help.
     Number: (node) => withTypeform(node.value.replaceAll(',', '{,}'), node),
     Identifier: (node) => withTypeform(letterGlyph(node), node),
-    // The degree sign (BANA 23.10) is written at the superscript level, so it is a
-    // real superscript here; `\\circ` is what MathJax turns into U+2218 in an
-    // `msup`, the same MathML the SRE corpus holds for these cells.
-    Operator: (node) => (node.glyph === '°' ? '\\circ' : node.glyph),
+    Operator: (node) => node.glyph,
     Sequence: (node, emit) => concat(node.items.map((item) => emit(item))),
     Fraction: (node, emit) => `\\frac{${emit(node.numerator)}}{${emit(node.denominator)}}`,
     Root: (node, emit) =>
       node.index === null
         ? `\\sqrt{${emit(node.radicand)}}`
         : `\\sqrt[${emit(node.index)}]{${emit(node.radicand)}}`,
-    Superscript: (node, emit) => `${scriptBase(node.base, emit)}^{${emit(node.exponent)}}`,
+    // The degree sign (BANA 23.10) is WRITTEN at the superscript level, but it is
+    // not a power. A real superscript of U+2218 was spoken as "2 raised to the
+    // composed with power" by a blind contributor's screen reader (issue #58), so
+    // it is emitted flat: `90°` is <mn>90</mn><mo>°</mo>, which reads "90 degrees".
+    Superscript: (node, emit) =>
+      node.exponent.kind === 'Operator' && node.exponent.glyph === '°'
+        ? `${scriptBase(node.base, emit)}°`
+        : `${scriptBase(node.base, emit)}^{${emit(node.exponent)}}`,
     Subscript: (node, emit) => `${scriptBase(node.base, emit)}_{${emit(node.index)}}`,
     SubSuperscript: (node, emit) =>
       `${scriptBase(node.base, emit)}_{${emit(node.index)}}^{${emit(node.exponent)}}`,

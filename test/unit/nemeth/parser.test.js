@@ -750,16 +750,24 @@ test('a multipurpose indicator divides a sign of operation from a following sign
 // the superscript level, so the cells are the superscript indicator `⠘` and the
 // hollow dot `⠨⠡` (Examples 4-9, 14-2 and 23-13).
 test('a degree sign is the hollow dot at the superscript level (Rule 23.10)', () => {
-  assert.equal(parseNemeth('⠼⠔⠴⠘⠨⠡').latex, '90^{\\circ}');
+  assert.equal(parseNemeth('⠼⠔⠴⠘⠨⠡').latex, '90°');
 });
 
 test('degrees survive a baseline indicator and a comparison (Example 23-13)', () => {
   assert.equal(
     parseNemeth('⠼⠔⠴⠘⠨⠡⠐⠬⠔⠴⠘⠨⠡⠀⠨⠅⠀⠼⠂⠦⠴⠘⠨⠡').latex,
-    '90^{\\circ}+90^{\\circ}=180^{\\circ}'
+    '90°+90°=180°'
   );
 });
 
 test('a hollow dot on the baseline is not a degree sign and is still refused', () => {
   assert.throws(() => parseNemeth('⠨⠡'), NemethUnsupportedError);
+});
+
+// The reader said "2 raised to the composed with power" for a superscript U+2218.
+// The sign has to reach the screen reader as the flat degree sign, which it speaks
+// as "degrees" (issue #58, contributor test of the first build).
+test('a degree sign is a flat degree sign in the LaTeX, not a raised ring', () => {
+  assert.equal(parseNemeth('⠼⠆⠘⠨⠡').latex, '2°');
+  assert.ok(!parseNemeth('⠼⠆⠘⠨⠡').latex.includes('^'));
 });
