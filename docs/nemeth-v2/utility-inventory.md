@@ -16,8 +16,8 @@ plans.**
 | Tier | Green | Total | Gate |
 |---|---:|---:|---|
 | **core** | 26 | 26 | **fails the build below 100%** |
-| tail | 1 | 5 | reported, never blocking |
-| **All** | **27** | **31** | |
+| tail | 2 | 5 | reported, never blocking |
+| **All** | **28** | **31** | |
 
 **Core is 100%.** No task may add a long-tail symbol family while a core operation is
 missing; that is the standing rule this gate exists to enforce.
@@ -82,18 +82,17 @@ no gate, so the citation is part of the row, not a footnote.
 | Operation | Braille-ASCII | Cells | Works | LaTeX | BANA | Source line |
 |---|---|---|---|---|---|---|
 | integral | `!x` | `⠮⠭` | refuses |  | 23.12 | 11377-11378 (Integral, Single) |
-| infinity | `,=` | `⠠⠿` | refuses |  | 23 | 11376 (Infinity) |
+| infinity | `,=` | `⠠⠿` | yes | `∞` | 23 | 11376 (Infinity) |
 | prime | `x'` | `⠭⠄` | refuses |  | 23 | 11403 (Prime) |
 | absolute value | `\x\` | `⠳⠭⠳` | refuses |  | 19.5.2 | 9335-9336 (Vertical Bar, Single) |
 | Greek theta | `.?` | `⠨⠹` | yes | `θ` | 6.1.4 | 3032 (theta) |
 
-## Not green (4)
+## Not green (3)
 
 The reason each one gives, verbatim from the pipeline. A `refuses` is honest and
 expected for an unimplemented construct; a `WRONG ANSWER` or `ERROR` is a bug.
 
 - `integral` (tail): refuses -- no Nemeth symbol starts at cell 0 (U+282E)
-- `infinity` (tail): refuses -- no Nemeth symbol starts at cell 1 (U+283F)
 - `prime` (tail): refuses -- no Nemeth symbol starts at cell 1 (U+2804)
 - `absolute-value` (tail): refuses -- no Nemeth symbol starts at cell 0 (U+2833)
 
