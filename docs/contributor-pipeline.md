@@ -494,5 +494,6 @@ you; it just never runs.
 | `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when a stub differs from its copy on `main`, or the allowlist there cannot be read. |
 | `scripts/ci/nemeth-gate.mjs` | `testing` | Makes the two Nemeth reports able to fail. |
 | `.github/workflows/pr-build.yml` | `testing` | Publishes a per-pull-request build to install. |
+| `.github/workflows/diagnostics-windows.yml` | `testing` | Runs the braille input diagnostics e2e file on Windows: real Help menu item, real button, real clipboard. Runs on pull requests that touch the copy path. |
 | `.github/workflows/screen-reader.yml` | `testing` | Drives VoiceOver (macOS) and NVDA (Windows) against the editor spike and saves what each says. Runs on pull requests that touch the editor. |
 | `.github/workflows/testing-app.yml` | `testing` | Fires on every push to `testing` and publishes the alpha build. This is what a merge reaches. |
