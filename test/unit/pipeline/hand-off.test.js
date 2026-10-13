@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { REQUIRED_CHECKS, handOff, isConflicting, notGreen, testedSha } from '../../../scripts/ci/hand-off.mjs';
+import { PIPELINE_AUTHOR, REQUIRED_CHECKS, handOff, isConflicting, notGreen, testedSha } from '../../../scripts/ci/hand-off.mjs';
 
 const green = (name, at = '2026-10-10T10:00:00Z') => ({ name, conclusion: 'success', completed_at: at });
 
@@ -56,7 +56,13 @@ function fakeGh({ mergeable = ['MERGEABLE'], checks = ['unit', 'nemeth', 'e2e'],
   const run = (args) => {
     calls.push(args.join(' '));
     if (args[0] === 'pr' && args[1] === 'view' && args.includes('mergeable')) return `${asks.length > 1 ? asks.shift() : asks[0]}\n`;
-    if (args[0] === 'pr' && args[1] === 'view' && args.includes('comments')) return JSON.stringify(comments);
+    if (args[0] === 'api' && args[1].includes('/issues/') && args[1].endsWith('/comments')) {
+      // A bare string is a comment by the pipeline. An object names its own author.
+      return comments
+        .map((c) => (typeof c === 'string' ? { author: PIPELINE_AUTHOR, body: c } : c))
+        .map((c) => JSON.stringify(c))
+        .join('\n');
+    }
     if (args[0] === 'pr' && args[1] === 'view') return 'abc123\n';
     if (args[0] === 'api' && args[1].includes('/check-runs')) {
       return checks.map((name) => JSON.stringify({ name, conclusion: 'success', completed_at: '2026-10-10T10:00:00Z' })).join('\n');
@@ -128,6 +134,16 @@ test('testedSha: the first recorded commit wins, and no record is an empty answe
   const marked = (sha) => `text\n<!-- omniya-tested sha=${sha} -->`;
   assert.equal(testedSha('53', 'a/b', fakeGh({ comments: ['hello', marked('1111111'), marked('2222222')] }).run), '1111111');
   assert.equal(testedSha('53', 'a/b', fakeGh({ comments: ['hello'] }).run), '');
+});
+
+test('testedSha: a marker written by anyone but the pipeline is ignored', () => {
+  const marker = (sha) => `<!-- omniya-tested sha=${sha} -->`;
+  const comments = [
+    { author: 'some-stranger', body: marker('bad0bad') },
+    { author: 'github-actions[bot]', body: marker('1111111') }
+  ];
+  assert.equal(testedSha('53', 'a/b', fakeGh({ comments }).run), '1111111');
+  assert.equal(testedSha('53', 'a/b', fakeGh({ comments: [comments[0]] }).run), '', 'a forged marker alone counts as no record');
 });
 
 test('after a repair the hand-off comment names both commits and says which one was not tested', () => {

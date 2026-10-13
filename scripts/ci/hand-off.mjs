@@ -53,13 +53,28 @@ export const PENDING_LABEL = 'handoff-pending';
  */
 export const TESTED_MARKER = /<!-- omniya-tested sha=([0-9a-f]{7,40}) -->/;
 
+/** Only the pipeline's own account is believed. Anyone can comment on a public pull request. */
+export const PIPELINE_AUTHOR = 'github-actions[bot]';
+
 /**
  * The commit the contributor tested, or '' if none was recorded. The first one
  * wins: a branch repaired twice is still the build they installed first.
+ *
+ * Only a comment written by the pipeline counts. The marker is plain text, and a
+ * stranger who could write the same text could make the maintainer's hand-off
+ * comment name a commit that nobody tested. The REST API is used because it
+ * names the author `github-actions[bot]`, as `listed-thread.mjs` expects.
  */
 export function testedSha(prNumber, repo, run = gh) {
-  const bodies = JSON.parse(run(['pr', 'view', prNumber, '--repo', repo, '--json', 'comments', '--jq', '[.comments[].body]']) || '[]');
-  for (const body of bodies) {
+  const lines = run([
+    'api', `repos/${repo}/issues/${prNumber}/comments`, '--paginate',
+    '--jq', '.[] | {author: .user.login, body: .body}'
+  ])
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+  for (const { author, body } of lines) {
+    if (author !== PIPELINE_AUTHOR) continue;
     const m = TESTED_MARKER.exec(body ?? '');
     if (m) return m[1];
   }
