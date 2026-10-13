@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -107,6 +107,14 @@ function registerIpc(storage, settingsStorage) {
     if (testExportDirectory) return { printed: false, skipped: true };
     event.sender.print({ printBackground: false });
     return { printed: true };
+  });
+  // The page's own clipboard call needs window focus and a browser permission,
+  // and a contributor on Windows got an empty paste from it. The main
+  // process clipboard needs neither.
+  ipcMain.handle('clipboard:writeText', (event, text) => {
+    assertTrustedSender(event);
+    if (typeof text !== 'string') throw new TypeError('Clipboard text must be a string.');
+    clipboard.writeText(text);
   });
   ipcMain.handle('update:openReleasePage', async (event) => {
     assertTrustedSender(event);
@@ -265,9 +273,10 @@ function buildApplicationMenu() {
           click: () => sendMenuCommand({ action: 'keyboard-help' })
         },
         {
-          // Rides the existing menu-command bridge rather than adding an IPC
-          // handler: nothing crosses into the main process, so there is no new
-          // surface to guard with assertTrustedSender.
+          // Rides the menu-command bridge to the page, which builds the report.
+          // The page then hands the text to the main process to copy
+          // ('clipboard:writeText', guarded by assertTrustedSender), because the
+          // page's own clipboard call failed on a contributor's Windows machine.
           label: 'Copy braille input diagnostics',
           click: () => sendMenuCommand({ action: 'copy-input-diagnostics' })
         }

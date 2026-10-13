@@ -77,7 +77,7 @@ body:
     attributes:
       label: Diagnostics
       description: >-
-        Open the Help menu and choose "Copy braille input diagnostics", then
+        Open the Help menu and choose "Copy braille input diagnostics", or press the button with the same name in Keyboard shortcuts, then
         paste here. It records the app version, which braille input table was
         detected, and what the writing fields received. Paste the whole thing;
         the parts that look irrelevant are often the ones that identify the bug.
