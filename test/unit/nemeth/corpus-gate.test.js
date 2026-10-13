@@ -579,7 +579,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 214;
+const PASS_BASELINE = 215;
 
 // The id SET this gate was written against, not just its size. PASS_BASELINE
 // alone is an aggregate floor: N cases regressing to REFUSE while N different
@@ -597,6 +597,7 @@ const PASS_IDS = new Set([
   "mathcat-rules:greek_24_b_1",
   "mathcat-rules:list_num_ind_11_d_1",
   "mathcat-rules:list_num_ind_11_d_2",
+  "mathcat-rules:mixed_frac_63_a_1",
   "mathcat-rules:msubsup_82_a_1",
   "mathcat-rules:msubsup_82_a_3",
   "mathcat-rules:multipurpose_134_1",
