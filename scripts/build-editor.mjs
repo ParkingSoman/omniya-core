@@ -1,4 +1,5 @@
 import { build } from 'esbuild';
+import { writePatchedMathmaps } from './speech-maps.mjs';
 
 // The editor is bundled because the page's script policy is `script-src 'self'`
 // (no inline import map) and ProseMirror imports its parts by package name.
@@ -12,3 +13,7 @@ await build({
   outfile: 'src/renderer/editor/editor.bundle.js',
   format: 'esm',
 });
+
+// The speech engine's rule files, with the wording from src/renderer/speech-rules.js
+// applied. mathjax-config.js points the speech worker here. Generated, not committed.
+await writePatchedMathmaps('src/renderer/mathmaps');
