@@ -86,7 +86,7 @@ body:
     attributes:
       label: Diagnostics (optional)
       description: >-
-        Open the Help menu and choose "Copy braille input diagnostics", or press the button with the same name in Keyboard shortcuts, then
+        Open the Help menu and choose "Copy braille input diagnostics", then
         paste here.
       render: text
     validations:
