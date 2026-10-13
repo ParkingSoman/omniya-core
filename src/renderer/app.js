@@ -8,6 +8,7 @@ import { docPlainText, docSnippet, docWithTitle, emptyDoc, nameFromDoc } from '.
 import { captureExplorerFocus, restoreExplorerFocus } from './math-explorer-bridge.js';
 import { attachInputCapture } from './input-capture.js';
 import { createInputLog } from './input-log.js';
+import { attachRoving } from './roving.js';
 import { formatInputDiagnostics } from './input-diagnostics.js';
 import {
   cancelReplacement,
@@ -204,6 +205,18 @@ function shortWhen(iso) {
     : when.toLocaleDateString([], { dateStyle: 'short' });
 }
 
+// Each of these is one Tab stop, so the way to the note is the same length however
+// many notes there are. Arrow keys move inside them.
+attachRoving(document.getElementById('toolbar'), {
+  items: 'button', keys: ['ArrowLeft', 'ArrowRight'], wrap: true
+});
+const noteListStop = attachRoving(elements['napkin-list'], {
+  items: '[data-napkin-id]',
+  keys: ['ArrowUp', 'ArrowDown'],
+  // Before any note has been used, the stop is the open one.
+  fallback: (buttons) => buttons.find((button) => button.getAttribute('aria-current') === 'page')
+});
+
 /** Show only the notes whose name or first lines match what is typed in the search box. */
 function applyNoteFilter() {
   const query = elements['note-search'].value.trim().toLowerCase();
@@ -216,6 +229,7 @@ function applyNoteFilter() {
     if (match) shown += 1;
   }
   elements['note-search-status'].textContent = query ? `${shown} ${shown === 1 ? 'note' : 'notes'} found` : '';
+  noteListStop.refresh();
 }
 
 elements['note-search'].addEventListener('input', applyNoteFilter);

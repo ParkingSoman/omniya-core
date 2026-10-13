@@ -286,9 +286,13 @@ test('Accessible names on the page', { timeout: 60_000 }, async (t) => {
   assert.equal(await editorRoot(page).getAttribute('aria-label'), 'Note text');
   assert.equal(await page.getByRole('textbox', { name: 'Note text' }).count(), 1);
 
-  const heading = page.getByRole('heading', { level: 2 });
-  assert.equal(await heading.count(), 1);
-  assert.equal(await heading.getAttribute('id'), 'current-napkin-name');
+  // One heading before each place to type (see field-headings.test.js), then the
+  // note's own title. A fourth would be a stray one. Find and the equation field
+  // are closed, so their headings are not on the page yet.
+  const headings = page.getByRole('heading', { level: 2 });
+  assert.deepEqual(
+    await headings.evaluateAll((els) => els.map((el) => el.id || el.textContent.trim())),
+    ['Search notes', 'note-heading', 'current-napkin-name']);
 
   assert.equal(await page.getByRole('complementary', { name: 'Notes' }).count(), 1);
   assert.equal(await page.getByRole('navigation', { name: 'Your notes' }).count(), 1);
