@@ -89,8 +89,10 @@ jobs:
           - **Apple Silicon Mac** - \`Omniya-Core-mac-arm64.zip\`. Unzip and run.
           - **Windows x64** - \`Omniya-Core-Setup-x64.exe\`, an installer.
 
-          Both are unsigned, and neither auto-updates. When the pull request is
-          updated, these assets are replaced in place, so download again."
+          Both are unsigned. On Windows the installer installs over the alpha
+          build, so the app keeps its name and icon. On the Mac the unzipped app
+          sits beside the alpha. When the pull request is updated, these assets
+          are replaced in place, so download again."
           gh release view "$TAG" >/dev/null 2>&1 \
             || gh release create "$TAG" --prerelease --title "Test build for PR #${PR_NUMBER}" --notes "$NOTES" --target "$HEAD_SHA"
           gh release edit "$TAG" --notes "$NOTES"
@@ -155,8 +157,13 @@ jobs:
           - Windows x64: ${BASE}/Omniya-Core-Setup-x64.exe
 
           On the Mac, unzip it and run it. On Windows, run the installer. Both
-          are unsigned, so your machine will ask you to confirm. Neither
-          auto-updates, and neither replaces the alpha build you already have.
+          are unsigned, so your machine will ask you to confirm.
+
+          On Windows, the installer installs over the alpha build you already
+          have. It keeps the same name and icon, so nothing on screen shows which
+          build runs. To go back, install the latest alpha again from
+          https://github.com/${REPO}/releases/tag/testing-app. On the Mac, the
+          unzipped app sits beside the alpha and does not replace it.
 
           If this pull request changes again, these links stay the same and the
           files behind them are replaced. Download again rather than looking for
