@@ -1,0 +1,32 @@
+name: contributor-conflicts
+
+# A STUB. Copy this file to `.github/workflows/` on `main` and leave it there.
+# See `contributor-fix.yml` in this folder for why. The same rules apply: it only
+# calls `pipeline-conflicts.yml` on `testing`, and no logic belongs here.
+#
+# It exists for one reason. GitHub only finds a workflow to start BY NAME when its
+# file is on the default branch. The repair runs by itself on every push to
+# `testing` and needs no stub for that. But starting it by hand, or from the
+# hand-off when a contributor says "it works" on a branch that no longer merges,
+# goes through this file. Without it `gh workflow run` answers 404.
+on:
+  workflow_dispatch:
+    inputs:
+      pr_numbers:
+        description: Comma-separated pull request numbers to repair. Empty means every open fix PR that conflicts. Naming one overrides needs-maintainer
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  call:
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-conflicts.yml@testing
+    with:
+      pr_numbers: ${{ inputs.pr_numbers }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

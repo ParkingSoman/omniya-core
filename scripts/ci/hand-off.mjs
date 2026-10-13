@@ -47,6 +47,26 @@ export const REQUIRED_CHECKS = ['unit', 'nemeth', 'e2e'];
 export const PENDING_LABEL = 'handoff-pending';
 
 /**
+ * Left on the pull request when the repair is started. It is the only record of
+ * which commit the contributor actually installed: after the repair, the branch
+ * head is a newer commit that they never saw.
+ */
+export const TESTED_MARKER = /<!-- omniya-tested sha=([0-9a-f]{7,40}) -->/;
+
+/**
+ * The commit the contributor tested, or '' if none was recorded. The first one
+ * wins: a branch repaired twice is still the build they installed first.
+ */
+export function testedSha(prNumber, repo, run = gh) {
+  const bodies = JSON.parse(run(['pr', 'view', prNumber, '--repo', repo, '--json', 'comments', '--jq', '[.comments[].body]']) || '[]');
+  for (const body of bodies) {
+    const m = TESTED_MARKER.exec(body ?? '');
+    if (m) return m[1];
+  }
+  return '';
+}
+
+/**
  * @param {Array<{name:string, conclusion:string|null, completed_at:string|null}>} checkRuns
  * @returns {string[]} names that are not green. Empty means all three passed.
  */
@@ -95,7 +115,14 @@ export function handOff({ issue, pr, repo, reviewer, mode = 'normal' }, run = gh
   if (mode === 'check-conflicts' && isConflicting(prNumber, repo, run, sleep)) {
     ensureLabel(PENDING_LABEL, repo, 'Said to work. Being brought up to date before it goes to the maintainer', run);
     run(['pr', 'edit', prNumber, '--repo', repo, '--add-label', PENDING_LABEL]);
-    run(['workflow', 'run', 'pipeline-conflicts.yml', '--repo', repo, '--ref', 'testing', '-f', `pr_numbers=${prNumber}`]);
+    const head = run(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid', '--jq', '.headRefOid']).trim();
+    run([
+      'pr', 'comment', prNumber, '--repo', repo, '--body',
+      `The contributor says the build works. It no longer merges with testing, so I am bringing it up to date before it goes to you.\n\nCommit the contributor tested: ${head}\n\n<!-- omniya-tested sha=${head} -->`
+    ]);
+    // The stub on `main`. GitHub finds a workflow to start by name only when its
+    // file is on the default branch, and the default branch is where `gh` looks.
+    run(['workflow', 'run', 'contributor-conflicts.yml', '--repo', repo, '-f', `pr_numbers=${prNumber}`]);
     postReply({ issue: issueNumber, state: 'updating', repo }, run);
     return { sent: false, updating: true, sha: '', missing: [] };
   }
@@ -140,9 +167,16 @@ export function handOff({ issue, pr, repo, reviewer, mode = 'normal' }, run = gh
   } catch {
     // A reviewer that cannot be added is not a reason to hold the hand-off. The label is the signal.
   }
+  // After a repair the branch head is not the commit the contributor installed.
+  // Say both, so the comment never claims they tested what they did not.
+  const tested = testedSha(prNumber, repo, run);
+  const commits =
+    tested && !sha.startsWith(tested) && !tested.startsWith(sha)
+      ? `Commit the contributor tested: ${tested}\n\nCommit after I brought it up to date with testing: ${sha}. The contributor did not test this one. ${REQUIRED_CHECKS.join(', ')} are green on it.`
+      : `Commit tested: ${sha}\n\n${REQUIRED_CHECKS.join(', ')} are green on that commit.`;
   run([
     'pr', 'comment', prNumber, '--repo', repo, '--body',
-    `The contributor installed the build and says it works.\n\nCommit tested: ${sha}\n\n${REQUIRED_CHECKS.join(', ')} are green on that commit. Closing issue #${issueNumber} is left to your merge, which closes it.`
+    `The contributor installed the build and says it works.\n\n${commits} Closing issue #${issueNumber} is left to your merge, which closes it.`
   ]);
   postReply({ issue: issueNumber, state: 'sent', repo }, run);
   return { sent: true, updating: false, sha, missing: [] };

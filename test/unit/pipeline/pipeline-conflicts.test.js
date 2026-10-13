@@ -10,10 +10,13 @@ const workflow = loadYaml(source);
 const on = workflow.on ?? workflow[true];
 const jobs = workflow.jobs;
 
-test('it starts on a push to testing, or by hand, and nothing else', () => {
-  assert.deepEqual(Object.keys(on).sort(), ['push', 'workflow_dispatch']);
+test('it starts on a push to testing, or when the stub on main calls it, and nothing else', () => {
+  // `workflow_dispatch` is the stub's: GitHub finds a workflow to start by name
+  // only when its file is on the default branch.
+  assert.deepEqual(Object.keys(on).sort(), ['push', 'workflow_call']);
   assert.deepEqual(on.push.branches, ['testing']);
-  assert.equal(on.workflow_dispatch.inputs.pr_numbers.default, '');
+  assert.equal(on.workflow_call.inputs.pr_numbers.default, '');
+  assert.deepEqual(Object.keys(on.workflow_call.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
   assert.doesNotMatch(source, /pull_request_target|issue_comment|\bissues:\s*\n\s*types/);
 });
 
@@ -41,8 +44,20 @@ test('the map reads all of history, because merge-tree needs every merge base', 
   assert.equal(checkout.with['fetch-depth'], 0);
 });
 
+test('every checkout names testing, because the stub that calls this file runs on main', () => {
+  for (const [name, job] of Object.entries(jobs)) {
+    for (const step of job.steps ?? []) {
+      if (typeof step.uses === 'string' && step.uses.startsWith('actions/checkout')) {
+        assert.equal(step.with?.ref, 'testing', `${name} must check out testing, not the caller's branch`);
+      }
+    }
+  }
+  // A relative path would resolve against the caller's branch, which is main.
+  assert.doesNotMatch(source, /uses:\s*\.\//);
+});
+
 test('the repair run uses the stronger model at medium effort, and holds no actions or issue write', () => {
-  assert.equal(jobs.resolve.uses, './.github/workflows/pipeline-agent.yml');
+  assert.equal(jobs.resolve.uses, 'ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing');
   assert.equal(jobs.resolve.with.mode, 'conflict');
   assert.equal(jobs.resolve.with.model, 'claude-opus-5-5');
   assert.equal(jobs.resolve.with.effort, 'medium');
@@ -74,7 +89,7 @@ test('what was repaired is read by the pipeline, and the agent\'s words arrive t
 test('each repaired branch is checked and built one at a time, quietly, under the contributor\'s own lock', () => {
   assert.equal(jobs.verify.strategy['max-parallel'], 1);
   assert.equal(jobs.verify.strategy['fail-fast'], false);
-  assert.equal(jobs.verify.uses, './.github/workflows/pipeline-verify.yml');
+  assert.equal(jobs.verify.uses, 'ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing');
   assert.equal(jobs.verify.with.reply_state, 'quiet');
   assert.equal(jobs.verify.concurrency.group, 'contributor-issue-${{ matrix.issue }}');
   assert.equal(jobs.verify.concurrency['cancel-in-progress'], false);

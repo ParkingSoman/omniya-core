@@ -34,14 +34,24 @@ name: pipeline-conflicts
 # remote, which `pipeline-agent.yml` reads for itself. The agent's words are only
 # the note beside the fact, and they are cleaned before they are posted.
 #
-# This file is its own trigger and lives only on `testing`. A `push` trigger runs
-# the copy in the pushed commit, so no stub on `main` is needed. The reusable
-# workflows are called by relative path, so a run started by hand from a branch
-# uses that branch's copy, which is how a change here is tried before it merges.
+# TWO WAYS IN. A push to `testing` starts this file directly: a `push` trigger
+# runs the copy in the pushed commit, so it needs nothing on `main`. Starting it
+# BY HAND, or from the hand-off, is different. GitHub only finds a workflow to
+# start by name when its file is on the default branch, so `main` holds a stub,
+# `.github/pipeline-stubs/contributor-conflicts.yml`, that calls this file on
+# `testing`. Without the stub, `gh workflow run` answers 404.
+#
+# Because the stub calls this file, the file must not assume it was started from
+# `testing`: every checkout names `testing`, and the workflows it calls are named
+# `@testing`, as in `pipeline-fix.yml`. A relative `./` path would resolve against
+# the caller's branch, which is `main`.
 on:
   push:
     branches: [testing]
-  workflow_dispatch:
+  workflow_call:
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
     inputs:
       pr_numbers:
         description: Comma-separated pull request numbers to repair. Empty means every open fix PR that conflicts. Naming one overrides needs-maintainer
@@ -75,6 +85,7 @@ jobs:
       # All of history: `git merge-tree` needs the merge base of every pair.
       - uses: actions/checkout@v4
         with:
+          ref: testing
           fetch-depth: 0
       - id: m
         env:
@@ -99,7 +110,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ./.github/workflows/pipeline-agent.yml
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: conflict
       map_artifact: conflict-map-${{ github.run_id }}-${{ github.run_attempt }}
@@ -126,6 +137,8 @@ jobs:
       handoff: ${{ steps.p.outputs.handoff }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: testing
       - id: p
         env:
           GH_TOKEN: ${{ github.token }}
@@ -158,7 +171,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
-    uses: ./.github/workflows/pipeline-verify.yml
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing
     with:
       issue_number: ${{ format('{0}', matrix.issue) }}
       pr_number: ${{ format('{0}', matrix.pr) }}
@@ -186,6 +199,8 @@ jobs:
       issues: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ matrix.issue }}

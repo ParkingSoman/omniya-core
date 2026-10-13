@@ -11,11 +11,17 @@ const REPO = 'ParkingSoman/omniya-core';
 const STUBS = {
   'contributor-fix.yml': 'pipeline-fix.yml',
   'contributor-followup.yml': 'pipeline-followup.yml',
-  'contributor-signoff.yml': 'pipeline-signoff.yml'
+  'contributor-signoff.yml': 'pipeline-signoff.yml',
+  'contributor-conflicts.yml': 'pipeline-conflicts.yml'
 };
 
 const TOKEN = { CLAUDE_CODE_OAUTH_TOKEN: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}' };
-const SECRETS = { 'contributor-fix.yml': TOKEN, 'contributor-followup.yml': TOKEN, 'contributor-signoff.yml': undefined };
+const SECRETS = {
+  'contributor-fix.yml': TOKEN,
+  'contributor-followup.yml': TOKEN,
+  'contributor-signoff.yml': undefined,
+  'contributor-conflicts.yml': TOKEN
+};
 
 const load = (file) => loadYaml(readFileSync(`${DIR}/${file}`, 'utf8'));
 
@@ -71,6 +77,10 @@ test('each stub starts on exactly the event it should, and no event that could l
   // The contributor writes on the ISSUE, not on a pull request.
   assert.match(load('contributor-followup.yml').jobs.call.if, /!github\.event\.issue\.pull_request/);
   assert.deepEqual(triggers('contributor-signoff.yml').issues.types, ['closed']);
+  // Only a person, or the hand-off, starts the conflict repair through its stub.
+  // A push to `testing` starts the real file directly and needs no stub.
+  assert.deepEqual(Object.keys(triggers('contributor-conflicts.yml')), ['workflow_dispatch']);
+  assert.equal(load('contributor-conflicts.yml').jobs.call.with.pr_numbers, '${{ inputs.pr_numbers }}');
 
   // The pipeline opens pull requests, pushes branches and posts comments. A
   // stub that also ran on those would feed itself.

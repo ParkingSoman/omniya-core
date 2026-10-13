@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { REQUIRED_CHECKS, handOff, isConflicting, notGreen } from '../../../scripts/ci/hand-off.mjs';
+import { REQUIRED_CHECKS, handOff, isConflicting, notGreen, testedSha } from '../../../scripts/ci/hand-off.mjs';
 
 const green = (name, at = '2026-10-10T10:00:00Z') => ({ name, conclusion: 'success', completed_at: at });
 
@@ -50,12 +50,13 @@ test('a cancelled or still-running check is not green', () => {
 // ---- the conflict check ---------------------------------------------------
 
 /** A stand-in `gh`. `mergeable` is what GitHub answers, one answer per ask. */
-function fakeGh({ mergeable = ['MERGEABLE'], checks = ['unit', 'nemeth', 'e2e'] } = {}) {
+function fakeGh({ mergeable = ['MERGEABLE'], checks = ['unit', 'nemeth', 'e2e'], comments = [] } = {}) {
   const calls = [];
   const asks = [...mergeable];
   const run = (args) => {
     calls.push(args.join(' '));
     if (args[0] === 'pr' && args[1] === 'view' && args.includes('mergeable')) return `${asks.length > 1 ? asks.shift() : asks[0]}\n`;
+    if (args[0] === 'pr' && args[1] === 'view' && args.includes('comments')) return JSON.stringify(comments);
     if (args[0] === 'pr' && args[1] === 'view') return 'abc123\n';
     if (args[0] === 'api' && args[1].includes('/check-runs')) {
       return checks.map((name) => JSON.stringify({ name, conclusion: 'success', completed_at: '2026-10-10T10:00:00Z' })).join('\n');
@@ -78,7 +79,8 @@ test('a conflicting branch is not handed on: the repair starts, and the contribu
   const result = handOff({ ...args, mode: 'check-conflicts' }, f.run, noSleep);
   assert.equal(result.sent, false);
   assert.equal(result.updating, true);
-  assert.ok(f.calls.includes('workflow run pipeline-conflicts.yml --repo a/b --ref testing -f pr_numbers=53'));
+  // The stub on main, because GitHub finds a workflow to start by name only on the default branch.
+  assert.ok(f.calls.includes('workflow run contributor-conflicts.yml --repo a/b -f pr_numbers=53'));
   // The request to send it on afterwards is a label, which cannot be dropped like a queued run.
   assert.ok(f.calls.includes('pr edit 53 --repo a/b --add-label handoff-pending'));
   assert.ok(!f.calls.some((c) => c.startsWith('pr ready')), 'it must not leave draft');
@@ -112,4 +114,35 @@ test('the plain mode still stops, loudly, on red checks', () => {
   const result = handOff(args, f.run, noSleep);
   assert.equal(result.sent, false);
   assert.ok(f.calls.some((c) => c.includes('--add-label needs-maintainer')));
+});
+
+test('the commit the contributor tested is recorded when the repair starts', () => {
+  const f = fakeGh({ mergeable: ['CONFLICTING'] });
+  handOff({ ...args, mode: 'check-conflicts' }, f.run, noSleep);
+  const note = f.calls.find((c) => c.startsWith('pr comment 53'));
+  assert.ok(note, 'the maintainer is told on the pull request');
+  assert.match(note, /<!-- omniya-tested sha=abc123 -->/);
+});
+
+test('testedSha: the first recorded commit wins, and no record is an empty answer', () => {
+  const marked = (sha) => `text\n<!-- omniya-tested sha=${sha} -->`;
+  assert.equal(testedSha('53', 'a/b', fakeGh({ comments: ['hello', marked('1111111'), marked('2222222')] }).run), '1111111');
+  assert.equal(testedSha('53', 'a/b', fakeGh({ comments: ['hello'] }).run), '');
+});
+
+test('after a repair the hand-off comment names both commits and says which one was not tested', () => {
+  const f = fakeGh({ comments: ['x\n<!-- omniya-tested sha=deadbee -->'] });
+  handOff({ ...args, mode: 'if-green' }, f.run, noSleep);
+  const note = f.calls.find((c) => c.startsWith('pr comment 53') && c.includes('says it works'));
+  assert.match(note, /Commit the contributor tested: deadbee/);
+  assert.match(note, /Commit after I brought it up to date with testing: abc123/);
+  assert.match(note, /did not test this one/);
+});
+
+test('a branch that never needed repair keeps the plain comment', () => {
+  const f = fakeGh({ comments: [] });
+  handOff({ ...args, mode: 'check-conflicts' }, f.run, noSleep);
+  const note = f.calls.find((c) => c.startsWith('pr comment 53') && c.includes('says it works'));
+  assert.match(note, /Commit tested: abc123/);
+  assert.doesNotMatch(note, /did not test/);
 });

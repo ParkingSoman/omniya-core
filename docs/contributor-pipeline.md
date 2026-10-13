@@ -349,8 +349,13 @@ one is added.
 
 GitHub starts an `on: issues` or `on: issue_comment` workflow only from the
 default branch, and the default branch is `main`. That is a GitHub rule, not a
-choice made here. So `main` holds three small stubs, and each stub does one
-thing: it calls the real workflow on `testing`. The prompts, the tools and the
+choice made here. So `main` holds four small stubs, and each stub does one
+thing: it calls the real workflow on `testing`. The fourth, `contributor-conflicts`,
+is there for a different rule of the same kind: GitHub finds a workflow to START
+BY NAME only when its file is on the default branch. The conflict repair runs by
+itself on every push to `testing`, which needs no stub. Starting it by hand, or
+from the hand-off, goes through the stub. Without it `gh workflow run` answers
+404, which is how this was found. The prompts, the tools and the
 gates all live on `testing`. Changing what the pipeline does is an ordinary pull
 request into `testing`, and nothing is copied to `main`.
 
@@ -509,8 +514,13 @@ agent's own earlier comments are by a bot and are left out of it, so the agent
 reads the pull request body and the commits to remember what it changed.
 
 Merge conflict repair has not run live. These are the things it cannot show
-until it does. Start it by hand on a conflicting pull request first, from the
-Actions tab, from the branch that holds this change.
+until it does. It cannot be started by hand from a branch, because the stub that
+starts it by name is on `main` and calls the copy on `testing`. So the order is:
+merge the stub into `main` first, then merge the change into `testing`. That
+merge is a push to `testing`, and it starts the first real run on every fix pull
+request that conflicts then. Until the stub is on `main`, the check
+`pipeline-on-main` is red on the pull request into `testing`. That is the drift
+check doing its job.
 
 - Whether `--effort medium` reaches the agent. The step that runs the agent
   prints its command line. If it shows no `--effort`, the action may drop the
@@ -548,7 +558,8 @@ you; it just never runs.
 | `.github/workflows/contributor-fix.yml` | `main` | Stub. Issue opened, or run by hand, calls `pipeline-fix.yml`. |
 | `.github/workflows/contributor-followup.yml` | `main` | Stub. An `@claude` comment on an issue calls `pipeline-followup.yml`. |
 | `.github/workflows/contributor-signoff.yml` | `main` | Stub. A closed issue calls `pipeline-signoff.yml`. |
-| `.github/pipeline-stubs/` | `testing` | The source of the three stubs above, with tests. Not read by GitHub from here. |
+| `.github/workflows/contributor-conflicts.yml` | `main` | Stub. Started by hand, or by the hand-off, calls `pipeline-conflicts.yml`. |
+| `.github/pipeline-stubs/` | `testing` | The source of the four stubs above, with tests. Not read by GitHub from here. |
 | `.github/workflows/pipeline-fix.yml` | `testing` | Issue to draft pull request. Tells the contributor work has started. |
 | `.github/workflows/pipeline-followup.yml` | `testing` | A comment on the issue to a revision, an answer, or a hand-off. |
 | `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs, in mode `fix`, `comment`, `checks-failed` or `conflict`. |
