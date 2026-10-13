@@ -14,8 +14,8 @@ maximize.
 
 | Outcome | Count | % of 613 |
 |---|---:|---:|
-| PASS | 214 | 34.9% |
-| REFUSE | 349 | 56.9% |
+| PASS | 215 | 35.1% |
+| REFUSE | 348 | 56.8% |
 | DISAGREE | 50 | 8.2% |
 | ERROR | 0 | 0.0% |
 | **Total** | **613** | **100.0%** |
@@ -24,7 +24,7 @@ maximize.
 
 | Source | PASS | REFUSE | DISAGREE | ERROR | Total |
 |---|---:|---:|---:|---:|---:|
-| mathcat-rules | 40 | 202 | 31 | 0 | 273 |
+| mathcat-rules | 41 | 201 | 31 | 0 | 273 |
 | sre-aata | 174 | 147 | 19 | 0 | 340 |
 
 ## REFUSE by cause
@@ -47,8 +47,8 @@ position, not a category; the offending codepoint is kept since it is).
 | 13 | an alphabetic or capitalization indicator governs a op, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a op either | `mathcat-rules:degrees_165_1` |
 | 12 | the grouping symbol "(" has no right grouping symbol at level ""; BANA 19.1.2 preserves an unpaired one and this parser has no node for it | `sre-aata:AataExpression_1` |
 | 11 | no Nemeth symbol starts at cell N (U+2833 "⠳") | `mathcat-rules:comparison_ops_151_14` |
+| 10 | an alphabetic or capitalization indicator governs a fracLine, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:beveled_frac_62_b_1` |
 | 10 | expected the start of a term at level "^" | `mathcat-rules:nested_super_space_79_d_3` |
-| 9 | an alphabetic or capitalization indicator governs a fracLine, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:beveled_frac_62_b_1` |
 | 8 | no Nemeth symbol starts at cell N (U+283F "⠿") | `mathcat-rules:omission_57_1` |
 | 6 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a baseline either | `mathcat-rules:dots_99_a_1` |
 | 6 | no Nemeth symbol starts at cell N (U+282A "⠪") | `mathcat-rules:comma_78_2` |
@@ -66,7 +66,6 @@ position, not a category; the offending codepoint is kept since it is).
 | 2 | a "^" script on a base already carrying "^" needs a baseline indicator before it | `mathcat-rules:nested_sup_sup_space_79_d_9` |
 | 2 | a typeform indicator governs a digit; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:punct_37_16_1` |
 | 2 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require | `sre-aata:AataExpression_334` |
-| 2 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:mixed_frac_63_a_1` |
 | 2 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a groupOpen either | `mathcat-rules:identity_matrix_126_linearize` |
 | 2 | the cell "&" is a letter only after the Greek-letter indicator (BANA 6.1.4) | `sre-aata:AataExpression_198` |
 | 1 | a "^" script between two baseline indicators is a left script | `mathcat-rules:left_sup_75_12` |

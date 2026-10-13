@@ -243,6 +243,7 @@ function expectFractionSign(state, kind, order, what) {
 function parseFraction(state, level, marks) {
   const start = state.index;
   const order = advance(state).order;
+  if (order === 'mixed') return parseMixedFraction(state, level, marks, start);
   const numerator = parseExpression(state, level);
   expectFractionSign(state, 'fracLine', order, 'fraction line');
   const denominator = parseExpression(state, level);
@@ -250,6 +251,49 @@ function parseFraction(state, level, marks) {
   return Fraction(numerator, denominator, {
     src: spanFrom(state, start),
     marks: { ...marks, fractionOrder: order }
+  });
+}
+
+/**
+ * The fractional part of a mixed number, BANA 13.4 (Nemeth_2022.txt lines
+ * 5702-5712): "a mixed number is an expression which begins with a whole number
+ * and is followed ... by a simple fraction whose numerator and denominator are
+ * both whole numbers", and the mixed-number indicators enclose the fractional
+ * part. "An expression is not a mixed number if it contains any letter", so a
+ * letter anywhere in the part, or no whole number before it, is refused rather
+ * than read as a mixed number the Code does not define.
+ *
+ * The fraction line is the ordinary simple one (Rule 13's table lists `/` for
+ * "the fractional part of a mixed number"), so it is matched as a simple line.
+ * The whole number is already parsed by the caller as the term before this one;
+ * the result is the fraction alone, and LaTeX writes it right after the whole
+ * number, as print does.
+ */
+function parseMixedFraction(state, level, marks, start) {
+  const before = start > 0 ? state.tokens[start - 1] : null;
+  if (!before || before.kind !== 'digit' || before.level !== level) {
+    throw unsupported(
+      state,
+      'the mixed-number indicators (BANA 13.4) must follow a whole number',
+      'A mixed number needs its whole number written right before the mixed-number indicator (dots 456, 1456).'
+    );
+  }
+  const numerator = parseExpression(state, level);
+  expectFractionSign(state, 'fracLine', 'simple', 'fraction line');
+  const denominator = parseExpression(state, level);
+  expectFractionSign(state, 'fracClose', 'mixed', 'closing indicator');
+  for (const part of [numerator, denominator]) {
+    if (part.kind !== 'Number') {
+      throw unsupported(
+        state,
+        'BANA 13.4 admits only whole numbers in the fractional part of a mixed number',
+        'The fraction part of a mixed number can only hold whole numbers. With a letter or a sign in it, it is not a mixed number.'
+      );
+    }
+  }
+  return Fraction(numerator, denominator, {
+    src: spanFrom(state, start),
+    marks: { ...marks, fractionOrder: 'mixed' }
   });
 }
 
