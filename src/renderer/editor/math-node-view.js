@@ -8,6 +8,12 @@ import { brailleLabelFor, clearMathWithin, renderMathInto, waitForSpeechLabel } 
 // the display shows the equation and nothing in front of it.
 const BRAILLE_NO_ROLE = '\u2800';
 
+// EXPERIMENT, not for merge. When true, the equation is never wrapped as a named
+// image and MathJax's own output is never hidden, so a screen reader meets
+// MathJax's container as it ships (role description "math", speech label,
+// assistive MathML). The question: does that read well inside the editor?
+const EXPOSE_MATHJAX = true;
+
 export class MathNodeView {
   constructor(node) {
     this.node = node;
@@ -30,7 +36,7 @@ export class MathNodeView {
   // line while the wrapper was role="math". An inline image with a name is the
   // pattern readers already announce inside text.
   applyAccessibleName() {
-    if (this.exploring) {
+    if (this.exploring || EXPOSE_MATHJAX) {
       this.dom.removeAttribute('role');
       this.dom.removeAttribute('aria-label');
       this.dom.removeAttribute('aria-roledescription');
