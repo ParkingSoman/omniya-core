@@ -510,6 +510,18 @@
     "banaRef": "19"
   },
   {
+    "cells": "⠠⠷",
+    "kind": "groupOpen",
+    "value": "(",
+    "banaRef": "19.6"
+  },
+  {
+    "cells": "⠠⠾",
+    "kind": "groupClose",
+    "value": ")",
+    "banaRef": "19.6"
+  },
+  {
     "cells": "⠈⠷",
     "kind": "groupOpen",
     "value": "[",

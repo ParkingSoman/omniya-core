@@ -8,6 +8,7 @@ import { lex } from '../../../src/domain/nemeth/lexer.js';
 import { resolveLevels } from '../../../src/domain/nemeth/levels.js';
 import { toLatex } from '../../../src/domain/nemeth/latex.js';
 import { parse } from '../../../src/domain/nemeth/parser.js';
+import { parseNemeth } from '../../../src/domain/nemeth/index.js';
 
 const treeOf = (ascii) => parse(resolveLevels(lex(asciiToCells(ascii))));
 const toLatexOf = (ascii) => toLatex(treeOf(ascii));
@@ -752,4 +753,13 @@ test('infinity (BANA 23.11) reads as ∞, not as a capital sign followed by a st
   assert.equal(toLatexOf('x+,='), 'x+∞');
   assert.equal(toLatexOf('-,='), '-∞');
   assert.equal(toLatexOf(',=x'), '∞x');
+});
+
+// Issue #69. BANA 19.6 (Nemeth_2022.txt lines 9589-9597, table at 9323-9326, page
+// 19-7): a grouping sign is enlarged by dot 6 before it, `,(` and `,)`, i.e.
+// U+2820 then the ordinary parenthesis cell. Enlargement is a matter of print
+// layout, so the reading is the same parenthesis.
+test('BANA 19.6: enlarged parentheses are read as parentheses', () => {
+  assert.equal(parseNemeth('⠠⠷⠭⠠⠾').latex, '(x)');
+  assert.equal(parseNemeth('⠠⠷⠭⠬⠽⠠⠾').latex, '(x+y)');
 });
