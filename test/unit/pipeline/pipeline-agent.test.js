@@ -215,6 +215,10 @@ test('the maintainer\'s go-ahead is one comment, named by id by the pipeline, ne
   assert.equal(input.type, 'string');
   assert.equal(input.default, '', 'empty unless the follow-up gate found the owner\'s comment');
   assert.equal(call.inputs.owner_go_ahead, undefined, 'no flag: a flag is true for whatever comment is newest when the run starts');
+  const at = call.inputs.owner_comment_updated_at;
+  assert.ok(at, 'the time the owner\'s comment was last changed, as the gate saw it');
+  assert.equal(at.default, '');
+  assert.match(steps[0].run, /owner_comment_updated_at/, 'checked before it reaches the thread builder');
   assert.match(steps[0].run, /owner_comment_id must be digits/, 'a value that reaches the prompt and the thread builder is checked first');
   // The thread builder marks that one comment.
   const build = steps.find((s) => /node "\$T\/scripts\/ci\/listed-thread\.mjs"/.test(s.run ?? ''));
@@ -226,6 +230,14 @@ test('the maintainer\'s go-ahead is one comment, named by id by the pipeline, ne
   assert.match(build.run, /approvalToken/);
   assert.match(build.run, /od -An -N\d+ -tx1 \/dev\/urandom/, 'the token is random');
   assert.match(build.run, /token=/);
+  assert.match(build.run, /approvalUpdatedAt/);
+  assert.equal(build.env.APPROVAL_UPDATED_AT, '${{ inputs.owner_comment_updated_at }}');
+  // The token exists in EVERY run, not only when there is an approval. With no
+  // token the prompt would name an empty one, and a forged heading with an empty
+  // token would match it "exactly".
+  const tokenLine = build.run.split('\n').findIndex((l) => /od -An -N\d+ -tx1/.test(l));
+  const around = build.run.split('\n').slice(Math.max(0, tokenLine - 2), tokenLine + 1).join('\n');
+  assert.doesNotMatch(around, /if \[ -n "\$APPROVAL_ID" \]/, 'the token is not made only when there is an approval');
   assert.match(prompt, new RegExp(`steps\\.${build.id}\\.outputs\\.token`));
   assert.match(build.run, /id: \.id/, 'each comment carries its id');
   // It belongs to the CLASSIFY step of both modes, and it is the one thing that lifts `needs-design`.

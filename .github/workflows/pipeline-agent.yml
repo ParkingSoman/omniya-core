@@ -76,6 +76,11 @@ on:
         required: false
         type: string
         default: ''
+      owner_comment_updated_at:
+        description: When that comment was last changed, as the gate saw it. An edit afterwards voids the approval
+        required: false
+        type: string
+        default: ''
       log_artifact:
         description: Name of the artifact holding the failed-check log (checks-failed only)
         required: false
@@ -127,8 +132,10 @@ jobs:
           BRANCH: ${{ inputs.branch }}
           QUESTION_ROUND: ${{ inputs.question_round }}
           OWNER_COMMENT_ID: ${{ inputs.owner_comment_id }}
+          OWNER_COMMENT_AT: ${{ inputs.owner_comment_updated_at }}
         run: |
           set -euo pipefail
+          case "$OWNER_COMMENT_AT" in *[!0-9TZ:-]*) echo "owner_comment_updated_at is not a timestamp" >&2; exit 1 ;; esac
           case "$OWNER_COMMENT_ID" in *[!0-9]*) echo "owner_comment_id must be digits or empty" >&2; exit 1 ;; esac
           case "$MODE" in
             fix|comment|checks-failed) ;;
@@ -197,6 +204,7 @@ jobs:
           ISSUE_NUMBER: ${{ inputs.issue_number }}
           PR_NUMBER: ${{ inputs.pr_number }}
           APPROVAL_ID: ${{ inputs.owner_comment_id }}
+          APPROVAL_UPDATED_AT: ${{ inputs.owner_comment_updated_at }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -212,19 +220,18 @@ jobs:
           fi
           # The approval token. Random, made in this run, and not shown anywhere
           # until the thread file is built, so nobody could have written it in a
-          # comment. Only when there is an approval to mark. The prompt names it to
-          # the agent, and a heading without it is not an approval.
-          TOKEN=
-          if [ -n "$APPROVAL_ID" ]; then
-            TOKEN="$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"
-          fi
+          # comment. Made in EVERY run, not only when there is an approval: with no
+          # token the prompt would name an empty one, and a forged heading with an
+          # empty token would match it. With no approval the real heading never
+          # appears, so any heading that claims one is a forgery.
+          TOKEN="$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
           gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq '{number, author: .user.login, body}' > "$W/issue.json"
           gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
-            --jq '[.[] | {id: .id, author: .user.login, body, createdAt: .created_at}]' | jq -s 'add // []' > "$W/comments.json"
+            --jq '[.[] | {id: .id, author: .user.login, body, createdAt: .created_at, updatedAt: .updated_at}]' | jq -s 'add // []' > "$W/comments.json"
           jq -n --slurpfile pr "$W/pr.json" --slurpfile issue "$W/issue.json" --slurpfile comments "$W/comments.json" \
-            --arg approvalId "$APPROVAL_ID" --arg approvalToken "$TOKEN" \
-            '{pr: $pr[0], issue: $issue[0], comments: $comments[0], approvalId: $approvalId, approvalToken: $approvalToken}' > "$W/thread.json"
+            --arg approvalId "$APPROVAL_ID" --arg approvalToken "$TOKEN" --arg approvalUpdatedAt "$APPROVAL_UPDATED_AT" \
+            '{pr: $pr[0], issue: $issue[0], comments: $comments[0], approvalId: $approvalId, approvalToken: $approvalToken, approvalUpdatedAt: $approvalUpdatedAt}' > "$W/thread.json"
           node "$T/scripts/ci/listed-thread.mjs" "$W/thread.json" "$T/.github/contributors.yml" > "$RUNNER_TEMP/thread.md"
           echo "wrote $(wc -c < "$RUNNER_TEMP/thread.md") bytes to the filtered thread"
 

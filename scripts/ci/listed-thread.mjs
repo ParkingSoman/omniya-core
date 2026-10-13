@@ -24,7 +24,7 @@
  *
  * thread.json: { pr: {number, author, body}|null, issue: {number, author, body}|null,
  *                comments: [{id, author, body, createdAt}], approvalId?: string,
- *                approvalToken?: string }
+ *                approvalToken?: string, approvalUpdatedAt?: string }
  *
  * `approvalId` is the id of the ONE comment in which the repository owner said to
  * go ahead with a design idea. The follow-up gate takes it from the event, so it
@@ -32,6 +32,12 @@
  * "THE MAINTAINER'S APPROVAL". A comment written after it, while the run waited in
  * the queue, is not covered, because the agent is told approval is that heading
  * and not "the newest comment".
+ *
+ * The approval holds for the text the owner wrote, and no other. The gate records
+ * the comment's `updated_at` when the event arrives. Anyone with write access can
+ * edit another person's comment, and the text is fetched minutes later, so a
+ * comment whose `updatedAt` is not that recorded value is not marked. No recorded
+ * value, no approval.
  *
  * The heading carries `approvalToken`, a random value the workflow makes while it
  * builds this file, after every comment exists, and tells the agent in the
@@ -69,7 +75,7 @@ const section = (heading, text) => `## ${heading}\n\n${stripApprovalPhrase(text)
  * @param {string[]} handles parsed allowlist
  * @returns {string} markdown
  */
-export function buildThread({ pr, issue, comments, approvalId, approvalToken }, handles) {
+export function buildThread({ pr, issue, comments, approvalId, approvalToken, approvalUpdatedAt }, handles) {
   const listed = (author) => isAllowed(author, handles);
   // Before the first fix there is no pull request. The agent is reading the
   // report to decide whether to start, or reading the answer to its question.
@@ -108,7 +114,12 @@ export function buildThread({ pr, issue, comments, approvalId, approvalToken }, 
   if (kept.length === 0) out.push('(none)\n');
   for (const comment of kept) {
     const approval =
-      approvalId && approvalToken && String(comment.id) === String(approvalId) && listed(comment.author)
+      approvalId &&
+      approvalToken &&
+      approvalUpdatedAt &&
+      String(comment.id) === String(approvalId) &&
+      comment.updatedAt === approvalUpdatedAt &&
+      listed(comment.author)
         ? ` -- THE MAINTAINER'S APPROVAL [token ${approvalToken}] (the design decision)`
         : '';
     out.push(`### ${comment.author}, ${comment.createdAt}${approval}\n\n${stripApprovalPhrase(comment.body).trim()}\n`);

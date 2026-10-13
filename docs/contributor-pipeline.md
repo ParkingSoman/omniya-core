@@ -254,7 +254,11 @@ cannot lean on what they are permitted to do. Three locks hold this, in order:
    run waits in the queue is not covered by it. The token is what stops a
    contributor from writing the heading in a comment: removing a phrase can be
    dodged with a zero-width or look-alike letter, and a value nobody has seen
-   cannot be written in advance. Issue #73 had no way to do this
+   cannot be written in advance. The gate also records when the owner's comment was
+   last changed. Anyone with write access can edit another person's comment, so a
+   comment edited after the owner wrote it is not marked as the approval. The
+   report itself (the issue body) is not covered by that check: the agent is told
+   to do what the report and the approved comment ask, and no more. Issue #73 had no way to do this
    before. The maintainer's comment got "could not find exactly one fix".
 3. **The merge.** `.github/CODEOWNERS` names the maintainer, and the rulesets
    `testing-guard` and `main-guard` require a review from a code owner. A
