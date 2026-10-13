@@ -292,7 +292,7 @@ test('Accessible names on the page', { timeout: 60_000 }, async (t) => {
   const headings = page.getByRole('heading', { level: 2 });
   assert.deepEqual(
     await headings.evaluateAll((els) => els.map((el) => el.id || el.textContent.trim())),
-    ['Search notes', 'note-heading', 'current-napkin-name']);
+    ['note-search-heading', 'note-heading', 'current-napkin-name']);
 
   assert.equal(await page.getByRole('complementary', { name: 'Notes' }).count(), 1);
   assert.equal(await page.getByRole('navigation', { name: 'Your notes' }).count(), 1);

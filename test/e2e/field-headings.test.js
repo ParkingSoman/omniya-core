@@ -85,6 +85,19 @@ test('Each text field has a heading right before it', { timeout: 120_000 }, asyn
   assert.deepEqual([found.equation.id, found.equation.tag], ['composer-heading', 'h2']);
   assert.ok(found.equation.between.every((entry) => entry.startsWith('input')),
     `only the two method choices may sit between: ${found.equation.between}`);
+
+  // The long hint about the two methods is read after the field, not before it.
+  assert.equal(await page.evaluate(() => Boolean(document.getElementById('composer-source')
+    .compareDocumentPosition(document.getElementById('replacement-method-help')) & Node.DOCUMENT_POSITION_FOLLOWING)), true);
+
+  // A heading names the search and find fields, so no second hidden label repeats it.
+  assert.equal(await page.getByRole('searchbox', { name: 'Search notes' }).count(), 1);
+  assert.equal(await page.getByText('Search notes', { exact: true }).count(), 1);
+  await page.keyboard.press('Escape');
+  await page.locator('#find-button').click();
+  await page.locator('#find-bar').waitFor({ state: 'visible' });
+  assert.equal(await page.getByRole('textbox', { name: 'Find in note' }).count(), 1);
+  assert.equal(await page.getByText('Find in note', { exact: true }).count(), 1);
 });
 
 /** Press Tab from the skip link until focus is inside the note. Returns the count. */
@@ -124,17 +137,18 @@ test('The toolbar is one Tab stop and arrow keys move inside it', { timeout: 120
 
   const active = () => page.evaluate(() => document.activeElement?.id);
   await page.evaluate((id) => document.getElementById(id).focus(), stops[0]);
-  await page.keyboard.press('Home');
-  assert.equal(await active(), ids[0]);
   await page.keyboard.press('ArrowRight');
   assert.equal(await active(), ids[1]);
   await page.keyboard.press('ArrowLeft');
   assert.equal(await active(), ids[0]);
-  await page.keyboard.press('End');
-  assert.equal(await active(), ids.at(-1));
+  await page.keyboard.press('ArrowLeft');
+  assert.equal(await active(), ids.at(-1), 'wraps from the first button to the last');
   await page.keyboard.press('ArrowRight');
   assert.equal(await active(), ids[0], 'wraps from the last button to the first');
   await page.keyboard.press('ArrowRight');
+  assert.equal(await active(), ids[1]);
+  // Home and End are not taken: VoiceOver does its own first and last.
+  await page.keyboard.press('End');
   assert.equal(await active(), ids[1]);
 
   // Leave, then come back: focus returns to the button last used.
@@ -160,17 +174,17 @@ test('The list of notes is one Tab stop and arrow keys move between notes', { ti
 
   const focused = () => page.evaluate(() => document.activeElement?.dataset?.napkinId);
   await page.evaluate((id) => document.querySelector(`[data-napkin-id="${id}"]`).focus(), stops[0]);
-  await page.keyboard.press('Home');
-  assert.equal(await focused(), noteIds[0]);
+  for (let i = 0; i < noteIds.length; i += 1) await page.keyboard.press('ArrowUp');
+  assert.equal(await focused(), noteIds[0], 'the top of the list stops there');
   await page.keyboard.press('ArrowDown');
   assert.equal(await focused(), noteIds[1]);
   await page.keyboard.press('ArrowUp');
   assert.equal(await focused(), noteIds[0]);
-  await page.keyboard.press('End');
-  assert.equal(await focused(), noteIds.at(-1));
+  for (let i = 0; i < noteIds.length; i += 1) await page.keyboard.press('ArrowDown');
+  assert.equal(await focused(), noteIds.at(-1), 'the bottom of the list stops there');
 
   // Arrow keys only move focus. Enter opens the note and puts the caret in it.
-  await page.keyboard.press('Home');
+  for (let i = 0; i < noteIds.length; i += 1) await page.keyboard.press('ArrowUp');
   await page.keyboard.press('ArrowDown');
   const wanted = noteIds[1];
   await page.keyboard.press('Enter');

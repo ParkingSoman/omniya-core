@@ -10,6 +10,11 @@
  * from a script, a click or an arrow key. The stop is the item last used, so
  * Shift+Tab back into the group returns to where the person was.
  *
+ * Home and End are left alone on purpose. They are optional in the pattern, and
+ * VoiceOver already jumps to the first and last control of a toolbar by itself.
+ * Handling them too made both run, and focus ended up in the note (measured with
+ * VoiceOver on a Mac).
+ *
  * Call `refresh()` after the items change (the list of notes is drawn again on
  * every edit). `fallback` names the item to use when none has been used yet.
  */
@@ -49,8 +54,6 @@ export function attachRoving(container, { items, keys, wrap = false, fallback = 
     let to = null;
     if (event.key === previous) to = index > 0 ? index - 1 : (wrap ? all.length - 1 : index);
     else if (event.key === next) to = index < all.length - 1 ? index + 1 : (wrap ? 0 : index);
-    else if (event.key === 'Home') to = 0;
-    else if (event.key === 'End') to = all.length - 1;
     if (to === null) return;
     event.preventDefault();
     move(all, from, to);
