@@ -8,7 +8,7 @@ const BRANCH = 'claude/fix-22-x';
 const SHA = 'abc123';
 
 // A fake `gh` that remembers what it was asked and answers like GitHub would.
-function fakeGh({ conclusions = {}, startDelayPolls = 0, shaOf = SHA } = {}) {
+function fakeGh({ conclusions = {}, startDelayPolls = 0, shaOf = SHA, jobsOf = {} } = {}) {
   const calls = [];
   let clock = 1_000_000;
   const polls = {};
@@ -34,6 +34,9 @@ function fakeGh({ conclusions = {}, startDelayPolls = 0, shaOf = SHA } = {}) {
         }
       ]);
     }
+    if (args[0] === 'run' && args[1] === 'view' && args.includes('--json')) {
+      return JSON.stringify({ jobs: jobsOf[args[2]] ?? [] });
+    }
     if (args[0] === 'run' && args[1] === 'view') return `log for ${args[2]}\n`;
     throw new Error(`unexpected gh call: ${args.join(' ')}`);
   };
@@ -57,6 +60,34 @@ test('one red run means not green, and the log of that run, and only that run, i
   assert.match(result.log, /pr-checks\.yml run 501: failure/);
   assert.match(result.log, /log for 501/);
   assert.doesNotMatch(result.log, /pr-build\.yml/);
+});
+
+test('a red run names the jobs that were red, so the report can say which check failed', async () => {
+  const f = fakeGh({
+    conclusions: { 'pr-checks.yml': 'failure' },
+    jobsOf: {
+      501: [
+        { name: 'unit', conclusion: 'success' },
+        { name: 'nemeth', conclusion: 'failure' },
+        { name: 'e2e', conclusion: 'skipped' },
+        { name: 'e2e <b>@x</b>', conclusion: 'failure' }
+      ]
+    }
+  });
+  const result = await verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 10 });
+  assert.deepEqual(result.failedJobs, ['nemeth', 'e2e bxb']);
+});
+
+test('a failed lookup of job names costs the detail and never the verdict', async () => {
+  const f = fakeGh({ conclusions: { 'pr-build.yml': 'failure' } });
+  const base = f.gh;
+  f.gh = (args) => {
+    if (args[0] === 'run' && args[1] === 'view' && args.includes('--json')) throw new Error('boom');
+    return base(args);
+  };
+  const result = await verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 10 });
+  assert.equal(result.green, false);
+  assert.deepEqual(result.failedJobs, []);
 });
 
 test('a cancelled run is not green', async () => {

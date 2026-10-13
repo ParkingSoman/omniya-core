@@ -82,7 +82,7 @@ test('the agent message comes first, then "a build is ready", then the links, th
 });
 
 test('a state that ignores the agent message does not print it', () => {
-  for (const state of ['started', 'routed', 'maintainer', 'failed', 'sent']) {
+  for (const state of ['started', 'routed', 'failed', 'sent']) {
     assert.doesNotMatch(renderReply(state, { ...where, message: 'LEAKED WORDS' }), /LEAKED WORDS/, state);
   }
 });
@@ -231,6 +231,19 @@ test('the pipeline puts the labels on, so the agent never has to', () => {
   assert.equal(LABELS.design.name, 'needs-design');
   assert.equal(LABELS.stuck.name, 'needs-maintainer');
   assert.equal(LABELS.failed.name, 'needs-maintainer');
+});
+
+test('a failure comment says what failed when the agent said so, and still reads well when it did not', () => {
+  const said = renderReply('maintainer', {
+    message: 'The unit check failed. The test "parses theta" expected the letter θ and got a refusal. See https://x.test/log @claude'
+  });
+  assert.match(said, /The unit check failed\. The test "parses theta" expected the letter/);
+  assert.doesNotMatch(said, /https?:|@/, 'links and mentions never survive');
+  assert.match(said, /The maintainer needs to look/);
+
+  const silent = renderReply('maintainer', {});
+  assert.match(silent, /The maintainer needs to look/);
+  assert.doesNotMatch(silent, /undefined/);
 });
 
 test('postReply refuses an issue number that is not digits', () => {

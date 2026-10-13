@@ -17,7 +17,8 @@
  * Usage (needs GH_TOKEN and GITHUB_REPOSITORY):
  *   node scripts/ci/verify-branch.mjs <branch> <pull-request-number> <out-dir>
  *
- * Step outputs: green (true|false), sha. Writes `<out-dir>/failed.log` when not
+ * Step outputs: green (true|false), sha, failed (the names of the jobs that
+ * were red, such as `unit` or `e2e`, comma-separated, or empty). Writes `<out-dir>/failed.log` when not
  * green. It exits non-zero only when it could not find or finish the runs, so a
  * red check is an answer and a missing run is a fault.
  */
@@ -114,7 +115,25 @@ export async function verifyBranch(
     return `===== ${workflow} run ${id}: ${done[workflow].conclusion} =====\n${tail(log)}`;
   });
 
-  return { green: failed.length === 0, sha, failed, log: logs.join('\n\n') };
+  // Which jobs were red, by name. The report says this to the contributor and
+  // the maintainer, so "something failed" becomes "the unit tests failed". The
+  // names are the repository's own and are cut down to plain characters anyway.
+  // A lookup that fails costs the detail and never the verdict.
+  const failedJobs = [];
+  for (const workflow of failed) {
+    try {
+      const jobs = JSON.parse(run(['run', 'view', String(done[workflow].databaseId), '--repo', repo, '--json', 'jobs'])).jobs ?? [];
+      for (const j of jobs) {
+        if (j.conclusion && j.conclusion !== 'success' && j.conclusion !== 'skipped') {
+          failedJobs.push(String(j.name).replace(/[^A-Za-z0-9 _.:()-]/g, '').slice(0, 40));
+        }
+      }
+    } catch {
+      /* keep the verdict, lose the detail */
+    }
+  }
+
+  return { green: failed.length === 0, sha, failed, failedJobs: [...new Set(failedJobs)], log: logs.join('\n\n') };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
@@ -127,5 +146,5 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     mkdirSync(outDir, { recursive: true });
     writeFileSync(`${outDir}/failed.log`, result.log);
   }
-  setOutputs({ green: result.green, sha: result.sha });
+  setOutputs({ green: result.green, sha: result.sha, failed: result.failedJobs.join(',') });
 }

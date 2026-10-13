@@ -1,0 +1,208 @@
+name: pipeline-conflicts
+
+# The maintainer never has to fix a merge conflict on a bot fix.
+#
+# Many fix branches change the same few files: the symbol tables, the generated
+# Nemeth reports, the parser tests. Each time one is merged into `testing`, the
+# others can stop merging. This workflow runs on every push to `testing`. It
+# finds the fix branches that no longer merge, repairs ALL of them in one agent
+# run, checks and builds each one again, and tells people only what they need.
+#
+#   map      a script, no model. Which open fix PRs conflict with `testing`, in
+#            which files, and with each other. Nothing else runs if none do.
+#   resolve  ONE agent run for all of them (`mode: conflict` in
+#            `pipeline-agent.yml`), on a stronger model, because choosing between
+#            two edits is judgement. It reads the map, so it solves a collision
+#            once and not once per branch.
+#   plan     a script, no model. Says what is true: which branches the pipeline
+#            saw move. Tells the maintainer on the pull request. Tells a
+#            contributor on their issue ONLY when a branch could not be repaired,
+#            and then what failed.
+#   verify   the same check, build and repair chain every fix goes through
+#            (`pipeline-verify.yml`). Quiet when it passes: the download links do
+#            not change, so the contributor has nothing to do.
+#   handoff  a contributor who already said "it works" was waiting only for this.
+#            Their pull request carries `handoff-pending`. When the branch is
+#            repaired and green, it goes to the maintainer as it would have.
+#
+# A branch the agent cannot repair gets `needs-maintainer` and is skipped from
+# then on, so a conflict only a person can settle costs one run and not one per
+# push. Removing the label, or starting this by hand with that pull request's
+# number, tries it again.
+#
+# THE AGENT NEVER DECIDES WHAT HAPPENED. "Repaired" means the branch moved on the
+# remote, which `pipeline-agent.yml` reads for itself. The agent's words are only
+# the note beside the fact, and they are cleaned before they are posted.
+#
+# TWO WAYS IN. A push to `testing` starts this file directly: a `push` trigger
+# runs the copy in the pushed commit, so it needs nothing on `main`. Starting it
+# BY HAND, or from the hand-off, is different. GitHub only finds a workflow to
+# start by name when its file is on the default branch, so `main` holds a stub,
+# `.github/pipeline-stubs/contributor-conflicts.yml`, that calls this file on
+# `testing`. Without the stub, `gh workflow run` answers 404.
+#
+# Because the stub calls this file, the file must not assume it was started from
+# `testing`: every checkout names `testing`, and the workflows it calls are named
+# `@testing`, as in `pipeline-fix.yml`. A relative `./` path would resolve against
+# the caller's branch, which is `main`.
+on:
+  push:
+    branches: [testing]
+  workflow_call:
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+    inputs:
+      pr_numbers:
+        description: Comma-separated pull request numbers to repair. Empty means every open fix PR that conflicts. Naming one overrides needs-maintainer
+        required: false
+        type: string
+        default: ''
+
+# One run at a time, and a run that is waiting is replaced by a newer one. That
+# is right for a push: the newer run reads the newest `testing`. It is also why a
+# request to send a fix on later is a LABEL on the pull request and not an input
+# of this run.
+concurrency:
+  group: pipeline-conflicts
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      count: ${{ steps.m.outputs.count }}
+      numbers: ${{ steps.m.outputs.numbers }}
+      order: ${{ steps.m.outputs.order }}
+    steps:
+      # All of history: `git merge-tree` needs the merge base of every pair.
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+          fetch-depth: 0
+      - id: m
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ONLY: ${{ inputs.pr_numbers }}
+        run: |
+          set -euo pipefail
+          node scripts/ci/conflict-map.mjs "$RUNNER_TEMP/map" "$ONLY"
+          cat "$RUNNER_TEMP/map/conflict-map.md" >> "$GITHUB_STEP_SUMMARY"
+      - if: steps.m.outputs.count != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: conflict-map-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/map
+
+  resolve:
+    needs: map
+    if: needs.map.outputs.count != '0'
+    # A ceiling, not a grant: the agent job states its own. No `actions`, and
+    # `issues: read`, as for every agent in this pipeline.
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    with:
+      mode: conflict
+      map_artifact: conflict-map-${{ github.run_id }}-${{ github.run_attempt }}
+      # The one job that asks for more. Choosing between two edits to the same
+      # table needs judgement, and this run covers every conflicting branch.
+      model: claude-opus-5-5
+      effort: medium
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  plan:
+    needs: [map, resolve]
+    # Also when `resolve` failed or was skipped: a crashed repair has to be said,
+    # and a hand-off that waited on a branch that never conflicted still goes on.
+    if: ${{ !cancelled() && needs.map.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    outputs:
+      matrix: ${{ steps.p.outputs.matrix }}
+      handoff: ${{ steps.p.outputs.handoff }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - id: p
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBERS: ${{ needs.map.outputs.numbers }}
+          ORDER: ${{ needs.map.outputs.order }}
+          REVISED: ${{ needs.resolve.outputs.revised }}
+          RESOLVE_RESULT: ${{ needs.resolve.result }}
+          # Agent text. It reaches the script through `env` only.
+          NOTES: ${{ needs.resolve.outputs.notes }}
+        run: node scripts/ci/conflict-outcome.mjs
+
+  # Check and build every repaired branch, one after another, the way every fix
+  # is checked. `quiet`: a green result posts nothing on the issue. A red one is
+  # still said, with what failed.
+  verify:
+    needs: plan
+    if: ${{ !cancelled() && needs.plan.outputs.matrix != '' && needs.plan.outputs.matrix != '[]' }}
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    # The same lock the contributor's own runs take, so a comment they write
+    # during a repair waits for it and does not push to the same branch.
+    concurrency:
+      group: contributor-issue-${{ matrix.issue }}
+      cancel-in-progress: false
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing
+    with:
+      issue_number: ${{ format('{0}', matrix.issue) }}
+      pr_number: ${{ format('{0}', matrix.pr) }}
+      branch: ${{ matrix.branch }}
+      reply_state: quiet
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  # A contributor who said "it works" was waiting for this. `--if-green` says
+  # nothing when the checks are not green: the verify before it has already told
+  # them what failed, and one event gets one comment.
+  handoff:
+    needs: [plan, verify]
+    if: ${{ !cancelled() && needs.plan.outputs.handoff != '' && needs.plan.outputs.handoff != '[]' }}
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.handoff) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ matrix.issue }}
+          PR: ${{ matrix.pr }}
+        run: node scripts/ci/hand-off.mjs "$ISSUE" "$PR" --if-green

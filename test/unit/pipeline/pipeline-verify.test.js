@@ -115,6 +115,27 @@ test('the branch and numbers go through env, never inline into a shell', () => {
   }
 });
 
+test('a repaired branch can be reported quietly, and a red one never is', () => {
+  const run = jobs.report.steps.find((s) => s.id === 'final').run;
+  // `quiet` skips only the green comment.
+  assert.match(run, /if \[ "\$REPLY_STATE" != "quiet" \]; then\s+node scripts\/ci\/reply\.mjs "\$ISSUE" "\$REPLY_STATE" "\$PR"\s+fi/);
+  const red = run.slice(run.indexOf('gh label create'));
+  assert.doesNotMatch(red, /quiet/, 'a failure is always said');
+});
+
+test('a failure says what failed: the repair\'s own words, or else the red jobs', () => {
+  const final = jobs.report.steps.find((s) => s.id === 'final');
+  for (let n = 1; n <= REPAIRS + 1; n += 1) assert.equal(final.env[`F${n}`], `\${{ needs.verify-${n}.outputs.failed }}`);
+  for (let n = 1; n <= REPAIRS; n += 1) assert.equal(final.env[`M${n}`], `\${{ needs.repair-${n}.outputs.message }}`);
+  assert.match(final.run, /for m in "\$M3" "\$M2" "\$M1"/, 'the newest repair that explained itself wins');
+  assert.match(final.run, /Still failing after the repair attempts: \$\{failed\/\/,\/, \}\./);
+  // Agent text goes in through env and reaches the comment only through the cleaner.
+  assert.match(final.run, /MESSAGE="\$said" node scripts\/ci\/reply\.mjs "\$ISSUE" maintainer/);
+  assert.doesNotMatch(final.run, /eval /);
+  // Each verify job passes the names of its red jobs on.
+  for (let n = 1; n <= REPAIRS + 1; n += 1) assert.equal(jobs[`verify-${n}`].outputs.failed, '${{ steps.v.outputs.failed }}');
+});
+
 test('every verify job can outlast the slowest run it waits for', () => {
   // verify-branch.mjs waits up to 80 minutes for the runs to finish.
   for (let n = 1; n <= REPAIRS + 1; n += 1) assert.ok(jobs[`verify-${n}`]['timeout-minutes'] >= 90);

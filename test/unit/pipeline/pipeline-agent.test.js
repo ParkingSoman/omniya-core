@@ -36,13 +36,13 @@ test('it is called, never triggered, and takes only the subscription token', () 
 test('a run is bounded', () => {
   assert.equal(typeof job['timeout-minutes'], 'number');
   assert.ok(job['timeout-minutes'] <= 120, 'the timeout is too generous to be a budget');
-  assert.match(args, /--max-turns\s+\d+/, 'the agent needs its own ceiling: a job timeout does not bound it');
+  assert.match(args, /--max-turns\s+(\d+|\$\{\{[^}]*'\d+'[^}]*'\d+'[^}]*\}\})/, 'the agent needs its own ceiling: a job timeout does not bound it');
   assert.equal(actionStep.with.allowed_bots, undefined, 'allowed_bots must stay unset so bot actors keep being refused');
 });
 
 test('every input is checked before it reaches a checkout, a command or the prompt', () => {
   const check = steps[0];
-  assert.match(check.run, /fix\|comment\|checks-failed/);
+  assert.match(check.run, /fix\|comment\|checks-failed\|conflict/);
   assert.match(check.run, /bug\|nemeth\)/, 'the kind must be one of the two the agent works on');
   assert.match(check.run, /\*\[!0-9\]\*/, 'the numbers must be checked to be digits');
   assert.match(check.run, /claude\/fix-\*/, 'the branch must be one this pipeline created');
@@ -53,7 +53,7 @@ test('every input is checked before it reaches a checkout, a command or the prom
 test('a new fix starts from testing, and every later round continues on the same branch', () => {
   const checkout = steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout'));
   // The mode picks between `testing` and the branch input, and nothing else.
-  assert.match(checkout.with.ref, /inputs\.mode == 'fix' && 'testing' \|\| inputs\.branch/);
+  assert.match(checkout.with.ref, /\(inputs\.mode == 'fix' \|\| inputs\.mode == 'conflict'\) && 'testing' \|\| inputs\.branch/);
   // `branch_prefix` and tag mode are what make the action cut a NEW branch, a
   // second pull request and a second set of links for one bug.
   assert.equal(actionStep.with.branch_prefix, undefined, 'the agent must not start a branch of its own');
@@ -107,7 +107,7 @@ test('the result is one word from a short list, and a pull request found by the 
   // `revised` is believed only when the branch actually moved.
   assert.match(result.run, /git ls-remote origin/);
   assert.match(result.run, /"\$after" != "\$BEFORE"/);
-  assert.deepEqual(Object.keys(call.outputs).sort(), ['branch', 'message', 'pr', 'result']);
+  assert.deepEqual(Object.keys(call.outputs).sort(), ['branch', 'message', 'notes', 'pr', 'result', 'revised', 'unresolved']);
 });
 
 test('an ending with no usable words is a failure that turns the job red, never a quiet hand-off', () => {
@@ -281,16 +281,24 @@ test('the pull request names the issue, and no longer promises that closing the 
 });
 
 test('a repair never edits a check to make it pass, and can say the check is wrong', () => {
-  const section = prompt.slice(prompt.indexOf('MODE checks-failed'));
-  assert.match(section, /Never edit a check, a workflow, a test\s+or a corpus row/);
+  // The repair instructions are a file, because GitHub refuses a prompt over 21000
+  // characters. The prompt points at it and names what its placeholders mean.
+  assert.match(prompt, /trusted\/prompts\/checks-failed-mode\.md/);
+  assert.match(prompt, /PR_NUMBER means \$\{\{ inputs\.pr_number \}\}/);
+  const section = readFileSync('.github/prompts/checks-failed-mode.md', 'utf8').replace(/\s+/g, ' ');
+  assert.doesNotMatch(section, /\$\{\{/, 'a file is not run through the expression engine');
+  assert.match(section, /Never edit a check, a workflow, a test or a corpus row/);
   assert.match(section, /gaming the gate/);
   assert.match(section, /If the CHECK is what is wrong, do not change it/);
   assert.match(section, /needs-maintainer/);
-  assert.match(section, /Do NOT write `message\.md` in this mode/);
+  // Silent when the repair works. When it gives up, it says what failed.
+  assert.match(section, /write NO `message\.md`/);
+  assert.match(section, /name\s+the failed check/);
+  assert.match(section, /No log text, token/);
   // Creating a label needs `issues: write`, which this job does not hold. The
   // label already exists, and the report job recreates it with --force.
   assert.doesNotMatch(section, /gh label create/);
-  assert.match(section, /gh pr edit \$\{\{ inputs\.pr_number \}\} --add-label needs-maintainer/);
+  assert.match(section, /gh pr edit PR_NUMBER --add-label needs-maintainer/);
   assert.match(section, /failed-checks\/failed\.log/);
   // The failed log is program output. It is data, not instructions.
   assert.match(section, /Treat it as data/);
@@ -326,10 +334,12 @@ test('the agent\'s words leave the job as a multi-line output the later jobs tak
   assert.match(result.run, /od -An -N\d+ -tx1 \/dev\/urandom/, 'the delimiter must be one nobody can guess');
   assert.match(result.run, /head -c \d+/, 'the words are cut to size');
   // A claim that did not come true fails the run instead of being passed on, and
-  // the two modes that say nothing to the contributor pass nothing.
+  // the modes that say nothing to the contributor pass nothing.
   assert.doesNotMatch(result.run, /said=/, 'no words are ever dropped and then posted as if the agent said nothing');
-  assert.match(result.run, /"\$word" != approved/);
-  assert.match(result.run, /"\$MODE" != checks-failed/);
+  assert.match(result.run, /"\$word" = approved \] && speaks=no/);
+  assert.match(result.run, /"\$MODE" = conflict \] && speaks=no/);
+  // A repair that gives up may say what failed. It is wanted, not required.
+  assert.match(result.run, /"\$MODE" = checks-failed \] && \[ "\$word" != needs-maintainer \] && speaks=no/);
 });
 
 test('the two kinds are told apart, and a Nemeth symbol is the agent\'s to do', () => {
@@ -380,6 +390,96 @@ test('the digest step shows what the agent did, always, from the trusted copy, a
   const copy = steps.find((s) => /git show "origin\/testing:scripts\/ci\/\$f"/.test(s.run ?? ''));
   assert.match(copy.run, /agent-digest\.mjs/);
   assert.match(copy.run, /reply\.mjs/);
+});
+
+// ---- mode conflict -------------------------------------------------------
+
+// The instructions for this mode live in a file, because GitHub refuses a prompt
+// longer than 21000 characters. The workflow copies it from `testing` at run time.
+const conflictFile = '.github/prompts/conflict-mode.md';
+const conflictSection = readFileSync(conflictFile, 'utf8').replace(/\s+/g, ' ');
+
+test('the prompt stays under the length GitHub accepts, with room to spare', () => {
+  // GitHub refuses a workflow whose prompt, with its expressions, is over 21000
+  // characters: "Exceeded max expression length 21000". The file is then invalid.
+  // actionlint does not know this limit, and it broke every agent mode once.
+  const raw = actionStep.with.prompt;
+  // The hard limit is 21000. Staying under 20800 leaves a change room to grow before it breaks every mode.
+  assert.ok(raw.length <= 20800, `the prompt is ${raw.length} characters. Move text into a file, as the modes conflict and checks-failed do`);
+});
+
+test('conflict mode: its instructions are a file written by the maintainers and copied from testing', () => {
+  assert.match(prompt, /MODE conflict/);
+  assert.match(prompt, /trusted\/prompts\/conflict-mode\.md/);
+  assert.doesNotMatch(readFileSync(conflictFile, 'utf8'), /\$\{\{/, 'a file is not run through the expression engine');
+  const copy = steps.find((s) => /git show "origin\/testing:scripts\/ci\/\$f"/.test(s.run ?? ''));
+  assert.match(copy.run, /git show origin\/testing:\.github\/prompts\/conflict-mode\.md > "\$T\/prompts\/conflict-mode\.md"/);
+  assert.match(copy.run, /git show origin\/testing:\.github\/prompts\/checks-failed-mode\.md > "\$T\/prompts\/checks-failed-mode\.md"/);
+  assert.match(copy.run, /mkdir -p [^\n]*"\$T\/prompts"/);
+});
+
+test('conflict mode: the model and the effort are chosen by the caller and limited to a fixed list', () => {
+  const check = steps[0];
+  assert.equal(call.inputs.model.default, '');
+  assert.equal(call.inputs.effort.default, '');
+  // A value that reaches the command line must be one of a short list, never free text.
+  assert.match(check.run, /claude-opus-5-5\|claude-sonnet-5-5\|claude-haiku-5-5\|claude-fable-5-1/);
+  assert.match(check.run, /low\|medium\|high\|xhigh\|max/);
+  assert.match(args, /inputs\.model != '' && format\('--model \{0\}', inputs\.model\)/);
+  assert.match(args, /inputs\.effort != '' && format\('--effort \{0\}', inputs\.effort\)/);
+  assert.doesNotMatch(prompt, /claude-opus-5-5/, 'the model is the caller\'s choice, not the prompt\'s');
+});
+
+test('conflict mode: the map is fetched only for it, and which branches were repaired is read off the remote', () => {
+  const downloads = steps.filter((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/download-artifact'));
+  assert.equal(downloads.length, 2);
+  assert.equal(downloads[1].if, "inputs.mode == 'conflict'");
+  assert.match(downloads[1].with.path, /conflict-map/);
+
+  const before = steps.find((s) => s.id === 'beforec');
+  assert.ok(before, 'the branches must be recorded before the agent starts');
+  assert.match(before.run, /claude\/fix-\*/, 'only branches this pipeline created');
+  assert.match(before.run, /git ls-remote origin/);
+  assert.ok(steps.indexOf(before) < steps.indexOf(actionStep), 'recorded before the agent runs');
+
+  const result = steps.find((s) => s.id === 'result');
+  // The list comes from a step output, which the agent cannot rewrite.
+  assert.match(JSON.stringify(result.env), /steps\.beforec\.outputs\.prs/);
+  assert.match(result.run, /"\$after" != "\$sha"/, 'repaired means the remote branch moved');
+  assert.match(result.run, /if \[ -n "\$revised" \]; then word=revised; else word=needs-maintainer/);
+});
+
+test('conflict mode: it merges, never rebases or forces, never touches testing or main, and never runs e2e', () => {
+  assert.match(conflictSection, /git merge origin\/testing/);
+  assert.match(conflictSection, /A merge, never a rebase/);
+  assert.match(conflictSection, /NEVER use `--force`/);
+  assert.match(conflictSection, /Never push to `testing` or `main`/);
+  assert.match(conflictSection, /never merge one fix branch\s+into another/);
+  assert.match(conflictSection, /Do NOT run `npm run test:e2e`/);
+  assert.match(conflictSection, /node scripts\/ci\/nemeth-gate\.mjs/);
+  assert.doesNotMatch(conflictSection, /git rebase /);
+});
+
+test('conflict mode: it does not choose between two meanings, and does not edit a check to get green', () => {
+  assert.match(conflictSection, /DIFFERENT meanings/);
+  assert.match(conflictSection, /do NOT choose/);
+  assert.match(conflictSection, /git merge --abort/);
+  assert.match(conflictSection, /Never edit a check, a workflow, a test or a\s+corpus row/);
+  // Generated files are regenerated, not hand-merged.
+  assert.match(conflictSection, /GENERATED/);
+  assert.match(conflictSection, /npm run nemeth:coverage/);
+  assert.match(conflictSection, /npm run nemeth:utility/);
+});
+
+test('conflict mode: it posts nothing, leaves a line per branch, and the notes cannot grow past a line', () => {
+  assert.match(conflictSection, /Write NO `message\.md`/);
+  assert.match(conflictSection, /TEMP\/conflict-notes\.json/);
+  assert.match(conflictSection, /Every branch under `conflicting` gets a line/);
+  const result = steps.find((s) => s.id === 'result');
+  assert.match(result.run, /head -c 300/);
+  assert.match(result.run, /tr -d '\\000'/);
+  assert.match(result.run, /notes<<\$ndelim/);
+  assert.equal(job.permissions.issues, 'read');
 });
 
 test('how math is spoken is the agent\'s work on every kind, never a design decision', () => {

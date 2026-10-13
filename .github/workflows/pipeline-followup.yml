@@ -511,11 +511,20 @@ jobs:
   # The contributor said it works. This takes the pull request out of draft and
   # asks the maintainer to review it, when the required checks are green. It does
   # not merge: the maintainer merges, and that closes the issue.
+  #
+  # Other fixes are merged while the contributor tests, so a fix that was clean
+  # when it was built may no longer merge. `--check-conflicts` asks, and when it
+  # does conflict it starts `pipeline-conflicts.yml` for this one pull request
+  # instead of handing the maintainer a merge to do. That run calls the hand-off
+  # again once the branch is repaired and the checks are green. For that the job
+  # holds `actions: write`. It runs no agent, which is the rule for any job that
+  # may start a workflow.
   handoff:
     needs: [allowlist, agent]
     if: needs.agent.outputs.result == 'approved'
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: read
       pull-requests: write
       issues: write
@@ -528,4 +537,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
           PR: ${{ needs.agent.outputs.pr }}
-        run: node scripts/ci/hand-off.mjs "$ISSUE" "$PR"
+        run: node scripts/ci/hand-off.mjs "$ISSUE" "$PR" --check-conflicts

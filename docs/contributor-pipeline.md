@@ -325,6 +325,60 @@ link to the run. The log of each failed round is an artifact on that run, named
 A failing `pipeline-on-main` check is not a fault in the fix. It means a stub on
 `testing` differs from its copy on `main`. See "Changing a stub" below.
 
+### Merge conflicts
+
+You do not fix merge conflicts on bot fixes. Many of them change the same few
+files, such as the symbol tables and the generated Nemeth reports. Each time you
+merge one into `testing`, others can stop merging. `pipeline-conflicts.yml` runs
+on every push to `testing` and deals with that.
+
+What it does, in order:
+
+1. **Map.** A script runs `git merge-tree` for every open `claude/fix-` pull
+   request. It finds which ones no longer merge with `testing`, in which files,
+   and which ones will collide with each other when one of them merges. It writes
+   a suggested merge order into the job summary. No model is used. If nothing
+   conflicts, the run stops here and costs nothing.
+2. **Repair.** One agent run repairs all of the conflicting branches. It runs on
+   `claude-opus-5-5` at `medium` effort, because choosing between two edits to the
+   same table needs judgement. It reads the map, so it solves a collision once and
+   not once per branch. It merges `testing` into each branch. It never rebases
+   and never forces a push, so the branch and the download links stay the same.
+   Two edits that add different rows are both kept. The generated reports are
+   regenerated, not merged by hand. If two branches give the same symbol
+   different meanings, it does not choose. It leaves that branch alone, because
+   which meaning is right is yours to decide.
+3. **Check.** Each repaired branch goes through the same checks, build and
+   repair chain as any fix. The agent runs `npm test` and the Nemeth gate itself.
+   The end-to-end suite runs in the chain, not in the agent.
+4. **Tell.** You get one comment on each repaired pull request. It says which
+   files conflicted and what was done. The contributor gets nothing, because their
+   links did not change and there is nothing for them to do.
+
+When a branch cannot be repaired, it gets `needs-maintainer`. Its pull request
+gets a comment that says what failed, and the contributor gets one comment on the
+issue that says the same in the agent's plain words. It is skipped from then on,
+so a conflict only you can settle costs one run and not one per push. Remove the
+label to try again, or start `pipeline-conflicts` by hand from the Actions tab and
+type that pull request's number. Naming it overrides the label.
+
+**Before review.** When the contributor writes `@claude it works`, the hand-off
+asks GitHub whether the branch still merges. If it does not, the hand-off does
+not take it out of draft. It adds the label `handoff-pending`, starts
+`pipeline-conflicts` for that pull request, and tells the contributor once that
+the fix is being brought up to date. When the branch is repaired and the checks
+are green, the same run sends it to you as it would have. The label is what
+remembers the request. A waiting run can be replaced by a newer one, and a label
+cannot.
+
+What it cannot do: it cannot repair a conflict between two pull requests before
+one of them merges. That would put the first fix's changes into the second
+branch, and if you then rejected the first, the second would still carry them.
+The suggested merge order is how you keep the number of repairs small.
+
+Cost. A merge into `testing` that breaks nothing costs only the map job. One that
+breaks N branches costs one Opus run and N check-and-build chains.
+
 ### Setting it up
 
 Nothing runs until the repository holds a Claude subscription token. Generate one
@@ -341,8 +395,13 @@ one is added.
 
 GitHub starts an `on: issues` or `on: issue_comment` workflow only from the
 default branch, and the default branch is `main`. That is a GitHub rule, not a
-choice made here. So `main` holds three small stubs, and each stub does one
-thing: it calls the real workflow on `testing`. The prompts, the tools and the
+choice made here. So `main` holds four small stubs, and each stub does one
+thing: it calls the real workflow on `testing`. The fourth, `contributor-conflicts`,
+is there for a different rule of the same kind: GitHub finds a workflow to START
+BY NAME only when its file is on the default branch. The conflict repair runs by
+itself on every push to `testing`, which needs no stub. Starting it by hand, or
+from the hand-off, goes through the stub. Without it `gh workflow run` answers
+404, which is how this was found. The prompts, the tools and the
 gates all live on `testing`. Changing what the pipeline does is an ordinary pull
 request into `testing`, and nothing is copied to `main`.
 
@@ -485,10 +544,12 @@ pull request's labels to that permission. It was not proved offline. The agent n
 longer creates the label, because that needs `issues: write`. The label already
 exists, and the `report` job recreates it with `--force`.
 
-When a revision ends red after three repairs, the `report` job posts the fixed
-"maintainer needs to look" comment and the agent's words are dropped. The
-contributor hears that a person will look, and never hears what the agent
-changed. That is a known gap, not a fault.
+When a revision ends red after three repairs, the `report` job says what failed
+on the issue. It uses the repair agent's own words when it gave up and wrote some.
+If it did not, it names the jobs that were red, such as `nemeth`, which come from
+the repository and not from the agent. The words pass through `cleanMessage`,
+which removes links, `@` and HTML. If a comment says only "A person has to look",
+the repair agent wrote nothing and the red-job names could not be read.
 
 The agent's words travel as a multi-line job output. If a reply arrives with the
 agent's part empty, check that the `result` step wrote `message<<` to
@@ -497,6 +558,31 @@ agent's part empty, check that the `result` step wrote `message<<` to
 The comment path reads the thread from the issue, through `listed-thread.mjs`. The
 agent's own earlier comments are by a bot and are left out of it, so the agent
 reads the pull request body and the commits to remember what it changed.
+
+Merge conflict repair has not run live. These are the things it cannot show
+until it does. It cannot be started by hand from a branch, because the stub that
+starts it by name is on `main` and calls the copy on `testing`. So the order is:
+merge the stub into `main` first, then merge the change into `testing`. That
+merge is a push to `testing`, and it starts the first real run on every fix pull
+request that conflicts then. Until the stub is on `main`, the check
+`pipeline-on-main` is red on the pull request into `testing`. That is the drift
+check doing its job.
+
+- Whether `--effort medium` reaches the agent. The step that runs the agent
+  prints its command line. If it shows no `--effort`, the action may drop the
+  flag, and the model runs at its default effort.
+- Whether a job that calls a reusable workflow accepts `concurrency` with a
+  matrix value (`contributor-issue-${{ matrix.issue }}`). If GitHub rejects it,
+  the run fails at once with a syntax error. Remove that block and rely on the
+  one run at a time that the workflow already holds.
+- Whether the agent can push to a `claude/fix-` branch from a checkout of
+  `testing`. It uses the job token, which the checkout stored.
+- How long a repair of five or six branches takes. The job has 90 minutes and 150
+  turns. If it runs out, the branches it did not reach keep their conflicts and
+  are picked up on the next push.
+- A repair run that crashes after pushing some branches reports all of them as
+  not repaired, because its outputs are lost. The next push finds them clean.
+  Their checks do not run until then. That is a known gap.
 
 The workflows call each other on `testing` by name. A change to them takes effect
 only after it merges into `testing`, so the first real test is after the merge.
@@ -518,10 +604,14 @@ you; it just never runs.
 | `.github/workflows/contributor-fix.yml` | `main` | Stub. Issue opened, or run by hand, calls `pipeline-fix.yml`. |
 | `.github/workflows/contributor-followup.yml` | `main` | Stub. An `@claude` comment on an issue calls `pipeline-followup.yml`. |
 | `.github/workflows/contributor-signoff.yml` | `main` | Stub. A closed issue calls `pipeline-signoff.yml`. |
-| `.github/pipeline-stubs/` | `testing` | The source of the three stubs above, with tests. Not read by GitHub from here. |
+| `.github/workflows/contributor-conflicts.yml` | `main` | Stub. Started by hand, or by the hand-off, calls `pipeline-conflicts.yml`. |
+| `.github/pipeline-stubs/` | `testing` | The source of the four stubs above, with tests. Not read by GitHub from here. |
 | `.github/workflows/pipeline-fix.yml` | `testing` | Issue to draft pull request. Tells the contributor work has started. |
 | `.github/workflows/pipeline-followup.yml` | `testing` | A comment on the issue to a revision, an answer, or a hand-off. |
-| `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs, in mode `fix`, `comment` or `checks-failed`. |
+| `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs, in mode `fix`, `comment`, `checks-failed` or `conflict`. |
+| `.github/workflows/pipeline-conflicts.yml` | `testing` | On every push to `testing`: finds fix branches that no longer merge, repairs them in one run, checks them again. Also started by hand, and by the hand-off. |
+| `.github/prompts/conflict-mode.md` | `testing` | The agent's instructions for mode `conflict`. In a file because GitHub refuses a prompt over 21000 characters, and `pipeline-agent.yml` was at the limit. Copied from `testing` before the agent starts. |
+| `.github/prompts/checks-failed-mode.md` | `testing` | The agent's instructions for mode `checks-failed`, the repair. Moved out of the workflow for the same length reason. |
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, then reports on the issue. |
 | `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment saying closing sends nothing. |
 | `.github/workflows/pipeline-close-issue.yml` | `testing` | Your merge of a fix closes its issue. |
@@ -530,7 +620,9 @@ you; it just never runs.
 | `scripts/ci/agent-digest.mjs` | `testing` | Writes what the agent did into the job summary, so a silent stop can be diagnosed. Keeps the agent's own words and tool names. Drops every tool result and command, and scrubs anything shaped like a credential. |
 | `scripts/ci/issue-kind.mjs` | `testing` | Reads the form's label and says `bug`, `nemeth` or `routed`. |
 | `scripts/ci/verify-branch.mjs` | `testing` | Starts the checks and the build, waits, and keeps the log of what failed. |
-| `scripts/ci/hand-off.mjs` | `testing` | Takes the pull request out of draft when the contributor says it works. |
+| `scripts/ci/hand-off.mjs` | `testing` | Takes the pull request out of draft when the contributor says it works. Starts the conflict repair first if the branch no longer merges. |
+| `scripts/ci/conflict-map.mjs` | `testing` | Which open fix pull requests conflict with `testing` and with each other, and a merge order. No model. |
+| `scripts/ci/conflict-outcome.mjs` | `testing` | After the repair: what was repaired, who is told, which branches are checked again and which are handed on. |
 | `scripts/ci/gh.mjs` | `testing` | Runs `gh` without a shell. Shared by the scripts above. |
 | `scripts/ci/listed-thread.mjs` | `testing` | Builds the thread the agent reads, from allowlisted people only, and the agent's own earlier questions. |
 | `scripts/ci/can-run-agent.mjs` | `testing` | Says whether the actor can write to the repository, which the agent action requires. |

@@ -23,6 +23,7 @@ export const PAIRED_FILES = [
   ['.github/pipeline-stubs/contributor-fix.yml', '.github/workflows/contributor-fix.yml'],
   ['.github/pipeline-stubs/contributor-followup.yml', '.github/workflows/contributor-followup.yml'],
   ['.github/pipeline-stubs/contributor-signoff.yml', '.github/workflows/contributor-signoff.yml'],
+  ['.github/pipeline-stubs/contributor-conflicts.yml', '.github/workflows/contributor-conflicts.yml'],
   ['.github/ISSUE_TEMPLATE/bug-report.yml', '.github/ISSUE_TEMPLATE/bug-report.yml'],
   ['.github/ISSUE_TEMPLATE/nemeth-feature.yml', '.github/ISSUE_TEMPLATE/nemeth-feature.yml'],
   ['.github/ISSUE_TEMPLATE/design.yml', '.github/ISSUE_TEMPLATE/design.yml'],
