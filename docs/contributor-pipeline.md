@@ -106,8 +106,11 @@ Sometimes the agent needs to ask you something before it starts. That is rare.
 It happens when your report can be read two ways, or when the agent cannot see
 what went wrong. You get one comment, and it is the question. It has at most
 three short questions, and it says how to answer. Answer in a comment that starts
-with `@claude`. The agent starts as soon as you answer. It asks at most twice. If
-you do not know an answer, say so. That is a good answer.
+with `@claude`. The agent starts as soon as you answer. If you do not know an
+answer, say so. That is a good answer. The agent also asks when it cannot make
+the fault happen on its own. It then says what it tried and what would help it
+see the fault. There is no fixed number of questions, because each round starts
+only when you write.
 
 One more thing can appear. A comment may say that the maintainer needs to look at
 a technical problem. That means the checks failed in a way the agent could not
@@ -128,7 +131,10 @@ sends no notification for an edit and a blind contributor would never hear it.
 | Bug or Nemeth report filed | "I started on this" | Nothing yet |
 | Design or Other report filed | "A person will answer here". No agent runs | The issue, labelled `design` or `other` |
 | Agent finishes, checks and build pass | The agent's words, then the links, then what to write next | A draft pull request into `testing`. Green `unit`, `nemeth`, `e2e` |
-| Agent says it is design, or could not finish | The agent's words, then that the maintainer will answer | Label `needs-design` or `needs-maintainer` |
+| Agent says it is design | The agent's words, then that the maintainer will answer | Label `needs-design` |
+| Agent is blocked: a check stays red, or the pull request will not open | The agent's words, which name the check and why, then that the maintainer will answer | Label `needs-maintainer` |
+| Agent cannot make the fault happen, or is unsure | The agent's words and a question, then how to answer | Label `needs-info` before a fix exists, no label after |
+| The agent run ends with no usable words | "Something went wrong on my side", then that the maintainer was told | Label `needs-maintainer`, and the run is red with the reason in its summary |
 | Contributor writes `@claude` and a problem | One comment: what changed, the same links | New commits on the same branch |
 | Contributor writes `@claude` and a question | One comment: the answer | Nothing |
 | Contributor writes `@claude it works` | One comment: sent to the maintainer | Pull request out of draft, label `ready-for-maintainer`, you asked to review |
@@ -192,7 +198,19 @@ no open fix and the label `needs-info`, takes the label off, posts the short
 "I started on this" comment, and calls the agent in mode `fix` again. This time `listed-thread.mjs` hands it the report and the
 question and the answer, together. The number of questions already asked is
 counted from the marker comments on the issue, not from anything the contributor
-wrote, and `pipeline-agent.yml` turns a third `asked` into `stopped`.
+wrote. It is told to the agent so it does not ask the same thing twice. There is
+no limit on it. The old limit of two turned a third question into a silent
+hand-off to the maintainer, and every round needs the contributor to write anyway.
+
+**A run with no words is a failure.** The agent must write one result word and a
+`message.md` (except for `approved` and the repair words). If it writes a word
+that is not allowed, no `message.md`, an empty one, `revised` with no new commit,
+or `opened` with no single pull request, the `result` step in
+`pipeline-agent.yml` fails the job. The job summary says which. The `failed`
+comment then tells the contributor that something went wrong on the pipeline's
+side. The old word `stopped` hid all of these behind "I could not finish this one
+by myself", and issue #58 went quiet. The word is gone. `blocked` replaces it and
+means only a red gate or a failed `gh pr create`, and it must say which.
 
 The prompt tells the agent to ask only when it must. Most reports are bugs with
 enough detail. If you see it asking about things the diagnostics already show,
@@ -225,8 +243,23 @@ cannot lean on what they are permitted to do. Three locks hold this, in order:
    `needs-info` AND the agent really asked (a comment by the bot that starts with
    the question marker) AND the issue does not have `needs-design`. A contributor
    can add a label by hand, so the label alone proves nothing. An issue marked
-   `needs-design` restarts only when the maintainer runs `contributor-fix` by
-   hand.
+   `needs-design` restarts only when the maintainer says so: either by running
+   `contributor-fix` by hand, or by writing `@claude` themselves in a comment.
+   The pipeline reads `author_association` on the comment, which GitHub sets, so
+   only the repository owner counts. Their comment is then the design decision.
+   The pipeline passes that comment's id to the agent (`owner_comment_id`), and
+   the thread file heads exactly that comment "THE MAINTAINER'S APPROVAL" with a
+   random token made in that run, and the prompt names the token. It is one
+   comment and not "the newest one", so a comment a contributor adds while the
+   run waits in the queue is not covered by it. The token is what stops a
+   contributor from writing the heading in a comment: removing a phrase can be
+   dodged with a zero-width or look-alike letter, and a value nobody has seen
+   cannot be written in advance. The gate also records when the owner's comment was
+   last changed. Anyone with write access can edit another person's comment, so a
+   comment edited after the owner wrote it is not marked as the approval. The
+   report itself (the issue body) is not covered by that check: the agent is told
+   to do what the report and the approved comment ask, and no more. Issue #73 had no way to do this
+   before. The maintainer's comment got "could not find exactly one fix".
 3. **The merge.** `.github/CODEOWNERS` names the maintainer, and the rulesets
    `testing-guard` and `main-guard` require a review from a code owner. A
    contributor cannot approve, so a contributor cannot merge into `testing`. The
@@ -585,5 +618,6 @@ you; it just never runs.
 | `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when a stub differs from its copy on `main`, or the allowlist there cannot be read. |
 | `scripts/ci/nemeth-gate.mjs` | `testing` | Makes the two Nemeth reports able to fail. |
 | `.github/workflows/pr-build.yml` | `testing` | Publishes a per-pull-request build to install. |
+| `.github/workflows/diagnostics-windows.yml` | `testing` | Runs the braille input diagnostics e2e file on Windows: real Help menu item, real button, real clipboard. Runs on pull requests that touch the copy path. |
 | `.github/workflows/screen-reader.yml` | `testing` | Drives VoiceOver (macOS) and NVDA (Windows) against the editor spike and saves what each says. Runs on pull requests that touch the editor. |
 | `.github/workflows/testing-app.yml` | `testing` | Fires on every push to `testing` and publishes the alpha build. This is what a merge reaches. |

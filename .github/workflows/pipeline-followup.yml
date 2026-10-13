@@ -21,7 +21,8 @@ name: pipeline-followup
 #   approved     "it works"              -> hand the fix to the maintainer
 #   answered     a question               -> ONE comment, the agent's answer
 #   needs-design a request for something new -> ONE comment, and the label
-#   stopped      it could not go on       -> ONE comment, and the label
+#   blocked      a gate stays red, or the pull request will not open
+#                                         -> ONE comment saying which, and the label
 #   (a crash)    the agent job failed     -> `failed` tells the contributor
 #
 # The agent posts nothing itself. It leaves its words in a file, and the jobs
@@ -104,6 +105,9 @@ jobs:
       pr: ${{ steps.find.outputs.pr }}
       branch: ${{ steps.find.outputs.branch }}
       kind: ${{ steps.kind.outputs.kind }}
+      owner: ${{ steps.owner.outputs.owner }}
+      owner_comment_id: ${{ steps.owner.outputs.comment_id }}
+      owner_comment_updated_at: ${{ steps.owner.outputs.comment_updated_at }}
       resume: ${{ steps.resume.outputs.resume }}
       question_round: ${{ steps.resume.outputs.question_round }}
     steps:
@@ -172,6 +176,33 @@ jobs:
             && git show origin/testing:scripts/ci/gh.mjs > "$RUNNER_TEMP/find/gh.mjs" \
             && node "$RUNNER_TEMP/find/issue-kind.mjs" "$ISSUE_NUMBER"; } \
             || echo "kind=bug" >> "$GITHUB_OUTPUT"
+      # Did the OWNER of the repository write this comment? GitHub fills in
+      # `author_association` from the repository itself, so nobody can claim it
+      # in the text of a comment. It is the one thing that can say "yes, do this
+      # design idea": a design decision is the owner's, and an `@claude` from a
+      # contributor, however firm, is a request. Issue #73 is why this exists:
+      # the owner wrote "start a fix" on a design idea and was told there was no
+      # fix in progress, with no way to say yes.
+      - id: owner
+        if: steps.check.outputs.allowed == 'true'
+        env:
+          ASSOCIATION: ${{ github.event.comment.author_association }}
+          # An integer GitHub assigns. The approval is THIS comment, so a comment
+          # a contributor adds while the run waits in the queue is not covered.
+          COMMENT_ID: ${{ github.event.comment.id }}
+          # When the text was last changed, as the event saw it. An edit made later
+          # is not the text the owner wrote, and voids the approval.
+          COMMENT_AT: ${{ github.event.comment.updated_at }}
+        run: |
+          owner=false
+          comment_id=
+          comment_at=
+          if [ "$ASSOCIATION" = "OWNER" ]; then owner=true; comment_id=$COMMENT_ID; comment_at=$COMMENT_AT; fi
+          {
+            echo "owner=$owner"
+            echo "comment_id=$comment_id"
+            echo "comment_updated_at=$comment_at"
+          } >> "$GITHUB_OUTPUT"
       # No fix yet, and the agent asked a question. This comment may be the
       # answer. It is one only when the issue carries `needs-info`, which the
       # pipeline puts there when the agent asks and takes off when it resumes.
@@ -184,13 +215,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
           REPO: ${{ github.repository }}
+          IS_OWNER: ${{ steps.owner.outputs.owner }}
         run: |
           set -euo pipefail
           labels="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq '[.labels[].name] | join(",")')"
           asked="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- omniya-pipeline-question -->")))] | length' \
             | awk '{ n += $1 } END { print n + 0 }')"
-          # Three things must all be true, and none of them is the contributor's
+          # The OWNER of the repository says go ahead, and that is enough. It is
+          # decided first and from `author_association`, which GitHub sets, so no
+          # label and no wording of a comment can fake it. It works on a design
+          # idea (`design`, `needs-design`) and on an issue nothing is waiting on.
+          #
+          # For everybody else, three things must all be true, and none of them is the contributor's
           # word. A person with write access can add a label by hand, so the label
           # alone proves nothing: there must also be a question the agent really
           # asked (a comment by the bot, counted above). And an issue the agent
@@ -199,10 +236,14 @@ jobs:
           # `needs-info`. Only the maintainer can, by starting `contributor-fix`
           # by hand.
           resume=false
-          case ",$labels," in
-            *,needs-design,*) ;;
-            *,needs-info,*) [ "${asked:-0}" -ge 1 ] && resume=true ;;
-          esac
+          if [ "$IS_OWNER" = "true" ]; then
+            resume=true
+          else
+            case ",$labels," in
+              *,needs-design,*) ;;
+              *,needs-info,*) [ "${asked:-0}" -ge 1 ] && resume=true ;;
+            esac
+          fi
           echo "resume=$resume" >> "$GITHUB_OUTPUT"
           echo "question_round=${asked:-0}" >> "$GITHUB_OUTPUT"
 
@@ -280,11 +321,13 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.allowlist.outputs.pr }}
       branch: ${{ needs.allowlist.outputs.branch }}
+      owner_comment_id: ${{ needs.allowlist.outputs.owner_comment_id }}
+      owner_comment_updated_at: ${{ needs.allowlist.outputs.owner_comment_updated_at }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-  # The agent answered, refused as design, or stopped. It wrote words for the
-  # contributor and did not post them. Post them, once. A `stopped` or a design
+  # The agent answered, refused as design, or is blocked. It wrote words for the
+  # contributor and did not post them. Post them, once. A `blocked` or a design
   # refusal also gets its label here, because the agent labels nothing.
   reply:
     needs: [allowlist, agent]
@@ -292,7 +335,7 @@ jobs:
       ${{ !cancelled() &&
       (needs.agent.outputs.result == 'answered' ||
       needs.agent.outputs.result == 'needs-design' ||
-      needs.agent.outputs.result == 'stopped') }}
+      needs.agent.outputs.result == 'blocked') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -312,7 +355,7 @@ jobs:
           set -euo pipefail
           case "$RESULT" in
             needs-design) STATE=design ;;
-            stopped) STATE=stuck ;;
+            blocked) STATE=stuck ;;
             *) STATE=answered ;;
           esac
           node scripts/ci/reply.mjs "$ISSUE" "$STATE"
@@ -344,7 +387,11 @@ jobs:
           ISSUE: ${{ needs.allowlist.outputs.number }}
         run: |
           set -euo pipefail
-          gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-info
+          # Both come off: `needs-info` says the agent is waiting for an answer, and
+          # `needs-design` says it is waiting for the owner. A label that is not on
+          # the issue must not fail the start, so each is allowed to be missing.
+          gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-info || true
+          gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-design || true
           node scripts/ci/reply.mjs "$ISSUE" started
 
   resume:
@@ -362,10 +409,12 @@ jobs:
       kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
       issue_number: ${{ needs.allowlist.outputs.number }}
       question_round: ${{ needs.allowlist.outputs.question_round }}
+      owner_comment_id: ${{ needs.allowlist.outputs.owner_comment_id }}
+      owner_comment_updated_at: ${{ needs.allowlist.outputs.owner_comment_updated_at }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-  # What `outcome` does in `pipeline-fix.yml`: the agent asked again, stopped, or
+  # What `outcome` does in `pipeline-fix.yml`: the agent asked again, is blocked, or
   # crashed, and the contributor has to be told.
   resume-outcome:
     needs: [allowlist, resume]
@@ -375,7 +424,7 @@ jobs:
       (needs.resume.result != 'success' ||
       needs.resume.outputs.result == 'asked' ||
       needs.resume.outputs.result == 'needs-design' ||
-      needs.resume.outputs.result == 'stopped') }}
+      needs.resume.outputs.result == 'blocked') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

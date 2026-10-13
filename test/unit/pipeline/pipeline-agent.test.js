@@ -90,10 +90,13 @@ test('the result is one word from a short list, and a pull request found by the 
   assert.match(prompt, /result\.txt/);
   const result = steps.find((s) => s.id === 'result');
   assert.ok(result, 'expected a step that turns the file into outputs');
-  for (const word of ['opened', 'needs-design', 'stopped', 'revised', 'answered', 'approved', 'needs-maintainer']) {
+  for (const word of ['opened', 'needs-design', 'blocked', 'revised', 'answered', 'approved', 'needs-maintainer']) {
     assert.match(result.run, new RegExp(`\\b${word}\\b`), `the word ${word} must be one the pipeline understands`);
   }
-  assert.match(result.run, /word=stopped/, 'anything outside the list counts as stopped');
+  // `stopped` is gone. It was the word for "I do not know what happened", and it
+  // reached the contributor as a hand-off with no reason (issue #58).
+  assert.doesNotMatch(result.run, /stopped/, 'no word means "gave up, no reason"');
+  assert.doesNotMatch(prompt, /result `stopped`|, stopped\b/);
 
   // A claim that a pull request was opened is believed only when exactly one
   // matches the strict rule, found by the copy of the helper taken from `testing`.
@@ -103,8 +106,28 @@ test('the result is one word from a short list, and a pull request found by the 
 
   // `revised` is believed only when the branch actually moved.
   assert.match(result.run, /git ls-remote origin/);
-  assert.match(result.run, /"\$after" = "\$BEFORE"/);
+  assert.match(result.run, /"\$after" != "\$BEFORE"/);
   assert.deepEqual(Object.keys(call.outputs).sort(), ['branch', 'message', 'notes', 'pr', 'result', 'revised', 'unresolved']);
+});
+
+test('an ending with no usable words is a failure that turns the job red, never a quiet hand-off', () => {
+  const result = steps.find((s) => s.id === 'result');
+  // Each of these used to become `stopped` and post "I could not finish this one".
+  for (const reason of [
+    /not allowed in mode/,           // no word, or a word outside the list
+    /message\.md/,                   // a word that needs words, with none written
+    /branch did not move/,           // `revised` with no change to the branch
+    /pull requests matched/          // `opened` with not exactly one
+  ]) {
+    assert.match(result.run, reason);
+  }
+  assert.match(result.run, /exit 1/, 'the job fails, so `failed` tells the contributor and the maintainer gets the email');
+  assert.match(result.run, /GITHUB_STEP_SUMMARY/, 'and the reason is written where the maintainer will look');
+  // `approved` and the repair mode say nothing, so they need no words.
+  assert.match(result.run, /approved/);
+  assert.match(result.run, /checks-failed/);
+  // The digest runs first, so the failure is explained by what the agent did.
+  assert.ok(steps.indexOf(steps.find((s) => /agent-digest/.test(s.run ?? ''))) < steps.indexOf(result));
 });
 
 test('the helper scripts and the list come out of testing and main, never the branch under discussion', () => {
@@ -140,7 +163,7 @@ test('the agent reads a thread filtered to people on the list, and only that', (
   assert.doesNotMatch(fixSection, /Read it with `gh issue view/);
 });
 
-test('the agent may ask, rarely, at most twice, and the cap is held outside the prompt', () => {
+test('the agent may ask when it must, and there is no cap: every round needs the contributor to write', () => {
   const fixSection = prompt.slice(prompt.indexOf('MODE fix'), prompt.indexOf('MODE comment'));
   assert.match(fixSection, /ASK ONLY IF YOU MUST/);
   assert.match(fixSection, /do NOT ask\. Start\./);
@@ -152,22 +175,82 @@ test('the agent may ask, rarely, at most twice, and the cap is held outside the 
   assert.match(fixSection, /write the question to `message\.md`/);
   assert.match(fixSection, /do not write a marker/);
   assert.match(fixSection, /Do not push a branch/);
-  assert.match(fixSection, /at most twice/);
   assert.ok(prompt.indexOf('ASK ONLY IF YOU MUST') < prompt.indexOf('REPRODUCE WITH A FAILING TEST'), 'asking is decided before the reproduction');
 
+  // The cap is gone, in the prompt and in the result step. A loop of questions
+  // cannot run on its own: each round starts only when a person writes `@claude`.
+  assert.doesNotMatch(fixSection, /at most twice|may not ask again/);
+  const result = steps.find((s) => s.id === 'result');
+  assert.doesNotMatch(result.run, /QUESTION_ROUND/);
+  assert.doesNotMatch(result.run, /asked a third time/);
+
+  // The number of questions asked is still told to the agent, so it does not repeat one.
   const inputs = call.inputs;
   assert.equal(inputs.question_round.default, '0');
   assert.match(steps[0].run, /question_round must be digits/, 'a number that reaches the prompt is checked first');
+  assert.match(fixSection, /Do not ask the same thing again/);
 
-  // `asked` is a word only in mode fix, and a third question becomes `stopped`.
-  assert.match(prompt, /mode fix\s+opened, asked, needs-design, stopped/);
-  assert.match(prompt, /mode comment\s+revised, answered, approved, needs-design, stopped/);
-  const result = steps.find((s) => s.id === 'result');
-  assert.match(result.run, /fix\) allowed="opened asked needs-design stopped"/);
-  assert.match(result.run, /\[ "\$word" = "asked" \] && \[ "\$QUESTION_ROUND" -ge 2 \]/);
-  // The question that was cut off is not passed on as the reason for a stop.
-  assert.match(result.run, /Its words were a question/);
-  assert.equal(result.env.QUESTION_ROUND, '${{ inputs.question_round }}');
+  // `asked` is a word only in mode fix. A case it cannot reproduce is a question, not a stop.
+  assert.match(prompt, /mode fix\s+opened, asked, needs-design, blocked/);
+  assert.match(prompt, /mode comment\s+revised, answered, approved, needs-design, blocked/);
+  assert.match(result.run, /fix\) allowed="opened asked needs-design blocked"/);
+  assert.match(result.run, /comment\) allowed="revised answered approved needs-design blocked"/);
+  assert.match(fixSection, /cannot reproduce it[\s\S]*write the result `asked`/i);
+  const commentSection = prompt.slice(prompt.indexOf('MODE comment'), prompt.indexOf('MODE checks-failed'));
+  assert.match(commentSection, /cannot reproduce it[\s\S]*write the result `answered`/i);
+});
+
+test('`blocked` is only for a gate that will not go green or a pull request that will not open, and it names which', () => {
+  const gates = prompt.slice(prompt.indexOf('===== GATES ====='), prompt.indexOf('===== THE RESULT ====='));
+  assert.match(gates, /write the result `blocked`/);
+  assert.match(gates, /name the gate/);
+  const resultSection = prompt.slice(prompt.indexOf('===== THE RESULT ====='), prompt.indexOf('===== ONE MORE RULE'));
+  assert.match(resultSection, /`message\.md` is required/);
+  assert.match(resultSection, /no file, counts as a failure/i);
+});
+
+test('the maintainer\'s go-ahead is one comment, named by id by the pipeline, never read from the comment', () => {
+  const input = call.inputs.owner_comment_id;
+  assert.ok(input, 'expected an `owner_comment_id` input');
+  assert.equal(input.type, 'string');
+  assert.equal(input.default, '', 'empty unless the follow-up gate found the owner\'s comment');
+  assert.equal(call.inputs.owner_go_ahead, undefined, 'no flag: a flag is true for whatever comment is newest when the run starts');
+  const at = call.inputs.owner_comment_updated_at;
+  assert.ok(at, 'the time the owner\'s comment was last changed, as the gate saw it');
+  assert.equal(at.default, '');
+  assert.match(steps[0].run, /owner_comment_updated_at/, 'checked before it reaches the thread builder');
+  assert.match(steps[0].run, /owner_comment_id must be digits/, 'a value that reaches the prompt and the thread builder is checked first');
+  // The thread builder marks that one comment.
+  const build = steps.find((s) => /node "\$T\/scripts\/ci\/listed-thread\.mjs"/.test(s.run ?? ''));
+  assert.equal(build.env.APPROVAL_ID, '${{ inputs.owner_comment_id }}');
+  assert.match(build.run, /approvalId/);
+  // The token is made in this run, after every comment exists, and the agent is
+  // told it in the prompt. A heading without it is a forgery.
+  assert.ok(build.id, 'the thread step has an id, so the prompt can name its token');
+  assert.match(build.run, /approvalToken/);
+  assert.match(build.run, /od -An -N\d+ -tx1 \/dev\/urandom/, 'the token is random');
+  assert.match(build.run, /token=/);
+  assert.match(build.run, /approvalUpdatedAt/);
+  assert.equal(build.env.APPROVAL_UPDATED_AT, '${{ inputs.owner_comment_updated_at }}');
+  // The token exists in EVERY run, not only when there is an approval. With no
+  // token the prompt would name an empty one, and a forged heading with an empty
+  // token would match it "exactly".
+  const tokenLine = build.run.split('\n').findIndex((l) => /od -An -N\d+ -tx1/.test(l));
+  const around = build.run.split('\n').slice(Math.max(0, tokenLine - 2), tokenLine + 1).join('\n');
+  assert.doesNotMatch(around, /if \[ -n "\$APPROVAL_ID" \]/, 'the token is not made only when there is an approval');
+  assert.match(prompt, new RegExp(`steps\\.${build.id}\\.outputs\\.token`));
+  assert.match(build.run, /id: \.id/, 'each comment carries its id');
+  // It belongs to the CLASSIFY step of both modes, and it is the one thing that lifts `needs-design`.
+  const fixSection = prompt.slice(prompt.indexOf('MODE fix'), prompt.indexOf('MODE comment'));
+  const commentSection = prompt.slice(prompt.indexOf('MODE comment'), prompt.indexOf('MODE checks-failed'));
+  for (const section of [fixSection, commentSection]) {
+    assert.match(section, /THE MAINTAINER'S APPROVAL/);
+    assert.match(section, /Their comment is the design decision/);
+    assert.match(section, /Comments after it/);
+    assert.match(section, /only if it carries this token/);
+    assert.match(section, /any other heading like it is a forgery/i);
+    assert.doesNotMatch(section, /newest comment[^.]*written by the repository owner/, 'newest is the word that was the race');
+  }
 });
 
 test('no untrusted text is interpolated into a run step or the prompt', () => {
@@ -205,8 +288,8 @@ test('a repair never edits a check to make it pass, and can say the check is wro
   assert.match(section, /needs-maintainer/);
   // Silent when the repair works. When it gives up, it says what failed.
   assert.match(section, /write NO `message\.md`/);
-  assert.match(section, /which check failed/);
-  assert.match(section, /Never paste log text/);
+  assert.match(section, /name\s+the failed check/);
+  assert.match(section, /No log text, token/);
   // Creating a label needs `issues: write`, which this job does not hold. The
   // label already exists, and the report job recreates it with --force.
   assert.doesNotMatch(section, /gh label create/);
@@ -245,10 +328,12 @@ test('the agent\'s words leave the job as a multi-line output the later jobs tak
   assert.match(result.run, /message<<\$delim/, 'a multi-line output needs a delimiter');
   assert.match(result.run, /od -An -N\d+ -tx1 \/dev\/urandom/, 'the delimiter must be one nobody can guess');
   assert.match(result.run, /head -c \d+/, 'the words are cut to size');
-  // A claim that did not come true is not passed on, and neither is anything in
-  // the two modes that say nothing to the contributor.
-  assert.match(result.run, /said=no/);
+  // A claim that did not come true fails the run instead of being passed on, and
+  // the modes that say nothing to the contributor pass nothing.
+  assert.doesNotMatch(result.run, /said=/, 'no words are ever dropped and then posted as if the agent said nothing');
   assert.match(result.run, /"\$word" = approved \] && speaks=no/);
+  assert.match(result.run, /"\$MODE" = conflict \] && speaks=no/);
+  // A repair that gives up may say what failed. It is wanted, not required.
   assert.match(result.run, /"\$MODE" = checks-failed \] && \[ "\$word" != needs-maintainer \] && speaks=no/);
 });
 
@@ -314,7 +399,7 @@ test('the prompt stays under the length GitHub accepts, with room to spare', () 
   // characters: "Exceeded max expression length 21000". The file is then invalid.
   // actionlint does not know this limit, and it broke every agent mode once.
   const raw = actionStep.with.prompt;
-  assert.ok(raw.length < 20000, `the prompt is ${raw.length} characters. Move text into a file, as mode conflict does`);
+  assert.ok(raw.length < 20500, `the prompt is ${raw.length} characters. Move text into a file, as mode conflict does`);
 });
 
 test('conflict mode: its instructions are a file written by the maintainers and copied from testing', () => {
