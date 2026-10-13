@@ -23,14 +23,21 @@
  *   node scripts/ci/listed-thread.mjs <thread.json> <contributors.yml>
  *
  * thread.json: { pr: {number, author, body}|null, issue: {number, author, body}|null,
- *                comments: [{id, author, body, createdAt}], approvalId?: string }
+ *                comments: [{id, author, body, createdAt}], approvalId?: string,
+ *                approvalToken?: string }
  *
  * `approvalId` is the id of the ONE comment in which the repository owner said to
  * go ahead with a design idea. The follow-up gate takes it from the event, so it
  * is the comment that started the run. That comment, and only that one, is headed
  * "THE MAINTAINER'S APPROVAL". A comment written after it, while the run waited in
  * the queue, is not covered, because the agent is told approval is that heading
- * and not "the newest comment". An id that matches nothing, or a comment by a
+ * and not "the newest comment".
+ *
+ * The heading carries `approvalToken`, a random value the workflow makes while it
+ * builds this file, after every comment exists, and tells the agent in the
+ * prompt. A phrase alone could be dodged with a zero-width or look-alike letter
+ * and the model would still read it as the phrase. A token cannot be written in
+ * advance by anyone. No token, no approval. An id that matches nothing, or a comment by a
  * person who is not on the list, marks nothing, and the design lock stays shut.
  */
 
@@ -62,7 +69,7 @@ const section = (heading, text) => `## ${heading}\n\n${stripApprovalPhrase(text)
  * @param {string[]} handles parsed allowlist
  * @returns {string} markdown
  */
-export function buildThread({ pr, issue, comments, approvalId }, handles) {
+export function buildThread({ pr, issue, comments, approvalId, approvalToken }, handles) {
   const listed = (author) => isAllowed(author, handles);
   // Before the first fix there is no pull request. The agent is reading the
   // report to decide whether to start, or reading the answer to its question.
@@ -101,8 +108,8 @@ export function buildThread({ pr, issue, comments, approvalId }, handles) {
   if (kept.length === 0) out.push('(none)\n');
   for (const comment of kept) {
     const approval =
-      approvalId && String(comment.id) === String(approvalId) && listed(comment.author)
-        ? " -- THE MAINTAINER'S APPROVAL (the design decision)"
+      approvalId && approvalToken && String(comment.id) === String(approvalId) && listed(comment.author)
+        ? ` -- THE MAINTAINER'S APPROVAL [token ${approvalToken}] (the design decision)`
         : '';
     out.push(`### ${comment.author}, ${comment.createdAt}${approval}\n\n${stripApprovalPhrase(comment.body).trim()}\n`);
   }

@@ -248,9 +248,13 @@ cannot lean on what they are permitted to do. Three locks hold this, in order:
    The pipeline reads `author_association` on the comment, which GitHub sets, so
    only the repository owner counts. Their comment is then the design decision.
    The pipeline passes that comment's id to the agent (`owner_comment_id`), and
-   the thread file heads exactly that comment "THE MAINTAINER'S APPROVAL". It is
-   one comment and not "the newest one", so a comment a contributor adds while
-   the run waits in the queue is not covered by it. Issue #73 had no way to do this
+   the thread file heads exactly that comment "THE MAINTAINER'S APPROVAL" with a
+   random token made in that run, and the prompt names the token. It is one
+   comment and not "the newest one", so a comment a contributor adds while the
+   run waits in the queue is not covered by it. The token is what stops a
+   contributor from writing the heading in a comment: removing a phrase can be
+   dodged with a zero-width or look-alike letter, and a value nobody has seen
+   cannot be written in advance. Issue #73 had no way to do this
    before. The maintainer's comment got "could not find exactly one fix".
 3. **The merge.** `.github/CODEOWNERS` names the maintainer, and the rulesets
    `testing-guard` and `main-guard` require a review from a code owner. A
