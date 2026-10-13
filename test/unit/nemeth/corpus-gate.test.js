@@ -908,7 +908,10 @@ const UNCORROBORATED_COMPARISON_CELLS = [
   // end-to-end. It drops off this list when either blocker ships. Its twin
   // `⠨⠂⠱` (greater than or equal to, line 10407) IS corroborated, by
   // sre-aata:AataExpression_332.
-  '⠐⠅⠱'
+  '⠐⠅⠱',
+  // Double tilde, "is approximately equal to", BANA 21-7 (line 17447). Issue #66.
+  // Shipped from the Code's symbol list; no corpus case carries it.
+  '⠈⠱⠈⠱'
 ];
 
 test('every comparison symbol row is either exercised by a corpus case or declared uncorroborated', async () => {

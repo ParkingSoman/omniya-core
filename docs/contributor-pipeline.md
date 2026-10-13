@@ -267,7 +267,11 @@ cannot lean on what they are permitted to do. Three locks hold this, in order:
    run waits in the queue is not covered by it. The token is what stops a
    contributor from writing the heading in a comment: removing a phrase can be
    dodged with a zero-width or look-alike letter, and a value nobody has seen
-   cannot be written in advance. Issue #73 had no way to do this
+   cannot be written in advance. The gate also records when the owner's comment was
+   last changed. Anyone with write access can edit another person's comment, so a
+   comment edited after the owner wrote it is not marked as the approval. The
+   report itself (the issue body) is not covered by that check: the agent is told
+   to do what the report and the approved comment ask, and no more. Issue #73 had no way to do this
    before. The maintainer's comment got "could not find exactly one fix".
 3. **The merge.** `.github/CODEOWNERS` names the maintainer, and the rulesets
    `testing-guard` and `main-guard` require a review from a code owner. A
@@ -536,5 +540,6 @@ you; it just never runs.
 | `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when a stub differs from its copy on `main`, or the allowlist there cannot be read. |
 | `scripts/ci/nemeth-gate.mjs` | `testing` | Makes the two Nemeth reports able to fail. |
 | `.github/workflows/pr-build.yml` | `testing` | Publishes a per-pull-request build to install. |
+| `.github/workflows/diagnostics-windows.yml` | `testing` | Runs the braille input diagnostics e2e file on Windows: real Help menu item, real button, real clipboard. Runs on pull requests that touch the copy path. |
 | `.github/workflows/screen-reader.yml` | `testing` | Drives VoiceOver (macOS) and NVDA (Windows) against the editor spike and saves what each says. Runs on pull requests that touch the editor. |
 | `.github/workflows/testing-app.yml` | `testing` | Fires on every push to `testing` and publishes the alpha build. This is what a merge reaches. |

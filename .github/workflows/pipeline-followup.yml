@@ -107,6 +107,7 @@ jobs:
       kind: ${{ steps.kind.outputs.kind }}
       owner: ${{ steps.owner.outputs.owner }}
       owner_comment_id: ${{ steps.owner.outputs.comment_id }}
+      owner_comment_updated_at: ${{ steps.owner.outputs.comment_updated_at }}
       resume: ${{ steps.resume.outputs.resume }}
       question_round: ${{ steps.resume.outputs.question_round }}
     steps:
@@ -189,12 +190,19 @@ jobs:
           # An integer GitHub assigns. The approval is THIS comment, so a comment
           # a contributor adds while the run waits in the queue is not covered.
           COMMENT_ID: ${{ github.event.comment.id }}
+          # When the text was last changed, as the event saw it. An edit made later
+          # is not the text the owner wrote, and voids the approval.
+          COMMENT_AT: ${{ github.event.comment.updated_at }}
         run: |
           owner=false
           comment_id=
-          if [ "$ASSOCIATION" = "OWNER" ]; then owner=true; comment_id=$COMMENT_ID; fi
-          echo "owner=$owner" >> "$GITHUB_OUTPUT"
-          echo "comment_id=$comment_id" >> "$GITHUB_OUTPUT"
+          comment_at=
+          if [ "$ASSOCIATION" = "OWNER" ]; then owner=true; comment_id=$COMMENT_ID; comment_at=$COMMENT_AT; fi
+          {
+            echo "owner=$owner"
+            echo "comment_id=$comment_id"
+            echo "comment_updated_at=$comment_at"
+          } >> "$GITHUB_OUTPUT"
       # No fix yet, and the agent asked a question. This comment may be the
       # answer. It is one only when the issue carries `needs-info`, which the
       # pipeline puts there when the agent asks and takes off when it resumes.
@@ -314,6 +322,7 @@ jobs:
       pr_number: ${{ needs.allowlist.outputs.pr }}
       branch: ${{ needs.allowlist.outputs.branch }}
       owner_comment_id: ${{ needs.allowlist.outputs.owner_comment_id }}
+      owner_comment_updated_at: ${{ needs.allowlist.outputs.owner_comment_updated_at }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
@@ -401,6 +410,7 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
       question_round: ${{ needs.allowlist.outputs.question_round }}
       owner_comment_id: ${{ needs.allowlist.outputs.owner_comment_id }}
+      owner_comment_updated_at: ${{ needs.allowlist.outputs.owner_comment_updated_at }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
