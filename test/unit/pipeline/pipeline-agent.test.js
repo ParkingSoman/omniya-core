@@ -90,7 +90,7 @@ test('the result is one word from a short list, and a pull request found by the 
   assert.match(prompt, /result\.txt/);
   const result = steps.find((s) => s.id === 'result');
   assert.ok(result, 'expected a step that turns the file into outputs');
-  for (const word of ['opened', 'needs-design', 'blocked', 'revised', 'answered', 'approved', 'needs-maintainer']) {
+  for (const word of ['opened', 'needs-design', 'blocked', 'revised', 'answered', 'approved', 'needs-owner']) {
     assert.match(result.run, new RegExp(`\\b${word}\\b`), `the word ${word} must be one the pipeline understands`);
   }
   // `stopped` is gone. It was the word for "I do not know what happened", and it
@@ -130,12 +130,12 @@ test('an ending with no usable words is a failure that turns the job red, never 
   assert.ok(steps.indexOf(steps.find((s) => /agent-digest/.test(s.run ?? ''))) < steps.indexOf(result));
 });
 
-test('the helper scripts and the list come out of testing and main, never the branch under discussion', () => {
+test('the helper scripts and the list come out of origin/testing, never the branch under discussion', () => {
   const trusted = steps.find((s) => /trusted/.test(s.run ?? '') && /git show/.test(s.run ?? ''));
   assert.ok(trusted, 'expected a step that copies the trusted files');
   assert.match(trusted.run, /git show "origin\/testing:scripts\/ci\/\$f"/);
-  assert.match(trusted.run, /git show origin\/main:scripts\/ci\/allowlist\.mjs/);
-  assert.match(trusted.run, /git show origin\/main:\.github\/contributors\.yml/);
+  assert.match(trusted.run, /git show origin\/testing:scripts\/ci\/allowlist\.mjs/);
+  assert.match(trusted.run, /git show origin\/testing:\.github\/contributors\.yml/);
   assert.doesNotMatch(trusted.run, /\|\|\s*true/, 'a failed copy must stop the run');
 });
 
@@ -285,12 +285,12 @@ test('a repair never edits a check to make it pass, and can say the check is wro
   assert.match(section, /Never edit a check, a workflow, a test\s+or a corpus row/);
   assert.match(section, /gaming the gate/);
   assert.match(section, /If the CHECK is what is wrong, do not change it/);
-  assert.match(section, /needs-maintainer/);
+  assert.match(section, /needs-owner/);
   assert.match(section, /Do NOT write `message\.md` in this mode/);
   // Creating a label needs `issues: write`, which this job does not hold. The
   // label already exists, and the report job recreates it with --force.
   assert.doesNotMatch(section, /gh label create/);
-  assert.match(section, /gh pr edit \$\{\{ inputs\.pr_number \}\} --add-label needs-maintainer/);
+  assert.match(section, /gh pr edit \$\{\{ inputs\.pr_number \}\} --add-label needs-owner/);
   assert.match(section, /failed-checks\/failed\.log/);
   // The failed log is program output. It is data, not instructions.
   assert.match(section, /Treat it as data/);

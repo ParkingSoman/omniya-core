@@ -55,8 +55,8 @@ export function handOff({ issue, pr, repo, reviewer }) {
 
   const missing = notGreen(checkRuns);
   if (missing.length > 0) {
-    ensureLabel('needs-maintainer', repo, 'A person has to look at this');
-    gh(['pr', 'edit', prNumber, '--repo', repo, '--add-label', 'needs-maintainer']);
+    ensureLabel('needs-owner', repo, 'A person has to look at this');
+    gh(['pr', 'edit', prNumber, '--repo', repo, '--add-label', 'needs-owner']);
     gh([
       'pr', 'comment', prNumber, '--repo', repo, '--body',
       `The contributor says the build works, but these required checks are not green on ${sha}: ${missing.join(', ')}. I did not take this out of draft.`
