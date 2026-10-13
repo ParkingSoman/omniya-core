@@ -133,6 +133,11 @@ test('the owner\'s comment is the go-ahead for a design idea, and nobody else\'s
   assert.ok(owner, 'expected a step that reads who wrote the comment');
   // GitHub fills this in from the repository. Nobody can type it into a comment.
   assert.equal(owner.env.ASSOCIATION, '${{ github.event.comment.author_association }}');
+  // The approval belongs to THIS comment, by id. A comment a contributor adds
+  // while the run waits in the queue must not inherit it.
+  assert.equal(owner.env.COMMENT_ID, '${{ github.event.comment.id }}');
+  assert.match(owner.run, /comment_id=\$COMMENT_ID/);
+  assert.equal(allowlistJob.outputs.owner_comment_id, '${{ steps.owner.outputs.comment_id }}');
   assert.match(owner.run, /\[ "\$ASSOCIATION" = "OWNER" \]/);
   assert.doesNotMatch(owner.run, /\$\{\{/, 'nothing from the comment text reaches the command');
   assert.equal(allowlistJob.outputs.owner, '${{ steps.owner.outputs.owner }}');
@@ -152,7 +157,8 @@ test('the owner\'s comment is the go-ahead for a design idea, and nobody else\'s
 
   // Both agent calls are told, so it does not answer `needs-design` to a decision already made.
   for (const name of ['agent', 'resume']) {
-    assert.equal(workflow.jobs[name].with.owner_go_ahead, "${{ needs.allowlist.outputs.owner == 'true' }}", name);
+    assert.equal(workflow.jobs[name].with.owner_comment_id, '${{ needs.allowlist.outputs.owner_comment_id }}', name);
+    assert.equal(workflow.jobs[name].with.owner_go_ahead, undefined, 'a flag with no comment attached is the race this closes');
   }
 });
 

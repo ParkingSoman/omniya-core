@@ -23,7 +23,15 @@
  *   node scripts/ci/listed-thread.mjs <thread.json> <contributors.yml>
  *
  * thread.json: { pr: {number, author, body}|null, issue: {number, author, body}|null,
- *                comments: [{author, body, createdAt}] }
+ *                comments: [{id, author, body, createdAt}], approvalId?: string }
+ *
+ * `approvalId` is the id of the ONE comment in which the repository owner said to
+ * go ahead with a design idea. The follow-up gate takes it from the event, so it
+ * is the comment that started the run. That comment, and only that one, is headed
+ * "THE MAINTAINER'S APPROVAL". A comment written after it, while the run waited in
+ * the queue, is not covered, because the agent is told approval is that heading
+ * and not "the newest comment". An id that matches nothing, or a comment by a
+ * person who is not on the list, marks nothing, and the design lock stays shut.
  */
 
 import { readFileSync } from 'node:fs';
@@ -47,7 +55,7 @@ const section = (heading, text) => `## ${heading}\n\n${(text ?? '').trim() || '(
  * @param {string[]} handles parsed allowlist
  * @returns {string} markdown
  */
-export function buildThread({ pr, issue, comments }, handles) {
+export function buildThread({ pr, issue, comments, approvalId }, handles) {
   const listed = (author) => isAllowed(author, handles);
   // Before the first fix there is no pull request. The agent is reading the
   // report to decide whether to start, or reading the answer to its question.
@@ -85,7 +93,11 @@ export function buildThread({ pr, issue, comments }, handles) {
   out.push('## Comments, oldest first\n');
   if (kept.length === 0) out.push('(none)\n');
   for (const comment of kept) {
-    out.push(`### ${comment.author}, ${comment.createdAt}\n\n${(comment.body ?? '').trim()}\n`);
+    const approval =
+      approvalId && String(comment.id) === String(approvalId) && listed(comment.author)
+        ? " -- THE MAINTAINER'S APPROVAL (the design decision)"
+        : '';
+    out.push(`### ${comment.author}, ${comment.createdAt}${approval}\n\n${(comment.body ?? '').trim()}\n`);
   }
 
   if (omitted > 0) {

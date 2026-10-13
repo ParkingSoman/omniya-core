@@ -209,18 +209,26 @@ test('`blocked` is only for a gate that will not go green or a pull request that
   assert.match(resultSection, /no file, counts as a failure/i);
 });
 
-test('the maintainer\'s go-ahead is a flag the pipeline sets from who wrote the comment, never from the comment', () => {
-  const input = call.inputs.owner_go_ahead;
-  assert.ok(input, 'expected an `owner_go_ahead` input');
-  assert.equal(input.type, 'boolean');
-  assert.equal(input.default, false, 'off unless the follow-up gate turns it on');
-  assert.match(prompt, /owner_go_ahead/);
+test('the maintainer\'s go-ahead is one comment, named by id by the pipeline, never read from the comment', () => {
+  const input = call.inputs.owner_comment_id;
+  assert.ok(input, 'expected an `owner_comment_id` input');
+  assert.equal(input.type, 'string');
+  assert.equal(input.default, '', 'empty unless the follow-up gate found the owner\'s comment');
+  assert.equal(call.inputs.owner_go_ahead, undefined, 'no flag: a flag is true for whatever comment is newest when the run starts');
+  assert.match(steps[0].run, /owner_comment_id must be digits/, 'a value that reaches the prompt and the thread builder is checked first');
+  // The thread builder marks that one comment.
+  const build = steps.find((s) => /node "\$T\/scripts\/ci\/listed-thread\.mjs"/.test(s.run ?? ''));
+  assert.equal(build.env.APPROVAL_ID, '${{ inputs.owner_comment_id }}');
+  assert.match(build.run, /approvalId/);
+  assert.match(build.run, /id: \.id/, 'each comment carries its id');
   // It belongs to the CLASSIFY step of both modes, and it is the one thing that lifts `needs-design`.
   const fixSection = prompt.slice(prompt.indexOf('MODE fix'), prompt.indexOf('MODE comment'));
   const commentSection = prompt.slice(prompt.indexOf('MODE comment'), prompt.indexOf('MODE checks-failed'));
   for (const section of [fixSection, commentSection]) {
-    assert.match(section, /The maintainer approved this/);
+    assert.match(section, /THE MAINTAINER'S APPROVAL/);
     assert.match(section, /Their comment is the design decision/);
+    assert.match(section, /Comments after it/);
+    assert.doesNotMatch(section, /newest comment[^.]*written by the repository owner/, 'newest is the word that was the race');
   }
 });
 

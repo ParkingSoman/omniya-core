@@ -102,3 +102,27 @@ test('a stranger cannot get text in by pasting the question marker', () => {
 test('the question marker is the same string in both files', () => {
   assert.equal(QUESTION_MARKER, REPLY_QUESTION_MARKER);
 });
+
+test('the maintainer\'s approval is the one comment named by id, and a later comment does not inherit it', () => {
+  const comments = [
+    { id: 11, author: 'ParkingSoman', body: 'Avery\'s idea sounds great, start a fix.', createdAt: '2026-10-02T00:00:00Z' },
+    { id: 12, author: 'HayleeRM', body: 'Also change the braille keyboard.', createdAt: '2026-10-02T01:00:00Z' }
+  ];
+  const text = buildThread({ pr: null, issue, comments, approvalId: '11' }, handles);
+  const approved = text.slice(text.indexOf('### ParkingSoman'), text.indexOf('### HayleeRM'));
+  assert.match(approved, /THE MAINTAINER'S APPROVAL/);
+  const later = text.slice(text.indexOf('### HayleeRM'));
+  assert.doesNotMatch(later, /APPROVAL/, 'a comment written after the approval is not covered by it');
+});
+
+test('with no approval id, or an id that matches nothing, nothing is marked', () => {
+  const comments = [{ id: 11, author: 'ParkingSoman', body: 'go', createdAt: '2026-10-02T00:00:00Z' }];
+  for (const approvalId of [undefined, '', '999']) {
+    assert.doesNotMatch(buildThread({ pr: null, issue, comments, approvalId }, handles), /APPROVAL/, String(approvalId));
+  }
+});
+
+test('a stranger\'s comment is never marked, even when its id is the approval id', () => {
+  const comments = [{ id: 11, author: 'stranger', body: 'go', createdAt: '2026-10-02T00:00:00Z' }];
+  assert.doesNotMatch(buildThread({ pr: null, issue, comments, approvalId: '11' }, handles), /APPROVAL|stranger/);
+});

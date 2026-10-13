@@ -246,8 +246,11 @@ cannot lean on what they are permitted to do. Three locks hold this, in order:
    `needs-design` restarts only when the maintainer says so: either by running
    `contributor-fix` by hand, or by writing `@claude` themselves in a comment.
    The pipeline reads `author_association` on the comment, which GitHub sets, so
-   only the repository owner counts. Their comment is then the design decision,
-   and the agent is told so (`owner_go_ahead`). Issue #73 had no way to do this
+   only the repository owner counts. Their comment is then the design decision.
+   The pipeline passes that comment's id to the agent (`owner_comment_id`), and
+   the thread file heads exactly that comment "THE MAINTAINER'S APPROVAL". It is
+   one comment and not "the newest one", so a comment a contributor adds while
+   the run waits in the queue is not covered by it. Issue #73 had no way to do this
    before. The maintainer's comment got "could not find exactly one fix".
 3. **The merge.** `.github/CODEOWNERS` names the maintainer, and the rulesets
    `testing-guard` and `main-guard` require a review from a code owner. A
