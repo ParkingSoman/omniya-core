@@ -11,8 +11,9 @@ body:
         No agent starts on this. A person reads it and answers here.
 
         If something is broken, use the Bug report form. If a symbol or rule from
-        the Nemeth Code is missing, use the Nemeth feature form. If you want
-        something new, use the Design form.
+        the Nemeth Code is missing, or you want to change how an equation is
+        spoken, use the Nemeth or speech form. If you want something new, use
+        the Design form.
 
   - type: textarea
     id: what

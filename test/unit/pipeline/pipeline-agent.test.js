@@ -381,3 +381,25 @@ test('the digest step shows what the agent did, always, from the trusted copy, a
   assert.match(copy.run, /agent-digest\.mjs/);
   assert.match(copy.run, /reply\.mjs/);
 });
+
+test('how math is spoken is the agent\'s work on every kind, never a design decision', () => {
+  assert.match(prompt, /===== SPEECH =====/);
+  const speech = prompt.slice(prompt.indexOf('===== SPEECH ====='), prompt.indexOf('===== MODE fix ====='));
+  assert.match(speech, /never a design decision/);
+  assert.match(speech, /silent on speech/);
+  assert.match(speech, /contributor's own words are the specification/);
+  assert.match(speech, /Cite the issue number/);
+  assert.match(speech, /every equation is expected/);
+  // The failing test needs somewhere to read the spoken words. Without a named
+  // place the agent cannot reproduce, and the rule above would end in `blocked`.
+  assert.match(speech, /speech-rule-engine/);
+  assert.match(speech, /test\/e2e\/launch-electron\.js/);
+  assert.match(speech, /src\/renderer\/mathjax-config\.js/);
+  // The old escape hatches are gone.
+  assert.doesNotMatch(prompt, /Only when the Code gives\s+no answer at all is it a design question/);
+  const commentSection = prompt.slice(prompt.indexOf('MODE comment'), prompt.indexOf('MODE checks-failed'));
+  assert.doesNotMatch(commentSection, /looks, sounds or behaves/);
+  assert.match(commentSection, /how something is spoken is a bug report/);
+  const fixSection = prompt.slice(prompt.indexOf('MODE fix'), prompt.indexOf('MODE comment'));
+  assert.match(fixSection, /speech request is always in scope/);
+});
