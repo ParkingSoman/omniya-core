@@ -524,10 +524,10 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 ### `sre-aata:AataExpression_136`
 
 - cells: `⠼⠂⠦⠴⠘⠨⠡`
-- our LaTeX: `180°`
+- our LaTeX: `180\mathord{°}`
 - our MathML:
   ```xml
-  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>180</mn><mo>°</mo></math>
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>180</mn><mrow><mo>°</mo></mrow></math>
   ```
 - their MathML:
   ```xml
@@ -537,10 +537,10 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 ### `sre-aata:AataExpression_176`
 
 - cells: `⠼⠒⠖⠴⠘⠨⠡`
-- our LaTeX: `360°`
+- our LaTeX: `360\mathord{°}`
 - our MathML:
   ```xml
-  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>360</mn><mo>°</mo></math>
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>360</mn><mrow><mo>°</mo></mrow></math>
   ```
 - their MathML:
   ```xml
@@ -550,10 +550,10 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 ### `sre-aata:AataExpression_229`
 
 - cells: `⠼⠔⠴⠘⠨⠡`
-- our LaTeX: `90°`
+- our LaTeX: `90\mathord{°}`
 - our MathML:
   ```xml
-  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>90</mn><mo>°</mo></math>
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>90</mn><mrow><mo>°</mo></mrow></math>
   ```
 - their MathML:
   ```xml

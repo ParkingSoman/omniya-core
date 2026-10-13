@@ -186,10 +186,12 @@ export const toLatex = defineBackend(
     // The degree sign (BANA 23.10) is WRITTEN at the superscript level, but it is
     // not a power. A real superscript of U+2218 was spoken as "2 raised to the
     // composed with power" by a blind contributor's screen reader (issue #58), so
-    // it is emitted flat: `90°` is <mn>90</mn><mo>°</mo>, which reads "90 degrees".
+    // it is emitted flat: `90°` is <mn>90</mn> and the degree sign, which reads "90 degrees". The sign is
+    // wrapped (\\mathord) so a + after it is not taken as a sign: a bare
+    // <mo>°</mo><mo>+</mo> was read "90 degrees positive 90 degrees".
     Superscript: (node, emit) =>
       node.exponent.kind === 'Operator' && node.exponent.glyph === '°'
-        ? `${scriptBase(node.base, emit)}°`
+        ? `${scriptBase(node.base, emit)}\\mathord{°}`
         : `${scriptBase(node.base, emit)}^{${emit(node.exponent)}}`,
     Subscript: (node, emit) => `${scriptBase(node.base, emit)}_{${emit(node.index)}}`,
     SubSuperscript: (node, emit) =>
