@@ -325,7 +325,7 @@ jobs:
       (needs.fix.result == 'failure' ||
       needs.fix.outputs.result == 'asked' ||
       needs.fix.outputs.result == 'needs-design' ||
-      needs.fix.outputs.result == 'stopped') }}
+      needs.fix.outputs.result == 'blocked') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
