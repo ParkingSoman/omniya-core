@@ -695,5 +695,15 @@
       "value": "〜",
       "banaRef": "20"
     }
+  },
+  {
+    "cells": "⠈⠱⠈⠱",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≈",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
   }
 ]
