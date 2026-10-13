@@ -544,6 +544,16 @@
     }
   },
   {
+    "cells": "⠌⠨⠅",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≠",
+    "banaRef": "21.1",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
     "cells": "⠸⠇",
     "kind": "comparison",
     "role": "comparison",
