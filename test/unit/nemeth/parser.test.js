@@ -7,6 +7,7 @@ import { NemethUnsupportedError } from '../../../src/domain/nemeth/errors.js';
 import { lex } from '../../../src/domain/nemeth/lexer.js';
 import { resolveLevels } from '../../../src/domain/nemeth/levels.js';
 import { toLatex } from '../../../src/domain/nemeth/latex.js';
+import { parseNemeth } from '../../../src/domain/nemeth/index.js';
 import { parse } from '../../../src/domain/nemeth/parser.js';
 
 const treeOf = (ascii) => parse(resolveLevels(lex(asciiToCells(ascii))));
@@ -743,4 +744,22 @@ test('the combination "-+" is the single sign ∓', () => {
 
 test('a multipurpose indicator divides a sign of operation from a following sign of a term', () => {
   assert.equal(toLatexOf('x+"-y'), 'x+-y');
+});
+
+// BANA Rule 23.10 (Nemeth_2022.txt line 11565): the hollow dot means degrees at
+// the superscript level, so the cells are the superscript indicator `⠘` and the
+// hollow dot `⠨⠡` (Examples 4-9, 14-2 and 23-13).
+test('a degree sign is the hollow dot at the superscript level (Rule 23.10)', () => {
+  assert.equal(parseNemeth('⠼⠔⠴⠘⠨⠡').latex, '90^{\\circ}');
+});
+
+test('degrees survive a baseline indicator and a comparison (Example 23-13)', () => {
+  assert.equal(
+    parseNemeth('⠼⠔⠴⠘⠨⠡⠐⠬⠔⠴⠘⠨⠡⠀⠨⠅⠀⠼⠂⠦⠴⠘⠨⠡').latex,
+    '90^{\\circ}+90^{\\circ}=180^{\\circ}'
+  );
+});
+
+test('a hollow dot on the baseline is not a degree sign and is still refused', () => {
+  assert.throws(() => parseNemeth('⠨⠡'), NemethUnsupportedError);
 });

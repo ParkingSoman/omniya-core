@@ -67,7 +67,7 @@ import {
 } from './ast.js';
 import { NemethUnsupportedError } from './errors.js';
 
-const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen']);
+const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen', 'degree']);
 
 function peek(state) {
   return state.index < state.tokens.length ? state.tokens[state.index] : null;
@@ -393,6 +393,20 @@ function parsePrimary(state, level) {
     case 'letter':
       advance(state);
       return Identifier(token.value, { src: spanFrom(state, start), marks });
+    case 'degree':
+      // BANA 23.10 (Nemeth_2022.txt line 11565): the hollow dot means degrees
+      // only "at the superscript level", where the Code has it written (Examples
+      // 4-9, 14-2, 23-13). On the baseline the same cells are not established
+      // as a degree sign, so this refuses rather than guess.
+      if (!level.endsWith('^')) {
+        throw unsupported(
+          state,
+          'the hollow dot is a degree sign only at the superscript level (BANA 23.10)',
+          'Write the superscript indicator (dot 4-5) before the hollow dot to make it a degree sign.'
+        );
+      }
+      advance(state);
+      return Operator(token.value, { src: spanFrom(state, start), marks });
     default:
       return parseNumber(state, level, marks);
   }

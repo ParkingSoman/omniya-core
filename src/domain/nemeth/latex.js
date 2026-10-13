@@ -176,7 +176,10 @@ export const toLatex = defineBackend(
     // lines 808-810) describes. The decimal point needs no such help.
     Number: (node) => withTypeform(node.value.replaceAll(',', '{,}'), node),
     Identifier: (node) => withTypeform(letterGlyph(node), node),
-    Operator: (node) => node.glyph,
+    // The degree sign (BANA 23.10) is written at the superscript level, so it is a
+    // real superscript here; `\\circ` is what MathJax turns into U+2218 in an
+    // `msup`, the same MathML the SRE corpus holds for these cells.
+    Operator: (node) => (node.glyph === '°' ? '\\circ' : node.glyph),
     Sequence: (node, emit) => concat(node.items.map((item) => emit(item))),
     Fraction: (node, emit) => `\\frac{${emit(node.numerator)}}{${emit(node.denominator)}}`,
     Root: (node, emit) =>
