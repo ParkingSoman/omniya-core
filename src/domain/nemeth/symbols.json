@@ -675,5 +675,17 @@
       "value": "〜",
       "banaRef": "20"
     }
+  },
+  {
+    "cells": "⠈⠴",
+    "kind": "postfixMark",
+    "value": "%",
+    "banaRef": "23.15"
+  },
+  {
+    "cells": "⠈⠴⠴",
+    "kind": "postfixMark",
+    "value": "‰",
+    "banaRef": "23.15"
   }
 ]
