@@ -12,7 +12,7 @@ import { electronLaunchEnv } from '../e2e/launch-electron.js';
 // NVDA. Guidepup picks by platform. This file needs the CI setup in
 // .github/workflows/screen-reader.yml. It is not part of `npm run test:e2e`.
 //
-// The app opens a napkin that reads "Solve [x squared] for x." The walk presses
+// The app opens a napkin that reads "Solve [x squared] for x.", then "Then [y][z]." The walk presses
 // Home, then Right Arrow across the line. It is run twice with the same keys:
 // first in a plain text input (the control), then in the editor. Walking both
 // tells a fault in the editor apart from a limit of the test harness. Every step
@@ -29,6 +29,7 @@ const MAC = process.platform === 'darwin';
 const DOC_START = MAC ? 'Meta+ArrowUp' : 'Control+Home';
 
 const XSQ = '<math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mi>x</mi><mn>2</mn></msup></math>';
+const mi = (name) => `<math xmlns="http://www.w3.org/1998/Math/MathML"><mi>${name}</mi></math>`;
 const NAPKIN = {
   schemaVersion: 3,
   activeNapkinId: 'napkin-1',
@@ -43,6 +44,15 @@ const NAPKIN = {
           { type: 'text', text: 'Solve ' },
           { type: 'math', attrs: { mathml: XSQ, source: 'x^2', sourceKind: 'latex' } },
           { type: 'text', text: ' for x.' }
+        ]
+      }, {
+        // Two equations side by side. Testers heard the second one twice (Oct 2026).
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: 'Then ' },
+          { type: 'math', attrs: { mathml: mi('y'), source: 'y', sourceKind: 'latex' } },
+          { type: 'math', attrs: { mathml: mi('z'), source: 'z', sourceKind: 'latex' } },
+          { type: 'text', text: '.' }
         ]
       }]
     }
@@ -166,8 +176,21 @@ test('real screen reader walks a plain text input and the editor', async (t) => 
         }
       } else {
         assert.deepEqual(editor.filter((s) => s.spoken.length === 0).map((s) => s.label), [], 'every step must speak');
-        const arrive = editor.find((s) => s.label === 'arrow right 6');
-        assert.match(arrive.spoken.join(' '), /x squared/i, 'the equation is named when the caret arrives');
+        // One press passes a whole equation, so the reader names it once, and it
+        // says "equation", not "graphic". Before (CI run 4) it said it on two presses.
+        const named = editor.filter((s) => /x squared/i.test(s.spoken.join(' ')) && s.label.startsWith('arrow right'));
+        assert.equal(named.length, 1, `the equation is named once while walking right. It was named at: ${named.map((s) => s.label)}`);
+        assert.match(named[0].spoken.join(' '), /equation/i, 'the reader says "equation"');
+        assert.doesNotMatch(named[0].spoken.join(' '), /graphic/i);
+
+        // Two equations side by side, walked from the end of the note to the left.
+        await screenReader.press('Control+End');
+        const pair = [];
+        for (let i = 1; i <= 5; i += 1) {
+          pair.push(await step('pair', `arrow left ${i}`, () => screenReader.press('ArrowLeft')));
+        }
+        const pairNamed = pair.filter((s) => /equation/i.test(s.spoken.join(' ')));
+        assert.equal(pairNamed.length, 2, `each of the two equations is named once. Named at: ${pairNamed.map((s) => s.label)}`);
       }
     } finally {
       await screenReader.stop();
