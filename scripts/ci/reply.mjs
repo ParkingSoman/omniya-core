@@ -20,7 +20,8 @@
  * whoever posts it. Two comments once posted by hand under the maintainer's name
  * each started an agent run.
  *
- * Words: short sentences, no file names, no check names, no logs. The links are
+ * Words: short sentences, no logs. The agent's words in a failure may name the
+ * check and the file, because a failure with no detail cannot be acted on. The links are
  * link text, not bare addresses, because a screen reader reads a long address
  * letter by letter.
  *
@@ -131,8 +132,11 @@ const STATES_DEF = {
     defaultMessage: 'I could not finish this one by myself.',
     lines: STUCK_TAIL
   },
+  // The agent's words say WHAT failed: which check, which test or file, and what
+  // it expected. "A person has to look" with nothing else gave the contributor
+  // and the maintainer nothing to act on. Words with no message still read well.
   maintainer: {
-    message: 'none',
+    message: 'optional',
     lines: [
       'The maintainer needs to look at a technical problem with this fix.',
       'You do not need to do anything.',
@@ -145,6 +149,19 @@ const STATES_DEF = {
       'Something went wrong on my side while I was working on this.',
       'Nothing is wrong with your report.',
       'The maintainer has been told and will look. You do not need to do anything.'
+    ]
+  },
+  // "It works" arrived, but other fixes were added to the app while they tested
+  // and this one no longer fits with them. It is the one time a conflict is
+  // worth a comment on the issue, because the contributor expects "sent" next.
+  updating: {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'While you were testing, other fixes were added to the app.',
+      'I am bringing your fix up to date with them first.',
+      'Then I will send it on to the maintainer.',
+      'The download links will stay the same. You do not need to do anything.'
     ]
   },
   sent: {

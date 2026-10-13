@@ -36,13 +36,13 @@ test('it is called, never triggered, and takes only the subscription token', () 
 test('a run is bounded', () => {
   assert.equal(typeof job['timeout-minutes'], 'number');
   assert.ok(job['timeout-minutes'] <= 120, 'the timeout is too generous to be a budget');
-  assert.match(args, /--max-turns\s+\d+/, 'the agent needs its own ceiling: a job timeout does not bound it');
+  assert.match(args, /--max-turns\s+(\d+|\$\{\{[^}]*'\d+'[^}]*'\d+'[^}]*\}\})/, 'the agent needs its own ceiling: a job timeout does not bound it');
   assert.equal(actionStep.with.allowed_bots, undefined, 'allowed_bots must stay unset so bot actors keep being refused');
 });
 
 test('every input is checked before it reaches a checkout, a command or the prompt', () => {
   const check = steps[0];
-  assert.match(check.run, /fix\|comment\|checks-failed/);
+  assert.match(check.run, /fix\|comment\|checks-failed\|conflict/);
   assert.match(check.run, /bug\|nemeth\)/, 'the kind must be one of the two the agent works on');
   assert.match(check.run, /\*\[!0-9\]\*/, 'the numbers must be checked to be digits');
   assert.match(check.run, /claude\/fix-\*/, 'the branch must be one this pipeline created');
@@ -53,7 +53,7 @@ test('every input is checked before it reaches a checkout, a command or the prom
 test('a new fix starts from testing, and every later round continues on the same branch', () => {
   const checkout = steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout'));
   // The mode picks between `testing` and the branch input, and nothing else.
-  assert.match(checkout.with.ref, /inputs\.mode == 'fix' && 'testing' \|\| inputs\.branch/);
+  assert.match(checkout.with.ref, /\(inputs\.mode == 'fix' \|\| inputs\.mode == 'conflict'\) && 'testing' \|\| inputs\.branch/);
   // `branch_prefix` and tag mode are what make the action cut a NEW branch, a
   // second pull request and a second set of links for one bug.
   assert.equal(actionStep.with.branch_prefix, undefined, 'the agent must not start a branch of its own');
@@ -104,7 +104,7 @@ test('the result is one word from a short list, and a pull request found by the 
   // `revised` is believed only when the branch actually moved.
   assert.match(result.run, /git ls-remote origin/);
   assert.match(result.run, /"\$after" = "\$BEFORE"/);
-  assert.deepEqual(Object.keys(call.outputs).sort(), ['branch', 'message', 'pr', 'result']);
+  assert.deepEqual(Object.keys(call.outputs).sort(), ['branch', 'message', 'notes', 'pr', 'result', 'revised', 'unresolved']);
 });
 
 test('the helper scripts and the list come out of testing and main, never the branch under discussion', () => {
@@ -203,7 +203,10 @@ test('a repair never edits a check to make it pass, and can say the check is wro
   assert.match(section, /gaming the gate/);
   assert.match(section, /If the CHECK is what is wrong, do not change it/);
   assert.match(section, /needs-maintainer/);
-  assert.match(section, /Do NOT write `message\.md` in this mode/);
+  // Silent when the repair works. When it gives up, it says what failed.
+  assert.match(section, /write NO `message\.md`/);
+  assert.match(section, /which check failed/);
+  assert.match(section, /Never paste log text/);
   // Creating a label needs `issues: write`, which this job does not hold. The
   // label already exists, and the report job recreates it with --force.
   assert.doesNotMatch(section, /gh label create/);
@@ -245,8 +248,8 @@ test('the agent\'s words leave the job as a multi-line output the later jobs tak
   // A claim that did not come true is not passed on, and neither is anything in
   // the two modes that say nothing to the contributor.
   assert.match(result.run, /said=no/);
-  assert.match(result.run, /"\$word" != approved/);
-  assert.match(result.run, /"\$MODE" != checks-failed/);
+  assert.match(result.run, /"\$word" = approved \] && speaks=no/);
+  assert.match(result.run, /"\$MODE" = checks-failed \] && \[ "\$word" != needs-maintainer \] && speaks=no/);
 });
 
 test('the two kinds are told apart, and a Nemeth symbol is the agent\'s to do', () => {
@@ -297,4 +300,72 @@ test('the digest step shows what the agent did, always, from the trusted copy, a
   const copy = steps.find((s) => /git show "origin\/testing:scripts\/ci\/\$f"/.test(s.run ?? ''));
   assert.match(copy.run, /agent-digest\.mjs/);
   assert.match(copy.run, /reply\.mjs/);
+});
+
+// ---- mode conflict -------------------------------------------------------
+
+const conflictSection = prompt.slice(prompt.indexOf('MODE conflict'), prompt.indexOf('===== GATES'));
+
+test('conflict mode: the model and the effort are chosen by the caller and limited to a fixed list', () => {
+  const check = steps[0];
+  assert.equal(call.inputs.model.default, '');
+  assert.equal(call.inputs.effort.default, '');
+  // A value that reaches the command line must be one of a short list, never free text.
+  assert.match(check.run, /claude-opus-5-5\|claude-sonnet-5-5\|claude-haiku-5-5\|claude-fable-5-1/);
+  assert.match(check.run, /low\|medium\|high\|xhigh\|max/);
+  assert.match(args, /inputs\.model != '' && format\('--model \{0\}', inputs\.model\)/);
+  assert.match(args, /inputs\.effort != '' && format\('--effort \{0\}', inputs\.effort\)/);
+  assert.doesNotMatch(prompt, /claude-opus-5-5/, 'the model is the caller\'s choice, not the prompt\'s');
+});
+
+test('conflict mode: the map is fetched only for it, and which branches were repaired is read off the remote', () => {
+  const downloads = steps.filter((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/download-artifact'));
+  assert.equal(downloads.length, 2);
+  assert.equal(downloads[1].if, "inputs.mode == 'conflict'");
+  assert.match(downloads[1].with.path, /conflict-map/);
+
+  const before = steps.find((s) => s.id === 'beforec');
+  assert.ok(before, 'the branches must be recorded before the agent starts');
+  assert.match(before.run, /claude\/fix-\*/, 'only branches this pipeline created');
+  assert.match(before.run, /git ls-remote origin/);
+  assert.ok(steps.indexOf(before) < steps.indexOf(actionStep), 'recorded before the agent runs');
+
+  const result = steps.find((s) => s.id === 'result');
+  // The list comes from a step output, which the agent cannot rewrite.
+  assert.match(JSON.stringify(result.env), /steps\.beforec\.outputs\.prs/);
+  assert.match(result.run, /"\$after" != "\$sha"/, 'repaired means the remote branch moved');
+  assert.match(result.run, /if \[ -n "\$revised" \]; then word=revised; else word=needs-maintainer/);
+});
+
+test('conflict mode: it merges, never rebases or forces, never touches testing or main, and never runs e2e', () => {
+  assert.match(conflictSection, /git merge origin\/testing/);
+  assert.match(conflictSection, /A merge, never a rebase/);
+  assert.match(conflictSection, /NEVER use `--force`/);
+  assert.match(conflictSection, /Never push to `testing` or `main`/);
+  assert.match(conflictSection, /never merge one fix branch\s+into another/);
+  assert.match(conflictSection, /Do NOT run `npm run test:e2e`/);
+  assert.match(conflictSection, /node scripts\/ci\/nemeth-gate\.mjs/);
+  assert.doesNotMatch(conflictSection, /git rebase /);
+});
+
+test('conflict mode: it does not choose between two meanings, and does not edit a check to get green', () => {
+  assert.match(conflictSection, /DIFFERENT meanings/);
+  assert.match(conflictSection, /do NOT choose/);
+  assert.match(conflictSection, /git merge --abort/);
+  assert.match(conflictSection, /Never edit a check, a workflow, a test or a\s+corpus row/);
+  // Generated files are regenerated, not hand-merged.
+  assert.match(conflictSection, /GENERATED/);
+  assert.match(conflictSection, /npm run nemeth:coverage/);
+  assert.match(conflictSection, /npm run nemeth:utility/);
+});
+
+test('conflict mode: it posts nothing, leaves a line per branch, and the notes cannot grow past a line', () => {
+  assert.match(conflictSection, /Write NO `message\.md`/);
+  assert.match(conflictSection, /conflict-notes\.json/);
+  assert.match(conflictSection, /Every branch under `conflicting` gets a line/);
+  const result = steps.find((s) => s.id === 'result');
+  assert.match(result.run, /head -c 300/);
+  assert.match(result.run, /tr -d '\\000'/);
+  assert.match(result.run, /notes<<\$ndelim/);
+  assert.equal(job.permissions.issues, 'read');
 });

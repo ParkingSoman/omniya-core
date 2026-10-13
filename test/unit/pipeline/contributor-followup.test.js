@@ -223,11 +223,13 @@ test('"it works" hands the fix to the maintainer, and does not merge it', () => 
   const handoff = workflow.jobs.handoff;
   assert.equal(handoff.if, "needs.agent.outputs.result == 'approved'");
   const run = handoff.steps.map((s) => s.run ?? '').join('\n');
-  assert.match(run, /scripts\/ci\/hand-off\.mjs "\$ISSUE" "\$PR"/);
+  assert.match(run, /scripts\/ci\/hand-off\.mjs "\$ISSUE" "\$PR" --check-conflicts/);
   // The helper is not on `main`.
   assert.equal(handoff.steps[0].with?.ref, 'testing');
   assert.doesNotMatch(code, /gh pr merge|--admin|--auto/, 'the maintainer merges, and nobody else');
-  assert.equal(handoff.permissions?.actions, undefined);
+  // It may start the conflict repair, so it holds `actions: write`, and so it runs no agent.
+  assert.equal(handoff.permissions?.actions, 'write');
+  assert.doesNotMatch(JSON.stringify(handoff.steps), /claude-code-action/);
 });
 
 test('the agent cannot start, cancel or re-run workflows', () => {

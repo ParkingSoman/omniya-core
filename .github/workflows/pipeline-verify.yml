@@ -47,7 +47,10 @@ on:
         required: false
         type: string
         default: ''
-      # `ready` for a first build, `revised` for a replacement behind the same links.
+      # `ready` for a first build, `revised` for a replacement behind the same links,
+      # `quiet` for a replacement that needs no comment: the conflict repair uses
+      # it, because the links do not change and the contributor has nothing to
+      # do. A red result is still reported, with what failed.
       reply_state:
         required: false
         type: string
@@ -71,6 +74,7 @@ jobs:
       issues: read
     outputs:
       green: ${{ steps.v.outputs.green }}
+      failed: ${{ steps.v.outputs.failed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -116,6 +120,7 @@ jobs:
       issues: read
     outputs:
       green: ${{ steps.v.outputs.green }}
+      failed: ${{ steps.v.outputs.failed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -161,6 +166,7 @@ jobs:
       issues: read
     outputs:
       green: ${{ steps.v.outputs.green }}
+      failed: ${{ steps.v.outputs.failed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -206,6 +212,7 @@ jobs:
       issues: read
     outputs:
       green: ${{ steps.v.outputs.green }}
+      failed: ${{ steps.v.outputs.failed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -250,6 +257,16 @@ jobs:
           V2: ${{ needs.verify-2.outputs.green }}
           V3: ${{ needs.verify-3.outputs.green }}
           V4: ${{ needs.verify-4.outputs.green }}
+          # The names of the jobs that were red in each verify, and what each
+          # repair said when it gave up. Repair text is agent text, so it travels
+          # through `env` only and `reply.mjs` cleans it before it is posted.
+          F1: ${{ needs.verify-1.outputs.failed }}
+          F2: ${{ needs.verify-2.outputs.failed }}
+          F3: ${{ needs.verify-3.outputs.failed }}
+          F4: ${{ needs.verify-4.outputs.failed }}
+          M1: ${{ needs.repair-1.outputs.message }}
+          M2: ${{ needs.repair-2.outputs.message }}
+          M3: ${{ needs.repair-3.outputs.message }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPLY_STATE: ${{ inputs.reply_state }}
           MESSAGE: ${{ inputs.message }}
@@ -259,13 +276,31 @@ jobs:
           for v in "$V4" "$V3" "$V2" "$V1"; do
             if [ -n "$v" ]; then final="$v"; break; fi
           done
+          # The red jobs of that same last verify, and not of an earlier one.
+          if [ -n "$V4" ]; then failed="$F4"
+          elif [ -n "$V3" ]; then failed="$F3"
+          elif [ -n "$V2" ]; then failed="$F2"
+          else failed="$F1"
+          fi
           if [ "$final" = "true" ]; then
-            node scripts/ci/reply.mjs "$ISSUE" "$REPLY_STATE" "$PR"
+            if [ "$REPLY_STATE" != "quiet" ]; then
+              node scripts/ci/reply.mjs "$ISSUE" "$REPLY_STATE" "$PR"
+            fi
             echo "green=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          # What failed, in words. The newest repair that gave up and said why is
+          # best. If none did, the names of the red jobs are still better than
+          # nothing, and they come from the repository, not from the agent.
+          said=""
+          for m in "$M3" "$M2" "$M1"; do
+            if [ -n "$m" ]; then said="$m"; break; fi
+          done
+          if [ -z "$said" ] && [ -n "$failed" ]; then
+            said="Still failing after the repair attempts: ${failed//,/, }."
+          fi
           gh label create needs-maintainer --force --description "A person has to look at this" || true
           gh pr edit "$PR" --add-label needs-maintainer
-          gh pr comment "$PR" --body "The automatic checks or the build are still red after 3 repair attempts, or the repair agent asked for a person. The maintainer has to look. Run: $RUN_URL"
-          node scripts/ci/reply.mjs "$ISSUE" maintainer
+          gh pr comment "$PR" --body "The automatic checks or the build are still red after 3 repair attempts, or the repair agent asked for a person. Red: ${failed:-unknown}. The maintainer has to look. Run: $RUN_URL"
+          MESSAGE="$said" node scripts/ci/reply.mjs "$ISSUE" maintainer
           echo "green=false" >> "$GITHUB_OUTPUT"

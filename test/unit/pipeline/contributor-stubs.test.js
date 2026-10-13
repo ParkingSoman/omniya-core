@@ -149,7 +149,8 @@ test('every job states its own permissions, and the small ones hold almost none'
       'resume-outcome': { contents: 'read', issues: 'write' },
       'resume-verify': { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' },
       verify: { actions: 'write', contents: 'write', 'pull-requests': 'write', issues: 'write' },
-      handoff: { contents: 'read', 'pull-requests': 'write', issues: 'write' }
+      // `actions: write` to start `pipeline-conflicts.yml` when the branch no longer merges. It runs no agent.
+      handoff: { actions: 'write', contents: 'read', 'pull-requests': 'write', issues: 'write' }
     },
     'pipeline-signoff.yml': {
       explain: { contents: 'read', 'pull-requests': 'read', issues: 'write' }
