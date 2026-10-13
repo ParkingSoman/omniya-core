@@ -48,7 +48,14 @@ export const QUESTION_MARKER = '<!-- omniya-pipeline-question -->';
 /** Authors of a pull request body that are this pipeline itself. */
 export const PIPELINE_BOTS = ['github-actions[bot]', 'claude[bot]'];
 
-const section = (heading, text) => `## ${heading}\n\n${(text ?? '').trim() || '(empty)'}\n`;
+/**
+ * The approval heading is plain text in a file the agent reads, so a body must
+ * not be able to write it. Matches the phrase however it is cased, spaced or
+ * punctuated (`maintainers approval`, curly apostrophe), and removes it.
+ */
+export const stripApprovalPhrase = (text) => String(text ?? '').replace(/MAINTAINER\W{0,3}S\W+APPROVAL/gi, '[removed]');
+
+const section = (heading, text) => `## ${heading}\n\n${stripApprovalPhrase(text).trim() || '(empty)'}\n`;
 
 /**
  * @param {object} input see the file header
@@ -97,7 +104,7 @@ export function buildThread({ pr, issue, comments, approvalId }, handles) {
       approvalId && String(comment.id) === String(approvalId) && listed(comment.author)
         ? " -- THE MAINTAINER'S APPROVAL (the design decision)"
         : '';
-    out.push(`### ${comment.author}, ${comment.createdAt}${approval}\n\n${(comment.body ?? '').trim()}\n`);
+    out.push(`### ${comment.author}, ${comment.createdAt}${approval}\n\n${stripApprovalPhrase(comment.body).trim()}\n`);
   }
 
   if (omitted > 0) {
