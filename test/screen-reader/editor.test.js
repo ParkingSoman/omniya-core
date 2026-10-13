@@ -180,7 +180,7 @@ test('real screen reader walks a plain text input and the editor', async (t) => 
         // says "equation", not "graphic". Before (CI run 4) it said it on two presses.
         const named = editor.filter((s) => /x squared/i.test(s.spoken.join(' ')) && s.label.startsWith('arrow right'));
         assert.equal(named.length, 1, `the equation is named once while walking right. It was named at: ${named.map((s) => s.label)}`);
-        assert.match(named[0].spoken.join(' '), /equation/i, 'the reader says "equation"');
+        assert.match(named[0].spoken.join(' '), /equation, x squared/i, 'the reader says "equation"');
         assert.doesNotMatch(named[0].spoken.join(' '), /graphic/i);
 
         // Two equations side by side, walked from the end of the note to the left.
@@ -189,8 +189,13 @@ test('real screen reader walks a plain text input and the editor', async (t) => 
         for (let i = 1; i <= 5; i += 1) {
           pair.push(await step('pair', `arrow left ${i}`, () => screenReader.press('ArrowLeft')));
         }
-        const pairNamed = pair.filter((s) => /equation/i.test(s.spoken.join(' ')));
-        assert.equal(pairNamed.length, 2, `each of the two equations is named once. Named at: ${pairNamed.map((s) => s.label)}`);
+        // NVDA also says "out of equation" as the caret leaves one (CI run 8), so
+        // count the names, not the word "equation".
+        const pairText = pair.map((s) => s.spoken.join(' ')).join(' | ');
+        for (const name of ['equation, z', 'equation, y']) {
+          const times = pairText.split(name).length - 1;
+          assert.equal(times, 1, `"${name}" is said once. Transcript: ${pairText}`);
+        }
       }
     } finally {
       await screenReader.stop();

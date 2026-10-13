@@ -178,9 +178,12 @@ blind person finds the flow good. The sign-off in `docs/HUMAN-TESTING.md` stays.
   "graphic, x squared" as the caret arrives, then "out of graphic" as it passes.
   The plain text input walks the same way. After Left Arrow back onto the
   equation it said "space", not the equation name.
-- **After the one-press change.** Not yet measured with NVDA or VoiceOver. The CI
-  walk in `test/screen-reader/editor.test.js` now includes two equations in a row.
-  Read its transcript after the first run.
+- **After the one-press change.** NVDA, CI run on PR #55: walking right across
+  "Solve [x squared] for x." it says "space", then "equation, x squared" as the caret
+  arrives, then "out of equation" as it passes, and one press passes the equation.
+  Walking left across two equations it says "equation, z", then "out of equation,
+  equation, y", then "out of equation". Each equation is named once. NVDA's "out of
+  equation" is its own mark for leaving one. VoiceOver is not measured for caret echo.
 - **Enter just before an equation.** It now reads the equation, so it no longer
   splits the line there. Put the caret after a space or a letter to split.
 - **Mac equation key.** `Control+=` is the most often reported key. Microsoft
