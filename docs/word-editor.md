@@ -166,7 +166,22 @@ blind person finds the flow good. The sign-off in `docs/HUMAN-TESTING.md` stays.
 
 ## Open questions
 
-- **VoiceOver.** Measured for reading, not for caret echo. In CI run 6, reading by
+- **VoiceOver, measured on a real Mac (macOS 26.6, 13 Oct 2026).** A script polled
+  VoiceOver's `last phrase` about eight times a second while keys were sent to the real
+  app. This catches caret echo, which the CI log did not. Results: reading a line, or
+  Enter on a line holding one equation, VoiceOver says the equation's name ("y equals x")
+  and then "Equation entered. Use arrow keys to explore it." Moving the caret across an
+  equation with Left or Right, VoiceOver says only `￼` (the blank object mark), never
+  "equation" or the name. NVDA does say it. The macOS accessibility tree is right: each
+  equation is an image with role description "equation", its name as description, and
+  its Nemeth as the braille label (`⠽⠀⠨⠅⠀⠭` for `y=x`). So the app hands VoiceOver the
+  right values, and VoiceOver does not speak them at the caret in Chromium. One variant
+  was tried: the name as real hidden text in the line, with no image role. It made
+  VoiceOver silent across equations, which is worse, so it was reverted. VoiceOver's
+  braille panel stays empty without a braille display, so the braille VoiceOver would
+  send to a display is not measured. A person with VoiceOver should try
+  `docs/HUMAN-TESTING.md` step 5.
+- **VoiceOver (older note).** Measured for reading, not for caret echo. In CI run 6, reading by
   items, VoiceOver said "Solve", then "x squared image", then "for x.", in order.
   The macOS job now asserts that the equation is named this way. Guidepup does not
   capture VoiceOver's echo of arrow-key caret moves, in a plain text input or in
