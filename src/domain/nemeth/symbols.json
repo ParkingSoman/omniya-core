@@ -675,5 +675,11 @@
       "value": "〜",
       "banaRef": "20"
     }
+  },
+  {
+    "cells": "⠈⠉",
+    "kind": "unit",
+    "value": "¢",
+    "banaRef": "23.13"
   }
 ]
