@@ -156,7 +156,11 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
     return { sent: false, merge: false, sha, missing };
   }
 
-  gh(['pr', 'ready', prNumber, '--repo', repo]);
+  // Taking a pull request out of draft is the one call the built-in token cannot
+  // make on a pull request the App opened ("Resource not accessible by
+  // integration"). Seen live on the first rehearsal. The App token can.
+  if (!mergeToken) throw new Error('MERGE_TOKEN is not set. Refusing to take a pull request out of draft without it.');
+  gh(['pr', 'ready', prNumber, '--repo', repo], { token: mergeToken });
 
   if (decision.action === 'protected') {
     ensureLabel('needs-owner', repo, 'A person has to look at this', gh);
