@@ -66,11 +66,34 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
         run: node scripts/ci/keep-current.mjs
 
+  # The agent cannot run in a run that a push started: the action accepts issue
+  # comments, manual starts and schedules, and fails with "Unsupported event type:
+  # push". Seen live on the first run, when five repairs failed in the same step and
+  # five contributors were told a maintainer had to look. So a push only UPDATES, and
+  # starts one manual run, which does the repairs. ONE run for all of them, not one per
+  # pull request: GitHub keeps a single waiting run per concurrency group, so several
+  # starts would drop all but the last. The manual run updates again (already-current
+  # branches are skipped), finds the same conflicts, and repairs them one at a time.
+  redispatch:
+    needs: update
+    if: github.event_name == 'push' && needs.update.outputs.conflicts != '[]' && needs.update.outputs.conflicts != ''
+    runs-on: ubuntu-latest
+    # Can start a workflow, holds no secret and no environment: the job with the App
+    # key must never be able to start one.
+    permissions:
+      actions: write
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pipeline-keep-current.yml --repo "$GITHUB_REPOSITORY" --ref testing
+
   # One repair per conflicting pull request, one at a time: each spends the
   # maintainer's quota, and the agent works in its own checkout of the branch.
   repair:
     needs: update
-    if: needs.update.outputs.conflicts != '[]' && needs.update.outputs.conflicts != ''
+    # Never in a run a push started. See `redispatch` above.
+    if: github.event_name != 'push' && needs.update.outputs.conflicts != '[]' && needs.update.outputs.conflicts != ''
     strategy:
       fail-fast: false
       max-parallel: 1
