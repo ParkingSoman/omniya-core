@@ -27,10 +27,11 @@ const prompt = readFileSync('.github/prompts/agent.md', 'utf8').replace(/\s+/g, 
 const args = actionStep?.with?.claude_args ?? '';
 const call = (workflow.on ?? workflow[true]).workflow_call;
 
-test('it is called, never triggered, and takes only the subscription token', () => {
+test('it is called, never triggered, and reads its secrets from the environment `pipeline`', () => {
   const on = workflow.on ?? workflow[true];
   assert.deepEqual(Object.keys(on), ['workflow_call']);
-  assert.deepEqual(Object.keys(call.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
+  assert.equal(call.secrets, undefined, 'secrets are not passed down; the job reads them from its environment');
+  assert.equal(job.environment, 'pipeline');
   assert.equal(actionStep.with.anthropic_api_key, undefined, 'no API key input: runs draw on the subscription');
   assert.doesNotMatch(code, /ANTHROPIC_API_KEY/, 'no API key anywhere in this file');
   assert.match(actionStep.with.claude_code_oauth_token, /CLAUDE_CODE_OAUTH_TOKEN/);
@@ -44,6 +45,7 @@ test('the agent works with the App token, so its pull request starts the checks'
   assert.equal(app.with['permission-contents'], 'write');
   assert.equal(app.with['permission-pull-requests'], 'write');
   assert.equal(app.with['permission-issues'], 'read');
+  assert.equal(app.with['permission-statuses'], undefined, 'the agent token cannot post commit statuses');
   assert.equal(Object.keys(app.with).some((k) => /workflows|checks|administration|actions/.test(k)), false, 'no extra permission');
   assert.ok(steps.indexOf(app) < steps.findIndex((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout')), 'minted before checkout');
   const checkout = steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout'));

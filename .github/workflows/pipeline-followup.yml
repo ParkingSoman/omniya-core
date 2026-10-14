@@ -100,6 +100,7 @@ jobs:
     # GitHub in the `issue` step, and a pull request number is refused there.
     if: >-
       (github.event_name == 'workflow_dispatch' &&
+        (github.actor == github.repository_owner || github.actor == 'omniya-bot') &&
         contains(inputs.comment_body, '@claude') &&
         !contains(inputs.comment_body, '<!-- omniya-pipeline-')) ||
       (github.event_name == 'issue_comment' &&
@@ -367,9 +368,6 @@ jobs:
       branch: ${{ needs.allowlist.outputs.branch }}
       owner_comment_id: ${{ needs.allowlist.outputs.owner_comment_id }}
       owner_comment_updated_at: ${{ needs.allowlist.outputs.owner_comment_updated_at }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   # The agent answered, refused as design, or is blocked. It wrote words for the
   # contributor and did not post them. Post them, once. A `blocked` or a design
@@ -452,9 +450,6 @@ jobs:
       question_round: ${{ needs.allowlist.outputs.question_round }}
       owner_comment_id: ${{ needs.allowlist.outputs.owner_comment_id }}
       owner_comment_updated_at: ${{ needs.allowlist.outputs.owner_comment_updated_at }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   # What `outcome` does in `pipeline-fix.yml`: the agent asked again, is blocked, or
   # crashed, and the contributor has to be told.
@@ -500,9 +495,6 @@ jobs:
       pr_number: ${{ needs.resume.outputs.pr }}
       branch: ${{ needs.resume.outputs.branch }}
       message: ${{ needs.resume.outputs.message }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   # The agent job crashed (an install that failed, a timeout). Without this the
   # contributor wrote `@claude` and heard nothing at all. It posts a new comment
@@ -546,18 +538,16 @@ jobs:
       branch: ${{ needs.agent.outputs.branch }}
       message: ${{ needs.agent.outputs.message }}
       reply_state: revised
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   # The contributor said it works. `scripts/ci/hand-off.mjs` decides: a fix that
   # changes the automation, conflicts, or reverses a standing note goes to the
   # maintainer. Any other fix, with the required checks green, gets the commit
-  # status `contributor-tested` and auto-merge. The status is posted with the
-  # built-in token, so it comes from the GitHub Actions integration. Auto-merge is
-  # asked for with the App's token, so the merge push starts `testing-app.yml`.
+  # status `contributor-tested` and auto-merge. The status and the
+  # auto-merge request both use the App's token: a workflow on a contributor's
+  # branch cannot post as the App. The merge push starts `testing-app.yml`.
   handoff:
     needs: [allowlist, agent]
+    environment: pipeline
     # Never from a hand-started rehearsal: a rehearsal must not enable a merge.
     # And only the issue's own author, or the owner, can say "it works". The agent
     # decides what a comment means, but it does not decide who may say it: another
@@ -571,7 +561,6 @@ jobs:
     permissions:
       contents: read
       checks: read
-      statuses: write
       pull-requests: write
       issues: write
     timeout-minutes: 10
@@ -584,6 +573,7 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
           permission-issues: read
+          permission-statuses: write
       - uses: actions/checkout@v4
       - env:
           GH_TOKEN: ${{ github.token }}

@@ -10,11 +10,11 @@
  * Any other fix whose `unit`, `nemeth` and `e2e` checks are green on the head
  * commit gets the commit status `contributor-tested`, leaves draft, and has
  * auto-merge turned on, pinned to that commit. That status is the lock: only this
- * script sets it, and the ruleset requires it. It is posted with the built-in
- * token, so it comes from the GitHub Actions integration and from nobody else.
- * Auto-merge is turned on with a separate token (`MERGE_TOKEN`, the App's), so the
- * merge push starts `testing-app.yml`; a push made with the built-in token starts
- * no run.
+ * script sets it, and the ruleset requires it from the pipeline's GitHub App. It
+ * is posted with the App's token (`MERGE_TOKEN`), because a workflow on a
+ * contributor's branch can post a status with the built-in token but cannot
+ * post as the App. The same token turns on auto-merge, so the merge push starts
+ * `testing-app.yml`; a push made with the built-in token starts no run.
  *
  * If a check is not green, it labels `needs-owner` and tells the contributor.
  *
@@ -167,11 +167,11 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
   }
 
   if (!mergeToken) throw new Error('MERGE_TOKEN is not set. Refusing to set contributor-tested without a way to merge.');
-  // The lock. Posted with the built-in token, before auto-merge is asked for.
+  // The lock. Posted with the App token (a branch workflow cannot post as the App), before auto-merge is asked for.
   gh([
     'api', `repos/${repo}/statuses/${sha}`,
     '-f', 'state=success', '-f', 'context=contributor-tested', '-f', 'description=The contributor tested this build'
-  ]);
+  ], { token: mergeToken });
   gh(['pr', 'merge', prNumber, '--repo', repo, '--auto', '--squash', '--match-head-commit', sha], { token: mergeToken });
   gh([
     'pr', 'comment', prNumber, '--repo', repo, '--body',

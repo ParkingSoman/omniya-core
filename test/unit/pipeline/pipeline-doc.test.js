@@ -51,6 +51,8 @@ test('the maintainer is told what merges by itself, and that testing is the defa
   assert.match(maintainerHalf, /uses no `--admin`|no `--admin`/);
   assert.match(maintainerHalf, /PIPELINE_APP_ID/);
   assert.match(maintainerHalf, /PIPELINE_APP_PRIVATE_KEY/);
+  assert.match(maintainerHalf, /environment `pipeline`/);
+  assert.match(maintainerHalf, /no repository-level\s+copy/);
   // GitHub closes an issue from `Fixes` for the default branch, which is `testing`.
   assert.match(maintainerHalf, /`testing` is the default branch/);
   // The split between a default branch and a working branch is gone.

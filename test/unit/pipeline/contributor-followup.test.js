@@ -109,7 +109,7 @@ test('an answer to the agent\'s question starts the fix, once, and only when a q
   assert.equal(job.uses, AGENT);
   assert.equal(job.with.mode, 'fix');
   assert.equal(job.with.question_round, '${{ needs.allowlist.outputs.question_round }}');
-  assert.deepEqual(Object.keys(job.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
+  assert.equal(job.secrets, undefined, 'secrets come from the environment inside the agent job, not from the caller');
   assert.equal(job.permissions?.actions, undefined, 'the agent never holds `actions`');
 
   // The agent can open the pull request this time, so the same checks follow.
@@ -186,7 +186,7 @@ test('a follow-up run is bounded, and shares the fix workflow group', () => {
   // file and tested there.
   assert.equal(workflow.jobs.agent.uses, AGENT);
   assert.equal(workflow.jobs.agent.with.mode, 'comment');
-  assert.deepEqual(Object.keys(workflow.jobs.agent.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
+  assert.equal(workflow.jobs.agent.secrets, undefined, 'secrets come from the environment inside the agent job, not from the caller');
 });
 
 test('the loop cannot feed itself', () => {
@@ -262,7 +262,7 @@ test('the kind is read from the labels, and a routed report is read as a bug by 
   assert.equal(workflow.jobs.agent.with.kind, "${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}");
 });
 
-test('"it works" runs the hand-off: the status comes from the built-in token, the merge from the App token', () => {
+test('"it works" runs the hand-off: the status and the merge both use the App token', () => {
   const handoff = workflow.jobs.handoff;
   const condition = handoff.if.replace(/\s+/g, ' ');
   assert.match(condition, /needs\.agent\.outputs\.result == 'approved'/);
@@ -275,7 +275,12 @@ test('"it works" runs the hand-off: the status comes from the built-in token, th
   assert.equal(checkout.with?.ref, undefined, 'the default checkout is `testing`');
   assert.doesNotMatch(code, /gh pr merge|--admin|--auto/, 'the merge is in hand-off.mjs, behind its decision, and nowhere in the workflow');
   assert.equal(handoff.permissions?.actions, undefined);
-  assert.equal(handoff.permissions?.statuses, 'write');
+  assert.equal(handoff.permissions?.statuses, undefined, 'the built-in token no longer posts the status');
+  assert.equal(handoff.environment, 'pipeline');
+  assert.equal(handoff.permissions?.checks, 'read');
+  assert.equal(handoff.permissions?.['pull-requests'], 'write');
+  assert.equal(handoff.permissions?.issues, 'write');
+  assert.equal(handoff.permissions?.contents, 'read');
   const app = handoff.steps.find((s) => s.id === 'app');
   assert.match(app.uses, /^actions\/create-github-app-token@[0-9a-f]{40}$/);
   assert.match(app.with['app-id'], /vars\.PIPELINE_APP_ID/);
@@ -283,9 +288,10 @@ test('"it works" runs the hand-off: the status comes from the built-in token, th
   assert.equal(app.with['permission-contents'], 'write');
   assert.equal(app.with['permission-pull-requests'], 'write');
   assert.equal(app.with['permission-issues'], 'read');
+  assert.equal(app.with['permission-statuses'], 'write', 'the App posts contributor-tested');
   assert.equal(app.with['permission-workflows'], undefined, 'the App never gets Workflows');
   const hand = handoff.steps.find((s) => (s.run ?? '').includes('hand-off.mjs'));
-  assert.equal(hand.env.GH_TOKEN, '${{ github.token }}', 'the status is posted by the Actions integration');
+  assert.equal(hand.env.GH_TOKEN, '${{ github.token }}', 'the built-in token still does the comments and labels');
   assert.equal(hand.env.MERGE_TOKEN, '${{ steps.app.outputs.token }}');
 });
 
@@ -336,7 +342,7 @@ test('a session can rehearse a contributor comment by hand, and every check stil
   assert.equal(dispatch.inputs.comment_body.type, 'string');
   // Same rules as a real comment: it must name @claude, and must not be the pipeline's own text.
   const condition = allowlistJob.if.replace(/\s+/g, ' ');
-  assert.match(condition, /workflow_dispatch' && contains\(inputs\.comment_body, '@claude'\) && !contains\(inputs\.comment_body, '<!-- omniya-pipeline-'\)/);
+  assert.match(condition, /workflow_dispatch' && \(github\.actor == github\.repository_owner \|\| github\.actor == 'omniya-bot'\) && contains\(inputs\.comment_body, '@claude'\) && !contains\(inputs\.comment_body, '<!-- omniya-pipeline-'\)/, 'only the owner or the owner\'s bot can start a rehearsal');
   assert.match(condition, /issue_comment' && !github\.event\.issue\.pull_request/, 'a real comment keeps all of its filters');
   // The author is read from GitHub, the number must be digits, and the body never reaches a command line.
   const issue = allowlistJob.steps.find((s) => s.id === 'issue');

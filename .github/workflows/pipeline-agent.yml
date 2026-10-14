@@ -34,14 +34,6 @@ name: pipeline-agent
 # branch. The fix prompt below creates its own branch.
 on:
   workflow_call:
-    # Only the subscription token. Not every secret in the repository.
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN:
-        required: true
-      # Secrets cannot be returned from a reusable workflow, so every caller
-      # passes the App key down. See "GitHub App" in docs/contributor-pipeline.md.
-      PIPELINE_APP_PRIVATE_KEY:
-        required: true
     inputs:
       mode:
         description: fix, comment, or checks-failed
@@ -109,6 +101,9 @@ permissions:
 
 jobs:
   agent:
+    # The two secrets live in the environment `pipeline`, which allows only
+    # `testing`. A run from any other ref cannot read them.
+    environment: pipeline
     # Explicit, and without `actions`. The agent in this job runs unrestricted
     # Bash, so it must not be able to start, cancel or re-run other workflows.
     # And `issues: read`, not write: it must not be able to comment on the issue.

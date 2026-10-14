@@ -91,10 +91,10 @@ flowchart TD
      contributor cannot write the heading.
    - Lock 3, the merge. The ruleset `testing-tested` needs the commit status
      `contributor-tested`. Only the hand-off job (`scripts/ci/hand-off.mjs`) sets it,
-     and only after the contributor says it works. A fix that touches `.github/**`,
+     with the App's token, and only after the contributor says it works. A fix that touches `.github/**`,
      `scripts/ci/**`, `CODEOWNERS` or `.github/contributors.yml`, that has a
      conflict, or that says "Reverses a standing note" gets `needs-owner` and no
-     status. Only you merge those. The agent's token cannot set the status.
+     status. Only you merge those. The agent's token has no Commit statuses permission.
 3. Only people on `.github/contributors.yml` can start a run. The check is
    `scripts/ci/allowlist.mjs`. It fails closed. It runs before anything is installed.
    The person must also have write access (`scripts/ci/can-run-agent.mjs`).
@@ -141,8 +141,13 @@ flowchart TD
 
 ### Setting up, adding a contributor, and getting unstuck
 
-- Set up once: run `claude setup-token`, then
-  `gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo ParkingSoman/omniya-core`.
+- Set up once: run `claude setup-token`, then add the result as the secret
+  `CLAUDE_CODE_OAUTH_TOKEN` in the environment `pipeline` (see Secrets below).
+- Secrets: `CLAUDE_CODE_OAUTH_TOKEN` and `PIPELINE_APP_PRIVATE_KEY` live only in
+  the environment `pipeline`, whose deployment branches allow only `testing`. A
+  workflow on any other branch cannot read them. There must be no repository-level
+  copy of either. The App needs Contents RW, Pull requests RW, Issues read and
+  Commit statuses RW. The ruleset requires `contributor-tested` from the App.
 - Add a contributor: `node scripts/ci/add-contributor.mjs <handle>`. It opens a
   pull request that adds the handle to `.github/contributors.yml`, and invites them
   as a collaborator. Merge it, and they accept the invitation. Use `--dry-run`
@@ -159,4 +164,6 @@ flowchart TD
   that section first. The contributor can only say the bug is gone. They cannot
   see what was removed.
 - Rehearse a change to the pipeline: `pipeline-fix.yml` and `pipeline-followup.yml`
-  take inputs by hand. See `.claude/skills/pipeline-change/SKILL.md`.
+  take inputs by hand. See `.claude/skills/pipeline-change/SKILL.md`. A rehearsal
+  from a branch cannot run the agent or the hand-off, because the environment
+  `pipeline` refuses any ref but `testing`. Those are seen live after the merge.

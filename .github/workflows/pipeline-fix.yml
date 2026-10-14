@@ -278,9 +278,6 @@ jobs:
       mode: fix
       kind: ${{ needs.kind.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
       issue_number: ${{ needs.allowlist.outputs.number }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   # The agent ended without a pull request, or crashed. Say so on the issue, so
   # the contributor is not left reading "I started on this" for ever. A report
@@ -340,6 +337,3 @@ jobs:
       pr_number: ${{ needs.fix.outputs.pr }}
       branch: ${{ needs.fix.outputs.branch }}
       message: ${{ needs.fix.outputs.message }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}

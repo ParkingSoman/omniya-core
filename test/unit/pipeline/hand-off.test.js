@@ -182,7 +182,7 @@ test('a clean fix: the status is set, then auto-merge is asked for with the merg
   const merge = lines.findIndex((l) => l.startsWith('pr merge 9') && l.includes('--auto') && l.includes('--squash') && l.includes('--match-head-commit abc123'));
   assert.ok(status >= 0 && merge > status, 'the status comes first');
   assert.equal(f.calls[merge].token, 'APP');
-  assert.equal(f.calls[status].token, undefined, 'the status uses the built-in token');
+  assert.equal(f.calls[status].token, 'APP', 'the status is posted with the App token, not the built-in one');
   assert.ok(f.calls.some((c) => c.line.includes('issues/5/comments') && c.line.includes('merge by itself')));
   assert.ok(!lines.some((l) => l.includes('ready-for-maintainer')));
 });

@@ -47,7 +47,7 @@ test('verify jobs start workflows and run no agent; repair jobs run an agent and
     assert.equal(repair.uses, AGENT);
     assert.equal(repair.with.mode, 'checks-failed');
     assert.equal(repair.with.log_artifact, `failed-checks-${n}`);
-    assert.deepEqual(Object.keys(repair.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
+    assert.equal(repair.secrets, undefined, 'no secrets are passed down; the agent job reads its environment');
   }
   assert.equal(workflow.permissions?.actions, undefined);
 });
