@@ -160,15 +160,13 @@ How much it needs from you depends on what the change touches.
 | Ship it | A secret, a token, a write permission, an environment, a release, a delete or force, a trigger that runs with secrets, or a file that defines green or who may merge | Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
 | Your approval | The shipper itself, the app, `package.json`, CODEOWNERS | Click **Approve**, then **Merge**. The box says what it waits for and turns green only after your approval of this commit and green checks. Never tick "bypass rules". |
 
-Always required: it runs from `testing`, started by you or the session account.
-The branch starts with `pipeline/`. Only you and the session account pushed to it.
-The checks `unit`, `nemeth`, `e2e` and both builds are green on that exact commit,
-as jobs of `pr-checks.yml` and `pr-build.yml`. No test is deleted or moved.
-Every file is on the allow list, and the changed lines of workflows and scripts
-are read, because a list of bad files is never complete. Workflows are also read as YAML,
-before and after, so a quoted key or an alias cannot hide what a line grants. The protected files are listed
-in `scripts/ci/protection.json`. A test fails when a new sensitive line appears in a
-file that is not allowed to hold one. `node scripts/ci/protection-report.mjs` shows each file.
+Always required: it runs from `testing`, started by you or the session account. The branch
+starts with `pipeline/`, and only you and the session account pushed to it. The checks
+`unit`, `nemeth`, `e2e` and both builds are green on that exact commit, as jobs of
+`pr-checks.yml` and `pr-build.yml`. No test is deleted or moved.
+Every file is on the allow list. Scripts are read by their changed lines, workflows also as
+YAML, so a quoted key or an alias cannot hide a grant. `scripts/ci/protection.json` lists the
+protected files, and a test fails when a sensitive line appears where none is allowed.
 
 ### Setting up, adding a contributor, and getting unstuck
 
