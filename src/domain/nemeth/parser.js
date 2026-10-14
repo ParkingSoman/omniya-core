@@ -431,17 +431,29 @@ function attachScript(base, slot, script, src) {
 }
 
 /**
- * A script is one postfix, optionally led by a sign: `2^-n` is `⠼⠆⠘⠤⠝`, the
- * negative n, and needs no baseline indicator because nothing has yet been
- * written that a baseline could return from (issue #73). A sign with no term
- * before it cannot be the operation sign of `⠭⠘⠆⠬⠼⠂`, so it is unambiguous.
- * That one, an operation sign AFTER a script term, stays refused: it is `x^{2+1}`
- * to the Code and `x^2+1` to most authors who forgot the baseline indicator.
+ * A script is every term written at its level, up to the next baseline
+ * indicator: `2^-n` is `⠼⠆⠘⠤⠝` and `2^{x+n}` is `⠼⠆⠘⠭⠬⠝`, with the signs written
+ * at the script's own level (issue #73, "x+n is within the exponent, unless I
+ * write a baseline indicator after the x").
+ *
+ * The Code keeps a level in force until a baseline indicator ends it, so the
+ * operation sign in `⠭⠘⠆⠬⠼⠂` is part of the superscript: it is `x^{2+1}`, and
+ * `x^2+1` takes `⠭⠘⠆⠐⠬⠼⠂`. This once refused the unindicated form for fear that
+ * an author who forgot the indicator would be read silently; the reading is the
+ * Code's literal one, and the status line still reads the result back.
  */
 function parseScript(state, level) {
   const start = state.index;
   const items = [];
   parseUnary(state, level, items);
+  // Only an operation sign continues a script. Terms set side by side are NOT
+  // taken here: `parsePostfix` and Rule 14.11.2's digit-run breaks rely on a
+  // second term at this level being left for the caller to refuse.
+  while (isOperatorAt(state, level)) {
+    const token = advance(state);
+    items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));
+    parseUnary(state, level, items);
+  }
   return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
 }
 

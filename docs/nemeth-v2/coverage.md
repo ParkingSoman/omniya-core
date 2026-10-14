@@ -43,7 +43,7 @@ position, not a category; the offending codepoint is kept since it is).
 | 20 | the cell ":" is a letter only after the Greek-letter indicator (BANA 6.1.4) | `mathcat-rules:bar_97_b_1` |
 | 19 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:above_and_below_88_2` |
 | 17 | a blank stands where BANA Rule 21.13 does not put one -- it spaces a comparison symbol and nothing else here, and Rule 20.1.1 spaces an operation symbol only next to a function name, an abbreviation, an ellipsis or a dash, none of which this parser reads | `mathcat-rules:log_77_4_8` |
-| 16 | BANA 7.1 and Appendix C read the script-type indicator on a letter as script type, but every corpus case written that way targets double-struck, which the Code writes with a different indicator; neither reading is established, so this refuses rather than picking one | `sre-aata:AataExpression_13` |
+| 17 | BANA 7.1 and Appendix C read the script-type indicator on a letter as script type, but every corpus case written that way targets double-struck, which the Code writes with a different indicator; neither reading is established, so this refuses rather than picking one | `sre-aata:AataExpression_13` |
 | 13 | an alphabetic or capitalization indicator governs a op, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a op either | `mathcat-rules:degrees_165_1` |
 | 12 | the grouping symbol "(" has no right grouping symbol at level ""; BANA 19.1.2 preserves an unpaired one and this parser has no node for it | `sre-aata:AataExpression_1` |
 | 11 | no Nemeth symbol starts at cell N (U+2833 "⠳") | `mathcat-rules:comparison_ops_151_14` |
@@ -75,7 +75,6 @@ position, not a category; the offending codepoint is kept since it is).
 | 1 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a fracOpen either | `mathcat-rules:hyper_complex_frac_68_a_1` |
 | 1 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a groupOpen either | `sre-aata:AataExpression_304` |
 | 1 | an alphabetic or capitalization indicator governs a radIndex, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:carrot_98_1` |
-| 1 | expected the start of a term at level "_" | `sre-aata:AataExpression_266` |
 | 1 | indicator "@" cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:russian_24_a_10` |
 | 1 | latex has no rendering for bold german (BANA Rule 7.2.1) | `mathcat-rules:boldface_32_a_7` |
 | 1 | radical has no termination indicator | `mathcat-rules:sqrt_103_b_2` |
