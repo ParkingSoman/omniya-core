@@ -138,6 +138,8 @@ flowchart TD
 | `.github/workflows/pipeline-rescued.yml` | `testing` | A person fixed a fix the pipeline gave up on. When the checks and the build go green, the contributor gets the test build on the issue, once. |
 | `.github/workflows/pipeline-keep-current.yml` | `testing` | Every push to `testing`, weekly, and when a hand-off finds a conflict. Updates open fix branches. A conflict goes to the repair agent, in a manual run the push starts: the agent refuses a push, and accepts the Actions bot only for a manual run. |
 | `.github/workflows/pipeline-ship.yml` | `testing` | By hand, from a chat session, after the owner says "ship it". Merges a `pipeline/` pull request that changed the automation. It replaces the bypass tick. |
+| `.github/workflows/pipeline-ready.yml` | `testing` | A pull request opens or moves, the owner approves, or the checks finish. Posts the merge-box status: what it waits for, then green once the owner approved this commit and the checks pass. |
+| `.github/workflows/pipeline-review-ping.yml` | `testing` | Runs when a review is approved, holds no secret, and only lets `pipeline-ready.yml` start from `testing`. |
 | `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment: closing sends nothing. |
 | `.github/workflows/pr-checks.yml` | `testing` | The gates `unit`, `nemeth` and `e2e`. |
 | `.github/workflows/pr-build.yml` | `testing` | A per-pull-request build to install. |
@@ -156,7 +158,7 @@ How much it needs from you depends on what the change touches.
 |---|---|---|
 | Automatic | Docs, prompts, tests, ordinary scripts and workflows | Nothing. It merges when green. |
 | Ship it | A secret, a token, a write permission, an environment, a release, a delete or force, a trigger that runs with secrets, or a file that defines green or who may merge | Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
-| Bypass tick | The shipper itself, the app, `package.json`, CODEOWNERS | Your click in the browser. A session cannot open this one. |
+| Your approval | The shipper itself, the app, `package.json`, CODEOWNERS | Click **Approve**, then **Merge**. The box says what it waits for and turns green only after your approval of this commit and green checks. Never tick "bypass rules". |
 
 Always required: it runs from `testing`, started by you or the session account.
 The branch starts with `pipeline/`. Only you and the session account pushed to it.
