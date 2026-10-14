@@ -55,7 +55,12 @@ test('refuses a branch a contributor pushed to, or one with too much history to 
 test('will not ship a change to the shipper or to the guards on the secrets', () => {
   for (const file of [
     '.github/workflows/pipeline-ship.yml',
+    '.github/workflows/pr-checks.yml',
+    '.github/workflows/pr-build.yml',
+    '.github/actions/anything/action.yml',
     'scripts/ci/ship-pipeline-pr.mjs',
+    'scripts/ci/gh.mjs',
+    'scripts/ci/hand-off.mjs',
     'test/unit/pipeline/ship-pipeline-pr.test.js',
     'test/unit/pipeline/pipeline-secrets.test.js'
   ]) {
@@ -78,7 +83,7 @@ function fakeGh({ view = pr, conclusion = 'success', mergeFails = 0, pushes = ['
   const run = (args, opts = {}) => {
     calls.push({ args, token: opts.token });
     if (args[0] === 'pr' && args[1] === 'view') return JSON.stringify(view);
-    if (args[0] === 'api' && args[1].includes('/activity?')) return JSON.stringify(pushes.map((a) => ({ a })));
+    if (args[0] === 'api' && args.some((a) => a.endsWith('/activity'))) return JSON.stringify(pushes.map((a) => ({ a })));
     if (args[0] === 'api' && args[1].endsWith('/files')) return files.join('\n');
     if (args[0] === 'api' && args[1].endsWith('/check-runs')) {
       return ['unit', 'nemeth', 'e2e', 'pack-mac', 'pack-win']
@@ -131,6 +136,15 @@ test('refuses a bad sha or a missing token before touching GitHub', () => {
   assert.throws(() => ship({ ...input, sha: 'main' }, run, () => {}), /40 hex/);
   assert.throws(() => ship({ ...input, mergeToken: '' }, run, () => {}), /MERGE_TOKEN/);
   assert.equal(calls.length, 0);
+});
+
+test('the push history is asked for with parameters, so a branch name cannot add a filter', () => {
+  const { run, calls } = fakeGh();
+  ship(input, run, () => {});
+  const ask = calls.find((c) => c.args.some((a) => a.endsWith('/activity')));
+  assert.ok(ask.args.includes('--method') && ask.args.includes('GET'));
+  assert.ok(ask.args.includes('ref=refs/heads/pipeline/tell-contributor-when-rescued'));
+  assert.ok(!ask.args.some((a) => a.includes('?') || a.includes('&')), 'nothing from the branch name in the URL');
 });
 
 test('only GitHub Actions check runs are asked for', () => {

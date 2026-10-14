@@ -39,13 +39,31 @@ import { gh as realGh, requireNumber, setOutputs } from './gh.mjs';
 export const BRANCH_PREFIX = 'pipeline/';
 export const SHIP_CHECKS = ['unit', 'nemeth', 'e2e', 'pack-mac', 'pack-win'];
 
-/** Changing any of these changes who may merge what, so the shipper will not ship them. */
+/**
+ * Changing any of these changes who may merge what, or what counts as green, so
+ * the shipper will not ship them. They still need the owner's bypass tick.
+ *   - the shipper, the helper it imports, and its tests
+ *   - the guards on the secrets and the contributor hand-off that may set the lock
+ *   - the workflows that define the checks the shipper trusts
+ *   - anything under `.github/actions/`, which a workflow could run in their place
+ */
 export const PROTECTED_FILES = [
   '.github/workflows/pipeline-ship.yml',
+  '.github/workflows/pr-checks.yml',
+  '.github/workflows/pr-build.yml',
+  '.github/CODEOWNERS',
   'scripts/ci/ship-pipeline-pr.mjs',
+  'scripts/ci/gh.mjs',
+  'scripts/ci/hand-off.mjs',
+  'scripts/ci/allowlist.mjs',
   'test/unit/pipeline/ship-pipeline-pr.test.js',
-  'test/unit/pipeline/pipeline-secrets.test.js'
+  'test/unit/pipeline/pipeline-secrets.test.js',
+  'test/unit/pipeline/hand-off.test.js'
 ];
+export const PROTECTED_PREFIXES = ['.github/actions/'];
+
+export const isProtected = (file) =>
+  PROTECTED_FILES.includes(file) || PROTECTED_PREFIXES.some((prefix) => file.startsWith(prefix));
 
 /** One page of push history. A branch with more pushes than this is refused. */
 export const MAX_PUSHES = 100;
@@ -85,7 +103,7 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
   if (stranger !== undefined || pushers.length === 0) {
     return { ship: false, reason: 'someone other than the owner or the session account pushed to the branch' };
   }
-  const touched = files.filter((file) => PROTECTED_FILES.includes(file));
+  const touched = files.filter(isProtected);
   if (touched.length > 0) return { ship: false, reason: `it changes the shipper or its guards (${touched.join(', ')}), so it needs the owner's bypass tick` };
   if (missing.length > 0) return { ship: false, reason: `not green on that commit: ${missing.join(', ')}` };
   return { ship: true };
@@ -118,7 +136,13 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken }, gh = realGh,
     .map((line) => JSON.parse(line));
 
   const pushes = JSON.parse(
-    gh(['api', `repos/${repo}/activity?ref=refs/heads/${view.headRefName}&per_page=${MAX_PUSHES}`, '--jq', '[.[] | {a: .actor.login}]'])
+    // The branch name goes in as a parameter, never into the URL text. A branch
+    // name may hold `&`, and `&actor=omniya-bot` would filter a stranger's pushes out.
+    gh([
+      'api', '--method', 'GET', `repos/${repo}/activity`,
+      '-f', `ref=refs/heads/${view.headRefName}`, '-f', `per_page=${MAX_PUSHES}`,
+      '--jq', '[.[] | {a: .actor.login}]'
+    ])
   );
   const files = gh(['api', `repos/${repo}/pulls/${number}/files`, '--paginate', '--jq', '.[] | .filename, (.previous_filename // empty)'])
     .split('\n')
