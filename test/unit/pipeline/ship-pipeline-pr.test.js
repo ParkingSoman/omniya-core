@@ -7,6 +7,7 @@ import { decide, notGreen, ship } from '../../../scripts/ci/ship-pipeline-pr.mjs
 const SHA = 'a'.repeat(40);
 const allowedAuthors = ['ParkingSoman', 'omniya-bot'];
 const pr = {
+  changedFiles: 1,
   state: 'OPEN',
   baseRefName: 'testing',
   isCrossRepository: false,
@@ -66,8 +67,28 @@ test('will not ship a change to the shipper or to the guards on the secrets', ()
     'test/unit/pipeline/ship-pipeline-pr.test.js',
     'test/unit/pipeline/pipeline-secrets.test.js'
   ]) {
-    assert.match(ok({}, { files: [{ filename: 'docs/x.md' }, { filename: file, status: 'modified' }] }).reason, /bypass tick/, file);
+    assert.match(ok({ changedFiles: 2 }, { files: [{ filename: 'docs/x.md' }, { filename: file, status: 'modified' }] }).reason, /bypass tick/, file);
   }
+});
+
+test('ships only plainly automation files, and refuses everything else', () => {
+  const good = ['docs/x.md', 'scripts/ci/new.mjs', '.github/prompts/agent.md', 'test/unit/pipeline/new.test.js', '.github/workflows/pipeline-new.yml', '.claude/skills/pipeline-change/SKILL.md'];
+  const files = good.map((filename) => ({ filename, status: 'modified' }));
+  assert.equal(ok({ changedFiles: files.length }, { files }).ship, true);
+  for (const bad of ['src/main.js', 'package.json', '.npmrc', '.nvmrc', 'test/unit/model.test.js', 'test/e2e/x.test.js', '.github/workflows/other.yml', '.github/workflows/pipeline-NEW.yml', '.github/workflows/sub/pipeline-x.yml', 'scripts/build.mjs', 'contributors.yml', 'docs/../src/main.js']) {
+    const out = ok({ changedFiles: 2 }, { files: [{ filename: 'docs/x.md' }, { filename: bad, status: 'modified' }] });
+    assert.equal(out.ship, false, bad);
+    assert.match(out.reason, /bypass tick/, bad);
+  }
+  // Moving a file out of the allowed places is also a change outside them.
+  const moved = [{ filename: 'docs/a.md', previous_filename: 'src/a.js', status: 'renamed' }];
+  assert.match(ok({}, { files: moved }).reason, /bypass tick/);
+});
+
+test('refuses when the file list cannot be trusted to be complete', () => {
+  assert.match(ok({ changedFiles: 5 }, {}).reason, /not complete/);
+  const many = Array.from({ length: 3000 }, (_, i) => ({ filename: `docs/${i}.md`, status: 'added' }));
+  assert.match(ok({ changedFiles: 3000 }, { files: many }).reason, /not complete/);
 });
 
 test('a protected file moved away still counts as touched', () => {
@@ -76,9 +97,10 @@ test('a protected file moved away still counts as touched', () => {
 });
 
 test('will not ship a change that deletes a test or moves one out of test/', () => {
-  const gone = [{ filename: 'test/unit/model.test.js', status: 'removed' }];
-  const moved = [{ filename: 'docs/model.test.js', previous_filename: 'test/unit/model.test.js', status: 'renamed' }];
-  const added = [{ filename: 'test/unit/new.test.js', status: 'added' }];
+  // Inside the allowed places, so the allow list does not refuse them first.
+  const gone = [{ filename: 'test/unit/pipeline/reply.test.js', status: 'removed' }];
+  const moved = [{ filename: 'docs/reply.test.js', previous_filename: 'test/unit/pipeline/reply.test.js', status: 'renamed' }];
+  const added = [{ filename: 'test/unit/pipeline/new.test.js', status: 'added' }];
   assert.match(ok({}, { files: gone }).reason, /deletes or moves a test/);
   assert.match(ok({}, { files: moved }).reason, /deletes or moves a test/);
   assert.equal(ok({}, { files: added }).ship, true);

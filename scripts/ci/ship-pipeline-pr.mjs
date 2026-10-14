@@ -27,6 +27,16 @@
  *     builds). A name alone is not enough: a new workflow can have a job called
  *     `unit` that always passes. Those two files are protected, so the pull
  *     request cannot have rewritten them.
+ *   - An ALLOW list, not a list of bad files. A list of bad files is never
+ *     complete: the next file somebody forgot is the next hole. Every file the
+ *     pull request touches (and every name it moved from) must be plainly
+ *     automation: `docs/`, `scripts/ci/`, `.github/prompts/`, `test/unit/pipeline/`,
+ *     the pipeline-change skill, or a `.github/workflows/pipeline-*.yml`. Anything
+ *     else, such as `src/`, `package.json`, `.npmrc`, other tests, or the
+ *     workflows that define the checks, needs the owner's bypass tick. The
+ *     protected files below are carved out of the allow list.
+ *   - The file list must be complete. GitHub stops listing at 3,000 files, and a
+ *     protected file past that point would not be seen.
  *   - A pull request that deletes a test, or moves one out of `test/`, is refused.
  *   - A pull request that changes this shipper, its tests, or the guard tests on
  *     the secrets is refused. Those still need the owner's bypass tick, or a
@@ -75,6 +85,23 @@ export const PROTECTED_FILES = [
 ];
 export const PROTECTED_PREFIXES = ['.github/actions/'];
 
+/** The only places a shipped pull request may touch. Everything else needs the owner's bypass tick. */
+export const ALLOWED_PREFIXES = [
+  'docs/',
+  'scripts/ci/',
+  '.github/prompts/',
+  'test/unit/pipeline/',
+  '.claude/skills/pipeline-change/'
+];
+export const ALLOWED_WORKFLOW = /^\.github\/workflows\/pipeline-[a-z0-9-]+\.yml$/;
+export const MAX_FILES = 3000;
+
+// A `..` segment would let `docs/../src/main.js` start with an allowed prefix. Git
+// cannot store such a path, but this must not depend on that.
+export const isAllowed = (file) =>
+  !file.split('/').includes('..') &&
+  (ALLOWED_PREFIXES.some((prefix) => file.startsWith(prefix)) || ALLOWED_WORKFLOW.test(file));
+
 export const isProtected = (file) =>
   PROTECTED_FILES.includes(file) || PROTECTED_PREFIXES.some((prefix) => file.startsWith(prefix));
 
@@ -122,8 +149,15 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
   if (stranger !== undefined || pushers.length === 0) {
     return { ship: false, reason: 'someone other than the owner or the session account pushed to the branch' };
   }
+  if (pr.changedFiles !== files.length || files.length >= MAX_FILES) {
+    return { ship: false, reason: 'the list of changed files is not complete, so a protected file could be hidden' };
+  }
   const touched = files.flatMap((f) => [f.filename, f.previous_filename]).filter((name) => name && isProtected(name));
   if (touched.length > 0) return { ship: false, reason: `it changes the shipper or its guards (${touched.join(', ')}), so it needs the owner's bypass tick` };
+  const outside = files.flatMap((f) => [f.filename, f.previous_filename]).filter((name) => name && !isAllowed(name));
+  if (outside.length > 0) {
+    return { ship: false, reason: `it changes more than the automation (${outside.slice(0, 3).join(', ')}), so it needs the owner's bypass tick` };
+  }
   const lostTest = files.find(
     (f) =>
       (f.status === 'removed' && f.filename.startsWith('test/')) ||
@@ -149,7 +183,7 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken }, gh = realGh,
   const view = JSON.parse(
     gh([
       'pr', 'view', number, '--repo', repo, '--json',
-      'state,baseRefName,isCrossRepository,headRefName,headRefOid,author,isDraft,mergeable'
+      'state,baseRefName,isCrossRepository,headRefName,headRefOid,author,isDraft,mergeable,changedFiles'
     ])
   );
   // Runs are found by commit, and each is tied to the workflow FILE it came from.
