@@ -65,13 +65,17 @@ export function protectedPath(path) {
 /**
  * Pure: what to do with the fix. No GitHub in here.
  *
- * @param {{files: Array<{filename:string, previous_filename?:string}>, mergeable: string, body: string, missing: string[]}} input
+ * @param {{files: Array<{filename:string, previous_filename?:string}>, filesComplete: boolean, mergeable: string, body: string, missing: string[]}} input
  *   `missing` is `notGreen(...)`.
  * @returns {{action: 'protected', reason: 'automation'|'test-removed'|'conflict'|'standing-note'}
  *   | {action: 'not-green', missing: string[]}
  *   | {action: 'merge'}}
  */
-export function decide({ files, mergeable, body, missing }) {
+export function decide({ files, filesComplete, mergeable, body, missing }) {
+  // The file list is what is checked. If it is not the whole change, part of the
+  // change was never looked at. GitHub's list stops at 3,000 files, so a big pull
+  // request could hide a workflow past the cutoff. Fail closed.
+  if (filesComplete !== true) return { action: 'protected', reason: 'automation' };
   const touches = (files ?? []).some((f) => protectedPath(f.filename) || (f.previous_filename != null && protectedPath(f.previous_filename)));
   if (touches) return { action: 'protected', reason: 'automation' };
   // Deleting a test is how a gate gets gamed. A person looks at that.
@@ -93,7 +97,7 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
   const issueNumber = requireNumber(issue, 'issue number');
   const prNumber = requireNumber(pr, 'pull request number');
 
-  const view = JSON.parse(gh(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid,mergeable,body']));
+  const view = JSON.parse(gh(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid,mergeable,body,changedFiles']));
   const sha = view.headRefOid;
   const checkRuns = gh([
     'api', `repos/${repo}/commits/${sha}/check-runs`, '--paginate',
@@ -110,7 +114,10 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
     .filter(Boolean)
     .map((line) => JSON.parse(line));
 
-  const decision = decide({ files, mergeable: view.mergeable, body: view.body, missing: notGreen(checkRuns) });
+  // The list came from one call and the count from another. They must agree, and
+  // the list must be short of GitHub's 3,000-file cap, or the list is not the change.
+  const filesComplete = Number.isInteger(view.changedFiles) && files.length === view.changedFiles && files.length < 3000;
+  const decision = decide({ files, filesComplete, mergeable: view.mergeable, body: view.body, missing: notGreen(checkRuns) });
 
   if (decision.action === 'not-green') {
     const missing = decision.missing;

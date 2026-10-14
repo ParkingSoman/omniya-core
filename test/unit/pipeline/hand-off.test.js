@@ -48,7 +48,7 @@ test('a cancelled or still-running check is not green', () => {
 });
 
 // decide(): what happens to a fix the contributor approved. No GitHub in here.
-const clean = { files: [{ filename: 'src/domain/nemeth/parser.js' }, { filename: 'test/unit/nemeth/parser.test.js' }], mergeable: 'MERGEABLE', body: 'Fixes #5.', missing: [] };
+const clean = { filesComplete: true, files: [{ filename: 'src/domain/nemeth/parser.js' }, { filename: 'test/unit/nemeth/parser.test.js' }], mergeable: 'MERGEABLE', body: 'Fixes #5.', missing: [] };
 
 test('a clean fix with green checks is set to merge', () => {
   assert.deepEqual(decide(clean), { action: 'merge' });
@@ -97,6 +97,21 @@ test('a fix that deletes a test file is protected', () => {
   assert.equal(decide({ ...clean, files: [{ filename: 'src/domain/old.js', status: 'removed' }] }).action, 'merge');
 });
 
+test('a change that was not listed in full is protected, because part of it was never looked at', () => {
+  assert.deepEqual(decide({ ...clean, filesComplete: false }), { action: 'protected', reason: 'automation' });
+  assert.deepEqual(decide({ ...clean, filesComplete: undefined }), { action: 'protected', reason: 'automation' });
+});
+
+test('hand-off sends the fix to the maintainer when the file list and the file count disagree', () => {
+  const f = fakeGh({ files: [{ filename: 'src/a.js' }], changedFiles: 4 });
+  const result = handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP' }, f.gh);
+  assert.equal(result.merge, false);
+  assert.equal(result.reason, 'automation');
+  const lines = f.calls.map((c) => c.line);
+  assert.ok(!lines.some((l) => l.includes('--auto')), 'auto-merge is not asked for');
+  assert.ok(!lines.some((l) => l.startsWith('api repos/a/b/statuses/')), 'the status is not set');
+});
+
 test('a conflicting pull request is protected', () => {
   assert.deepEqual(decide({ ...clean, mergeable: 'CONFLICTING' }), { action: 'protected', reason: 'conflict' });
 });
@@ -121,11 +136,11 @@ test('protected wins over not green, because the maintainer reads it either way'
 });
 
 // handOff() with a stand-in for `gh`: the ORDER and the TOKENS matter.
-function fakeGh({ files, mergeable = 'MERGEABLE', body = '', conclusion = 'success' }) {
+function fakeGh({ files, changedFiles, mergeable = 'MERGEABLE', body = '', conclusion = 'success' }) {
   const calls = [];
   const gh = (args, options = {}) => {
     calls.push({ line: args.join(' '), token: options.token });
-    if (args[0] === 'pr' && args[1] === 'view') return JSON.stringify({ headRefOid: 'abc123', mergeable, body });
+    if (args[0] === 'pr' && args[1] === 'view') return JSON.stringify({ headRefOid: 'abc123', mergeable, body, changedFiles: changedFiles ?? files.length });
     if (args[1]?.includes('/check-runs')) {
       return ['unit', 'nemeth', 'e2e'].map((name) => JSON.stringify({ name, conclusion, completed_at: '2026-10-10T10:00:00Z' })).join('\n');
     }
