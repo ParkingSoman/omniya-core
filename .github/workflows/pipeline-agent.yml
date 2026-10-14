@@ -34,6 +34,13 @@ name: pipeline-agent
 # branch. The fix prompt below creates its own branch.
 on:
   workflow_call:
+    # Declared so callers can pass them by name. The value passed is empty on purpose:
+    # the real secrets live only in the environment `pipeline`, which the called job reads.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: false
+      PIPELINE_APP_PRIVATE_KEY:
+        required: false
     inputs:
       mode:
         description: fix, comment, or checks-failed

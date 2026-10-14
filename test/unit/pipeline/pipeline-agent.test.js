@@ -30,7 +30,7 @@ const call = (workflow.on ?? workflow[true]).workflow_call;
 test('it is called, never triggered, and reads its secrets from the environment `pipeline`', () => {
   const on = workflow.on ?? workflow[true];
   assert.deepEqual(Object.keys(on), ['workflow_call']);
-  assert.equal(call.secrets, undefined, 'secrets are not passed down; the job reads them from its environment');
+  assert.deepEqual(Object.values(call.secrets).map((s) => s.required), [false, false], "both secrets declared, not required");
   assert.equal(job.environment, 'pipeline');
   assert.equal(actionStep.with.anthropic_api_key, undefined, 'no API key input: runs draw on the subscription');
   assert.doesNotMatch(code, /ANTHROPIC_API_KEY/, 'no API key anywhere in this file');
