@@ -14,9 +14,9 @@ maximize.
 
 | Outcome | Count | % of 613 |
 |---|---:|---:|
-| PASS | 216 | 35.2% |
+| PASS | 214 | 34.9% |
 | REFUSE | 344 | 56.1% |
-| DISAGREE | 53 | 8.6% |
+| DISAGREE | 55 | 9.0% |
 | ERROR | 0 | 0.0% |
 | **Total** | **613** | **100.0%** |
 
@@ -24,7 +24,7 @@ maximize.
 
 | Source | PASS | REFUSE | DISAGREE | ERROR | Total |
 |---|---:|---:|---:|---:|---:|
-| mathcat-rules | 42 | 200 | 31 | 0 | 273 |
+| mathcat-rules | 40 | 200 | 33 | 0 | 273 |
 | sre-aata | 174 | 144 | 22 | 0 | 340 |
 
 ## REFUSE by cause
@@ -112,7 +112,7 @@ Code and the corpus write the same sign with two different Unicode codepoints), 
 `text-vs-math` (the case targets literary text, which this math-only pipeline does not
 model). The authoritative list is `MANY_TO_ONE_CAUSES` in the gate itself.
 
-## DISAGREE (53)
+## DISAGREE (55)
 
 Parsed successfully, but the resulting mathematics differs from the corpus case's
 own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
@@ -194,6 +194,32 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math><msup><mi>x</mi><mrow><mn>10</mn><mo>,</mo><mn>000</mn></mrow></msup></math>
+  ```
+
+### `mathcat-rules:degrees_165_1`
+
+- cells: `⠼⠔⠴⠘⠨⠡⠐⠬⠔⠴⠘⠨⠡⠀⠨⠅⠀⠼⠂⠦⠴⠘⠨⠡`
+- our LaTeX: `{90°}+{90°}={180°}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mn>90</mn><mo>°</mo></mrow><mo>+</mo><mrow><mn>90</mn><mo>°</mo></mrow><mo>=</mo><mrow><mn>180</mn><mo>°</mo></mrow></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mn>90</mn><mo>°</mo><mo>+</mo><mn>90</mn><mo>°</mo><mo>=</mo><mn>180</mn><mo>°</mo></math>
+  ```
+
+### `mathcat-rules:function_space_119_c_3`
+
+- cells: `⠎⠊⠝⠀⠼⠒⠴⠘⠨⠡⠐⠉⠕⠎⠀⠼⠲⠢⠘⠨⠡⠐⠬⠉⠕⠎⠀⠼⠒⠴⠘⠨⠡⠐⠎⠊⠝⠀⠼⠲⠢⠘⠨⠡`
+- our LaTeX: `\sin{30°}\cos{45°}+\cos{30°}\sin{45°}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>sin</mi><mo>⁡</mo><mrow><mn>30</mn><mo>°</mo></mrow><mi>cos</mi><mo>⁡</mo><mrow><mn>45</mn><mo>°</mo></mrow><mo>+</mo><mi>cos</mi><mo>⁡</mo><mrow><mn>30</mn><mo>°</mo></mrow><mi>sin</mi><mo>⁡</mo><mrow><mn>45</mn><mo>°</mo></mrow></math>
+  ```
+- their MathML:
+  ```xml
+  <math><mi>sin</mi><mn>30</mn><mo>°</mo><mi>cos</mi><mn>45</mn><mo>°</mo><mo>+</mo><mi>cos</mi><mn>30</mn><mo>°</mo><mi>sin</mi><mn>45</mn><mo>°</mo></math>
   ```
 
 ### `mathcat-rules:german_24_a_7`
@@ -524,10 +550,10 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 ### `sre-aata:AataExpression_136`
 
 - cells: `⠼⠂⠦⠴⠘⠨⠡`
-- our LaTeX: `180\mathord{°}`
+- our LaTeX: `{180°}`
 - our MathML:
   ```xml
-  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>180</mn><mrow><mo>°</mo></mrow></math>
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mn>180</mn><mo>°</mo></mrow></math>
   ```
 - their MathML:
   ```xml
@@ -537,10 +563,10 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 ### `sre-aata:AataExpression_176`
 
 - cells: `⠼⠒⠖⠴⠘⠨⠡`
-- our LaTeX: `360\mathord{°}`
+- our LaTeX: `{360°}`
 - our MathML:
   ```xml
-  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>360</mn><mrow><mo>°</mo></mrow></math>
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mn>360</mn><mo>°</mo></mrow></math>
   ```
 - their MathML:
   ```xml
@@ -550,10 +576,10 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 ### `sre-aata:AataExpression_229`
 
 - cells: `⠼⠔⠴⠘⠨⠡`
-- our LaTeX: `90\mathord{°}`
+- our LaTeX: `{90°}`
 - our MathML:
   ```xml
-  <math xmlns="http://www.w3.org/1998/Math/MathML"><mn>90</mn><mrow><mo>°</mo></mrow></math>
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mn>90</mn><mo>°</mo></mrow></math>
   ```
 - their MathML:
   ```xml

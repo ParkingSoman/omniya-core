@@ -528,9 +528,9 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'A degree sign written at the superscript level (Rule 23.10, Nemeth_2022.txt line 11565). ' +
       'The SRE case holds the MathJax shape of the source LaTeX `^\\circ`, an <msup> with U+2218, ' +
       'which a screen reader speaks as "raised to the composed with power" (a blind contributor ' +
-      'heard exactly that, issue #58). We emit the flat degree sign <mn/><mo>°</mo>, which reads ' +
-      '"degrees" and is what the MathCAT cases degrees_165_1 and function_space_119_c_3 hold, and ' +
-      'which PASS. Same mathematics, different encoding.'
+      'heard exactly that, issue #58). We emit the grouped flat degree sign {90°}, which reads ' +
+      '"degrees" and the MathCAT cases degrees_165_1 and function_space_119_c_3 hold it ungrouped; ' +
+      'Same mathematics, different encoding.'
   },
   'sre-aata:AataExpression_176': {
     cause: 'equivalent-encoding',
@@ -538,9 +538,9 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'A degree sign written at the superscript level (Rule 23.10, Nemeth_2022.txt line 11565). ' +
       'The SRE case holds the MathJax shape of the source LaTeX `^\\circ`, an <msup> with U+2218, ' +
       'which a screen reader speaks as "raised to the composed with power" (a blind contributor ' +
-      'heard exactly that, issue #58). We emit the flat degree sign <mn/><mo>°</mo>, which reads ' +
-      '"degrees" and is what the MathCAT cases degrees_165_1 and function_space_119_c_3 hold, and ' +
-      'which PASS. Same mathematics, different encoding.'
+      'heard exactly that, issue #58). We emit the grouped flat degree sign {90°}, which reads ' +
+      '"degrees" and the MathCAT cases degrees_165_1 and function_space_119_c_3 hold it ungrouped; ' +
+      'Same mathematics, different encoding.'
   },
   'sre-aata:AataExpression_229': {
     cause: 'equivalent-encoding',
@@ -548,9 +548,27 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'A degree sign written at the superscript level (Rule 23.10, Nemeth_2022.txt line 11565). ' +
       'The SRE case holds the MathJax shape of the source LaTeX `^\\circ`, an <msup> with U+2218, ' +
       'which a screen reader speaks as "raised to the composed with power" (a blind contributor ' +
-      'heard exactly that, issue #58). We emit the flat degree sign <mn/><mo>°</mo>, which reads ' +
-      '"degrees" and is what the MathCAT cases degrees_165_1 and function_space_119_c_3 hold, and ' +
-      'which PASS. Same mathematics, different encoding.'
+      'heard exactly that, issue #58). We emit the grouped flat degree sign {90°}, which reads ' +
+      '"degrees" and the MathCAT cases degrees_165_1 and function_space_119_c_3 hold it ungrouped; ' +
+      'Same mathematics, different encoding.'
+  },
+  'mathcat-rules:degrees_165_1': {
+    cause: 'equivalent-encoding',
+    reason:
+      'A degree sign written at the superscript level (Rule 23.10, Nemeth_2022.txt line 11565). ' +
+      'MathCAT holds the flat <mn/><mo>°</mo> with no grouping. We emit the number and its degree ' +
+      'sign inside one <mrow>, {90°}, because with bare operators in a row the reader takes the next ' +
+      '+, - or division sign as a sign and says "positive", "negative" or "division" (a blind ' +
+      'contributor heard exactly that, issue #58). Same mathematics, grouping alone differs.'
+  },
+  'mathcat-rules:function_space_119_c_3': {
+    cause: 'equivalent-encoding',
+    reason:
+      'A degree sign written at the superscript level (Rule 23.10, Nemeth_2022.txt line 11565). ' +
+      'MathCAT holds the flat <mn/><mo>°</mo> with no grouping. We emit the number and its degree ' +
+      'sign inside one <mrow>, {90°}, because with bare operators in a row the reader takes the next ' +
+      '+, - or division sign as a sign and says "positive", "negative" or "division" (a blind ' +
+      'contributor heard exactly that, issue #58). Same mathematics, grouping alone differs.'
   },
   'mathcat-rules:num_indicator_9_a_4': {
     cause: 'equivalent-encoding',
@@ -609,7 +627,7 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 216;
+const PASS_BASELINE = 214;
 
 // The id SET this gate was written against, not just its size. PASS_BASELINE
 // alone is an aggregate floor: N cases regressing to REFUSE while N different
@@ -623,8 +641,6 @@ const PASS_IDS = new Set([
   "mathcat-rules:boldface_32_b_3",
   "mathcat-rules:comparison_79_g_2",
   "mathcat-rules:complex_frac_66_1",
-  "mathcat-rules:degrees_165_1",
-  "mathcat-rules:function_space_119_c_3",
   "mathcat-rules:greek_24_a_1",
   "mathcat-rules:greek_24_b_1",
   "mathcat-rules:list_num_ind_11_d_1",
@@ -867,7 +883,7 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (32 equivalent-encoding, 7 formatting-only, 6 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
+test('DISAGREE: the many-to-one sub-causes are represented as expected (34 equivalent-encoding, 7 formatting-only, 6 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
   const byCause = {
     'equivalent-encoding': 0,
     'formatting-only': 0,
@@ -878,7 +894,7 @@ test('DISAGREE: the many-to-one sub-causes are represented as expected (32 equiv
     'text-vs-math': 0
   };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
-  assert.equal(byCause['equivalent-encoding'], 32);
+  assert.equal(byCause['equivalent-encoding'], 34);
   assert.equal(byCause['formatting-only'], 7);
   assert.equal(byCause['unencoded-boundary'], 6);
   assert.equal(byCause['unencoded-attribute'], 3);
