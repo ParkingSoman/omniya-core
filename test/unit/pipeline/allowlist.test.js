@@ -3,9 +3,8 @@ import test from 'node:test';
 
 import { AllowlistError, isAllowed, parseAllowlist } from '../../../scripts/ci/allowlist.mjs';
 
-// The real list lives on `main` only (see scripts/ci/pipeline-drift.mjs, which
-// checks that it parses there). A copy here would look editable and do nothing.
-// This fixture has the same shape, including the commented example line.
+// This fixture has the same shape as `.github/contributors.yml`, including the
+// commented example line.
 const shipped = `# comment
 
 contributors:

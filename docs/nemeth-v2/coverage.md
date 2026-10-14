@@ -14,8 +14,8 @@ maximize.
 
 | Outcome | Count | % of 613 |
 |---|---:|---:|
-| PASS | 214 | 34.9% |
-| REFUSE | 349 | 56.9% |
+| PASS | 215 | 35.1% |
+| REFUSE | 348 | 56.8% |
 | DISAGREE | 50 | 8.2% |
 | ERROR | 0 | 0.0% |
 | **Total** | **613** | **100.0%** |
@@ -25,7 +25,7 @@ maximize.
 | Source | PASS | REFUSE | DISAGREE | ERROR | Total |
 |---|---:|---:|---:|---:|---:|
 | mathcat-rules | 40 | 202 | 31 | 0 | 273 |
-| sre-aata | 174 | 147 | 19 | 0 | 340 |
+| sre-aata | 175 | 146 | 19 | 0 | 340 |
 
 ## REFUSE by cause
 
@@ -72,7 +72,6 @@ position, not a category; the offending codepoint is kept since it is).
 | 1 | a subscript indicator stands before a first-order numeric subscript that BANA Rule 14.6 writes without one, so this base is not the single letter it looks like | `mathcat-rules:word_77_4_12` |
 | 1 | an alphabetic or capitalization indicator governs a fracClose, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a fracClose either | `mathcat-rules:num_indicator_9_d_2` |
 | 1 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a fracOpen either | `mathcat-rules:hyper_complex_frac_68_a_1` |
-| 1 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a fracOpen either | `sre-aata:AataExpression_270` |
 | 1 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a groupOpen either | `sre-aata:AataExpression_304` |
 | 1 | an alphabetic or capitalization indicator governs a radIndex, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:carrot_98_1` |
 | 1 | expected the start of a term at level "_" | `sre-aata:AataExpression_266` |

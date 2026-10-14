@@ -10,9 +10,14 @@
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 
-/** @param {string[]} args @returns {string} stdout */
-export function gh(args) {
-  return execFileSync('gh', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+/**
+ * @param {string[]} args
+ * @param {{ token?: string }} [options] a token for this one call, in place of GH_TOKEN
+ * @returns {string} stdout
+ */
+export function gh(args, { token } = {}) {
+  const env = token ? { ...process.env, GH_TOKEN: token } : process.env;
+  return execFileSync('gh', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env });
 }
 
 /**

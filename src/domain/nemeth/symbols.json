@@ -556,6 +556,16 @@
     }
   },
   {
+    "cells": "⠌⠨⠅",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≠",
+    "banaRef": "21.1",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
     "cells": "⠸⠇",
     "kind": "comparison",
     "role": "comparison",
@@ -706,6 +716,16 @@
       "role": "binary",
       "value": "〜",
       "banaRef": "20"
+    }
+  },
+  {
+    "cells": "⠈⠱⠈⠱",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≈",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
     }
   }
 ]
