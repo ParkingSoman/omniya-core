@@ -445,3 +445,8 @@ test('the inline prompt is a short header, and the instructions come from a trus
   assert.match(inlinePrompt, /\$\{\{ runner\.temp \}\}\/trusted\/\.github\/prompts\/agent\.md/, 'the header points at the trusted copy');
   assert.doesNotMatch(inlinePrompt.replace(/\$\{\{ runner\.temp \}\}\/trusted\/\.github\/prompts\/agent\.md/g, ''), /\.github\/prompts\/agent\.md/, 'it never points at the workspace copy');
 });
+
+test('the prompt tells the agent to merge testing into its branch before it pushes', () => {
+  assert.match(prompt, /git merge origin\/testing/);
+  assert.match(prompt, /KEEP THE BRANCH UP TO DATE/);
+});

@@ -14,6 +14,10 @@
  * Step outputs: green (true|false), sha. Writes `<out-dir>/failed.log` when not
  * green. It exits non-zero only when it could not find or finish the runs, so a
  * red check is an answer and a missing run is a fault.
+ *
+ * One missing run is not a fault: a pull request that conflicts with `testing`
+ * gets no `pull_request` runs at all. The agent can fix that itself, so it is
+ * reported as red with the name `conflict`, and the repair agent merges `testing`.
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -36,6 +40,12 @@ export function tail(text, limit = 120_000) {
   return text.length <= limit ? text : `[earlier output cut]\n${text.slice(text.length - limit)}`;
 }
 
+/** Why a conflicting pull request has no checks, and what the agent does about it. */
+export const CONFLICT_LOG =
+  'The pull request conflicts with `testing`, so GitHub did not start its checks.\n' +
+  'Merge `origin/testing` into the branch, resolve every conflict, regenerate the generated files, and push.\n' +
+  'The checks will start after the push.\n';
+
 /**
  * @param {object} io
  * @param {(args: string[]) => string} io.gh
@@ -44,12 +54,25 @@ export function tail(text, limit = 120_000) {
  */
 export async function verifyBranch(
   { gh: run, sleep, now },
-  { repo, branch, pr, pollMs = 30_000, appearMs = 5 * 60_000, finishMs = 80 * 60_000 }
+  { repo, branch, pr, pollMs = 30_000, mergeableMs = 60_000, appearMs = 5 * 60_000, finishMs = 80 * 60_000 }
 ) {
   if (!branch.startsWith(BRANCH_PREFIX)) throw new Error(`refusing branch ${branch}: not a ${BRANCH_PREFIX} branch`);
   requireNumber(pr, 'pull request number');
 
   const sha = run(['api', `repos/${repo}/git/ref/heads/${branch}`, '--jq', '.object.sha']).trim();
+
+  const mergeable = () =>
+    run(['pr', 'view', String(pr), '--repo', repo, '--json', 'mergeable', '--jq', '.mergeable']).trim();
+  const conflict = () => ({ green: false, sha, failed: ['conflict'], log: CONFLICT_LOG });
+
+  // GitHub works the answer out in the background, so UNKNOWN means ask again.
+  const mergeableBy = now() + mergeableMs;
+  let state = mergeable();
+  while (state === 'UNKNOWN' && now() <= mergeableBy) {
+    await sleep(pollMs);
+    state = mergeable();
+  }
+  if (state === 'CONFLICTING') return conflict();
 
   const list = (workflow) =>
     JSON.parse(
@@ -69,7 +92,10 @@ export async function verifyBranch(
         found[workflow] = picked;
         break;
       }
-      if (now() > deadline) throw new Error(`${workflow} did not start on ${branch} at ${sha}`);
+      if (now() > deadline) {
+        if (mergeable() === 'CONFLICTING') return conflict();
+        throw new Error(`${workflow} did not start on ${branch} at ${sha}`);
+      }
       await sleep(pollMs);
     }
   }
