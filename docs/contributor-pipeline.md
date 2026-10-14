@@ -145,29 +145,24 @@ flowchart TD
 
 ### Shipping a change to the automation itself
 
-You do not open GitHub to merge a change to the automation. You read the plan in
-the chat and say "ship it". The session then runs:
+You say "ship it" in the chat. The session runs
+`gh workflow run pipeline-ship.yml --ref testing -f pr_number=<N> -f sha=<head>`.
+It merges only when all of these hold. If one does not, it merges nothing and
+says which.
 
-```
-gh workflow run pipeline-ship.yml --ref testing -f pr_number=<N> -f sha=<head commit>
-```
+- It runs from `testing`, started by you or the session account. A pull request
+  cannot edit the workflow that ships it, and a contributor cannot start it.
+- The branch starts with `pipeline/`, goes into `testing`, and is not a draft.
+  Only you and the session account ever pushed to it.
+- Every file is in `docs/`, `scripts/ci/`, `.github/prompts/`,
+  `test/unit/pipeline/`, the pipeline-change skill, or a `pipeline-*.yml`
+  workflow. The shipper, its tests, `gh.mjs`, `hand-off.mjs`, `allowlist.mjs`
+  and the secret guard tests are carved out. No test is deleted or moved.
+- `unit`, `nemeth`, `e2e` and both builds are green on that exact commit, as
+  jobs of `pr-checks.yml` and `pr-build.yml`. A job name alone proves nothing.
 
-The workflow merges the pull request only when all of these are true. If one is
-not, it merges nothing and says which one.
-
-| Condition | Why |
-|---|---|
-| The workflow runs from `testing`, started by you or the session account | A pull request cannot edit the workflow that ships it. A contributor has write access and cannot start it. |
-| The branch starts with `pipeline/`, into `testing`, from this repository, not a draft | Only automation work comes here. |
-| Every push to the branch was by you or the session account | A contributor could push onto the branch. |
-| Every file is in `docs/`, `scripts/ci/`, `.github/prompts/`, `test/unit/pipeline/`, the pipeline-change skill, or a `pipeline-*.yml` workflow | A list of files it accepts, because a list of files it refuses is never complete. |
-| The shipper, its tests, `gh.mjs`, `hand-off.mjs`, `allowlist.mjs` and the secret guard tests are not changed | A shipped change must not loosen what ships it. |
-| `unit`, `nemeth`, `e2e` and both builds are green on the exact commit, as jobs of `pr-checks.yml` and `pr-build.yml` | A new workflow can have a job named `unit` that always passes. |
-| No test is deleted or moved out of `test/` | A deleted test cannot fail. |
-
-A change that touches the app, `package.json`, the check workflows, or the
-shipper itself is not shipped this way. Those need the bypass tick in the
-browser: tick "Merge without waiting for requirements to be met".
+A change to the app, `package.json`, the check workflows or the shipper needs
+the bypass tick in the browser.
 
 ### Setting up, adding a contributor, and getting unstuck
 
