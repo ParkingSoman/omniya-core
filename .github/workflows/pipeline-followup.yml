@@ -11,9 +11,8 @@ name: pipeline-followup
 # The contributor never opens the pull request. It is the maintainer's
 # material. Everything she reads and writes is on the issue.
 #
-# Called from the stub on `main` (`.github/pipeline-stubs/contributor-followup.yml`),
-# for the same reason as `pipeline-fix.yml`: GitHub starts an `on: issue_comment`
-# workflow from the default branch only.
+# This file holds its own trigger. `testing` is the default branch, so GitHub
+# starts an `on: issue_comment` run from this copy.
 #
 # What the agent answers, as one word the jobs below act on:
 #
@@ -21,7 +20,8 @@ name: pipeline-followup
 #   approved     "it works"              -> hand the fix to the maintainer
 #   answered     a question               -> ONE comment, the agent's answer
 #   needs-design a request for something new -> ONE comment, and the label
-#   stopped      it could not go on       -> ONE comment, and the label
+#   blocked      a gate stays red, or the pull request will not open
+#                                         -> ONE comment saying which, and the label
 #   (a crash)    the agent job failed     -> `failed` tells the contributor
 #
 # The agent posts nothing itself. It leaves its words in a file, and the jobs
@@ -30,12 +30,24 @@ name: pipeline-followup
 # new. There is no "I am changing the fix" comment in between: their own comment
 # started the round, and the next thing they hear is the result.
 on:
-  workflow_call:
-    # Only the subscription token, and the stub passes only that. Not every
-    # secret in the repository, and not `inherit`.
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN:
+  issue_comment:
+    types: [created]
+  # A rehearsal. A session that is changing this pipeline starts it by hand, on
+  # a rehearsal issue, and it behaves as if the issue's AUTHOR had just written
+  # `comment_body` in a comment. The agent reads the thread from GitHub, so the
+  # session first posts the same words as a real comment on that issue. Starting
+  # a run by hand needs write access, so this opens nothing to a stranger. The
+  # allowlist and the access check below still apply to the issue's author.
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Number of the issue the comment is on (a rehearsal issue)
         required: true
+        type: string
+      comment_body:
+        description: The comment to act on, as if the issue's author had written it. It must name @claude
+        required: true
+        type: string
 
 # One run per issue, and the SAME group as `pipeline-fix.yml`, so a comment that
 # arrives while a fix or a repair is running waits for it. They push to the same
@@ -43,7 +55,7 @@ on:
 # round: a killed run can leave half a revision on the branch the contributor is
 # downloading builds from.
 concurrency:
-  group: contributor-issue-${{ github.event.issue.number }}
+  group: contributor-issue-${{ github.event.issue.number || inputs.issue_number }}
   cancel-in-progress: false
 
 permissions:
@@ -82,11 +94,20 @@ jobs:
     #    answered a comment nobody had written. The marker holds whoever posts it.
     #
     # 5. (the steps) There is exactly one open fix for this issue. Found below.
+    #
+    # A hand-started rehearsal has no event comment. The same rules read the
+    # `comment_body` input instead. Its author is the issue's author, read from
+    # GitHub in the `issue` step, and a pull request number is refused there.
     if: >-
-      !github.event.issue.pull_request &&
-      github.event.comment.user.type != 'Bot' &&
-      contains(github.event.comment.body, '@claude') &&
-      !contains(github.event.comment.body, '<!-- omniya-pipeline-')
+      (github.event_name == 'workflow_dispatch' &&
+        (github.actor == github.repository_owner || github.actor == 'omniya-bot') &&
+        contains(inputs.comment_body, '@claude') &&
+        !contains(inputs.comment_body, '<!-- omniya-pipeline-')) ||
+      (github.event_name == 'issue_comment' &&
+        !github.event.issue.pull_request &&
+        github.event.comment.user.type != 'Bot' &&
+        contains(github.event.comment.body, '@claude') &&
+        !contains(github.event.comment.body, '<!-- omniya-pipeline-'))
     runs-on: ubuntu-latest
     # Least privilege. This job only reads the allowlist and the pull request
     # list. It runs no agent and writes nothing.
@@ -100,20 +121,65 @@ jobs:
       allowed: ${{ steps.check.outputs.allowed }}
       access: ${{ steps.access.outputs.access }}
       number: ${{ steps.issue.outputs.number }}
+      author: ${{ steps.issue.outputs.author }}
       count: ${{ steps.find.outputs.count }}
       pr: ${{ steps.find.outputs.pr }}
       branch: ${{ steps.find.outputs.branch }}
       kind: ${{ steps.kind.outputs.kind }}
+      owner: ${{ steps.owner.outputs.owner }}
+      owner_comment_id: ${{ steps.owner.outputs.comment_id }}
+      owner_comment_updated_at: ${{ steps.owner.outputs.comment_updated_at }}
       resume: ${{ steps.resume.outputs.resume }}
       question_round: ${{ steps.resume.outputs.question_round }}
     steps:
       - uses: actions/checkout@v4
+      # Which issue, and who wrote the comment. On a hand-started rehearsal the
+      # number is typed by a person, so it must be digits, and the author is read
+      # from GitHub: the issue's own author. A number that is a pull request, or
+      # does not exist, gives an empty author, and the allowlist refuses that.
       - id: issue
         env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
           # Safe to interpolate: GitHub guarantees the issue number is an
           # integer. Nothing else from the event is.
-          NUMBER: ${{ github.event.issue.number }}
-        run: echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
+          EVENT_NUMBER: ${{ github.event.issue.number }}
+          EVENT_AUTHOR: ${{ github.event.comment.user.login }}
+          INPUT_NUMBER: ${{ inputs.issue_number }}
+        run: |
+          set -euo pipefail
+          association=
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "$INPUT_NUMBER" in
+              ''|*[!0-9]*) echo "issue_number must be digits, got: $INPUT_NUMBER" >&2; exit 1 ;;
+            esac
+            number="$INPUT_NUMBER"
+            # A rehearsal may only run on an issue made for rehearsing: it has the
+            # label AND the owner wrote it. A label alone is
+            # not enough, because anyone with write access can add a label. Without
+            # this, a hand-started run could speak as any contributor on a real
+            # issue, including saying "it works".
+            labels="$(gh api "repos/$GITHUB_REPOSITORY/issues/$number" --jq '[.labels[].name] | join(",")')"
+            case ",$labels," in
+              *,rehearsal,*) ;;
+              *) echo "issue $number does not have the rehearsal label" >&2; exit 1 ;;
+            esac
+            opener="$(gh api "repos/$GITHUB_REPOSITORY/issues/$number" --jq '.user.login')"
+            case "$opener" in
+              "$GITHUB_REPOSITORY_OWNER") ;;
+              *) echo "issue $number was not opened by the owner" >&2; exit 1 ;;
+            esac
+            author="$(gh api "repos/$GITHUB_REPOSITORY/issues/$number" --jq 'select(.pull_request == null) | .user.login')"
+            association="$(gh api "repos/$GITHUB_REPOSITORY/issues/$number" --jq 'select(.pull_request == null) | .author_association')"
+          else
+            number="$EVENT_NUMBER"
+            author="$EVENT_AUTHOR"
+          fi
+          {
+            echo "number=$number"
+            echo "author=$author"
+            echo "association=$association"
+          } >> "$GITHUB_OUTPUT"
       - id: check
         # Through `env`, never straight into the command line, and deliberately
         # before any `npm ci`: the decision about whether to spend somebody's
@@ -122,27 +188,20 @@ jobs:
         # non-zero to refuse and carries the refusal in the `allowed` output, so
         # a stranger commenting does not paint the Actions tab red.
         env:
-          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          COMMENT_AUTHOR: ${{ steps.issue.outputs.author }}
         run: node scripts/ci/allowlist.mjs "$COMMENT_AUTHOR" --github || true
       # Being on the list is not enough: `claude-code-action` refuses any actor
       # who cannot write to the repository (issue #33). Check the same actor, and
-      # say the true reason. The script is not on `main`, so it comes out of
-      # `testing`. `unknown` lets the run go on: the action checks again.
+      # say the true reason. `unknown` lets the run go on: the action checks again.
       - id: access
         if: steps.check.outputs.allowed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          ACTOR: ${{ github.actor }}
+          ACTOR: ${{ github.event_name == 'workflow_dispatch' && steps.issue.outputs.author || github.actor }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin testing
-          mkdir -p "$RUNNER_TEMP/access"
-          for f in gh.mjs can-run-agent.mjs; do
-            git show "origin/testing:scripts/ci/$f" > "$RUNNER_TEMP/access/$f"
-          done
-          node "$RUNNER_TEMP/access/can-run-agent.mjs" "$ACTOR"
-      # Which pull request is this issue's fix? The default checkout is `main`,
-      # which does not have the helper, so it comes out of `testing`.
+          node scripts/ci/can-run-agent.mjs "$ACTOR"
+      # Which pull request is this issue's fix?
       - id: find
         if: steps.check.outputs.allowed == 'true' && steps.access.outputs.access != 'false'
         env:
@@ -150,12 +209,7 @@ jobs:
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin testing
-          mkdir -p "$RUNNER_TEMP/find"
-          for f in gh.mjs find-fix-pr.mjs; do
-            git show "origin/testing:scripts/ci/$f" > "$RUNNER_TEMP/find/$f"
-          done
-          node "$RUNNER_TEMP/find/find-fix-pr.mjs" "$ISSUE_NUMBER"
+          node scripts/ci/find-fix-pr.mjs "$ISSUE_NUMBER"
       # From the labels the form set, so the agent reads the follow-up the way it
       # read the report. The agent jobs below map `routed` to `bug`: a report that
       # was routed to a person has no fix to continue, and `nofix` answers it.
@@ -165,13 +219,35 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
         run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/find"
           # If the labels cannot be read, `bug`. See the same step in `pipeline-fix.yml`.
-          { git show origin/testing:scripts/ci/issue-kind.mjs > "$RUNNER_TEMP/find/issue-kind.mjs" \
-            && git show origin/testing:scripts/ci/gh.mjs > "$RUNNER_TEMP/find/gh.mjs" \
-            && node "$RUNNER_TEMP/find/issue-kind.mjs" "$ISSUE_NUMBER"; } \
-            || echo "kind=bug" >> "$GITHUB_OUTPUT"
+          node scripts/ci/issue-kind.mjs "$ISSUE_NUMBER" || echo "kind=bug" >> "$GITHUB_OUTPUT"
+      # Did the OWNER of the repository write this comment? GitHub fills in
+      # `author_association` from the repository itself, so nobody can claim it
+      # in the text of a comment. It is the one thing that can say "yes, do this
+      # design idea": a design decision is the owner's, and an `@claude` from a
+      # contributor, however firm, is a request. Issue #73 is why this exists:
+      # the owner wrote "start a fix" on a design idea and was told there was no
+      # fix in progress, with no way to say yes.
+      - id: owner
+        if: steps.check.outputs.allowed == 'true'
+        env:
+          ASSOCIATION: ${{ github.event.comment.author_association || steps.issue.outputs.association }}
+          # An integer GitHub assigns. The approval is THIS comment, so a comment
+          # a contributor adds while the run waits in the queue is not covered.
+          COMMENT_ID: ${{ github.event.comment.id }}
+          # When the text was last changed, as the event saw it. An edit made later
+          # is not the text the owner wrote, and voids the approval.
+          COMMENT_AT: ${{ github.event.comment.updated_at }}
+        run: |
+          owner=false
+          comment_id=
+          comment_at=
+          if [ "$ASSOCIATION" = "OWNER" ]; then owner=true; comment_id=$COMMENT_ID; comment_at=$COMMENT_AT; fi
+          {
+            echo "owner=$owner"
+            echo "comment_id=$comment_id"
+            echo "comment_updated_at=$comment_at"
+          } >> "$GITHUB_OUTPUT"
       # No fix yet, and the agent asked a question. This comment may be the
       # answer. It is one only when the issue carries `needs-info`, which the
       # pipeline puts there when the agent asks and takes off when it resumes.
@@ -184,25 +260,35 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
           REPO: ${{ github.repository }}
+          IS_OWNER: ${{ steps.owner.outputs.owner }}
         run: |
           set -euo pipefail
           labels="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq '[.labels[].name] | join(",")')"
           asked="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- omniya-pipeline-question -->")))] | length' \
             | awk '{ n += $1 } END { print n + 0 }')"
-          # Three things must all be true, and none of them is the contributor's
+          # The OWNER of the repository says go ahead, and that is enough. It is
+          # decided first and from `author_association`, which GitHub sets, so no
+          # label and no wording of a comment can fake it. It works on a design
+          # idea (`design`, `needs-design`) and on an issue nothing is waiting on.
+          #
+          # For everybody else, three things must all be true, and none of them is the contributor's
           # word. A person with write access can add a label by hand, so the label
           # alone proves nothing: there must also be a question the agent really
           # asked (a comment by the bot, counted above). And an issue the agent
           # labelled `needs-design` is the maintainer's to decide. Nobody on the
           # contributor list can restart it by writing `@claude` or by adding
-          # `needs-info`. Only the maintainer can, by starting `contributor-fix`
+          # `needs-info`. Only the maintainer can, by starting `pipeline-fix`
           # by hand.
           resume=false
-          case ",$labels," in
-            *,needs-design,*) ;;
-            *,needs-info,*) [ "${asked:-0}" -ge 1 ] && resume=true ;;
-          esac
+          if [ "$IS_OWNER" = "true" ]; then
+            resume=true
+          else
+            case ",$labels," in
+              *,needs-design,*) ;;
+              *,needs-info,*) [ "${asked:-0}" -ge 1 ] && resume=true ;;
+            esac
+          fi
           echo "resume=$resume" >> "$GITHUB_OUTPUT"
           echo "question_round=${asked:-0}" >> "$GITHUB_OUTPUT"
 
@@ -219,11 +305,11 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
-          ACTOR: ${{ github.actor }}
+          ACTOR: ${{ github.event_name == 'workflow_dispatch' && needs.allowlist.outputs.author || github.actor }}
         run: |
           set -euo pipefail
-          gh label create needs-maintainer --force --description "A person has to look at this" || true
-          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-maintainer
+          gh label create needs-owner --force --description "A person has to look at this" || true
+          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-owner
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Thank you for the comment. I did not start, because the maintainer has not finished adding you yet. Nothing is wrong with your comment. The maintainer has been told. Write to me again after that. You do not need to do anything else."
           {
@@ -273,18 +359,23 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: comment
       kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.allowlist.outputs.pr }}
       branch: ${{ needs.allowlist.outputs.branch }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      owner_comment_id: ${{ needs.allowlist.outputs.owner_comment_id }}
+      owner_comment_updated_at: ${{ needs.allowlist.outputs.owner_comment_updated_at }}
 
-  # The agent answered, refused as design, or stopped. It wrote words for the
-  # contributor and did not post them. Post them, once. A `stopped` or a design
+  # The agent answered, refused as design, or is blocked. It wrote words for the
+  # contributor and did not post them. Post them, once. A `blocked` or a design
   # refusal also gets its label here, because the agent labels nothing.
   reply:
     needs: [allowlist, agent]
@@ -292,7 +383,7 @@ jobs:
       ${{ !cancelled() &&
       (needs.agent.outputs.result == 'answered' ||
       needs.agent.outputs.result == 'needs-design' ||
-      needs.agent.outputs.result == 'stopped') }}
+      needs.agent.outputs.result == 'blocked') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -300,8 +391,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
@@ -312,7 +401,7 @@ jobs:
           set -euo pipefail
           case "$RESULT" in
             needs-design) STATE=design ;;
-            stopped) STATE=stuck ;;
+            blocked) STATE=stuck ;;
             *) STATE=answered ;;
           esac
           node scripts/ci/reply.mjs "$ISSUE" "$STATE"
@@ -337,14 +426,16 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
         run: |
           set -euo pipefail
-          gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-info
+          # Both come off: `needs-info` says the agent is waiting for an answer, and
+          # `needs-design` says it is waiting for the owner. A label that is not on
+          # the issue must not fail the start, so each is allowed to be missing.
+          gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-info || true
+          gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-design || true
           node scripts/ci/reply.mjs "$ISSUE" started
 
   resume:
@@ -356,16 +447,21 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: fix
       kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
       issue_number: ${{ needs.allowlist.outputs.number }}
       question_round: ${{ needs.allowlist.outputs.question_round }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      owner_comment_id: ${{ needs.allowlist.outputs.owner_comment_id }}
+      owner_comment_updated_at: ${{ needs.allowlist.outputs.owner_comment_updated_at }}
 
-  # What `outcome` does in `pipeline-fix.yml`: the agent asked again, stopped, or
+  # What `outcome` does in `pipeline-fix.yml`: the agent asked again, is blocked, or
   # crashed, and the contributor has to be told.
   resume-outcome:
     needs: [allowlist, resume]
@@ -375,7 +471,7 @@ jobs:
       (needs.resume.result != 'success' ||
       needs.resume.outputs.result == 'asked' ||
       needs.resume.outputs.result == 'needs-design' ||
-      needs.resume.outputs.result == 'stopped') }}
+      needs.resume.outputs.result == 'blocked') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -383,8 +479,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
@@ -401,18 +495,21 @@ jobs:
     if: needs.resume.outputs.result == 'opened'
     # A ceiling, not a grant: every job inside states its own permissions.
     permissions:
-      actions: write
+      actions: read
       contents: write
       pull-requests: write
       issues: write
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing
+    uses: ./.github/workflows/pipeline-verify.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.resume.outputs.pr }}
       branch: ${{ needs.resume.outputs.branch }}
       message: ${{ needs.resume.outputs.message }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
   # The agent job crashed (an install that failed, a timeout). Without this the
   # contributor wrote `@claude` and heard nothing at all. It posts a new comment
@@ -431,8 +528,8 @@ jobs:
           ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
         run: |
           set -euo pipefail
-          gh label create needs-maintainer --force --description "A person has to look at this" || true
-          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-maintainer
+          gh label create needs-owner --force --description "A person has to look at this" || true
+          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-owner
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Something went wrong on my side while I was reading your comment. Nothing is wrong with your report. The earlier download links still work. The maintainer has been told and will look. You do not need to do anything."
 
@@ -445,38 +542,82 @@ jobs:
     if: needs.agent.outputs.result == 'revised'
     # A ceiling, not a grant: every job inside states its own permissions.
     permissions:
-      actions: write
+      actions: read
       contents: write
       pull-requests: write
       issues: write
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing
+    uses: ./.github/workflows/pipeline-verify.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.agent.outputs.pr }}
       branch: ${{ needs.agent.outputs.branch }}
       message: ${{ needs.agent.outputs.message }}
       reply_state: revised
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-  # The contributor said it works. This takes the pull request out of draft and
-  # asks the maintainer to review it, when the required checks are green. It does
-  # not merge: the maintainer merges, and that closes the issue.
+  # The contributor said it works. `scripts/ci/hand-off.mjs` decides: a fix that
+  # changes the automation, conflicts, or reverses a standing note goes to the
+  # maintainer. Any other fix, with the required checks green, gets the commit
+  # status `contributor-tested` and auto-merge. The status and the
+  # auto-merge request both use the App's token: a workflow on a contributor's
+  # branch cannot post as the App. The merge push starts `testing-app.yml`.
   handoff:
     needs: [allowlist, agent]
-    if: needs.agent.outputs.result == 'approved'
+    environment: pipeline
+    # Never from a hand-started rehearsal: a rehearsal must not enable a merge.
+    # And only the issue's own author, or the owner, can say "it works". The agent
+    # decides what a comment means, but it does not decide who may say it: another
+    # contributor, who also has write access, must not approve this person's fix.
+    if: >-
+      needs.agent.outputs.result == 'approved' &&
+      github.event_name == 'issue_comment' &&
+      (github.event.comment.user.login == github.event.issue.user.login ||
+       github.event.comment.author_association == 'OWNER')
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: read
       pull-requests: write
       issues: write
     timeout-minutes: 10
+    outputs:
+      conflict: ${{ steps.hand.outputs.conflict }}
     steps:
-      - uses: actions/checkout@v4
+      - id: app
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         with:
-          ref: testing
-      - env:
+          app-id: ${{ vars.PIPELINE_APP_ID }}
+          private-key: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: read
+          permission-statuses: write
+      - uses: actions/checkout@v4
+      - id: hand
+        env:
           GH_TOKEN: ${{ github.token }}
+          MERGE_TOKEN: ${{ steps.app.outputs.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
           PR: ${{ needs.agent.outputs.pr }}
         run: node scripts/ci/hand-off.mjs "$ISSUE" "$PR"
+
+  # The fix fell behind `testing` and conflicts. The hand-off told the contributor so.
+  # This starts the update that brings it back. It is its own job on purpose: the
+  # hand-off job holds the App key and must never be allowed to start a workflow, and
+  # this job can start one but holds no secret.
+  bring-up-to-date:
+    needs: [agent, handoff]
+    if: needs.handoff.outputs.conflict == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.agent.outputs.pr }}
+        run: gh workflow run pipeline-keep-current.yml --repo "$GITHUB_REPOSITORY" --ref testing -f pr_number="$PR"

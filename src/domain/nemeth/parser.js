@@ -67,7 +67,7 @@ import {
 } from './ast.js';
 import { NemethUnsupportedError } from './errors.js';
 
-const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen', 'omission']);
+const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'constant', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen', 'omission']);
 
 function peek(state) {
   return state.index < state.tokens.length ? state.tokens[state.index] : null;
@@ -403,6 +403,14 @@ function parsePrimary(state, level) {
       // `omission` mark keeps the distinction for anything that needs it.
       advance(state);
       return Operator(token.value, { src: spanFrom(state, start), marks: { ...marks, omission: true } });
+    // BANA 23.11 infinity. The AST has no node for a named constant and adding
+    // one would touch every backend's exhaustive dispatch for a single glyph, so
+    // it is an `Operator` whose glyph is the Unicode ∞, as `±` and `÷` are written. It is
+    // reached from here, not from `isOperatorAt`, so it is still an operand:
+    // `x+∞` parses as x, +, ∞ and never as two operators in a row.
+    case 'constant':
+      advance(state);
+      return Operator(token.value, { src: spanFrom(state, start), marks });
     default:
       return parseNumber(state, level, marks);
   }

@@ -21,7 +21,7 @@ function decodeText(value) {
   });
 }
 
-function parse(source) {
+function parse(source, keepLatex = false) {
   if (typeof source !== 'string' || !source.trim()) throw new TypeError('MathML is required');
   const tokens = source.match(/<[^>]+>|[^<]+/g) ?? [];
   const root = { name: null, attrs: {}, children: [] };
@@ -41,12 +41,15 @@ function parse(source) {
       const match = body.match(/^([:\w-]+)([\s\S]*)$/);
       if (!match || !ALLOWED.has(match[1])) throw new SyntaxError(`Unsupported MathML element: ${match?.[1] ?? ''}`);
       const attrs = {};
-      const attrRe = /([:\w-]+)\s*=\s*["']([^"']*)["']/g;
+      // A value may hold the other kind of quote (data-latex="x'"), and entities
+      // in it (&lt;) are decoded here and written out again by serializeNode.
+      const attrRe = /([:\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
       let m;
       while ((m = attrRe.exec(match[2]))) {
+        m[2] = decodeText(m[2] ?? m[3]);
         if (m[1] === 'xmlns' && m[2] !== NS) throw new SyntaxError('Invalid MathML namespace');
         if (m[1].startsWith('on') || m[1] === 'href' || m[1] === 'xlink:href' || m[1].includes(':')) throw new SyntaxError('Unsafe MathML attribute');
-        if (!TRANSIENT.test(m[1]) && SAFE_ATTRIBUTES.has(m[1])) attrs[m[1]] = m[2];
+        if (m[1] === 'data-latex' ? keepLatex : (!TRANSIENT.test(m[1]) && SAFE_ATTRIBUTES.has(m[1]))) attrs[m[1]] = m[2];
       }
       const node = { name: match[1], attrs, children: [] };
       stack.at(-1).children.push(node);
@@ -66,7 +69,7 @@ function parse(source) {
 
 function serializeNode(node) {
   if (node.text !== undefined) return String(node.text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-  const attrs = Object.entries(node.attrs ?? {}).map(([k, v]) => ` ${k}="${String(v).replaceAll('&', '&amp;').replaceAll('"', '&quot;') }"`).join('');
+  const attrs = Object.entries(node.attrs ?? {}).map(([k, v]) => ` ${k}="${String(v).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;') }"`).join('');
   if (!node.children?.length) return `<${node.name}${attrs}/>`;
   return `<${node.name}${attrs}>${node.children.map(serializeNode).join('')}</${node.name}>`;
 }
@@ -79,12 +82,17 @@ function assign(node, used = new Set()) {
   node.children.forEach((child) => assign(child, used));
 }
 
-export function parseMathML(source) { const tree = parse(source); assign(tree); return tree; }
+/**
+ * `keepLatex` keeps MathJax's `data-latex` on each node: the LaTeX that node was
+ * made from. Only stored equations and the edit path ask for it. Everything else
+ * (export, comparison, the corpus gates) sees the same MathML as before.
+ */
+export function parseMathML(source, { keepLatex = false } = {}) { const tree = parse(source, keepLatex); assign(tree); return tree; }
 export function serializeMathML(tree) {
   if (!tree || tree.name !== 'math') throw new TypeError('MathML tree root must be math');
   return serializeNode(tree);
 }
-export function canonicalizeMathML(source) { return serializeMathML(parseMathML(source)); }
+export function canonicalizeMathML(source, options) { return serializeMathML(parseMathML(source, options)); }
 
 export function createHole({ ownerNodeId = null, role = 'content', idFactory = id } = {}) {
   const attrs = { 'data-omniya-id': idFactory(), 'data-omniya-hole': 'true' };
@@ -204,7 +212,8 @@ export function insertMathChild(tree, parentNodeId, child, index = null) {
   return next;
 }
 
-const FLEXIBLE_MATH_PARENTS = new Set(['math', 'mrow']);
+// Rows of a table take cells beside a cell, and a table takes rows beside a row.
+const FLEXIBLE_MATH_PARENTS = new Set(['math', 'mrow', 'mtr', 'mtable']);
 
 function mathElementChildren(node) {
   return (node?.children ?? []).filter((child) => child.text === undefined);

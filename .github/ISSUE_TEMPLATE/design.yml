@@ -1,5 +1,5 @@
 name: Design
-description: A new feature, or a change to how Omniya Core looks, sounds or behaves.
+description: A new feature, or a change to how Omniya Core looks or behaves.
 title: "[design] "
 labels: ["design"]
 body:
@@ -8,15 +8,15 @@ body:
       # Every field below carries a real label and a real description. Nothing
       # is explained by placeholder text alone. See `bug-report.yml`.
       value: |
-        Use this form for something new, or a change to how the app looks,
-        sounds or behaves.
+        Use this form for something new, or a change to how the app looks or
+        behaves.
 
         No agent starts on this. A person reads it and answers here, and may
         talk it through with you first. That is on purpose. A choice about how
         the app should feel is not one to make automatically.
 
-        If a symbol or rule from the Nemeth Code is missing, use the Nemeth
-        feature form. If something the app says it does is broken, use the Bug
+        If a symbol or rule from the Nemeth Code is missing, or you want to
+        change how an equation is spoken, use the Nemeth or speech form. If something the app says it does is broken, use the Bug
         report form.
 
   - type: textarea

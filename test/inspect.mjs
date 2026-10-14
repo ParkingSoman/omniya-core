@@ -4,11 +4,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
-  addItem,
   createInitialState,
   createNapkin,
-  deleteNapkin
+  deleteNapkin,
+  setNapkinDoc
 } from '../src/domain/model.js';
+import { mathNode } from '../src/domain/document.js';
 import { convertLatexToMathML } from '../src/main/mathml.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -64,14 +65,24 @@ const examples = [
 let state = createInitialState();
 const initialNapkinId = state.activeNapkinId;
 
+const paragraph = (text) => (text ? { type: 'paragraph', content: [{ type: 'text', text }] } : { type: 'paragraph' });
+
 for (const example of examples) {
   state = createNapkin(state, example.name);
+  const content = [];
   for (const item of example.items) {
-    const mathml = item.type === 'equation'
-      ? await convertLatexToMathML(item.source)
-      : null;
-    state = addItem(state, { ...item, mathml });
+    if (item.type === 'equation') {
+      const mathml = await convertLatexToMathML(item.source);
+      content.push({
+        type: 'paragraph',
+        content: [mathNode({ mathml, source: item.source, sourceKind: 'latex' })]
+      });
+    } else {
+      content.push(paragraph(item.source));
+    }
+    if (item.note) content.push(paragraph(item.note));
   }
+  state = setNapkinDoc(state, state.activeNapkinId, { type: 'doc', content });
 }
 
 state = deleteNapkin(state, initialNapkinId);

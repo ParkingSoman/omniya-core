@@ -1,8 +1,10 @@
-import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell } from 'electron';
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { checkForNewerMacBuild, RELEASE_PAGE_URL } from './main/mac-update-check.js';
+import { buildExport } from './main/export-service.js';
 import { convertLatexToMathML } from './main/mathml.js';
 import { exportLatex, importLatex } from './main/math-service.js';
 import { createSettingsStorage } from './main/settings-storage.js';
@@ -18,6 +20,9 @@ const isAutomatedTest = Boolean(process.env.OMNIYA_TEST_USER_DATA_DIR);
 // Test-only knob: hold math:convert open for N ms so e2e tests can land input
 // (e.g. Escape) inside the real IPC round-trip window without racing a fast
 // local conversion. Zero/unset in every non-test run.
+// Test-only: when set, an export is written straight into this folder instead of
+// asking where to save it, and printing is skipped. Unset in every normal run.
+const testExportDirectory = process.env.OMNIYA_TEST_EXPORT_DIR || '';
 const mathConvertDelayMs = Number(process.env.OMNIYA_TEST_MATH_CONVERT_DELAY_MS) || 0;
 // E2E / corpus runs should not steal focus or flash windows on the desktop.
 // Playwright still drives the hidden BrowserWindow and can capture screenshots.
@@ -60,7 +65,14 @@ function registerIpc(storage, settingsStorage) {
   ipcMain.handle('math:convert', async (event, source) => {
     assertTrustedSender(event);
     if (mathConvertDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, mathConvertDelayMs));
-    return { mathml: await convertLatexToMathML(source) };
+    // Half-typed LaTeX is the normal state of the live preview. Throwing here
+    // makes Electron print every one, so the refusal travels as a value and the
+    // preload turns it back into an error on the renderer side.
+    try {
+      return { mathml: await convertLatexToMathML(source) };
+    } catch (error) {
+      return { error: error.message };
+    }
   });
   ipcMain.handle('math:import', async (event, source) => { assertTrustedSender(event); return importLatex(source); });
   ipcMain.handle('math:export', async (event, document) => { assertTrustedSender(event); return exportLatex(document); });
@@ -71,6 +83,38 @@ function registerIpc(storage, settingsStorage) {
   ipcMain.handle('ueb:backTranslate', async (event, { braille, grade }) => {
     assertTrustedSender(event);
     return { text: await backTranslateUeb(braille, grade) };
+  });
+  ipcMain.handle('export:note', async (event, request) => {
+    assertTrustedSender(event);
+    const { fileName, content, spec } = buildExport(request ?? {});
+    if (testExportDirectory) {
+      const target = path.join(testExportDirectory, fileName);
+      await writeFile(target, content, 'utf8');
+      return { saved: true, fileName, path: target };
+    }
+    const window = BrowserWindow.fromWebContents(event.sender);
+    const choice = await dialog.showSaveDialog(window, {
+      title: 'Export note',
+      defaultPath: fileName,
+      filters: [{ name: spec.label, extensions: [spec.extension] }]
+    });
+    if (choice.canceled || !choice.filePath) return { saved: false };
+    await writeFile(choice.filePath, content, 'utf8');
+    return { saved: true, fileName: path.basename(choice.filePath) };
+  });
+  ipcMain.handle('export:print', async (event) => {
+    assertTrustedSender(event);
+    if (testExportDirectory) return { printed: false, skipped: true };
+    event.sender.print({ printBackground: false });
+    return { printed: true };
+  });
+  // The page's own clipboard call needs window focus and a browser permission,
+  // and a contributor on Windows got an empty paste from it. The main
+  // process clipboard needs neither.
+  ipcMain.handle('clipboard:writeText', (event, text) => {
+    assertTrustedSender(event);
+    if (typeof text !== 'string') throw new TypeError('Clipboard text must be a string.');
+    clipboard.writeText(text);
   });
   ipcMain.handle('update:openReleasePage', async (event) => {
     assertTrustedSender(event);
@@ -123,7 +167,10 @@ function checkForMacUpdateBanner(window) {
 }
 
 function sendMenuCommand(payload) {
-  BrowserWindow.getFocusedWindow()?.webContents.send('menu:command', payload);
+  // The window that has focus. A menu item can also run with no focused window
+  // (a hidden test window, or the app just activated), so fall back to the only one.
+  const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+  window?.webContents.send('menu:command', payload);
 }
 
 function buildApplicationMenu() {
@@ -131,27 +178,89 @@ function buildApplicationMenu() {
   const mod = isMac ? 'Cmd' : 'Ctrl';
   const template = [];
   if (isMac) template.push({ role: 'appMenu' });
-  template.push({ role: 'editMenu' });
+  // Edit is built by hand, not with `role: 'editMenu'`. That role's Undo and Redo
+  // run the browser's own undo, which knows nothing about the editor's history:
+  // Cmd/Ctrl+Z did nothing for equations and Redo did nothing at all. These two
+  // go to the app, which sends them to the editor. Cut, Copy, Paste and Select All
+  // are the browser's own and work as they are.
+  // File, as in Word: a new document is Ctrl/Cmd+N. A note is a document.
+  template.push({
+    label: 'File',
+    submenu: [
+      {
+        label: 'New note',
+        accelerator: 'CmdOrCtrl+N',
+        click: () => sendMenuCommand({ action: 'new-note' })
+      },
+      {
+        label: 'Export note…',
+        click: () => sendMenuCommand({ action: 'export' })
+      },
+      {
+        label: 'Print…',
+        accelerator: 'CmdOrCtrl+P',
+        click: () => sendMenuCommand({ action: 'print' })
+      },
+      { type: 'separator' },
+      isMac ? { role: 'close' } : { role: 'quit' }
+    ]
+  });
+  template.push({
+    label: 'Edit',
+    submenu: [
+      {
+        id: 'undo',
+        label: 'Undo',
+        accelerator: 'CmdOrCtrl+Z',
+        click: () => sendMenuCommand({ action: 'undo' })
+      },
+      {
+        id: 'redo',
+        label: 'Redo',
+        accelerator: isMac ? 'Shift+Cmd+Z' : 'Ctrl+Y',
+        click: () => sendMenuCommand({ action: 'redo' })
+      },
+      { type: 'separator' },
+      {
+        label: 'Find in note…',
+        accelerator: 'CmdOrCtrl+F',
+        click: () => sendMenuCommand({ action: 'find' })
+      },
+      {
+        label: 'Find next',
+        accelerator: isMac ? 'Cmd+G' : 'F3',
+        click: () => sendMenuCommand({ action: 'find-next' })
+      },
+      {
+        label: 'Find previous',
+        accelerator: isMac ? 'Shift+Cmd+G' : 'Shift+F3',
+        click: () => sendMenuCommand({ action: 'find-previous' })
+      },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectAll' }
+    ]
+  });
   template.push(
     {
       label: 'Insert',
       submenu: [
         {
-          label: `Equation (Nemeth)\t${mod}+E`,
+          // Word's own keys: Alt+= on Windows, Control+= on Mac. The key itself
+          // is handled in the editor (src/renderer/editor/index.js); this label
+          // is the menu's reminder of it. It uses the last method chosen.
+          label: `Equation\t${isMac ? 'Ctrl' : 'Alt'}+=`,
+          click: () => sendMenuCommand({ action: 'insert-equation' })
+        },
+        {
+          label: 'Equation (Nemeth)',
           click: () => sendMenuCommand({ action: 'insert-equation', method: 'nemeth' })
         },
         {
-          label: `Equation (LaTeX)\t${mod}+L`,
+          label: 'Equation (LaTeX)',
           click: () => sendMenuCommand({ action: 'insert-equation', method: 'latex' })
-        }
-      ]
-    },
-    {
-      label: 'Format',
-      submenu: [
-        {
-          label: `UEB G2 / G1\t${mod}+T`,
-          click: () => sendMenuCommand({ action: 'toggle-ueb-grade' })
         }
       ]
     },
@@ -164,9 +273,10 @@ function buildApplicationMenu() {
           click: () => sendMenuCommand({ action: 'keyboard-help' })
         },
         {
-          // Rides the existing menu-command bridge rather than adding an IPC
-          // handler: nothing crosses into the main process, so there is no new
-          // surface to guard with assertTrustedSender.
+          // Rides the menu-command bridge to the page, which builds the report.
+          // The page then hands the text to the main process to copy
+          // ('clipboard:writeText', guarded by assertTrustedSender), because the
+          // page's own clipboard call failed on a contributor's Windows machine.
           label: 'Copy braille input diagnostics',
           click: () => sendMenuCommand({ action: 'copy-input-diagnostics' })
         }

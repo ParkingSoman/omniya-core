@@ -1,0 +1,123 @@
+name: pipeline-keep-current
+
+# Keep every open fix branch up to date with `testing`.
+#
+# A contributor tests a fix while `testing` moves on. The branch falls behind, then
+# conflicts, and the fix that the contributor already said works cannot merge.
+# That is how a backlog builds up. This runs after every push to `testing`, once a
+# week, and when the hand-off finds a conflict.
+#
+# `scripts/ci/keep-current.mjs` asks GitHub to merge `testing` into each open
+# `claude/fix-*` branch, with the App's token so the push starts the checks and the
+# build. A clean update needs no words: the links stay the same. A conflict is given
+# to `pipeline-verify.yml`, whose repair agent merges `testing` in and resolves it,
+# and the contributor gets ONE comment with the new build. Their "it works" was for
+# the commit they tested, so they try the new build and say it again.
+#
+# A pull request that already waits on a person is left alone. A repair that failed
+# three times would only fail a fourth time on the next push, and every try spends
+# the maintainer's own quota.
+on:
+  push:
+    branches: [testing]
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Only this pull request. Leave empty for all of them.
+        required: false
+        default: ''
+        type: string
+
+# One run at a time. A push during a run waits for it, then looks at the new state.
+concurrency:
+  group: pipeline-keep-current
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment: pipeline
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      conflicts: ${{ steps.keep.outputs.conflicts }}
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        with:
+          app-id: ${{ vars.PIPELINE_APP_ID }}
+          private-key: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - id: keep
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MERGE_TOKEN: ${{ steps.app.outputs.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: node scripts/ci/keep-current.mjs
+
+  # The agent cannot run in a run that a push started: the action accepts issue
+  # comments, manual starts and schedules, and fails with "Unsupported event type:
+  # push". Seen live on the first run, when five repairs failed in the same step and
+  # five contributors were told a maintainer had to look. So a push only UPDATES, and
+  # starts one manual run, which does the repairs. ONE run for all of them, not one per
+  # pull request: GitHub keeps a single waiting run per concurrency group, so several
+  # starts would drop all but the last. The manual run updates again (already-current
+  # branches are skipped), finds the same conflicts, and repairs them one at a time.
+  redispatch:
+    needs: update
+    if: github.event_name == 'push' && needs.update.outputs.conflicts != '[]' && needs.update.outputs.conflicts != ''
+    runs-on: ubuntu-latest
+    # Can start a workflow, holds no secret and no environment: the job with the App
+    # key must never be able to start one.
+    permissions:
+      actions: write
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pipeline-keep-current.yml --repo "$GITHUB_REPOSITORY" --ref testing
+
+  # One repair per conflicting pull request, one at a time: each spends the
+  # maintainer's quota, and the agent works in its own checkout of the branch.
+  repair:
+    needs: update
+    # Never in a run a push started. See `redispatch` above.
+    if: github.event_name != 'push' && needs.update.outputs.conflicts != '[]' && needs.update.outputs.conflicts != ''
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        item: ${{ fromJSON(needs.update.outputs.conflicts) }}
+    # The same group as the contributor's own runs on that issue, so a comment from them
+    # waits for this repair and the two never push to the same branch at once.
+    concurrency:
+      group: contributor-issue-${{ matrix.item.issue }}
+      cancel-in-progress: false
+    # A ceiling, not a grant: every job inside states its own permissions.
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ./.github/workflows/pipeline-verify.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
+    with:
+      issue_number: ${{ matrix.item.issue }}
+      pr_number: ${{ matrix.item.pr }}
+      branch: ${{ matrix.item.branch }}
+      message: ''
+      reply_state: revised

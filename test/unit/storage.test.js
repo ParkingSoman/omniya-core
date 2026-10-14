@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { addItem, createInitialState } from '../../src/domain/model.js';
+import { createInitialState, setNapkinDoc } from '../../src/domain/model.js';
 import { createStorage } from '../../src/main/storage.js';
 
 async function temporaryDirectory() {
@@ -78,15 +78,49 @@ test('serializes concurrent saves and leaves the newest state intact', async () 
   const directory = await temporaryDirectory();
   const storage = createStorage(directory, { idFactory: () => 'napkin-1' });
   const first = createInitialState({ idFactory: () => 'napkin-1' });
-  const second = addItem(first, {
-    type: 'text',
-    source: 'second save',
-    note: '',
-    mathml: null
-  }, { idFactory: () => 'item-1' });
+  const second = setNapkinDoc(first, 'napkin-1', {
+    type: 'doc',
+    content: [{ type: 'paragraph', content: [{ type: 'text', text: 'second save' }] }]
+  });
 
   await Promise.all([storage.save(first), storage.save(second)]);
 
   assert.deepEqual((await storage.load()).state, second);
   assert.equal((await readdir(directory)).some((name) => name.endsWith('.tmp')), false);
+});
+
+test('upgrades an older file in memory and keeps a copy of the original', async () => {
+  const directory = await temporaryDirectory();
+  const v2 = {
+    schemaVersion: 2,
+    activeNapkinId: 'n1',
+    napkins: [{ id: 'n1', name: 'Old', selectedItemId: null, items: [
+      { id: 't1', type: 'text', source: 'written long ago', note: '', mathml: null }
+    ] }]
+  };
+  const original = JSON.stringify(v2);
+  await writeFile(path.join(directory, 'napkins.json'), original, 'utf8');
+  const storage = createStorage(directory);
+
+  const { state, warning } = await storage.load();
+
+  assert.equal(warning, null);
+  assert.equal(state.schemaVersion, 3);
+  assert.equal(state.napkins[0].doc.content[0].content[0].text, 'written long ago');
+  const files = await readdir(directory);
+  const backup = files.find((name) => name.startsWith('napkins.before-v3-'));
+  assert.ok(backup, 'a backup copy of the old file exists');
+  assert.equal(await readFile(path.join(directory, backup), 'utf8'), original);
+  // The file on disk is still the old one until the next save.
+  assert.equal(await readFile(path.join(directory, 'napkins.json'), 'utf8'), original);
+});
+
+test('does not make a backup when the file is already current', async () => {
+  const directory = await temporaryDirectory();
+  const storage = createStorage(directory, { idFactory: () => 'napkin-1' });
+  await storage.save((await storage.load()).state);
+
+  await storage.load();
+
+  assert.equal((await readdir(directory)).some((name) => name.includes('before-v')), false);
 });

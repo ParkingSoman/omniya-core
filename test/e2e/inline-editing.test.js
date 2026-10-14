@@ -3,84 +3,79 @@ import { mkdtemp } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { _electron as electron } from 'playwright';
-import { chooseMethod, electronLaunchEnv, openReplacementDockOnNewEquation, waitForDocumentComposer } from './launch-electron.js';
 
-const projectRoot = path.resolve(new URL('../..', import.meta.url).pathname);
+import {
+  chooseMethod,
+  enterExplorer,
+  getMathNodes,
+  insertEquation,
+  launchApp,
+  mathNodeLocator
+} from './launch-electron.js';
 
-async function launch(prefix = 'omniya-replacement-') {
+async function launch(t, prefix) {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), prefix));
-  const app = await electron.launch({
-    args: ['.'],
-    cwd: projectRoot,
-    env: electronLaunchEnv({ OMNIYA_TEST_USER_DATA_DIR: dataDirectory })
-  });
-  const page = await app.firstWindow();
-  await page.waitForLoadState('domcontentloaded');
-  await page.locator('#app-shell[aria-busy="false"]').waitFor();
-  await app.context().setOffline(true);
-  return { app, page, dataDirectory };
+  const { electronApp, page } = await launchApp({ dataDirectory });
+  t.after(() => electronApp.close().catch(() => {}));
+  return page;
 }
 
-async function addBlankEquation(page) {
-  return openReplacementDockOnNewEquation(page);
-}
+const mathmlOf = async (page) => (await getMathNodes(page))[0].attrs.mathml;
 
-async function commitDraft(page, source, method = 'latex') {
-  await chooseMethod(page, method);
-  const input = page.getByLabel('Replacement input', { exact: true });
-  await input.fill(source);
+// These cases do not depend on Nemeth. They cover the refusals: an empty or
+// invalid replacement is refused, and a cancelled one changes nothing.
+
+test('an empty replacement is refused, the dock stays open, and the equation is unchanged', { timeout: 60_000 }, async (t) => {
+  const page = await launch(t, 'omniya-submit-invalid-');
+  await insertEquation(page, { method: 'latex', source: 'a+b' });
+  const original = await mathmlOf(page);
+
+  await enterExplorer(page);
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor({ state: 'visible' });
   await page.getByRole('button', { name: 'Replace' }).click();
-  await waitForDocumentComposer(page);
-  const article = page.locator('article.napkin-article').last();
-  await article.locator('mjx-container').waitFor();
-  return article;
-}
 
-// Nemeth authoring was torn out in the nemeth-v2 rewrite (Task 0); Task 5
-// re-adds it along with the tests that exercised it. Only tests that never
-// depend on a working Nemeth draft (empty-draft rejection, pure LaTeX
-// replacement) survive here.
-
-test('invalid replacement remains open and does not mutate the source', { timeout: 60_000 }, async (t) => {
-  const { app, page } = await launch('omniya-submit-invalid-');
-  t.after(() => app.close().catch(() => {}));
-  const article = await addBlankEquation(page);
-  await page.getByRole('button', { name: 'Replace' }).click();
   assert.equal(await page.locator('#composer-dock').isVisible(), true);
   assert.match(
     `${await page.locator('#composer-error').textContent() ?? ''}\n${await page.locator('#composer-status').textContent() ?? ''}`,
     /Enter Nemeth or LaTeX|empty|incomplete/i
   );
-  assert.equal(await article.locator('math mi, math mn, math mo').count(), 0);
+  assert.equal(await mathmlOf(page), original);
+  assert.equal(await mathNodeLocator(page).count(), 1);
 });
 
-test('LaTeX is an alternate replacement draft and cancel or invalid input leaves the source unchanged', { timeout: 60_000 }, async (t) => {
-  const { app, page } = await launch('omniya-latex-replacement-');
-  t.after(() => app.close().catch(() => {}));
-  const article = await addBlankEquation(page);
-  await commitDraft(page, 'a+b', 'latex');
-  await article.focus();
-  await page.keyboard.press('r');
-  await page.locator('#composer-dock').waitFor();
-  await chooseMethod(page, 'latex');
-  await page.getByLabel('Replacement input', { exact: true }).fill('x^2+\\sqrt{y}');
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await waitForDocumentComposer(page);
-  assert.match(await article.locator('mjx-container').textContent(), /a/);
-  assert.match(await article.locator('mjx-container').textContent(), /b/);
+test('LaTeX replacement: cancel or invalid input leaves the equation unchanged, valid input replaces it', { timeout: 90_000 }, async (t) => {
+  const page = await launch(t, 'omniya-latex-replacement-');
+  const node = await insertEquation(page, { method: 'latex', source: 'a+b' });
+  const original = await mathmlOf(page);
 
-  await article.focus();
+  await enterExplorer(page);
   await page.keyboard.press('r');
-  await page.locator('#composer-dock').waitFor();
+  await page.locator('#composer-dock').waitFor({ state: 'visible' });
   await chooseMethod(page, 'latex');
-  const input = page.getByLabel('Replacement input', { exact: true });
+  await page.locator('#composer-source').fill('x^2+\\sqrt{y}');
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  assert.equal(await mathmlOf(page), original, 'cancel changes nothing');
+  assert.match(await node.locator('mjx-container').textContent(), /a/);
+  assert.match(await node.locator('mjx-container').textContent(), /b/);
+
+  // Cancel hands the explorer back, so r works again.
+  await page.waitForFunction(() => Boolean(document.activeElement?.closest?.('.math-node')));
+  await page.keyboard.press('r');
+  await page.locator('#composer-dock').waitFor({ state: 'visible' });
+  await chooseMethod(page, 'latex');
+  const input = page.locator('#composer-source');
   await input.fill('\\frac{');
   await page.getByRole('button', { name: 'Replace' }).click();
   assert.match(await page.locator('#composer-status').textContent(), /convert|empty|invalid|incomplete/i);
-  assert.match(await article.locator('mjx-container').textContent(), /a/);
+  assert.equal(await page.locator('#composer-dock').isVisible(), true);
+  assert.equal(await mathmlOf(page), original, 'an invalid draft changes nothing');
+
   await input.fill('x^3');
   await page.getByRole('button', { name: 'Replace' }).click();
-  await waitForDocumentComposer(page);
-  assert.equal(await article.locator('math msup').count(), 1);
+  await page.locator('#composer-dock').waitFor({ state: 'hidden' });
+  assert.equal(await mathNodeLocator(page).count(), 1, 'replaced in place');
+  assert.equal(await node.locator('math msup').count(), 1);
+  assert.match(await mathmlOf(page), /<msup/);
 });

@@ -621,7 +621,7 @@ const PASS_BASELINE = 215;
 // alone is an aggregate floor: N cases regressing to REFUSE while N different
 // cases start passing in the same commit leaves PASS_BASELINE, DISAGREE and
 // ERROR all unchanged, so that swap is fully green under the count alone. This
-// pins which 214 cases pass, so a swap is caught even though the total is not.
+// pins which 215 cases pass, so a swap is caught even though the total is not.
 // Sourced from the same coverage run as PASS_BASELINE -- see docs/nemeth-v2/coverage.md.
 const PASS_IDS = new Set([
   "mathcat-rules:baseline_80_a_1",
@@ -793,6 +793,7 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_310",
   "sre-aata:AataExpression_32",
   "sre-aata:AataExpression_327",
+  "sre-aata:AataExpression_329",
   "sre-aata:AataExpression_33",
   "sre-aata:AataExpression_332",
   "sre-aata:AataExpression_333",
@@ -945,7 +946,10 @@ const UNCORROBORATED_COMPARISON_CELLS = [
   // end-to-end. It drops off this list when either blocker ships. Its twin
   // `⠨⠂⠱` (greater than or equal to, line 10407) IS corroborated, by
   // sre-aata:AataExpression_332.
-  '⠐⠅⠱'
+  '⠐⠅⠱',
+  // Double tilde, "is approximately equal to", BANA 21-7 (line 17447). Issue #66.
+  // Shipped from the Code's symbol list; no corpus case carries it.
+  '⠈⠱⠈⠱'
 ];
 
 test('every comparison symbol row is either exercised by a corpus case or declared uncorroborated', async () => {

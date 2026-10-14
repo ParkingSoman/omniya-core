@@ -1,0 +1,60 @@
+name: screen-reader
+
+# Real screen readers against the editor: VoiceOver on macOS, NVDA on Windows.
+#
+# It runs on `pull_request`, so it uses the pull request's own copy of this
+# file and does not need to be on `main`. `workflow_dispatch` is for a manual
+# rerun. A `workflow_dispatch` that has to be started from the Actions page only
+# works once this file is on the default branch.
+#
+# What this proves: the words the reader speaks at each step. What it cannot
+# prove: whether a blind user finds the flow good. That stays with the human
+# sign-off in docs/HUMAN-TESTING.md.
+#
+# `guidepup/setup-action` is not used. Its README says it is no longer
+# supported and points at the `@guidepup/setup` CLI, which is what runs here.
+on:
+  pull_request:
+    branches: [testing]
+    paths:
+      - 'src/renderer/editor/**'
+      - 'src/renderer/spike.html'
+      - 'src/renderer/dev/spike-main.cjs'
+      - 'test/screen-reader/**'
+      - 'scripts/build-editor.mjs'
+      - '.github/workflows/screen-reader.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: screen-reader-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  screen-reader:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx @guidepup/setup setup --ci
+      - run: npx @guidepup/setup install
+      - run: node scripts/build-editor.mjs
+      - run: npm run test:screen-reader
+      # Keep the transcript even when a step fails. It is the evidence.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screen-reader-transcript-${{ matrix.os }}
+          path: test/artifacts/screen-reader/
+          if-no-files-found: warn

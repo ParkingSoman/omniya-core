@@ -4,136 +4,191 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'">
-    <title>Omniya Math Napkins</title>
+    <meta name="color-scheme" content="light dark">
+    <title>Omniya Notes</title>
     <link rel="stylesheet" href="./styles.css">
     <script src="./mathjax-config.js"></script>
     <script src="../../node_modules/@mathjax/src/bundle/tex-mml-chtml.js"></script>
   </head>
-  <body class="chrome-radios-hidden">
+  <body>
     <div id="app-shell" aria-busy="true">
+      <!-- Spoken confirmations for actions that move focus (an equation inserted or
+           deleted). WCAG 4.1.3 status messages. -->
+      <div id="announcer" class="sr-only" role="status" aria-live="polite"></div>
       <div id="update-banner" role="status" aria-live="polite" hidden>
         <p id="update-banner-text"></p>
         <button id="update-banner-action" type="button">Get the latest build</button>
         <button id="update-banner-dismiss" type="button">Dismiss</button>
       </div>
-      <aside id="napkin-rail" aria-label="Napkins">
-        <div class="rail-brand"><span class="brand-mark" aria-hidden="true">∴</span><span>Omniya</span></div>
+
+      <!-- First stop for a keyboard user: jump past the list of notes (WCAG 2.4.1). -->
+      <button id="skip-to-note" type="button" class="skip-link">Skip to note</button>
+
+      <aside id="napkin-rail" aria-label="Notes">
         <div class="rail-heading">
-          <h1>Napkins</h1>
-          <button id="new-napkin-button" type="button" aria-label="New napkin">+</button>
+          <h1>Notes</h1>
+          <button id="new-napkin-button" type="button" class="button-quiet" aria-label="New note" aria-keyshortcuts="Control+N Meta+N">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M10 4v12M4 10h12" /></svg>
+            <span class="button-text">New note</span>
+          </button>
         </div>
-        <nav id="napkin-list" aria-label="Saved napkins"></nav>
-        <form id="new-napkin-form" hidden>
-          <label for="napkin-name">Napkin name</label>
-          <input id="napkin-name" required autocomplete="off">
-          <p id="napkin-name-error" class="error" hidden></p>
-          <div class="form-actions">
-            <button id="new-napkin-submit" type="submit">Create napkin</button>
-            <button id="cancel-new-napkin" type="button">Cancel</button>
-          </div>
-        </form>
+        <div class="rail-search">
+          <label for="note-search" class="sr-only">Search notes</label>
+          <input id="note-search" type="search" placeholder="Search" autocomplete="off" spellcheck="false">
+          <span id="note-search-status" class="sr-only" aria-live="polite"></span>
+        </div>
+        <nav id="napkin-list" aria-label="Your notes"></nav>
       </aside>
 
       <main id="workspace">
-        <header id="workspace-header">
-          <div>
-            <h2 id="current-napkin-name">Loading…</h2>
-          </div>
-          <div class="header-meta">
-            <span id="item-count">0 items</span>
-            <span id="mode-panel" tabindex="-1"></span>
-            <span id="save-status"></span>
-          </div>
-        </header>
+        <div id="toolbar" role="group" aria-label="Note actions">
+          <button id="undo-button" type="button" class="button-quiet" aria-keyshortcuts="Control+Z Meta+Z">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M7 5 3 9l4 4M3.5 9H12a4 4 0 0 1 0 8h-2" /></svg>
+            <span>Undo</span>
+          </button>
+          <button id="redo-button" type="button" class="button-quiet" aria-keyshortcuts="Control+Y Meta+Shift+Z">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="m13 5 4 4-4 4M16.5 9H8a4 4 0 0 0 0 8h2" /></svg>
+            <span>Redo</span>
+          </button>
+          <span class="toolbar-gap" aria-hidden="true"></span>
+          <button id="insert-equation-button" type="button" class="button-accent" aria-keyshortcuts="Alt+= Control+=">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M15 4H6l5 6-5 6h9" /></svg>
+            <span>Insert equation</span>
+            <kbd id="insert-equation-key" aria-hidden="true"></kbd>
+          </button>
+          <button id="find-button" type="button" class="button-quiet" aria-keyshortcuts="Control+F Meta+F">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><circle cx="8.5" cy="8.5" r="5" /><path d="m12.3 12.3 4.2 4.2" /></svg>
+            <span>Find</span>
+          </button>
+          <span class="toolbar-fill" aria-hidden="true"></span>
+          <button id="delete-button" type="button" class="button-quiet" aria-label="Delete note">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" /></svg>
+            <span>Delete</span>
+          </button>
+          <button id="export-button" type="button" class="button-quiet" aria-haspopup="dialog">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M10 3v10M6 7l4-4 4 4M4 13v3h12v-3" /></svg>
+            <span>Export</span>
+          </button>
+          <button id="keyboard-help-button" type="button" class="button-quiet">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M3 6h14v9H3zM6 9h1M9 9h2M13 9h1M6 12h8" /></svg>
+            <span>Shortcuts</span>
+          </button>
+        </div>
 
-        <section id="reading-section" aria-labelledby="reading-heading">
-          <div class="reading-heading">
-            <div>
-              <h3 id="reading-heading">Reading</h3>
-            </div>
-            <p id="reading-help">Up and Down move between items. Enter explores an equation; r replaces, a inserts after, o inserts before the focus.</p>
-          </div>
-          <p id="empty-message">No items yet. Start typing.</p>
-          <section id="transcript" aria-label="Napkin content"></section>
-          <div id="reading-actions" class="reading-actions">
-            <button id="keyboard-help-button" type="button">Keyboard help</button>
-          </div>
-        </section>
-
-        <section id="replacement-dock" aria-labelledby="replacement-heading" hidden>
-          <div class="replacement-bar">
-            <h3 id="replacement-heading">Replace focused mathematics</h3>
-            <span id="replacement-scope" class="muted"></span>
-          </div>
-          <fieldset id="replacement-method" aria-describedby="replacement-method-help">
-            <legend class="sr-only">Authoring method</legend>
-            <label><input type="radio" name="replacement-method" value="nemeth" checked> Nemeth</label>
-            <label><input type="radio" name="replacement-method" value="latex"> LaTeX</label>
-          </fieldset>
-          <p id="replacement-method-help">Nemeth builds the replacement one cell at a time. LaTeX accepts the complete replacement expression.</p>
-          <label for="replacement-input" class="sr-only">Legacy replacement input</label>
-          <textarea id="replacement-input" rows="2" aria-describedby="replacement-status"></textarea>
-          <p id="replacement-status"></p>
-          <div id="replacement-choices" class="replacement-choices" aria-label="Nemeth choices" hidden></div>
-          <div class="replacement-actions">
-            <button id="replacement-submit" type="button">Replace</button>
-            <button id="replacement-cancel" type="button">Cancel</button>
-          </div>
+        <section id="find-bar" role="search" aria-label="Find in note" hidden>
+          <label for="find-input" class="sr-only">Find in note</label>
+          <input id="find-input" type="text" autocomplete="off" spellcheck="false" placeholder="Find in note" aria-describedby="find-count">
+          <span id="find-count" class="muted" aria-live="polite"></span>
+          <button id="find-previous" type="button" class="button-quiet button-small">Previous</button>
+          <button id="find-next" type="button" class="button-quiet button-small">Next</button>
+          <button id="find-close" type="button" class="button-quiet button-small">Close</button>
         </section>
 
         <section id="composer-dock" aria-labelledby="composer-heading" hidden>
-          <form id="composer-form" aria-label="Napkin item form">
+          <form id="composer-form">
             <div class="composer-bar">
-              <div>
-                <h3 id="composer-heading">Write</h3>
-              </div>
-              <button id="composer-back" type="button" hidden>Back to reading</button>
-            </div>
-            <div class="composer-options">
-              <fieldset id="mode-switch" aria-label="Input type" aria-describedby="mode-help">
-                <legend class="sr-only">Input type</legend>
-                <span id="mode-help" class="sr-only">Use Left and Right Arrow keys to switch between Text and Equation.</span>
-                <label><input type="radio" name="item-type" value="text" checked> <span>Text</span></label>
-                <label><input type="radio" name="item-type" value="equation"> <span>Equation</span></label>
+              <span id="composer-heading">Equation</span>
+              <span id="replacement-scope" class="muted"></span>
+              <fieldset id="replacement-method" aria-describedby="replacement-method-help">
+                <legend class="sr-only">Write the equation as</legend>
+                <label><input type="radio" name="replacement-method" value="nemeth" checked aria-keyshortcuts="Control+E"><span>Nemeth braille</span></label>
+                <label><input type="radio" name="replacement-method" value="latex" aria-keyshortcuts="Control+L"><span>LaTeX</span></label>
               </fieldset>
-              <button id="note-toggle" type="button" aria-expanded="false" hidden>Add note</button>
             </div>
+            <p id="replacement-method-help" class="sr-only">Nemeth: type braille cells. LaTeX: type the whole expression. Control E picks Nemeth and Control L picks LaTeX while the field is empty.</p>
 
-            <label for="composer-source" class="sr-only">Content</label>
-            <textarea id="composer-source" rows="1" required aria-describedby="composer-help composer-status composer-error"></textarea>
-            <div id="composer-choices" class="replacement-choices" aria-label="Nemeth choices" hidden></div>
-            <div id="note-row" hidden>
-              <label for="composer-note">Note</label>
-              <textarea id="composer-note" rows="2"></textarea>
+            <label for="composer-source" class="sr-only">Equation input</label>
+            <textarea id="composer-source" rows="1" aria-describedby="composer-help composer-status composer-error equation-preview-text"></textarea>
+            <div id="equation-preview-box" class="preview" aria-hidden="true" hidden>
+              <span class="preview-caption">Preview</span>
+              <div id="equation-preview"></div>
             </div>
+            <!-- What the preview says, for a screen reader. Read on demand with the field, not announced as it changes. -->
+            <span id="equation-preview-text" class="sr-only"></span>
             <p id="composer-status" class="composer-status" aria-live="polite"></p>
-            <p id="composer-help">Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts a Nemeth equation, Ctrl+L a LaTeX equation, at the caret.</p>
             <p id="composer-error" class="error" hidden></p>
             <div class="composer-footer">
+              <p id="composer-help">Enter inserts. Escape cancels.</p>
               <span id="editing-indicator" class="muted"></span>
-              <button id="composer-submit" type="submit" hidden>Insert equation</button>
-              <button id="composer-discard" type="button">Discard</button>
-              <button id="composer-cancel" type="button" hidden>Cancel</button>
+              <button id="composer-submit" type="submit" class="button-primary">Insert</button>
+              <button id="composer-cancel" type="button" class="button-quiet">Cancel</button>
             </div>
           </form>
         </section>
 
-        <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
-          <h3 id="keyboard-help-heading">Keyboard help</h3>
-          <p><strong>Reading:</strong> Enter explores an equation. MathJax arrows navigate its hierarchy. r replaces the exact focus. a inserts after it. o inserts before it.</p>
-          <p><strong>Authoring:</strong> Type in the document to write. Enter starts a new paragraph; Shift+Enter adds a line break within one. Ctrl+E inserts a Nemeth equation; Ctrl+L inserts LaTeX. Enter commits the equation and keeps the equation editor up in the same method, so the next expression needs no Ctrl+E. Escape returns to text, and discards an unfinished equation. Ctrl+T toggles UEB grade on text. The Nemeth field takes braille cells only; Backspace deletes the last cell as in any text field, and a braille display works whether it sends cells or the plain text a computer-braille table produces — the app tells them apart on its own and the status line says which reading it used. With no pending UEB cells, full cell ⠿ inserts Nemeth (same as Ctrl+E). The UEB word “for” is also ⠿ at the start of a word and will do the same; use Ctrl+E or Insert → Equation (Nemeth) if that collides. The application menu Insert / Format / Help (Alt on Windows; menu bar on Mac) does the same actions.</p>
-          <div data-command-help></div>
-          <p><strong>History:</strong> Cmd/Ctrl+Z undoes a submitted replacement. Cmd/Ctrl+Shift+Z redoes it.</p>
-          <p><strong>Build:</strong> <span id="app-build-identity">unknown</span>. If braille input misbehaves, Help → Copy braille input diagnostics puts this and the last few keystrokes on the clipboard for a bug report.</p>
-          <button id="close-keyboard-help" type="button">Close</button>
-        </dialog>
-
+        <div id="document-section">
+          <div class="page">
+            <p id="note-date" class="note-date" aria-hidden="true"></p>
+            <h2 id="no-note-title" hidden>No note open</h2>
+            <span id="save-status" class="save-status"></span>
+            <!-- Kept for the braille-input diagnostics and for tests. The equation panel says the same thing in plain words. -->
+            <span id="mode-panel" tabindex="-1" class="sr-only" aria-hidden="true"></span>
+            <p id="empty-message" hidden>No note is open. Choose New note to start one.</p>
+            <div id="editor-host"></div>
+            <p id="status-hint" class="status-hint" aria-hidden="true"></p>
+          </div>
+        </div>
 
         <div id="app-error" role="alert" hidden>
           <span id="app-error-message"></span>
-          <button id="retry-save" type="button" hidden>Retry save</button>
+          <button id="retry-save" type="button" class="button-quiet" hidden>Retry save</button>
         </div>
       </main>
+
+      <dialog id="export-dialog" aria-labelledby="export-heading">
+        <h3 id="export-heading" tabindex="-1">Export this note</h3>
+        <p class="muted">Equations are kept. Choose a file type, then choose where to save it.</p>
+        <div class="export-choices">
+          <button id="export-html" type="button" class="button-quiet export-choice"><strong>Web page</strong><span>.html. Equations stay readable by a screen reader. Opens in any browser.</span></button>
+          <button id="export-latex" type="button" class="button-quiet export-choice"><strong>LaTeX document</strong><span>.tex. For papers and for other mathematics tools.</span></button>
+          <button id="export-text" type="button" class="button-quiet export-choice"><strong>Plain text</strong><span>.txt. Equations written as LaTeX between dollar signs.</span></button>
+          <button id="export-print" type="button" class="button-quiet export-choice"><strong>Print</strong><span>Print the note, or save it as a PDF from the print window.</span></button>
+        </div>
+        <button id="close-export" type="button" class="button-primary">Close</button>
+      </dialog>
+
+      <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
+        <h3 id="keyboard-help-heading" tabindex="-1">Keyboard shortcuts</h3>
+
+        <h4>Writing</h4>
+        <dl class="keys">
+          <div><dt>New paragraph</dt><dd><kbd>Enter</kbd></dd></div>
+          <div><dt>Undo</dt><dd><span class="keys-win"><kbd>Ctrl+Z</kbd></span><span class="keys-mac"><kbd>Cmd+Z</kbd></span></dd></div>
+          <div><dt>Redo</dt><dd><span class="keys-win"><kbd>Ctrl+Y</kbd></span><span class="keys-mac"><kbd>Cmd+Shift+Z</kbd></span></dd></div>
+          <div><dt>Select all</dt><dd><span class="keys-win"><kbd>Ctrl+A</kbd></span><span class="keys-mac"><kbd>Cmd+A</kbd></span></dd></div>
+        </dl>
+
+        <h4>Equations</h4>
+        <dl class="keys">
+          <div><dt>Insert an equation</dt><dd><span class="keys-win"><kbd>Alt+=</kbd></span><span class="keys-mac"><kbd>Control+=</kbd></span></dd></div>
+          <div><dt>Write it as Nemeth or LaTeX</dt><dd><kbd>Ctrl+E</kbd> or <kbd>Ctrl+L</kbd>, while the field is empty</dd></div>
+          <div><dt>Insert it</dt><dd><kbd>Enter</kbd></dd></div>
+          <div><dt>Cancel</dt><dd><kbd>Escape</kbd></dd></div>
+        </dl>
+
+        <h4>Reading and editing an equation</h4>
+        <dl class="keys">
+          <div><dt>Move past it</dt><dd>Arrow keys. The first press selects it. The next moves on.</dd></div>
+          <div><dt>Delete it</dt><dd><kbd>Backspace</kbd> twice. The first press selects it.</dd></div>
+          <div><dt>Read it by parts</dt><dd>Select it, press <kbd>Enter</kbd>, then use the arrow keys.</dd></div>
+          <div><dt>Replace the part you are on</dt><dd><kbd>r</kbd></dd></div>
+          <div><dt>Insert after it, or before it</dt><dd><kbd>a</kbd> or <kbd>o</kbd></dd></div>
+          <div><dt>Return to the note</dt><dd><kbd>Escape</kbd></dd></div>
+        </dl>
+
+        <h4>Finding and sharing</h4>
+        <dl class="keys">
+          <div><dt>Find in the note</dt><dd><span class="keys-win"><kbd>Ctrl+F</kbd></span><span class="keys-mac"><kbd>Cmd+F</kbd></span></dd></div>
+          <div><dt>Next or previous match</dt><dd><kbd>Enter</kbd> or <kbd>Shift+Enter</kbd>, in the find box</dd></div>
+          <div><dt>Close the find box</dt><dd><kbd>Escape</kbd>. The match stays selected.</dd></div>
+          <div><dt>Print</dt><dd><span class="keys-win"><kbd>Ctrl+P</kbd></span><span class="keys-mac"><kbd>Cmd+P</kbd></span></dd></div>
+          <div><dt>New note</dt><dd><span class="keys-win"><kbd>Ctrl+N</kbd></span><span class="keys-mac"><kbd>Cmd+N</kbd></span></dd></div>
+        </dl>
+
+        <p class="muted">The Insert and Help menus run the same actions (Alt on Windows, the menu bar on Mac). If braille input misbehaves, use the Copy braille input diagnostics button below, or choose Help, then Copy braille input diagnostics, and paste it into your report. This build: <span id="app-build-identity">unknown</span>.</p>
+        <button id="copy-diagnostics" type="button" class="button-quiet">Copy braille input diagnostics</button>
+        <button id="close-keyboard-help" type="button" class="button-primary">Close</button>
+      </dialog>
     </div>
     <script type="module" src="./app.js"></script>
   </body>
