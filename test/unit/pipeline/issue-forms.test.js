@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import { load as loadYaml } from 'js-yaml';
 
+import { PAIRED_FILES } from '../../../scripts/ci/pipeline-drift.mjs';
 import { kindFromLabels } from '../../../scripts/ci/issue-kind.mjs';
 
 const DIR = '.github/ISSUE_TEMPLATE';
@@ -31,6 +32,15 @@ test('there are exactly four forms, and each puts the one label that routes it',
 test('blank issues are off, so every report has a type', () => {
   const config = loadYaml(readFileSync(`${DIR}/config.yml`, 'utf8'));
   assert.equal(config.blank_issues_enabled, false);
+});
+
+test('every form lives on main too, and the drift check knows it', () => {
+  // GitHub reads an issue form from the default branch only. A form that is only
+  // on `testing` never appears, and nobody is told.
+  const paired = PAIRED_FILES.map(([local]) => local);
+  for (const file of [...Object.keys(forms), 'config.yml']) {
+    assert.ok(paired.includes(`${DIR}/${file}`), `${file} is not in PAIRED_FILES`);
+  }
 });
 
 test('every field has a real label and description, because placeholders are not reliably announced', () => {

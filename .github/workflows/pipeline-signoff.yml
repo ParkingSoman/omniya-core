@@ -16,11 +16,14 @@ name: pipeline-signoff
 # said: that is the ordinary case of the maintainer's merge closing the issue,
 # or of somebody tidying a stale report.
 #
+# The file keeps its name because the stub on `main` calls it by that name, and
+# renaming it would need a change on `main` for no gain.
+#
+# Called from the stub on `main` (`.github/pipeline-stubs/contributor-signoff.yml`).
 # It holds no secret and starts no agent, so a stranger closing their own issue
 # costs nothing and needs no allowlist.
 on:
-  issues:
-    types: [closed]
+  workflow_call:
 
 permissions:
   contents: read
@@ -29,8 +32,6 @@ permissions:
 
 jobs:
   explain:
-    # Not for an issue closed as "not planned".
-    if: github.event.issue.state_reason != 'not_planned'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -38,7 +39,10 @@ jobs:
       pull-requests: read
       issues: write
     steps:
+      # `testing`, not the default checkout: the helper is not on `main`.
       - uses: actions/checkout@v4
+        with:
+          ref: testing
       - id: find
         env:
           GH_TOKEN: ${{ github.token }}

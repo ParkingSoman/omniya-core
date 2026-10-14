@@ -17,7 +17,7 @@ test('a new push replaces the assets under the same tag', () => {
   //    files behind them are replaced. Download again rather than looking for
   //    a new link."
   //
-  // That sentence is the reason `pipeline-followup.yml` pushes to the pull
+  // That sentence is the reason `contributor-followup.yml` pushes to the pull
   // request's branch instead of opening a second one. So it is not a nicety --
   // it is the contract the follow-up loop is built on top of, and it holds only
   // if all four things below stay true together.

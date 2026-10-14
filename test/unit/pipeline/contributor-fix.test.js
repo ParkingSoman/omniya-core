@@ -5,16 +5,20 @@ import test from 'node:test';
 import { load as loadYaml } from 'js-yaml';
 
 const PATH = '.github/workflows/pipeline-fix.yml';
+const STUB = '.github/pipeline-stubs/contributor-fix.yml';
 const source = readFileSync(PATH, 'utf8');
 const workflow = loadYaml(source);
 
 // `on: issues` parses as the boolean true in YAML 1.1, because `on` is one of
 // its reserved truthy words. Reach the trigger by whichever key survived rather
 // than asserting one and getting a confusing undefined.
-const triggers = workflow.on ?? workflow[true];
+// The trigger lives in the stub that is copied to `main`; this file is only ever
+// called. Every assertion about WHEN a run starts reads the stub.
+const stub = loadYaml(readFileSync(STUB, 'utf8'));
+const triggers = stub.on ?? stub[true];
 
-const AGENT = './.github/workflows/pipeline-agent.yml';
-const VERIFY = './.github/workflows/pipeline-verify.yml';
+const AGENT = 'ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing';
+const VERIFY = 'ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing';
 
 test('one run per issue, in the group the follow-up shares', () => {
   // These runs spend the maintainer's own Claude subscription quota. One run per
@@ -101,11 +105,11 @@ test('the fix job still needs the gate to say yes, and only a bug or a Nemeth re
   assert.match(workflow.jobs.status.if, /needs\.allowlist\.outputs\.allowed\s*==\s*'true'/);
 });
 
-test('the kind comes from the labels on the issue, read through the API, by the default-branch copy', () => {
+test('the kind comes from the labels on the issue, read through the API, by the copy on testing', () => {
   const kind = workflow.jobs.kind;
   assert.equal(kind.needs, 'allowlist');
   assert.match(kind.if, /allowed\s*==\s*'true'/, 'a refused author costs nothing, not even this');
-  assert.equal(kind.steps[0].with?.ref, undefined, 'the default checkout is `testing`');
+  assert.equal(kind.steps[0].with?.ref, 'testing', 'the helper is not on `main`');
   const step = kind.steps.find((s) => s.id === 'kind');
   assert.match(step.run, /scripts\/ci\/issue-kind\.mjs "\$ISSUE"/);
   assert.equal(kind.permissions?.issues, 'read');
@@ -135,21 +139,19 @@ test('the contributor is told, first thing, that work has started, and a failed 
   assert.ok(post, 'expected a step that posts the short "started" comment');
   assert.match(post.run, /"\$ISSUE" started/);
   assert.equal(post['continue-on-error'], true);
-  assert.equal(status.steps[0].with?.ref, undefined, 'the default checkout is `testing`');
+  // The helper is not on `main`, which is what the default checkout would give.
+  assert.equal(status.steps[0].with?.ref, 'testing');
   // And `fix` runs even if this job did not succeed.
   assert.match(workflow.jobs.fix.if, /!cancelled\(\)/);
 });
 
 test('a run can be started by hand, and the gate still checks the issue author', () => {
   const dispatch = triggers?.workflow_dispatch;
-  assert.ok(dispatch, 'expected a workflow_dispatch trigger');
+  assert.ok(dispatch, 'expected a workflow_dispatch trigger on the stub');
   assert.equal(dispatch.inputs?.issue_number?.required, true);
-  assert.equal(dispatch.inputs.issue_number.type, 'string');
-  assert.equal(triggers?.workflow_call, undefined, 'it holds its own triggers and is not called');
-  // And the typed number has to reach the jobs that do the work.
-  assert.match(workflow.concurrency.group, /inputs\.issue_number/);
-  const issueStep = workflow.jobs.allowlist.steps.find((s) => s.id === 'issue');
-  assert.equal(issueStep.env.INPUT_ISSUE_NUMBER, '${{ inputs.issue_number }}');
+  // And the typed number has to reach the workflow that does the work.
+  assert.equal(stub.jobs.call.with?.issue_number, "${{ github.event.inputs.issue_number || '' }}");
+  assert.equal(workflow.on.workflow_call.inputs.issue_number.type, 'string');
 
   // The gate must read the author of the ISSUE. If it read the actor who
   // pressed the button, anyone with write access could spend the quota on a
@@ -208,7 +210,7 @@ test('a fix that ended without a pull request says so on the issue', () => {
   assert.equal(step.env.MESSAGE, '${{ needs.fix.outputs.message }}');
   assert.doesNotMatch(step.run, /\$\{\{/, 'agent text must never be written into a run line');
   assert.doesNotMatch(step.run, /gh issue|gh label/, 'the script labels the issue, once');
-  assert.equal(outcome.steps[0].with?.ref, undefined, 'the default checkout is `testing`');
+  assert.equal(outcome.steps[0].with?.ref, 'testing', 'the script is not on `main`');
   assert.equal(outcome.permissions?.actions, undefined);
   assert.doesNotMatch(JSON.stringify(outcome.steps), /claude-code-action/, 'saying so costs no quota');
 });
@@ -224,7 +226,7 @@ test('a listed contributor who cannot write is told the true reason, and the mai
   assert.match(noaccess.if, /kind\.outputs\.kind != 'routed'/);
   const step = noaccess.steps[0];
   assert.match(step.run, /gh issue comment/);
-  assert.match(step.run, /needs-owner/);
+  assert.match(step.run, /needs-maintainer/);
   assert.match(step.run, /exit 1/, 'a set-up mistake of the maintainer is shown red: the failure email is how they learn');
   assert.equal(noaccess.permissions.issues, 'write');
   assert.doesNotMatch(JSON.stringify(noaccess.steps), /claude-code-action/);

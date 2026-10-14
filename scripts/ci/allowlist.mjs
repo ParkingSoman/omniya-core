@@ -1,7 +1,7 @@
 /**
  * Decide whether a GitHub handle may drive the contributor fix pipeline.
  *
- * This runs as the FIRST job of `.github/workflows/pipeline-fix.yml`, on a
+ * This runs as the FIRST job of `.github/workflows/contributor-fix.yml`, on a
  * bare checkout with no `npm ci` behind it. That is why it parses
  * `.github/contributors.yml` itself instead of pulling in a YAML library: the
  * gate that decides whether to spend the maintainer's subscription quota should

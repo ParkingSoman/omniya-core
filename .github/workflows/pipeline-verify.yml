@@ -23,8 +23,8 @@ name: pipeline-verify
 # There is no `concurrency` here. The caller holds the one group for the issue.
 # A called workflow given the caller's group waits on itself forever.
 #
-# Helper scripts come from the default checkout, which is `testing`, a protected
-# branch.
+# Helper scripts are checked out from `testing`, which is a protected branch.
+# The default checkout would be `main`, which does not have them.
 on:
   workflow_call:
     secrets:
@@ -73,6 +73,8 @@ jobs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: testing
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -92,7 +94,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ./.github/workflows/pipeline-agent.yml
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}
@@ -116,6 +118,8 @@ jobs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: testing
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -135,7 +139,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ./.github/workflows/pipeline-agent.yml
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}
@@ -159,6 +163,8 @@ jobs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: testing
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -178,7 +184,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ./.github/workflows/pipeline-agent.yml
+    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}
@@ -202,6 +208,8 @@ jobs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: testing
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -231,6 +239,8 @@ jobs:
       green: ${{ steps.final.outputs.green }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: testing
       - id: final
         env:
           GH_TOKEN: ${{ github.token }}
@@ -254,8 +264,8 @@ jobs:
             echo "green=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          gh label create needs-owner --force --description "A person has to look at this" || true
-          gh pr edit "$PR" --add-label needs-owner
+          gh label create needs-maintainer --force --description "A person has to look at this" || true
+          gh pr edit "$PR" --add-label needs-maintainer
           gh pr comment "$PR" --body "The automatic checks or the build are still red after 3 repair attempts, or the repair agent asked for a person. The maintainer has to look. Run: $RUN_URL"
           node scripts/ci/reply.mjs "$ISSUE" maintainer
           echo "green=false" >> "$GITHUB_OUTPUT"

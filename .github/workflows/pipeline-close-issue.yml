@@ -1,0 +1,50 @@
+name: pipeline-close-issue
+
+# The maintainer merged a fix this pipeline made. Close the issue it fixes.
+#
+# GitHub closes an issue from a `Fixes #N` line only when the pull request merges
+# into the DEFAULT branch, which is `main`. These pull requests merge into
+# `testing`, so the line closes nothing by itself and the issue would stay open
+# for ever. This is the missing half.
+#
+# It triggers on `pull_request`, so GitHub runs this branch's own copy and it
+# does not need to be on `main`. It runs only for a pull request that this
+# pipeline made: from this repository, on a `claude/fix-` branch, merged.
+#
+# A close made with this workflow's own token starts no other workflow, so
+# `pipeline-signoff.yml` does not run for it. It would find no open fix and say
+# nothing anyway.
+on:
+  pull_request:
+    types: [closed]
+    branches: [testing]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  close:
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'claude/fix-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          # The LAST line of the body is `Fixes #N`. The body is attacker-
+          # controlled text, so it reaches this shell only through `env`, and
+          # only digits come out of it.
+          LAST="$(printf '%s' "$BODY" | tr -d '\r' | sed -e '/^[[:space:]]*$/d' | tail -n1)"
+          ISSUE="$(printf '%s' "$LAST" | sed -n 's/^[Ff]ixes #\([0-9][0-9]*\)[[:space:]]*$/\1/p')"
+          if [ -z "$ISSUE" ]; then
+            echo "No Fixes line in the body, so there is no issue to close."
+            exit 0
+          fi
+          gh issue close "$ISSUE" --repo "$GITHUB_REPOSITORY" --reason completed \
+            --comment "The maintainer merged the fix. Thank you for testing it."

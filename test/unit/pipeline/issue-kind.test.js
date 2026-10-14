@@ -15,7 +15,7 @@ test('the design label and the other label send the report to a person', () => {
 
 test('no type label means bug, as every report was before there were types', () => {
   assert.equal(kindFromLabels([]), 'bug');
-  assert.equal(kindFromLabels(['needs-owner']), 'bug');
+  assert.equal(kindFromLabels(['needs-maintainer']), 'bug');
 });
 
 test('two types at once go to a person', () => {

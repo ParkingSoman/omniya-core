@@ -10,7 +10,7 @@ const workflow = loadYaml(source);
 const jobs = workflow.jobs;
 const call = (workflow.on ?? workflow[true]).workflow_call;
 
-const AGENT = './.github/workflows/pipeline-agent.yml';
+const AGENT = 'ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing';
 const REPAIRS = 3;
 
 test('the chain is verify, repair, verify ... and then a report, with three repairs', () => {
@@ -37,8 +37,8 @@ test('verify jobs start workflows and run no agent; repair jobs run an agent and
     const verify = jobs[`verify-${n}`];
     assert.deepEqual(verify.permissions, { actions: 'write', contents: 'read', 'pull-requests': 'read', issues: 'read' }, `verify-${n}`);
     assert.doesNotMatch(JSON.stringify(verify.steps), /claude-code-action/, `verify-${n} must not run an agent`);
-    // The default checkout is `testing`, which has the helper scripts.
-    assert.equal(verify.steps[0].with?.ref, undefined);
+    // The helper scripts are on `testing`, not on the default branch.
+    assert.equal(verify.steps[0].with.ref, 'testing');
   }
   for (let n = 1; n <= REPAIRS; n += 1) {
     const repair = jobs[`repair-${n}`];
@@ -94,7 +94,7 @@ test('green says the build is ready on the issue; red says a technical thing is 
   assert.equal(call.inputs.reply_state.default, 'ready');
   assert.equal(call.inputs.message.default, '');
   assert.match(run, /reply\.mjs "\$ISSUE" maintainer/);
-  assert.match(run, /gh pr edit "\$PR" --add-label needs-owner/);
+  assert.match(run, /gh pr edit "\$PR" --add-label needs-maintainer/);
   assert.match(run, /gh pr comment "\$PR"/, 'the technical case goes on the pull request');
   assert.doesNotMatch(run, /gh issue comment/, 'the contributor reads one reply, and nothing technical');
 });

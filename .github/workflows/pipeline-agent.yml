@@ -177,20 +177,20 @@ jobs:
       - run: brew install liblouis
       - run: npm ci
 
-      # The helper scripts and the contributor list come out of `origin/testing`,
-      # never out of the branch just checked out. That branch
+      # The helper scripts and the contributor list come out of `origin/testing`
+      # and `origin/main`, never out of the branch just checked out. That branch
       # is the thing under discussion, and a branch that could rewrite the list
       # or the filter could admit itself.
       - run: |
           set -euo pipefail
           T="$RUNNER_TEMP/trusted"
           mkdir -p "$T/scripts/ci" "$T/.github"
-          git fetch --no-tags origin testing
+          git fetch --no-tags origin main testing
           for f in gh.mjs find-fix-pr.mjs listed-thread.mjs reply.mjs agent-digest.mjs; do
             git show "origin/testing:scripts/ci/$f" > "$T/scripts/ci/$f"
           done
-          git show origin/testing:scripts/ci/allowlist.mjs > "$T/scripts/ci/allowlist.mjs"
-          git show origin/testing:.github/contributors.yml > "$T/.github/contributors.yml"
+          git show origin/main:scripts/ci/allowlist.mjs > "$T/scripts/ci/allowlist.mjs"
+          git show origin/main:.github/contributors.yml > "$T/.github/contributors.yml"
 
       # Build the thread the agent reads, from people on the contributor list
       # only. Anyone can comment on a public issue, and the gate vetted exactly
@@ -619,11 +619,11 @@ jobs:
                check broken on its own, a rule no correct fix could meet, or a
                failure caused by something outside this branch such as `main`
                or the GitHub runner. Then run
-                 gh pr edit ${{ inputs.pr_number }} --add-label needs-owner
+                 gh pr edit ${{ inputs.pr_number }} --add-label needs-maintainer
                write the technical case as a comment on the pull request
                (technical words are fine there: which check, what it expects,
                what is wrong with it, what you recommend), write the result
-               `needs-owner`, and STOP.
+               `needs-maintainer`, and STOP.
             4. Otherwise PASS THE GATES (see GATES below), then commit and push:
 
                  git add -A
@@ -649,7 +649,7 @@ jobs:
             corpus row to reach green. If you genuinely cannot get a gate green,
             name the gate and say why (in `message.md` in plain words, in mode fix
             or comment, and on the pull request with the technical detail), write
-            the result `blocked` (or `needs-owner` in mode checks-failed),
+            the result `blocked` (or `needs-maintainer` in mode checks-failed),
             and STOP. "I could not finish" is not a reason. Say which gate, what
             it showed, and what you tried.
 
@@ -660,7 +660,7 @@ jobs:
             The allowed words:
               mode fix            opened, asked, needs-design, blocked
               mode comment        revised, answered, approved, needs-design, blocked
-              mode checks-failed  revised, needs-owner
+              mode checks-failed  revised, needs-maintainer
             `blocked` means only this: a gate stays red after you tried, or
             `gh pr create` failed. Every other doubt is a question to the
             contributor (`asked` or `answered`).
@@ -770,7 +770,7 @@ jobs:
           case "$MODE" in
             fix) allowed="opened asked needs-design blocked" ;;
             comment) allowed="revised answered approved needs-design blocked" ;;
-            *) allowed="revised needs-owner" ;;
+            *) allowed="revised needs-maintainer" ;;
           esac
           ok=no
           for a in $allowed; do [ "$word" = "$a" ] && ok=yes; done
