@@ -5,7 +5,6 @@ import test from 'node:test';
 import { load as loadYaml } from 'js-yaml';
 
 const PATH = '.github/workflows/pipeline-followup.yml';
-const STUB = '.github/pipeline-stubs/contributor-followup.yml';
 const source = readFileSync(PATH, 'utf8');
 const workflow = loadYaml(source);
 
@@ -21,11 +20,10 @@ const code = source
 // `on:` parses as the boolean true in YAML 1.1, because `on` is one of its
 // reserved truthy words. Reach the trigger by whichever key survived rather
 // than asserting one and getting a confusing undefined.
-const stub = loadYaml(readFileSync(STUB, 'utf8'));
-const triggers = stub.on ?? stub[true];
+const triggers = workflow.on ?? workflow[true];
 
-const AGENT = 'ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing';
-const VERIFY = 'ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing';
+const AGENT = './.github/workflows/pipeline-agent.yml';
+const VERIFY = './.github/workflows/pipeline-verify.yml';
 
 const allowlistJob = workflow.jobs?.allowlist;
 
@@ -34,10 +32,10 @@ test('only a @claude comment on an ISSUE starts a run', () => {
   // what notices when a later edit drops one of them.
   assert.deepEqual(triggers?.issue_comment?.types, ['created']);
 
-  // The stub filters first, so a comment that cannot cost anything never starts
-  // a run. The workflow that does the work checks the same things again, because
-  // a stub is not a place to rely on for safety. Both must say it.
-  for (const condition of [stub.jobs.call.if ?? '', allowlistJob?.if ?? '']) {
+  assert.equal(triggers?.workflow_call, undefined, 'it holds its own trigger and is not called');
+  // The first job's `if` is the cheap filter: a comment that cannot cost anything
+  // skips every job behind it.
+  for (const condition of [allowlistJob?.if ?? '']) {
     // `issue.pull_request` exists only when the comment is on a pull request. The
     // contributor writes on the issue, so this is the NEGATION of the old rule:
     // a comment on a pull request is the maintainer's conversation.
@@ -70,13 +68,11 @@ test('the allowlist gate runs before anything is installed', () => {
 });
 
 test('exactly one open fix is continued, and no fix is answered in words', () => {
-  // The gate finds the fix for this issue with the one shared helper, from
-  // `testing`, because `main` does not have it.
+  // The gate finds the fix for this issue with the one shared helper.
   const find = allowlistJob.steps.find((s) => s.id === 'find');
   assert.match(find.if, /^steps\.check\.outputs\.allowed == 'true'/, 'no lookup for a person the gate refused');
   assert.match(find.if, /steps\.access\.outputs\.access != 'false'/, 'nor for one the agent action would refuse');
-  assert.match(find.run, /git show "origin\/testing:scripts\/ci\/\$f"/);
-  assert.match(find.run, /find-fix-pr\.mjs/);
+    assert.match(find.run, /find-fix-pr\.mjs/);
   assert.doesNotMatch(code, /isCrossRepository/, 'the strict rule lives in the helper, not in a fourth copy');
 
   assert.match(workflow.jobs.agent.if, /needs\.allowlist\.outputs\.count\s*==\s*'1'/, 'two candidates are not guessed between');
@@ -250,7 +246,7 @@ test('an answer, a design refusal and a block each get one comment, with the age
   assert.match(step.run, /STATE=design/);
   assert.match(step.run, /blocked\) STATE=stuck/);
   assert.doesNotMatch(step.run, /gh issue|gh label/, 'the script labels the issue, once');
-  assert.equal(reply.steps[0].with?.ref, 'testing', 'the helper is not on `main`');
+  assert.equal(reply.steps[0].with?.ref, undefined, 'the default checkout is `testing`');
   assert.doesNotMatch(JSON.stringify(reply.steps), /claude-code-action/, 'saying so costs no quota');
 });
 
@@ -268,8 +264,7 @@ test('"it works" hands the fix to the maintainer, and does not merge it', () => 
   assert.equal(handoff.if, "needs.agent.outputs.result == 'approved'");
   const run = handoff.steps.map((s) => s.run ?? '').join('\n');
   assert.match(run, /scripts\/ci\/hand-off\.mjs "\$ISSUE" "\$PR"/);
-  // The helper is not on `main`.
-  assert.equal(handoff.steps[0].with?.ref, 'testing');
+  assert.equal(handoff.steps[0].with?.ref, undefined, 'the default checkout is `testing`');
   assert.doesNotMatch(code, /gh pr merge|--admin|--auto/, 'the maintainer merges, and nobody else');
   assert.equal(handoff.permissions?.actions, undefined);
 });
@@ -293,7 +288,7 @@ test('a crashed agent run is told, without rewriting the comment that holds the 
   assert.match(failed.if, /needs\.agent\.result == 'failure'/);
   const run = failed.steps.map((s) => s.run ?? '').join('\n');
   assert.match(run, /gh issue comment/);
-  assert.match(run, /needs-maintainer/);
+  assert.match(run, /needs-owner/);
   // The earlier links still work, and an earlier comment still holds them.
   assert.doesNotMatch(run, /status-comment\.mjs|reply\.mjs/);
   assert.match(run, /earlier download links still work/);

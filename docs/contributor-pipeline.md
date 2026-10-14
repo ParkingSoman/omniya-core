@@ -145,9 +145,9 @@ sends no notification for an edit and a blind contributor would never hear it.
 | Design or Other report filed | "A person will answer here". No agent runs | The issue, labelled `design` or `other` |
 | Agent finishes, checks and build pass | The agent's words, then the links, then what to write next | A draft pull request into `testing`. Green `unit`, `nemeth`, `e2e` |
 | Agent says it is design | The agent's words, then that the maintainer will answer | Label `needs-design` |
-| Agent is blocked: a check stays red, or the pull request will not open | The agent's words, which name the check and why, then that the maintainer will answer | Label `needs-maintainer` |
+| Agent is blocked: a check stays red, or the pull request will not open | The agent's words, which name the check and why, then that the maintainer will answer | Label `needs-owner` |
 | Agent cannot make the fault happen, or is unsure | The agent's words and a question, then how to answer | Label `needs-info` before a fix exists, no label after |
-| The agent run ends with no usable words | "Something went wrong on my side", then that the maintainer was told | Label `needs-maintainer`, and the run is red with the reason in its summary |
+| The agent run ends with no usable words | "Something went wrong on my side", then that the maintainer was told | Label `needs-owner`, and the run is red with the reason in its summary |
 | Contributor writes `@claude` and a problem | One comment: what changed, the same links | New commits on the same branch |
 | Contributor writes `@claude` and a question | One comment: the answer | Nothing |
 | Contributor writes `@claude it works` | One comment: sent to the maintainer | Pull request out of draft, label `ready-for-maintainer`, you asked to review |
@@ -194,8 +194,7 @@ regress, and no test or corpus row is weakened. Read the cited section at
 merge time. A contributor can say that the symbol works for them, and cannot say
 that the Code agrees.
 
-To change what a label does, change `issue-kind.mjs` and its test. Do not add
-logic to a stub.
+To change what a label does, change `issue-kind.mjs` and its test.
 
 ### When the agent asks, and when it cannot start
 
@@ -204,7 +203,7 @@ from. It writes the questions to `message.md`, writes the result `asked`, and
 stops. It opens no branch and no pull request. The pipeline posts the questions
 as the one comment, with `<!-- omniya-pipeline-question -->` as its first line
 and how to answer after them. It sets the label `needs-info`. It does not set
-`needs-maintainer`, because the contributor is the one who is needed.
+`needs-owner`, because the contributor is the one who is needed.
 
 The contributor answers with `@claude`. `pipeline-followup.yml` sees an issue with
 no open fix and the label `needs-info`, takes the label off, posts the short
@@ -234,11 +233,11 @@ the repository. Being on `.github/contributors.yml` is not enough: the person
 also has to be a collaborator, and has to accept the invitation. Issue #33 was a
 contributor on the list with read access only. The run now checks this first
 (`scripts/ci/can-run-agent.mjs`). If it fails for a bug or a Nemeth report, the contributor gets a plain
-comment, the issue gets `needs-maintainer`, and the job `noaccess` fails red so
+comment, the issue gets `needs-owner`, and the job `noaccess` fails red so
 you get the failure email. A Design or Other report needs no agent, so it skips
 this check and gets its one comment as usual. Fix: `node scripts/ci/add-contributor.mjs <handle>`
 sends the invitation again, then the contributor accepts it, then run
-`contributor-fix` by hand for the issue. A hand-started run is checked as YOU, so
+`pipeline-fix` by hand for the issue. A hand-started run is checked as YOU, so
 it works as soon as you press the button.
 
 ### Who can decide what the app does
@@ -277,8 +276,8 @@ cannot lean on what they are permitted to do. Three locks hold this, in order:
    `testing-guard` and `main-guard` require a review from a code owner. A
    contributor cannot approve, so a contributor cannot merge into `testing`. The
    maintainer is a bypass actor, so their own pull requests still merge. The
-   file has to be on the base branch of the pull request to count, so it is on
-   `testing` first and reaches `main` with the next merge of `testing`.
+   file has to be on the base branch of the pull request to count, and it is on
+   `testing`.
 
 If a design change gets past lock 1 by a wrong guess, lock 3 is what catches it.
 
@@ -288,15 +287,15 @@ When the contributor writes `@claude it works`, the pipeline checks that `unit`,
 `nemeth` and `e2e` are green on the pull request's head commit. If they are, it
 takes the pull request out of draft, adds the label `ready-for-maintainer`,
 asks you to review, and writes the commit that was tested in a pull request
-comment. If they are not, it adds `needs-maintainer` and tells the contributor
+comment. If they are not, it adds `needs-owner` and tells the contributor
 that you have been told.
 
 Nothing merges by itself. Closing the issue merges nothing. You merge, in the
 ordinary way.
 
-Your merge closes the issue. GitHub only closes an issue from a `Fixes` line
-when the pull request merges into the default branch, and these merge into
-`testing`. So `pipeline-close-issue.yml` closes it instead.
+Your merge closes the issue. `testing` is the default branch, so GitHub closes
+the issue from the `Fixes` line when the pull request merges. No workflow does
+this.
 
 Before you merge, read the pull request body for a heading "Reverses a standing
 note". The contributor checks one thing only, which is whether the bug is gone
@@ -314,16 +313,13 @@ checks run again. There are three repairs at most. After that the pipeline stops
 The repair agent is told never to edit a check, a workflow, a test or a corpus
 row to make it pass. It is also told that the check may be what is wrong. Then
 it changes nothing, writes the technical case on the pull request, and adds the
-label `needs-maintainer`. Read that comment. It is the recommendation to change
+label `needs-owner`. Read that comment. It is the recommendation to change
 a check, and the change is yours to make.
 
 When the pipeline stops, the contributor sees only that you need to look at a
-technical problem. The pull request gets `needs-maintainer` and a comment with a
+technical problem. The pull request gets `needs-owner` and a comment with a
 link to the run. The log of each failed round is an artifact on that run, named
 `failed-checks-1` and so on.
-
-A failing `pipeline-on-main` check is not a fault in the fix. It means a stub on
-`testing` differs from its copy on `main`. See "Changing a stub" below.
 
 ### Setting it up
 
@@ -339,55 +335,20 @@ Runs draw on your Claude subscription quota, not on API billing. There is no
 `anthropic_api_key` input anywhere in these workflows, and a unit test fails if
 one is added.
 
-GitHub starts an `on: issues` or `on: issue_comment` workflow only from the
-default branch, and the default branch is `main`. That is a GitHub rule, not a
-choice made here. So `main` holds three small stubs, and each stub does one
-thing: it calls the real workflow on `testing`. The prompts, the tools and the
-gates all live on `testing`. Changing what the pipeline does is an ordinary pull
-request into `testing`, and nothing is copied to `main`.
+`testing` is the default branch. GitHub starts an `on: issues` or
+`on: issue_comment` workflow only from the default branch, so the three entry
+workflows (`pipeline-fix.yml`, `pipeline-followup.yml` and `pipeline-signoff.yml`)
+carry their own triggers. The prompts, the tools, the gates, the allowlist and the
+issue forms all live on `testing`. Changing what the pipeline does is an ordinary
+pull request into `testing`, and it reaches the next run when it merges.
 
-Three things live on `main`. The stubs, the allowlist, and the issue forms. The
-stubs are copied there once from `.github/pipeline-stubs/`, and only again if a
-stub itself is edited. The allowlist exists on `main` only, on purpose, so that
-the people who can merge to `testing` cannot add themselves to it.
-
-Forgetting to copy a stub is what broke issue #22: an allowlist entry reached
-`testing` and never reached `main`, the gate on `main` refused its author, and
-nobody was told for 23 days. The `pipeline-on-main` job in `pr-checks.yml` now
-fails a pull request into `testing` when a stub on `testing` differs from its
-copy on `main`, when a stub is missing there, or when the allowlist on `main`
-cannot be read. It names the file. Fix that file on `main`, then run the check
-again.
-
-A file on the wrong branch does not warn you. It just never runs. If a
-contributor writes `@claude` and nothing happens, check that
-`contributor-followup.yml` is on `main` before you check anything else.
-
-The gates and the build are the other way round. They trigger on
-`pull_request`, and GitHub runs the pull request's own copy of those files, so
-they live on `testing` with everything else and never go near `main`.
+Nobody who can merge to `testing` can add themselves to the allowlist without a
+pull request, and `.github/CODEOWNERS` makes you the reviewer of that pull request.
 
 The labels `nemeth`, `design` and `other` have to exist, because a form cannot
 apply a label that does not exist, and GitHub does not warn. Create them by hand
-once. The pipeline creates `needs-design`, `needs-maintainer` and
+once. The pipeline creates `needs-design`, `needs-owner` and
 `ready-for-maintainer` itself when it needs them.
-
-### Changing a stub
-
-The follow-up stub changed when the contributor moved from the pull request to
-the issue. The same is true of the issue forms and `config.yml`. A change to any
-of them has to reach `main`, and `pipeline-on-main` fails the `testing` pull
-request until it does.
-
-The order is this. Open the pull request into `testing`. It shows a red
-`pipeline-on-main`, which is expected. Open a second pull request into `main`
-that carries only the changed stub and the changed issue forms, copied byte for
-byte. Merge the one into `main` first. Run `pr-checks` again on the `testing`
-pull request, and merge it when it is green.
-
-Until both are merged, the old behaviour keeps running. The old follow-up stub
-answers a `@claude` comment on a pull request. The new one answers it on the
-issue.
 
 ### Why the pipeline starts its own checks
 
@@ -422,13 +383,13 @@ red pull request could then merge.
 ### A report was missed
 
 If a report did not start a run, open the Actions tab, choose
-`contributor-fix`, press "Run workflow", and type the issue number. It is gated
+`pipeline-fix`, press "Run workflow", and type the issue number. It is gated
 like an automatic run: the allowlist checks who wrote the issue, not who pressed
 the button.
 
 When the gate refuses an author, the issue gets one comment saying so. It costs
 no Claude quota. A report that gets no comment at all means the workflow never
-started, so check that the stubs are on `main`.
+started, so check the Actions tab for a skipped run.
 
 When a listed contributor writes `@claude` on an issue that has no open fix, or
 more than one, the issue gets one comment saying so. The pipeline will not guess.
@@ -442,15 +403,17 @@ maintainer.
 node scripts/ci/add-contributor.mjs <github-handle>
 ```
 
-It does two things. It adds the handle to `.github/contributors.yml` on `main`,
-which is the one place that says who may spend your subscription quota. Then it
+It does two things. It opens a pull request into `testing` that adds the handle
+to `.github/contributors.yml`, which is the one place that says who may spend
+your subscription quota. `testing` takes a change only through a pull request,
+so the branch is `contributors/add-<handle>`. Merge it to add them. Then it
 invites them to the repository as a collaborator with write access, so they can
 comment on and reopen their own issue.
 
 Add `--dry-run` first to see what it would do, or `--no-invite` to skip the
 invitation. The two are deliberately separate things. Removing somebody from the
 list stops them driving the pipeline without removing their repository access.
-To remove them, delete their line from `.github/contributors.yml` on `main`.
+To remove them, delete their line from `.github/contributors.yml` on `testing`, in a pull request.
 
 ### What protects the branches
 
@@ -479,7 +442,7 @@ action might need to write on the issue even in agent mode. If it does, restore
 `issues: write` on that one job and keep the prompt rule. The unit tests pin the
 `read` value, so they will fail until they are changed with it.
 
-A repair agent adds `needs-maintainer` to the pull request with `gh pr edit`,
+A repair agent adds `needs-owner` to the pull request with `gh pr edit`,
 under `pull-requests: write` alone. That should work, because GitHub scopes a
 pull request's labels to that permission. It was not proved offline. The agent no
 longer creates the label, because that needs `issues: write`. The label already
@@ -498,33 +461,27 @@ The comment path reads the thread from the issue, through `listed-thread.mjs`. T
 agent's own earlier comments are by a bot and are left out of it, so the agent
 reads the pull request body and the commits to remember what it changed.
 
-The workflows call each other on `testing` by name. A change to them takes effect
+The workflows call each other from the same branch with `uses: ./.github/workflows/...`. A change to them takes effect
 only after it merges into `testing`, so the first real test is after the merge.
 
 ### The files
 
-The `Lives on` column is not a detail. A file on the wrong branch does not warn
-you; it just never runs.
+`testing` is the default branch, so every file lives there.
 
 | File | Lives on | What it does |
 |---|---|---|
-| `.github/ISSUE_TEMPLATE/bug-report.yml` | `main` | The Bug report form. Label `bug`. Three required fields. |
-| `.github/ISSUE_TEMPLATE/nemeth-feature.yml` | `main` | The Nemeth or speech form. Label `nemeth`. The kind of request, the symbol, the cells, the reading. |
-| `.github/ISSUE_TEMPLATE/design.yml` | `main` | The Design form. Label `design`. A person answers. |
-| `.github/ISSUE_TEMPLATE/other.yml` | `main` | The Other form. Label `other`. A person answers. |
-| `.github/ISSUE_TEMPLATE/config.yml` | `main` | Turns blank issues off, so every report has a type. |
-| `.github/contributors.yml` | `main` | Who may drive the pipeline. Exists on `main` only. |
-| `scripts/ci/allowlist.mjs` | `main` | Reads that file and decides. Fails closed. Also kept on `testing`, and the two must match. |
-| `.github/workflows/contributor-fix.yml` | `main` | Stub. Issue opened, or run by hand, calls `pipeline-fix.yml`. |
-| `.github/workflows/contributor-followup.yml` | `main` | Stub. An `@claude` comment on an issue calls `pipeline-followup.yml`. |
-| `.github/workflows/contributor-signoff.yml` | `main` | Stub. A closed issue calls `pipeline-signoff.yml`. |
-| `.github/pipeline-stubs/` | `testing` | The source of the three stubs above, with tests. Not read by GitHub from here. |
-| `.github/workflows/pipeline-fix.yml` | `testing` | Issue to draft pull request. Tells the contributor work has started. |
-| `.github/workflows/pipeline-followup.yml` | `testing` | A comment on the issue to a revision, an answer, or a hand-off. |
+| `.github/ISSUE_TEMPLATE/bug-report.yml` | `testing` | The Bug report form. Label `bug`. Three required fields. |
+| `.github/ISSUE_TEMPLATE/nemeth-feature.yml` | `testing` | The Nemeth or speech form. Label `nemeth`. The kind of request, the symbol, the cells, the reading. |
+| `.github/ISSUE_TEMPLATE/design.yml` | `testing` | The Design form. Label `design`. A person answers. |
+| `.github/ISSUE_TEMPLATE/other.yml` | `testing` | The Other form. Label `other`. A person answers. |
+| `.github/ISSUE_TEMPLATE/config.yml` | `testing` | Turns blank issues off, so every report has a type. |
+| `.github/contributors.yml` | `testing` | Who may drive the pipeline. |
+| `scripts/ci/allowlist.mjs` | `testing` | Reads that file and decides. Fails closed. |
+| `.github/workflows/pipeline-fix.yml` | `testing` | Starts on an opened issue, or by hand. Issue to draft pull request. Tells the contributor work has started. |
+| `.github/workflows/pipeline-followup.yml` | `testing` | Starts on an `@claude` comment on an issue. A comment on the issue to a revision, an answer, or a hand-off. |
 | `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs, in mode `fix`, `comment` or `checks-failed`. |
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, then reports on the issue. |
-| `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment saying closing sends nothing. |
-| `.github/workflows/pipeline-close-issue.yml` | `testing` | Your merge of a fix closes its issue. |
+| `.github/workflows/pipeline-signoff.yml` | `testing` | Starts on a closed issue. A closed issue with a fix still open gets one comment saying closing sends nothing. |
 | `scripts/ci/find-fix-pr.mjs` | `testing` | The one rule for "which open pull request is the fix for issue N". |
 | `scripts/ci/reply.mjs` | `testing` | Posts the one comment an event gets, with the agent's words inside. Labels the issue. |
 | `scripts/ci/agent-digest.mjs` | `testing` | Writes what the agent did into the job summary, so a silent stop can be diagnosed. Keeps the agent's own words and tool names. Drops every tool result and command, and scrubs anything shaped like a credential. |
@@ -535,9 +492,8 @@ you; it just never runs.
 | `scripts/ci/listed-thread.mjs` | `testing` | Builds the thread the agent reads, from allowlisted people only, and the agent's own earlier questions. |
 | `scripts/ci/can-run-agent.mjs` | `testing` | Says whether the actor can write to the repository, which the agent action requires. |
 | `scripts/ci/fix-outcome.mjs` | `testing` | Picks which reply the contributor gets when a round ends without a pull request, and posts it through `reply.mjs`. |
-| `scripts/ci/add-contributor.mjs` | `testing` | The one command that adds a person. |
-| `.github/workflows/pr-checks.yml` | `testing` | The gates: `unit`, `nemeth`, `e2e`, and `pipeline-on-main`. |
-| `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when a stub differs from its copy on `main`, or the allowlist there cannot be read. |
+| `scripts/ci/add-contributor.mjs` | `testing` | The one command that adds a person, as a pull request. |
+| `.github/workflows/pr-checks.yml` | `testing` | The gates: `unit`, `nemeth` and `e2e`. |
 | `scripts/ci/nemeth-gate.mjs` | `testing` | Makes the two Nemeth reports able to fail. |
 | `.github/workflows/pr-build.yml` | `testing` | Publishes a per-pull-request build to install. |
 | `.github/workflows/diagnostics-windows.yml` | `testing` | Runs the braille input diagnostics e2e file on Windows: real Help menu item, real button, real clipboard. Runs on pull requests that touch the copy path. |

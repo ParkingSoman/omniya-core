@@ -206,14 +206,14 @@ test('the label follows the state that was posted, not the one that was asked fo
   // A forgotten message.md turns `asked`, `answered` and `stuck` into `failed`. If the label
   // followed the request, an issue that says "the maintainer has been told" would
   // carry `needs-info`, which says the agent is waiting for the contributor, and
-  // would carry no `needs-maintainer` at all.
+  // would carry no `needs-owner` at all.
   assert.equal(resolveState('asked', ''), 'failed');
   assert.equal(resolveState('asked', undefined), 'failed');
   assert.equal(resolveState('answered', '   '), 'failed');
   assert.equal(resolveState('stuck', ''), 'failed');
   assert.equal(resolveState('asked', 'Which key?'), 'asked');
   assert.equal(resolveState('ready', ''), 'ready', 'a state with optional words does not fall back');
-  for (const [state, expected] of [['asked', 'needs-maintainer'], ['answered', 'needs-maintainer']]) {
+  for (const [state, expected] of [['asked', 'needs-owner'], ['answered', 'needs-owner']]) {
     const calls = [];
     postReply({ issue: 5, state, repo: 'a/b', message: '' }, (args) => { calls.push(args); return ''; });
     const labelled = calls.filter((a) => a[0] === 'issue' && a[1] === 'edit').map((a) => a[a.indexOf('--add-label') + 1]);
@@ -229,8 +229,8 @@ test('the label follows the state that was posted, not the one that was asked fo
 
 test('the pipeline puts the labels on, so the agent never has to', () => {
   assert.equal(LABELS.design.name, 'needs-design');
-  assert.equal(LABELS.stuck.name, 'needs-maintainer');
-  assert.equal(LABELS.failed.name, 'needs-maintainer');
+  assert.equal(LABELS.stuck.name, 'needs-owner');
+  assert.equal(LABELS.failed.name, 'needs-owner');
 });
 
 test('postReply refuses an issue number that is not digits', () => {

@@ -11,9 +11,8 @@ name: pipeline-followup
 # The contributor never opens the pull request. It is the maintainer's
 # material. Everything she reads and writes is on the issue.
 #
-# Called from the stub on `main` (`.github/pipeline-stubs/contributor-followup.yml`),
-# for the same reason as `pipeline-fix.yml`: GitHub starts an `on: issue_comment`
-# workflow from the default branch only.
+# This file holds its own trigger. `testing` is the default branch, so GitHub
+# starts an `on: issue_comment` run from this copy.
 #
 # What the agent answers, as one word the jobs below act on:
 #
@@ -31,12 +30,8 @@ name: pipeline-followup
 # new. There is no "I am changing the fix" comment in between: their own comment
 # started the round, and the next thing they hear is the result.
 on:
-  workflow_call:
-    # Only the subscription token, and the stub passes only that. Not every
-    # secret in the repository, and not `inherit`.
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN:
-        required: true
+  issue_comment:
+    types: [created]
 
 # One run per issue, and the SAME group as `pipeline-fix.yml`, so a comment that
 # arrives while a fix or a repair is running waits for it. They push to the same
@@ -130,8 +125,7 @@ jobs:
         run: node scripts/ci/allowlist.mjs "$COMMENT_AUTHOR" --github || true
       # Being on the list is not enough: `claude-code-action` refuses any actor
       # who cannot write to the repository (issue #33). Check the same actor, and
-      # say the true reason. The script is not on `main`, so it comes out of
-      # `testing`. `unknown` lets the run go on: the action checks again.
+      # say the true reason. `unknown` lets the run go on: the action checks again.
       - id: access
         if: steps.check.outputs.allowed == 'true'
         env:
@@ -139,14 +133,8 @@ jobs:
           ACTOR: ${{ github.actor }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin testing
-          mkdir -p "$RUNNER_TEMP/access"
-          for f in gh.mjs can-run-agent.mjs; do
-            git show "origin/testing:scripts/ci/$f" > "$RUNNER_TEMP/access/$f"
-          done
-          node "$RUNNER_TEMP/access/can-run-agent.mjs" "$ACTOR"
-      # Which pull request is this issue's fix? The default checkout is `main`,
-      # which does not have the helper, so it comes out of `testing`.
+          node scripts/ci/can-run-agent.mjs "$ACTOR"
+      # Which pull request is this issue's fix?
       - id: find
         if: steps.check.outputs.allowed == 'true' && steps.access.outputs.access != 'false'
         env:
@@ -154,12 +142,7 @@ jobs:
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin testing
-          mkdir -p "$RUNNER_TEMP/find"
-          for f in gh.mjs find-fix-pr.mjs; do
-            git show "origin/testing:scripts/ci/$f" > "$RUNNER_TEMP/find/$f"
-          done
-          node "$RUNNER_TEMP/find/find-fix-pr.mjs" "$ISSUE_NUMBER"
+          node scripts/ci/find-fix-pr.mjs "$ISSUE_NUMBER"
       # From the labels the form set, so the agent reads the follow-up the way it
       # read the report. The agent jobs below map `routed` to `bug`: a report that
       # was routed to a person has no fix to continue, and `nofix` answers it.
@@ -169,13 +152,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
         run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/find"
           # If the labels cannot be read, `bug`. See the same step in `pipeline-fix.yml`.
-          { git show origin/testing:scripts/ci/issue-kind.mjs > "$RUNNER_TEMP/find/issue-kind.mjs" \
-            && git show origin/testing:scripts/ci/gh.mjs > "$RUNNER_TEMP/find/gh.mjs" \
-            && node "$RUNNER_TEMP/find/issue-kind.mjs" "$ISSUE_NUMBER"; } \
-            || echo "kind=bug" >> "$GITHUB_OUTPUT"
+          node scripts/ci/issue-kind.mjs "$ISSUE_NUMBER" || echo "kind=bug" >> "$GITHUB_OUTPUT"
       # Did the OWNER of the repository write this comment? GitHub fills in
       # `author_association` from the repository itself, so nobody can claim it
       # in the text of a comment. It is the one thing that can say "yes, do this
@@ -233,7 +211,7 @@ jobs:
           # asked (a comment by the bot, counted above). And an issue the agent
           # labelled `needs-design` is the maintainer's to decide. Nobody on the
           # contributor list can restart it by writing `@claude` or by adding
-          # `needs-info`. Only the maintainer can, by starting `contributor-fix`
+          # `needs-info`. Only the maintainer can, by starting `pipeline-fix`
           # by hand.
           resume=false
           if [ "$IS_OWNER" = "true" ]; then
@@ -263,8 +241,8 @@ jobs:
           ACTOR: ${{ github.actor }}
         run: |
           set -euo pipefail
-          gh label create needs-maintainer --force --description "A person has to look at this" || true
-          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-maintainer
+          gh label create needs-owner --force --description "A person has to look at this" || true
+          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-owner
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Thank you for the comment. I did not start, because the maintainer has not finished adding you yet. Nothing is wrong with your comment. The maintainer has been told. Write to me again after that. You do not need to do anything else."
           {
@@ -314,7 +292,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    uses: ./.github/workflows/pipeline-agent.yml
     with:
       mode: comment
       kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
@@ -343,8 +321,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
@@ -380,8 +356,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
@@ -403,7 +377,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    uses: ./.github/workflows/pipeline-agent.yml
     with:
       mode: fix
       kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
@@ -432,8 +406,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
@@ -454,7 +426,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing
+    uses: ./.github/workflows/pipeline-verify.yml
     with:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.resume.outputs.pr }}
@@ -480,8 +452,8 @@ jobs:
           ISSUE_NUMBER: ${{ needs.allowlist.outputs.number }}
         run: |
           set -euo pipefail
-          gh label create needs-maintainer --force --description "A person has to look at this" || true
-          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-maintainer
+          gh label create needs-owner --force --description "A person has to look at this" || true
+          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-owner
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Something went wrong on my side while I was reading your comment. Nothing is wrong with your report. The earlier download links still work. The maintainer has been told and will look. You do not need to do anything."
 
@@ -498,7 +470,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing
+    uses: ./.github/workflows/pipeline-verify.yml
     with:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.agent.outputs.pr }}
@@ -522,8 +494,6 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}

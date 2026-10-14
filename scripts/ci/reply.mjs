@@ -177,8 +177,8 @@ export const LABELS = {
   // A person is NOT needed here: the contributor is, and the agent waits for them.
   asked: { name: 'needs-info', description: 'The agent asked the reporter a question and is waiting' },
   design: { name: 'needs-design', description: 'Not a bug: a design decision for the maintainer to answer' },
-  stuck: { name: 'needs-maintainer', description: 'A person has to look at this' },
-  failed: { name: 'needs-maintainer', description: 'A person has to look at this' }
+  stuck: { name: 'needs-owner', description: 'A person has to look at this' },
+  failed: { name: 'needs-owner', description: 'A person has to look at this' }
 };
 
 /**

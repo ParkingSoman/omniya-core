@@ -12,7 +12,7 @@
  *
  * The comment is ONE new comment, posted by `reply.mjs`, with the agent's words
  * from the MESSAGE environment variable inside it. `reply.mjs` also puts the
- * label on: `needs-maintainer` for `failed` and `stuck`, `needs-design` for
+ * label on: `needs-owner` for `failed` and `stuck`, `needs-design` for
  * `design`, and `needs-info` for `asked`, where a person is not needed because
  * the contributor is.
  *

@@ -5,14 +5,9 @@ import test from 'node:test';
 const PATH = 'docs/contributor-pipeline.md';
 const doc = readFileSync(PATH, 'utf8');
 
-test('every workflow file is listed with the branch it must live on', () => {
-  // The `Lives on` column is the only place that says which branch a file has to
-  // be on, and getting it wrong does not warn anybody. GitHub starts an
-  // `on: issues` or `on: issue_comment` workflow from the DEFAULT branch's copy
-  // only, so a copy on `testing` alone is never read: the contributor writes
-  // `@claude`, nothing happens, and there is no failed run to look at.
-  //
-  // A new workflow that never reaches this table is one nobody knows to move.
+test('every workflow file is listed with the branch it lives on', () => {
+  // A new workflow that never reaches this table is one nobody knows exists.
+  // `testing` is the default branch, so every row names it.
   const workflows = readdirSync('.github/workflows').filter((f) => f.endsWith('.yml'));
   assert.ok(workflows.length >= 5, 'expected the pipeline workflows to exist');
 
@@ -21,11 +16,7 @@ test('every workflow file is listed with the branch it must live on', () => {
       .split('\n')
       .find((line) => line.startsWith('|') && line.includes(`.github/workflows/${file}`));
     assert.ok(row, `docs/contributor-pipeline.md has no row for ${file}`);
-    assert.match(
-      row,
-      /\|\s*`(main|testing)`\s*\|/,
-      `the row for ${file} must name the branch it lives on`
-    );
+    assert.match(row, /\|\s*`testing`\s*\|/, `the row for ${file} must name the branch it lives on`);
   }
 });
 
@@ -50,18 +41,17 @@ test('the contributor is told the two phrases that drive the loop, and not to cl
   assert.doesNotMatch(contributorHalf, /pull request|branch|workflow/i);
 });
 
-test('the maintainer is told that they merge, what the pipeline does first, and what to change on main', () => {
+test('the maintainer is told that they merge, and that testing is the default branch', () => {
   const maintainerHalf = doc.split('## If you maintain this repository')[1] ?? '';
 
   assert.match(maintainerHalf, /Nothing merges by itself/);
   assert.match(maintainerHalf, /ready-for-maintainer/);
-  assert.match(maintainerHalf, /needs-maintainer/);
+  assert.match(maintainerHalf, /needs-owner/);
   // The ruleset needs no bypass any more, because nothing here merges.
   assert.match(maintainerHalf, /testing-guard/);
   assert.match(maintainerHalf, /no `--admin` flag|uses no `--admin`/);
-  // GitHub closes an issue from `Fixes` only for the default branch.
-  assert.match(maintainerHalf, /pipeline-close-issue\.yml/);
-  // The rollout order is the one thing that breaks if it is guessed.
-  assert.match(maintainerHalf, /Merge the one into `main` first/);
-  assert.match(maintainerHalf, /pipeline-on-main/);
+  // GitHub closes an issue from `Fixes` for the default branch, which is `testing`.
+  assert.match(maintainerHalf, /`testing` is the default branch/);
+  // The split between a default branch and a working branch is gone.
+  assert.doesNotMatch(maintainerHalf, /stub|pipeline-on-main|pipeline-close-issue/);
 });
