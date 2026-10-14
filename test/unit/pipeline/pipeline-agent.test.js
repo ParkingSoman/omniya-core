@@ -65,7 +65,15 @@ test('a run is bounded', () => {
   assert.equal(typeof job['timeout-minutes'], 'number');
   assert.ok(job['timeout-minutes'] <= 120, 'the timeout is too generous to be a budget');
   assert.match(args, /--max-turns\s+\d+/, 'the agent needs its own ceiling: a job timeout does not bound it');
-  assert.equal(actionStep.with.allowed_bots, undefined, 'allowed_bots must stay unset so bot actors keep being refused');
+  // Bot actors are refused, with ONE owner-approved exception (2026-10-14): the Actions bot, and only in a
+  // manual run. `pipeline-keep-current.yml` starts such a run after a push, because the action refuses a
+  // push, and the Actions bot is that run's actor. Anything wider fails here: another bot, `*`, or an event
+  // other than a manual start. `keep-current.test.js` pins the same value from the other side.
+  assert.equal(
+    actionStep.with.allowed_bots,
+    "${{ github.event_name == 'workflow_dispatch' && 'github-actions' || '' }}",
+    'bots stay refused, except the Actions bot in a manual run'
+  );
 });
 
 test('every input is checked before it reaches a checkout, a command or the prompt', () => {
