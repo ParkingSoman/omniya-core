@@ -117,9 +117,32 @@ test('a change to a file that defines green, or who may merge, needs the owner\'
   }
 });
 
-test('words that are too short to be words do not count as the owner\'s word', () => {
+test('only words that say "ship it" count as the owner\'s word, not any three characters', () => {
   const files = [doc, { filename: 'scripts/ci/hand-off.mjs', status: 'modified', patch: '+x' }];
-  for (const said of ['', ' ', 'y']) assert.equal(withFiles(files, { ownerSaid: said }).ship, false, JSON.stringify(said));
+  for (const said of ['', ' ', 'y', 'no way', 'not yet', 'wait', 'abc', 'shipping later']) {
+    assert.equal(withFiles(files, { ownerSaid: said }).ship, false, JSON.stringify(said));
+  }
+  for (const said of ['ship it', 'Ship it!', 'ok, SHIP IT now', 'shipit']) {
+    assert.equal(withFiles(files, { ownerSaid: said }).ship, true, JSON.stringify(said));
+  }
+});
+
+test('a code file whose change is not shown is trusted only when it is a pure move', () => {
+  // Removed or renamed with edits, and nothing to read: it cannot be seen to leave the guards alone.
+  for (const f of [
+    { filename: 'scripts/ci/guard.mjs', status: 'removed' },
+    { filename: 'scripts/ci/b.mjs', previous_filename: 'scripts/ci/a.mjs', status: 'renamed', changes: 40 },
+    { filename: 'scripts/ci/b.mjs', previous_filename: 'scripts/ci/a.mjs', status: 'renamed' }
+  ]) {
+    assert.ok(sensitiveIn(f).some((w) => /does not show/.test(w)), JSON.stringify(f));
+    assert.equal(withFiles([f]).ship, false);
+  }
+  // A pure move: GitHub counts no changed line, so there is nothing hidden.
+  const pure = { filename: 'scripts/ci/b.mjs', previous_filename: 'scripts/ci/a.mjs', status: 'renamed', changes: 0 };
+  assert.deepEqual(sensitiveIn(pure), []);
+  // A test, likewise.
+  const big = { filename: 'test/unit/pipeline/b.test.js', previous_filename: 'test/unit/pipeline/a.test.js', status: 'renamed', changes: 12 };
+  assert.ok(sensitiveIn(big).includes('a test change that GitHub does not show'));
 });
 
 test('a changed line that touches a secret, a permission, a release or a delete needs the owner\'s words', () => {
@@ -177,7 +200,7 @@ test('a file moved into the code with no change shown is not trusted, but a move
   const intoCode = { filename: 'scripts/ci/x.sh', previous_filename: 'docs/x.sh', status: 'renamed' };
   assert.ok(sensitiveIn(intoCode).includes('a file moved into the code'));
   assert.equal(withFiles([intoCode]).ship, false);
-  const insideCode = { filename: 'scripts/ci/b.mjs', previous_filename: 'scripts/ci/a.mjs', status: 'renamed' };
+  const insideCode = { filename: 'scripts/ci/b.mjs', previous_filename: 'scripts/ci/a.mjs', status: 'renamed', changes: 0 };
   assert.deepEqual(sensitiveIn(insideCode), []);
 });
 

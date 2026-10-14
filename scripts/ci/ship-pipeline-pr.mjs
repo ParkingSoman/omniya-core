@@ -182,7 +182,7 @@ export function sensitiveIn(file) {
   }
   // A test that loses more lines than it gains is how a check gets made to pass. The
   // contributor hand-off treats it the same way.
-  if (file.filename.startsWith('test/') && typeof file.patch !== 'string' && file.status !== 'removed' && file.status !== 'renamed') {
+  if (file.filename.startsWith('test/') && typeof file.patch !== 'string' && file.status !== 'removed' && !(file.status === 'renamed' && file.changes === 0)) {
     // Too big for GitHub to show. A test that cannot be read cannot be seen to keep its assertions.
     extra.add('a test change that GitHub does not show');
   }
@@ -196,7 +196,9 @@ export function sensitiveIn(file) {
   if (!isScanned(file.filename)) return [...extra];
   if (typeof file.patch !== 'string') {
     // GitHub leaves out the change of a very large or binary file. It cannot be read, so it cannot be trusted.
-    return file.status === 'removed' || file.status === 'renamed'
+    // Only a pure move (GitHub counts zero changed lines) has nothing to show. A removed
+    // guard, or a renamed file with edits, whose change is not shown, cannot be read.
+    return file.status === 'renamed' && file.changes === 0
       ? [...extra]
       : [...extra, `a change to ${file.filename} that GitHub does not show`];
   }
@@ -289,7 +291,8 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
     ...files.flatMap((file) => sensitiveIn(file).map((what) => `${file.filename} touches ${what}`))
   ];
   if (why.length === 0) return { ship: true, tier: 'automatic', why: [] };
-  if (String(ownerSaid).trim().length < 3) {
+  // The words must say it. Any three characters would pass "no way", "not yet" or "wait".
+  if (!/\bship\s*it\b/i.test(String(ownerSaid))) {
     return { ship: false, reason: `it needs the owner's "ship it": ${[...new Set(why)].join('; ')}` };
   }
   return { ship: true, tier: 'ship-it', why: [...new Set(why)] };
@@ -337,7 +340,7 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken, ownerSaid = ''
       '--jq', '[.[] | {a: .actor.login}]'
     ])
   );
-  const files = gh(['api', `repos/${repo}/pulls/${number}/files`, '--paginate', '--jq', '.[] | {filename, previous_filename, status, patch}'])
+  const files = gh(['api', `repos/${repo}/pulls/${number}/files`, '--paginate', '--jq', '.[] | {filename, previous_filename, status, patch, changes}'])
     .split('\n')
     .filter(Boolean)
     .map((line) => JSON.parse(line));
