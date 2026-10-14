@@ -1,0 +1,60 @@
+name: pipeline-ship
+
+# Merge a pipeline pull request after the owner said "ship it" in chat.
+#
+# Changes to the automation never merge by themselves, and the `testing-tested`
+# rule wants a status only the App can post. Until now the only way past was the
+# owner ticking "bypass rules" in the browser. The owner approved this as the
+# replacement (2026-10-14): a chat session starts this workflow, and it does what
+# the hand-off does for a contributor fix, but for a `pipeline/` branch and only
+# on the owner's word.
+#
+#   gh workflow run pipeline-ship.yml --ref testing -f pr_number=94 -f sha=<head commit>
+#
+# `--ref testing` is not a choice. The environment `pipeline` allows only
+# `testing`, so GitHub refuses any other ref, and a pull request cannot edit the
+# workflow that ships it. Only the repository owner and the owner's session
+# account may start it: a contributor has write access and must not.
+# See `scripts/ci/ship-pipeline-pr.mjs` for every condition that must hold.
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: The pull request to merge
+        required: true
+        type: string
+      sha:
+        description: The head commit that was checked. If the branch moved, nothing merges.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: read
+
+jobs:
+  ship:
+    if: github.actor == github.repository_owner || github.actor == 'omniya-bot'
+    environment: pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        with:
+          app-id: ${{ vars.PIPELINE_APP_ID }}
+          private-key: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-statuses: write
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          MERGE_TOKEN: ${{ steps.app.outputs.token }}
+          ALLOWED_AUTHORS: ${{ github.repository_owner }},omniya-bot
+          PR: ${{ inputs.pr_number }}
+          SHA: ${{ inputs.sha }}
+        run: node scripts/ci/ship-pipeline-pr.mjs "$PR" "$SHA"

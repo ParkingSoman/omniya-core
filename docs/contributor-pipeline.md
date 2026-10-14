@@ -135,6 +135,7 @@ flowchart TD
 | `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs. Modes `fix`, `comment`, `checks-failed`. |
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, reports on the issue. |
 | `.github/workflows/pipeline-rescued.yml` | `testing` | A person fixed a fix the pipeline gave up on. When the checks and the build go green, the contributor gets the test build on the issue, once. |
+| `.github/workflows/pipeline-ship.yml` | `testing` | By hand, from a chat session, after the owner says "ship it". Merges a `pipeline/` pull request that changed the automation. It replaces the bypass tick. |
 | `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment: closing sends nothing. |
 | `.github/workflows/pr-checks.yml` | `testing` | The gates `unit`, `nemeth` and `e2e`. |
 | `.github/workflows/pr-build.yml` | `testing` | A per-pull-request build to install. |
