@@ -48,7 +48,7 @@ test('a cancelled or still-running check is not green', () => {
 });
 
 // decide(): what happens to a fix the contributor approved. No GitHub in here.
-const clean = { filesComplete: true, files: [{ filename: 'src/domain/nemeth/parser.js' }, { filename: 'test/unit/nemeth/parser.test.js' }], mergeable: 'MERGEABLE', body: 'Fixes #5.', missing: [] };
+const clean = { filesComplete: true, fixBranch: true, files: [{ filename: 'src/domain/nemeth/parser.js' }, { filename: 'test/unit/nemeth/parser.test.js' }], mergeable: 'MERGEABLE', body: 'Fixes #5.', missing: [] };
 
 test('a clean fix with green checks is set to merge', () => {
   assert.deepEqual(decide(clean), { action: 'merge' });
@@ -144,6 +144,25 @@ test('hand-off sends the fix to the maintainer when the branch moved while it wa
   assert.ok(!lines.some((l) => l.startsWith('api repos/a/b/statuses/')), 'the status is not set');
 });
 
+test('only the pipeline\'s own branch in this repository, into testing, can merge by itself', () => {
+  assert.deepEqual(decide({ ...clean, fixBranch: false }), { action: 'protected', reason: 'not-a-fix-branch' });
+  assert.deepEqual(decide({ ...clean, fixBranch: undefined }), { action: 'protected', reason: 'not-a-fix-branch' });
+  for (const viewOverride of [{ isCrossRepository: true }, { baseRefName: 'main' }, { headRefName: 'feature/x' }, { state: 'CLOSED' }]) {
+    const f = fakeGh({ files: [{ filename: 'src/a.js' }], viewOverride });
+    const result = handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP' }, f.gh);
+    assert.equal(result.merge, false, JSON.stringify(viewOverride));
+    assert.equal(result.reason, 'not-a-fix-branch');
+    assert.ok(!f.calls.some((c) => c.line.includes('--auto')), 'auto-merge is not asked for');
+  }
+});
+
+test('a test file moved out of test/ counts as deleted', () => {
+  const moved = { filename: 'src/old.test.js', previous_filename: 'test/unit/old.test.js', status: 'renamed', additions: 0, deletions: 0 };
+  assert.deepEqual(decide({ ...clean, files: [...clean.files, moved] }), { action: 'protected', reason: 'test-removed' });
+  const kept = { filename: 'test/unit/new-name.test.js', previous_filename: 'test/unit/old.test.js', status: 'renamed', additions: 0, deletions: 0 };
+  assert.equal(decide({ ...clean, files: [...clean.files, kept] }).action, 'merge');
+});
+
 test('a conflicting pull request is protected', () => {
   assert.deepEqual(decide({ ...clean, mergeable: 'CONFLICTING' }), { action: 'protected', reason: 'conflict' });
 });
@@ -168,11 +187,11 @@ test('protected wins over not green, because the maintainer reads it either way'
 });
 
 // handOff() with a stand-in for `gh`: the ORDER and the TOKENS matter.
-function fakeGh({ files, changedFiles, mergeable = 'MERGEABLE', body = '', conclusion = 'success' }) {
+function fakeGh({ files, changedFiles, viewOverride, mergeable = 'MERGEABLE', body = '', conclusion = 'success' }) {
   const calls = [];
   const gh = (args, options = {}) => {
     calls.push({ line: args.join(' '), token: options.token });
-    if (args[0] === 'pr' && args[1] === 'view') return JSON.stringify({ headRefOid: 'abc123', mergeable, body, changedFiles: changedFiles ?? files.length });
+    if (args[0] === 'pr' && args[1] === 'view') return JSON.stringify({ headRefOid: 'abc123', mergeable, body, changedFiles: changedFiles ?? files.length, isCrossRepository: false, baseRefName: 'testing', headRefName: 'claude/fix-5-x', state: 'OPEN', ...viewOverride });
     if (args[1]?.includes('/check-runs')) {
       return ['unit', 'nemeth', 'e2e'].map((name) => JSON.stringify({ name, conclusion, completed_at: '2026-10-10T10:00:00Z' })).join('\n');
     }
