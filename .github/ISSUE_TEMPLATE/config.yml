@@ -1,9 +1,14 @@
-# Blank issues stay ON.
+# Blank issues are OFF. Every report starts from one of four forms, and the form
+# is how the pipeline knows what to do with it:
 #
-# The bug form is the fast path: an allowlisted contributor files it, an agent
-# fixes it, a build comes back. Anything that is not a bug still needs a home,
-# and a feature request filed as a blank issue is exactly what the triage step
-# is meant to catch and label `needs-design`. Turning blank issues off would
-# leave a contributor with a design idea nowhere to put it, and would push them
-# to file it as a bug instead -- which is the one input that wastes an agent run.
-blank_issues_enabled: true
+#   Bug report       an agent works on it           label `bug`
+#   Nemeth or speech an agent works on it           label `nemeth`
+#   Design           a person answers, no agent     label `design`
+#   Other            a person answers, no agent     label `other`
+#
+# Blank issues used to stay on, so a feature request had somewhere to go. The
+# Design and Other forms are that place now. A blank issue has no label to read,
+# so it would be taken for a bug, which is the one input that wastes an agent run.
+# `scripts/ci/issue-kind.mjs` still treats an issue with no type label as a bug,
+# for the reports that were filed before there were types.
+blank_issues_enabled: false

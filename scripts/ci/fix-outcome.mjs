@@ -1,59 +1,54 @@
 /**
- * What to tell the contributor, and what label to set, when a fix round ends
- * WITHOUT opening a pull request.
+ * What to tell the contributor when a fix round ends WITHOUT opening a pull
+ * request.
  *
  * `pipeline-fix.yml` and `pipeline-followup.yml` (after an answered question)
  * both end this way, so the rule lives here once.
  *
- *   job crashed        -> `failed`   + needs-maintainer
- *   needs-design       -> `design`
- *   stopped            -> `stuck`    + needs-maintainer
- *   asked              -> `asking`   + needs-info   (a person is NOT needed:
- *                         the contributor is, and the agent waits for them)
+ *   job crashed        -> `failed`   the pipeline's own words
+ *   needs-design       -> `design`   the agent's words, then "a person decides"
+ *   blocked            -> `stuck`    the agent's words, then "the maintainer will answer"
+ *   asked              -> `asked`    the agent's question, and how to answer it
  *
- * Usage (needs GH_TOKEN and GITHUB_REPOSITORY):
+ * The comment is ONE new comment, posted by `reply.mjs`, with the agent's words
+ * from the MESSAGE environment variable inside it. `reply.mjs` also puts the
+ * label on: `needs-owner` for `failed` and `stuck`, `needs-design` for
+ * `design`, and `needs-info` for `asked`, where a person is not needed because
+ * the contributor is.
+ *
+ * Usage (needs GH_TOKEN and GITHUB_REPOSITORY, and MESSAGE if the agent wrote one):
  *   node scripts/ci/fix-outcome.mjs <issue> <agent-job-result> <result-word>
  */
 
 import { pathToFileURL } from 'node:url';
 
-import { gh, requireNumber } from './gh.mjs';
-import { writeStatus } from './status-comment.mjs';
+import { requireNumber } from './gh.mjs';
+import { postReply } from './reply.mjs';
 
 /**
  * @param {string} jobResult `needs.<job>.result`
  * @param {string} word the one word the agent wrote
- * @returns {{state: string, label: string|null}}
+ * @returns {'failed'|'design'|'asked'|'stuck'} the state `reply.mjs` renders
  */
 export function decide(jobResult, word) {
-  if (jobResult !== 'success') return { state: 'failed', label: 'needs-maintainer' };
-  if (word === 'needs-design') return { state: 'design', label: null };
-  if (word === 'asked') return { state: 'asking', label: 'needs-info' };
-  return { state: 'stuck', label: 'needs-maintainer' };
+  if (jobResult !== 'success') return 'failed';
+  if (word === 'needs-design') return 'design';
+  if (word === 'asked') return 'asked';
+  if (word === 'blocked') return 'stuck';
+  // Any other word, or none. `pipeline-agent.yml` fails the job on those before
+  // this runs, so this is a second lock. It is never a quiet hand-off.
+  return 'failed';
 }
 
-const LABELS = {
-  'needs-maintainer': 'A person has to look at this',
-  'needs-info': 'The agent asked the reporter a question and is waiting'
-};
-
-export function run({ issue, jobResult, word, repo }) {
+export function run({ issue, jobResult, word, repo, message }, post = postReply) {
   const number = requireNumber(issue, 'issue number');
-  const { state, label } = decide(jobResult, word);
-  writeStatus({ issue: number, state, repo });
-  if (label) {
-    try {
-      gh(['label', 'create', label, '--force', '--description', LABELS[label], '--repo', repo]);
-    } catch {
-      // The label may already exist, and a failed create must not stop the edit.
-    }
-    gh(['issue', 'edit', number, '--add-label', label, '--repo', repo]);
-  }
-  return { state, label };
+  const state = decide(jobResult, word);
+  post({ issue: number, state, repo, message });
+  return { state };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [issue, jobResult, word] = process.argv.slice(2);
-  const out = run({ issue, jobResult, word, repo: process.env.GITHUB_REPOSITORY });
-  console.log(`outcome: ${out.state}${out.label ? `, label ${out.label}` : ''}`);
+  const out = run({ issue, jobResult, word, repo: process.env.GITHUB_REPOSITORY, message: process.env.MESSAGE });
+  console.log(`outcome: ${out.state}`);
 }

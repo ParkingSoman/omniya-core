@@ -17,7 +17,7 @@ test('a new push replaces the assets under the same tag', () => {
   //    files behind them are replaced. Download again rather than looking for
   //    a new link."
   //
-  // That sentence is the reason `contributor-followup.yml` pushes to the pull
+  // That sentence is the reason `pipeline-followup.yml` pushes to the pull
   // request's branch instead of opening a second one. So it is not a nicety --
   // it is the contract the follow-up loop is built on top of, and it holds only
   // if all four things below stay true together.
@@ -85,59 +85,25 @@ test('a new push replaces the assets under the same tag', () => {
   assert.match(commentRun, /--create-if-none/, 'and written the first time');
 });
 
-test('the pipeline can start a build by hand, for a pull request number', () => {
-  // See the comment in pr-build.yml: a bot-opened pull request's own run is held
-  // for approval, so `pipeline-fix.yml` and `pipeline-followup.yml` dispatch it.
-  const dispatch = triggers?.workflow_dispatch;
-  assert.ok(dispatch, 'expected a workflow_dispatch trigger');
-  assert.equal(dispatch.inputs?.pr_number?.required, true);
-  // A dispatched run has no `github.event.pull_request`, so each place that read
-  // it must fall back, or the release tag would be `pr-` and the build for #26
-  // would overwrite the next one.
-  const uses = (needle) =>
-    [...source.matchAll(/\$\{\{[^}]*\}\}/g)].map((m) => m[0]).filter((expr) => expr.includes(needle));
-
-  const numbers = uses('github.event.pull_request.number');
-  assert.ok(numbers.length >= 4, 'expected the number to be read in the group and in three jobs');
-  for (const expr of numbers) assert.match(expr, /inputs\.pr_number/, `needs the dispatch fallback: ${expr}`);
-
-  const shas = uses('github.event.pull_request.head.sha');
-  assert.ok(shas.length >= 2, 'expected the head sha in both packaging jobs');
-  for (const expr of shas) assert.match(expr, /github\.sha/, `needs the dispatch fallback: ${expr}`);
+test('there is no manual build trigger, so every expression reads the pull request', () => {
+  assert.equal(triggers?.workflow_dispatch, undefined);
+  assert.doesNotMatch(source, /inputs\./);
 });
 
-
-test('the pull request run and the dispatched run do not cancel each other', () => {
-  // Measured on pull request #26. Every real check was green, and the pull
-  // request still showed red `pack-mac`, `pack-win` and `comment`. They were
-  // cancelled runs: the run the pipeline dispatched shared a concurrency group
-  // with the pull request's own run, and `cancel-in-progress` killed one for the
-  // other. A cancelled run is red on a pull request.
-  const group = workflow.concurrency?.group ?? '';
-  assert.match(group, /github\.event_name/, 'the event must be part of the group');
-  assert.match(group, /inputs\.pr_number/);
-  assert.equal(workflow.concurrency['cancel-in-progress'], true, 'a newer push still replaces an older build of the same kind');
+test('one build at a time per pull request, and a newer push replaces an older one', () => {
+  assert.match(workflow.concurrency?.group ?? '', /github\.event\.pull_request\.number/);
+  assert.equal(workflow.concurrency['cancel-in-progress'], true);
 });
 
-test('a pull request run is skipped for the pipeline\'s own branches, and nothing else is', () => {
-  // The pipeline builds its own pull requests by dispatch. Letting the
-  // `pull_request` run build them too built every fix twice, and the second run
-  // is the one GitHub holds for approval. A pull request written by hand still
-  // builds as before.
-  const skip = "github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/fix-')";
-  assert.equal(workflow.jobs['pack-mac'].if, skip);
-  assert.equal(workflow.jobs['pack-win'].if, skip);
-  // No `if:` may be put on the required checks to do the same. A skipped job
-  // satisfies a required status check, which would let a red pull request merge.
-  // They are in `pr-checks.yml`, and that file has no `if` on `unit`, `nemeth` or `e2e`.
+test('the pipeline\'s own branches are built, and only their comment is skipped', () => {
+  // The pull request is opened with the App's token, so this run starts and
+  // `pipeline-verify.yml` waits for it. The links go on the ISSUE, by the verify
+  // report, so the comment on the pull request is the one job left out.
+  assert.equal(workflow.jobs['pack-mac'].if, undefined);
+  assert.equal(workflow.jobs['pack-win'].if, undefined);
+  assert.equal(workflow.jobs.comment.if, "${{ !startsWith(github.head_ref, 'claude/fix-') }}");
+  // No `if:` may be put on the required checks. A skipped job satisfies a
+  // required status check, which would let a red pull request merge.
   const checks = loadYaml(readFileSync('.github/workflows/pr-checks.yml', 'utf8'));
   for (const name of ['unit', 'nemeth', 'e2e']) assert.equal(checks.jobs[name].if, undefined, name);
-});
-
-test('the pipeline can ask for a build that does not comment on the pull request', () => {
-  // The links go on the ISSUE, in the status comment, once the checks AND the
-  // build are green. A comment on the pull request is one the contributor never
-  // reads, and one more thing for the maintainer to scroll past.
-  assert.equal(triggers.workflow_dispatch.inputs.quiet.required, false);
-  assert.equal(workflow.jobs.comment.if, "inputs.quiet != 'true'");
 });

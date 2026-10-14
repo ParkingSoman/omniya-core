@@ -22,9 +22,15 @@ body:
         stay the same. If the build works, write @claude it works. The
         maintainer then reviews it and merges it.
 
-        If you are asking for something new rather than reporting something
-        broken, this is the wrong form. Open a blank issue instead. Feature
-        requests are design decisions and a person answers those.
+        Use this form for a bug. A bug is something the app says it does, or is
+        documented to do, that is missing or does not work.
+
+        There are three other forms. If a symbol or rule from the Nemeth Code is
+        missing, or you want to change how an equation is spoken, use the
+        Nemeth or speech form. An agent works on that one too. If
+        you want something new, or want the app to look, sound or behave
+        differently, use the Design form. If it is neither, use the Other form.
+        A person answers Design and Other. No agent starts on them.
 
   - type: textarea
     id: what-happened
@@ -43,9 +49,8 @@ body:
       label: What you expected instead
       description: >-
         What should have happened. This is the field that separates a bug from a
-        preference, so it decides whether the report is worked on automatically
-        or handed to a person. If a braille rule or a textbook says what the
-        right answer is, name it here.
+        preference. If the app says it does this, or a braille rule or a textbook
+        says what the right answer is, name it here.
     validations:
       required: true
 

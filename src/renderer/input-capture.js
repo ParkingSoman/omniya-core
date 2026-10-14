@@ -41,7 +41,7 @@ import { createInputLog } from './input-log.js';
  * is not a document-wide key log and must not become one -- buttons, menus and
  * the transcript are deliberately not here.
  */
-const FIELDS = ['#composer-source', '#composer-note', '#napkin-name', '#replacement-input'];
+const FIELDS = ['#composer-source'];
 
 /**
  * The authoring mode in force, recorded on every entry.
@@ -92,7 +92,7 @@ export function attachInputCapture({ document, log = createInputLog(), onChange,
       swallowed: event.defaultPrevented,
       mode: authoringMode(document),
       table: activeTable(),
-      value: field.value
+      value: field.value ?? field.textContent
     });
   };
 
@@ -104,7 +104,7 @@ export function attachInputCapture({ document, log = createInputLog(), onChange,
       where: field.id,
       mode: authoringMode(document),
       table: activeTable(),
-      value: field.value,
+      value: field.value ?? field.textContent,
       state: document.querySelector('#composer-status')?.textContent?.trim() || undefined
     });
   };

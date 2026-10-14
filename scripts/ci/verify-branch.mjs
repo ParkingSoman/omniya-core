@@ -1,18 +1,12 @@
 /**
- * Start the checks and the build on a fix branch, wait for both, and say whether
- * they are green. When they are not, keep the log of what failed for the repair
- * agent.
+ * Wait for the checks and the build on a fix branch, and say whether they are
+ * green. When they are not, keep the log of what failed for the repair agent.
  *
- * Why it dispatches instead of waiting for GitHub: a pull request opened by the
- * Actions bot has its own runs held for approval, and a push made with the bot's
- * token starts no run at all. A run started by `workflow_dispatch` is neither
- * held nor skipped, and it reports on the branch's head commit, which is what
- * the pull request is waiting for.
- *
- * `gh workflow run` does not say which run it started. So this notes the head
- * commit and the time before it dispatches, then looks for the run on that
- * branch, from that event, on that commit, created after that time. A run from
- * an earlier round on the same commit is older, so it is not picked.
+ * Nothing is dispatched here. The agent pushes with the pipeline App's token,
+ * and a push or a pull request made with an App token starts the ordinary
+ * `pull_request` runs. They start at the push, before this begins, so they are
+ * found by the branch and the head commit and nothing else. A run from an
+ * earlier round is on an earlier commit, so it is not picked.
  *
  * Usage (needs GH_TOKEN and GITHUB_REPOSITORY):
  *   node scripts/ci/verify-branch.mjs <branch> <pull-request-number> <out-dir>
@@ -20,6 +14,10 @@
  * Step outputs: green (true|false), sha. Writes `<out-dir>/failed.log` when not
  * green. It exits non-zero only when it could not find or finish the runs, so a
  * red check is an answer and a missing run is a fault.
+ *
+ * One missing run is not a fault: a pull request that conflicts with `testing`
+ * gets no `pull_request` runs at all. The agent can fix that itself, so it is
+ * reported as red with the name `conflict`, and the repair agent merges `testing`.
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -30,10 +28,10 @@ import { gh, requireNumber, setOutputs } from './gh.mjs';
 
 export const WORKFLOWS = ['pr-checks.yml', 'pr-build.yml'];
 
-/** Newest run on `sha` created at or after `notBefore` (ms since epoch). */
-export function pickRun(runs, { sha, notBefore }) {
+/** Newest run on `sha`. */
+export function pickRun(runs, { sha }) {
   return runs
-    .filter((run) => run.headSha === sha && Date.parse(run.createdAt) >= notBefore)
+    .filter((run) => run.headSha === sha)
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
 }
 
@@ -41,6 +39,12 @@ export function pickRun(runs, { sha, notBefore }) {
 export function tail(text, limit = 120_000) {
   return text.length <= limit ? text : `[earlier output cut]\n${text.slice(text.length - limit)}`;
 }
+
+/** Why a conflicting pull request has no checks, and what the agent does about it. */
+export const CONFLICT_LOG =
+  'The pull request conflicts with `testing`, so GitHub did not start its checks.\n' +
+  'Merge `origin/testing` into the branch, resolve every conflict, regenerate the generated files, and push.\n' +
+  'The checks will start after the push.\n';
 
 /**
  * @param {object} io
@@ -50,25 +54,31 @@ export function tail(text, limit = 120_000) {
  */
 export async function verifyBranch(
   { gh: run, sleep, now },
-  { repo, branch, pr, pollMs = 30_000, appearMs = 5 * 60_000, finishMs = 80 * 60_000 }
+  { repo, branch, pr, pollMs = 30_000, mergeableMs = 60_000, appearMs = 5 * 60_000, finishMs = 80 * 60_000 }
 ) {
   if (!branch.startsWith(BRANCH_PREFIX)) throw new Error(`refusing branch ${branch}: not a ${BRANCH_PREFIX} branch`);
-  const number = requireNumber(pr, 'pull request number');
+  requireNumber(pr, 'pull request number');
 
   const sha = run(['api', `repos/${repo}/git/ref/heads/${branch}`, '--jq', '.object.sha']).trim();
-  const startedAt = now() - 30_000; // GitHub's clock and this runner's clock can differ a little
 
-  run(['workflow', 'run', 'pr-checks.yml', '--repo', repo, '--ref', branch]);
-  run([
-    'workflow', 'run', 'pr-build.yml', '--repo', repo, '--ref', branch,
-    '-f', `pr_number=${number}`, '-f', 'quiet=true'
-  ]);
+  const mergeable = () =>
+    run(['pr', 'view', String(pr), '--repo', repo, '--json', 'mergeable', '--jq', '.mergeable']).trim();
+  const conflict = () => ({ green: false, sha, failed: ['conflict'], log: CONFLICT_LOG });
+
+  // GitHub works the answer out in the background, so UNKNOWN means ask again.
+  const mergeableBy = now() + mergeableMs;
+  let state = mergeable();
+  while (state === 'UNKNOWN' && now() <= mergeableBy) {
+    await sleep(pollMs);
+    state = mergeable();
+  }
+  if (state === 'CONFLICTING') return conflict();
 
   const list = (workflow) =>
     JSON.parse(
       run([
         'run', 'list', '--repo', repo, '--workflow', workflow, '--branch', branch,
-        '--event', 'workflow_dispatch', '--limit', '20',
+        '--event', 'pull_request', '--limit', '20',
         '--json', 'databaseId,headSha,createdAt,status,conclusion'
       ])
     );
@@ -77,12 +87,15 @@ export async function verifyBranch(
   for (const workflow of WORKFLOWS) {
     const deadline = now() + appearMs;
     for (;;) {
-      const picked = pickRun(list(workflow), { sha, notBefore: startedAt });
+      const picked = pickRun(list(workflow), { sha });
       if (picked) {
         found[workflow] = picked;
         break;
       }
-      if (now() > deadline) throw new Error(`${workflow} did not start on ${branch} at ${sha}`);
+      if (now() > deadline) {
+        if (mergeable() === 'CONFLICTING') return conflict();
+        throw new Error(`${workflow} did not start on ${branch} at ${sha}`);
+      }
       await sleep(pollMs);
     }
   }
@@ -92,7 +105,7 @@ export async function verifyBranch(
   while (Object.keys(done).length < WORKFLOWS.length) {
     for (const workflow of WORKFLOWS) {
       if (done[workflow]) continue;
-      const latest = pickRun(list(workflow), { sha, notBefore: startedAt });
+      const latest = pickRun(list(workflow), { sha });
       if (latest && latest.databaseId === found[workflow].databaseId && latest.status === 'completed') {
         done[workflow] = latest;
       }

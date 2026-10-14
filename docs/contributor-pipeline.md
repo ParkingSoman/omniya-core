@@ -1,393 +1,196 @@
 # The contributor fix pipeline
 
-This page has two halves. The first is for a contributor reporting a bug. The
-second is for the maintainer.
-
-It is written in plain sentences, without nested lists, because it is read
-aloud.
+This page has two halves. The first is for a contributor who found a bug. The
+second is for the maintainer. It is written in short plain sentences because it
+is read aloud.
 
 ## If you found a bug
 
 You never need to leave your issue. Everything happens there.
 
-Open a bug report on GitHub. Use the "Bug report" form, not a blank issue.
+Open a new issue and pick the form that fits.
 
-The form asks three things. What happened. What you expected instead. And a
-diagnostics dump.
+| Form | Use it when | Who works on it |
+|---|---|---|
+| Bug report | Something the app says it does is missing or broken. | An agent |
+| Nemeth or speech | A Nemeth Code symbol or rule is missing, or you want an equation spoken in other words. | An agent |
+| Design | You want something new, or want the app to feel different. | A person |
+| Other | It is none of the above. | A person |
 
-To get the dump, open the Help menu in the app and choose "Copy braille input
-diagnostics". That puts it on your clipboard. Paste it into the third field.
+An agent works on the first two. A person answers the last two, on your issue.
 
-Read the dump before you paste it. It contains what you typed: the mathematics,
-any other text in those fields, and your napkin names. The issue is public, so
-anyone can read it, and it stays readable after the bug is fixed. Take out
-anything you would rather not publish. If the dump is the only way to show the
-bug and you would rather not publish it, say so in the form and send it by
-email instead.
+Each event on your issue gets one comment. No comment repeats another. Every
+comment has something new in it.
 
-The second field is the one that decides what happens next. If you describe what
-should have happened, the report is treated as a bug and worked on
-automatically. If you are asking for something the app does not do yet, that is
-a design decision, and a person answers it. You will get a comment saying so
-rather than silence.
+Within a minute you get a short comment that says work has started. You do not
+need to do anything. About an hour later you get a second comment. It says what
+changed. It has two download links, one for Mac and one for Windows. Install the
+build and try the thing that was broken. You are the only person who can say
+whether the bug is gone.
 
-Here is what happens after you press submit.
-
-Within a minute, a comment appears on your issue that starts with "Where this
-fix stands". It says that work has started. You do not need to do anything.
-
-An agent reads your report, reproduces the bug, writes a test that fails for
-your reason, and fixes it. Then it checks its own work. If a check fails, it
-repairs the fix and checks again. You do not see any of that.
-
-About an hour later, the same comment changes. It now says that a test build is
-ready, and that all the automatic checks passed. It has two download links. One
-is for Mac and one is for Windows. GitHub does not notify you when a comment is
-edited. So the pipeline also writes one short new comment, which links to the
-one with the download links. You hear that one. Open the link in it. The
-download links are always in the same place, so come back to the same comment
-each time.
-
-Install the build and try the thing that was broken. You are the only person
-who can answer whether the bug is actually gone. That is why this step exists,
-rather than someone deciding on your behalf.
-
-Now there are two things you can do. Both are a new comment on the same issue.
-
-If it is still wrong, write a comment that starts with `@claude` and say what
-you found. The agent reads your comment and the whole conversation, and changes
-the fix. A new build replaces the old one behind the same links. Download again
-from the links already in the "Where this fix stands" comment. They do not
-change. The comment says "I am changing the fix" while the new build is made.
-
-If it works, write `@claude it works`. Do not close the issue. The agent sends
-the fix to the maintainer, who reviews it and merges it. The issue closes by
-itself when the maintainer merges. The fix then goes out to every alpha tester,
-and on Windows it installs itself in the background. That is why a person
-reviews it first.
-
-If you close the issue yourself, the fix is not sent. You get a comment that
-says so and tells you what to write instead. Open the issue again and write it.
+- If it is still wrong, write a comment that starts with `@claude` and say what
+  you found. You get one new comment, and the same links already in the first
+  one now hold the new build.
+- If it works, write `@claude it works`. The maintainer then reads the fix and
+  ships it.
+- Do not close the issue. Closing sends nothing. You will get a comment that
+  tells you what to write instead.
+- If you have a question, start it with `@claude` too. You get one answer, and
+  nothing changes.
 
 The word `@claude` is what starts the work. A comment without it is read by
-people, not by the agent. That is on purpose: each run costs the maintainer part
-of a paid quota, so "thanks, I will test tonight" should not spend one. The
-"Where this fix stands" comment reminds you of the word each time.
+people only. Each run costs the maintainer part of a paid quota.
 
-You can go round this as many times as it takes.
-
-Sometimes the agent needs to ask you something before it starts. That is rare.
-It happens when your report can be read two ways, or when the agent cannot see
-what went wrong. The "Where this fix stands" comment says "I have a question
-before I start". The question is in the comment just below it. It has at most
-three short questions. Answer in a comment that starts with `@claude`. The agent
-starts as soon as you answer. It asks at most twice. If you do not know an
-answer, say so. That is a good answer.
-
-One more thing can appear. The comment may say that the maintainer needs to look
-at a technical problem. That means the checks failed in a way the agent could
-not repair. Nothing is wrong with your report and you do not need to do
-anything. The maintainer will write on the issue when there is news.
+Sometimes the agent asks you up to three short questions first. Answer in a
+comment that starts with `@claude`. "I do not know" is a good answer. A comment
+may also say that the maintainer needs to look at a technical problem. Then you
+need to do nothing. The maintainer will write here when there is news.
 
 ## If you maintain this repository
 
-### What the contributor sees, and what you see
+`testing` is the default branch. The prompts, tools, gates, allowlist and forms
+all live on it. Changing the pipeline is an ordinary change into `testing`.
+A fix merges by itself only when the contributor says it works, every required
+check is green, and the fix touches no pipeline file. Any other fix waits for you.
+The pipeline uses no `--admin` flag anywhere.
 
-The contributor sees one issue. You see a pull request, and the pipeline keeps
-the two joined by a `Fixes #<number>` line, which is the last line of the pull
-request body.
+### The flow
 
-| Step | The contributor sees on the issue | You see |
+```mermaid
+flowchart TD
+  A[Issue opened] --> B{Form label}
+  B -- design or other --> C[One comment: a person answers. No agent]
+  B -- bug or nemeth --> D{On the contributor list and able to write?}
+  D -- no --> E[One comment, label needs-owner, red run]
+  D -- yes --> F[Agent: reproduce, fix, draft PR into testing]
+  F --> G[Checks and build, up to three repairs]
+  G -- green --> H[One comment with links]
+  G -- still red --> I[Label needs-owner, you look]
+  H --> J{Contributor comments @claude}
+  J -- problem --> F
+  J -- it works --> K{Touches pipeline files or reverses a note?}
+  K -- no --> L[Status contributor-tested, auto-merge into testing]
+  K -- yes --> N[Label needs-owner, you review and merge]
+  L --> M[Issue closes from the Fixes line]
+```
+
+### Rules
+
+1. One comment per event. The agent never posts. Its job holds `issues: read`.
+   It writes `message.md`, and `scripts/ci/reply.mjs` posts it once. An edit sends
+   no notification, so nothing is edited. The agent's text is untrusted: it
+   travels through `env`, is cut to 2000 characters, and loses links, `@` and HTML.
+2. Only the maintainer decides what the app does. Three locks hold this.
+   - Lock 1, the prompt. The agent classifies a report first. New behaviour gets
+     `needs-design`, one comment and no code. A missing Nemeth symbol, and how
+     math is spoken, are not design decisions. The agent does those.
+   - Lock 2, `pipeline-followup.yml`. A contributor's comment resumes a fix only
+     with `needs-info`, a real question from the bot, and no `needs-design`. The
+     owner's own `@claude` comment lifts it. GitHub sets `author_association`, so
+     it cannot be faked. That one comment is headed with a random token, so a
+     contributor cannot write the heading.
+   - Lock 3, the merge. The ruleset `testing-tested` needs the commit status
+     `contributor-tested`. Only the hand-off job (`scripts/ci/hand-off.mjs`) sets it,
+     with the App's token, and only after the contributor says it works. A fix that touches `.github/**`,
+     `scripts/ci/**`, `CODEOWNERS` or `.github/contributors.yml`, that has a
+     or that says "Reverses a standing note" gets `needs-owner` and no
+     status. Only you merge those. A fix that conflicts is not one of them: it is
+     brought up to date, and the contributor tries the new build. The agent's token has no Commit statuses permission.
+3. Only people on `.github/contributors.yml` can start a run. The check is
+   `scripts/ci/allowlist.mjs`. It fails closed. It runs before anything is installed.
+   The person must also have write access (`scripts/ci/can-run-agent.mjs`).
+4. The agent's tools are unrestricted Bash. The allowlist is what contains it.
+   No job holds `actions: write`.
+5. Long text stays out of `${{ }}`. GitHub rejects an expression over 21,000
+   characters. The agent's instructions are in `.github/prompts/agent.md`. The
+   workflow copies that file from `origin/testing` to a place outside the
+   checkout, and the agent reads only that copy. A fix branch cannot rewrite them.
+6. The agent works with a GitHub App token, not the built-in token. A pull
+   request opened with the built-in token gets no checks. One opened by the App
+   gets them the normal way, so `pipeline-verify.yml` only waits for them. A
+   pull request that conflicts with `testing` gets no checks, so verify reports it
+   as red and the repair agent merges `testing` in. The App
+   has Contents and Pull requests write and Issues read. It has no Workflows,
+   Checks or Administration permission, so it cannot change a workflow file. The
+   App ID is the variable `PIPELINE_APP_ID` and the key is the secret
+   `PIPELINE_APP_PRIVATE_KEY`. Never add a skip condition to `unit`, `nemeth` or
+   `e2e`: a skipped job satisfies a required check.
+7. Every run uses your Claude subscription (`CLAUDE_CODE_OAUTH_TOKEN`). There is
+   no API key input, and a test fails if one appears.
+
+### Labels
+
+| Label | Meaning | Set by |
 |---|---|---|
-| Report filed | "Where this fix stands": working | Nothing yet |
-| Agent finishes | One short plain comment from the agent | A draft pull request into `testing` |
-| Checks and build pass | The same comment, edited: build ready, with links. Plus one short new comment, because an edit sends no notification | Green `unit`, `nemeth`, `e2e`. Draft still |
-| Contributor writes `@claude` and a problem | The same comment, edited: changing the fix | New commits on the same branch |
-| Contributor writes `@claude it works` | The same comment, edited, plus a short new comment: sent to the maintainer | Pull request out of draft, label `ready-for-maintainer`, you asked to review |
-| You merge | A closing comment, and the issue closes | The merge into `testing` |
+| `bug`, `nemeth`, `design`, `other` | The form chosen. `scripts/ci/issue-kind.mjs` reads it. Both `design` and `nemeth` means a person decides. | The issue form. Create these once by hand |
+| `needs-info` | The agent asked a question and waits | The pipeline |
+| `needs-design` | A person must decide | The agent |
+| `needs-owner` | You must look: blocked, red checks, no access, or a fix that cannot merge by itself | The pipeline |
 
-### When the agent asks, and when it cannot start
-
-**A question.** In mode `fix` the agent may decide a report is too vague to work
-from. It posts one comment whose first line is `<!-- omniya-pipeline-question -->`,
-writes the result `asked`, and stops. It opens no branch and no pull request. The
-pipeline sets the label `needs-info` and the status comment says what to do. It
-does not set `needs-maintainer`, because the contributor is the one who is needed.
-
-The contributor answers with `@claude`. `pipeline-followup.yml` sees an issue with
-no open fix and the label `needs-info`, takes the label off, and calls the agent
-in mode `fix` again. This time `listed-thread.mjs` hands it the report and the
-question and the answer, together. The number of questions already asked is
-counted from the marker comments on the issue, not from anything the contributor
-wrote, and `pipeline-agent.yml` turns a third `asked` into `stopped`.
-
-The prompt tells the agent to ask only when it must. Most reports are bugs with
-enough detail. If you see it asking about things the diagnostics already show,
-tighten the "ASK ONLY IF YOU MUST" step in `pipeline-agent.yml`.
-
-**No write access.** `claude-code-action` refuses any actor who cannot write to
-the repository. Being on `.github/contributors.yml` is not enough: the person
-also has to be a collaborator, and has to accept the invitation. Issue #33 was a
-contributor on the list with read access only. The run now checks this first
-(`scripts/ci/can-run-agent.mjs`). If it fails, the contributor gets a plain
-comment, the issue gets `needs-maintainer`, and the job `noaccess` fails red so
-you get the failure email. Fix: `node scripts/ci/add-contributor.mjs <handle>`
-sends the invitation again, then the contributor accepts it, then run
-`contributor-fix` by hand for the issue. A hand-started run is checked as YOU, so
-it works as soon as you press the button.
-
-### Who can decide what the app does
-
-Only the maintainer. Contributors on the list have write access, so the pipeline
-cannot lean on what they are permitted to do. Three locks hold this, in order:
-
-1. **The prompt.** `pipeline-agent.yml` classifies a report first. Something new
-   gets `needs-design`, one plain comment, and no code. This is a request to the
-   agent, not a lock.
-2. **The workflow.** A comment resumes a fix only when the issue has the label
-   `needs-info` AND the agent really asked (a comment by the bot that starts with
-   the question marker) AND the issue does not have `needs-design`. A contributor
-   can add a label by hand, so the label alone proves nothing. An issue marked
-   `needs-design` restarts only when the maintainer runs `contributor-fix` by
-   hand.
-3. **The merge.** `.github/CODEOWNERS` names the maintainer, and the rulesets
-   `testing-guard` and `main-guard` require a review from a code owner. A
-   contributor cannot approve, so a contributor cannot merge into `testing`. The
-   maintainer is a bypass actor, so their own pull requests still merge. The
-   file has to be on the base branch of the pull request to count, so it is on
-   `testing` first and reaches `main` with the next merge of `testing`.
-
-If a design change gets past lock 1 by a wrong guess, lock 3 is what catches it.
-
-### Merging a fix
-
-When the contributor writes `@claude it works`, the pipeline checks that `unit`,
-`nemeth` and `e2e` are green on the pull request's head commit. If they are, it
-takes the pull request out of draft, adds the label `ready-for-maintainer`,
-asks you to review, and writes the commit that was tested in a pull request
-comment. If they are not, it adds `needs-maintainer` and tells the contributor
-that you have been told.
-
-Nothing merges by itself. Closing the issue merges nothing. You merge, in the
-ordinary way.
-
-Your merge closes the issue. GitHub only closes an issue from a `Fixes` line
-when the pull request merges into the default branch, and these merge into
-`testing`. So `pipeline-close-issue.yml` closes it instead.
-
-Before you merge, read the pull request body for a heading "Reverses a standing
-note". The contributor checks one thing only, which is whether the bug is gone
-on their own machine. They will approve a fix that re-adds something removed on
-purpose, because for them it works. That heading is the only place the trade is
-visible, and it is yours to judge.
-
-### When the checks fail
-
-After the agent opens or changes a pull request, `pipeline-verify.yml` starts
-`pr-checks` and `pr-build` on the branch and waits for both. If either fails, a
-second agent reads the end of the failed log and repairs the cause. Then the
-checks run again. There are three repairs at most. After that the pipeline stops.
-
-The repair agent is told never to edit a check, a workflow, a test or a corpus
-row to make it pass. It is also told that the check may be what is wrong. Then
-it changes nothing, writes the technical case on the pull request, and adds the
-label `needs-maintainer`. Read that comment. It is the recommendation to change
-a check, and the change is yours to make.
-
-When the pipeline stops, the contributor sees only that you need to look at a
-technical problem. The pull request gets `needs-maintainer` and a comment with a
-link to the run. The log of each failed round is an artifact on that run, named
-`failed-checks-1` and so on.
-
-A failing `pipeline-on-main` check is not a fault in the fix. It means a stub on
-`testing` differs from its copy on `main`. See "Changing a stub" below.
-
-### Setting it up
-
-Nothing runs until the repository holds a Claude subscription token. Generate one
-and store it.
-
-```
-claude setup-token
-gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo ParkingSoman/omniya-core
-```
-
-Runs draw on your Claude subscription quota, not on API billing. There is no
-`anthropic_api_key` input anywhere in these workflows, and a unit test fails if
-one is added.
-
-GitHub starts an `on: issues` or `on: issue_comment` workflow only from the
-default branch, and the default branch is `main`. That is a GitHub rule, not a
-choice made here. So `main` holds three small stubs, and each stub does one
-thing: it calls the real workflow on `testing`. The prompts, the tools and the
-gates all live on `testing`. Changing what the pipeline does is an ordinary pull
-request into `testing`, and nothing is copied to `main`.
-
-Three things live on `main`. The stubs, the allowlist, and the issue form. The
-stubs are copied there once from `.github/pipeline-stubs/`, and only again if a
-stub itself is edited. The allowlist exists on `main` only, on purpose, so that
-the people who can merge to `testing` cannot add themselves to it.
-
-Forgetting to copy a stub is what broke issue #22: an allowlist entry reached
-`testing` and never reached `main`, the gate on `main` refused its author, and
-nobody was told for 23 days. The `pipeline-on-main` job in `pr-checks.yml` now
-fails a pull request into `testing` when a stub on `testing` differs from its
-copy on `main`, when a stub is missing there, or when the allowlist on `main`
-cannot be read. It names the file. Fix that file on `main`, then run the check
-again.
-
-A file on the wrong branch does not warn you. It just never runs. If a
-contributor writes `@claude` and nothing happens, check that
-`contributor-followup.yml` is on `main` before you check anything else.
-
-The gates and the build are the other way round. They trigger on
-`pull_request`, and GitHub runs the pull request's own copy of those files, so
-they live on `testing` with everything else and never go near `main`.
-
-The labels `needs-design`, `needs-maintainer` and `ready-for-maintainer` have to
-exist, because adding a label that does not exist fails. The pipeline creates
-the last two itself when it needs them. `needs-design` is put on a report that
-turns out to be a feature request, and it has to be created by hand once.
-
-### Changing a stub
-
-The follow-up stub changed when the contributor moved from the pull request to
-the issue. The same is true of the issue form. A change to either has to reach
-`main`, and `pipeline-on-main` fails the `testing` pull request until it does.
-
-The order is this. Open the pull request into `testing`. It shows a red
-`pipeline-on-main`, which is expected. Open a second pull request into `main`
-that carries only the changed stub and the changed issue form, copied byte for
-byte. Merge the one into `main` first. Run `pr-checks` again on the `testing`
-pull request, and merge it when it is green.
-
-Until both are merged, the old behaviour keeps running. The old follow-up stub
-answers a `@claude` comment on a pull request. The new one answers it on the
-issue.
-
-### Why the pipeline starts its own checks
-
-GitHub does not run a pull request's checks on its own when the Actions bot
-opened it. The run waits for a person to approve it, and a push made with the
-bot's token starts no run at all. Without a fix, the required `unit`, `nemeth`
-and `e2e` checks would never report, and no test build would be made.
-
-So `pipeline-verify.yml` starts `pr-checks.yml` and `pr-build.yml` itself, on the
-pull request's branch, with `workflow_dispatch`. GitHub neither holds nor skips a
-run started that way, and the checks report on the branch's latest commit, which
-is what the pull request is waiting for.
-
-A branch cut before the `quiet` input was added to `pr-build.yml` cannot be
-dispatched with it, and the pipeline's dispatch fails with an error about an
-unexpected input. A branch that old is a fix from before this pipeline. Use the
-"Update branch" button on it, then re-run the pipeline by hand.
-
-`gh workflow run` does not say which run it started. So `verify-branch.mjs`
-notes the head commit and the time, then looks for the run on that branch, from
-that event, on that commit, created after that time.
-
-The jobs that hold `actions: write` run no agent. The jobs that run an agent hold
-no `actions` permission. That split is the point: an agent that talked its way
-past its rules still could not start or cancel a workflow.
-
-`pr-build.yml` skips its own `pull_request` run for a `claude/fix-` branch,
-because the pipeline builds those itself. Do not add a condition to `unit`,
-`nemeth` or `e2e` to skip them. A skipped job satisfies a required check, and a
-red pull request could then merge.
-
-### A report was missed
-
-If a report did not start a run, open the Actions tab, choose
-`contributor-fix`, press "Run workflow", and type the issue number. It is gated
-like an automatic run: the allowlist checks who wrote the issue, not who pressed
-the button.
-
-When the gate refuses an author, the issue gets one comment saying so. It costs
-no Claude quota. A report that gets no comment at all means the workflow never
-started, so check that the stubs are on `main`.
-
-When a listed contributor writes `@claude` on an issue that has no open fix, or
-more than one, the issue gets one comment saying so. The pipeline will not guess.
-
-### Adding a contributor
-
-Run one command from any checkout, logged in to the GitHub CLI as the
-maintainer.
-
-```
-node scripts/ci/add-contributor.mjs <github-handle>
-```
-
-It does two things. It adds the handle to `.github/contributors.yml` on `main`,
-which is the one place that says who may spend your subscription quota. Then it
-invites them to the repository as a collaborator with write access, so they can
-comment on and reopen their own issue.
-
-Add `--dry-run` first to see what it would do, or `--no-invite` to skip the
-invitation. The two are deliberately separate things. Removing somebody from the
-list stops them driving the pipeline without removing their repository access.
-To remove them, delete their line from `.github/contributors.yml` on `main`.
-
-### What protects the branches
-
-`main` refuses a direct push. `testing` takes a change only through a pull
-request whose checks passed. Both are GitHub rulesets, and they are what makes
-handing out write access safe: a contributor with write access could otherwise
-push straight to `testing`, and a push to `testing` ships to every alpha tester
-with Windows installing it in the background.
-
-The pipeline merges nothing and uses no `--admin` flag anywhere. `testing-guard`
-asks for a pull request and for `unit`, `nemeth` and `e2e` to pass. It asks for
-no approval, so you can merge as soon as those are green.
-
-### What has not been watched yet
-
-The new loop is built from tested pieces, but a live run has not been seen. These
-are the places to look first.
-
-The agent now runs with `track_progress` off. The action then chooses its "agent"
-mode on every event, which makes no branch of its own. The fix prompt creates the
-branch itself. If a fix run ends with no pull request, read that first.
-
-The comment path reads the thread from the issue, through `listed-thread.mjs`. The
-agent's own earlier comments are by a bot and are left out of it, so the agent
-reads the pull request body and the commits to remember what it changed.
-
-The workflows call each other on `testing` by name. A change to them takes effect
-only after it merges into `testing`, so the first real test is after the merge.
-
-### The files
-
-The `Lives on` column is not a detail. A file on the wrong branch does not warn
-you; it just never runs.
+### The workflows
 
 | File | Lives on | What it does |
 |---|---|---|
-| `.github/ISSUE_TEMPLATE/bug-report.yml` | `main` | The form. Three required fields. Says where to write next. |
-| `.github/ISSUE_TEMPLATE/config.yml` | `main` | Keeps blank issues on, so a feature request has somewhere to go. |
-| `.github/contributors.yml` | `main` | Who may drive the pipeline. Exists on `main` only. |
-| `scripts/ci/allowlist.mjs` | `main` | Reads that file and decides. Fails closed. Also kept on `testing`, and the two must match. |
-| `.github/workflows/contributor-fix.yml` | `main` | Stub. Issue opened, or run by hand, calls `pipeline-fix.yml`. |
-| `.github/workflows/contributor-followup.yml` | `main` | Stub. An `@claude` comment on an issue calls `pipeline-followup.yml`. |
-| `.github/workflows/contributor-signoff.yml` | `main` | Stub. A closed issue calls `pipeline-signoff.yml`. |
-| `.github/pipeline-stubs/` | `testing` | The source of the three stubs above, with tests. Not read by GitHub from here. |
-| `.github/workflows/pipeline-fix.yml` | `testing` | Issue to draft pull request. Tells the contributor work has started. |
-| `.github/workflows/pipeline-followup.yml` | `testing` | A comment on the issue to a revision, an answer, or a hand-off. |
-| `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs, in mode `fix`, `comment` or `checks-failed`. |
-| `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, then reports on the issue. |
-| `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment saying closing sends nothing. |
-| `.github/workflows/pipeline-close-issue.yml` | `testing` | Your merge of a fix closes its issue. |
-| `scripts/ci/find-fix-pr.mjs` | `testing` | The one rule for "which open pull request is the fix for issue N". |
-| `scripts/ci/status-comment.mjs` | `testing` | Writes and edits the "Where this fix stands" comment. |
-| `scripts/ci/verify-branch.mjs` | `testing` | Starts the checks and the build, waits, and keeps the log of what failed. |
-| `scripts/ci/hand-off.mjs` | `testing` | Takes the pull request out of draft when the contributor says it works. |
-| `scripts/ci/gh.mjs` | `testing` | Runs `gh` without a shell. Shared by the scripts above. |
-| `scripts/ci/listed-thread.mjs` | `testing` | Builds the thread the agent reads, from allowlisted people only, and the agent's own earlier questions. |
-| `scripts/ci/can-run-agent.mjs` | `testing` | Says whether the actor can write to the repository, which the agent action requires. |
-| `scripts/ci/fix-outcome.mjs` | `testing` | What to tell the contributor, and which label to set, when a round ends without a pull request. |
-| `scripts/ci/add-contributor.mjs` | `testing` | The one command that adds a person. |
-| `.github/workflows/pr-checks.yml` | `testing` | The gates: `unit`, `nemeth`, `e2e`, and `pipeline-on-main`. |
-| `scripts/ci/pipeline-drift.mjs` | `testing` | Fails a pull request when a stub differs from its copy on `main`, or the allowlist there cannot be read. |
-| `scripts/ci/nemeth-gate.mjs` | `testing` | Makes the two Nemeth reports able to fail. |
-| `.github/workflows/pr-build.yml` | `testing` | Publishes a per-pull-request build to install. |
-| `.github/workflows/testing-app.yml` | `testing` | Fires on every push to `testing` and publishes the alpha build. This is what a merge reaches. |
+| `.github/workflows/pipeline-fix.yml` | `testing` | An opened issue, or by hand with an issue number. Issue to draft pull request. |
+| `.github/workflows/pipeline-followup.yml` | `testing` | An `@claude` comment on an issue. A revision, an answer or a hand-off. By hand with an issue number and a comment, for a rehearsal. |
+| `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs. Modes `fix`, `comment`, `checks-failed`. |
+| `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, reports on the issue. |
+| `.github/workflows/pipeline-rescued.yml` | `testing` | A person fixed a fix the pipeline gave up on. When the checks and the build go green, the contributor gets the test build on the issue, once. |
+| `.github/workflows/pipeline-keep-current.yml` | `testing` | Every push to `testing`, weekly, and when a hand-off finds a conflict. Updates open fix branches. A conflict goes to the repair agent. |
+| `.github/workflows/pipeline-ship.yml` | `testing` | By hand, from a chat session, after the owner says "ship it". Merges a `pipeline/` pull request that changed the automation. It replaces the bypass tick. |
+| `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment: closing sends nothing. |
+| `.github/workflows/pr-checks.yml` | `testing` | The gates `unit`, `nemeth` and `e2e`. |
+| `.github/workflows/pr-build.yml` | `testing` | A per-pull-request build to install. |
+| `.github/workflows/testing-app.yml` | `testing` | Every push to `testing` publishes the alpha build. A merge reaches testers. |
+| `.github/workflows/diagnostics-windows.yml` | `testing` | The braille diagnostics e2e on Windows. |
+| `.github/workflows/screen-reader.yml` | `testing` | VoiceOver and NVDA against the editor, with transcripts. |
+
+### Shipping a change to the automation itself
+
+You describe the change in the chat. The session builds it, rehearses what it
+can, and ships it with
+`gh workflow run pipeline-ship.yml --ref testing -f pr_number=<N> -f sha=<head>`.
+How much it needs from you depends on what the change touches.
+
+| Tier | The change touches | What it needs |
+|---|---|---|
+| Automatic | Docs, prompts, tests, ordinary scripts and workflows | Nothing. It merges when green. |
+| Ship it | A secret, a token, a write permission, an environment, a release, a delete or force, a trigger that runs with secrets, or a file that defines green or who may merge | Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
+| Bypass tick | The shipper itself, the app, `package.json`, CODEOWNERS | Your click in the browser. A session cannot open this one. |
+
+Always required: it runs from `testing`, started by you or the session account.
+The branch starts with `pipeline/`. Only you and the session account pushed to it.
+The checks `unit`, `nemeth`, `e2e` and both builds are green on that exact commit,
+as jobs of `pr-checks.yml` and `pr-build.yml`. No test is deleted or moved.
+Every file is on the allow list, and the changed lines of workflows and scripts
+are read, because a list of bad files is never complete.
+
+### Setting up, adding a contributor, and getting unstuck
+
+- Set up once: run `claude setup-token`, then add the result as the secret
+  `CLAUDE_CODE_OAUTH_TOKEN` in the environment `pipeline` (see Secrets below).
+- Secrets: `CLAUDE_CODE_OAUTH_TOKEN` and `PIPELINE_APP_PRIVATE_KEY` live only in
+  the environment `pipeline`, whose deployment branches allow only `testing`. A
+  workflow on any other branch cannot read them. There must be no repository-level
+  copy of either. Callers pass both by name, and the value passed is empty on
+  purpose; the called job reads the environment's value. The App needs Contents RW, Pull requests RW, Issues read and
+  Commit statuses RW. The ruleset requires `contributor-tested` from the App.
+- Add a contributor: `node scripts/ci/add-contributor.mjs <handle>`. It opens a
+  pull request that adds the handle to `.github/contributors.yml`, and invites them
+  as a collaborator. Merge it, and they accept the invitation. Use `--dry-run`
+  first. To remove one, delete their line in a pull request.
+- A report started nothing: open the Actions tab, choose `pipeline-fix`, press
+  "Run workflow", and type the issue number. It is gated by who wrote the issue.
+- An issue is stuck on `needs-design` or `needs-info`: write `@claude` yourself on
+  the issue, or run `pipeline-fix` by hand. Your comment is the decision.
+- A contributor has no write access: `needs-owner` is set and the run is red.
+  Run `add-contributor.mjs` again, ask them to accept, then run `pipeline-fix`.
+- Checks stay red after three repairs: the pull request gets `needs-owner` and a
+  technical comment. Read it. It may say a check is wrong. That change is yours.
+- A fix whose body says "Reverses a standing note" never merges by itself. Read
+  that section first. The contributor can only say the bug is gone. They cannot
+  see what was removed.
+- Rehearse a change to the pipeline: `pipeline-fix.yml` and `pipeline-followup.yml`
+  take inputs by hand. See `.claude/skills/pipeline-change/SKILL.md`. A rehearsal
+  from a branch cannot run the agent or the hand-off, because the environment
+  `pipeline` refuses any ref but `testing`. Those are seen live after the merge.

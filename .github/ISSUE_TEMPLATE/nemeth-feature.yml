@@ -1,0 +1,115 @@
+name: Nemeth or speech
+description: A Nemeth symbol or rule the app cannot read yet, or a change to how an equation is spoken.
+title: "[nemeth] "
+labels: ["nemeth"]
+body:
+  - type: markdown
+    attributes:
+      # Every field below carries a real label and a real description. Nothing
+      # is explained by placeholder text alone: placeholders are not reliably
+      # announced, and a form whose instructions only exist in grey text is a
+      # form a screen-reader user fills in blind.
+      value: |
+        Use this form for one of two things. Either the Nemeth Code has a symbol
+        or rule that the app does not have yet, or you want an equation spoken
+        in different words, for example "cosine squared of x" instead of
+        "cosine squared x".
+
+        Both are worked on by an agent, not held for a person. For a symbol, it
+        looks the rule up in the Nemeth Code, writes a test that fails because
+        the app cannot read it, and adds it. For speech, your words are the
+        specification: it writes a test for what you want to hear, and changes
+        the app until it says it. Then a comment on this issue gives you a link
+        to a build you can install and try. You never need to leave this issue.
+
+        If the build is still wrong, write a comment here that starts with
+        @claude and say what you found. If it works, write @claude it works.
+        The maintainer then reviews it and merges it.
+
+        If you want the app to look or behave in a new way that is not about
+        braille or speech, use the Design form instead.
+
+  - type: dropdown
+    id: request
+    attributes:
+      label: What kind of request is this
+      description: >-
+        Choose the first if the app refuses or misreads a Nemeth symbol or
+        rule. Choose the second if the app reads the mathematics correctly but
+        says it in the wrong words.
+      options:
+        - A Nemeth symbol or rule the app cannot read
+        - How an equation is spoken
+    validations:
+      required: true
+
+  - type: input
+    id: symbol
+    attributes:
+      label: The symbol, rule or equation
+      description: >-
+        Its name in words. For example, "the infinity sign", "the general
+        omission sign", or "cosine to the fifth power of x".
+    validations:
+      required: true
+
+  - type: textarea
+    id: cells
+    attributes:
+      label: The braille cells (optional for speech)
+      description: >-
+        The dots, in order. For example, "dot 6, then dots 1-2-3-4-5-6". If it
+        has more than one form, give each one and say when it is used. This is
+        needed for a Nemeth symbol. For a speech request, give an example
+        equation if you have one.
+    validations:
+      required: false
+
+  - type: textarea
+    id: reading
+    attributes:
+      label: What it means and how it should be read aloud
+      description: >-
+        What the symbol stands for. If you know how it should be spoken or
+        shown, say so here, for example "read it as infinity". For a speech
+        request, write the exact words you want to hear, and the words you hear
+        now. Spell a word the way your screen reader says it correctly, for
+        example "enth". If you do not know, say that. The agent will choose a
+        reading the Nemeth Code implies and tell you which one.
+    validations:
+      required: true
+
+  - type: input
+    id: code-section
+    attributes:
+      label: Where it is in the Nemeth Code (optional)
+      description: >-
+        The section or rule number, if you know it. Leave this empty if you do
+        not. The agent looks it up either way.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Before you paste the diagnostics
+
+        The diagnostics are optional here. If the app showed a message when you
+        typed the symbol, they help.
+
+        The dump contains what you typed: the mathematics, any other text in
+        those fields, and your napkin names. Please read it and take out
+        anything you would not want public, because this issue is public.
+        Anyone on the internet can read it, and it stays readable after the
+        feature is added.
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics (optional)
+      description: >-
+        Open the Help menu and choose "Copy braille input diagnostics", then
+        paste here.
+      render: text
+    validations:
+      required: false

@@ -5,17 +5,24 @@
   "main": "src/main.js",
   "type": "module",
   "scripts": {
+    "prestart": "node scripts/build-editor.mjs",
     "start": "electron .",
+    "prestart:dev": "node scripts/build-editor.mjs",
     "start:dev": "OMNIYA_DEV_TOOLS=1 electron .",
+    "predist:mac": "node scripts/build-editor.mjs",
+    "predist:win": "node scripts/build-editor.mjs",
     "dist:mac": "node scripts/stage-liblouis.mjs && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --publish never",
     "dist:win": "node scripts/stage-liblouis.mjs && electron-builder --win --x64 --publish always",
     "version:bump": "node scripts/bump-testing-version.mjs",
     "open:napkin": "node scripts/open-napkin.mjs",
     "test": "node --test 'test/unit/**/*.test.js'",
+    "pretest:e2e": "node scripts/build-editor.mjs",
     "test:e2e": "node --test --test-concurrency=1 'test/e2e/*.test.js'",
-    "test:demo:thought": "OMNIYA_HEADLESS=0 OMNIYA_THOUGHT_DEMO=1 node --test --test-concurrency=1 test/demo/thought-stream-demo.test.js",
+    "test:screen-reader": "node --test --test-concurrency=1 test/screen-reader/editor.test.js",
     "test:all": "npm test && npm run test:e2e",
     "test:inspect": "node test/inspect.mjs",
+    "prejudge:capture": "node scripts/build-editor.mjs",
+    "judge:capture": "node scripts/judge-capture.mjs",
     "nemeth:coverage": "node scripts/nemeth-coverage.mjs",
     "nemeth:utility": "node scripts/nemeth-utility.mjs"
   },
@@ -33,11 +40,21 @@
     "electron-updater": "^6.8.9"
   },
   "devDependencies": {
+    "@guidepup/guidepup": "^0.35.0",
+    "@guidepup/virtual-screen-reader": "^0.33.0",
     "axe-core": "^4.12.1",
     "electron": "43.2.0",
     "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
     "js-yaml": "^5.4.1",
     "playwright": "^1.62.1",
+    "prosemirror-commands": "^1.7.2",
+    "prosemirror-history": "^1.5.1",
+    "prosemirror-keymap": "^1.2.3",
+    "prosemirror-model": "^1.25.12",
+    "prosemirror-schema-basic": "^1.2.5",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-view": "^1.42.6",
     "speech-rule-engine": "5.0.0-rc.4"
   }
 }

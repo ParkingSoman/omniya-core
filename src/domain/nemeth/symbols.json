@@ -132,6 +132,20 @@
     "banaRef": null
   },
   {
+    "cells": "⠱",
+    "kind": "letter",
+    "value": ":",
+    "greekOnly": true,
+    "banaRef": "6.1.4"
+  },
+  {
+    "cells": "⠯",
+    "kind": "letter",
+    "value": "&",
+    "greekOnly": true,
+    "banaRef": "6.1.4"
+  },
+  {
     "cells": "⠇",
     "kind": "letter",
     "value": "l",
@@ -412,6 +426,12 @@
     "banaRef": "2"
   },
   {
+    "cells": "⠠⠿",
+    "kind": "constant",
+    "value": "∞",
+    "banaRef": "23.11"
+  },
+  {
     "cells": "⠠",
     "kind": "comma",
     "value": ",",
@@ -519,6 +539,16 @@
     "role": "comparison",
     "value": "=",
     "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
+    "cells": "⠌⠨⠅",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≠",
+    "banaRef": "21.1",
     "unlessUnspaced": {
       "maxLen": 1
     }
@@ -674,6 +704,16 @@
       "role": "binary",
       "value": "〜",
       "banaRef": "20"
+    }
+  },
+  {
+    "cells": "⠈⠱⠈⠱",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≈",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
     }
   }
 ]
