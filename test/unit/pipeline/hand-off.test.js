@@ -163,6 +163,19 @@ test('a test file moved out of test/ counts as deleted', () => {
   assert.equal(decide({ ...clean, files: [...clean.files, kept] }).action, 'merge');
 });
 
+test('taking the pull request out of draft uses the App token, never the built-in one', () => {
+  for (const files of [[{ filename: 'src/a.js' }], [{ filename: '.github/workflows/x.yml' }]]) {
+    const f = fakeGh({ files });
+    handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP' }, f.gh);
+    const ready = f.calls.find((c) => c.line.startsWith('pr ready 9'));
+    assert.ok(ready, 'the pull request is taken out of draft');
+    assert.equal(ready.token, 'APP');
+  }
+  const f = fakeGh({ files: [{ filename: 'src/a.js' }] });
+  assert.throws(() => handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner' }, f.gh), /MERGE_TOKEN/);
+  assert.ok(!f.calls.some((c) => c.line.startsWith('pr ready')), 'nothing is done without the token');
+});
+
 test('a conflicting pull request is protected', () => {
   assert.deepEqual(decide({ ...clean, mergeable: 'CONFLICTING' }), { action: 'protected', reason: 'conflict' });
 });
