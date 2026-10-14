@@ -145,24 +145,23 @@ flowchart TD
 
 ### Shipping a change to the automation itself
 
-You say "ship it" in the chat. The session runs
+You describe the change in the chat. The session builds it, rehearses what it
+can, and ships it with
 `gh workflow run pipeline-ship.yml --ref testing -f pr_number=<N> -f sha=<head>`.
-It merges only when all of these hold. If one does not, it merges nothing and
-says which.
+How much it needs from you depends on what the change touches.
 
-- It runs from `testing`, started by you or the session account. A pull request
-  cannot edit the workflow that ships it, and a contributor cannot start it.
-- The branch starts with `pipeline/`, goes into `testing`, and is not a draft.
-  Only you and the session account ever pushed to it.
-- Every file is in `docs/`, `scripts/ci/`, `.github/prompts/`,
-  `test/unit/pipeline/`, the pipeline-change skill, or a `pipeline-*.yml`
-  workflow. The shipper, its tests, `gh.mjs`, `hand-off.mjs`, `allowlist.mjs`
-  and the secret guard tests are carved out. No test is deleted or moved.
-- `unit`, `nemeth`, `e2e` and both builds are green on that exact commit, as
-  jobs of `pr-checks.yml` and `pr-build.yml`. A job name alone proves nothing.
+| Tier | The change touches | What it needs |
+|---|---|---|
+| Automatic | Docs, prompts, tests, ordinary scripts and workflows | Nothing. It merges when green. |
+| Ship it | A secret, a token, a write permission, an environment, a release, a delete or force, a trigger that runs with secrets, or a file that defines green or who may merge | Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
+| Bypass tick | The shipper itself, the app, `package.json`, CODEOWNERS | Your click in the browser. A session cannot open this one. |
 
-A change to the app, `package.json`, the check workflows or the shipper needs
-the bypass tick in the browser.
+Always required: it runs from `testing`, started by you or the session account.
+The branch starts with `pipeline/`. Only you and the session account pushed to it.
+The checks `unit`, `nemeth`, `e2e` and both builds are green on that exact commit,
+as jobs of `pr-checks.yml` and `pr-build.yml`. No test is deleted or moved.
+Every file is on the allow list, and the changed lines of workflows and scripts
+are read, because a list of bad files is never complete.
 
 ### Setting up, adding a contributor, and getting unstuck
 

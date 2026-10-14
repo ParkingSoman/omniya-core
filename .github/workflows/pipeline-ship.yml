@@ -1,15 +1,22 @@
 name: pipeline-ship
 
-# Merge a pipeline pull request after the owner said "ship it" in chat.
+# Merge a pipeline pull request. Most merge on their own once green.
 #
 # Changes to the automation never merge by themselves, and the `testing-tested`
 # rule wants a status only the App can post. Until now the only way past was the
 # owner ticking "bypass rules" in the browser. The owner approved this as the
 # replacement (2026-10-14): a chat session starts this workflow, and it does what
-# the hand-off does for a contributor fix, but for a `pipeline/` branch and only
-# on the owner's word.
+# the hand-off does for a contributor fix, but for a `pipeline/` branch.
+#
+# Three tiers, decided by `scripts/ci/ship-pipeline-pr.mjs`:
+#   automatic  merges when green, nobody's word needed
+#   ship it    touches a secret, a permission, a release, a delete, or what
+#              "green" means. Needs `owner_said`, the owner's own words. They go
+#              in the run summary. This cannot prove the owner typed them.
+#   bypass     changes this shipper. Refused. Only the owner's click merges it.
 #
 #   gh workflow run pipeline-ship.yml --ref testing -f pr_number=94 -f sha=<head commit>
+#   ... -f owner_said='ship it'     (only for the ship-it tier)
 #
 # `--ref testing` is not a choice. The environment `pipeline` allows only
 # `testing`, so GitHub refuses any other ref, and a pull request cannot edit the
@@ -26,6 +33,11 @@ on:
       sha:
         description: The head commit that was checked. If the branch moved, nothing merges.
         required: true
+        type: string
+      owner_said:
+        description: The owner's own words, only for a change that needs a "ship it". Logged in the run summary.
+        required: false
+        default: ''
         type: string
 
 permissions:
@@ -57,4 +69,5 @@ jobs:
           ALLOWED_AUTHORS: ${{ github.repository_owner }},omniya-bot
           PR: ${{ inputs.pr_number }}
           SHA: ${{ inputs.sha }}
+          OWNER_SAID: ${{ inputs.owner_said }}
         run: node scripts/ci/ship-pipeline-pr.mjs "$PR" "$SHA"
