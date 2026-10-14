@@ -6,7 +6,9 @@
     "test/unit/pipeline/ship-pipeline-pr.test.js",
     "scripts/ci/protection.json",
     "scripts/ci/protection-report.mjs",
-    "test/unit/pipeline/protection-manifest.test.js"
+    "test/unit/pipeline/protection-manifest.test.js",
+    "scripts/ci/workflow-diff.mjs",
+    "test/unit/pipeline/workflow-diff.test.js"
   ],
   "shipIt": [
     ".github/workflows/pr-checks.yml",

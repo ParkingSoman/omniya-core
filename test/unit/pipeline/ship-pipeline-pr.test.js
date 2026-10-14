@@ -134,6 +134,10 @@ test('"ship it" and "ship 98" say ship, and a refusal beside the word cancels it
   for (const said of ['', 'no way', 'not yet', 'wait', 'abc', 'shipping later', "don't ship it", 'do not ship 98', 'never ship it', 'hold on, ship it later? no', 'stop. ship it', 'cancel, do not ship', null, undefined]) {
     assert.equal(saysShip(said), false, String(said));
   }
+  // Every contraction of "not", with either apostrophe, and the words that take a yes back.
+  for (const said of ["shouldn't ship it", "ship it? can't say", 'we won’t ship it', "isn't ready, ship it", 'nope, ship it', 'nah ship it', 'ship it later', 'maybe ship it', 'ship it unless it fails', 'ship it without tests', 'dont ship it', 'cannot ship it']) {
+    assert.equal(saysShip(said), false, String(said));
+  }
 });
 
 test('a quoted YAML key or value reads the same to GitHub, so it is just as sensitive', () => {
@@ -382,6 +386,9 @@ function fakeGh({ view = pr, conclusion = 'success', mergeFails = 0, pushes = ['
     if (args[0] === 'pr' && args[1] === 'view') return JSON.stringify(view);
     if (args[0] === 'api' && args.some((a) => a.endsWith('/activity'))) return JSON.stringify(pushes.map((a) => ({ a })));
     if (args[0] === 'api' && args[1].endsWith('/files')) return files.map((f) => JSON.stringify(f)).join('\n');
+    // Where the branch left testing, and a workflow file as it was and as it is: the same, so only the line scan speaks.
+    if (args[0] === 'api' && args.some((a) => a.includes('/compare/'))) return `${'b'.repeat(40)}\n`;
+    if (args[0] === 'api' && args.some((a) => a.includes('/contents/'))) return 'name: x\non:\n  workflow_dispatch:\n';
     if (args.some((a) => a.endsWith('/actions/runs'))) {
       return JSON.stringify([
         { id: 11, path: '.github/workflows/pr-checks.yml', created_at: 't', conclusion },

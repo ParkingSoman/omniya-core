@@ -63,6 +63,7 @@ import { appendFileSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 import { gh as realGh, requireNumber, setOutputs } from './gh.mjs';
+import { structuralChanges } from './workflow-diff.mjs';
 
 export const BRANCH_PREFIX = 'pipeline/';
 
@@ -150,7 +151,7 @@ export const MAX_PUSHES = 100;
 // A path is compared to the protected lists in one plain form: composed Unicode, lower case.
 // `scripts/ci/Ship-Pipeline-Pr.mjs` is not the file the workflow runs, but it must never be
 // shipped as if it were free on a machine that treats the two names as one.
-const plain = (file) => String(file).normalize('NFC').toLowerCase();
+const plain = (file) => String(file).normalize('NFKC').toLowerCase();
 
 // A `..` segment would let `docs/../src/main.js` start with an allowed prefix. Git cannot
 // store such a path, but this must not depend on that. A backslash, a control character or a
@@ -250,8 +251,51 @@ export function sensitiveIn(file) {
  * @param {string} said
  */
 export function saysShip(said) {
-  const text = String(said ?? '');
-  return /\bship(?:it)?\b/i.test(text) && !/\b(don'?t|do\s+not|not|no|never|wait|hold|stop|cancel|undo)\b/i.test(text);
+  const text = String(said ?? '').normalize('NFKC');
+  // Any contraction of "not" (shouldn't, won't, can't, with a straight or a curly apostrophe) and any
+  // word that takes the yes back. When in doubt this says no, and the session passes the words with a label.
+  const refusal =
+    /n['’]t\b/i.test(text) ||
+    /\b(do\s+not|not|no|nope|nah|never|wait|hold|stop|cancel|undo|without|neither|nor|none|nothing|cannot|dont|wont|cant|maybe|later|unless|except|unsure)\b/i.test(text);
+  return /\bship(?:it)?\b/i.test(text) && !refusal;
+}
+
+/**
+ * The reasons one plain line is sensitive, as a list. The workflow reader asks this of every
+ * setting it finds in a workflow, so a quoted key or an alias is judged by what it means.
+ * @param {string} line
+ * @returns {string[]}
+ */
+export function whyOfLine(line) {
+  return SENSITIVE_LINES.filter(([pattern]) => matchesLine(pattern, line)).map(([, why]) => why);
+}
+
+const WORKFLOW_FILE = /^\.github\/workflows\/[^/]+\.ya?ml$/;
+
+/**
+ * What the workflow files in a pull request newly grant, read as YAML. Only the workflows are
+ * read this way; scripts are read by their lines. A file that cannot be fetched counts as
+ * unreadable, never as unchanged.
+ * @param {Array<{filename: string, previous_filename?: string|null, status?: string}>} files
+ * @param {(path: string, ref: string) => string|null} read the file at that commit, or null if it did not exist
+ * @param {string} baseSha the commit the pull request branched from
+ * @param {string} headSha
+ * @returns {string[]}
+ */
+export function workflowChanges(files, read, baseSha, headSha) {
+  const reasons = [];
+  for (const file of files) {
+    const names = [file.filename, file.previous_filename].filter(Boolean);
+    if (!names.some((name) => WORKFLOW_FILE.test(name))) continue;
+    try {
+      const headText = file.status === 'removed' ? null : read(file.filename, headSha);
+      const baseText = file.status === 'added' ? null : read(file.previous_filename ?? file.filename, baseSha);
+      reasons.push(...structuralChanges(baseText, headText, whyOfLine).map((why) => `${file.filename}: ${why}`));
+    } catch {
+      reasons.push(`${file.filename}: a workflow that could not be fetched`);
+    }
+  }
+  return reasons;
 }
 
 /**
@@ -285,7 +329,7 @@ export function notGreen(runs, jobsOf) {
  * @param {string} [input.ownerSaid] the owner's own words, when a "ship it" was given
  * @returns {{ship: true, tier: 'automatic'|'ship-it', why: string[]} | {ship: false, reason: string}}
  */
-export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCount = 0, files = [], ownerSaid = '' }) {
+export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCount = 0, files = [], ownerSaid = '', structural = [] }) {
   if (pr.state !== 'OPEN') return { ship: false, reason: 'the pull request is not open' };
   if (pr.baseRefName !== 'testing') return { ship: false, reason: 'it does not go into testing' };
   if (pr.isCrossRepository !== false) return { ship: false, reason: 'it comes from a fork' };
@@ -329,7 +373,9 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
 
   const why = [
     ...names.filter(isShipIt).map((name) => `it changes ${name}, which decides what green means or who may merge`),
-    ...files.flatMap((file) => sensitiveIn(file).map((what) => `${file.filename} touches ${what}`))
+    ...files.flatMap((file) => sensitiveIn(file).map((what) => `${file.filename} touches ${what}`)),
+    // The workflows, read as YAML as well as by line. Either one asking is enough.
+    ...structural.map((what) => `${what}`)
   ];
   if (why.length === 0) return { ship: true, tier: 'automatic', why: [] };
   // The words must say it. Any three characters would pass "no way", "not yet" or "wait".
@@ -386,6 +432,25 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken, ownerSaid = ''
     .filter(Boolean)
     .map((line) => JSON.parse(line));
 
+  // The workflows are also read as YAML, from where the branch left `testing` to where it is now.
+  // Only for a pull request into `testing`: any other is refused below, and needs no reading.
+  let structural = [];
+  if (view.baseRefName === 'testing') {
+    const mergeBase = gh(['api', `repos/${repo}/compare/testing...${sha}`, '--jq', '.merge_base_commit.sha']).trim();
+    if (!/^[0-9a-f]{40}$/.test(mergeBase)) throw new Error(`could not find where the branch left testing: ${mergeBase}`);
+    const read = (path, ref) => {
+      try {
+        const where = path.split('/').map(encodeURIComponent).join('/');
+        return gh(['api', '--method', 'GET', `repos/${repo}/contents/${where}`, '-f', `ref=${ref}`, '-H', 'Accept: application/vnd.github.raw']);
+      } catch (error) {
+        // A file that did not exist at that commit is new or removed, which is a change. Anything else is unreadable.
+        if (/404|Not Found/i.test(String(error.stderr ?? error.message))) return null;
+        throw error;
+      }
+    };
+    structural = workflowChanges(files, read, mergeBase, sha);
+  }
+
   const decision = decide({
     pr: view,
     sha,
@@ -394,6 +459,7 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken, ownerSaid = ''
     pushers: pushes.map((push) => push.a),
     pushCount: pushes.length,
     files,
+    structural,
     ownerSaid
   });
   if (!decision.ship) return { shipped: false, reason: decision.reason };

@@ -63,6 +63,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: testing
+      # The shipper reads each changed workflow as YAML, which needs the YAML reader from the
+      # lockfile of `testing`. Scripts do not run during the install.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - env:
           GH_TOKEN: ${{ github.token }}
           MERGE_TOKEN: ${{ steps.app.outputs.token }}
