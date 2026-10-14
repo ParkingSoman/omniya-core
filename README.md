@@ -1,4 +1,4 @@
-# Omniya Core.
+# Omniya Core
 
 A research prototype exploring screen-reader-first mathematical workspaces.
 
