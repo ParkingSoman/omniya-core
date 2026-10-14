@@ -106,6 +106,29 @@ test('the workflow asks the App for only contents and pull requests, never statu
   assert.doesNotMatch(yml, /run:[^\n]*\$\{\{/, 'no expression inside a run line');
 });
 
+test('the agent never runs in a run that a push started, because the action refuses that event', async () => {
+  // Seen live: "Unsupported event type: push". Five repairs failed in one step and five
+  // contributors were told a maintainer had to look, when no agent had even started.
+  const { load } = await import('js-yaml');
+  const wf = load(readFileSync('.github/workflows/pipeline-keep-current.yml', 'utf8'));
+  assert.match(wf.jobs.repair.if, /github\.event_name != 'push'/);
+  assert.match(wf.jobs.redispatch.if, /github\.event_name == 'push'/);
+  // A repair cannot be reached from a push, and a manual run cannot start another manual run.
+  assert.doesNotMatch(wf.jobs.redispatch.if, /workflow_dispatch|schedule/);
+});
+
+test('the push starts ONE manual run for all conflicts, not one per pull request, with no secret', async () => {
+  const { load } = await import('js-yaml');
+  const wf = load(readFileSync('.github/workflows/pipeline-keep-current.yml', 'utf8'));
+  const job = wf.jobs.redispatch;
+  assert.deepEqual(job.permissions, { actions: 'write' });
+  assert.equal(job.environment, undefined);
+  assert.doesNotMatch(JSON.stringify(job), /secrets\.|app-token|MERGE_TOKEN/);
+  const run = job.steps.map((s) => s.run ?? '').join('\n');
+  assert.match(run, /gh workflow run pipeline-keep-current\.yml/);
+  assert.doesNotMatch(run, /pr_number|for |while |xargs/, 'one start: GitHub keeps one waiting run per group, so a loop would lose all but the last');
+});
+
 test('the job that starts the update holds no secret, and the hand-off job still holds no actions permission', async () => {
   const { load } = await import('js-yaml');
   const followup = load(readFileSync('.github/workflows/pipeline-followup.yml', 'utf8'));
