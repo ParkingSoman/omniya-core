@@ -102,6 +102,15 @@ test('a change that was not listed in full is protected, because part of it was 
   assert.deepEqual(decide({ ...clean, filesComplete: undefined }), { action: 'protected', reason: 'automation' });
 });
 
+test('a test file that loses more lines than it gains is protected, one that grows is not', () => {
+  const edit = (additions, deletions) => ({ ...clean, files: [...clean.files, { filename: 'test/unit/nemeth/parser.test.js', status: 'modified', additions, deletions }] });
+  assert.deepEqual(decide(edit(2, 9)), { action: 'protected', reason: 'test-weakened' });
+  assert.equal(decide(edit(9, 2)).action, 'merge');
+  assert.equal(decide(edit(4, 4)).action, 'merge', 'an expectation that changed with the behaviour is ordinary');
+  // Source and docs may shrink.
+  assert.equal(decide({ ...clean, files: [{ filename: 'src/domain/a.js', status: 'modified', additions: 1, deletions: 30 }] }).action, 'merge');
+});
+
 test('hand-off sends the fix to the maintainer when the file list and the file count disagree', () => {
   const f = fakeGh({ files: [{ filename: 'src/a.js' }], changedFiles: 4 });
   const result = handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP' }, f.gh);

@@ -67,7 +67,7 @@ export function protectedPath(path) {
  *
  * @param {{files: Array<{filename:string, previous_filename?:string}>, filesComplete: boolean, mergeable: string, body: string, missing: string[]}} input
  *   `missing` is `notGreen(...)`.
- * @returns {{action: 'protected', reason: 'automation'|'test-removed'|'conflict'|'standing-note'}
+ * @returns {{action: 'protected', reason: 'automation'|'test-removed'|'test-weakened'|'conflict'|'standing-note'}
  *   | {action: 'not-green', missing: string[]}
  *   | {action: 'merge'}}
  */
@@ -81,6 +81,13 @@ export function decide({ files, filesComplete, mergeable, body, missing }) {
   // Deleting a test is how a gate gets gamed. A person looks at that.
   const removesTest = (files ?? []).some((f) => f.status === 'removed' && String(f.filename ?? '').startsWith('test/'));
   if (removesTest) return { action: 'protected', reason: 'test-removed' };
+  // The required checks run the tests that are in the fix branch, and the agent
+  // can edit them. A test file that loses more lines than it gains is how a check
+  // gets made to pass, so a person looks at it.
+  const weakensTest = (files ?? []).some(
+    (f) => String(f.filename ?? '').startsWith('test/') && Number(f.deletions ?? 0) > Number(f.additions ?? 0)
+  );
+  if (weakensTest) return { action: 'protected', reason: 'test-weakened' };
   if (String(mergeable ?? '').toUpperCase() === 'CONFLICTING') return { action: 'protected', reason: 'conflict' };
   // Any heading level, any spacing. The agent writes the body, so this is a
   // signal and not a lock: the locks on design decisions are elsewhere.
@@ -108,7 +115,7 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
     .map((line) => JSON.parse(line));
   const files = gh([
     'api', `repos/${repo}/pulls/${prNumber}/files`, '--paginate',
-    '--jq', '.[] | {filename, previous_filename, status}'
+    '--jq', '.[] | {filename, previous_filename, status, additions, deletions}'
   ])
     .split('\n')
     .filter(Boolean)
@@ -154,6 +161,7 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
     const why = {
       automation: 'It changes files outside the app source, tests and docs (for example workflows, scripts, settings, package files or the Nemeth corpus).',
       'test-removed': 'It deletes a test file.',
+      'test-weakened': 'It removes more lines from a test than it adds.',
       moved: 'The branch changed while I was checking it, so what I checked may not be what would merge.',
       conflict: 'It conflicts with `testing`.',
       'standing-note': 'It says it reverses a standing note.'
