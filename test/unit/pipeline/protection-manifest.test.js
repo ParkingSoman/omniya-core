@@ -13,11 +13,15 @@ const manifest = loadManifest();
 // The manifest records its own protection, so it is not counted against itself.
 const SELF = 'scripts/ci/protection.json';
 
-test('everything the shipper protects is in the manifest, and the manifest may only be ahead of it', () => {
-  // Until the shipper reads the manifest, the two lists are kept equal by this test.
-  for (const file of BYPASS_FILES) assert.ok(manifest.tick.includes(file), `${file} is a tick file in the shipper but not in the manifest`);
-  for (const file of SHIP_IT_FILES) assert.ok(manifest.shipIt.includes(file), `${file} is a ship-it file in the shipper but not in the manifest`);
-  for (const prefix of SHIP_IT_PREFIXES) assert.ok(manifest.shipItPrefixes.includes(prefix), `${prefix} is a ship-it prefix in the shipper but not in the manifest`);
+test('the shipper reads its protected lists from the manifest, and keeps no list of its own', () => {
+  // One list. If someone writes a second one into the shipper, this fails, because the two
+  // could then drift and a file the manifest calls protected would be shipped as free.
+  assert.deepEqual(BYPASS_FILES, manifest.tick);
+  assert.deepEqual(SHIP_IT_FILES, manifest.shipIt);
+  assert.deepEqual(SHIP_IT_PREFIXES, manifest.shipItPrefixes);
+  const source = readFileSync('scripts/ci/ship-pipeline-pr.mjs', 'utf8');
+  assert.match(source, /readFileSync\(new URL\('\.\/protection\.json', import\.meta\.url\)/);
+  assert.doesNotMatch(source, /BYPASS_FILES\s*=\s*\[|SHIP_IT_FILES\s*=\s*\[/, 'a literal list in the shipper');
 });
 
 test('the manifest, this test and the report that measures for it need the owner\'s click', () => {

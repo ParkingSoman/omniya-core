@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { decide, notGreen, sensitiveIn, ship } from '../../../scripts/ci/ship-pipeline-pr.mjs';
+import { decide, notGreen, saysShip, sensitiveIn, ship } from '../../../scripts/ci/ship-pipeline-pr.mjs';
 
 const SHA = 'a'.repeat(40);
 const allowedAuthors = ['ParkingSoman', 'omniya-bot'];
@@ -124,6 +124,25 @@ test('only words that say "ship it" count as the owner\'s word, not any three ch
   }
   for (const said of ['ship it', 'Ship it!', 'ok, SHIP IT now', 'shipit']) {
     assert.equal(withFiles(files, { ownerSaid: said }).ship, true, JSON.stringify(said));
+  }
+});
+
+test('"ship it" and "ship 98" say ship, and a refusal beside the word cancels it', () => {
+  for (const said of ['ship it', 'Ship it!', 'ship 98', 'i did the merge. ship 98', 'ok, ship the thing', 'shipit', 'SHIP IT now']) {
+    assert.equal(saysShip(said), true, said);
+  }
+  for (const said of ['', 'no way', 'not yet', 'wait', 'abc', 'shipping later', "don't ship it", 'do not ship 98', 'never ship it', 'hold on, ship it later? no', 'stop. ship it', 'cancel, do not ship', null, undefined]) {
+    assert.equal(saysShip(said), false, String(said));
+  }
+});
+
+test('who may start the agent, and what it may do, is a change that needs the owner\'s word', () => {
+  // `allowed_bots` was changed on 2026-10-14 and this script called it automatic.
+  for (const line of ['allowed_bots: github-actions', "allowed_non_write_users: '*'", '--allowedTools "Bash"', '--dangerously-skip-permissions', 'additional_permissions: actions: read', '--permission-mode acceptEdits']) {
+    const f = workflow('.github/workflows/pipeline-agent.yml', [line]);
+    assert.ok(sensitiveIn(f).includes('who may start the agent or what it may do'), line);
+    assert.equal(withFiles([f]).ship, false, line);
+    assert.equal(withFiles([f], { ownerSaid: 'ship it' }).ship, true, line);
   }
 });
 

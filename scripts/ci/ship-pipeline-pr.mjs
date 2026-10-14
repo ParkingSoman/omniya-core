@@ -59,7 +59,7 @@
  *   node scripts/ci/ship-pipeline-pr.mjs <pull-request-number> <commit-sha>
  */
 
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 import { gh as realGh, requireNumber, setOutputs } from './gh.mjs';
@@ -72,33 +72,29 @@ export const CHECKS_BY_WORKFLOW = {
   '.github/workflows/pr-build.yml': ['pack-mac', 'pack-win']
 };
 
+// The protected files are listed ONCE, in `protection.json`, and this script reads that
+// list. It is read from the checkout of `testing` that this workflow runs from, so a pull
+// request cannot change the list it is judged by. A missing or broken list stops the
+// shipper: it never falls back to an empty one.
+const MANIFEST = JSON.parse(readFileSync(new URL('./protection.json', import.meta.url), 'utf8'));
+for (const key of ['tick', 'shipIt', 'shipItPrefixes']) {
+  if (!Array.isArray(MANIFEST[key])) throw new Error(`protection.json has no list called ${key}`);
+}
+
 /**
- * BYPASS tier. Changing any of these changes who may merge what. Only the
- * owner's click in the browser merges them.
+ * BYPASS tier. Changing any of these changes who may merge what, or what is
+ * protected. Only the owner's click in the browser merges them.
  */
-export const BYPASS_FILES = [
-  '.github/workflows/pipeline-ship.yml',
-  'scripts/ci/ship-pipeline-pr.mjs',
-  'test/unit/pipeline/ship-pipeline-pr.test.js'
-];
+export const BYPASS_FILES = MANIFEST.tick;
 
 /**
  * SHIP-IT tier, by file. Each decides what "green" means, who may merge a
  * contributor's fix, or what runs with a token. A bad edit here is not a bad
  * edit to one feature: it loosens the gates for every later change.
  */
-export const SHIP_IT_FILES = [
-  '.github/workflows/pr-checks.yml',
-  '.github/workflows/pr-build.yml',
-  '.github/workflows/testing-app.yml',
-  'scripts/ci/gh.mjs',
-  'scripts/ci/hand-off.mjs',
-  'scripts/ci/allowlist.mjs',
-  'test/unit/pipeline/pipeline-secrets.test.js',
-  'test/unit/pipeline/hand-off.test.js'
-];
+export const SHIP_IT_FILES = MANIFEST.shipIt;
 // `package.json`, the lockfile, `.github/CODEOWNERS` and `.github/actions/` are not
-// listed here on purpose. They are outside the allow list, so they need the owner's
+// listed on purpose. They are outside the allow list, so they need the owner's
 // bypass tick: a changed dependency is a supply-chain change, and an action can run anything.
 
 /**
@@ -121,7 +117,10 @@ export const SENSITIVE_LINES = [
   [/\bgh\s+pr\s+merge\b|--auto\b.*--squash|\bgh\s+repo\b|\bgh\s+ruleset\b|\bgh\s+secret\b|\bgh\s+variable\b|rulesets|branches\/[^\s]*protection/, 'a merge, a ruleset or a setting'],
   [/(-X|--method)\s+(DELETE|PUT|PATCH)\b|\bgh\s+api\b.*\b(DELETE|PUT)\b|git\s+push\s+\S+\s+--delete|\bbranch\s+-D\b/, 'a delete or an overwrite through the API'],
   [/pull_request_target|\bworkflow_run\b|repository_dispatch/, 'a privileged trigger'],
-  [/\bcurl\b|\bwget\b|\beval\b|\bbase64\b|\bnc\s+-|bash\s+<\(|\|\s*(ba)?sh\b/, 'downloaded or hidden code']
+  [/\bcurl\b|\bwget\b|\beval\b|\bbase64\b|\bnc\s+-|bash\s+<\(|\|\s*(ba)?sh\b/, 'downloaded or hidden code'],
+  // Who may start the agent, and what it may do once started. The agent holds a token and writes
+  // code. `allowed_bots` was changed on 2026-10-14 and this script called it automatic.
+  [/allowed_bots|allowed_non_write_users|--allowedTools|--disallowedTools|--dangerously|bypassPermissions|permission-mode|additional_permissions|--mcp-config|--permission/i, 'who may start the agent or what it may do']
 ];
 
 /**
@@ -155,7 +154,7 @@ export const isBypass = (file) => BYPASS_FILES.includes(file);
 
 // The pipeline-change skill is the session's own rulebook for when it may ship. A change to
 // it is a change to the approval rules themselves, so it needs the owner's word, always.
-export const SHIP_IT_PREFIXES = ['.claude/'];
+export const SHIP_IT_PREFIXES = MANIFEST.shipItPrefixes;
 
 export const isShipIt = (file) =>
   SHIP_IT_FILES.includes(file) || SHIP_IT_PREFIXES.some((prefix) => file.startsWith(prefix));
@@ -211,6 +210,18 @@ export function sensitiveIn(file) {
   // Taking a `permissions:` block away makes the job fall back to the wider default.
   if (changed.some((line) => /^-\s*permissions\s*:/.test(line))) found.add('a permission');
   return [...found];
+}
+
+/**
+ * Do the owner's words say to ship? "ship it", "ship 98" and "ok, ship the thing" do. "no way",
+ * "not yet", "don't ship it", "wait" and "shipping later" do not: the word must be `ship` itself,
+ * and no word of refusal may stand beside it. A session passes the owner's exact words, and
+ * this is a guard against passing the wrong ones, not a proof that the owner typed them.
+ * @param {string} said
+ */
+export function saysShip(said) {
+  const text = String(said ?? '');
+  return /\bship(?:it)?\b/i.test(text) && !/\b(don'?t|do\s+not|not|no|never|wait|hold|stop|cancel|undo)\b/i.test(text);
 }
 
 /**
@@ -292,7 +303,7 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
   ];
   if (why.length === 0) return { ship: true, tier: 'automatic', why: [] };
   // The words must say it. Any three characters would pass "no way", "not yet" or "wait".
-  if (!/\bship\s*it\b/i.test(String(ownerSaid))) {
+  if (!saysShip(ownerSaid)) {
     return { ship: false, reason: `it needs the owner's "ship it": ${[...new Set(why)].join('; ')}` };
   }
   return { ship: true, tier: 'ship-it', why: [...new Set(why)] };
