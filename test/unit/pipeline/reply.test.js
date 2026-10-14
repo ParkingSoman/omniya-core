@@ -253,3 +253,12 @@ test('the hand-off says what will happen: it merges by itself, or the maintainer
   assert.doesNotMatch(renderReply('sent-automation', where), /merge by itself/);
   assert.match(renderReply('sent-owner', where), /maintainer has to look at it before it can merge/);
 });
+
+test('behind says why it cannot merge, that it is being fixed, and that the contributor tests again', () => {
+  const text = renderReply('behind', { repo: 'a/b', pr: 7 });
+  assert.ok(text.startsWith(`${MARKER}\n`));
+  assert.match(text, /bringing it up to date/);
+  assert.match(text, /try that one/);
+  assert.doesNotMatch(text, /maintainer/, 'no person is needed');
+  assert.equal(LABELS.behind, undefined, 'it labels nothing');
+});

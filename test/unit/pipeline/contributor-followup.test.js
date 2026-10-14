@@ -231,7 +231,9 @@ test('a revision is checked and rebuilt, and an answer is not', () => {
   assert.equal(verify.with.status_before, undefined);
   assert.equal(verify.with.pr_number, '${{ needs.agent.outputs.pr }}');
   assert.equal(verify.with.branch, '${{ needs.agent.outputs.branch }}');
-  assert.doesNotMatch(source, /gh workflow run/, 'verify starts the checks');
+  // The one allowed command starts the update that brings a conflicting fix up to date
+  // (`bring-up-to-date`, a job with no secret). Nothing here starts checks by hand.
+  assert.doesNotMatch(source, /gh workflow run(?! pipeline-keep-current\.yml)/, 'verify starts the checks');
 });
 
 test('an answer, a design refusal and a block each get one comment, with the agent words inside', () => {

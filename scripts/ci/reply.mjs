@@ -188,6 +188,19 @@ const STATES_DEF = {
       'This issue closes when the maintainer merges the fix.',
       'You do not need to do anything.'
     ]
+  },
+  // The fix is fine, but newer code changed the same lines, so it cannot merge as it
+  // is. That is not a person's job: the pipeline brings it up to date and sends a new
+  // build. The contributor tested the old one, so they say it works again on the new one.
+  behind: {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'Newer changes in the app touched the same place, so your fix could not merge as it was.',
+      'I am bringing it up to date now. I will write here when there is a new build.',
+      'You will need to try that one and tell me if it still works.',
+      'You do not need to do anything until then.'
+    ]
   }
 };
 

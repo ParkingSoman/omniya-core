@@ -253,3 +253,17 @@ test('with no merge token it refuses before it sets the status', () => {
   assert.throws(() => handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner' }, f.gh), /MERGE_TOKEN/);
   assert.ok(!f.calls.some((c) => c.line.includes('statuses/')));
 });
+
+test('a conflicting fix is not sent to the maintainer: the contributor is told it is being brought up to date', () => {
+  const f = fakeGh({ files: [{ filename: 'src/a.js' }], mergeable: 'CONFLICTING' });
+  const result = handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP' }, f.gh);
+  assert.equal(result.reason, 'conflict');
+  assert.equal(result.merge, false);
+  const lines = f.calls.map((c) => c.line);
+  assert.ok(f.calls.some((c) => c.line.includes('issues/5/comments') && c.line.includes('bringing it up to date')), 'the contributor is told');
+  assert.ok(!lines.some((l) => l.includes('needs-owner')), 'no person is needed');
+  assert.ok(!lines.some((l) => l.includes('statuses/abc123')), 'no lock is set');
+  assert.ok(!lines.some((l) => l.startsWith('pr merge')), 'nothing merges');
+  assert.ok(!lines.some((l) => l.startsWith('pr ready')), 'it stays a draft');
+  assert.ok(!lines.some((l) => l.startsWith('workflow run')), 'this job starts nothing; the next job does');
+});
