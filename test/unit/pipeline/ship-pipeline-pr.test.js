@@ -16,7 +16,8 @@ const pr = {
   isDraft: false,
   mergeable: 'MERGEABLE'
 };
-const ok = (over = {}, extra = {}) => decide({ pr: { ...pr, ...over }, sha: SHA, allowedAuthors, missing: [], ...extra });
+const ok = (over = {}, extra = {}) =>
+  decide({ pr: { ...pr, ...over }, sha: SHA, allowedAuthors, missing: [], pushers: ['omniya-bot'], files: ['docs/x.md'], ...extra });
 
 test('ships a clean pipeline pull request from the owner or the session account', () => {
   assert.equal(ok().ship, true);
@@ -33,7 +34,8 @@ test('refuses everything else, and says why', () => {
     [{ author: { login: 'a-contributor' } }, /author/],
     [{ author: null }, /author/],
     [{ isDraft: true }, /draft/],
-    [{ mergeable: 'CONFLICTING' }, /conflicts/],
+    [{ mergeable: 'CONFLICTING' }, /cleanly/],
+    [{ mergeable: 'UNKNOWN' }, /cleanly/],
     [{ headRefOid: 'b'.repeat(40) }, /moved/]
   ];
   for (const [over, why] of cases) {
@@ -42,6 +44,23 @@ test('refuses everything else, and says why', () => {
     assert.match(out.reason, why);
   }
   assert.match(ok({}, { missing: ['e2e'] }).reason, /e2e/);
+});
+
+test('refuses a branch a contributor pushed to, or one with too much history to check', () => {
+  assert.match(ok({}, { pushers: ['omniya-bot', 'a-contributor'] }).reason, /pushed to the branch/);
+  assert.match(ok({}, { pushers: [] }).reason, /pushed to the branch/);
+  assert.match(ok({}, { pushCount: 100 }).reason, /too many pushes/);
+});
+
+test('will not ship a change to the shipper or to the guards on the secrets', () => {
+  for (const file of [
+    '.github/workflows/pipeline-ship.yml',
+    'scripts/ci/ship-pipeline-pr.mjs',
+    'test/unit/pipeline/ship-pipeline-pr.test.js',
+    'test/unit/pipeline/pipeline-secrets.test.js'
+  ]) {
+    assert.match(ok({}, { files: ['docs/x.md', file] }).reason, /bypass tick/, file);
+  }
 });
 
 test('a check counts only when its newest run on that commit passed', () => {
@@ -53,12 +72,14 @@ test('a check counts only when its newest run on that commit passed', () => {
   assert.deepEqual(notGreen(runs([...all, ['e2e', 'failure', '2026-10-14T11:00:00Z']])), ['e2e']);
 });
 
-function fakeGh({ view = pr, conclusion = 'success', mergeFails = 0 } = {}) {
+function fakeGh({ view = pr, conclusion = 'success', mergeFails = 0, pushes = ['omniya-bot', 'omniya-bot'], files = ['docs/x.md'] } = {}) {
   const calls = [];
   let failures = mergeFails;
   const run = (args, opts = {}) => {
     calls.push({ args, token: opts.token });
     if (args[0] === 'pr' && args[1] === 'view') return JSON.stringify(view);
+    if (args[0] === 'api' && args[1].includes('/activity?')) return JSON.stringify(pushes.map((a) => ({ a })));
+    if (args[0] === 'api' && args[1].endsWith('/files')) return files.join('\n');
     if (args[0] === 'api' && args[1].endsWith('/check-runs')) {
       return ['unit', 'nemeth', 'e2e', 'pack-mac', 'pack-win']
         .map((name) => JSON.stringify({ name, conclusion, completed_at: '2026-10-14T10:00:00Z' }))
@@ -85,8 +106,14 @@ test('sets the lock and merges, both with the App token and pinned to the commit
   assert.ok(calls.indexOf(status) < calls.indexOf(merge), 'the lock comes before the merge');
 });
 
-test('sets no lock and merges nothing when a check is red or the branch moved', () => {
-  for (const setup of [{ conclusion: 'failure' }, { view: { ...pr, headRefOid: 'c'.repeat(40) } }]) {
+test('sets no lock and merges nothing when a check is red, the branch moved, or a stranger pushed', () => {
+  const setups = [
+    { conclusion: 'failure' },
+    { view: { ...pr, headRefOid: 'c'.repeat(40) } },
+    { pushes: ['omniya-bot', 'a-contributor'] },
+    { files: ['scripts/ci/ship-pipeline-pr.mjs'] }
+  ];
+  for (const setup of setups) {
     const { run, calls } = fakeGh(setup);
     assert.equal(ship(input, run, () => {}).shipped, false);
     assert.equal(calls.some((c) => c.args[0] === 'api' && c.args[1].includes('/statuses/')), false);
@@ -104,6 +131,11 @@ test('refuses a bad sha or a missing token before touching GitHub', () => {
   assert.throws(() => ship({ ...input, sha: 'main' }, run, () => {}), /40 hex/);
   assert.throws(() => ship({ ...input, mergeToken: '' }, run, () => {}), /MERGE_TOKEN/);
   assert.equal(calls.length, 0);
+});
+
+test('only GitHub Actions check runs are asked for', () => {
+  const source = readFileSync('scripts/ci/ship-pipeline-pr.mjs', 'utf8');
+  assert.match(source, /select\(\.app\.slug == "github-actions"\)/);
 });
 
 test('the workflow runs in the locked environment, from testing, for two actors, with input only through env', () => {

@@ -18,6 +18,14 @@
  *     account, not a draft, not conflicting. Its head must be the commit the
  *     caller named, so a push after "ship it" cannot ride on it. The unit tests,
  *     the Nemeth gate, the e2e tests and both builds must be green on that commit.
+ *   - Every push to the branch was made by one of those two accounts. A
+ *     contributor has write access and could push a commit onto a branch the
+ *     session opened. Commits carry no GitHub login, so GitHub's push history is
+ *     what names the pusher.
+ *   - Only check runs from GitHub Actions count. Nothing else may say "green".
+ *   - A pull request that changes this shipper, its tests, or the guard tests on
+ *     the secrets is refused. Those still need the owner's bypass tick, or a
+ *     shipped change could loosen the thing that ships it.
  *   - Contributor fixes never come here. They keep their own hand-off.
  *
  * Usage (needs GH_TOKEN, MERGE_TOKEN, GITHUB_REPOSITORY, ALLOWED_AUTHORS):
@@ -30,6 +38,17 @@ import { gh as realGh, requireNumber, setOutputs } from './gh.mjs';
 
 export const BRANCH_PREFIX = 'pipeline/';
 export const SHIP_CHECKS = ['unit', 'nemeth', 'e2e', 'pack-mac', 'pack-win'];
+
+/** Changing any of these changes who may merge what, so the shipper will not ship them. */
+export const PROTECTED_FILES = [
+  '.github/workflows/pipeline-ship.yml',
+  'scripts/ci/ship-pipeline-pr.mjs',
+  'test/unit/pipeline/ship-pipeline-pr.test.js',
+  'test/unit/pipeline/pipeline-secrets.test.js'
+];
+
+/** One page of push history. A branch with more pushes than this is refused. */
+export const MAX_PUSHES = 100;
 
 /**
  * @param {Array<{name:string, conclusion:string|null, completed_at:string|null}>} checkRuns
@@ -45,10 +64,10 @@ export function notGreen(checkRuns) {
 }
 
 /**
- * @param {{pr: object, sha: string, allowedAuthors: string[], missing: string[]}} input
+ * @param {{pr: object, sha: string, allowedAuthors: string[], missing: string[], pushers?: string[], pushCount?: number, files?: string[]}} input
  * @returns {{ship: true} | {ship: false, reason: string}}
  */
-export function decide({ pr, sha, allowedAuthors, missing }) {
+export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCount = 0, files = [] }) {
   if (pr.state !== 'OPEN') return { ship: false, reason: 'the pull request is not open' };
   if (pr.baseRefName !== 'testing') return { ship: false, reason: 'it does not go into testing' };
   if (pr.isCrossRepository !== false) return { ship: false, reason: 'it comes from a fork' };
@@ -59,8 +78,15 @@ export function decide({ pr, sha, allowedAuthors, missing }) {
     return { ship: false, reason: "its author is not the owner or the owner's session account" };
   }
   if (pr.isDraft) return { ship: false, reason: 'it is a draft' };
-  if (String(pr.mergeable).toUpperCase() === 'CONFLICTING') return { ship: false, reason: 'it conflicts with testing' };
+  if (String(pr.mergeable).toUpperCase() !== 'MERGEABLE') return { ship: false, reason: 'GitHub does not say it can merge cleanly' };
   if (pr.headRefOid !== sha) return { ship: false, reason: 'the branch moved after "ship it"' };
+  if (pushCount >= MAX_PUSHES) return { ship: false, reason: 'too many pushes to check who made them' };
+  const stranger = pushers.find((login) => !allowedAuthors.includes(login));
+  if (stranger !== undefined || pushers.length === 0) {
+    return { ship: false, reason: 'someone other than the owner or the session account pushed to the branch' };
+  }
+  const touched = files.filter((file) => PROTECTED_FILES.includes(file));
+  if (touched.length > 0) return { ship: false, reason: `it changes the shipper or its guards (${touched.join(', ')}), so it needs the owner's bypass tick` };
   if (missing.length > 0) return { ship: false, reason: `not green on that commit: ${missing.join(', ')}` };
   return { ship: true };
 }
@@ -85,13 +111,28 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken }, gh = realGh,
   );
   const checkRuns = gh([
     'api', `repos/${repo}/commits/${sha}/check-runs`, '--paginate',
-    '--jq', '.check_runs[] | {name, conclusion, completed_at}'
+    '--jq', '.check_runs[] | select(.app.slug == "github-actions") | {name, conclusion, completed_at}'
   ])
     .split('\n')
     .filter(Boolean)
     .map((line) => JSON.parse(line));
 
-  const decision = decide({ pr: view, sha, allowedAuthors, missing: notGreen(checkRuns) });
+  const pushes = JSON.parse(
+    gh(['api', `repos/${repo}/activity?ref=refs/heads/${view.headRefName}&per_page=${MAX_PUSHES}`, '--jq', '[.[] | {a: .actor.login}]'])
+  );
+  const files = gh(['api', `repos/${repo}/pulls/${number}/files`, '--paginate', '--jq', '.[] | .filename, (.previous_filename // empty)'])
+    .split('\n')
+    .filter(Boolean);
+
+  const decision = decide({
+    pr: view,
+    sha,
+    allowedAuthors,
+    missing: notGreen(checkRuns),
+    pushers: pushes.map((push) => push.a),
+    pushCount: pushes.length,
+    files
+  });
   if (!decision.ship) return { shipped: false, reason: decision.reason };
 
   // The lock, posted as the App: a branch workflow cannot post as the App.
