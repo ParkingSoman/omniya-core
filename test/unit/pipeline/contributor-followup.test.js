@@ -109,7 +109,7 @@ test('an answer to the agent\'s question starts the fix, once, and only when a q
   assert.equal(job.uses, AGENT);
   assert.equal(job.with.mode, 'fix');
   assert.equal(job.with.question_round, '${{ needs.allowlist.outputs.question_round }}');
-  assert.equal(job.secrets, undefined, 'secrets come from the environment inside the agent job, not from the caller');
+  assert.deepEqual(job.secrets, { CLAUDE_CODE_OAUTH_TOKEN: "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}", PIPELINE_APP_PRIVATE_KEY: "${{ secrets.PIPELINE_APP_PRIVATE_KEY }}" }, "secrets are passed by name");
   assert.equal(job.permissions?.actions, undefined, 'the agent never holds `actions`');
 
   // The agent can open the pull request this time, so the same checks follow.
@@ -186,7 +186,7 @@ test('a follow-up run is bounded, and shares the fix workflow group', () => {
   // file and tested there.
   assert.equal(workflow.jobs.agent.uses, AGENT);
   assert.equal(workflow.jobs.agent.with.mode, 'comment');
-  assert.equal(workflow.jobs.agent.secrets, undefined, 'secrets come from the environment inside the agent job, not from the caller');
+  assert.deepEqual(workflow.jobs.agent.secrets, { CLAUDE_CODE_OAUTH_TOKEN: "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}", PIPELINE_APP_PRIVATE_KEY: "${{ secrets.PIPELINE_APP_PRIVATE_KEY }}" }, "secrets are passed by name");
 });
 
 test('the loop cannot feed itself', () => {

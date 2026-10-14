@@ -11,40 +11,55 @@ const parsed = files.map((f) => ({ f, text: readFileSync(DIR + f, 'utf8'), wf: l
 const jobsOf = ({ wf }) => Object.entries(wf.jobs ?? {});
 const mentions = (job) => SECRETS.filter((s) => dump(job).includes(`secrets.${s}`));
 
-test('a job that reads a pipeline secret declares environment `pipeline`', () => {
+const isMention = (v) => SECRETS.some((s) => String(v).includes(`secrets.${s}`));
+const realUse = (job) => isMention(JSON.stringify({ with: job.with, env: job.env, steps: job.steps }));
+
+test('a job that really uses a pipeline secret declares environment `pipeline`', () => {
   let seen = 0;
   for (const p of parsed) {
     for (const [name, job] of jobsOf(p)) {
-      if (mentions(job).length === 0) continue;
+      if (!realUse(job)) continue;
       seen += 1;
-      assert.equal(job.environment, 'pipeline', `${p.f} job ${name} reads a pipeline secret`);
+      assert.equal(job.environment, 'pipeline', `${p.f} job ${name} uses a pipeline secret`);
       assert.equal(job.uses, undefined, `${p.f} job ${name}: a job that calls a workflow cannot hold an environment`);
     }
   }
-  assert.ok(seen >= 2, 'the agent job and the hand-off job read them');
+  assert.ok(seen >= 2, 'the agent job and the hand-off job use them');
 });
 
-test('no job that calls a workflow passes a pipeline secret, and no workflow declares them', () => {
+test('a calling job passes the two secrets by name only, never inherit', () => {
   for (const p of parsed) {
     for (const [name, job] of jobsOf(p)) {
       if (!job.uses) continue;
-      const passed = job.secrets === 'inherit' ? ['inherit'] : Object.entries(job.secrets ?? {}).filter(([k, v]) => SECRETS.includes(k) || SECRETS.some((s) => String(v).includes(s)));
-      assert.deepEqual(passed, [], `${p.f} job ${name} passes secrets down`);
-    }
-    const on = p.wf.on ?? p.wf[true] ?? {};
-    for (const s of SECRETS) {
-      assert.equal(on.workflow_call?.secrets?.[s], undefined, `${p.f} declares ${s} as a workflow_call secret`);
+      assert.notEqual(job.secrets, 'inherit', `${p.f} job ${name} inherits secrets`);
+      for (const [k, v] of Object.entries(job.secrets ?? {})) {
+        if (SECRETS.includes(k) || isMention(v)) assert.equal(v, `\${{ secrets.${k} }}`, `${p.f} job ${name} passes ${k} by another name or expression`);
+      }
+      if (/pipeline-(agent|verify)\.yml$/.test(job.uses)) {
+        for (const s of SECRETS) assert.equal(job.secrets?.[s], `\${{ secrets.${s} }}`, `${p.f} job ${name} must pass ${s}`);
+      }
     }
   }
 });
 
-test('only the agent job and the hand-off job mention the two secrets', () => {
-  const allowed = new Set(['pipeline-agent.yml:agent', 'pipeline-followup.yml:handoff']);
+test('workflow_call declares both secrets as not required', () => {
+  for (const f of ['pipeline-agent.yml', 'pipeline-verify.yml']) {
+    const on = parsed.find((p) => p.f === f).wf;
+    const declared = (on.on ?? on[true]).workflow_call.secrets ?? {};
+    for (const s of SECRETS) assert.equal(declared[s]?.required, false, `${f} must declare ${s} with required: false`);
+  }
   for (const p of parsed) {
-    const withMention = jobsOf(p).filter(([, job]) => SECRETS.some((s) => dump(job).includes(s))).map(([n]) => `${p.f}:${n}`);
-    for (const id of withMention) assert.ok(allowed.has(id), `${id} mentions a pipeline secret`);
-    const outside = SECRETS.some((s) => p.text.replace(/^\s*#.*$/gm, '').includes(s)) && withMention.length === 0;
-    assert.equal(outside, false, `${p.f} mentions a pipeline secret outside a job`);
+    if (['pipeline-agent.yml', 'pipeline-verify.yml'].includes(p.f)) continue;
+    const on = p.wf.on ?? p.wf[true] ?? {};
+    for (const s of SECRETS) assert.equal(on.workflow_call?.secrets?.[s], undefined, `${p.f} declares ${s}`);
+  }
+});
+
+test('no other workflow mentions the two secrets', () => {
+  const pipeline = new Set(['pipeline-fix.yml', 'pipeline-followup.yml', 'pipeline-verify.yml', 'pipeline-agent.yml']);
+  for (const p of parsed) {
+    if (pipeline.has(p.f)) continue;
+    assert.equal(SECRETS.some((s) => p.text.includes(s)), false, `${p.f} mentions a pipeline secret`);
   }
 });
 

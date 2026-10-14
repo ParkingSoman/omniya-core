@@ -360,6 +360,11 @@ jobs:
       pull-requests: write
       issues: read
     uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: comment
       kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
@@ -443,6 +448,11 @@ jobs:
       pull-requests: write
       issues: read
     uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: fix
       kind: ${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
@@ -490,6 +500,11 @@ jobs:
       pull-requests: write
       issues: write
     uses: ./.github/workflows/pipeline-verify.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.resume.outputs.pr }}
@@ -532,6 +547,11 @@ jobs:
       pull-requests: write
       issues: write
     uses: ./.github/workflows/pipeline-verify.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.agent.outputs.pr }}

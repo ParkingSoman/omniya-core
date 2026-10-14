@@ -27,6 +27,13 @@ name: pipeline-verify
 # branch.
 on:
   workflow_call:
+    # Declared so callers can pass them by name. The value passed is empty on purpose:
+    # the real secrets live only in the environment `pipeline`, which the called job reads.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: false
+      PIPELINE_APP_PRIVATE_KEY:
+        required: false
     inputs:
       issue_number:
         required: true
@@ -90,6 +97,11 @@ jobs:
       pull-requests: write
       issues: read
     uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}
@@ -131,6 +143,11 @@ jobs:
       pull-requests: write
       issues: read
     uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}
@@ -172,6 +189,11 @@ jobs:
       pull-requests: write
       issues: read
     uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}

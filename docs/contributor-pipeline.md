@@ -146,7 +146,8 @@ flowchart TD
 - Secrets: `CLAUDE_CODE_OAUTH_TOKEN` and `PIPELINE_APP_PRIVATE_KEY` live only in
   the environment `pipeline`, whose deployment branches allow only `testing`. A
   workflow on any other branch cannot read them. There must be no repository-level
-  copy of either. The App needs Contents RW, Pull requests RW, Issues read and
+  copy of either. Callers pass both by name, and the value passed is empty on
+  purpose; the called job reads the environment's value. The App needs Contents RW, Pull requests RW, Issues read and
   Commit statuses RW. The ruleset requires `contributor-tested` from the App.
 - Add a contributor: `node scripts/ci/add-contributor.mjs <handle>`. It opens a
   pull request that adds the handle to `.github/contributors.yml`, and invites them
