@@ -52,9 +52,9 @@ export function loadManifest(root = '.') {
   return JSON.parse(readFileSync(join(root, 'scripts/ci/protection.json'), 'utf8'));
 }
 
-/** @returns {'tick'|'ship-it'|'free'} */
+/** @returns {'lock'|'ship-it'|'free'} */
 export function tierOf(file, manifest) {
-  if (manifest.tick.includes(file)) return 'tick';
+  if (manifest.lock.includes(file)) return 'lock';
   if (manifest.shipIt.includes(file) || manifest.shipItPrefixes.some((prefix) => file.startsWith(prefix))) return 'ship-it';
   return 'free';
 }

@@ -1,6 +1,6 @@
 {
-  "note": "The protected set holds only sensitive code, and sensitive code lives only in the protected set. Tick means the owner clicks in the browser. Ship-it means the owner says it in chat. Baseline is the number of sensitive lines each file holds today. It may only go down. A new sensitive line in a file that is not listed here is a change to this file, and so a change that needs the owner.",
-  "tick": [
+  "note": "The protected set holds only sensitive code, and sensitive code lives only in the protected set. Lock means the files that decide who may merge what: the owner says it in chat AND the strictness check finds the change no looser. Ship-it means the owner says it in chat. Baseline is the number of sensitive lines each file holds today. It may only go down. A new sensitive line in a file that is not listed here is a change to this file, and so a change to the lock.",
+  "lock": [
     ".github/workflows/pipeline-ship.yml",
     "scripts/ci/ship-pipeline-pr.mjs",
     "test/unit/pipeline/ship-pipeline-pr.test.js",
@@ -8,7 +8,10 @@
     "scripts/ci/protection-report.mjs",
     "test/unit/pipeline/protection-manifest.test.js",
     "scripts/ci/workflow-diff.mjs",
-    "test/unit/pipeline/workflow-diff.test.js"
+    "test/unit/pipeline/workflow-diff.test.js",
+    "scripts/ci/lock-corpus.mjs",
+    "scripts/ci/lock-differential.mjs",
+    "test/unit/pipeline/lock-differential.test.js"
   ],
   "shipIt": [
     ".github/workflows/pr-checks.yml",
@@ -45,6 +48,7 @@
     "scripts/ci/agent-digest.mjs": 1,
     "scripts/ci/hand-off.mjs": 5,
     "scripts/ci/keep-current.mjs": 2,
+    "scripts/ci/lock-corpus.mjs": 21,
     "scripts/ci/ready-status.mjs": 2,
     "scripts/ci/reply.mjs": 2,
     "scripts/ci/ship-pipeline-pr.mjs": 10

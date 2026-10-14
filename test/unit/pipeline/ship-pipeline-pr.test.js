@@ -65,18 +65,61 @@ test('refuses when the file list cannot be trusted to be complete', () => {
   assert.match(ok({ changedFiles: 3000 }, { files: many }).reason, /not complete/);
 });
 
-// ---- the bypass tier: the shipper itself ----
+// ---- the lock tier: the files that decide who may merge what ----
 
-test('the shipper, its workflow and its tests need the owner\'s own click, whatever anyone says', () => {
-  for (const file of ['.github/workflows/pipeline-ship.yml', 'scripts/ci/ship-pipeline-pr.mjs', 'test/unit/pipeline/ship-pipeline-pr.test.js']) {
+const LOCK = ['.github/workflows/pipeline-ship.yml', 'scripts/ci/ship-pipeline-pr.mjs', 'test/unit/pipeline/ship-pipeline-pr.test.js', 'scripts/ci/protection.json', 'scripts/ci/lock-differential.mjs'];
+
+test('a change to the lock needs the owner\'s words AND a strictness check that passed', () => {
+  for (const file of LOCK) {
     const files = [doc, { filename: file, status: 'modified', patch: '+x' }];
-    const out = withFiles(files, { ownerSaid: 'ship it, I mean it' });
-    assert.equal(out.ship, false, file);
-    assert.match(out.reason, /shipper.*bypass tick in the browser/, file);
+    // No words: refused, and it says why.
+    const silent = withFiles(files, { differential: 'pass' });
+    assert.equal(silent.ship, false, file);
+    assert.match(silent.reason, /needs the owner's "ship it".*part of the lock/, file);
+    // Words and a pass: shipped, as the lock tier, with no click anywhere.
+    const out = withFiles(files, { ownerSaid: 'ship it', differential: 'pass' });
+    assert.equal(out.ship, true, file);
+    assert.equal(out.tier, 'lock', file);
   }
-  // Moved away from there is still a change to it.
+});
+
+test('anything but a pass from the strictness check stops a change to the lock', () => {
+  const files = [doc, { filename: 'scripts/ci/ship-pipeline-pr.mjs', status: 'modified', patch: '+x' }];
+  for (const differential of ['fail', 'error', 'not-run', undefined, '', 'PASS', 'passed']) {
+    const out = withFiles(files, { ownerSaid: 'ship it', differential });
+    assert.equal(out.ship, false, String(differential));
+    assert.match(out.reason, /strictness check/, String(differential));
+  }
+  // `same` means the check saw nothing to compare, which does not fit a change to the lock.
+  assert.match(withFiles(files, { ownerSaid: 'ship it', differential: 'same' }).reason, /no change to compare/);
+});
+
+test('the verdict of the strictness check is not needed, and not trusted, for a change outside the lock', () => {
+  assert.equal(withFiles([doc], { differential: 'fail' }).ship, true);
+  assert.equal(withFiles([doc], { differential: 'error' }).tier, 'automatic');
+});
+
+test('a file moved out of the lock is still a change to the lock', () => {
   const renamed = [{ filename: 'docs/old.yml', previous_filename: '.github/workflows/pipeline-ship.yml', status: 'renamed', patch: '' }];
-  assert.match(withFiles(renamed).reason, /bypass tick/);
+  assert.equal(withFiles(renamed, { differential: 'pass' }).ship, false);
+  assert.equal(withFiles(renamed, { ownerSaid: 'ship it', differential: 'pass' }).tier, 'lock');
+});
+
+test('a lock change merges only with the words and a pass, and a refusal posts no status and does not merge', () => {
+  const change = { filename: 'scripts/ci/ship-pipeline-pr.mjs', status: 'modified', patch: '+x' };
+  const stopped = [{ ownerSaid: 'ship it', differential: 'fail' }, { ownerSaid: '', differential: 'pass' }, { ownerSaid: 'ship it' }];
+  for (const extra of stopped) {
+    const f = fakeGh({ files: [change] });
+    const out = ship({ ...input, ...extra }, f.run, () => {});
+    assert.equal(out.shipped, false, JSON.stringify(extra));
+    assert.equal(f.calls.some((c) => c.args[0] === 'api' && c.args[1].includes('/statuses/')), false);
+    assert.equal(f.calls.some((c) => c.args[1] === 'merge'), false);
+  }
+  const f = fakeGh({ files: [change] });
+  const out = ship({ ...input, ownerSaid: 'ship it', differential: 'pass' }, f.run, () => {});
+  assert.equal(out.shipped, true);
+  assert.equal(out.tier, 'lock');
+  assert.ok(f.calls.some((c) => c.args[1] === 'merge'));
 });
 
 // ---- the allow list ----
@@ -88,10 +131,10 @@ test('ships only plainly automation files, and sends everything else to the owne
   for (const bad of ['src/main.js', 'package.json', 'package-lock.json', '.npmrc', '.nvmrc', 'test/unit/model.test.js', 'test/e2e/x.test.js', '.github/CODEOWNERS', '.github/actions/a/action.yml', '.github/workflows/sub/x.yml', '.github/workflows/PIPELINE-X.yml', 'scripts/build.mjs', 'contributors.yml', 'docs/../src/main.js']) {
     const out = withFiles([doc, { filename: bad, status: 'modified', patch: '+x' }], { ownerSaid: 'ship it' });
     assert.equal(out.ship, false, bad);
-    assert.match(out.reason, /bypass tick/, bad);
+    assert.match(out.reason, /approval in the merge box/, bad);
   }
   const moved = [{ filename: 'docs/a.md', previous_filename: 'src/a.js', status: 'renamed', patch: '' }];
-  assert.match(withFiles(moved).reason, /bypass tick/);
+  assert.match(withFiles(moved).reason, /approval in the merge box/);
 });
 
 test('will not ship a change that deletes a test or moves one out of test/', () => {
@@ -185,7 +228,7 @@ test('a path with a backslash, a control character or a leading slash is not a p
   for (const name of ['docs\\x.md', 'docs/x\u0000.md', 'docs/x\n.md', '/docs/x.md', 'docs/x\u007f.md']) {
     const out = withFiles([{ filename: name, status: 'added', patch: '+x' }], { ownerSaid: 'ship it' });
     assert.equal(out.ship, false, JSON.stringify(name));
-    assert.match(out.reason, /bypass tick/);
+    assert.match(out.reason, /approval in the merge box/);
   }
 });
 
@@ -296,7 +339,7 @@ test('a test change that GitHub does not show cannot be seen to keep its asserti
 test('only the pipeline\'s own and the existing CI workflow names are allowed at all', () => {
   const unknown = withFiles([{ filename: '.github/workflows/release.yml', status: 'added', patch: '+name: x' }], { ownerSaid: 'ship it' });
   assert.equal(unknown.ship, false);
-  assert.match(unknown.reason, /bypass tick/);
+  assert.match(unknown.reason, /approval in the merge box/);
   for (const name of ['pipeline-new', 'pr-new', 'testing-app', 'screen-reader', 'diagnostics-windows']) {
     const f = { filename: `.github/workflows/${name}.yml`, status: 'modified', patch: '+# a comment' };
     assert.equal(withFiles([f], { ownerSaid: 'ship it' }).ship, true, name);
@@ -482,9 +525,28 @@ test('the workflow runs in the locked environment, from testing, for two actors,
   const yml = readFileSync('.github/workflows/pipeline-ship.yml', 'utf8');
   assert.match(yml, /environment: pipeline/);
   assert.match(yml, /github\.actor == github\.repository_owner \|\| github\.actor == 'omniya-bot'/);
-  assert.deepEqual([...yml.matchAll(/^\s*ref:\s*(.+)$/gm)].map((m) => m[1].trim()), ['testing']);
+  // Both jobs check out `testing`, and nothing else.
+  assert.deepEqual([...yml.matchAll(/^\s*ref:\s*(.+)$/gm)].map((m) => m[1].trim()), ['testing', 'testing']);
   assert.doesNotMatch(yml, /run:[^\n]*\$\{\{/, 'no expression inside a run line');
   assert.match(yml, /OWNER_SAID: \$\{\{ inputs\.owner_said \}\}/, 'the owner\'s words reach the script through env only');
   assert.doesNotMatch(yml, /CLAUDE_CODE_OAUTH_TOKEN/, 'no agent');
   assert.doesNotMatch(yml, /--admin/);
+});
+
+test('the strictness check runs in a job with no secret and no environment, and the shipper reads its verdict from that job', async () => {
+  // The new rules are the pull request's own code. They run only in the job that has nothing to steal.
+  const { load } = await import('js-yaml');
+  const wf = load(readFileSync('.github/workflows/pipeline-ship.yml', 'utf8'));
+  const job = wf.jobs.differential;
+  assert.equal(job.environment, undefined, 'no environment, so no secret can reach it');
+  assert.deepEqual(job.permissions, { contents: 'read' });
+  assert.doesNotMatch(JSON.stringify(job), /secrets\.|app-token|MERGE_TOKEN|permission-/, 'no secret, no App token');
+  const checkout = job.steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout'));
+  assert.equal(checkout.with['persist-credentials'], false, 'the checkout keeps no credential for the new code to read');
+  assert.equal(checkout.with.ref, 'testing', 'the comparator is the trusted one from testing');
+  assert.match(job.steps.find((s) => s.id === 'check').run, /lock-differential\.mjs check "\$SHA"/);
+  // The shipping job needs it, and reads only its output.
+  assert.equal(wf.jobs.ship.needs, 'differential');
+  const env = wf.jobs.ship.steps.find((s) => (s.run ?? '').includes('ship-pipeline-pr.mjs')).env;
+  assert.equal(env.DIFFERENTIAL, '${{ needs.differential.outputs.result }}');
 });

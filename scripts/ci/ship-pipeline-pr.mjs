@@ -1,6 +1,7 @@
 /**
  * Merge a pipeline pull request. Most of them merge with nobody's word; a few
- * need the owner's "ship it"; the shipper itself needs the owner's bypass tick.
+ * need the owner's "ship it"; the nine files that decide who may merge what, the
+ * LOCK, need the owner's words AND a strictness check that finds the change no looser.
  *
  * Pull requests that change the automation fail the hand-off allowlist on
  * purpose, so they never merge by themselves. The `testing-tested` rule wants
@@ -10,7 +11,9 @@
  * is green, and to ask for a word only when a change touches secrets or
  * something that cannot be undone.
  *
- * THE THREE TIERS (decided here, from the files and from the changed lines):
+ * THE THREE TIERS (decided here, from the files and from the changed lines).
+ * The owner decided on 2026-10-14 that no tier needs a click in the browser: the owner
+ * approved changes without understanding them, so the click proved nothing but presence.
  *   automatic  Nothing below applies. It merges when the checks are green.
  *   ship it    It touches a secret, a token, a permission, an environment, a
  *              release, a delete or a force, or a file that defines what "green"
@@ -19,10 +22,15 @@
  *              run summary. This script cannot prove the owner typed them, so
  *              this tier is a rule for the session, kept honest by the log. It
  *              is not a lock.
- *   bypass     It changes this shipper, its workflow or its tests. Refused
- *              here. Only the owner's own click in the browser merges it. That
- *              is the one lock a session cannot open, because a session could
- *              otherwise loosen the thing that decides what it may ship.
+ *   lock       It changes the files that decide who may merge what: this shipper,
+ *              its workflow and its tests, the manifest, the strictness check.
+ *              It merges only with the owner's words AND a strictness check that
+ *              ran in a job with no secrets and found the new rules at least as
+ *              strict as the old, on every made-up case. That catches a mistake. It
+ *              cannot catch a backdoor written to pass a fixed set of cases, and
+ *              nothing here proves the owner typed the words. A change that makes
+ *              the lock LOOSER fails the check on purpose, and only the owner can
+ *              do it, by merging with the repository's own bypass box.
  *
  * What makes the automatic tier safe to run without a person:
  *   - It runs from `testing` only (the environment `pipeline` allows no other
@@ -78,15 +86,15 @@ export const CHECKS_BY_WORKFLOW = {
 // request cannot change the list it is judged by. A missing or broken list stops the
 // shipper: it never falls back to an empty one.
 const MANIFEST = JSON.parse(readFileSync(new URL('./protection.json', import.meta.url), 'utf8'));
-for (const key of ['tick', 'shipIt', 'shipItPrefixes']) {
+for (const key of ['lock', 'shipIt', 'shipItPrefixes']) {
   if (!Array.isArray(MANIFEST[key])) throw new Error(`protection.json has no list called ${key}`);
 }
 
 /**
- * BYPASS tier. Changing any of these changes who may merge what, or what is
- * protected. Only the owner's click in the browser merges them.
+ * LOCK tier. Changing any of these changes who may merge what, or what is protected.
+ * They need the owner's words and a strictness check that finds the change no looser.
  */
-export const BYPASS_FILES = MANIFEST.tick;
+export const LOCK_FILES = MANIFEST.lock;
 
 /**
  * SHIP-IT tier, by file. Each decides what "green" means, who may merge a
@@ -162,7 +170,7 @@ export const isAllowed = (file) =>
   !file.startsWith('/') &&
   (ALLOWED_PREFIXES.some((prefix) => file.startsWith(prefix)) || ALLOWED_WORKFLOW.test(file));
 
-export const isBypass = (file) => BYPASS_FILES.some((protectedFile) => plain(protectedFile) === plain(file));
+export const isLock = (file) => LOCK_FILES.some((protectedFile) => plain(protectedFile) === plain(file));
 
 // The pipeline-change skill is the session's own rulebook for when it may ship. A change to
 // it is a change to the approval rules themselves, so it needs the owner's word, always.
@@ -329,7 +337,7 @@ export function notGreen(runs, jobsOf) {
  * @param {string} [input.ownerSaid] the owner's own words, when a "ship it" was given
  * @returns {{ship: true, tier: 'automatic'|'ship-it', why: string[]} | {ship: false, reason: string}}
  */
-export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCount = 0, files = [], ownerSaid = '', structural = [] }) {
+export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCount = 0, files = [], ownerSaid = '', structural = [], differential = 'not-run' }) {
   if (pr.state !== 'OPEN') return { ship: false, reason: 'the pull request is not open' };
   if (pr.baseRefName !== 'testing') return { ship: false, reason: 'it does not go into testing' };
   if (pr.isCrossRepository !== false) return { ship: false, reason: 'it comes from a fork' };
@@ -353,13 +361,10 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
 
   const names = files.flatMap((f) => [f.filename, f.previous_filename]).filter(Boolean);
 
-  const lock = names.filter(isBypass);
-  if (lock.length > 0) {
-    return { ship: false, reason: `it changes the shipper (${lock.join(', ')}), so it needs the owner's bypass tick in the browser` };
-  }
+  const lock = names.filter(isLock);
   const outside = names.filter((name) => !isAllowed(name));
   if (outside.length > 0) {
-    return { ship: false, reason: `it changes more than the automation (${outside.slice(0, 3).join(', ')}), so it needs the owner's bypass tick in the browser` };
+    return { ship: false, reason: `it changes more than the automation (${outside.slice(0, 3).join(', ')}), so it needs the owner's own approval in the merge box, not this shipper` };
   }
   const lostTest = files.find(
     (f) =>
@@ -367,7 +372,7 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
       (f.previous_filename?.startsWith('test/') && !f.filename.startsWith('test/'))
   );
   if (lostTest) {
-    return { ship: false, reason: `it deletes or moves a test (${lostTest.previous_filename ?? lostTest.filename}), so it needs the owner's bypass tick in the browser` };
+    return { ship: false, reason: `it deletes or moves a test (${lostTest.previous_filename ?? lostTest.filename}), so it needs the owner's own approval in the merge box, not this shipper` };
   }
   if (missing.length > 0) return { ship: false, reason: `not green on that commit: ${missing.join(', ')}` };
 
@@ -377,10 +382,21 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
     // The workflows, read as YAML as well as by line. Either one asking is enough.
     ...structural.map((what) => `${what}`)
   ];
-  if (why.length === 0) return { ship: true, tier: 'automatic', why: [] };
+  if (why.length === 0 && lock.length === 0) return { ship: true, tier: 'automatic', why: [] };
   // The words must say it. Any three characters would pass "no way", "not yet" or "wait".
   if (!saysShip(ownerSaid)) {
-    return { ship: false, reason: `it needs the owner's "ship it": ${[...new Set(why)].join('; ')}` };
+    return { ship: false, reason: `it needs the owner's "ship it": ${[...new Set([...why, ...lock.map((f) => `it changes ${f}, which is part of the lock`)])].join('; ')}` };
+  }
+  if (lock.length > 0) {
+    // The strictness check ran in a job with no secrets, on the old and the new rules. Anything but a pass stops it:
+    // a failure means the change makes the lock looser, and `error` or `not-run` mean nobody could tell.
+    if (differential === 'same') {
+      return { ship: false, reason: 'the strictness check found no change to compare, which does not fit a change to the lock' };
+    }
+    if (differential !== 'pass') {
+      return { ship: false, reason: `it changes the lock (${lock.join(', ')}), and the strictness check says ${differential}, so it is not shipped` };
+    }
+    return { ship: true, tier: 'lock', why: [...new Set([...why, ...lock.map((f) => `it changes ${f}, which is part of the lock`)])] };
   }
   return { ship: true, tier: 'ship-it', why: [...new Set(why)] };
 }
@@ -388,11 +404,12 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
 const wait = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 
 /**
- * @param {{pr: string|number, sha: string, repo: string, allowedAuthors: string[], mergeToken: string, ownerSaid?: string}} args
+ * @param {{pr: string|number, sha: string, repo: string, allowedAuthors: string[], mergeToken: string, ownerSaid?: string, differential?: string}} args
+ *   `differential` is the verdict of the strictness check, from a job with no secrets: pass, fail, same, error or not-run.
  * @param {(args: string[], opts?: {token?: string}) => string} [gh]
  * @param {(ms: number) => void} [sleep]
  */
-export function ship({ pr, sha, repo, allowedAuthors, mergeToken, ownerSaid = '' }, gh = realGh, sleep = wait) {
+export function ship({ pr, sha, repo, allowedAuthors, mergeToken, ownerSaid = '', differential = 'not-run' }, gh = realGh, sleep = wait) {
   const number = requireNumber(pr, 'pull request number');
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error(`sha must be 40 hex characters, got: ${sha}`);
   if (!mergeToken) throw new Error('MERGE_TOKEN is not set. Refusing to ship without it.');
@@ -460,7 +477,8 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken, ownerSaid = ''
     pushCount: pushes.length,
     files,
     structural,
-    ownerSaid
+    ownerSaid,
+    differential
   });
   if (!decision.ship) return { shipped: false, reason: decision.reason };
 
@@ -492,13 +510,14 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     repo: process.env.GITHUB_REPOSITORY,
     allowedAuthors: (process.env.ALLOWED_AUTHORS ?? '').split(',').filter(Boolean),
     mergeToken: process.env.MERGE_TOKEN,
-    ownerSaid
+    ownerSaid,
+    differential: process.env.DIFFERENTIAL || 'not-run'
   });
   setOutputs({ shipped: result.shipped });
-  // The log of who allowed what. For the ship-it tier, the owner's own words.
+  // The log of who allowed what. For the ship-it and lock tiers, the owner's own words.
   if (process.env.GITHUB_STEP_SUMMARY) {
     const lines = result.shipped
-      ? [`Shipped #${pr} (${result.tier}).`, ...(result.why ?? []).map((w) => `- ${w}`), ...(result.tier === 'ship-it' ? [`The owner said: ${JSON.stringify(ownerSaid)}`] : [])]
+      ? [`Shipped #${pr} (${result.tier}).`, ...(result.why ?? []).map((w) => `- ${w}`), ...(result.tier !== 'automatic' ? [`The owner said: ${JSON.stringify(ownerSaid)}`] : []), ...(result.tier === 'lock' ? [`The strictness check said: ${process.env.DIFFERENTIAL}`] : [])]
       : [`Did not ship #${pr}: ${result.reason}`];
     appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
   }
