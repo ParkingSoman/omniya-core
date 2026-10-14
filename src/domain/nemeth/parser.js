@@ -431,6 +431,21 @@ function attachScript(base, slot, script, src) {
 }
 
 /**
+ * A script is one postfix, optionally led by a sign: `2^-n` is `⠼⠆⠘⠤⠝`, the
+ * negative n, and needs no baseline indicator because nothing has yet been
+ * written that a baseline could return from (issue #73). A sign with no term
+ * before it cannot be the operation sign of `⠭⠘⠆⠬⠼⠂`, so it is unambiguous.
+ * That one, an operation sign AFTER a script term, stays refused: it is `x^{2+1}`
+ * to the Code and `x^2+1` to most authors who forgot the baseline indicator.
+ */
+function parseScript(state, level) {
+  const start = state.index;
+  const items = [];
+  parseUnary(state, level, items);
+  return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
+}
+
+/**
  * Rule 14.11 decides whether two scripts on one base are simultaneous, and the
  * explicit baseline indicator is its sole carrier -- which is why `levels.js`
  * records `afterBaseline` and why this loop reads it off the script's own first
@@ -451,7 +466,12 @@ function parsePostfix(state, level) {
   let filled = '';
   for (let slot = scriptSlot(state, level); slot; slot = scriptSlot(state, level)) {
     const rebased = peek(state).afterBaseline;
-    const script = parsePostfix(state, level + slot);
+    // A script may carry operation signs: Nemeth keeps a level in force until
+    // a baseline indicator ends it, so `2^-n` is `⠼⠆⠘⠤⠝` and `2^{x+n}` is
+    // `⠼⠆⠘⠭⠬⠝`, with the signs written at the script's own level. Reading one
+    // postfix here left the sign stranded and refused every such power
+    // (#73, "I shouldn't have to write a baseline indicator ... at the end").
+    const script = parseScript(state, level + slot);
     if (rebased && startsBaselineTerm(state, level)) {
       // Rule 14.5.1 (lines 6311-6315): a LEFT script is written exactly like a
       // right one and told apart only by sitting before the sign it applies to,

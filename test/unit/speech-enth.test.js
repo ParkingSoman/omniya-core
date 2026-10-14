@@ -29,6 +29,11 @@ test('an exponent that ends in + n or - n says "enth" for the n', () => {
   assert.equal(say(sup(two, `<mrow><mi>x</mi><mo>-</mo>${n}</mrow>`)), '2 raised to the x minus enth power');
 });
 
+test('a negative n in an exponent says "enth" too', () => {
+  assert.equal(say(sup(two, `<mrow><mo>-</mo>${n}</mrow>`)), '2 raised to the negative enth power');
+  assert.equal(say(sup(two, '<mrow><mo>-</mo><mi>m</mi></mrow>')), '2 raised to the negative m power');
+});
+
 test('everything else keeps its usual wording', () => {
   assert.equal(say(sup(two, '<mi>m</mi>')), '2 to the m-th power');
   assert.equal(say(sup(two, `<mrow>${n}<mo>+</mo><mn>1</mn></mrow>`)), '2 raised to the n plus 1 power');

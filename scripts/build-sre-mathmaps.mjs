@@ -14,7 +14,8 @@ import path from 'node:path';
 //
 // A rule is two entries: an Action (en.json, what to say) and a Precondition
 // (base.json, when). The more specific precondition wins over SRE's default one.
-const ACTIONS = [['Action', 'exponent-n', '[t] "enth"'], ['Action', 'exponent-n-last', '[t] "enth"']];
+const ACTIONS = [['Action', 'exponent-n', '[t] "enth"'], ['Action', 'exponent-n-last', '[t] "enth"'],
+  ['Action', 'exponent-n-negative', '[t] "enth"']];
 const PRECONDITIONS = [
   // The whole exponent is the letter n. Same shape as SRE's own `exponent` rule.
   ['Precondition', 'exponent-n', 'default', 'self::identifier',
@@ -25,7 +26,12 @@ const PRECONDITIONS = [
   ['Precondition', 'exponent-n-last', 'default', 'self::identifier',
     'text()="n"', 'name(../..)="infixop"', 'name(../../../..)="superscript"',
     'count(../../preceding-sibling::*)=1', 'not(following-sibling::*)',
-    '(../../@role="addition" or ../../@role="subtraction")']
+    '(../../@role="addition" or ../../@role="subtraction")'],
+  // The exponent is a negative n, as in 2^-n: "2 raised to the negative enth
+  // power". The sign is a prefix operator whose only child is the n.
+  ['Precondition', 'exponent-n-negative', 'default', 'self::identifier',
+    'text()="n"', 'name(../..)="prefixop"', 'name(../../../..)="superscript"',
+    'count(../../preceding-sibling::*)=1', '../../@role="negative"']
 ];
 
 function eachSection(json, visit) {

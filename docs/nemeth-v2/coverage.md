@@ -14,9 +14,9 @@ maximize.
 
 | Outcome | Count | % of 613 |
 |---|---:|---:|
-| PASS | 214 | 34.9% |
-| REFUSE | 349 | 56.9% |
-| DISAGREE | 50 | 8.2% |
+| PASS | 218 | 35.6% |
+| REFUSE | 343 | 56.0% |
+| DISAGREE | 52 | 8.5% |
 | ERROR | 0 | 0.0% |
 | **Total** | **613** | **100.0%** |
 
@@ -25,7 +25,7 @@ maximize.
 | Source | PASS | REFUSE | DISAGREE | ERROR | Total |
 |---|---:|---:|---:|---:|---:|
 | mathcat-rules | 40 | 202 | 31 | 0 | 273 |
-| sre-aata | 174 | 147 | 19 | 0 | 340 |
+| sre-aata | 178 | 141 | 21 | 0 | 340 |
 
 ## REFUSE by cause
 
@@ -47,7 +47,6 @@ position, not a category; the offending codepoint is kept since it is).
 | 13 | an alphabetic or capitalization indicator governs a op, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a op either | `mathcat-rules:degrees_165_1` |
 | 12 | the grouping symbol "(" has no right grouping symbol at level ""; BANA 19.1.2 preserves an unpaired one and this parser has no node for it | `sre-aata:AataExpression_1` |
 | 11 | no Nemeth symbol starts at cell N (U+2833 "⠳") | `mathcat-rules:comparison_ops_151_14` |
-| 10 | expected the start of a term at level "^" | `mathcat-rules:nested_super_space_79_d_3` |
 | 9 | an alphabetic or capitalization indicator governs a fracLine, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:beveled_frac_62_b_1` |
 | 8 | no Nemeth symbol starts at cell N (U+283F "⠿") | `mathcat-rules:omission_57_1` |
 | 6 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a baseline either | `mathcat-rules:dots_99_a_1` |
@@ -55,6 +54,7 @@ position, not a category; the offending codepoint is kept since it is).
 | 5 | a typeform indicator governs a fracClose; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:num_indicator_9_d_3` |
 | 5 | an alphabetic or capitalization indicator governs a digit, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:ms_38_4_8` |
 | 4 | a typeform indicator governs a op; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:tilde_137_2` |
+| 4 | expected the start of a term at level "^" | `mathcat-rules:nested_super_space_79_d_3` |
 | 4 | indicator "," cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:cap_roman_numeral_18_a_3` |
 | 3 | a "_" script between two baseline indicators is a left script | `mathcat-rules:left_sub_14_104` |
 | 3 | a numeral at the start of the input or after a space needs the numeric indicator BANA Rule 3.3.1 requires, so these cells are not the number they resemble | `mathcat-rules:test_9_b_1` |
@@ -111,7 +111,7 @@ Code and the corpus write the same sign with two different Unicode codepoints), 
 `text-vs-math` (the case targets literary text, which this math-only pipeline does not
 model). The authoritative list is `MANY_TO_ONE_CAUSES` in the gate itself.
 
-## DISAGREE (50)
+## DISAGREE (52)
 
 Parsed successfully, but the resulting mathematics differs from the corpus case's
 own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
@@ -518,6 +518,32 @@ own MathML. Every one of these must be in `MANY_TO_ONE_FORWARD_MAP` in
 - their MathML:
   ```xml
   <math><mmultiscripts><mi>R</mi><mi>i</mi><none/><none/><mi>j</mi><mi>k</mi><none/><mi>l</mi><none/></mmultiscripts></math>
+  ```
+
+### `sre-aata:AataExpression_102`
+
+- cells: `⠈⠷⠷⠂⠆⠒⠢⠾⠷⠲⠖⠶⠾⠈⠾⠘⠤⠂`
+- our LaTeX: `{[(1235)(467)]}^{-1}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mrow><mo stretchy="false">[</mo><mo stretchy="false">(</mo><mn>1235</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>467</mn><mo stretchy="false">)</mo><mo stretchy="false">]</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">[</mo><mo stretchy="false">(</mo><mn>1235</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>467</mn><mo stretchy="false">)</mo><msup><mo stretchy="false">]</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup></math>
+  ```
+
+### `sre-aata:AataExpression_106`
+
+- cells: `⠷⠂⠆⠢⠒⠶⠾⠘⠤⠂`
+- our LaTeX: `{(12537)}^{-1}`
+- our MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mrow><mo stretchy="false">(</mo><mn>12537</mn><mo stretchy="false">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup></math>
+  ```
+- their MathML:
+  ```xml
+  <math xmlns="http://www.w3.org/1998/Math/MathML"><mo stretchy="false">(</mo><mn>12537</mn><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup></math>
   ```
 
 ### `sre-aata:AataExpression_238`
