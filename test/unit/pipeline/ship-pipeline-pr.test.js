@@ -17,7 +17,7 @@ const pr = {
   mergeable: 'MERGEABLE'
 };
 const ok = (over = {}, extra = {}) =>
-  decide({ pr: { ...pr, ...over }, sha: SHA, allowedAuthors, missing: [], pushers: ['omniya-bot'], files: ['docs/x.md'], ...extra });
+  decide({ pr: { ...pr, ...over }, sha: SHA, allowedAuthors, missing: [], pushers: ['omniya-bot'], files: [{ filename: 'docs/x.md', status: 'modified' }], ...extra });
 
 test('ships a clean pipeline pull request from the owner or the session account', () => {
   assert.equal(ok().ship, true);
@@ -61,34 +61,69 @@ test('will not ship a change to the shipper or to the guards on the secrets', ()
     'scripts/ci/ship-pipeline-pr.mjs',
     'scripts/ci/gh.mjs',
     'scripts/ci/hand-off.mjs',
+    'package.json',
+    'package-lock.json',
     'test/unit/pipeline/ship-pipeline-pr.test.js',
     'test/unit/pipeline/pipeline-secrets.test.js'
   ]) {
-    assert.match(ok({}, { files: ['docs/x.md', file] }).reason, /bypass tick/, file);
+    assert.match(ok({}, { files: [{ filename: 'docs/x.md' }, { filename: file, status: 'modified' }] }).reason, /bypass tick/, file);
   }
 });
 
-test('a check counts only when its newest run on that commit passed', () => {
-  const runs = (list) => list.map(([name, conclusion, at]) => ({ name, conclusion, completed_at: at }));
-  const all = ['unit', 'nemeth', 'e2e', 'pack-mac', 'pack-win'].map((n) => [n, 'success', '2026-10-14T10:00:00Z']);
-  assert.deepEqual(notGreen(runs(all)), []);
-  assert.deepEqual(notGreen(runs(all.slice(1))), ['unit']);
-  // A later failure beats an earlier pass.
-  assert.deepEqual(notGreen(runs([...all, ['e2e', 'failure', '2026-10-14T11:00:00Z']])), ['e2e']);
+test('a protected file moved away still counts as touched', () => {
+  const files = [{ filename: 'docs/old-ship.yml', previous_filename: '.github/workflows/pipeline-ship.yml', status: 'renamed' }];
+  assert.match(ok({}, { files }).reason, /bypass tick/);
 });
 
-function fakeGh({ view = pr, conclusion = 'success', mergeFails = 0, pushes = ['omniya-bot', 'omniya-bot'], files = ['docs/x.md'] } = {}) {
+test('will not ship a change that deletes a test or moves one out of test/', () => {
+  const gone = [{ filename: 'test/unit/model.test.js', status: 'removed' }];
+  const moved = [{ filename: 'docs/model.test.js', previous_filename: 'test/unit/model.test.js', status: 'renamed' }];
+  const added = [{ filename: 'test/unit/new.test.js', status: 'added' }];
+  assert.match(ok({}, { files: gone }).reason, /deletes or moves a test/);
+  assert.match(ok({}, { files: moved }).reason, /deletes or moves a test/);
+  assert.equal(ok({}, { files: added }).ship, true);
+});
+
+test('a check counts only as a job of the workflow file that defines it', () => {
+  const PC = '.github/workflows/pr-checks.yml';
+  const PB = '.github/workflows/pr-build.yml';
+  const jobs = {
+    1: [['unit', 'success'], ['nemeth', 'success'], ['e2e', 'success']],
+    2: [['pack-mac', 'success'], ['pack-win', 'success']],
+    // A workflow added by the pull request, with jobs named like the real ones.
+    3: [['unit', 'success'], ['nemeth', 'success'], ['e2e', 'success'], ['pack-mac', 'success'], ['pack-win', 'success']],
+    4: [['unit', 'success'], ['nemeth', 'success'], ['e2e', 'failure']]
+  };
+  const jobsOf = (id) => jobs[id].map(([name, conclusion]) => ({ name, conclusion }));
+  const run = (id, path, created_at, conclusion = 'success') => ({ id, path, created_at, conclusion });
+
+  assert.deepEqual(notGreen([run(1, PC, 't1'), run(2, PB, 't1')], jobsOf), []);
+  // Only a look-alike workflow is green: nothing counts.
+  assert.deepEqual(notGreen([run(3, '.github/workflows/fake.yml', 't1')], jobsOf), ['unit', 'nemeth', 'e2e', 'pack-mac', 'pack-win']);
+  // A real workflow whose run did not succeed counts for nothing, even if a job did.
+  assert.deepEqual(notGreen([run(1, PC, 't1', 'failure'), run(2, PB, 't1')], jobsOf), ['unit', 'nemeth', 'e2e']);
+  // The newest run of the real workflow decides. A later red run beats an earlier green one.
+  assert.deepEqual(notGreen([run(1, PC, 't1'), run(4, PC, 't2', 'failure'), run(2, PB, 't1')], jobsOf), ['unit', 'nemeth', 'e2e']);
+  assert.deepEqual(notGreen([run(4, PC, 't2'), run(2, PB, 't1')], jobsOf), ['e2e']);
+});
+
+function fakeGh({ view = pr, conclusion = 'success', mergeFails = 0, pushes = ['omniya-bot', 'omniya-bot'], files = [{ filename: 'docs/x.md', status: 'modified' }] } = {}) {
   const calls = [];
   let failures = mergeFails;
   const run = (args, opts = {}) => {
     calls.push({ args, token: opts.token });
     if (args[0] === 'pr' && args[1] === 'view') return JSON.stringify(view);
     if (args[0] === 'api' && args.some((a) => a.endsWith('/activity'))) return JSON.stringify(pushes.map((a) => ({ a })));
-    if (args[0] === 'api' && args[1].endsWith('/files')) return files.join('\n');
-    if (args[0] === 'api' && args[1].endsWith('/check-runs')) {
-      return ['unit', 'nemeth', 'e2e', 'pack-mac', 'pack-win']
-        .map((name) => JSON.stringify({ name, conclusion, completed_at: '2026-10-14T10:00:00Z' }))
-        .join('\n');
+    if (args[0] === 'api' && args[1].endsWith('/files')) return files.map((f) => JSON.stringify(f)).join('\n');
+    if (args.some((a) => a.endsWith('/actions/runs'))) {
+      return JSON.stringify([
+        { id: 11, path: '.github/workflows/pr-checks.yml', created_at: 't', conclusion },
+        { id: 12, path: '.github/workflows/pr-build.yml', created_at: 't', conclusion }
+      ]);
+    }
+    if (args.some((a) => /\/actions\/runs\/1[12]\/jobs$/.test(a))) {
+      const names = args.some((a) => a.includes('/runs/11/')) ? ['unit', 'nemeth', 'e2e'] : ['pack-mac', 'pack-win'];
+      return JSON.stringify(names.map((name) => ({ name, conclusion })));
     }
     if (args[0] === 'pr' && args[1] === 'merge' && failures-- > 0) throw new Error('not mergeable yet');
     return '';
@@ -116,7 +151,7 @@ test('sets no lock and merges nothing when a check is red, the branch moved, or 
     { conclusion: 'failure' },
     { view: { ...pr, headRefOid: 'c'.repeat(40) } },
     { pushes: ['omniya-bot', 'a-contributor'] },
-    { files: ['scripts/ci/ship-pipeline-pr.mjs'] }
+    { files: [{ filename: 'scripts/ci/ship-pipeline-pr.mjs', status: 'modified' }] }
   ];
   for (const setup of setups) {
     const { run, calls } = fakeGh(setup);
@@ -147,9 +182,11 @@ test('the push history is asked for with parameters, so a branch name cannot add
   assert.ok(!ask.args.some((a) => a.includes('?') || a.includes('&')), 'nothing from the branch name in the URL');
 });
 
-test('only GitHub Actions check runs are asked for', () => {
-  const source = readFileSync('scripts/ci/ship-pipeline-pr.mjs', 'utf8');
-  assert.match(source, /select\(\.app\.slug == "github-actions"\)/);
+test('checks are read from workflow runs on the exact commit, not from the check-runs list', () => {
+  const { run, calls } = fakeGh();
+  ship(input, run, () => {});
+  assert.ok(calls.some((c) => c.args.some((a) => a.endsWith('/actions/runs')) && c.args.includes(`head_sha=${SHA}`)));
+  assert.ok(!calls.some((c) => c.args.some((a) => a.includes('check-runs'))), 'a name in the check-runs list can be spoofed');
 });
 
 test('the workflow runs in the locked environment, from testing, for two actors, with input only through env', () => {

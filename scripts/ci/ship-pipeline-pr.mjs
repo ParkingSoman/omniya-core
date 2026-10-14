@@ -22,7 +22,12 @@
  *     contributor has write access and could push a commit onto a branch the
  *     session opened. Commits carry no GitHub login, so GitHub's push history is
  *     what names the pusher.
- *   - Only check runs from GitHub Actions count. Nothing else may say "green".
+ *   - A check counts only when it is a job of the workflow file that defines it
+ *     (`pr-checks.yml` for unit, nemeth and e2e, `pr-build.yml` for the two
+ *     builds). A name alone is not enough: a new workflow can have a job called
+ *     `unit` that always passes. Those two files are protected, so the pull
+ *     request cannot have rewritten them.
+ *   - A pull request that deletes a test, or moves one out of `test/`, is refused.
  *   - A pull request that changes this shipper, its tests, or the guard tests on
  *     the secrets is refused. Those still need the owner's bypass tick, or a
  *     shipped change could loosen the thing that ships it.
@@ -37,14 +42,20 @@ import { pathToFileURL } from 'node:url';
 import { gh as realGh, requireNumber, setOutputs } from './gh.mjs';
 
 export const BRANCH_PREFIX = 'pipeline/';
-export const SHIP_CHECKS = ['unit', 'nemeth', 'e2e', 'pack-mac', 'pack-win'];
+
+/** Which workflow file defines which required check. A check from any other file does not count. */
+export const CHECKS_BY_WORKFLOW = {
+  '.github/workflows/pr-checks.yml': ['unit', 'nemeth', 'e2e'],
+  '.github/workflows/pr-build.yml': ['pack-mac', 'pack-win']
+};
 
 /**
  * Changing any of these changes who may merge what, or what counts as green, so
  * the shipper will not ship them. They still need the owner's bypass tick.
  *   - the shipper, the helper it imports, and its tests
  *   - the guards on the secrets and the contributor hand-off that may set the lock
- *   - the workflows that define the checks the shipper trusts
+ *   - the workflows that define the checks the shipper trusts, and the package
+ *     files that decide what `npm test` runs
  *   - anything under `.github/actions/`, which a workflow could run in their place
  */
 export const PROTECTED_FILES = [
@@ -56,6 +67,8 @@ export const PROTECTED_FILES = [
   'scripts/ci/gh.mjs',
   'scripts/ci/hand-off.mjs',
   'scripts/ci/allowlist.mjs',
+  'package.json',
+  'package-lock.json',
   'test/unit/pipeline/ship-pipeline-pr.test.js',
   'test/unit/pipeline/pipeline-secrets.test.js',
   'test/unit/pipeline/hand-off.test.js'
@@ -69,20 +82,26 @@ export const isProtected = (file) =>
 export const MAX_PUSHES = 100;
 
 /**
- * @param {Array<{name:string, conclusion:string|null, completed_at:string|null}>} checkRuns
- * @returns {string[]} names that are not green
+ * @param {Array<{id:number, path:string, created_at:string, conclusion:string|null}>} runs workflow runs on the commit
+ * @param {(id: number) => Array<{name:string, conclusion:string|null}>} jobsOf the jobs of one run
+ * @returns {string[]} required check names that are not green
  */
-export function notGreen(checkRuns) {
-  return SHIP_CHECKS.filter((name) => {
-    const newest = checkRuns
-      .filter((c) => c.name === name)
-      .sort((a, b) => String(b.completed_at ?? '').localeCompare(String(a.completed_at ?? '')))[0];
-    return !newest || newest.conclusion !== 'success';
-  });
+export function notGreen(runs, jobsOf) {
+  const missing = [];
+  for (const [path, names] of Object.entries(CHECKS_BY_WORKFLOW)) {
+    const newest = runs
+      .filter((run) => run.path === path)
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+    const jobs = newest && newest.conclusion === 'success' ? jobsOf(newest.id) : [];
+    for (const name of names) {
+      if (!jobs.some((job) => job.name === name && job.conclusion === 'success')) missing.push(name);
+    }
+  }
+  return missing;
 }
 
 /**
- * @param {{pr: object, sha: string, allowedAuthors: string[], missing: string[], pushers?: string[], pushCount?: number, files?: string[]}} input
+ * @param {{pr: object, sha: string, allowedAuthors: string[], missing: string[], pushers?: string[], pushCount?: number, files?: Array<{filename: string, previous_filename?: string|null, status?: string}>}} input
  * @returns {{ship: true} | {ship: false, reason: string}}
  */
 export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCount = 0, files = [] }) {
@@ -103,8 +122,14 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
   if (stranger !== undefined || pushers.length === 0) {
     return { ship: false, reason: 'someone other than the owner or the session account pushed to the branch' };
   }
-  const touched = files.filter(isProtected);
+  const touched = files.flatMap((f) => [f.filename, f.previous_filename]).filter((name) => name && isProtected(name));
   if (touched.length > 0) return { ship: false, reason: `it changes the shipper or its guards (${touched.join(', ')}), so it needs the owner's bypass tick` };
+  const lostTest = files.find(
+    (f) =>
+      (f.status === 'removed' && f.filename.startsWith('test/')) ||
+      (f.previous_filename?.startsWith('test/') && !f.filename.startsWith('test/'))
+  );
+  if (lostTest) return { ship: false, reason: `it deletes or moves a test (${lostTest.previous_filename ?? lostTest.filename}), so it needs the owner's bypass tick` };
   if (missing.length > 0) return { ship: false, reason: `not green on that commit: ${missing.join(', ')}` };
   return { ship: true };
 }
@@ -127,13 +152,20 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken }, gh = realGh,
       'state,baseRefName,isCrossRepository,headRefName,headRefOid,author,isDraft,mergeable'
     ])
   );
-  const checkRuns = gh([
-    'api', `repos/${repo}/commits/${sha}/check-runs`, '--paginate',
-    '--jq', '.check_runs[] | select(.app.slug == "github-actions") | {name, conclusion, completed_at}'
-  ])
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
+  // Runs are found by commit, and each is tied to the workflow FILE it came from.
+  const runs = JSON.parse(
+    gh([
+      'api', '--method', 'GET', `repos/${repo}/actions/runs`, '-f', `head_sha=${sha}`, '-f', 'per_page=100',
+      '--jq', '[.workflow_runs[] | {id, path, created_at, conclusion}]'
+    ])
+  );
+  const jobsOf = (id) =>
+    JSON.parse(
+      gh([
+        'api', '--method', 'GET', `repos/${repo}/actions/runs/${requireNumber(id, 'run id')}/jobs`, '-f', 'per_page=100',
+        '--jq', '[.jobs[] | {name, conclusion}]'
+      ])
+    );
 
   const pushes = JSON.parse(
     // The branch name goes in as a parameter, never into the URL text. A branch
@@ -144,15 +176,16 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken }, gh = realGh,
       '--jq', '[.[] | {a: .actor.login}]'
     ])
   );
-  const files = gh(['api', `repos/${repo}/pulls/${number}/files`, '--paginate', '--jq', '.[] | .filename, (.previous_filename // empty)'])
+  const files = gh(['api', `repos/${repo}/pulls/${number}/files`, '--paginate', '--jq', '.[] | {filename, previous_filename, status}'])
     .split('\n')
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 
   const decision = decide({
     pr: view,
     sha,
     allowedAuthors,
-    missing: notGreen(checkRuns),
+    missing: notGreen(runs, jobsOf),
     pushers: pushes.map((push) => push.a),
     pushCount: pushes.length,
     files
