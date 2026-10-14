@@ -280,6 +280,7 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   # The agent ended without a pull request, or crashed. Say so on the issue, so
   # the contributor is not left reading "I started on this" for ever. A report
@@ -322,14 +323,14 @@ jobs:
 
   # Check the pull request and build it, and repair it until both pass. This is
   # what keeps a red tick away from the contributor. It is its own job so that
-  # `actions: write` is held by the jobs that start workflows and read no
-  # untrusted text, and not by the agent.
+  # the jobs that wait on the checks read no untrusted text, and the agent
+  # holds no `actions` permission.
   verify:
     needs: [allowlist, fix]
     if: needs.fix.outputs.result == 'opened'
     # A ceiling, not a grant: every job inside states its own permissions.
     permissions:
-      actions: write
+      actions: read
       contents: write
       pull-requests: write
       issues: write
@@ -341,3 +342,4 @@ jobs:
       message: ${{ needs.fix.outputs.message }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}

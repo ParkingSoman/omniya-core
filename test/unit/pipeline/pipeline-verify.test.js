@@ -35,7 +35,7 @@ test('a repair runs only after a red verify, and the next verify only after a re
 test('verify jobs start workflows and run no agent; repair jobs run an agent and start nothing', () => {
   for (let n = 1; n <= REPAIRS + 1; n += 1) {
     const verify = jobs[`verify-${n}`];
-    assert.deepEqual(verify.permissions, { actions: 'write', contents: 'read', 'pull-requests': 'read', issues: 'read' }, `verify-${n}`);
+    assert.deepEqual(verify.permissions, { actions: 'read', contents: 'read', 'pull-requests': 'read', issues: 'read' }, `verify-${n}`);
     assert.doesNotMatch(JSON.stringify(verify.steps), /claude-code-action/, `verify-${n} must not run an agent`);
     // The default checkout is `testing`, which has the helper scripts.
     assert.equal(verify.steps[0].with?.ref, undefined);
@@ -47,7 +47,7 @@ test('verify jobs start workflows and run no agent; repair jobs run an agent and
     assert.equal(repair.uses, AGENT);
     assert.equal(repair.with.mode, 'checks-failed');
     assert.equal(repair.with.log_artifact, `failed-checks-${n}`);
-    assert.deepEqual(Object.keys(repair.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+    assert.deepEqual(Object.keys(repair.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
   }
   assert.equal(workflow.permissions?.actions, undefined);
 });

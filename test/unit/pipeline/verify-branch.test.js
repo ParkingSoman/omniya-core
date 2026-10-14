@@ -16,11 +16,11 @@ function fakeGh({ conclusions = {}, startDelayPolls = 0, shaOf = SHA } = {}) {
   const gh = (args) => {
     calls.push(args.join(' '));
     if (args[0] === 'api') return `${shaOf}\n`;
-    if (args[0] === 'workflow') return '';
     if (args[0] === 'run' && args[1] === 'list') {
       const workflow = args[args.indexOf('--workflow') + 1];
       polls[workflow] = (polls[workflow] ?? 0) + 1;
       if (polls[workflow] <= startDelayPolls) return '[]';
+      assert.ok(args.includes('pull_request') && !args.includes('workflow_dispatch'), 'looks for the runs the push started');
       const finished = polls[workflow] > startDelayPolls + 1;
       return JSON.stringify([
         // An older run on the same commit, from an earlier round. It must be ignored.
@@ -40,13 +40,12 @@ function fakeGh({ conclusions = {}, startDelayPolls = 0, shaOf = SHA } = {}) {
   return { gh, calls, now: () => clock, sleep: async (ms) => { clock += ms; } };
 }
 
-test('both runs green means green, and both were dispatched on the branch', async () => {
+test('both runs green means green, and nothing is dispatched', async () => {
   const f = fakeGh();
   const result = await verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 10 });
   assert.equal(result.green, true);
   assert.equal(result.sha, SHA);
-  assert.ok(f.calls.includes(`workflow run pr-checks.yml --repo ${REPO} --ref ${BRANCH}`));
-  assert.ok(f.calls.some((c) => c.startsWith('workflow run pr-build.yml') && c.includes('pr_number=26') && c.includes('quiet=true')));
+  assert.ok(!f.calls.some((c) => c.startsWith('workflow run')), 'the push starts the runs, not this script');
 });
 
 test('one red run means not green, and the log of that run, and only that run, is kept', async () => {
@@ -79,28 +78,27 @@ test('a run that never appears is a fault, not a red check', async () => {
   );
 });
 
-test('a branch outside claude/fix- is refused before anything is dispatched', async () => {
+test('a branch outside claude/fix- is refused before anything is asked of GitHub', async () => {
   const f = fakeGh();
   await assert.rejects(verifyBranch(f, { repo: REPO, branch: 'testing', pr: 26 }), /refusing branch/);
   assert.equal(f.calls.length, 0);
 });
 
-test('a pull request number that is not digits is refused before anything is dispatched', async () => {
+test('a pull request number that is not digits is refused before anything is asked of GitHub', async () => {
   const f = fakeGh();
   await assert.rejects(verifyBranch(f, { repo: REPO, branch: BRANCH, pr: '26; echo' }), /digits/);
   assert.equal(f.calls.length, 0);
 });
 
-test('pickRun ignores a run on another commit and a run from before the dispatch', () => {
+test('pickRun takes the newest run on the commit, and ignores other commits', () => {
   const runs = [
     { databaseId: 1, headSha: 'other', createdAt: '2026-10-10T10:00:10Z' },
     { databaseId: 2, headSha: SHA, createdAt: '2026-10-10T09:00:00Z' },
-    { databaseId: 3, headSha: SHA, createdAt: '2026-10-10T10:00:05Z' },
-    { databaseId: 4, headSha: SHA, createdAt: '2026-10-10T10:00:09Z' }
+    { databaseId: 3, headSha: SHA, createdAt: '2026-10-10T10:00:05Z' }
   ];
-  const notBefore = Date.parse('2026-10-10T10:00:00Z');
-  assert.equal(pickRun(runs, { sha: SHA, notBefore }).databaseId, 4, 'the newest match');
-  assert.equal(pickRun(runs, { sha: 'none', notBefore }), undefined);
+  // The run starts at the push, before verify does, so there is no earliest time.
+  assert.equal(pickRun(runs, { sha: SHA }).databaseId, 3, 'the newest match');
+  assert.equal(pickRun(runs, { sha: 'none' }), undefined);
 });
 
 test('tail keeps the end of a long log, where the failure is', () => {
