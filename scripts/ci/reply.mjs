@@ -160,10 +160,31 @@ const STATES_DEF = {
       'The maintainer has been told and will look. You do not need to do anything.'
     ]
   },
+  // The hand-off. `sent` is the fix that is set to merge by itself. The other two
+  // are a fix a person has to look at first, and they say the truth about why.
   sent: {
     message: 'none',
     lines: [
-      'Thank you. I sent this fix to the maintainer to review and merge.',
+      'Thank you for testing.',
+      'It will merge by itself when the checks finish, and the test build will update.',
+      'This issue closes when it merges.',
+      'You do not need to do anything.'
+    ]
+  },
+  'sent-automation': {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'It changes the automation itself, so the maintainer has to look at it first.',
+      'This issue closes when the maintainer merges the fix.',
+      'You do not need to do anything.'
+    ]
+  },
+  'sent-owner': {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'The maintainer has to look at it before it can merge.',
       'This issue closes when the maintainer merges the fix.',
       'You do not need to do anything.'
     ]
@@ -177,8 +198,8 @@ export const LABELS = {
   // A person is NOT needed here: the contributor is, and the agent waits for them.
   asked: { name: 'needs-info', description: 'The agent asked the reporter a question and is waiting' },
   design: { name: 'needs-design', description: 'Not a bug: a design decision for the maintainer to answer' },
-  stuck: { name: 'needs-maintainer', description: 'A person has to look at this' },
-  failed: { name: 'needs-maintainer', description: 'A person has to look at this' }
+  stuck: { name: 'needs-owner', description: 'A person has to look at this' },
+  failed: { name: 'needs-owner', description: 'A person has to look at this' }
 };
 
 /**

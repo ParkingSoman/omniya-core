@@ -5,7 +5,6 @@ import test from 'node:test';
 import { load as loadYaml } from 'js-yaml';
 
 const PATH = '.github/workflows/pipeline-signoff.yml';
-const STUB = '.github/pipeline-stubs/contributor-signoff.yml';
 const source = readFileSync(PATH, 'utf8');
 const workflow = loadYaml(source);
 
@@ -17,8 +16,7 @@ const code = source
   .filter((line) => !/^\s*#/.test(line))
   .join('\n');
 
-const stub = loadYaml(readFileSync(STUB, 'utf8'));
-const triggers = stub.on ?? stub[true];
+const triggers = workflow.on ?? workflow[true];
 
 test('closing an issue merges nothing', () => {
   // Closing used to merge the fix into `testing`. That put the whole decision on
@@ -29,20 +27,18 @@ test('closing an issue merges nothing', () => {
   assert.deepEqual(Object.keys(workflow.jobs), ['explain']);
 });
 
-test('the stub on main did not have to change', () => {
-  // This file is still called when an issue is closed, by a stub that is already
-  // on `main`. Renaming the file or changing the stub would need a change there.
+test('it starts when an issue is closed, and not when it is closed as not planned', () => {
   assert.deepEqual(triggers?.issues?.types, ['closed']);
-  assert.match(stub.jobs.call.if, /state_reason\s*!=\s*'not_planned'/);
-  assert.equal(stub.jobs.call.uses, 'ParkingSoman/omniya-core/.github/workflows/pipeline-signoff.yml@testing');
+  assert.equal(triggers?.workflow_call, undefined, 'it holds its own trigger and is not called');
+  assert.match(workflow.jobs.explain.if, /state_reason\s*!=\s*'not_planned'/);
 });
 
 test('a contributor who closes an issue with a fix still open is told what to write instead', () => {
   const steps = workflow.jobs.explain.steps;
   const find = steps.find((s) => s.id === 'find');
   assert.match(find.run, /scripts\/ci\/find-fix-pr\.mjs "\$ISSUE_NUMBER"/);
-  // The helper is not on `main`, which is what the default checkout would give.
-  assert.equal(steps[0].with?.ref, 'testing');
+  // The default checkout is `testing`, which has the helper.
+  assert.equal(steps[0].with?.ref, undefined);
 
   const say = steps.find((s) => /gh issue comment/.test(s.run ?? ''));
   assert.equal(say.if, "steps.find.outputs.count != '0'", 'silent when there is no open fix: that is the merge closing the issue');
@@ -51,7 +47,7 @@ test('a contributor who closes an issue with a fix still open is told what to wr
 });
 
 test('it costs nothing: no secret, no agent, no write beyond a comment', () => {
-  assert.equal((workflow.on ?? workflow[true]).workflow_call?.secrets, undefined);
+  assert.equal(triggers?.workflow_call, undefined);
   assert.doesNotMatch(code, /claude-code-action|CLAUDE_CODE_OAUTH_TOKEN/);
   assert.deepEqual(workflow.jobs.explain.permissions, { contents: 'read', 'pull-requests': 'read', issues: 'write' });
 });

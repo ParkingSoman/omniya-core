@@ -14,15 +14,9 @@ name: pr-checks
 on:
   pull_request:
     branches: [testing]
-  # Started by `pipeline-fix.yml` and `pipeline-followup.yml` on the pull
-  # request's branch. See `pr-build.yml` for why: a pull request opened by the
-  # Actions bot is held for approval, and the required `unit`, `nemeth` and
-  # `e2e` checks would never report. A run started this way reports on the
-  # branch's head commit, which is what the pull request is waiting for.
-  workflow_dispatch:
 
 concurrency:
-  group: pr-checks-${{ github.event.pull_request.number || github.ref }}
+  group: pr-checks-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
@@ -83,14 +77,3 @@ jobs:
       - run: brew install liblouis
       - run: npm ci
       - run: npm run test:e2e
-
-  # The contributor pipeline runs from `main`, not from this branch. A change to
-  # it that never reaches `main` does nothing, and nothing says so: see
-  # docs/contributor-pipeline.md. This job is the thing that says so.
-  pipeline-on-main:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - run: git fetch --no-tags --depth=1 origin main:refs/remotes/origin/main
-      - run: node scripts/ci/pipeline-drift.mjs

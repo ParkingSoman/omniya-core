@@ -595,13 +595,13 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 218;
+const PASS_BASELINE = 219;
 
 // The id SET this gate was written against, not just its size. PASS_BASELINE
 // alone is an aggregate floor: N cases regressing to REFUSE while N different
 // cases start passing in the same commit leaves PASS_BASELINE, DISAGREE and
 // ERROR all unchanged, so that swap is fully green under the count alone. This
-// pins which 218 cases pass, so a swap is caught even though the total is not.
+// pins which 219 cases pass, so a swap is caught even though the total is not.
 // Sourced from the same coverage run as PASS_BASELINE -- see docs/nemeth-v2/coverage.md.
 const PASS_IDS = new Set([
   "mathcat-rules:baseline_80_a_1",
@@ -775,6 +775,7 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_310",
   "sre-aata:AataExpression_32",
   "sre-aata:AataExpression_327",
+  "sre-aata:AataExpression_329",
   "sre-aata:AataExpression_33",
   "sre-aata:AataExpression_332",
   "sre-aata:AataExpression_333",

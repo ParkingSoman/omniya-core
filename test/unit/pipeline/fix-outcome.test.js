@@ -33,8 +33,8 @@ test('a word that is not known is a failure, never a quiet hand-off', () => {
 });
 
 test('both states that need a person label the issue for the maintainer', () => {
-  assert.equal(LABELS.stuck.name, 'needs-maintainer');
-  assert.equal(LABELS.failed.name, 'needs-maintainer');
+  assert.equal(LABELS.stuck.name, 'needs-owner');
+  assert.equal(LABELS.failed.name, 'needs-owner');
 });
 
 test('it posts exactly one reply, with the agent words in it', () => {
