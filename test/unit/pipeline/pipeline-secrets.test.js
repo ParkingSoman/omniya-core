@@ -56,7 +56,16 @@ test('workflow_call declares both secrets as not required', () => {
 });
 
 test('no other workflow mentions the two secrets', () => {
-  const pipeline = new Set(['pipeline-fix.yml', 'pipeline-followup.yml', 'pipeline-verify.yml', 'pipeline-agent.yml']);
+  // `pipeline-ship.yml` is the owner-approved path (2026-10-14) for merging a
+  // `pipeline/` pull request after "ship it" in chat. It runs no agent and uses
+  // only the App key, in the locked environment, from `testing`.
+  const pipeline = new Set([
+    'pipeline-fix.yml',
+    'pipeline-followup.yml',
+    'pipeline-verify.yml',
+    'pipeline-agent.yml',
+    'pipeline-ship.yml'
+  ]);
   for (const p of parsed) {
     if (pipeline.has(p.f)) continue;
     assert.equal(SECRETS.some((s) => p.text.includes(s)), false, `${p.f} mentions a pipeline secret`);
@@ -67,7 +76,9 @@ test('only the hand-off job asks the App for commit statuses', () => {
   for (const p of parsed) {
     for (const [name, job] of jobsOf(p)) {
       const hit = dump(job).includes('permission-statuses');
-      assert.equal(hit, p.f === 'pipeline-followup.yml' && name === 'handoff', `${p.f}:${name}`);
+      // The contributor hand-off, and the owner's "ship it" for a pipeline pull request.
+      const allowed = (p.f === 'pipeline-followup.yml' && name === 'handoff') || (p.f === 'pipeline-ship.yml' && name === 'ship');
+      assert.equal(hit, allowed, `${p.f}:${name}`);
     }
   }
 });
