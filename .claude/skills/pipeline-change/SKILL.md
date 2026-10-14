@@ -16,8 +16,10 @@ build, rehearse for real, then wait for "ship it".
   Do not weaken the rules in the agent's prompt.
 - Do not edit `track_progress` in `pipeline-agent.yml`.
 - No Claude attribution, no "Generated with", no session links in commits or PRs.
-- Run `gh auth status` first. Say which account `gh` uses. It must be the owner's.
-- Never use `--admin`. Never bypass a ruleset.
+- Run `gh auth status` first. Say which account `gh` uses. A session uses
+  `omniya-bot`. It has no admin rights and does not need them.
+- Never use `--admin`. Never bypass a ruleset. The one way to merge a pipeline
+  change is `pipeline-ship.yml` (step 8).
 - Some steps need the owner's hands. Examples: making a GitHub App, or changing
   a repository setting only the owner can. Say exactly what to click. Then wait.
 - Keep long text out of `${{ }}`. GitHub rejects an expression over 21,000 characters.
@@ -61,8 +63,18 @@ build, rehearse for real, then wait for "ship it".
 7. **Report in the chat, in plain words.** Say what changed. Say what the
    rehearsal showed. Say what could go wrong. Then wait for "ship it". Never
    merge before that.
-8. **After "ship it".** Open the PR. Merge it (squash) with the owner's own
-   account. Watch EVERY run the merge starts, with `gh run list` and
+8. **After "ship it".** Open the PR and wait until every check is green. Then
+   merge it with the shipper. Never click or script a merge by another way:
+   `gh workflow run pipeline-ship.yml --ref testing -f pr_number=<N> -f sha=<full head commit>`
+   The workflow sets the lock as the App and squash-merges. It refuses and says
+   why when the PR is not plainly automation (docs, `scripts/ci`, the agent
+   prompt, pipeline tests, this skill, `pipeline-*.yml` workflows), when anyone
+   but the owner or `omniya-bot` pushed to the branch, or when a check is not
+   green on that exact commit. The owner's "ship it" must name this PR.
+   If it refuses because the PR touches the app, `package.json`, the check
+   workflows or the shipper itself, tell the owner: that one needs the bypass
+   tick in the browser. Say exactly what to click. Then wait.
+   Watch EVERY run the merge starts, with `gh run list` and
    `gh run watch`. If the change touched the agent job or the hand-off, the
    first live run after the merge is the first real test of it. Watch that run
    to its end. Wait until all are green. A red run after the merge is your
