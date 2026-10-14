@@ -106,7 +106,9 @@ flowchart TD
    checkout, and the agent reads only that copy. A fix branch cannot rewrite them.
 6. The agent works with a GitHub App token, not the built-in token. A pull
    request opened with the built-in token gets no checks. One opened by the App
-   gets them the normal way, so `pipeline-verify.yml` only waits for them. The App
+   gets them the normal way, so `pipeline-verify.yml` only waits for them. A
+   pull request that conflicts with `testing` gets no checks, so verify reports it
+   as red and the repair agent merges `testing` in. The App
    has Contents and Pull requests write and Issues read. It has no Workflows,
    Checks or Administration permission, so it cannot change a workflow file. The
    App ID is the variable `PIPELINE_APP_ID` and the key is the secret

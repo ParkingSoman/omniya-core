@@ -8,7 +8,7 @@ const BRANCH = 'claude/fix-22-x';
 const SHA = 'abc123';
 
 // A fake `gh` that remembers what it was asked and answers like GitHub would.
-function fakeGh({ conclusions = {}, startDelayPolls = 0, shaOf = SHA } = {}) {
+function fakeGh({ conclusions = {}, startDelayPolls = 0, shaOf = SHA, mergeable = ['MERGEABLE'] } = {}) {
   const calls = [];
   let clock = 1_000_000;
   const polls = {};
@@ -16,6 +16,11 @@ function fakeGh({ conclusions = {}, startDelayPolls = 0, shaOf = SHA } = {}) {
   const gh = (args) => {
     calls.push(args.join(' '));
     if (args[0] === 'api') return `${shaOf}\n`;
+    if (args[0] === 'pr' && args[1] === 'view') {
+      assert.ok(args.includes('mergeable') && args.includes('26'), 'asks the pull request whether it is mergeable');
+      // Answers in order, then repeats the last answer.
+      return `${mergeable.length > 1 ? mergeable.shift() : mergeable[0]}\n`;
+    }
     if (args[0] === 'run' && args[1] === 'list') {
       const workflow = args[args.indexOf('--workflow') + 1];
       polls[workflow] = (polls[workflow] ?? 0) + 1;
@@ -76,6 +81,47 @@ test('a run that never appears is a fault, not a red check', async () => {
     verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 60_000, appearMs: 120_000 }),
     /did not start/
   );
+});
+
+test('a conflicting pull request is red with the conflict log, and no run is waited for', async () => {
+  const f = fakeGh({ mergeable: ['CONFLICTING'], startDelayPolls: 10_000 });
+  const result = await verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 10 });
+  assert.equal(result.green, false);
+  assert.equal(result.sha, SHA);
+  assert.deepEqual(result.failed, ['conflict']);
+  assert.match(result.log, /conflicts with `testing`/);
+  assert.match(result.log, /did not start its checks/);
+  assert.match(result.log, /Merge `origin\/testing`/);
+  assert.ok(!f.calls.some((c) => c.startsWith('run list')), 'it did not look for runs');
+});
+
+test('UNKNOWN is asked again until GitHub says CONFLICTING', async () => {
+  const f = fakeGh({ mergeable: ['UNKNOWN', 'UNKNOWN', 'CONFLICTING'] });
+  const result = await verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 10 });
+  assert.deepEqual(result.failed, ['conflict']);
+  assert.equal(f.calls.filter((c) => c.startsWith('pr view')).length, 3);
+});
+
+test('UNKNOWN for the whole limit goes on to the normal wait', async () => {
+  const f = fakeGh({ mergeable: ['UNKNOWN'] });
+  const result = await verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 10_000, mergeableMs: 30_000 });
+  assert.equal(result.green, true);
+  const asked = f.calls.filter((c) => c.startsWith('pr view')).length;
+  assert.ok(asked >= 3 && asked <= 6, `asked ${asked} times, then gave up`);
+});
+
+test('a mergeable pull request waits for its runs as before', async () => {
+  const f = fakeGh({ mergeable: ['MERGEABLE'], conclusions: { 'pr-build.yml': 'failure' } });
+  const result = await verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 10 });
+  assert.deepEqual(result.failed, ['pr-build.yml']);
+  assert.equal(f.calls.filter((c) => c.startsWith('pr view')).length, 1);
+});
+
+test('runs that never appear on a pull request that has turned CONFLICTING are red, not a fault', async () => {
+  const f = fakeGh({ mergeable: ['MERGEABLE', 'CONFLICTING'], startDelayPolls: 10_000 });
+  const result = await verifyBranch(f, { repo: REPO, branch: BRANCH, pr: 26, pollMs: 60_000, appearMs: 120_000 });
+  assert.equal(result.green, false);
+  assert.deepEqual(result.failed, ['conflict']);
 });
 
 test('a branch outside claude/fix- is refused before anything is asked of GitHub', async () => {
