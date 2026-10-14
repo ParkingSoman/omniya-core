@@ -110,7 +110,8 @@ export const SHIP_IT_FILES = [
 export const SENSITIVE_LINES = [
   // Not `GH_TOKEN: ${{ github.token }}`: that is the built-in token, it appears in almost
   // every workflow, and it gives nothing the job's permissions do not already give.
-  [/secrets\.|_PRIVATE_KEY|MERGE_TOKEN|OAUTH_TOKEN|PERSONAL|create-github-app-token|github\.token\s*}}.*(MERGE|ADMIN)/i, 'a secret or a token'],
+  // `secrets.X`, `secrets['X']`, `toJSON(secrets)` and `secrets: inherit` all reach a secret.
+  [/secrets\s*(\.|\[|:\s*inherit)|toJSON\(\s*secrets|_PRIVATE_KEY|MERGE_TOKEN|OAUTH_TOKEN|PERSONAL|create-github-app-token|github\.token\s*}}.*(MERGE|ADMIN)/i, 'a secret or a token'],
   // A write permission, or an App token scope. Narrowing to `read` is fine. Removing a
   // whole `permissions:` block is caught in `sensitiveIn`, because it widens to the default.
   [/\bpermission-[a-z-]+|(contents|statuses|actions|checks|pull-requests|issues|id-token|packages|workflows|deployments)\s*:\s*(write|admin)|write-all/, 'a permission'],
@@ -134,9 +135,11 @@ export const ALLOWED_PREFIXES = [
   'test/unit/pipeline/',
   '.claude/skills/pipeline-change/'
 ];
-// Any top-level workflow file. The ones that define "green" or publish builds are
-// in the ship-it tier above, and every workflow is scanned line by line.
-export const ALLOWED_WORKFLOW = /^\.github\/workflows\/[a-z0-9-]+\.yml$/;
+// The pipeline's own workflows and the existing CI ones, by name. A workflow with any
+// other name is not plainly automation, so it needs the owner's bypass tick. The ones
+// that define "green" or publish builds are in the ship-it tier above, and every
+// workflow is scanned line by line.
+export const ALLOWED_WORKFLOW = /^\.github\/workflows\/(pipeline-[a-z0-9-]+|pr-[a-z0-9-]+|testing-app|screen-reader|diagnostics-windows)\.yml$/;
 export const MAX_FILES = 3000;
 
 /** One page of push history. A branch with more pushes than this is refused. */
@@ -152,8 +155,13 @@ export const isBypass = (file) => BYPASS_FILES.includes(file);
 
 export const isShipIt = (file) => SHIP_IT_FILES.includes(file);
 
-/** Code, as opposed to words about code. Only code is scanned line by line. */
-const isScanned = (file) => file.startsWith('.github/workflows/') || file.startsWith('scripts/');
+/**
+ * Code, and the agent's prompt, are scanned line by line. The prompt steers an agent
+ * that holds a token and writes code, so a line in it can matter as much as a line in
+ * a workflow. Docs, the skill and tests only talk about these things, so they are not.
+ */
+const isScanned = (file) =>
+  file.startsWith('.github/workflows/') || file.startsWith('scripts/') || file.startsWith('.github/prompts/');
 
 /**
  * What a changed file says that needs the owner's word.
@@ -161,13 +169,31 @@ const isScanned = (file) => file.startsWith('.github/workflows/') || file.starts
  * @returns {string[]} plain reasons, empty when nothing is sensitive
  */
 export function sensitiveIn(file) {
-  if (!isScanned(file.filename)) return [];
+  const extra = new Set();
+  // A file moved from a place that is not scanned into one that is. A pure move shows no
+  // changed line, so a note in docs could become a script with nothing to read.
+  if (file.previous_filename && isScanned(file.filename) && !isScanned(file.previous_filename)) {
+    extra.add('a file moved into the code');
+  }
+  // A test that loses more lines than it gains is how a check gets made to pass. The
+  // contributor hand-off treats it the same way.
+  if (file.filename.startsWith('test/') && typeof file.patch === 'string') {
+    const lines = file.patch.split('\n');
+    // GitHub's patch has no file header, so every line that starts with + or - is a change.
+    const added = lines.filter((l) => l.startsWith('+')).length;
+    const removed = lines.filter((l) => l.startsWith('-')).length;
+    if (removed > added) extra.add('a test that loses more lines than it gains');
+  }
+  if (!isScanned(file.filename)) return [...extra];
   if (typeof file.patch !== 'string') {
     // GitHub leaves out the change of a very large or binary file. It cannot be read, so it cannot be trusted.
-    return file.status === 'removed' || file.status === 'renamed' ? [] : [`a change to ${file.filename} that GitHub does not show`];
+    return file.status === 'removed' || file.status === 'renamed'
+      ? [...extra]
+      : [...extra, `a change to ${file.filename} that GitHub does not show`];
   }
-  const changed = file.patch.split('\n').filter((line) => /^[+-]/.test(line) && !/^(\+\+\+|---)/.test(line));
-  const found = new Set();
+  // No file header in GitHub's patch, so a line that starts with `+++` or `---` is a change like any other.
+  const changed = file.patch.split('\n').filter((line) => line.startsWith('+') || line.startsWith('-'));
+  const found = new Set(extra);
   for (const [pattern, why] of SENSITIVE_LINES) {
     if (changed.some((line) => pattern.test(line))) found.add(why);
   }
