@@ -26,4 +26,7 @@ contributors:
   - avery8ingram-oss
   - HayleeRM
   - ParkingSoman
+  # The maintainer's own bot. Sessions that rehearse a pipeline change run as it,
+  # and the rehearsal issue has to pass the same allowlist as any other.
+  - omniya-bot
   # - example-handle
