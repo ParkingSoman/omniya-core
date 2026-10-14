@@ -141,3 +141,17 @@ test('the job that starts the update holds no secret, and the hand-off job still
   assert.equal(followup.jobs.handoff.permissions.actions, undefined, 'the job with the App key starts nothing');
   assert.equal(followup.jobs.handoff.outputs.conflict, '${{ steps.hand.outputs.conflict }}');
 });
+
+test('the agent accepts the Actions bot for a manual run and for nothing else', async () => {
+  // Seen live: "Workflow initiated by non-human actor: github-actions (type: Bot)". A push starts
+  // `keep-current`, which starts a manual run, and the Actions bot is that run's actor.
+  const { load } = await import('js-yaml');
+  const wf = load(readFileSync('.github/workflows/pipeline-agent.yml', 'utf8'));
+  const step = Object.values(wf.jobs).flatMap((job) => job.steps ?? []).find((s) => s.id === 'agent');
+  const allowed = step.with.allowed_bots;
+  assert.match(allowed, /github\.event_name == 'workflow_dispatch'/, 'only for a manual run');
+  assert.match(allowed, /'github-actions'/);
+  assert.doesNotMatch(allowed, /\*/, 'never every bot');
+  assert.match(allowed, /\|\| ''/, 'every other event allows no bot');
+  assert.doesNotMatch(allowed.replace(/'github-actions'/, ''), /github-actions|dependabot|\[bot\]/, 'only that one bot is named');
+});
