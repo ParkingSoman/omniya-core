@@ -143,6 +143,32 @@ flowchart TD
 | `.github/workflows/diagnostics-windows.yml` | `testing` | The braille diagnostics e2e on Windows. |
 | `.github/workflows/screen-reader.yml` | `testing` | VoiceOver and NVDA against the editor, with transcripts. |
 
+### Shipping a change to the automation itself
+
+You do not open GitHub to merge a change to the automation. You read the plan in
+the chat and say "ship it". The session then runs:
+
+```
+gh workflow run pipeline-ship.yml --ref testing -f pr_number=<N> -f sha=<head commit>
+```
+
+The workflow merges the pull request only when all of these are true. If one is
+not, it merges nothing and says which one.
+
+| Condition | Why |
+|---|---|
+| The workflow runs from `testing`, started by you or the session account | A pull request cannot edit the workflow that ships it. A contributor has write access and cannot start it. |
+| The branch starts with `pipeline/`, into `testing`, from this repository, not a draft | Only automation work comes here. |
+| Every push to the branch was by you or the session account | A contributor could push onto the branch. |
+| Every file is in `docs/`, `scripts/ci/`, `.github/prompts/`, `test/unit/pipeline/`, the pipeline-change skill, or a `pipeline-*.yml` workflow | A list of files it accepts, because a list of files it refuses is never complete. |
+| The shipper, its tests, `gh.mjs`, `hand-off.mjs`, `allowlist.mjs` and the secret guard tests are not changed | A shipped change must not loosen what ships it. |
+| `unit`, `nemeth`, `e2e` and both builds are green on the exact commit, as jobs of `pr-checks.yml` and `pr-build.yml` | A new workflow can have a job named `unit` that always passes. |
+| No test is deleted or moved out of `test/` | A deleted test cannot fail. |
+
+A change that touches the app, `package.json`, the check workflows, or the
+shipper itself is not shipped this way. Those need the bypass tick in the
+browser: tick "Merge without waiting for requirements to be met".
+
 ### Setting up, adding a contributor, and getting unstuck
 
 - Set up once: run `claude setup-token`, then add the result as the secret
