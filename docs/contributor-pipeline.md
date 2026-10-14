@@ -163,7 +163,9 @@ The branch starts with `pipeline/`. Only you and the session account pushed to i
 The checks `unit`, `nemeth`, `e2e` and both builds are green on that exact commit,
 as jobs of `pr-checks.yml` and `pr-build.yml`. No test is deleted or moved.
 Every file is on the allow list, and the changed lines of workflows and scripts
-are read, because a list of bad files is never complete.
+are read, because a list of bad files is never complete. The protected files are listed
+in `scripts/ci/protection.json`. A test fails when a new sensitive line appears in a
+file that is not allowed to hold one. `node scripts/ci/protection-report.mjs` shows each file.
 
 ### Setting up, adding a contributor, and getting unstuck
 
