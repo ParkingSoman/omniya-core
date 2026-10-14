@@ -64,7 +64,10 @@ test('no other workflow mentions the two secrets', () => {
     'pipeline-followup.yml',
     'pipeline-verify.yml',
     'pipeline-agent.yml',
-    'pipeline-ship.yml'
+    'pipeline-ship.yml',
+    // Asks the App for contents and pull requests only (never statuses), and passes the
+    // two secrets by name to `pipeline-verify.yml`, which is the only place a repair runs.
+    'pipeline-keep-current.yml'
   ]);
   for (const p of parsed) {
     if (pipeline.has(p.f)) continue;

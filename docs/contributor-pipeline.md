@@ -68,7 +68,7 @@ flowchart TD
   G -- still red --> I[Label needs-owner, you look]
   H --> J{Contributor comments @claude}
   J -- problem --> F
-  J -- it works --> K{Touches pipeline files, conflicts, or reverses a note?}
+  J -- it works --> K{Touches pipeline files or reverses a note?}
   K -- no --> L[Status contributor-tested, auto-merge into testing]
   K -- yes --> N[Label needs-owner, you review and merge]
   L --> M[Issue closes from the Fixes line]
@@ -93,8 +93,9 @@ flowchart TD
      `contributor-tested`. Only the hand-off job (`scripts/ci/hand-off.mjs`) sets it,
      with the App's token, and only after the contributor says it works. A fix that touches `.github/**`,
      `scripts/ci/**`, `CODEOWNERS` or `.github/contributors.yml`, that has a
-     conflict, or that says "Reverses a standing note" gets `needs-owner` and no
-     status. Only you merge those. The agent's token has no Commit statuses permission.
+     or that says "Reverses a standing note" gets `needs-owner` and no
+     status. Only you merge those. A fix that conflicts is not one of them: it is
+     brought up to date, and the contributor tries the new build. The agent's token has no Commit statuses permission.
 3. Only people on `.github/contributors.yml` can start a run. The check is
    `scripts/ci/allowlist.mjs`. It fails closed. It runs before anything is installed.
    The person must also have write access (`scripts/ci/can-run-agent.mjs`).
@@ -135,6 +136,7 @@ flowchart TD
 | `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs. Modes `fix`, `comment`, `checks-failed`. |
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, reports on the issue. |
 | `.github/workflows/pipeline-rescued.yml` | `testing` | A person fixed a fix the pipeline gave up on. When the checks and the build go green, the contributor gets the test build on the issue, once. |
+| `.github/workflows/pipeline-keep-current.yml` | `testing` | Every push to `testing`, weekly, and when a hand-off finds a conflict. Updates open fix branches. A conflict goes to the repair agent. |
 | `.github/workflows/pipeline-ship.yml` | `testing` | By hand, from a chat session, after the owner says "ship it". Merges a `pipeline/` pull request that changed the automation. It replaces the bypass tick. |
 | `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment: closing sends nothing. |
 | `.github/workflows/pr-checks.yml` | `testing` | The gates `unit`, `nemeth` and `e2e`. |

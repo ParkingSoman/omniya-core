@@ -156,6 +156,17 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
     return { sent: false, merge: false, sha, missing };
   }
 
+  // The contributor said it works, but newer code changed the same lines. That is not
+  // a job for a person: the pipeline brings the branch up to date (and the repair agent
+  // resolves a real conflict), then posts a new build for the contributor to try. Their
+  // "it works" was for the commit they tested, so it does not carry over. Start the
+  // update is started by the next job in the workflow, which is told through the
+  // `conflict` output. This job holds the App key and starts nothing.
+  if (decision.action === 'protected' && decision.reason === 'conflict') {
+    postReply({ issue: issueNumber, state: 'behind', repo }, gh);
+    return { sent: false, merge: false, sha, missing: [], reason: 'conflict' };
+  }
+
   // Taking a pull request out of draft is the one call the built-in token cannot
   // make on a pull request the App opened ("Resource not accessible by
   // integration"). Seen live on the first rehearsal. The App token can.
@@ -210,5 +221,5 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     reviewer: process.env.GITHUB_REPOSITORY_OWNER,
     mergeToken: process.env.MERGE_TOKEN
   });
-  setOutputs({ sent: result.sent, merge: result.merge });
+  setOutputs({ sent: result.sent, merge: result.merge, conflict: result.reason === 'conflict' });
 }
