@@ -10,11 +10,11 @@
  * Any other fix whose `unit`, `nemeth` and `e2e` checks are green on the head
  * commit gets the commit status `contributor-tested`, leaves draft, and has
  * auto-merge turned on, pinned to that commit. That status is the lock: only this
- * script sets it, and the ruleset requires it. It is posted with the built-in
- * token, so it comes from the GitHub Actions integration and from nobody else.
- * Auto-merge is turned on with a separate token (`MERGE_TOKEN`, the App's), so the
- * merge push starts `testing-app.yml`; a push made with the built-in token starts
- * no run.
+ * script sets it, and the ruleset requires it from the pipeline's GitHub App. It
+ * is posted with the App's token (`MERGE_TOKEN`), because a workflow on a
+ * contributor's branch can post a status with the built-in token but cannot
+ * post as the App. The same token turns on auto-merge, so the merge push starts
+ * `testing-app.yml`; a push made with the built-in token starts no run.
  *
  * If a check is not green, it labels `needs-owner` and tells the contributor.
  *
@@ -67,11 +67,14 @@ export function protectedPath(path) {
  *
  * @param {{files: Array<{filename:string, previous_filename?:string}>, filesComplete: boolean, mergeable: string, body: string, missing: string[]}} input
  *   `missing` is `notGreen(...)`.
- * @returns {{action: 'protected', reason: 'automation'|'test-removed'|'conflict'|'standing-note'}
+ * @returns {{action: 'protected', reason: 'automation'|'not-a-fix-branch'|'test-removed'|'test-weakened'|'conflict'|'standing-note'}
  *   | {action: 'not-green', missing: string[]}
  *   | {action: 'merge'}}
  */
-export function decide({ files, filesComplete, mergeable, body, missing }) {
+export function decide({ files, filesComplete, fixBranch, mergeable, body, missing }) {
+  // Only the pipeline's own branch, in this repository, into `testing`. A pull
+  // request from a fork can be given a branch name that looks like ours.
+  if (fixBranch !== true) return { action: 'protected', reason: 'not-a-fix-branch' };
   // The file list is what is checked. If it is not the whole change, part of the
   // change was never looked at. GitHub's list stops at 3,000 files, so a big pull
   // request could hide a workflow past the cutoff. Fail closed.
@@ -79,8 +82,19 @@ export function decide({ files, filesComplete, mergeable, body, missing }) {
   const touches = (files ?? []).some((f) => protectedPath(f.filename) || (f.previous_filename != null && protectedPath(f.previous_filename)));
   if (touches) return { action: 'protected', reason: 'automation' };
   // Deleting a test is how a gate gets gamed. A person looks at that.
-  const removesTest = (files ?? []).some((f) => f.status === 'removed' && String(f.filename ?? '').startsWith('test/'));
+  const isTest = (p) => String(p ?? '').startsWith('test/');
+  // Deleted, or moved out of test/: either way the test is gone.
+  const removesTest = (files ?? []).some(
+    (f) => (f.status === 'removed' && isTest(f.filename)) || (isTest(f.previous_filename) && !isTest(f.filename))
+  );
   if (removesTest) return { action: 'protected', reason: 'test-removed' };
+  // The required checks run the tests that are in the fix branch, and the agent
+  // can edit them. A test file that loses more lines than it gains is how a check
+  // gets made to pass, so a person looks at it.
+  const weakensTest = (files ?? []).some(
+    (f) => String(f.filename ?? '').startsWith('test/') && Number(f.deletions ?? 0) > Number(f.additions ?? 0)
+  );
+  if (weakensTest) return { action: 'protected', reason: 'test-weakened' };
   if (String(mergeable ?? '').toUpperCase() === 'CONFLICTING') return { action: 'protected', reason: 'conflict' };
   // Any heading level, any spacing. The agent writes the body, so this is a
   // signal and not a lock: the locks on design decisions are elsewhere.
@@ -108,7 +122,7 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
     .map((line) => JSON.parse(line));
   const files = gh([
     'api', `repos/${repo}/pulls/${prNumber}/files`, '--paginate',
-    '--jq', '.[] | {filename, previous_filename, status}'
+    '--jq', '.[] | {filename, previous_filename, status, additions, deletions}'
   ])
     .split('\n')
     .filter(Boolean)
@@ -120,10 +134,11 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
   // files and checks are being read. If the head moved, what was checked is not what
   // would merge, so nothing is set and the maintainer looks. The status and the
   // merge are tied to this commit, so a later push cannot ride on them.
-  const last = JSON.parse(gh(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid,mergeable,body,changedFiles']));
+  const last = JSON.parse(gh(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid,mergeable,body,changedFiles,isCrossRepository,baseRefName,headRefName,state']));
   const moved = last.headRefOid !== sha;
   const filesComplete = !moved && Number.isInteger(last.changedFiles) && files.length === last.changedFiles && files.length < 3000;
-  const decision = decide({ files, filesComplete, mergeable: last.mergeable, body: last.body, missing: notGreen(checkRuns) });
+  const fixBranch = last.isCrossRepository === false && last.baseRefName === 'testing' && last.state === 'OPEN' && /^claude\/fix-/.test(String(last.headRefName ?? ''));
+  const decision = decide({ files, filesComplete, fixBranch, mergeable: last.mergeable, body: last.body, missing: notGreen(checkRuns) });
   if (moved) decision.reason = 'moved';
 
   if (decision.action === 'not-green') {
@@ -154,6 +169,8 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
     const why = {
       automation: 'It changes files outside the app source, tests and docs (for example workflows, scripts, settings, package files or the Nemeth corpus).',
       'test-removed': 'It deletes a test file.',
+      'test-weakened': 'It removes more lines from a test than it adds.',
+      'not-a-fix-branch': 'This is not one of the pipeline\'s own fix branches into `testing`.',
       moved: 'The branch changed while I was checking it, so what I checked may not be what would merge.',
       conflict: 'It conflicts with `testing`.',
       'standing-note': 'It says it reverses a standing note.'
@@ -167,11 +184,11 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
   }
 
   if (!mergeToken) throw new Error('MERGE_TOKEN is not set. Refusing to set contributor-tested without a way to merge.');
-  // The lock. Posted with the built-in token, before auto-merge is asked for.
+  // The lock. Posted with the App token (a branch workflow cannot post as the App), before auto-merge is asked for.
   gh([
     'api', `repos/${repo}/statuses/${sha}`,
     '-f', 'state=success', '-f', 'context=contributor-tested', '-f', 'description=The contributor tested this build'
-  ]);
+  ], { token: mergeToken });
   gh(['pr', 'merge', prNumber, '--repo', repo, '--auto', '--squash', '--match-head-commit', sha], { token: mergeToken });
   gh([
     'pr', 'comment', prNumber, '--repo', repo, '--body',

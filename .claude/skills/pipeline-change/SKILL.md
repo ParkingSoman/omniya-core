@@ -49,6 +49,12 @@ build, rehearse for real, then wait for "ship it".
      that the owner opened by hand, once. Ask the owner to make it if none exists. It never reaches the hand-off, so a
      rehearsal cannot turn on a merge. To test the hand-off, rely on the unit tests.
    - After a rehearsal, close any draft PR it opened: `gh pr close --delete-branch`.
+   - A rehearsal from a branch does NOT run the agent job or the hand-off job.
+     Both use the environment `pipeline`, which allows only `testing`, so GitHub
+     refuses them from any other ref. A branch rehearsal shows everything
+     except those two. Unit tests cover them. They are seen live only after
+     the merge. Say this plainly in the report. Do not claim the agent run
+     was rehearsed.
 6. **Update the words.** Edit `docs/contributor-pipeline.md`. Edit repo
    `CLAUDE.md` if the change touches what it says. Update the owner's memory
    files in the same change.
@@ -57,7 +63,9 @@ build, rehearse for real, then wait for "ship it".
    merge before that.
 8. **After "ship it".** Open the PR. Merge it (squash) with the owner's own
    account. Watch EVERY run the merge starts, with `gh run list` and
-   `gh run watch`. Wait until all are green. A red run after the merge is your
+   `gh run watch`. If the change touched the agent job or the hand-off, the
+   first live run after the merge is the first real test of it. Watch that run
+   to its end. Wait until all are green. A red run after the merge is your
    job to fix. It is not the owner's.
 9. **Clean up.** Delete your branches. Remove your worktree. Close any rehearsal
    PRs. Close the `pipeline-idea` issues you shipped. Comment once on each, with
