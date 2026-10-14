@@ -1,0 +1,22 @@
+name: pipeline-review-ping
+
+# Says "a review was approved", and nothing else.
+#
+# A review event runs the workflow file of the pull request, not the one on `testing`, and a
+# pull request's own file cannot be trusted with a secret. So this file holds none and
+# asks for no permission. It only exists to be seen: `pipeline-ready.yml` runs from `testing`
+# when this finishes, and it reads the review itself from GitHub, from the owner, on the exact
+# commit. It does not read anything from this run.
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions: {}
+
+jobs:
+  ping:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - run: echo "A review was approved. pipeline-ready reads it from GitHub and trusts nothing here."
