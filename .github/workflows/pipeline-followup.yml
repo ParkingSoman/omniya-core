@@ -154,7 +154,7 @@ jobs:
             esac
             number="$INPUT_NUMBER"
             # A rehearsal may only run on an issue made for rehearsing: it has the
-            # label AND the owner or the owner's bot wrote it. A label alone is
+            # label AND the owner wrote it. A label alone is
             # not enough, because anyone with write access can add a label. Without
             # this, a hand-started run could speak as any contributor on a real
             # issue, including saying "it works".
@@ -165,8 +165,8 @@ jobs:
             esac
             opener="$(gh api "repos/$GITHUB_REPOSITORY/issues/$number" --jq '.user.login')"
             case "$opener" in
-              "$GITHUB_REPOSITORY_OWNER"|omniya-bot) ;;
-              *) echo "issue $number was not opened by the owner or omniya-bot" >&2; exit 1 ;;
+              "$GITHUB_REPOSITORY_OWNER") ;;
+              *) echo "issue $number was not opened by the owner" >&2; exit 1 ;;
             esac
             author="$(gh api "repos/$GITHUB_REPOSITORY/issues/$number" --jq 'select(.pull_request == null) | .user.login')"
             association="$(gh api "repos/$GITHUB_REPOSITORY/issues/$number" --jq 'select(.pull_request == null) | .author_association')"
@@ -559,7 +559,14 @@ jobs:
   handoff:
     needs: [allowlist, agent]
     # Never from a hand-started rehearsal: a rehearsal must not enable a merge.
-    if: needs.agent.outputs.result == 'approved' && github.event_name != 'workflow_dispatch'
+    # And only the issue's own author, or the owner, can say "it works". The agent
+    # decides what a comment means, but it does not decide who may say it: another
+    # contributor, who also has write access, must not approve this person's fix.
+    if: >-
+      needs.agent.outputs.result == 'approved' &&
+      github.event_name == 'issue_comment' &&
+      (github.event.comment.user.login == github.event.issue.user.login ||
+       github.event.comment.author_association == 'OWNER')
     runs-on: ubuntu-latest
     permissions:
       contents: read

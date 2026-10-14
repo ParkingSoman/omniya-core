@@ -46,7 +46,7 @@ build, rehearse for real, then wait for "ship it".
      owns it. If none exists, make it once with `gh issue create --label rehearsal`.
      Use a bug-style title and body, because the bug form sets the usual labels.
    - A hand-started follow-up run works only on an issue with the label `rehearsal`
-     that the owner or `omniya-bot` opened. It never reaches the hand-off, so a
+     that the owner opened by hand, once. Ask the owner to make it if none exists. It never reaches the hand-off, so a
      rehearsal cannot turn on a merge. To test the hand-off, rely on the unit tests.
    - After a rehearsal, close any draft PR it opened: `gh pr close --delete-branch`.
 6. **Update the words.** Edit `docs/contributor-pipeline.md`. Edit repo

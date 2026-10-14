@@ -112,6 +112,29 @@ test('hand-off sends the fix to the maintainer when the file list and the file c
   assert.ok(!lines.some((l) => l.startsWith('api repos/a/b/statuses/')), 'the status is not set');
 });
 
+test('hand-off sends the fix to the maintainer when the branch moved while it was being checked', () => {
+  const calls = [];
+  let views = 0;
+  const gh = (args, options = {}) => {
+    calls.push({ line: args.join(' '), token: options.token });
+    if (args[0] === 'pr' && args[1] === 'view') {
+      views += 1;
+      return JSON.stringify({ headRefOid: views === 1 ? 'abc123' : 'def456', mergeable: 'MERGEABLE', body: '', changedFiles: 1 });
+    }
+    if (args[1]?.includes('/check-runs')) {
+      return ['unit', 'nemeth', 'e2e'].map((name) => JSON.stringify({ name, conclusion: 'success', completed_at: '2026-10-10T10:00:00Z' })).join('\n');
+    }
+    if (args[1]?.includes('/files')) return JSON.stringify({ filename: 'src/a.js' });
+    return '';
+  };
+  const result = handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP' }, gh);
+  assert.equal(result.merge, false);
+  assert.equal(result.reason, 'moved');
+  const lines = calls.map((c) => c.line);
+  assert.ok(!lines.some((l) => l.includes('--auto')), 'auto-merge is not asked for');
+  assert.ok(!lines.some((l) => l.startsWith('api repos/a/b/statuses/')), 'the status is not set');
+});
+
 test('a conflicting pull request is protected', () => {
   assert.deepEqual(decide({ ...clean, mergeable: 'CONFLICTING' }), { action: 'protected', reason: 'conflict' });
 });

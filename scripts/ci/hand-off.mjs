@@ -116,8 +116,15 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
 
   // The list came from one call and the count from another. They must agree, and
   // the list must be short of GitHub's 3,000-file cap, or the list is not the change.
-  const filesComplete = Number.isInteger(view.changedFiles) && files.length === view.changedFiles && files.length < 3000;
-  const decision = decide({ files, filesComplete, mergeable: view.mergeable, body: view.body, missing: notGreen(checkRuns) });
+  // Read the pull request again, last. The body and the head can change while the
+  // files and checks are being read. If the head moved, what was checked is not what
+  // would merge, so nothing is set and the maintainer looks. The status and the
+  // merge are tied to this commit, so a later push cannot ride on them.
+  const last = JSON.parse(gh(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid,mergeable,body,changedFiles']));
+  const moved = last.headRefOid !== sha;
+  const filesComplete = !moved && Number.isInteger(last.changedFiles) && files.length === last.changedFiles && files.length < 3000;
+  const decision = decide({ files, filesComplete, mergeable: last.mergeable, body: last.body, missing: notGreen(checkRuns) });
+  if (moved) decision.reason = 'moved';
 
   if (decision.action === 'not-green') {
     const missing = decision.missing;
@@ -147,6 +154,7 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
     const why = {
       automation: 'It changes files outside the app source, tests and docs (for example workflows, scripts, settings, package files or the Nemeth corpus).',
       'test-removed': 'It deletes a test file.',
+      moved: 'The branch changed while I was checking it, so what I checked may not be what would merge.',
       conflict: 'It conflicts with `testing`.',
       'standing-note': 'It says it reverses a standing note.'
     }[decision.reason];

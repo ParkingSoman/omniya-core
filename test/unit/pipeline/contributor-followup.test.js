@@ -264,7 +264,11 @@ test('the kind is read from the labels, and a routed report is read as a bug by 
 
 test('"it works" runs the hand-off: the status comes from the built-in token, the merge from the App token', () => {
   const handoff = workflow.jobs.handoff;
-  assert.equal(handoff.if, "needs.agent.outputs.result == 'approved' && github.event_name != 'workflow_dispatch'", 'a rehearsal never reaches the hand-off');
+  const condition = handoff.if.replace(/\s+/g, ' ');
+  assert.match(condition, /needs\.agent\.outputs\.result == 'approved'/);
+  assert.match(condition, /github\.event_name == 'issue_comment'/, 'a rehearsal never reaches the hand-off');
+  assert.match(condition, /github\.event\.comment\.user\.login == github\.event\.issue\.user\.login/, 'only the issue author can say it works');
+  assert.match(condition, /github\.event\.comment\.author_association == 'OWNER'/, 'or the owner');
   const run = handoff.steps.map((s) => s.run ?? '').join('\n');
   assert.match(run, /scripts\/ci\/hand-off\.mjs "\$ISSUE" "\$PR"/);
   const checkout = handoff.steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout'));
@@ -339,9 +343,9 @@ test('a session can rehearse a contributor comment by hand, and every check stil
   assert.match(issue.run, /issue_number must be digits/);
   assert.match(issue.run, /pull_request == null/, 'a pull request number is refused');
   assert.match(issue.run, /rehearsal/, 'a rehearsal runs only on an issue labelled rehearsal');
-  assert.match(issue.run, /was not opened by the owner or omniya-bot/, 'a label alone is not enough: anyone with write access can add one');
+  assert.match(issue.run, /was not opened by the owner/, 'a label alone is not enough: anyone with write access can add one');
   // A rehearsal must never reach the hand-off, which can enable a merge.
-  assert.match(workflow.jobs.handoff.if.replace(/\s+/g, ' '), /github\.event_name != 'workflow_dispatch'/);
+  assert.match(workflow.jobs.handoff.if.replace(/\s+/g, ' '), /github\.event_name == 'issue_comment'/);
   for (const job of Object.values(workflow.jobs)) {
     for (const step of job.steps ?? []) {
       assert.doesNotMatch(step.run ?? '', /inputs\.comment_body/, 'the body is never interpolated into a run line');
