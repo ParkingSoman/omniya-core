@@ -67,7 +67,10 @@ test('no other workflow mentions the two secrets', () => {
     'pipeline-ship.yml',
     // Asks the App for contents and pull requests only (never statuses), and passes the
     // two secrets by name to `pipeline-verify.yml`, which is the only place a repair runs.
-    'pipeline-keep-current.yml'
+    'pipeline-keep-current.yml',
+    // Posts the merge-box status after the owner's own approval. It runs no agent, asks the App for
+    // `statuses: write` only, and never checks out the pull request. See `pipeline-ready.yml`.
+    'pipeline-ready.yml'
   ]);
   for (const p of parsed) {
     if (pipeline.has(p.f)) continue;
@@ -79,8 +82,12 @@ test('only the hand-off job asks the App for commit statuses', () => {
   for (const p of parsed) {
     for (const [name, job] of jobsOf(p)) {
       const hit = dump(job).includes('permission-statuses');
-      // The contributor hand-off, and the owner's "ship it" for a pipeline pull request.
-      const allowed = (p.f === 'pipeline-followup.yml' && name === 'handoff') || (p.f === 'pipeline-ship.yml' && name === 'ship');
+      // The contributor hand-off, the owner's "ship it" for a pipeline pull request, and the status that
+      // follows the owner's own approval in the merge box (`pipeline-ready.yml`, which runs no agent).
+      const allowed =
+        (p.f === 'pipeline-followup.yml' && name === 'handoff') ||
+        (p.f === 'pipeline-ship.yml' && name === 'ship') ||
+        (p.f === 'pipeline-ready.yml' && name === 'ready');
       assert.equal(hit, allowed, `${p.f}:${name}`);
     }
   }
