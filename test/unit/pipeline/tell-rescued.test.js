@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { renderReply } from '../../../scripts/ci/reply.mjs';
+import { AUTHOR, renderReply } from '../../../scripts/ci/reply.mjs';
 import { decide, tellRescued } from '../../../scripts/ci/tell-rescued.mjs';
 
-const waiting = { body: renderReply('maintainer').trim() };
-const gaveBuild = { body: renderReply('ready', { repo: 'a/b', pr: 7 }) };
+const bot = { login: AUTHOR };
+const waiting = { user: bot, body: renderReply('maintainer').trim() };
+const gaveBuild = { user: bot, body: renderReply('ready', { repo: 'a/b', pr: 7 }) };
 const green = { 'pr-checks': 'success', 'pr-build': 'success' };
 const stuck = { labels: ['needs-owner'], body: 'x\n\nFixes #73\n' };
 
@@ -33,13 +34,13 @@ test('says nothing when a newer pipeline comment already moved the contributor o
   // The ordinary green path, or a second run of this script: the newest comment
   // from the pipeline is a build, not the maintainer reply. Saying it again would
   // break "each thing once".
-  const newer = { body: renderReply('revised', { repo: 'a/b', pr: 7 }) };
+  const newer = { user: bot, body: renderReply('revised', { repo: 'a/b', pr: 7 }) };
   assert.equal(decide({ pr: stuck, comments: [waiting, newer], runs: green }).say, null);
   assert.equal(decide({ pr: stuck, comments: [], runs: green }).say, null);
 });
 
 test('a comment from a person does not count as a pipeline comment', () => {
-  const person = { body: '@claude please look again' };
+  const person = { user: { login: 'someone' }, body: '@claude please look again' };
   assert.equal(decide({ pr: stuck, comments: [waiting, person], runs: green }).say, 'ready');
 });
 
@@ -101,4 +102,15 @@ test('the workflow runs one at a time per branch and never checks out the branch
   const refs = [...yml.matchAll(/^\s*ref:\s*(.+)$/gm)].map((m) => m[1].trim());
   assert.deepEqual(refs, ['testing'], 'the only checkout is `testing`, never the branch it reacts to');
   assert.doesNotMatch(yml, /CLAUDE_CODE_OAUTH_TOKEN/, 'no agent, no secret');
+});
+
+test('a person copying the pipeline marker cannot start or block a post', () => {
+  const stranger = { login: 'someone' };
+  // A copy of the maintainer reply from a person is not the contributor's wait.
+  assert.equal(decide({ pr: stuck, comments: [{ user: stranger, body: waiting.body }], runs: green }).say, null);
+  // A fake marker comment after the real wait does not hide it.
+  const fake = { user: stranger, body: renderReply('revised', { repo: 'a/b', pr: 7 }) };
+  assert.equal(decide({ pr: stuck, comments: [waiting, fake], runs: green }).say, 'ready');
+  // A fake "you got a build" comment does not turn ready into revised.
+  assert.equal(decide({ pr: stuck, comments: [{ ...gaveBuild, user: stranger }, waiting], runs: green }).say, 'ready');
 });

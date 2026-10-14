@@ -35,7 +35,7 @@ import { pathToFileURL } from 'node:url';
 
 import { BRANCH_PREFIX, matchFixPrs } from './find-fix-pr.mjs';
 import { gh, requireNumber } from './gh.mjs';
-import { PIPELINE_PREFIX, postReply, renderReply } from './reply.mjs';
+import { AUTHOR, PIPELINE_PREFIX, postReply, renderReply } from './reply.mjs';
 
 /** The labels that mean "a person has to look at this fix". */
 export const LOOK_LABELS = ['needs-maintainer', 'needs-owner'];
@@ -57,7 +57,7 @@ function issueOf(body) {
  *
  * @param {object} input
  * @param {{labels: string[], body: string}} input.pr
- * @param {Array<{body: string}>} input.comments the issue's comments, oldest first
+ * @param {Array<{body: string, user?: {login: string}}>} input.comments the issue's comments, oldest first
  * @param {Record<string, string>} input.runs conclusion of the newest run of each workflow, on the branch's current commit
  * @returns {{say: 'ready'|'revised'|null, why: string}}
  */
@@ -67,7 +67,11 @@ export function decide({ pr, comments, runs }) {
   }
   // GitHub trims the trailing newline off a stored comment.
   const waiting = renderReply('maintainer').trim();
-  const ours = comments.filter((comment) => (comment.body ?? '').startsWith(PIPELINE_PREFIX));
+  // Anyone can comment on a public issue and start the text with the marker. Only
+  // the Actions bot is the pipeline, so only its comments count.
+  const ours = comments.filter(
+    (comment) => comment.user?.login === AUTHOR && (comment.body ?? '').startsWith(PIPELINE_PREFIX)
+  );
   const newest = ours.at(-1);
   if (!newest || newest.body.trim() !== waiting) {
     return { say: null, why: 'the contributor is not waiting on the maintainer reply' };
