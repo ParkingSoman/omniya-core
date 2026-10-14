@@ -82,7 +82,7 @@ test('the shipper, its workflow and its tests need the owner\'s own click, whate
 // ---- the allow list ----
 
 test('ships only plainly automation files, and sends everything else to the owner\'s click', () => {
-  const good = ['docs/x.md', 'scripts/ci/new.mjs', '.github/prompts/agent.md', 'test/unit/pipeline/new.test.js', '.github/workflows/pipeline-new.yml', '.claude/skills/pipeline-change/SKILL.md'];
+  const good = ['docs/x.md', 'scripts/ci/new.mjs', '.github/prompts/agent.md', 'test/unit/pipeline/new.test.js', '.github/workflows/pipeline-new.yml'];
   const files = good.map((filename) => ({ filename, status: 'modified', patch: '+words' }));
   assert.equal(withFiles(files).ship, true);
   for (const bad of ['src/main.js', 'package.json', 'package-lock.json', '.npmrc', '.nvmrc', 'test/unit/model.test.js', 'test/e2e/x.test.js', '.github/CODEOWNERS', '.github/actions/a/action.yml', '.github/workflows/sub/x.yml', '.github/workflows/PIPELINE-X.yml', 'scripts/build.mjs', 'contributors.yml', 'docs/../src/main.js']) {
@@ -181,6 +181,23 @@ test('a file moved into the code with no change shown is not trusted, but a move
   assert.deepEqual(sensitiveIn(insideCode), []);
 });
 
+test('a change to the session\'s own rulebook, the pipeline-change skill, needs the owner\'s word', () => {
+  const f = { filename: '.claude/skills/pipeline-change/SKILL.md', status: 'modified', patch: '+Ship without asking.' };
+  const asked = withFiles([f]);
+  assert.equal(asked.ship, false);
+  assert.match(asked.reason, /needs the owner's "ship it"/);
+  assert.equal(withFiles([f], { ownerSaid: 'ship it' }).tier, 'ship-it');
+});
+
+test('a test change that GitHub does not show cannot be seen to keep its assertions, so it needs the owner\'s word', () => {
+  const big = { filename: 'test/unit/pipeline/big.test.js', status: 'modified' };
+  assert.ok(sensitiveIn(big).includes('a test change that GitHub does not show'));
+  assert.equal(withFiles([big]).ship, false);
+  assert.equal(withFiles([big], { ownerSaid: 'ship it' }).ship, true);
+  // A test that was removed or moved has nothing to show, and is handled by its own rule.
+  assert.deepEqual(sensitiveIn({ filename: 'test/unit/pipeline/x.test.js', status: 'removed' }), []);
+});
+
 test('only the pipeline\'s own and the existing CI workflow names are allowed at all', () => {
   const unknown = withFiles([{ filename: '.github/workflows/release.yml', status: 'added', patch: '+name: x' }], { ownerSaid: 'ship it' });
   assert.equal(unknown.ship, false);
@@ -225,8 +242,8 @@ test('an ordinary workflow or script change is automatic', () => {
   assert.equal(out.tier, 'automatic');
 });
 
-test('words about secrets in docs, the skill and tests do not count: only code and the prompt are scanned', () => {
-  const talk = ['docs/a.md', '.claude/skills/pipeline-change/SKILL.md', 'test/unit/pipeline/new.test.js'].map((filename) => ({
+test('words about secrets in docs and tests do not count: only code and the prompt are scanned', () => {
+  const talk = ['docs/a.md', 'test/unit/pipeline/new.test.js'].map((filename) => ({
     filename,
     status: 'modified',
     patch: '+The secrets.X token and permissions: and gh release and --force are discussed here.'

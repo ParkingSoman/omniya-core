@@ -153,7 +153,12 @@ export const isAllowed = (file) =>
 
 export const isBypass = (file) => BYPASS_FILES.includes(file);
 
-export const isShipIt = (file) => SHIP_IT_FILES.includes(file);
+// The pipeline-change skill is the session's own rulebook for when it may ship. A change to
+// it is a change to the approval rules themselves, so it needs the owner's word, always.
+export const SHIP_IT_PREFIXES = ['.claude/'];
+
+export const isShipIt = (file) =>
+  SHIP_IT_FILES.includes(file) || SHIP_IT_PREFIXES.some((prefix) => file.startsWith(prefix));
 
 /**
  * Code, and the agent's prompt, are scanned line by line. The prompt steers an agent
@@ -177,6 +182,10 @@ export function sensitiveIn(file) {
   }
   // A test that loses more lines than it gains is how a check gets made to pass. The
   // contributor hand-off treats it the same way.
+  if (file.filename.startsWith('test/') && typeof file.patch !== 'string' && file.status !== 'removed' && file.status !== 'renamed') {
+    // Too big for GitHub to show. A test that cannot be read cannot be seen to keep its assertions.
+    extra.add('a test change that GitHub does not show');
+  }
   if (file.filename.startsWith('test/') && typeof file.patch === 'string') {
     const lines = file.patch.split('\n');
     // GitHub's patch has no file header, so every line that starts with + or - is a change.
