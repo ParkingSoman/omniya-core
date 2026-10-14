@@ -17,7 +17,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { SENSITIVE_LINES } from './ship-pipeline-pr.mjs';
+import { matchesLine, SENSITIVE_LINES } from './ship-pipeline-pr.mjs';
 
 /** The places the shipper reads line by line, as [directory, file name pattern]. */
 export const AUTOMATION_DIRS = [
@@ -45,7 +45,7 @@ const COMMENT = /^\s*(#|\/\/|\*|\/\*)/;
  */
 export function measure(text) {
   const code = text.split('\n').filter((line) => line.trim() && !COMMENT.test(line));
-  return { code: code.length, sensitive: code.filter((line) => SENSITIVE_LINES.some(([pattern]) => pattern.test(line))).length };
+  return { code: code.length, sensitive: code.filter((line) => SENSITIVE_LINES.some(([pattern]) => matchesLine(pattern, line))).length };
 }
 
 export function loadManifest(root = '.') {

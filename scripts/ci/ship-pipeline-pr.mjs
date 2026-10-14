@@ -120,7 +120,10 @@ export const SENSITIVE_LINES = [
   [/\bcurl\b|\bwget\b|\beval\b|\bbase64\b|\bnc\s+-|bash\s+<\(|\|\s*(ba)?sh\b/, 'downloaded or hidden code'],
   // Who may start the agent, and what it may do once started. The agent holds a token and writes
   // code. `allowed_bots` was changed on 2026-10-14 and this script called it automatic.
-  [/allowed_bots|allowed_non_write_users|--allowedTools|--disallowedTools|--dangerously|bypassPermissions|permission-mode|additional_permissions|--mcp-config|--permission/i, 'who may start the agent or what it may do']
+  [/allowed_bots|allowed_non_write_users|--allowedTools|--disallowedTools|--dangerously|bypassPermissions|permission-mode|additional_permissions|--mcp-config|--permission/i, 'who may start the agent or what it may do'],
+  // A YAML alias or a merge key lets one line stand for a block that is written somewhere else, so
+  // what the line grants is not what it says. `permissions: *full` is the example.
+  [/^[+-]?\s*<<\s*:|:\s*[*&][A-Za-z0-9_-]+\s*$|^[+-]?\s*-\s*[*&][A-Za-z0-9_-]+\s*$/, 'a YAML alias or merge key, which hides what a line grants']
 ];
 
 /**
@@ -144,20 +147,47 @@ export const MAX_FILES = 3000;
 /** One page of push history. A branch with more pushes than this is refused. */
 export const MAX_PUSHES = 100;
 
-// A `..` segment would let `docs/../src/main.js` start with an allowed prefix. Git
-// cannot store such a path, but this must not depend on that.
+// A path is compared to the protected lists in one plain form: composed Unicode, lower case.
+// `scripts/ci/Ship-Pipeline-Pr.mjs` is not the file the workflow runs, but it must never be
+// shipped as if it were free on a machine that treats the two names as one.
+const plain = (file) => String(file).normalize('NFC').toLowerCase();
+
+// A `..` segment would let `docs/../src/main.js` start with an allowed prefix. Git cannot
+// store such a path, but this must not depend on that. A backslash, a control character or a
+// leading slash is not a path this pipeline ever makes, so it is not allowed either.
 export const isAllowed = (file) =>
   !file.split('/').includes('..') &&
+  !/[\\\u0000-\u001f\u007f]/.test(file) &&
+  !file.startsWith('/') &&
   (ALLOWED_PREFIXES.some((prefix) => file.startsWith(prefix)) || ALLOWED_WORKFLOW.test(file));
 
-export const isBypass = (file) => BYPASS_FILES.includes(file);
+export const isBypass = (file) => BYPASS_FILES.some((protectedFile) => plain(protectedFile) === plain(file));
 
 // The pipeline-change skill is the session's own rulebook for when it may ship. A change to
 // it is a change to the approval rules themselves, so it needs the owner's word, always.
 export const SHIP_IT_PREFIXES = MANIFEST.shipItPrefixes;
 
 export const isShipIt = (file) =>
-  SHIP_IT_FILES.includes(file) || SHIP_IT_PREFIXES.some((prefix) => file.startsWith(prefix));
+  SHIP_IT_FILES.some((protectedFile) => plain(protectedFile) === plain(file)) ||
+  SHIP_IT_PREFIXES.some((prefix) => plain(file).startsWith(plain(prefix)));
+
+/**
+ * Does this pattern match this line, as GitHub would read it? A YAML key may be quoted
+ * ("environment": pipeline) and a value may be too, and GitHub reads both the same, so a
+ * pattern that wants the colon straight after the word would miss it. The line is tested as
+ * written AND with quotes, back-ticks, zero-width characters and extra spaces taken out.
+ * @param {RegExp} pattern
+ * @param {string} line
+ */
+export function matchesLine(pattern, line) {
+  if (pattern.test(line)) return true;
+  const flat = String(line)
+    .normalize('NFKC')
+    .replace(/[​-‍⁠﻿]/g, '')
+    .replace(/["'`]/g, '')
+    .replace(/\s+/g, ' ');
+  return pattern.test(flat);
+}
 
 /**
  * Code, and the agent's prompt, are scanned line by line. The prompt steers an agent
@@ -205,10 +235,10 @@ export function sensitiveIn(file) {
   const changed = file.patch.split('\n').filter((line) => line.startsWith('+') || line.startsWith('-'));
   const found = new Set(extra);
   for (const [pattern, why] of SENSITIVE_LINES) {
-    if (changed.some((line) => pattern.test(line))) found.add(why);
+    if (changed.some((line) => matchesLine(pattern, line))) found.add(why);
   }
   // Taking a `permissions:` block away makes the job fall back to the wider default.
-  if (changed.some((line) => /^-\s*permissions\s*:/.test(line))) found.add('a permission');
+  if (changed.some((line) => /^-\s*permissions\s*:/.test(line.replace(/["']/g, '')))) found.add('a permission');
   return [...found];
 }
 

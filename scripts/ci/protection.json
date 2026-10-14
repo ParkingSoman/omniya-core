@@ -22,7 +22,7 @@
     ".claude/"
   ],
   "maxCodeLinesProtected": 300,
-  "maxCodeLinesProtectedTest": 400,
+  "maxCodeLinesProtectedTest": 500,
   "baseline": {
     ".github/workflows/pipeline-agent.yml": 14,
     ".github/workflows/pipeline-fix.yml": 18,

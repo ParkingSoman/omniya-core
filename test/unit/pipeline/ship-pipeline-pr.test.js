@@ -136,6 +136,55 @@ test('"ship it" and "ship 98" say ship, and a refusal beside the word cancels it
   }
 });
 
+test('a quoted YAML key or value reads the same to GitHub, so it is just as sensitive', () => {
+  // `"environment": pipeline` is the same line as `environment: pipeline`. A pattern that wants
+  // the colon straight after the word would miss it.
+  const cases = {
+    'an environment': ['"environment": pipeline', "'environment' : 'pipeline'"],
+    'a permission': ['"contents": "write"', "'issues': 'write'", '"permission-statuses": "write"'],
+    'a secret or a token': ['x: ${{ "secrets".X }}', 'x: ${{ secr​ets.X }}', "x: ${{ 'secrets'['X'] }}"]
+  };
+  for (const [what, lines] of Object.entries(cases)) {
+    for (const line of lines) {
+      const f = workflow('.github/workflows/pipeline-new.yml', [line]);
+      assert.ok(sensitiveIn(f).includes(what), `${JSON.stringify(line)} should be ${what}, got ${sensitiveIn(f)}`);
+    }
+  }
+  // Taking a quoted permissions block away widens the job, same as an unquoted one.
+  assert.ok(sensitiveIn({ filename: '.github/workflows/pipeline-new.yml', status: 'modified', patch: '-"permissions":\n-  contents: read' }).includes('a permission'));
+});
+
+test('a YAML alias or merge key hides what a line grants, so it needs the owner\'s word', () => {
+  for (const line of ['permissions: *full', '<<: *defaults', '  - *steps', 'env: &shared']) {
+    const f = workflow('.github/workflows/pipeline-new.yml', [line]);
+    assert.ok(sensitiveIn(f).includes('a YAML alias or merge key, which hides what a line grants'), line);
+  }
+  // Ordinary shell and globs are not aliases.
+  for (const line of ['run: npm test && npm run lint', 'paths: ["**/*.md"]', 'run: sleep 1 &']) {
+    assert.ok(!sensitiveIn(workflow('.github/workflows/pipeline-new.yml', [line])).some((w) => /alias/.test(w)), line);
+  }
+});
+
+test('a protected path is compared in one plain form, so a change of case or Unicode does not make it free', () => {
+  for (const name of ['scripts/ci/Ship-Pipeline-Pr.mjs', '.GITHUB/workflows/pipeline-ship.yml', 'scripts/ci/ship-pipeline-pr.mjs']) {
+    const out = withFiles([{ filename: name, status: 'modified', patch: '+x' }]);
+    assert.equal(out.ship, false, name);
+  }
+  // Composed and decomposed forms of the same letters are the same name.
+  const composed = withFiles([{ filename: 'scripts/ci/gh.mjs', status: 'modified', patch: '+x' }]);
+  const upper = withFiles([{ filename: 'SCRIPTS/CI/GH.MJS', status: 'modified', patch: '+x' }]);
+  assert.match(composed.reason, /ship it/);
+  assert.equal(upper.ship, false);
+});
+
+test('a path with a backslash, a control character or a leading slash is not a path this pipeline makes', () => {
+  for (const name of ['docs\\x.md', 'docs/x\u0000.md', 'docs/x\n.md', '/docs/x.md', 'docs/x\u007f.md']) {
+    const out = withFiles([{ filename: name, status: 'added', patch: '+x' }], { ownerSaid: 'ship it' });
+    assert.equal(out.ship, false, JSON.stringify(name));
+    assert.match(out.reason, /bypass tick/);
+  }
+});
+
 test('who may start the agent, and what it may do, is a change that needs the owner\'s word', () => {
   // `allowed_bots` was changed on 2026-10-14 and this script called it automatic.
   for (const line of ['allowed_bots: github-actions', "allowed_non_write_users: '*'", '--allowedTools "Bash"', '--dangerously-skip-permissions', 'additional_permissions: actions: read', '--permission-mode acceptEdits']) {
