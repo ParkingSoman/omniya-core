@@ -1,14 +1,14 @@
 {
   "greek": {
     "banaRef": "6.1.4",
-    "note": "BANA Nemeth 2022 (test/corpus/sources/Nemeth_2022.txt lines 3023-3048), Greek Alphabet (Standard). Keyed by the Braille-ASCII letter the Code assigns to each Greek letter; the value is [lowercase, capital]. Eta ':' (U+2831) and chi '&' (U+282F) are keyed by their own Braille-ASCII character because the Code writes them with a cell that is not an English letter; their symbol rows are marked greekOnly, so the lexer refuses them anywhere but after the Greek-letter indicator. Theta '?' (U+2839) is still absent: that cell is the fraction-open indicator (Rule 13) and has no letter row yet. The capitals are taken from the Greek block throughout: the extracted table prints some of them as their Latin lookalikes (line 3025 shows capital alpha as 'A', while line 3026 shows capital beta as the Greek 'B'), which is a PDF text artifact, not two different alphabets.",
+    "note": "BANA Nemeth 2022 (test/corpus/sources/Nemeth_2022.txt lines 3023-3048), Greek Alphabet (Standard). Keyed by the Braille-ASCII letter the Code assigns to each Greek letter; the value is [lowercase, capital]. Eta ':' (U+2831) and chi '&' (U+282F) are keyed by their own Braille-ASCII character because the Code writes them with a cell that is not an English letter; their symbol rows are marked greekOnly, so the lexer refuses them anywhere but after the Greek-letter indicator. Theta '?' (U+2839) is present: its cell is also the fraction opener, so the lexer reads it as a letter only behind the Greek indicator (lexer.js resolveBehindIndicator). The capitals are taken from the Greek block throughout: the extracted table prints some of them as their Latin lookalikes (line 3025 shows capital alpha as 'A', while line 3026 shows capital beta as the Greek 'B'), which is a PDF text artifact, not two different alphabets.",
     "letters": {
       "a": ["α", "Α"],
       "b": ["β", "Β"],
       "g": ["γ", "Γ"],
       "d": ["δ", "Δ"],
       "e": ["ϵ", "Ε"],
-      "z": ["ζ", "Ζ"],
+      "z": ["ζ", "Ζ"], "?": ["θ", "Θ"],
       "i": ["ι", "Ι"],
       "k": ["κ", "Κ"],
       "l": ["λ", "Λ"],

@@ -16,31 +16,23 @@ name: pipeline-fix
 # as the `message` output, and `scripts/ci/reply.mjs` puts them inside the one
 # comment the event gets. See that script for why.
 #
-# THIS FILE IS CALLED, IT DOES NOT TRIGGER. GitHub starts an `on: issues`
-# workflow from the default branch's copy only, so the trigger has to live on
-# `main`. What lives there is a stub, `.github/pipeline-stubs/contributor-fix.yml`,
-# that does nothing except call this file on `testing`. Everything that can
-# change -- the prompt, the tools, the gates -- is here, and reaches the next run
-# the moment it merges. `main` is touched only to change who is allowed
-# (`.github/contributors.yml`) or the stubs themselves.
+# This file holds its own triggers. `testing` is the default branch, so GitHub
+# starts an `on: issues` run from this copy, and a change to the prompt, the
+# tools or the gates reaches the next run the moment it merges.
 on:
-  workflow_call:
-    # Only the subscription token, and the stub passes only that. Not every
-    # secret in the repository, and not `inherit`.
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN:
-        required: true
+  issues:
+    types: [opened]
+  # Run it by hand for an issue that was missed: Actions tab, `pipeline-fix`,
+  # "Run workflow", type the issue number. It is gated like an automatic run: the
+  # allowlist checks the AUTHOR OF THE ISSUE, not the person who pressed the
+  # button, so this cannot make an unlisted stranger's report spend the
+  # maintainer's quota.
+  workflow_dispatch:
     inputs:
-      # Set only by a hand-started run ("Run workflow" in the Actions tab). An
-      # automatic run leaves it empty and the issue comes from the event. It is
-      # gated like an automatic run: the allowlist checks the AUTHOR OF THE
-      # ISSUE, not the person who pressed the button, so this cannot make an
-      # unlisted stranger's report spend the maintainer's quota.
       issue_number:
         description: Number of the issue to work on
-        required: false
+        required: true
         type: string
-        default: ''
 
 # One run per issue, and the SAME group as `pipeline-followup.yml`. These runs
 # spend the maintainer's own Claude subscription quota, and a comment that
@@ -124,8 +116,7 @@ jobs:
       # action crashed, and the contributor read "something went wrong on my
       # side". Check the same actor the action checks, and say the true reason.
       #
-      # The script is not on `main`, where this job checks out, so it comes out of
-      # `testing` like the helpers elsewhere. `unknown` lets the run go on: the
+      # `unknown` lets the run go on: the
       # action makes the same check itself.
       - id: access
         if: steps.check.outputs.allowed == 'true'
@@ -134,12 +125,7 @@ jobs:
           ACTOR: ${{ github.actor }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin testing
-          mkdir -p "$RUNNER_TEMP/access"
-          for f in gh.mjs can-run-agent.mjs; do
-            git show "origin/testing:scripts/ci/$f" > "$RUNNER_TEMP/access/$f"
-          done
-          node "$RUNNER_TEMP/access/can-run-agent.mjs" "$ACTOR"
+          node scripts/ci/can-run-agent.mjs "$ACTOR"
 
   # A listed contributor the agent cannot run for. This is a set-up mistake by the
   # maintainer, not a stranger, so the job FAILS: the failure email is how the
@@ -163,8 +149,8 @@ jobs:
           AUTHOR: ${{ github.actor }}
         run: |
           set -euo pipefail
-          gh label create needs-maintainer --force --description "A person has to look at this" || true
-          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-maintainer
+          gh label create needs-owner --force --description "A person has to look at this" || true
+          gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label needs-owner
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Thank you for the report. I did not start, because the maintainer has not finished adding you yet. Nothing is wrong with your report. The maintainer has been told. I will pick this up after that. You do not need to do anything."
           {
@@ -172,7 +158,7 @@ jobs:
             echo
             echo "$AUTHOR is on the contributor list but cannot write to the repository. The agent action refuses that."
             echo "Run: node scripts/ci/add-contributor.mjs $AUTHOR"
-            echo "Then they must accept the invitation. Then run contributor-fix by hand for issue $ISSUE_NUMBER."
+            echo "Then they must accept the invitation. Then run pipeline-fix by hand for issue $ISSUE_NUMBER."
           } >> "$GITHUB_STEP_SUMMARY"
           echo "$AUTHOR cannot write to the repository. See the job summary." >&2
           exit 1
@@ -200,9 +186,8 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Thank you for the report. The automatic fixer did not start on this issue, because its author is not on the contributor list yet. Nothing is wrong with your report. The maintainer will read it and decide what happens next."
 
-  # Which kind of report is this? Read from the labels the form set. It is a job
-  # of its own because it needs the helper from `testing`, and the gate above
-  # checks out `main`. It reads one issue and writes nothing.
+  # Which kind of report is this? Read from the labels the form set. It reads one
+  # issue and writes nothing.
   kind:
     needs: allowlist
     if: needs.allowlist.outputs.allowed == 'true'
@@ -215,8 +200,6 @@ jobs:
       kind: ${{ steps.kind.outputs.kind }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - id: kind
         env:
           GH_TOKEN: ${{ github.token }}
@@ -241,8 +224,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
@@ -269,10 +250,7 @@ jobs:
       issues: write
     timeout-minutes: 5
     steps:
-      # `testing`, not the default checkout: the helper is not on `main`.
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -295,13 +273,16 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: fix
       kind: ${{ needs.kind.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}
       issue_number: ${{ needs.allowlist.outputs.number }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
   # The agent ended without a pull request, or crashed. Say so on the issue, so
   # the contributor is not left reading "I started on this" for ever. A report
@@ -325,7 +306,7 @@ jobs:
       (needs.fix.result == 'failure' ||
       needs.fix.outputs.result == 'asked' ||
       needs.fix.outputs.result == 'needs-design' ||
-      needs.fix.outputs.result == 'stopped') }}
+      needs.fix.outputs.result == 'blocked') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -333,8 +314,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.allowlist.outputs.number }}
@@ -346,22 +325,25 @@ jobs:
 
   # Check the pull request and build it, and repair it until both pass. This is
   # what keeps a red tick away from the contributor. It is its own job so that
-  # `actions: write` is held by the jobs that start workflows and read no
-  # untrusted text, and not by the agent.
+  # the jobs that wait on the checks read no untrusted text, and the agent
+  # holds no `actions` permission.
   verify:
     needs: [allowlist, fix]
     if: needs.fix.outputs.result == 'opened'
     # A ceiling, not a grant: every job inside states its own permissions.
     permissions:
-      actions: write
+      actions: read
       contents: write
       pull-requests: write
       issues: write
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-verify.yml@testing
+    uses: ./.github/workflows/pipeline-verify.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.fix.outputs.pr }}
       branch: ${{ needs.fix.outputs.branch }}
       message: ${{ needs.fix.outputs.message }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
