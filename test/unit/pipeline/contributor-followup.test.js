@@ -58,7 +58,9 @@ test('the allowlist gate runs before anything is installed', () => {
   assert.doesNotMatch(runs, /npm ci|npm install|brew install/, 'the gate must not wait on an install');
   assert.doesNotMatch(uses, /setup-node/, 'the gate must not wait on a toolchain');
   assert.match(runs, /scripts\/ci\/allowlist\.mjs/, 'the gate must be the allowlist script');
-  assert.equal(allowlistJob.steps.find((s) => s.id === 'check').env.COMMENT_AUTHOR, '${{ github.event.comment.user.login }}');
+  assert.equal(allowlistJob.steps.find((s) => s.id === 'check').env.COMMENT_AUTHOR, '${{ steps.issue.outputs.author }}');
+  // The `issue` step is where the author comes from: the comment's author, or on a rehearsal the issue's.
+  assert.equal(allowlistJob.steps.find((s) => s.id === 'issue').env.EVENT_AUTHOR, '${{ github.event.comment.user.login }}');
 
   // And the expensive job must actually wait on it. A `needs` without the `if`,
   // or an `if` without the `needs`, both read as gated and are not.
@@ -107,7 +109,7 @@ test('an answer to the agent\'s question starts the fix, once, and only when a q
   assert.equal(job.uses, AGENT);
   assert.equal(job.with.mode, 'fix');
   assert.equal(job.with.question_round, '${{ needs.allowlist.outputs.question_round }}');
-  assert.deepEqual(Object.keys(job.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+  assert.deepEqual(Object.keys(job.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
   assert.equal(job.permissions?.actions, undefined, 'the agent never holds `actions`');
 
   // The agent can open the pull request this time, so the same checks follow.
@@ -128,7 +130,7 @@ test('the owner\'s comment is the go-ahead for a design idea, and nobody else\'s
   const owner = allowlistJob.steps.find((s) => s.id === 'owner');
   assert.ok(owner, 'expected a step that reads who wrote the comment');
   // GitHub fills this in from the repository. Nobody can type it into a comment.
-  assert.equal(owner.env.ASSOCIATION, '${{ github.event.comment.author_association }}');
+  assert.equal(owner.env.ASSOCIATION, '${{ github.event.comment.author_association || steps.issue.outputs.association }}');
   // The approval belongs to THIS comment, by id. A comment a contributor adds
   // while the run waits in the queue must not inherit it.
   assert.equal(owner.env.COMMENT_ID, '${{ github.event.comment.id }}');
@@ -168,6 +170,7 @@ test('a listed contributor who cannot write is told, and the job is red', () => 
   assert.match(noaccess.steps[0].run, /exit 1/);
   assert.match(workflow.jobs.agent.if, /access != 'false'/);
   assert.match(allowlistJob.steps.find((s) => s.id === 'access').env.ACTOR, /github\.actor/);
+  assert.match(allowlistJob.steps.find((s) => s.id === 'access').env.ACTOR, /workflow_dispatch[^|]*steps\.issue\.outputs\.author/, 'a rehearsal checks the issue author, not whoever pressed the button');
 });
 
 test('a follow-up run is bounded, and shares the fix workflow group', () => {
@@ -183,7 +186,7 @@ test('a follow-up run is bounded, and shares the fix workflow group', () => {
   // file and tested there.
   assert.equal(workflow.jobs.agent.uses, AGENT);
   assert.equal(workflow.jobs.agent.with.mode, 'comment');
-  assert.deepEqual(Object.keys(workflow.jobs.agent.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+  assert.deepEqual(Object.keys(workflow.jobs.agent.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
 });
 
 test('the loop cannot feed itself', () => {
@@ -259,14 +262,27 @@ test('the kind is read from the labels, and a routed report is read as a bug by 
   assert.equal(workflow.jobs.agent.with.kind, "${{ needs.allowlist.outputs.kind == 'nemeth' && 'nemeth' || 'bug' }}");
 });
 
-test('"it works" hands the fix to the maintainer, and does not merge it', () => {
+test('"it works" runs the hand-off: the status comes from the built-in token, the merge from the App token', () => {
   const handoff = workflow.jobs.handoff;
-  assert.equal(handoff.if, "needs.agent.outputs.result == 'approved'");
+  assert.equal(handoff.if, "needs.agent.outputs.result == 'approved' && github.event_name != 'workflow_dispatch'", 'a rehearsal never reaches the hand-off');
   const run = handoff.steps.map((s) => s.run ?? '').join('\n');
   assert.match(run, /scripts\/ci\/hand-off\.mjs "\$ISSUE" "\$PR"/);
-  assert.equal(handoff.steps[0].with?.ref, undefined, 'the default checkout is `testing`');
-  assert.doesNotMatch(code, /gh pr merge|--admin|--auto/, 'the maintainer merges, and nobody else');
+  const checkout = handoff.steps.find((s) => typeof s.uses === 'string' && s.uses.startsWith('actions/checkout'));
+  assert.equal(checkout.with?.ref, undefined, 'the default checkout is `testing`');
+  assert.doesNotMatch(code, /gh pr merge|--admin|--auto/, 'the merge is in hand-off.mjs, behind its decision, and nowhere in the workflow');
   assert.equal(handoff.permissions?.actions, undefined);
+  assert.equal(handoff.permissions?.statuses, 'write');
+  const app = handoff.steps.find((s) => s.id === 'app');
+  assert.match(app.uses, /^actions\/create-github-app-token@[0-9a-f]{40}$/);
+  assert.match(app.with['app-id'], /vars\.PIPELINE_APP_ID/);
+  assert.match(app.with['private-key'], /secrets\.PIPELINE_APP_PRIVATE_KEY/);
+  assert.equal(app.with['permission-contents'], 'write');
+  assert.equal(app.with['permission-pull-requests'], 'write');
+  assert.equal(app.with['permission-issues'], 'read');
+  assert.equal(app.with['permission-workflows'], undefined, 'the App never gets Workflows');
+  const hand = handoff.steps.find((s) => (s.run ?? '').includes('hand-off.mjs'));
+  assert.equal(hand.env.GH_TOKEN, '${{ github.token }}', 'the status is posted by the Actions integration');
+  assert.equal(hand.env.MERGE_TOKEN, '${{ steps.app.outputs.token }}');
 });
 
 test('the agent cannot start, cancel or re-run workflows', () => {
@@ -304,4 +320,34 @@ test("the pipeline's own comments never start a run, even when a person posts th
     /!contains\(\s*github\.event\.comment\.body\s*,\s*'<!-- omniya-pipeline-'\s*\)/,
     'the gate must skip a comment carrying a pipeline marker'
   );
+});
+
+test('a session can rehearse a contributor comment by hand, and every check still applies', () => {
+  // `workflow_dispatch` acts as if the issue's AUTHOR had written `comment_body`.
+  const dispatch = triggers?.workflow_dispatch;
+  assert.ok(dispatch, 'expected a hand-started trigger');
+  assert.deepEqual(Object.keys(dispatch.inputs), ['issue_number', 'comment_body']);
+  assert.equal(dispatch.inputs.issue_number.required, true);
+  assert.equal(dispatch.inputs.comment_body.required, true);
+  assert.equal(dispatch.inputs.comment_body.type, 'string');
+  // Same rules as a real comment: it must name @claude, and must not be the pipeline's own text.
+  const condition = allowlistJob.if.replace(/\s+/g, ' ');
+  assert.match(condition, /workflow_dispatch' && contains\(inputs\.comment_body, '@claude'\) && !contains\(inputs\.comment_body, '<!-- omniya-pipeline-'\)/);
+  assert.match(condition, /issue_comment' && !github\.event\.issue\.pull_request/, 'a real comment keeps all of its filters');
+  // The author is read from GitHub, the number must be digits, and the body never reaches a command line.
+  const issue = allowlistJob.steps.find((s) => s.id === 'issue');
+  assert.match(issue.run, /issue_number must be digits/);
+  assert.match(issue.run, /pull_request == null/, 'a pull request number is refused');
+  assert.match(issue.run, /rehearsal/, 'a rehearsal runs only on an issue labelled rehearsal');
+  assert.match(issue.run, /was not opened by the owner or omniya-bot/, 'a label alone is not enough: anyone with write access can add one');
+  // A rehearsal must never reach the hand-off, which can enable a merge.
+  assert.match(workflow.jobs.handoff.if.replace(/\s+/g, ' '), /github\.event_name != 'workflow_dispatch'/);
+  for (const job of Object.values(workflow.jobs)) {
+    for (const step of job.steps ?? []) {
+      assert.doesNotMatch(step.run ?? '', /inputs\.comment_body/, 'the body is never interpolated into a run line');
+    }
+  }
+  // The allowlist and the access check are the same steps, now fed the issue author.
+  assert.equal(allowlistJob.steps.find((s) => s.id === 'check').env.COMMENT_AUTHOR, '${{ steps.issue.outputs.author }}');
+  assert.equal(workflow.concurrency.group, 'contributor-issue-${{ github.event.issue.number || inputs.issue_number }}');
 });

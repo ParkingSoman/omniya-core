@@ -82,7 +82,7 @@ test('the agent message comes first, then "a build is ready", then the links, th
 });
 
 test('a state that ignores the agent message does not print it', () => {
-  for (const state of ['started', 'routed', 'maintainer', 'failed', 'sent']) {
+  for (const state of ['started', 'routed', 'maintainer', 'failed', 'sent', 'sent-automation', 'sent-owner']) {
     assert.doesNotMatch(renderReply(state, { ...where, message: 'LEAKED WORDS' }), /LEAKED WORDS/, state);
   }
 });
@@ -244,4 +244,12 @@ test('no pipeline workflow edits a status comment or posts a notice any more', (
     assert.doesNotMatch(text, /status-comment\.mjs/, file);
     assert.doesNotMatch(text, /omniya-pipeline-(status|notice)/, file);
   }
+});
+
+test('the hand-off says what will happen: it merges by itself, or the maintainer looks first', () => {
+  assert.match(renderReply('sent', where), /It will merge by itself when the checks finish, and the test build will update\./);
+  assert.doesNotMatch(renderReply('sent', where), /maintainer to review/);
+  assert.match(renderReply('sent-automation', where), /It changes the automation itself, so the maintainer has to look at it first\./);
+  assert.doesNotMatch(renderReply('sent-automation', where), /merge by itself/);
+  assert.match(renderReply('sent-owner', where), /maintainer has to look at it before it can merge/);
 });

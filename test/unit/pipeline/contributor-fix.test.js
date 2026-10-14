@@ -32,7 +32,7 @@ test('the agent job is a call to the shared agent workflow, in fix mode', () => 
   assert.equal(fix.uses, AGENT);
   assert.equal(fix.with?.mode, 'fix');
   assert.equal(fix.with?.issue_number, '${{ needs.allowlist.outputs.number }}');
-  assert.deepEqual(Object.keys(fix.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+  assert.deepEqual(Object.keys(fix.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
   assert.equal(fix.steps, undefined, 'a job that calls a workflow holds no steps');
 });
 
@@ -245,7 +245,7 @@ test('a pull request that was opened is checked and repaired, and nothing else i
   assert.equal(verify.with.pr_number, '${{ needs.fix.outputs.pr }}');
   assert.equal(verify.with.branch, '${{ needs.fix.outputs.branch }}');
   assert.equal(verify.with.message, '${{ needs.fix.outputs.message }}');
-  assert.deepEqual(Object.keys(verify.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+  assert.deepEqual(Object.keys(verify.secrets), ['CLAUDE_CODE_OAUTH_TOKEN', 'PIPELINE_APP_PRIVATE_KEY']);
   // The old design started the checks from this file with a copy of the lookup.
   assert.equal(workflow.jobs['start-checks'], undefined);
   assert.doesNotMatch(source, /gh workflow run/, 'verify starts the checks, from the one place that waits for them');

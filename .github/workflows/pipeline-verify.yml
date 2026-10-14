@@ -15,9 +15,9 @@ name: pipeline-verify
 # it was red, and the next verify runs only when the repair changed the branch.
 # The last verify has no repair after it, so 3 is the cap.
 #
-# Verify jobs hold `actions: write`, because they start workflows, and they run
-# no agent. Repair jobs run an agent, and hold no `actions`. That split is the
-# point: see `pipeline-agent.yml`. The permissions the CALLER gives this file
+# Verify jobs read the runs the push started, and they run no agent. Repair jobs
+# run an agent, and hold no `actions`. That split is the point: see
+# `pipeline-agent.yml`. The permissions the CALLER gives this file
 # are only a ceiling. Every job below states its own.
 #
 # There is no `concurrency` here. The caller holds the one group for the issue.
@@ -29,6 +29,8 @@ on:
   workflow_call:
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+      PIPELINE_APP_PRIVATE_KEY:
         required: true
     inputs:
       issue_number:
@@ -65,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     permissions:
-      actions: write
+      actions: read
       contents: read
       pull-requests: read
       issues: read
@@ -101,6 +103,7 @@ jobs:
       log_artifact: failed-checks-1
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   verify-2:
     needs: [repair-1]
@@ -108,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     permissions:
-      actions: write
+      actions: read
       contents: read
       pull-requests: read
       issues: read
@@ -144,6 +147,7 @@ jobs:
       log_artifact: failed-checks-2
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   verify-3:
     needs: [repair-2]
@@ -151,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     permissions:
-      actions: write
+      actions: read
       contents: read
       pull-requests: read
       issues: read
@@ -187,6 +191,7 @@ jobs:
       log_artifact: failed-checks-3
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
 
   verify-4:
     needs: [repair-3]
@@ -194,7 +199,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     permissions:
-      actions: write
+      actions: read
       contents: read
       pull-requests: read
       issues: read
