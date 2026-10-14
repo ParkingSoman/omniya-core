@@ -143,6 +143,27 @@ flowchart TD
 | `.github/workflows/diagnostics-windows.yml` | `testing` | The braille diagnostics e2e on Windows. |
 | `.github/workflows/screen-reader.yml` | `testing` | VoiceOver and NVDA against the editor, with transcripts. |
 
+### Shipping a change to the automation itself
+
+You say "ship it" in the chat. The session runs
+`gh workflow run pipeline-ship.yml --ref testing -f pr_number=<N> -f sha=<head>`.
+It merges only when all of these hold. If one does not, it merges nothing and
+says which.
+
+- It runs from `testing`, started by you or the session account. A pull request
+  cannot edit the workflow that ships it, and a contributor cannot start it.
+- The branch starts with `pipeline/`, goes into `testing`, and is not a draft.
+  Only you and the session account ever pushed to it.
+- Every file is in `docs/`, `scripts/ci/`, `.github/prompts/`,
+  `test/unit/pipeline/`, the pipeline-change skill, or a `pipeline-*.yml`
+  workflow. The shipper, its tests, `gh.mjs`, `hand-off.mjs`, `allowlist.mjs`
+  and the secret guard tests are carved out. No test is deleted or moved.
+- `unit`, `nemeth`, `e2e` and both builds are green on that exact commit, as
+  jobs of `pr-checks.yml` and `pr-build.yml`. A job name alone proves nothing.
+
+A change to the app, `package.json`, the check workflows or the shipper needs
+the bypass tick in the browser.
+
 ### Setting up, adding a contributor, and getting unstuck
 
 - Set up once: run `claude setup-token`, then add the result as the secret
