@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { load } from 'js-yaml';
 
-import { PHRASES, decide, isConfirmPhrase, mentionsClaude, normalise, replyState } from '../../../scripts/ci/confirm.mjs';
+import { BUILD_CHECK, PHRASES, builtAt, confirmFromGitHub, decide, isConfirmPhrase, mentionsClaude, normalise, replyState } from '../../../scripts/ci/confirm.mjs';
 import { QUESTION_MARKER, STATES, renderReply } from '../../../scripts/ci/reply.mjs';
 
 test('every phrase on the list is a confirmation, with or without @claude, case, punctuation and emoji', () => {
@@ -42,7 +42,7 @@ const reply = (state) => renderReply(state, { repo: 'a/b', pr: 7, message: 'word
 const bot = (id, body, created_at = '2026-10-15T10:00:00Z', login = 'github-actions[bot]') => ({ id, body, created_at, user: { login } });
 const base = {
   commenter: 'blind', issueAuthor: 'blind', association: 'CONTRIBUTOR', prCount: 1, commentId: 100,
-  issueComments: [bot(10, reply('started')), bot(20, reply('ready'))], headDate: '2026-10-15T09:00:00Z'
+  issueComments: [bot(10, reply('started')), bot(20, reply('ready'))], headBuiltAt: '2026-10-15T09:00:00Z'
 };
 
 test('the state of a reply is read from its second line, for every state', () => {
@@ -82,8 +82,64 @@ test('everything else is refused, quietly', () => {
   no({ issueComments: [bot(10, reply('ready')), bot(20, QUESTION_MARKER + '\nWhich key?')] }, 'newest-not-a-build');
   no({ issueComments: [bot(10, reply('ready')), bot(20, 'Thank you for the comment. I did not start.')] }, 'newest-not-a-build');
   no({ issueComments: [bot(20, reply('ready')), bot(150, reply('revised'))] }, 'bot-spoke-after');
-  no({ headDate: '2026-10-15T11:00:00Z' }, 'head-newer-than-build');
-  no({ headDate: '' }, 'head-newer-than-build');
+  no({ headBuiltAt: '2026-10-15T11:00:00Z' }, 'head-not-built-before-build-comment');
+  no({ headBuiltAt: '' }, 'head-not-built-before-build-comment');
+});
+
+const SHA = 'a'.repeat(40);
+const NEWSHA = 'b'.repeat(40);
+const checkRun = (completed_at, conclusion = 'success', name = BUILD_CHECK) => ({ name, conclusion, completed_at });
+
+test('builtAt: only a passing build check counts, and the newest one decides', () => {
+  assert.equal(builtAt([checkRun('2026-10-15T09:00:00Z')]), '2026-10-15T09:00:00Z');
+  assert.equal(builtAt([]), '');
+  assert.equal(builtAt(undefined), '');
+  assert.equal(builtAt([checkRun('2026-10-15T09:00:00Z', 'failure')]), '');
+  assert.equal(builtAt([checkRun('2026-10-15T09:00:00Z', null)]), '');
+  assert.equal(builtAt([checkRun(null)]), '', 'a build that has not finished');
+  assert.equal(builtAt([checkRun('2026-10-15T09:00:00Z', 'success', 'pack-win')]), '', 'another job is not the build');
+  assert.equal(builtAt([checkRun('2026-10-15T08:00:00Z'), checkRun('2026-10-15T09:00:00Z', 'failure')]), '', 'a newer failed rerun takes the pass back');
+  assert.equal(builtAt([checkRun('2026-10-15T08:00:00Z', 'failure'), checkRun('2026-10-15T09:00:00Z')]), '2026-10-15T09:00:00Z');
+});
+
+// A stand-in for `gh` that records every call and answers from fixtures.
+function fakeGh({ comments = [bot(20, reply('ready'))], checkRuns = [checkRun('2026-10-15T09:00:00Z')] } = {}) {
+  const calls = [];
+  const run = (args) => {
+    calls.push(args.join(' '));
+    const path = args.find((a) => a.startsWith('repos/')) ?? '';
+    if (path.endsWith('/comments')) return comments.map((c) => JSON.stringify(c)).join('\n');
+    if (path.endsWith('/check-runs')) return checkRuns.map((c) => JSON.stringify(c)).join('\n');
+    throw new Error('unexpected gh call: ' + args.join(' '));
+  };
+  return { run, calls };
+}
+const asked = { issue: 5, commentId: 100, commenter: 'blind', issueAuthor: 'blind', association: 'CONTRIBUTOR', prCount: 1, repo: 'a/b', sha: SHA };
+
+test('the head commit is judged by GitHub\'s build record of THAT sha, and by nothing a pusher writes', () => {
+  const ok = fakeGh();
+  assert.deepEqual(confirmFromGitHub(asked, ok.run), { confirm: true, reason: 'ok' });
+  assert.ok(ok.calls.some((c) => c.includes(`commits/${SHA}/check-runs`)), 'the build check of the pinned sha is read');
+  // Nothing reads a commit object (its dates are written by whoever pushed) or the pull request again.
+  assert.ok(!ok.calls.some((c) => /commits\/[0-9a-f]{40}( |$)/.test(c)), 'no commit object is read');
+  assert.ok(!ok.calls.some((c) => c.startsWith('pr view')), 'the head is not read a second time');
+});
+
+test('a commit pushed after the build comment has no finished build before it: refused', () => {
+  const late = fakeGh({ checkRuns: [checkRun('2026-10-15T10:30:00Z')] });
+  assert.deepEqual(confirmFromGitHub({ ...asked, sha: NEWSHA }, late.run), { confirm: false, reason: 'head-not-built-before-build-comment' });
+  const none = fakeGh({ checkRuns: [] });
+  assert.equal(confirmFromGitHub({ ...asked, sha: NEWSHA }, none.run).confirm, false, 'a new push whose build has not started');
+  const failed = fakeGh({ checkRuns: [checkRun('2026-10-15T09:00:00Z', 'failure')] });
+  assert.equal(confirmFromGitHub(asked, failed.run).confirm, false, 'a build that failed');
+});
+
+test('a head that is not one full commit hash is refused before GitHub is asked about it', () => {
+  for (const sha of ['', undefined, 'main', 'a'.repeat(39), 'A'.repeat(40), `${SHA};ls`, `${SHA} `]) {
+    const g = fakeGh();
+    assert.deepEqual(confirmFromGitHub({ ...asked, sha }, g.run), { confirm: false, reason: 'no-head-commit' }, JSON.stringify(sha));
+    assert.ok(!g.calls.some((c) => c.includes('check-runs')));
+  }
 });
 
 test('the workflow wires it: no agent for a confirmation, the same author rule, the sha pinned', () => {
@@ -95,6 +151,9 @@ test('the workflow wires it: no agent for a confirmation, the same author rule, 
   assert.match(gate.outputs.allowed, /steps\.confirm\.outputs\.confirm != 'true'/, 'the agent is skipped for a confirmation');
   assert.match(gate.outputs.allowed, /steps\.shape\.outputs\.mention == 'true'/, 'every other comment still needs @claude');
   const confirm = gate.steps.find((s) => s.id === 'confirm');
+  assert.equal(confirm.env.HEAD_SHA, '${{ steps.find.outputs.sha }}', 'the check reads the head from the one step that reads it');
+  assert.match(confirm.run, /"\$HEAD_SHA"/);
+  assert.match(gate.outputs.confirm_sha, /steps\.find\.outputs\.sha/, 'the pin is the same value');
   assert.match(confirm.if, /event_name == 'issue_comment'/, 'never from a rehearsal');
   assert.match(confirm.if, /steps\.find\.outputs\.count == '1'/);
   const handoff = wf.jobs.handoff;

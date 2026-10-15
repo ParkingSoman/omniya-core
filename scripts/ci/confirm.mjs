@@ -17,14 +17,17 @@
  *      is not, so a bare phrase that answers one does nothing.
  *   4. Exactly one open fix pull request is awaiting confirmation (the caller
  *      passes the count from `find-fix-pr.mjs`).
- *   5. The pull request's head commit is older than that build comment, so the
- *      build the contributor tried is the commit that would merge. The commit is
- *      then pinned: the hand-off refuses to act on any other.
+ *   5. The pull request's head commit has a successful `pack-mac` build that
+ *      FINISHED before that build comment, by GitHub's own clock, so the build
+ *      the contributor tried is the commit that would merge. A git commit date
+ *      is written by whoever pushed, so it is never used. The commit comes from
+ *      ONE read, in the caller, and is the very commit that is pinned: the
+ *      hand-off refuses to act on any other.
  *
  * Anything else prints `confirm=false` and posts nothing.
  *
  * Usage (needs GH_TOKEN and GITHUB_REPOSITORY):
- *   COMMENT_ID=... node scripts/ci/confirm.mjs <issue> <comment-id> <commenter> <issue-author> <association> <pr-count> <pr>
+ *   COMMENT_ID=... node scripts/ci/confirm.mjs <issue> <comment-id> <commenter> <issue-author> <association> <pr-count> <pr> <head-sha>
  *   node scripts/ci/confirm.mjs --shape   (reads COMMENT_ID, or INPUT_BODY; prints shaped, mention)
  *
  * Step outputs: confirm (true|false), reason, and with `--shape` shaped and mention.
@@ -89,10 +92,10 @@ export function replyState(body) {
  *
  * @param {{commenter:string, issueAuthor:string, association:string, prCount:number|string,
  *   commentId:number, issueComments:Array<{id:number,created_at:string,body:string,user:{login:string}}>,
- *   headDate:string}} input
+ *   headBuiltAt:string}} input `headBuiltAt` is when GitHub finished the successful build check of the head commit ('' if none).
  * @returns {{confirm:boolean, reason:string}}
  */
-export function decide({ commenter, issueAuthor, association, prCount, commentId, issueComments, headDate }) {
+export function decide({ commenter, issueAuthor, association, prCount, commentId, issueComments, headBuiltAt }) {
   if (!commenter || (commenter !== issueAuthor && association !== 'OWNER')) return { confirm: false, reason: 'not-author' };
   if (Number(prCount) !== 1) return { confirm: false, reason: 'no-single-fix' };
   const bot = (issueComments ?? [])
@@ -102,21 +105,43 @@ export function decide({ commenter, issueAuthor, association, prCount, commentId
   if (!bot) return { confirm: false, reason: 'no-bot-comment' };
   if (bot.id > Number(commentId)) return { confirm: false, reason: 'bot-spoke-after' };
   if (!READY_STATES.includes(replyState(bot.body))) return { confirm: false, reason: 'newest-not-a-build' };
-  if (!headDate || !(Date.parse(headDate) <= Date.parse(bot.created_at))) return { confirm: false, reason: 'head-newer-than-build' };
+  if (!headBuiltAt || !(Date.parse(headBuiltAt) <= Date.parse(bot.created_at))) return { confirm: false, reason: 'head-not-built-before-build-comment' };
   return { confirm: true, reason: 'ok' };
 }
 
-export function confirmFromGitHub({ issue, commentId, commenter, issueAuthor, association, prCount, pr, repo }, run = gh) {
+/** The build job whose result says "this commit was built": the job name in `pr-build.yml`. */
+export const BUILD_CHECK = 'pack-mac';
+
+/**
+ * Pure: when did GitHub finish the newest build check of a commit, if that check passed?
+ * Both fields are written by GitHub Actions, not by whoever pushed the commit.
+ * @param {Array<{name:string, conclusion:string|null, completed_at:string|null}>} checkRuns
+ * @returns {string} an ISO time, or '' when the newest build check did not pass
+ */
+export function builtAt(checkRuns) {
+  const done = (checkRuns ?? [])
+    .filter((c) => c?.name === BUILD_CHECK && c.completed_at)
+    .sort((a, b) => Date.parse(a.completed_at) - Date.parse(b.completed_at))
+    .at(-1);
+  return done && done.conclusion === 'success' ? done.completed_at : '';
+}
+
+/**
+ * @param {{issue:string|number, commentId:string|number, commenter:string, issueAuthor:string, association:string,
+ *   prCount:string|number, sha:string, repo:string}} args `sha` is the head commit, read ONCE by the caller and pinned by it.
+ */
+export function confirmFromGitHub({ issue, commentId, commenter, issueAuthor, association, prCount, sha, repo }, run = gh) {
   const n = requireNumber(issue, 'issue number');
   const issueComments = run(['api', `repos/${repo}/issues/${n}/comments`, '--paginate', '--jq', '.[] | {id, created_at, body, user: {login: .user.login}}'])
     .split('\n').filter(Boolean).map((l) => JSON.parse(l));
-  let headDate = '';
+  let headBuiltAt = '';
   if (Number(prCount) === 1) {
-    const p = requireNumber(pr, 'pull request number');
-    const sha = JSON.parse(run(['pr', 'view', p, '--repo', repo, '--json', 'headRefOid'])).headRefOid;
-    headDate = run(['api', `repos/${repo}/commits/${sha}`, '--jq', '.commit.committer.date']).trim();
+    if (!/^[0-9a-f]{40}$/.test(String(sha ?? ''))) return { confirm: false, reason: 'no-head-commit' };
+    const checkRuns = run(['api', `repos/${repo}/commits/${sha}/check-runs`, '--paginate', '--jq', '.check_runs[] | {name, conclusion, completed_at}'])
+      .split('\n').filter(Boolean).map((l) => JSON.parse(l));
+    headBuiltAt = builtAt(checkRuns);
   }
-  return decide({ commenter, issueAuthor, association, prCount, commentId: Number(commentId), issueComments, headDate });
+  return decide({ commenter, issueAuthor, association, prCount, commentId: Number(commentId), issueComments, headBuiltAt });
 }
 
 /** The comment's text. A real comment is read from GitHub by its number; a rehearsal passes INPUT_BODY. */
@@ -131,9 +156,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   if (process.argv[2] === '--shape') {
     setOutputs({ shaped: isConfirmPhrase(body), mention: mentionsClaude(body) });
   } else {
-    const [issue, commentId, commenter, issueAuthor, association, prCount, pr] = process.argv.slice(2);
+    const [issue, commentId, commenter, issueAuthor, association, prCount, , sha] = process.argv.slice(2);
     const result = isConfirmPhrase(body)
-      ? confirmFromGitHub({ issue, commentId, commenter, issueAuthor, association, prCount, pr, repo: process.env.GITHUB_REPOSITORY })
+      ? confirmFromGitHub({ issue, commentId, commenter, issueAuthor, association, prCount, sha, repo: process.env.GITHUB_REPOSITORY })
       : { confirm: false, reason: 'not-a-phrase' };
     setOutputs(result);
   }

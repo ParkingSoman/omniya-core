@@ -328,7 +328,11 @@ jobs:
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
           ASSOCIATION: ${{ github.event.comment.author_association }}
           FIX_PR: ${{ steps.find.outputs.pr }}
-        run: node scripts/ci/confirm.mjs "$ISSUE_NUMBER" "$COMMENT_ID" "$COMMENTER" "$ISSUE_AUTHOR" "$ASSOCIATION" 1 "$FIX_PR"
+          # The head commit, read ONCE by the `find` step. The check below and the pin
+          # (`confirm_sha`, then `EXPECTED_SHA`) use this same value, so there is no
+          # second read for a push to land between.
+          HEAD_SHA: ${{ steps.find.outputs.sha }}
+        run: node scripts/ci/confirm.mjs "$ISSUE_NUMBER" "$COMMENT_ID" "$COMMENTER" "$ISSUE_AUTHOR" "$ASSOCIATION" 1 "$FIX_PR" "$HEAD_SHA"
 
   # The maintainer has to finish adding a listed contributor. Same reason as the
   # job of the same name in `pipeline-fix.yml`, and it fails for the same reason.
