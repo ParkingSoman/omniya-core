@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { load } from 'js-yaml';
 
-import { BUILD_CHECK, PHRASES, builtAt, confirmFromGitHub, decide, isConfirmPhrase, mentionsClaude, normalise, replyState } from '../../../scripts/ci/confirm.mjs';
+import { BUILD_APP, BUILD_CHECK, PHRASES, builtAt, confirmFromGitHub, decide, isConfirmPhrase, mentionsClaude, normalise, replyState } from '../../../scripts/ci/confirm.mjs';
 import { QUESTION_MARKER, STATES, renderReply } from '../../../scripts/ci/reply.mjs';
 
 test('every phrase on the list is a confirmation, with or without @claude, case, punctuation and emoji', () => {
@@ -88,7 +88,7 @@ test('everything else is refused, quietly', () => {
 
 const SHA = 'a'.repeat(40);
 const NEWSHA = 'b'.repeat(40);
-const checkRun = (completed_at, conclusion = 'success', name = BUILD_CHECK) => ({ name, conclusion, completed_at });
+const checkRun = (completed_at, conclusion = 'success', name = BUILD_CHECK, app = BUILD_APP) => ({ name, app, conclusion, completed_at });
 
 test('builtAt: only a passing build check counts, and the newest one decides', () => {
   assert.equal(builtAt([checkRun('2026-10-15T09:00:00Z')]), '2026-10-15T09:00:00Z');
@@ -98,6 +98,9 @@ test('builtAt: only a passing build check counts, and the newest one decides', (
   assert.equal(builtAt([checkRun('2026-10-15T09:00:00Z', null)]), '');
   assert.equal(builtAt([checkRun(null)]), '', 'a build that has not finished');
   assert.equal(builtAt([checkRun('2026-10-15T09:00:00Z', 'success', 'pack-win')]), '', 'another job is not the build');
+  assert.equal(builtAt([checkRun('2026-10-15T09:00:00Z', 'success', BUILD_CHECK, 'some-other-app')]), '', 'a check run with the right name from another app is not the build');
+  assert.equal(builtAt([{ name: BUILD_CHECK, conclusion: 'success', completed_at: '2026-10-15T09:00:00Z' }]), '', 'no app named: not the build');
+  assert.equal(builtAt([checkRun('2026-10-15T08:00:00Z'), checkRun('2026-10-15T09:00:00Z', 'success', BUILD_CHECK, 'some-other-app')]), '2026-10-15T08:00:00Z', 'a lookalike cannot hide or replace the real one');
   assert.equal(builtAt([checkRun('2026-10-15T08:00:00Z'), checkRun('2026-10-15T09:00:00Z', 'failure')]), '', 'a newer failed rerun takes the pass back');
   assert.equal(builtAt([checkRun('2026-10-15T08:00:00Z', 'failure'), checkRun('2026-10-15T09:00:00Z')]), '2026-10-15T09:00:00Z');
 });

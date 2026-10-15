@@ -111,16 +111,19 @@ export function decide({ commenter, issueAuthor, association, prCount, commentId
 
 /** The build job whose result says "this commit was built": the job name in `pr-build.yml`. */
 export const BUILD_CHECK = 'pack-mac';
+/** Only a check run made by GitHub Actions counts. Any app can create a check run with any name. */
+export const BUILD_APP = 'github-actions';
 
 /**
  * Pure: when did GitHub finish the newest build check of a commit, if that check passed?
- * Both fields are written by GitHub Actions, not by whoever pushed the commit.
- * @param {Array<{name:string, conclusion:string|null, completed_at:string|null}>} checkRuns
+ * The check run must come from GitHub Actions itself (`app`), and its result and time are
+ * written by GitHub, not by whoever pushed the commit.
+ * @param {Array<{name:string, app?:string, conclusion:string|null, completed_at:string|null}>} checkRuns
  * @returns {string} an ISO time, or '' when the newest build check did not pass
  */
 export function builtAt(checkRuns) {
   const done = (checkRuns ?? [])
-    .filter((c) => c?.name === BUILD_CHECK && c.completed_at)
+    .filter((c) => c?.name === BUILD_CHECK && c.app === BUILD_APP && c.completed_at)
     .sort((a, b) => Date.parse(a.completed_at) - Date.parse(b.completed_at))
     .at(-1);
   return done && done.conclusion === 'success' ? done.completed_at : '';
@@ -137,7 +140,7 @@ export function confirmFromGitHub({ issue, commentId, commenter, issueAuthor, as
   let headBuiltAt = '';
   if (Number(prCount) === 1) {
     if (!/^[0-9a-f]{40}$/.test(String(sha ?? ''))) return { confirm: false, reason: 'no-head-commit' };
-    const checkRuns = run(['api', `repos/${repo}/commits/${sha}/check-runs`, '--paginate', '--jq', '.check_runs[] | {name, conclusion, completed_at}'])
+    const checkRuns = run(['api', `repos/${repo}/commits/${sha}/check-runs`, '--paginate', '--jq', '.check_runs[] | {name, app: .app.slug, conclusion, completed_at}'])
       .split('\n').filter(Boolean).map((l) => JSON.parse(l));
     headBuiltAt = builtAt(checkRuns);
   }
