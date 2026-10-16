@@ -131,3 +131,27 @@ test('tells a contributor whose last word was the maintainer reply from before t
   assert.equal(decide({ pr: stuck, comments: [legacyWaiting], runs: { ...green, 'pr-build': '' } }).say, null);
   assert.equal(decide({ pr: stuck, comments: [{ ...legacyWaiting, body: legacyWaiting.body + '\nExtra.' }], runs: green }).say, null);
 });
+
+// The hand-off's reply to Avery on issue 73, as GitHub stores it (copied from the real issue). It predates the
+// hidden state line, and it is the `sent-automation` wording: the fix waits on a person.
+const AVERY_SENT_AUTOMATION = "<!-- omniya-pipeline-reply -->\nThank you for testing.\nIt changes the automation itself, so the maintainer has to look at it first.\nThis issue closes when the maintainer merges the fix.\nYou do not need to do anything.";
+
+test('tells a contributor whose last word was a hand-off refusal, once the fix is green again', () => {
+  const sentAutomation = { user: bot, body: AVERY_SENT_AUTOMATION };
+  assert.equal(decide({ pr: stuck, comments: [sentAutomation], runs: green }).say, 'ready');
+  assert.equal(decide({ pr: stuck, comments: [gaveBuild, sentAutomation], runs: green }).say, 'revised');
+  for (const state of ['sent-automation', 'sent-owner', 'maintainer']) {
+    const today = { user: bot, body: renderReply(state).trim() };
+    assert.equal(decide({ pr: stuck, comments: [gaveBuild, today], runs: green }).say, 'revised', state);
+  }
+  // A fix that is set to merge by itself, or told to wait for a newer build, is not waiting on a person.
+  for (const state of ['sent', 'behind', 'started', 'asked']) {
+    const other = { user: bot, body: renderReply(state, { message: 'x' }).trim() };
+    assert.equal(decide({ pr: stuck, comments: [gaveBuild, other], runs: green }).say, null, state);
+  }
+  // Not green yet, no label, a copy by another account, or an edited copy: silent.
+  assert.equal(decide({ pr: stuck, comments: [sentAutomation], runs: { ...green, 'pr-build': '' } }).say, null);
+  assert.equal(decide({ pr: { ...stuck, labels: [] }, comments: [sentAutomation], runs: green }).say, null);
+  assert.equal(decide({ pr: stuck, comments: [{ user: { login: 'someone' }, body: AVERY_SENT_AUTOMATION }], runs: green }).say, null);
+  assert.equal(decide({ pr: stuck, comments: [{ ...sentAutomation, body: AVERY_SENT_AUTOMATION + '\nExtra.' }], runs: green }).say, null);
+});
