@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { isAllowed, parseAllowlist } from '../../../scripts/ci/allowlist.mjs';
-import { addHandle } from '../../../scripts/ci/add-contributor.mjs';
+import { addHandle, BASE, branchFor } from '../../../scripts/ci/add-contributor.mjs';
 
 const file = `# Who may drive the pipeline.
 #
@@ -53,4 +53,10 @@ test('an allowlist it cannot read is not edited', () => {
 
 test('an empty list gets its first entry', () => {
   assert.deepEqual(parseAllowlist(addHandle('contributors:\n', 'first')), ['first']);
+});
+
+test('the change goes to `testing` on its own branch, never straight onto it', () => {
+  assert.equal(BASE, 'testing');
+  assert.equal(branchFor('newperson'), 'contributors/add-newperson');
+  assert.notEqual(branchFor('newperson'), BASE);
 });
