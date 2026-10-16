@@ -47,6 +47,15 @@ export const MARKER = `${PIPELINE_PREFIX}reply -->`;
 export const QUESTION_MARKER = `${PIPELINE_PREFIX}question -->`;
 export const AUTHOR = 'github-actions[bot]';
 
+/**
+ * The second line of every reply: which state it is. `confirm.mjs` reads it to
+ * know that the newest thing the pipeline said was a build for the contributor
+ * to try. Only the bot writes it (a person cannot post as `github-actions[bot]`),
+ * and `cleanMessage` drops any line of agent text that carries the prefix.
+ */
+export const STATE_PREFIX = `${PIPELINE_PREFIX}state `;
+export const stateLine = (state) => `${STATE_PREFIX}${state} -->`;
+
 /** The agent's words are cut to this many characters. A reply is read aloud. */
 export const MAX_MESSAGE = 2000;
 
@@ -58,7 +67,7 @@ const STUCK_TAIL = [
 const TRY_IT = [
   'Install it and try the thing that was wrong. Then write a comment here.',
   'If it is still wrong, start your comment with @claude and say what you found.',
-  'If it works, write @claude it works.'
+  'If it works, write: it works'
 ];
 
 /**
@@ -95,7 +104,7 @@ const STATES_DEF = {
     intro: ['A new test build is ready. The links are the same as before, so download again from them.'],
     lines: [
       'Try it, then write here. If it is still wrong, start your comment with @claude and say what you found.',
-      'If it works, write @claude it works.'
+      'If it works, write: it works'
     ]
   },
   // An answer, or a question the agent could not settle on its own (it could not
@@ -188,6 +197,19 @@ const STATES_DEF = {
       'This issue closes when the maintainer merges the fix.',
       'You do not need to do anything.'
     ]
+  },
+  // The fix is fine, but newer code changed the same lines, so it cannot merge as it
+  // is. That is not a person's job: the pipeline brings it up to date and sends a new
+  // build. The contributor tested the old one, so they say it works again on the new one.
+  behind: {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'Newer changes in the app touched the same place, so your fix could not merge as it was.',
+      'I am bringing it up to date now. I will write here when there is a new build.',
+      'You will need to try that one and tell me if it still works.',
+      'You do not need to do anything until then.'
+    ]
   }
 };
 
@@ -201,6 +223,14 @@ export const LABELS = {
   stuck: { name: 'needs-owner', description: 'A person has to look at this' },
   failed: { name: 'needs-owner', description: 'A person has to look at this' }
 };
+
+/**
+ * States that mean the pipeline is working again or the contributor is being
+ * served. A `needs-owner` left by an earlier crash is stale by then, and the
+ * owner's inbox must not list an issue that is moving. The states that still
+ * need a person (stuck, failed, maintainer, the sent-* hand-offs) keep it.
+ */
+export const CLEARS_NEEDS_OWNER = ['started', 'ready', 'revised', 'asked', 'answered', 'sent'];
 
 /**
  * One pass of the cleaning rules. `cleanMessage` repeats it until nothing changes,
@@ -286,7 +316,8 @@ export function resolveState(state, message) {
  * @returns {string}
  */
 export function renderReply(state, { repo, pr, message } = {}) {
-  const def = STATES_DEF[resolveState(state, message)];
+  const posted = resolveState(state, message);
+  const def = STATES_DEF[posted];
   const words = cleanMessage(message);
 
   const parts = [];
@@ -305,7 +336,7 @@ export function renderReply(state, { repo, pr, message } = {}) {
     ].join('\n'));
   }
   if (def.lines.length > 0) parts.push(def.lines.join('\n'));
-  return `${def.marker ?? MARKER}\n${parts.join('\n\n')}\n`;
+  return `${def.marker ?? MARKER}\n${stateLine(posted)}\n${parts.join('\n\n')}\n`;
 }
 
 /**
@@ -319,10 +350,18 @@ export function postReply({ issue, state, repo, pr, message }, run = gh) {
   const number = requireNumber(issue, 'issue number');
   const body = renderReply(state, { repo, pr, message });
   run(['api', `repos/${repo}/issues/${number}/comments`, '-f', `body=${body}`]);
-  const label = LABELS[resolveState(state, message)];
+  const posted = resolveState(state, message);
+  const label = LABELS[posted];
   if (label) {
     run(['label', 'create', label.name, '--repo', repo, '--force', '--description', label.description]);
     run(['issue', 'edit', number, '--repo', repo, '--add-label', label.name]);
+  }
+  if (CLEARS_NEEDS_OWNER.includes(posted)) {
+    try {
+      run(['issue', 'edit', number, '--repo', repo, '--remove-label', 'needs-owner']);
+    } catch {
+      // The label was not there. The comment is already posted.
+    }
   }
   return { posted: 1, labelled: label?.name };
 }
