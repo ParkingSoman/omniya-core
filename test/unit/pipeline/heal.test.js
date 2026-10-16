@@ -92,3 +92,12 @@ test('a retry still speaks when the contributor\'s newest word is the maintainer
   assert.equal(newestState([{ body: legacy.body + 'Also: something else.' }]), '', 'only the exact old words count');
   assert.equal(newestState([legacy, { body: '<!-- omniya-pipeline-reply -->\n<!-- omniya-pipeline-state ready -->\nA test build is ready.\n' }]), 'ready');
 });
+
+test('a retry also speaks when the newest word to the contributor was a hand-off refusal', async () => {
+  const { newestState } = await import('../../../scripts/ci/heal.mjs');
+  const { renderReply, WAITING_STATES } = await import('../../../scripts/ci/reply.mjs');
+  for (const state of WAITING_STATES) assert.equal(newestState([{ body: renderReply(state) }]), state, state);
+  const legacy = "<!-- omniya-pipeline-reply -->\nThank you for testing.\nIt changes the automation itself, so the maintainer has to look at it first.\nThis issue closes when the maintainer merges the fix.\nYou do not need to do anything.";
+  assert.equal(newestState([{ body: legacy }]), 'sent-automation');
+  assert.equal(newestState([{ body: legacy + '\nExtra.' }]), '');
+});

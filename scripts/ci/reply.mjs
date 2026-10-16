@@ -362,6 +362,17 @@ export function isReplyOfState(body, state) {
 }
 
 /**
+ * The replies after which the contributor is waiting on a PERSON: the maintainer was called in
+ * (`maintainer`), or the hand-off sent a fix the pipeline may not merge on its own
+ * (`sent-automation`, `sent-owner`). When that person's part is done and the fix is green,
+ * the contributor must be told, whichever of the three they were last told.
+ */
+export const WAITING_STATES = ['maintainer', 'sent-automation', 'sent-owner'];
+
+/** Is this comment body one of the WAITING_STATES replies, in today's wording or the old one? */
+export const isWaitingOnPerson = (body) => WAITING_STATES.some((state) => isReplyOfState(body, state));
+
+/**
  * Post the reply, and label the issue if the state calls for it. Exactly one
  * comment per call. `run` is `gh` unless a test hands in a stand-in.
  *
