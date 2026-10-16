@@ -1,6 +1,6 @@
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { patchEnglishMathmap } from '../src/renderer/speech-rules.js';
+import { patchEnglishMathmap } from '../../src/renderer/speech-rules.js';
 
 const SOURCE = 'node_modules/@mathjax/src/bundle/sre/mathmaps';
 
