@@ -44,6 +44,7 @@ import { BRANCH_PREFIX, matchFixPrs } from './find-fix-pr.mjs';
 import { gh, requireNumber } from './gh.mjs';
 import { decide as handOffDecide } from './hand-off.mjs';
 import { AUTHOR, PIPELINE_PREFIX, isReplyOfState, isWaitingOnPerson, postReply } from './reply.mjs';
+import { loadCodeRules } from './standing-note.mjs';
 
 /** The labels that mean "a person has to look at this fix". */
 export const LOOK_LABELS = ['needs-maintainer', 'needs-owner'];
@@ -111,7 +112,7 @@ export function stillProtectedNow({ pr, repo }, run = gh) {
       .filter(Boolean)
       .map((line) => JSON.parse(line));
     const filesComplete = Number.isInteger(view.changedFiles) && files.length === view.changedFiles && files.length < 3000;
-    return handOffDecide({ files, filesComplete, fixBranch: true, mergeable: view.mergeable, body: view.body, missing: [] }).action === 'protected';
+    return handOffDecide({ files, filesComplete, fixBranch: true, mergeable: view.mergeable, body: view.body, missing: [], codeRules: loadCodeRules() }).action === 'protected';
   } catch {
     return true;
   }
