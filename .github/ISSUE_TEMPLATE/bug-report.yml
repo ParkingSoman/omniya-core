@@ -26,7 +26,8 @@ body:
         documented to do, that is missing or does not work.
 
         There are three other forms. If a symbol or rule from the Nemeth Code is
-        missing, use the Nemeth feature form. An agent works on that one too. If
+        missing, or you want to change how an equation is spoken, use the
+        Nemeth or speech form. An agent works on that one too. If
         you want something new, or want the app to look, sound or behave
         differently, use the Design form. If it is neither, use the Other form.
         A person answers Design and Other. No agent starts on them.

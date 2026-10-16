@@ -100,7 +100,7 @@ export const OPERATIONS = Object.freeze([
   { id: 'infinity', area: 'Long tail', tier: 'tail', label: 'infinity', ascii: ',=', latex: '∞', banaRef: '23', source: '11376 (Infinity)' },
   { id: 'prime', area: 'Long tail', tier: 'tail', label: 'prime', ascii: "x'", latex: "x'", banaRef: '23', source: '11403 (Prime)' },
   { id: 'absolute-value', area: 'Long tail', tier: 'tail', label: 'absolute value', ascii: '\\x\\', latex: '|x|', banaRef: '19.5.2', source: '9335-9336 (Vertical Bar, Single)' },
-  { id: 'greek-theta', area: 'Long tail', tier: 'tail', label: 'Greek theta', ascii: '.?', latex: '\\theta', banaRef: '6.1.4', source: '3032 (theta)' }
+  { id: 'greek-theta', area: 'Long tail', tier: 'tail', label: 'Greek theta', ascii: '.?', latex: 'θ', banaRef: '6.1.4', source: '3032 (theta)' }
 ]);
 
 export const TIERS = Object.freeze(['core', 'tail']);

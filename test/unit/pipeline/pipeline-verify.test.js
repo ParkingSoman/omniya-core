@@ -10,7 +10,7 @@ const workflow = loadYaml(source);
 const jobs = workflow.jobs;
 const call = (workflow.on ?? workflow[true]).workflow_call;
 
-const AGENT = 'ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing';
+const AGENT = './.github/workflows/pipeline-agent.yml';
 const REPAIRS = 3;
 
 test('the chain is verify, repair, verify ... and then a report, with three repairs', () => {
@@ -35,10 +35,10 @@ test('a repair runs only after a red verify, and the next verify only after a re
 test('verify jobs start workflows and run no agent; repair jobs run an agent and start nothing', () => {
   for (let n = 1; n <= REPAIRS + 1; n += 1) {
     const verify = jobs[`verify-${n}`];
-    assert.deepEqual(verify.permissions, { actions: 'write', contents: 'read', 'pull-requests': 'read', issues: 'read' }, `verify-${n}`);
+    assert.deepEqual(verify.permissions, { actions: 'read', contents: 'read', 'pull-requests': 'read', issues: 'read' }, `verify-${n}`);
     assert.doesNotMatch(JSON.stringify(verify.steps), /claude-code-action/, `verify-${n} must not run an agent`);
-    // The helper scripts are on `testing`, not on the default branch.
-    assert.equal(verify.steps[0].with.ref, 'testing');
+    // The default checkout is `testing`, which has the helper scripts.
+    assert.equal(verify.steps[0].with?.ref, undefined);
   }
   for (let n = 1; n <= REPAIRS; n += 1) {
     const repair = jobs[`repair-${n}`];
@@ -47,7 +47,7 @@ test('verify jobs start workflows and run no agent; repair jobs run an agent and
     assert.equal(repair.uses, AGENT);
     assert.equal(repair.with.mode, 'checks-failed');
     assert.equal(repair.with.log_artifact, `failed-checks-${n}`);
-    assert.deepEqual(Object.keys(repair.secrets), ['CLAUDE_CODE_OAUTH_TOKEN']);
+    assert.deepEqual(repair.secrets, { CLAUDE_CODE_OAUTH_TOKEN: "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}", PIPELINE_APP_PRIVATE_KEY: "${{ secrets.PIPELINE_APP_PRIVATE_KEY }}" }, "secrets are passed by name");
   }
   assert.equal(workflow.permissions?.actions, undefined);
 });
@@ -93,8 +93,9 @@ test('green says the build is ready on the issue; red says a technical thing is 
   assert.equal(final.env.MESSAGE, '${{ inputs.message }}', 'agent text goes through env and nowhere else');
   assert.equal(call.inputs.reply_state.default, 'ready');
   assert.equal(call.inputs.message.default, '');
+  // Red labels through heal.mjs, which tells a failed job (a fault, retried once) from a person's problem.
   assert.match(run, /reply\.mjs "\$ISSUE" maintainer/);
-  assert.match(run, /gh pr edit "\$PR" --add-label needs-maintainer/);
+  assert.match(run, /heal\.mjs stuck "\$PR"/);
   assert.match(run, /gh pr comment "\$PR"/, 'the technical case goes on the pull request');
   assert.doesNotMatch(run, /gh issue comment/, 'the contributor reads one reply, and nothing technical');
 });

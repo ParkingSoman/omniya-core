@@ -49,7 +49,7 @@ const elements = Object.fromEntries([
   'delete-button', 'skip-to-note', 'status-hint',
   'find-bar', 'find-input', 'find-count', 'find-previous', 'find-next', 'find-close', 'find-button',
   'export-button', 'export-dialog', 'export-heading', 'export-html', 'export-latex', 'export-text', 'export-print', 'close-export',
-  'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'app-build-identity',
+  'keyboard-help-button', 'keyboard-help', 'close-keyboard-help', 'copy-diagnostics', 'app-build-identity',
   'composer-dock', 'composer-form', 'composer-heading', 'composer-source',
   'composer-help', 'composer-status', 'composer-error', 'editing-indicator', 'composer-submit',
   'composer-cancel', 'replacement-scope', 'replacement-method',
@@ -1309,22 +1309,27 @@ if (window.omniya?.appInfo?.devTools) {
  * the exception.
  */
 async function copyInputDiagnostics() {
-  const report = formatInputDiagnostics({
-    appInfo: window.omniya?.appInfo,
-    brailleInputTable: NEMETH_INPUT_MODE,
-    resolvedTable: lastResolvedInputTable,
-    entries: inputLog.entries(),
-    dropped: inputLog.dropped
-  });
   try {
-    await navigator.clipboard.writeText(report);
+    const report = formatInputDiagnostics({
+      appInfo: window.omniya?.appInfo,
+      brailleInputTable: NEMETH_INPUT_MODE,
+      resolvedTable: lastResolvedInputTable,
+      entries: inputLog.entries(),
+      dropped: inputLog.dropped
+    });
+    // The main process copies when it can. The page's own clipboard is the
+    // fallback, not the first choice: it needs focus and permission.
+    if (window.omniya?.copyText) await window.omniya.copyText(report);
+    else await navigator.clipboard.writeText(report);
     announce('Braille input diagnostics copied. Paste them into your report.');
   } catch {
-    // A clipboard permission failure must not look like success, or someone
-    // pastes an empty message and the round trip is wasted.
+    // Any failure, including building the report, must be heard. Silence reads
+    // as success, and someone pastes an empty message.
     announce('Could not copy the diagnostics to the clipboard.');
   }
 }
+
+elements['copy-diagnostics'].addEventListener('click', () => void copyInputDiagnostics());
 
 // Real text in the accessibility tree, not a title attribute: the whole point
 // is that a tester can read their build back to a maintainer over email.

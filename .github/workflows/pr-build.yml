@@ -12,45 +12,18 @@ name: pr-build
 # with a screen reader. A release page with plainly named assets is the same
 # path these testers already use for `testing-app`.
 #
-# A pull request on a `claude/fix-` branch is NOT built by its own
-# `pull_request` run. The pipeline's own pull requests are opened by the Actions
-# bot, which GitHub holds for approval, and the pipeline builds them itself by
-# dispatch (below). Letting both run built every fix twice. A pull request
-# written by hand still builds as before.
+# A pull request on a `claude/fix-` branch is built like any other. The
+# pipeline opens it with its GitHub App's token, so GitHub starts this run, and
+# `pipeline-verify.yml` waits for it. Only the `comment` job skips it: the
+# download links are posted to the ISSUE, by the verify report, because the
+# contributor never reads the pull request.
 on:
   pull_request:
     branches: [testing]
     types: [opened, synchronize, reopened]
-  # Started by `pipeline-verify.yml` after the agent opens or revises a pull
-  # request. GitHub does not run a pull request's own
-  # checks when the Actions bot opened it: the run waits for a person to approve
-  # it, and a push made with the bot's token starts no run at all. A run started
-  # by `workflow_dispatch` is neither held nor skipped, so the pipeline starts
-  # the build itself, on the pull request's branch.
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: Number of the pull request this build is for
-        required: true
-        type: string
-      # `true` from the pipeline, which posts the links on the ISSUE itself, in
-      # the status comment, once the checks AND this build are green. The
-      # contributor never reads the pull request, and a second comment there
-      # would be one nobody sees.
-      quiet:
-        description: Do not comment on the pull request
-        required: false
-        type: string
-        default: ''
 
-# The event is part of the group on purpose. The pull request's own run and the
-# run the pipeline dispatches used to share one group with cancel-in-progress,
-# so the dispatch cancelled the other, and a cancelled run shows as a red
-# failure on the pull request. That is how a pull request with every real check
-# green still showed red `pack-mac`, `pack-win` and `comment`. They are cancelled
-# runs, not failures. Still one build at a time per event and pull request.
 concurrency:
-  group: pr-build-${{ github.event.pull_request.number || inputs.pr_number }}-${{ github.event_name }}
+  group: pr-build-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
@@ -59,8 +32,7 @@ permissions:
 
 jobs:
   pack-mac:
-    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/fix-')
-    runs-on: macos-latest
+    runs-on: ${{ vars.MAC_RUNNER || 'macos-latest' }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -76,8 +48,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Through env, never inline in the command: a branch name is
           # attacker-controlled text and `run:` is a shell.
-          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           TAG="pr-${PR_NUMBER}"
@@ -97,7 +69,6 @@ jobs:
           gh release upload "$TAG" dist/*.zip --clobber
 
   pack-win:
-    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/fix-')
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
@@ -112,8 +83,8 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           $tag = "pr-$env:PR_NUMBER"
           gh release view $tag > $null 2>&1
@@ -133,14 +104,14 @@ jobs:
 
   comment:
     needs: [pack-mac, pack-win]
-    if: inputs.quiet != 'true'
+    if: ${{ !startsWith(github.head_ref, 'claude/fix-') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Post one comment with a direct link per platform
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
