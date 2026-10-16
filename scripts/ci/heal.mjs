@@ -31,7 +31,7 @@
 import { pathToFileURL } from 'node:url';
 
 import { gh as realGh, requireNumber } from './gh.mjs';
-import { MARKER, isReplyOfState } from './reply.mjs';
+import { MARKER, WAITING_STATES, isReplyOfState } from './reply.mjs';
 
 export const FAULT = 'pipeline-fault';
 export const RETRIED = 'pipeline-fault-retried';
@@ -97,8 +97,8 @@ export function newestState(comments) {
   const newest = mine.at(-1)?.body ?? '';
   const match = /^<!-- omniya-pipeline-state ([a-z-]+) -->$/m.exec(newest);
   if (match) return match[1];
-  // A comment from before the state line existed: the maintainer reply, word for word.
-  return isReplyOfState(newest, 'maintainer') ? 'maintainer' : '';
+  // A comment from before the state line existed: one of the waiting-on-a-person replies, word for word.
+  return WAITING_STATES.find((state) => isReplyOfState(newest, state)) ?? '';
 }
 
 /**
@@ -109,7 +109,7 @@ export function newestState(comments) {
  */
 export function stillWaiting({ repo, issue }, gh = realGh) {
   const lines = gh(['api', `repos/${repo}/issues/${issue}/comments`, '--paginate', '--jq', '.[]|{body}']).split('\n').filter(Boolean);
-  return newestState(lines.map((line) => JSON.parse(line))) === 'maintainer';
+  return WAITING_STATES.includes(newestState(lines.map((line) => JSON.parse(line))));
 }
 
 /** `label create` fails when the label exists. That is fine: it is there. */
