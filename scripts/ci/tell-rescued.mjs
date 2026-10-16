@@ -35,7 +35,7 @@ import { pathToFileURL } from 'node:url';
 
 import { BRANCH_PREFIX, matchFixPrs } from './find-fix-pr.mjs';
 import { gh, requireNumber } from './gh.mjs';
-import { AUTHOR, PIPELINE_PREFIX, isReplyOfState, postReply } from './reply.mjs';
+import { AUTHOR, PIPELINE_PREFIX, isWaitingOnPerson, postReply } from './reply.mjs';
 
 /** The labels that mean "a person has to look at this fix". */
 export const LOOK_LABELS = ['needs-maintainer', 'needs-owner'];
@@ -73,8 +73,8 @@ export function decide({ pr, comments, runs }) {
   const newest = ours.at(-1);
   // GitHub trims the trailing newline off a stored comment. Comments from before the state line
   // existed are the same words without it, and the contributor is still waiting on them.
-  if (!newest || !isReplyOfState(newest.body, 'maintainer')) {
-    return { say: null, why: 'the contributor is not waiting on the maintainer reply' };
+  if (!newest || !isWaitingOnPerson(newest.body)) {
+    return { say: null, why: 'the contributor is not waiting on a person' };
   }
   const notGreen = WORKFLOWS.filter((workflow) => runs[workflow] !== 'success');
   if (notGreen.length > 0) {
