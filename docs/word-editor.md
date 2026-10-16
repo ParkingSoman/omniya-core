@@ -18,8 +18,10 @@ the reason it is there.
 | Redo | `Ctrl+Y` | `Cmd+Shift+Z` | Word |
 | New paragraph | `Enter` | `Return` | Word |
 | Move, select, select all | arrows, `Shift+arrows`, `Ctrl+A` | same, with `Cmd` | Word. The browser does these. |
-| Move past an equation | one arrow press selects it, the next moves past it | same | Word treats an equation as one object |
-| Delete an equation | first `Backspace` or `Delete` selects it, the second deletes it | same | Word selects an object before it deletes it |
+| Move past an equation | one arrow press passes it, as it passes a letter | same | Two testers (Oct 2026) heard the equation twice, and four times for two in a row. JAWS and NVDA with MathCAT name an equation once as the caret arrives and use a separate key to open it. `Shift`+arrow still selects it. |
+| Read an equation by parts | `Enter` with the equation next after the caret, or selected | same | Up and Down put the caret just before an equation on a line of its own, so `Enter` there reads it. Elsewhere `Enter` makes a new paragraph, as in Word. Before this, `Enter` there made a blank line above the equation, and every try made one more. |
+| Read an equation by parts, from a screen reader's browse mode | the reader's own activate key | same | A reader sends this as a click with no mouse (`detail` 0). It reads the equation by parts. A real mouse click only selects. |
+| Delete an equation | first `Backspace` or `Delete` selects it, the second deletes it | same | Word selects an object before it deletes it. Nobody reported this one, and it guards against a slip. |
 | New note | `Ctrl+N` | `Cmd+N` | Word's new document. File > New note runs it. |
 | Find in the note | `Ctrl+F` | `Cmd+F` | Word. Next match: `Enter`, or `F3` / `Cmd+G`. Previous: `Shift+Enter`, or `Shift+F3` / `Shift+Cmd+G`. |
 | Print | `Ctrl+P` | `Cmd+P` | Word |
@@ -138,8 +140,14 @@ saved. MathJax makes it each time the equation is drawn.
 
 ### Reading an equation
 
-The equation is one image with a name, `role="img"` and the MathJax speech as
-`aria-label`. A reader says it once as the caret passes. When the explorer is
+The equation is one image with a name: `role="img"`, `aria-roledescription="equation"`
+(so a reader says "equation", not "graphic", as testers asked) and the MathJax speech
+as `aria-label`. For a braille display it also has `aria-braillelabel` and a blank
+`aria-brailleroledescription`, so the display shows the equation and no role word. An
+equation typed in Nemeth shows the cells that were typed. Any other equation shows the
+Nemeth that MathJax writes for it (`data-semantic-braille`, for `y=x` it is `⠽⠀⠨⠅⠀⠭`).
+Until MathJax has made it, such an equation has no braille label and the reader falls
+back to the speech. A reader says it once as the caret passes. When the explorer is
 entered, the name is lifted so the reader can walk the parts. When the
 explorer is left, the name returns.
 
@@ -158,7 +166,22 @@ blind person finds the flow good. The sign-off in `docs/HUMAN-TESTING.md` stays.
 
 ## Open questions
 
-- **VoiceOver.** Measured for reading, not for caret echo. In CI run 6, reading by
+- **VoiceOver, measured on a real Mac (macOS 26.6, 13 Oct 2026).** A script polled
+  VoiceOver's `last phrase` about eight times a second while keys were sent to the real
+  app. This catches caret echo, which the CI log did not. Results: reading a line, or
+  Enter on a line holding one equation, VoiceOver says the equation's name ("y equals x")
+  and then "Equation entered. Use arrow keys to explore it." Moving the caret across an
+  equation with Left or Right, VoiceOver says only `￼` (the blank object mark), never
+  "equation" or the name. NVDA does say it. The macOS accessibility tree is right: each
+  equation is an image with role description "equation", its name as description, and
+  its Nemeth as the braille label (`⠽⠀⠨⠅⠀⠭` for `y=x`). So the app hands VoiceOver the
+  right values, and VoiceOver does not speak them at the caret in Chromium. One variant
+  was tried: the name as real hidden text in the line, with no image role. It made
+  VoiceOver silent across equations, which is worse, so it was reverted. VoiceOver's
+  braille panel stays empty without a braille display, so the braille VoiceOver would
+  send to a display is not measured. A person with VoiceOver should try
+  `docs/HUMAN-TESTING.md` step 5.
+- **VoiceOver (older note).** Measured for reading, not for caret echo. In CI run 6, reading by
   items, VoiceOver said "Solve", then "x squared image", then "for x.", in order.
   The macOS job now asserts that the equation is named this way. Guidepup does not
   capture VoiceOver's echo of arrow-key caret moves, in a plain text input or in
@@ -170,6 +193,14 @@ blind person finds the flow good. The sign-off in `docs/HUMAN-TESTING.md` stays.
   "graphic, x squared" as the caret arrives, then "out of graphic" as it passes.
   The plain text input walks the same way. After Left Arrow back onto the
   equation it said "space", not the equation name.
+- **After the one-press change.** NVDA, CI run on PR #55: walking right across
+  "Solve [x squared] for x." it says "space", then "equation, x squared" as the caret
+  arrives, then "out of equation" as it passes, and one press passes the equation.
+  Walking left across two equations it says "equation, z", then "out of equation,
+  equation, y", then "out of equation". Each equation is named once. NVDA's "out of
+  equation" is its own mark for leaving one. VoiceOver is not measured for caret echo.
+- **Enter just before an equation.** It now reads the equation, so it no longer
+  splits the line there. Put the caret after a space or a letter to split.
 - **Mac equation key.** `Control+=` is the most often reported key. Microsoft
   does not document it.
 

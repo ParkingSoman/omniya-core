@@ -9,7 +9,8 @@ import { MathNodeView } from './math-node-view.js';
 
 export { clearMathWithin, renderMathInto, waitForSpeechLabel } from './math-render.js';
 import {
-  backspaceSelectsMath, backspaceStopsAtTitle, deleteSelectsMath, deleteStopsAtTitle, enterLeavesTitle,
+  arrowLeftPassesMath, arrowRightPassesMath, backspaceSelectsMath, backspaceStopsAtTitle,
+  deleteSelectsMath, deleteStopsAtTitle, enterLeavesTitle, equationForEnter, verticalOntoLoneEquation,
 } from './commands.js';
 
 const IS_MAC = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '');
@@ -163,15 +164,39 @@ function makePlugins(handlers, fieldElement) {
             handlers.onInsertEquation?.();
             return true;
           }
-          const { selection } = view.state;
           const plain = !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey;
-          if (event.key === 'Enter' && plain
-              && selection instanceof NodeSelection && selection.node.type.name === 'math') {
+          if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && plain
+              && verticalOntoLoneEquation(view, event.key === 'ArrowDown' ? 1 : -1)) {
             event.preventDefault();
-            handlers.onEnterMath?.(selection.from);
             return true;
           }
+          if (event.key === 'Enter' && plain) {
+            const target = equationForEnter(view.state);
+            if (target) {
+              event.preventDefault();
+              handlers.onEnterMath?.(target.pos);
+              return true;
+            }
+          }
           return false;
+        },
+        // A screen reader in browse mode sends Enter as a bare click event, with no
+        // mouse down or up and so no `detail`. On an equation that means "read it by
+        // parts". A real mouse click has `detail` of 1 or more and only selects it.
+        // ProseMirror listens for mouse down and up, so it never sees this click.
+        // Tester report, October 2026: Enter did nothing.
+        handleDOMEvents: {
+          click(view, event) {
+            if (event.detail !== 0 || !(event.target instanceof Element)) return false;
+            const dom = event.target.closest('.math-node');
+            if (!dom || !view.dom.contains(dom)) return false;
+            const pos = view.posAtDOM(dom, 0);
+            if (view.state.doc.nodeAt(pos)?.type.name !== 'math') return false;
+            event.preventDefault();
+            view.dispatch(view.state.tr.setSelection(NodeSelection.create(view.state.doc, pos)));
+            handlers.onEnterMath?.(pos);
+            return true;
+          },
         },
       },
     }),
@@ -179,6 +204,8 @@ function makePlugins(handlers, fieldElement) {
       'Mod-z': undo,
       'Mod-y': redo,
       'Mod-Shift-z': redo,
+      ArrowRight: arrowRightPassesMath,
+      ArrowLeft: arrowLeftPassesMath,
       Enter: enterLeavesTitle,
       Backspace: chainCommands(backspaceStopsAtTitle, backspaceSelectsMath),
       Delete: chainCommands(deleteStopsAtTitle, deleteSelectsMath),
