@@ -31,15 +31,15 @@ whether the bug is gone.
 - If it is still wrong, write a comment that starts with `@claude` and say what
   you found. You get one new comment, and the same links already in the first
   one now hold the new build.
-- If it works, write `@claude it works`. The maintainer then reads the fix and
-  ships it.
+- If it works, write: it works (only that; with more words, start with `@claude`).
 - Do not close the issue. Closing sends nothing. You will get a comment that
   tells you what to write instead.
 - If you have a question, start it with `@claude` too. You get one answer, and
   nothing changes.
 
 The word `@claude` is what starts the work. A comment without it is read by
-people only. Each run costs the maintainer part of a paid quota.
+people only. Each run costs the maintainer part of a paid quota. A plain "it works" is
+the exception: a script reads it, with no agent, only from you, after a build.
 
 Sometimes the agent asks you up to three short questions first. Answer in a
 comment that starts with `@claude`. "I do not know" is a good answer. A comment
@@ -68,7 +68,7 @@ flowchart TD
   G -- still red --> I[Label needs-owner, you look]
   H --> J{Contributor comments @claude}
   J -- problem --> F
-  J -- it works --> K{Touches pipeline files or reverses a note?}
+  J -- "it works", no agent --> K{Touches pipeline files or reverses a note?}
   K -- no --> L[Status contributor-tested, auto-merge into testing]
   K -- yes --> N[Label needs-owner, you review and merge]
   L --> M[Issue closes from the Fixes line]
@@ -136,8 +136,10 @@ flowchart TD
 | `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs. Modes `fix`, `comment`, `checks-failed`. |
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, reports on the issue. |
 | `.github/workflows/pipeline-rescued.yml` | `testing` | A person fixed a fix the pipeline gave up on. When the checks and the build go green, the contributor gets the test build on the issue, once. |
-| `.github/workflows/pipeline-keep-current.yml` | `testing` | Every push to `testing`, weekly, and when a hand-off finds a conflict. Updates open fix branches. A conflict goes to the repair agent. |
+| `.github/workflows/pipeline-keep-current.yml` | `testing` | Every push to `testing`, weekly, and when a hand-off finds a conflict. Updates open fix branches. A conflict goes to the repair agent, in a manual run the push starts: the agent refuses a push, and accepts the Actions bot only for a manual run. |
 | `.github/workflows/pipeline-ship.yml` | `testing` | By hand, from a chat session, after the owner says "ship it". Merges a `pipeline/` pull request that changed the automation. It replaces the bypass tick. |
+| `.github/workflows/pipeline-ready.yml` | `testing` | A pull request opens or moves, the owner approves, or the checks finish. Posts the merge-box status: what it waits for, then green once the owner approved this commit and the checks pass. |
+| `.github/workflows/pipeline-review-ping.yml` | `testing` | Runs when a review is approved, holds no secret, and only lets `pipeline-ready.yml` start from `testing`. |
 | `.github/workflows/pipeline-signoff.yml` | `testing` | A closed issue with a fix still open gets one comment: closing sends nothing. |
 | `.github/workflows/pr-checks.yml` | `testing` | The gates `unit`, `nemeth` and `e2e`. |
 | `.github/workflows/pr-build.yml` | `testing` | A per-pull-request build to install. |
@@ -156,14 +158,15 @@ How much it needs from you depends on what the change touches.
 |---|---|---|
 | Automatic | Docs, prompts, tests, ordinary scripts and workflows | Nothing. It merges when green. |
 | Ship it | A secret, a token, a write permission, an environment, a release, a delete or force, a trigger that runs with secrets, or a file that defines green or who may merge | Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
-| Bypass tick | The shipper itself, the app, `package.json`, CODEOWNERS | Your click in the browser. A session cannot open this one. |
+| Lock | The files that decide who may merge what: the shipper, its tests, the manifest, the strictness check | Your words AND a strictness check: the new rules must be at least as strict as the old ones on thousands of made-up cases, run with no secrets. A change that loosens the lock on purpose fails, and needs you in the merge box (Approve, then Merge). |
+| Your approval | `package.json`, CODEOWNERS, anything else. (App code on a `product/<slug>` branch is not here: your words ship it, see `docs/shipping-app-changes.md`.) | Click **Approve**, then **Merge**. The box turns green only after your approval of this commit and green checks. Never tick "bypass rules". |
 
-Always required: it runs from `testing`, started by you or the session account.
-The branch starts with `pipeline/`. Only you and the session account pushed to it.
-The checks `unit`, `nemeth`, `e2e` and both builds are green on that exact commit,
-as jobs of `pr-checks.yml` and `pr-build.yml`. No test is deleted or moved.
-Every file is on the allow list, and the changed lines of workflows and scripts
-are read, because a list of bad files is never complete.
+Always required: it runs from `testing`, started by you or the session account. The branch
+starts with `pipeline/`, and only you and the session account pushed to it. The checks
+`unit`, `nemeth`, `e2e` and both builds are green on that exact commit, as jobs of
+`pr-checks.yml` and `pr-build.yml`. No test is deleted or moved.
+Every file is on the allow list. Scripts are read by their changed lines, workflows also as YAML.
+`scripts/ci/protection.json` lists the protected files. A test fails on a new sensitive line.
 
 ### Setting up, adding a contributor, and getting unstuck
 

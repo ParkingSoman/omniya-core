@@ -235,7 +235,7 @@ test('a protected fix: no status, no auto-merge, needs-owner, and the maintainer
   const lines = f.calls.map((c) => c.line);
   assert.ok(!lines.some((l) => l.includes('statuses/') || l.startsWith('pr merge')));
   assert.ok(lines.some((l) => l.includes('--add-label needs-owner')));
-  assert.ok(lines.some((l) => l.includes('--add-reviewer owner')));
+  assert.ok(lines.some((l) => l.includes('pulls/9/requested_reviewers') && l.includes('reviewers[]=owner')));
   assert.ok(lines.some((l) => l.includes('issues/5/comments') && l.includes('changes the automation itself')));
 });
 
@@ -266,4 +266,14 @@ test('a conflicting fix is not sent to the maintainer: the contributor is told i
   assert.ok(!lines.some((l) => l.startsWith('pr merge')), 'nothing merges');
   assert.ok(!lines.some((l) => l.startsWith('pr ready')), 'it stays a draft');
   assert.ok(!lines.some((l) => l.startsWith('workflow run')), 'this job starts nothing; the next job does');
+});
+
+test('a confirmation no agent read is pinned: any head commit but the one the gate saw is not merged', () => {
+  const same = fakeGh({ files: [{ filename: 'src/a.js' }] });
+  assert.equal(handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP', expectedSha: 'abc123' }, same.gh).merge, true);
+  const other = fakeGh({ files: [{ filename: 'src/a.js' }] });
+  const result = handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP', expectedSha: 'def456' }, other.gh);
+  assert.equal(result.merge, false);
+  assert.equal(result.reason, 'moved');
+  assert.ok(!other.calls.some((c) => c.line.includes('statuses/') || c.line.startsWith('pr merge')));
 });

@@ -107,7 +107,7 @@ export function ensureLabel(name, repo, description, gh = realGh) {
   gh(['label', 'create', name, '--repo', repo, '--description', description, '--force']);
 }
 
-export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) {
+export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha }, gh = realGh) {
   const issueNumber = requireNumber(issue, 'issue number');
   const prNumber = requireNumber(pr, 'pull request number');
 
@@ -135,7 +135,10 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
   // would merge, so nothing is set and the maintainer looks. The status and the
   // merge are tied to this commit, so a later push cannot ride on them.
   const last = JSON.parse(gh(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid,mergeable,body,changedFiles,isCrossRepository,baseRefName,headRefName,state']));
-  const moved = last.headRefOid !== sha;
+  // `expectedSha` is set when no agent read the comment: the gate found this head
+  // commit and checked the build the contributor tried was built from it. Any other
+  // head is a commit nobody tested.
+  const moved = last.headRefOid !== sha || (Boolean(expectedSha) && sha !== expectedSha);
   const filesComplete = !moved && Number.isInteger(last.changedFiles) && files.length === last.changedFiles && files.length < 3000;
   const fixBranch = last.isCrossRepository === false && last.baseRefName === 'testing' && last.state === 'OPEN' && /^claude\/fix-/.test(String(last.headRefName ?? ''));
   const decision = decide({ files, filesComplete, fixBranch, mergeable: last.mergeable, body: last.body, missing: notGreen(checkRuns) });
@@ -144,7 +147,7 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
   if (decision.action === 'not-green') {
     const missing = decision.missing;
     ensureLabel('needs-owner', repo, 'A person has to look at this', gh);
-    gh(['pr', 'edit', prNumber, '--repo', repo, '--add-label', 'needs-owner']);
+    gh(['issue', 'edit', prNumber, '--repo', repo, '--add-label', 'needs-owner']);
     gh([
       'pr', 'comment', prNumber, '--repo', repo, '--body',
       `The contributor says the build works, but these required checks are not green on ${sha}: ${missing.join(', ')}. I did not take this out of draft.`
@@ -175,9 +178,9 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken }, gh = realGh) 
 
   if (decision.action === 'protected') {
     ensureLabel('needs-owner', repo, 'A person has to look at this', gh);
-    gh(['pr', 'edit', prNumber, '--repo', repo, '--add-label', 'needs-owner']);
+    gh(['issue', 'edit', prNumber, '--repo', repo, '--add-label', 'needs-owner']);
     try {
-      gh(['pr', 'edit', prNumber, '--repo', repo, '--add-reviewer', reviewer]);
+      gh(['api', '-X', 'POST', `repos/${repo}/pulls/${prNumber}/requested_reviewers`, '-f', `reviewers[]=${reviewer}`]);
     } catch {
       // A reviewer that cannot be added is not a reason to hold the hand-off. The label is the signal.
     }
@@ -219,7 +222,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const result = handOff({
     issue, pr, repo,
     reviewer: process.env.GITHUB_REPOSITORY_OWNER,
-    mergeToken: process.env.MERGE_TOKEN
+    mergeToken: process.env.MERGE_TOKEN,
+    expectedSha: process.env.EXPECTED_SHA
   });
   setOutputs({ sent: result.sent, merge: result.merge, conflict: result.reason === 'conflict' });
 }
