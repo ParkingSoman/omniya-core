@@ -28,6 +28,7 @@ import { pathToFileURL } from 'node:url';
 
 import { gh as realGh, requireNumber, setOutputs } from './gh.mjs';
 import { postReply } from './reply.mjs';
+import { justifiedByTheCode, loadCodeRules } from './standing-note.mjs';
 import { zoneOf } from './zones.mjs';
 
 export const REQUIRED_CHECKS = ['unit', 'nemeth', 'e2e'];
@@ -68,7 +69,7 @@ export function protectedPath(path) {
  *   | {action: 'not-green', missing: string[]}
  *   | {action: 'merge'}}
  */
-export function decide({ files, filesComplete, fixBranch, mergeable, body, missing }) {
+export function decide({ files, filesComplete, fixBranch, mergeable, body, missing, codeRules = null }) {
   // Only the pipeline's own branch, in this repository, into `testing`. A pull
   // request from a fork can be given a branch name that looks like ours.
   if (fixBranch !== true) return { action: 'protected', reason: 'not-a-fix-branch' };
@@ -95,7 +96,11 @@ export function decide({ files, filesComplete, fixBranch, mergeable, body, missi
   if (String(mergeable ?? '').toUpperCase() === 'CONFLICTING') return { action: 'protected', reason: 'conflict' };
   // Any heading level, any spacing. The agent writes the body, so this is a
   // signal and not a lock: the locks on design decisions are elsewhere.
-  if (/^[ \t]{0,3}#{1,6}[ \t]*reverses a standing note/im.test(String(body ?? ''))) return { action: 'protected', reason: 'standing-note' };
+  // ...unless the section rests on a real rule of the Nemeth Code and the fix changes the Nemeth code
+  // (see standing-note.mjs, the owner's decision of 2026-10-17): then the Code settles it.
+  if (/^[ \t]{0,3}#{1,6}[ \t]*reverses a standing note/im.test(String(body ?? '')) && !justifiedByTheCode({ body, files, codeRules })) {
+    return { action: 'protected', reason: 'standing-note' };
+  }
   if (missing.length > 0) return { action: 'not-green', missing };
   return { action: 'merge' };
 }
@@ -138,7 +143,7 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha }, 
   const moved = last.headRefOid !== sha || (Boolean(expectedSha) && sha !== expectedSha);
   const filesComplete = !moved && Number.isInteger(last.changedFiles) && files.length === last.changedFiles && files.length < 3000;
   const fixBranch = last.isCrossRepository === false && last.baseRefName === 'testing' && last.state === 'OPEN' && /^claude\/fix-/.test(String(last.headRefName ?? ''));
-  const decision = decide({ files, filesComplete, fixBranch, mergeable: last.mergeable, body: last.body, missing: notGreen(checkRuns) });
+  const decision = decide({ files, filesComplete, fixBranch, mergeable: last.mergeable, body: last.body, missing: notGreen(checkRuns), codeRules: loadCodeRules() });
   if (moved) decision.reason = 'moved';
 
   if (decision.action === 'not-green') {
