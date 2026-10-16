@@ -15,21 +15,25 @@ name: pipeline-verify
 # it was red, and the next verify runs only when the repair changed the branch.
 # The last verify has no repair after it, so 3 is the cap.
 #
-# Verify jobs hold `actions: write`, because they start workflows, and they run
-# no agent. Repair jobs run an agent, and hold no `actions`. That split is the
-# point: see `pipeline-agent.yml`. The permissions the CALLER gives this file
+# Verify jobs read the runs the push started, and they run no agent. Repair jobs
+# run an agent, and hold no `actions`. That split is the point: see
+# `pipeline-agent.yml`. The permissions the CALLER gives this file
 # are only a ceiling. Every job below states its own.
 #
 # There is no `concurrency` here. The caller holds the one group for the issue.
 # A called workflow given the caller's group waits on itself forever.
 #
-# Helper scripts are checked out from `testing`, which is a protected branch.
-# The default checkout would be `main`, which does not have them.
+# Helper scripts come from the default checkout, which is `testing`, a protected
+# branch.
 on:
   workflow_call:
+    # Declared so callers can pass them by name. The value passed is empty on purpose:
+    # the real secrets live only in the environment `pipeline`, which the called job reads.
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN:
-        required: true
+        required: false
+      PIPELINE_APP_PRIVATE_KEY:
+        required: false
     inputs:
       issue_number:
         required: true
@@ -52,6 +56,11 @@ on:
         required: false
         type: string
         default: ready
+      # `true` when this is the one automatic retry of a pipeline fault (`heal.mjs`).
+      heal:
+        required: false
+        type: string
+        default: ''
     outputs:
       green:
         description: true when the last check and build passed
@@ -65,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     permissions:
-      actions: write
+      actions: read
       contents: read
       pull-requests: read
       issues: read
@@ -73,8 +82,6 @@ jobs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -94,15 +101,18 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}
       pr_number: ${{ inputs.pr_number }}
       branch: ${{ inputs.branch }}
       log_artifact: failed-checks-1
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
   verify-2:
     needs: [repair-1]
@@ -110,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     permissions:
-      actions: write
+      actions: read
       contents: read
       pull-requests: read
       issues: read
@@ -118,8 +128,6 @@ jobs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -139,15 +147,18 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}
       pr_number: ${{ inputs.pr_number }}
       branch: ${{ inputs.branch }}
       log_artifact: failed-checks-2
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
   verify-3:
     needs: [repair-2]
@@ -155,7 +166,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     permissions:
-      actions: write
+      actions: read
       contents: read
       pull-requests: read
       issues: read
@@ -163,8 +174,6 @@ jobs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -184,15 +193,18 @@ jobs:
       contents: write
       pull-requests: write
       issues: read
-    uses: ParkingSoman/omniya-core/.github/workflows/pipeline-agent.yml@testing
+    uses: ./.github/workflows/pipeline-agent.yml
+    # Passed by name and empty on purpose: the real secrets live only in the environment `pipeline`.
+    # The called job reads the environment's value; GitHub exposes it only when the name is declared and passed.
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      PIPELINE_APP_PRIVATE_KEY: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
     with:
       mode: checks-failed
       issue_number: ${{ inputs.issue_number }}
       pr_number: ${{ inputs.pr_number }}
       branch: ${{ inputs.branch }}
       log_artifact: failed-checks-3
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
   verify-4:
     needs: [repair-3]
@@ -200,7 +212,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     permissions:
-      actions: write
+      actions: read
       contents: read
       pull-requests: read
       issues: read
@@ -208,8 +220,6 @@ jobs:
       green: ${{ steps.v.outputs.green }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - id: v
         env:
           GH_TOKEN: ${{ github.token }}
@@ -239,8 +249,6 @@ jobs:
       green: ${{ steps.final.outputs.green }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: testing
       - id: final
         env:
           GH_TOKEN: ${{ github.token }}
@@ -253,6 +261,9 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPLY_STATE: ${{ inputs.reply_state }}
           MESSAGE: ${{ inputs.message }}
+          # Every job result, so a job that FAILED can be told from one that asked for a person.
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          HEAL: ${{ inputs.heal }}
         run: |
           set -euo pipefail
           final=""
@@ -260,12 +271,15 @@ jobs:
             if [ -n "$v" ]; then final="$v"; break; fi
           done
           if [ "$final" = "true" ]; then
-            node scripts/ci/reply.mjs "$ISSUE" "$REPLY_STATE" "$PR"
+            node scripts/ci/heal.mjs clear "$PR"
+            # A retried fault may already have been announced by pipeline-rescued.yml. Say it once.
+            tell=yes
+            if [ "$HEAL" = "true" ]; then tell="$(node scripts/ci/heal.mjs waiting "$ISSUE" | sed -n 's/^tell=//p')"; fi
+            if [ "$tell" = "yes" ]; then node scripts/ci/reply.mjs "$ISSUE" "$REPLY_STATE" "$PR"; fi
             echo "green=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          gh label create needs-maintainer --force --description "A person has to look at this" || true
-          gh pr edit "$PR" --add-label needs-maintainer
+          tell="$(node scripts/ci/heal.mjs stuck "$PR" | sed -n 's/^tell=//p')"
           gh pr comment "$PR" --body "The automatic checks or the build are still red after 3 repair attempts, or the repair agent asked for a person. The maintainer has to look. Run: $RUN_URL"
-          node scripts/ci/reply.mjs "$ISSUE" maintainer
+          if [ "$tell" = "yes" ]; then node scripts/ci/reply.mjs "$ISSUE" maintainer; fi
           echo "green=false" >> "$GITHUB_OUTPUT"

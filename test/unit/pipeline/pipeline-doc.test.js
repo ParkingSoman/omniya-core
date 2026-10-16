@@ -1,18 +1,13 @@
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const PATH = 'docs/contributor-pipeline.md';
 const doc = readFileSync(PATH, 'utf8');
 
-test('every workflow file is listed with the branch it must live on', () => {
-  // The `Lives on` column is the only place that says which branch a file has to
-  // be on, and getting it wrong does not warn anybody. GitHub starts an
-  // `on: issues` or `on: issue_comment` workflow from the DEFAULT branch's copy
-  // only, so a copy on `testing` alone is never read: the contributor writes
-  // `@claude`, nothing happens, and there is no failed run to look at.
-  //
-  // A new workflow that never reaches this table is one nobody knows to move.
+test('every workflow file is listed with the branch it lives on', () => {
+  // A new workflow that never reaches this table is one nobody knows exists.
+  // `testing` is the default branch, so every row names it.
   const workflows = readdirSync('.github/workflows').filter((f) => f.endsWith('.yml'));
   assert.ok(workflows.length >= 5, 'expected the pipeline workflows to exist');
 
@@ -21,11 +16,7 @@ test('every workflow file is listed with the branch it must live on', () => {
       .split('\n')
       .find((line) => line.startsWith('|') && line.includes(`.github/workflows/${file}`));
     assert.ok(row, `docs/contributor-pipeline.md has no row for ${file}`);
-    assert.match(
-      row,
-      /\|\s*`(main|testing)`\s*\|/,
-      `the row for ${file} must name the branch it lives on`
-    );
+    assert.match(row, /\|\s*`testing`\s*\|/, `the row for ${file} must name the branch it lives on`);
   }
 });
 
@@ -40,7 +31,7 @@ test('the contributor is told the two phrases that drive the loop, and not to cl
   const [contributorHalf] = doc.split('## If you maintain this repository');
 
   assert.match(contributorHalf, /@claude/, 'the contributor half must name the word that starts a round');
-  assert.match(contributorHalf, /@claude it works/, 'and the phrase that says it is done');
+  assert.match(contributorHalf, /write: it works/, 'and the phrase that says it is done');
   assert.match(contributorHalf, /Do not close the issue/);
   assert.doesNotMatch(contributorHalf, /[Cc]losing the issue is what merges/, 'closing no longer merges anything');
   // And that the links do not change, because the alternative is her hunting for
@@ -50,18 +41,60 @@ test('the contributor is told the two phrases that drive the loop, and not to cl
   assert.doesNotMatch(contributorHalf, /pull request|branch|workflow/i);
 });
 
-test('the maintainer is told that they merge, what the pipeline does first, and what to change on main', () => {
+test('the maintainer is told what merges by itself, and that testing is the default branch', () => {
   const maintainerHalf = doc.split('## If you maintain this repository')[1] ?? '';
 
-  assert.match(maintainerHalf, /Nothing merges by itself/);
-  assert.match(maintainerHalf, /ready-for-maintainer/);
-  assert.match(maintainerHalf, /needs-maintainer/);
-  // The ruleset needs no bypass any more, because nothing here merges.
-  assert.match(maintainerHalf, /testing-guard/);
-  assert.match(maintainerHalf, /no `--admin` flag|uses no `--admin`/);
-  // GitHub closes an issue from `Fixes` only for the default branch.
-  assert.match(maintainerHalf, /pipeline-close-issue\.yml/);
-  // The rollout order is the one thing that breaks if it is guessed.
-  assert.match(maintainerHalf, /Merge the one into `main` first/);
-  assert.match(maintainerHalf, /pipeline-on-main/);
+  assert.match(maintainerHalf, /merges by itself only when the contributor says it works/);
+  assert.match(maintainerHalf, /contributor-tested/);
+  assert.match(maintainerHalf, /needs-owner/);
+  assert.match(maintainerHalf, /testing-tested/);
+  assert.match(maintainerHalf, /uses no `--admin`|no `--admin`/);
+  assert.match(maintainerHalf, /PIPELINE_APP_ID/);
+  assert.match(maintainerHalf, /PIPELINE_APP_PRIVATE_KEY/);
+  assert.match(maintainerHalf, /environment `pipeline`/);
+  assert.match(maintainerHalf, /no repository-level\s+copy/);
+  // GitHub closes an issue from `Fixes` for the default branch, which is `testing`.
+  assert.match(maintainerHalf, /`testing` is the default branch/);
+  // The split between a default branch and a working branch is gone.
+  assert.doesNotMatch(maintainerHalf, /stub|pipeline-on-main|pipeline-close-issue/);
+  // The label that sent every fix to the maintainer is retired.
+  assert.doesNotMatch(doc, /ready-for-maintainer/);
+});
+
+test('every file the page names exists', () => {
+  // A rule that points at a file that was renamed is a rule nobody can follow.
+  const named = new Set(doc.match(/`((?:\.github|\.claude|scripts|docs|src|test)\/[\w./-]+[\w])`/g)?.map((m) => m.slice(1, -1)));
+  assert.ok(named.size >= 12, 'expected the page to name its files');
+  for (const path of named) {
+    assert.ok(existsSync(path), `docs/contributor-pipeline.md names ${path}, which does not exist`);
+  }
+});
+
+test('the page lists every pipeline workflow, and says how to rehearse one', () => {
+  const pipeline = readdirSync('.github/workflows').filter((f) => /^pipeline-.*\.yml$/.test(f));
+  assert.ok(pipeline.length >= 5);
+  for (const file of pipeline) assert.ok(doc.includes(`.github/workflows/${file}`), `${file} is not listed`);
+  assert.match(doc, /\.claude\/skills\/pipeline-change\/SKILL\.md/);
+});
+
+test('every label the page names is set by a form, a workflow or a script', () => {
+  const [, labels = ''] = doc.split('### Labels');
+  const table = labels.split('###')[0];
+  const names = [...table.matchAll(/`([a-z][a-z-]+)`/g)].map((m) => m[1]).filter((n) => !n.endsWith('.mjs'));
+  const sources = ['.github/workflows', '.github/ISSUE_TEMPLATE', 'scripts/ci']
+    .flatMap((dir) => readdirSync(dir).map((f) => readFileSync(`${dir}/${f}`, 'utf8')))
+    .join('\n');
+  assert.ok(names.length >= 8, 'expected the label table to name its labels');
+  for (const name of names) assert.ok(sources.includes(name), `label ${name} is named but nothing sets it`);
+});
+
+test('the page stays short and says nothing is planned that is not built', () => {
+  assert.ok(doc.split('\n').length <= 200, 'this page is meant to be read aloud: keep it short');
+  assert.doesNotMatch(doc, /Planned, not live/);
+});
+
+test('the agent\'s instructions are kept outside the workflow, and the page says why', () => {
+  assert.ok(existsSync('.github/prompts/agent.md'));
+  assert.match(doc, /21,000/);
+  assert.match(doc, /origin\/testing/);
 });

@@ -1,0 +1,67 @@
+name: pipeline-ready
+
+# Make the merge box say whether a pull request is ready, and be right.
+#
+# The rule `testing-tested` wants the status `contributor-tested` from the pipeline's App. The
+# hand-off and the shipper post it. Every other pull request got none, so the owner could only
+# merge by ticking "bypass rules", which hides every missing requirement. This posts it for
+# the rest, so the Merge button is green exactly when it is safe:
+#
+#   a pull request opens or moves   -> a status that says what it waits for
+#   the owner approves, checks green -> the status turns green
+#
+# `scripts/ci/ready-status.mjs` decides, and checks everything itself through the API: the
+# review is the owner's, it is on this exact commit, and the checks are jobs of the workflow
+# files that define them. Nothing is trusted from the run that started this one.
+#
+# Why it is safe to hold the App key:
+#   - It runs from `testing` (`pull_request_target` and `workflow_run` both use the default
+#     branch's copy), in the environment `pipeline`, which allows no other ref.
+#   - It never checks out or runs the pull request's code. The commit comes in through `env`
+#     and is checked to be 40 hex characters before anything uses it.
+#   - The App token asks for `statuses: write` and nothing else.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows: [pipeline-review-ping, pr-checks, pr-build]
+    types: [completed]
+
+# One at a time per commit. A later one finds the earlier one's status and leaves it alone.
+concurrency:
+  group: pipeline-ready-${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ready:
+    if: >-
+      (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository)
+    environment: pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # What the built-in token needs to READ: the commit's pull requests, reviews, runs and statuses.
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+      statuses: read
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        with:
+          app-id: ${{ vars.PIPELINE_APP_ID }}
+          private-key: ${{ secrets.PIPELINE_APP_PRIVATE_KEY }}
+          permission-statuses: write
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          MERGE_TOKEN: ${{ steps.app.outputs.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}
+          MODE: ${{ github.event_name == 'pull_request_target' && 'opened' || 'review' }}
+        run: node scripts/ci/ready-status.mjs "$MODE" "$SHA"

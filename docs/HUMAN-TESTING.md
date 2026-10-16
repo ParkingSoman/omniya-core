@@ -1,4 +1,4 @@
-# Human testing gate (`testing` branch)
+# Human testing gate (`testing` branch).
 
 This branch is the unbroken product build humans should run before anything
 lands on `main`. It is **not** a BANA conformance release.

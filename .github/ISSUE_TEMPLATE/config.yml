@@ -2,7 +2,7 @@
 # is how the pipeline knows what to do with it:
 #
 #   Bug report       an agent works on it           label `bug`
-#   Nemeth feature   an agent works on it           label `nemeth`
+#   Nemeth or speech an agent works on it           label `nemeth`
 #   Design           a person answers, no agent     label `design`
 #   Other            a person answers, no agent     label `other`
 #
