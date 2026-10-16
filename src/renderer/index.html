@@ -33,15 +33,15 @@
           </button>
         </div>
         <div class="rail-search">
-          <label for="note-search" class="sr-only">Search notes</label>
-          <input id="note-search" type="search" placeholder="Search" autocomplete="off" spellcheck="false">
+          <h2 id="note-search-heading" class="sr-only">Search notes</h2>
+          <input id="note-search" type="search" aria-labelledby="note-search-heading" placeholder="Search" autocomplete="off" spellcheck="false">
           <span id="note-search-status" class="sr-only" aria-live="polite"></span>
         </div>
         <nav id="napkin-list" aria-label="Your notes"></nav>
       </aside>
 
       <main id="workspace">
-        <div id="toolbar" role="group" aria-label="Note actions">
+        <div id="toolbar" role="toolbar" aria-label="Note actions">
           <button id="undo-button" type="button" class="button-quiet" aria-keyshortcuts="Control+Z Meta+Z">
             <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" class="icon"><path d="M7 5 3 9l4 4M3.5 9H12a4 4 0 0 1 0 8h-2" /></svg>
             <span>Undo</span>
@@ -76,8 +76,8 @@
         </div>
 
         <section id="find-bar" role="search" aria-label="Find in note" hidden>
-          <label for="find-input" class="sr-only">Find in note</label>
-          <input id="find-input" type="text" autocomplete="off" spellcheck="false" placeholder="Find in note" aria-describedby="find-count">
+          <h2 id="find-heading" class="sr-only">Find in note</h2>
+          <input id="find-input" type="text" aria-labelledby="find-heading" autocomplete="off" spellcheck="false" placeholder="Find in note" aria-describedby="find-count">
           <span id="find-count" class="muted" aria-live="polite"></span>
           <button id="find-previous" type="button" class="button-quiet button-small">Previous</button>
           <button id="find-next" type="button" class="button-quiet button-small">Next</button>
@@ -87,7 +87,7 @@
         <section id="composer-dock" aria-labelledby="composer-heading" hidden>
           <form id="composer-form">
             <div class="composer-bar">
-              <span id="composer-heading">Equation</span>
+              <h2 id="composer-heading">Equation</h2>
               <span id="replacement-scope" class="muted"></span>
               <fieldset id="replacement-method" aria-describedby="replacement-method-help">
                 <legend class="sr-only">Write the equation as</legend>
@@ -95,7 +95,6 @@
                 <label><input type="radio" name="replacement-method" value="latex" aria-keyshortcuts="Control+L"><span>LaTeX</span></label>
               </fieldset>
             </div>
-            <p id="replacement-method-help" class="sr-only">Nemeth: type braille cells. LaTeX: type the whole expression. Control E picks Nemeth and Control L picks LaTeX while the field is empty.</p>
 
             <label for="composer-source" class="sr-only">Equation input</label>
             <textarea id="composer-source" rows="1" aria-describedby="composer-help composer-status composer-error equation-preview-text"></textarea>
@@ -105,6 +104,7 @@
             </div>
             <!-- What the preview says, for a screen reader. Read on demand with the field, not announced as it changes. -->
             <span id="equation-preview-text" class="sr-only"></span>
+            <p id="replacement-method-help" class="sr-only">Nemeth: type braille cells. LaTeX: type the whole expression. Control E picks Nemeth and Control L picks LaTeX while the field is empty.</p>
             <p id="composer-status" class="composer-status" aria-live="polite"></p>
             <p id="composer-error" class="error" hidden></p>
             <div class="composer-footer">
@@ -124,6 +124,7 @@
             <!-- Kept for the braille-input diagnostics and for tests. The equation panel says the same thing in plain words. -->
             <span id="mode-panel" tabindex="-1" class="sr-only" aria-hidden="true"></span>
             <p id="empty-message" hidden>No note is open. Choose New note to start one.</p>
+            <h2 id="note-heading" class="sr-only">Note</h2>
             <div id="editor-host"></div>
             <p id="status-hint" class="status-hint" aria-hidden="true"></p>
           </div>
@@ -149,6 +150,13 @@
 
       <dialog id="keyboard-help" aria-labelledby="keyboard-help-heading">
         <h3 id="keyboard-help-heading" tabindex="-1">Keyboard shortcuts</h3>
+
+        <h4>Moving around</h4>
+        <dl class="keys">
+          <div><dt>Skip to the note</dt><dd><kbd>Tab</kbd>, then <kbd>Enter</kbd>, on the first link</dd></div>
+          <div><dt>Move between toolbar buttons</dt><dd><kbd>Left Arrow</kbd> and <kbd>Right Arrow</kbd>. <kbd>Tab</kbd> leaves the toolbar.</dd></div>
+          <div><dt>Move between notes</dt><dd><kbd>Up Arrow</kbd> and <kbd>Down Arrow</kbd>. <kbd>Enter</kbd> opens the note.</dd></div>
+        </dl>
 
         <h4>Writing</h4>
         <dl class="keys">
