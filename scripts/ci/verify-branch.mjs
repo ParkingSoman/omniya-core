@@ -47,12 +47,26 @@ export const CONFLICT_LOG =
   'The checks will start after the push.\n';
 
 /**
+ * The branch can move while its checks run: `keep-current` merges `testing` into it, or a
+ * repair pushes. The new head's runs CANCEL the old head's (one run per pull request), so a
+ * wait on the old head ends in "cancelled" with no failing step, and the repair agent is sent
+ * to fix nothing (seen live: three repairs, then the maintainer). A cancelled run on a head
+ * that is no longer the head is not an answer. Look again at the new head, up to three times.
  * @param {object} io
  * @param {(args: string[]) => string} io.gh
  * @param {(ms: number) => Promise<void>} io.sleep
  * @param {() => number} io.now
  */
-export async function verifyBranch(
+export async function verifyBranch(io, options) {
+  let result;
+  for (let round = 0; round < 3; round += 1) {
+    result = await verifyOnce(io, options);
+    if (!result.moved) break;
+  }
+  return result;
+}
+
+async function verifyOnce(
   { gh: run, sleep, now },
   { repo, branch, pr, pollMs = 30_000, mergeableMs = 60_000, appearMs = 5 * 60_000, finishMs = 80 * 60_000 }
 ) {
@@ -63,6 +77,13 @@ export async function verifyBranch(
 
   const mergeable = () =>
     run(['pr', 'view', String(pr), '--repo', repo, '--json', 'mergeable', '--jq', '.mergeable']).trim();
+  const behind = () => {
+    try {
+      return Number(run(['api', `repos/${repo}/compare/testing...${branch}`, '--jq', '.behind_by']).trim()) || 0;
+    } catch {
+      return 0;
+    }
+  };
   const conflict = () => ({ green: false, sha, failed: ['conflict'], log: CONFLICT_LOG });
 
   // GitHub works the answer out in the background, so UNKNOWN means ask again.
@@ -94,6 +115,10 @@ export async function verifyBranch(
       }
       if (now() > deadline) {
         if (mergeable() === 'CONFLICTING') return conflict();
+        // GitHub may never finish working out the answer (UNKNOWN), and starts no checks for
+        // a pull request that conflicts. A branch that is BEHIND testing and has no checks is
+        // sent to the repair agent, which merges testing in. That push starts the checks.
+        if (behind() > 0) return conflict();
         throw new Error(`${workflow} did not start on ${branch} at ${sha}`);
       }
       await sleep(pollMs);
@@ -127,7 +152,9 @@ export async function verifyBranch(
     return `===== ${workflow} run ${id}: ${done[workflow].conclusion} =====\n${tail(log)}`;
   });
 
-  return { green: failed.length === 0, sha, failed, log: logs.join('\n\n') };
+  const cancelled = failed.some((workflow) => done[workflow].conclusion === 'cancelled');
+  const head = run(['api', `repos/${repo}/git/ref/heads/${branch}`, '--jq', '.object.sha']).trim();
+  return { green: failed.length === 0, sha, failed, log: logs.join('\n\n'), moved: cancelled && head !== sha };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
