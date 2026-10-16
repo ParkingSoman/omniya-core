@@ -75,7 +75,8 @@ test('every gate job runs on macOS', () => {
   // suite drives a real Electron window. A job quietly moved to ubuntu to save
   // minutes would fail for reasons that look like the change under test.
   for (const { job } of REQUIRED) {
-    assert.match(workflow.jobs[job]['runs-on'], /^macos/, `${job} must run on macOS`);
+    // The label may come from the variable MAC_RUNNER (a mac label), and its default is macos-latest.
+    assert.match(workflow.jobs[job]['runs-on'], /^(macos|\$\{\{ vars\.MAC_RUNNER \|\| 'macos-latest' \}\}$)/, `${job} must run on macOS`);
   }
 });
 
@@ -89,14 +90,13 @@ test('every gate job has a timeout, so a hang fails instead of hanging', () => {
   }
 });
 
-test('a gate started by the pipeline is the same gate', () => {
-  // `workflow_dispatch` lets the pipeline run the checks on a bot-opened pull
-  // request, which GitHub otherwise holds for approval. It must not become a way
-  // to run a smaller set: the jobs are the same ones, with nothing added that
-  // could skip one.
-  assert.ok(triggers?.workflow_dispatch !== undefined, 'expected a workflow_dispatch trigger');
+test('the gate is started by the pull request itself, and by nothing else', () => {
+  // The pipeline opens its pull requests with its App's token, so GitHub starts
+  // this run itself. There is no `workflow_dispatch` any more, and no job may
+  // carry an `if` that could skip one.
+  assert.equal(triggers?.workflow_dispatch, undefined);
   for (const { job } of REQUIRED) {
-    assert.equal(workflow.jobs[job].if, undefined, `${job} must run on a dispatched run too`);
+    assert.equal(workflow.jobs[job].if, undefined, `${job} must always run`);
   }
 });
 

@@ -7,12 +7,12 @@
  *
  *   job crashed        -> `failed`   the pipeline's own words
  *   needs-design       -> `design`   the agent's words, then "a person decides"
- *   stopped            -> `stuck`    the agent's words, then "the maintainer will answer"
+ *   blocked            -> `stuck`    the agent's words, then "the maintainer will answer"
  *   asked              -> `asked`    the agent's question, and how to answer it
  *
  * The comment is ONE new comment, posted by `reply.mjs`, with the agent's words
  * from the MESSAGE environment variable inside it. `reply.mjs` also puts the
- * label on: `needs-maintainer` for `failed` and `stuck`, `needs-design` for
+ * label on: `needs-owner` for `failed` and `stuck`, `needs-design` for
  * `design`, and `needs-info` for `asked`, where a person is not needed because
  * the contributor is.
  *
@@ -34,7 +34,10 @@ export function decide(jobResult, word) {
   if (jobResult !== 'success') return 'failed';
   if (word === 'needs-design') return 'design';
   if (word === 'asked') return 'asked';
-  return 'stuck';
+  if (word === 'blocked') return 'stuck';
+  // Any other word, or none. `pipeline-agent.yml` fails the job on those before
+  // this runs, so this is a second lock. It is never a quiet hand-off.
+  return 'failed';
 }
 
 export function run({ issue, jobResult, word, repo, message }, post = postReply) {

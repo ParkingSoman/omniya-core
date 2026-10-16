@@ -36,5 +36,6 @@ contextBridge.exposeInMainWorld('omniya', {
   },
   exportNote: (request) => ipcRenderer.invoke('export:note', request),
   printNote: () => ipcRenderer.invoke('export:print'),
+  copyText: (text) => ipcRenderer.invoke('clipboard:writeText', text),
   openReleasePage: () => ipcRenderer.invoke('update:openReleasePage')
 });

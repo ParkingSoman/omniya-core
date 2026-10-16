@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { checkForNewerMacBuild, RELEASE_PAGE_URL } from './main/mac-update-check.js';
 import { buildExport } from './main/export-service.js';
 import { convertLatexToMathML } from './main/mathml.js';
+import { rendererSandboxEnabled } from './main/renderer-sandbox.js';
 import { exportLatex, importLatex } from './main/math-service.js';
 import { createSettingsStorage } from './main/settings-storage.js';
 import { createStorage } from './main/storage.js';
@@ -37,7 +38,9 @@ const runHeadless = process.env.OMNIYA_HEADLESS === '0'
 if (process.env.OMNIYA_TEST_USER_DATA_DIR) {
   app.setPath('userData', process.env.OMNIYA_TEST_USER_DATA_DIR);
 }
-app.enableSandbox();
+// Always on, except in an isolated test run inside an outer sandbox. See renderer-sandbox.js.
+const useRendererSandbox = rendererSandboxEnabled(process.env);
+if (useRendererSandbox) app.enableSandbox();
 
 function assertTrustedSender(event) {
   if (event.senderFrame?.url !== rendererUrl) {
@@ -108,6 +111,14 @@ function registerIpc(storage, settingsStorage) {
     event.sender.print({ printBackground: false });
     return { printed: true };
   });
+  // The page's own clipboard call needs window focus and a browser permission,
+  // and a contributor on Windows got an empty paste from it. The main
+  // process clipboard needs neither.
+  ipcMain.handle('clipboard:writeText', (event, text) => {
+    assertTrustedSender(event);
+    if (typeof text !== 'string') throw new TypeError('Clipboard text must be a string.');
+    clipboard.writeText(text);
+  });
   ipcMain.handle('update:openReleasePage', async (event) => {
     assertTrustedSender(event);
     await shell.openExternal(RELEASE_PAGE_URL);
@@ -122,7 +133,7 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true,
+      sandbox: useRendererSandbox,
       preload: path.join(sourceDirectory, 'preload.cjs'),
       // The build identity, for the renderer to display. Passed as an argv flag
       // rather than over IPC or in the URL: a sandboxed preload can read
@@ -265,9 +276,10 @@ function buildApplicationMenu() {
           click: () => sendMenuCommand({ action: 'keyboard-help' })
         },
         {
-          // Rides the existing menu-command bridge rather than adding an IPC
-          // handler: nothing crosses into the main process, so there is no new
-          // surface to guard with assertTrustedSender.
+          // Rides the menu-command bridge to the page, which builds the report.
+          // The page then hands the text to the main process to copy
+          // ('clipboard:writeText', guarded by assertTrustedSender), because the
+          // page's own clipboard call failed on a contributor's Windows machine.
           label: 'Copy braille input diagnostics',
           click: () => sendMenuCommand({ action: 'copy-input-diagnostics' })
         }

@@ -795,3 +795,12 @@ test('a degree sign does not turn the operator after it into a sign', async () =
 test('a plus straight after a degree sign, with no baseline indicator, is refused', () => {
   assert.throws(() => parseNemeth('⠼⠔⠴⠘⠨⠡⠬⠔⠴⠘⠨⠡'), NemethUnsupportedError);
 });
+
+// BANA 23.11 (test/corpus/sources/Nemeth_2022.txt line 11574; symbol table line
+// 11376): infinity is dot 6 then dots 123456, `,=` in Braille ASCII.
+test('infinity (BANA 23.11) reads as ∞, not as a capital sign followed by a stray cell', () => {
+  assert.equal(toLatexOf(',='), '∞');
+  assert.equal(toLatexOf('x+,='), 'x+∞');
+  assert.equal(toLatexOf('-,='), '-∞');
+  assert.equal(toLatexOf(',=x'), '∞x');
+});

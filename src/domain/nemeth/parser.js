@@ -67,7 +67,7 @@ import {
 } from './ast.js';
 import { NemethUnsupportedError } from './errors.js';
 
-const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen', 'degree']);
+const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'constant', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen', 'degree']);
 
 function peek(state) {
   return state.index < state.tokens.length ? state.tokens[state.index] : null;
@@ -393,6 +393,14 @@ function parsePrimary(state, level) {
     case 'letter':
       advance(state);
       return Identifier(token.value, { src: spanFrom(state, start), marks });
+    // BANA 23.11 infinity. The AST has no node for a named constant and adding
+    // one would touch every backend's exhaustive dispatch for a single glyph, so
+    // it is an `Operator` whose glyph is the Unicode ∞, as `±` and `÷` are written. It is
+    // reached from here, not from `isOperatorAt`, so it is still an operand:
+    // `x+∞` parses as x, +, ∞ and never as two operators in a row.
+    case 'constant':
+      advance(state);
+      return Operator(token.value, { src: spanFrom(state, start), marks });
     case 'degree':
       // BANA 23.10 (Nemeth_2022.txt line 11565): the hollow dot means degrees
       // only "at the superscript level", where the Code has it written (Examples
