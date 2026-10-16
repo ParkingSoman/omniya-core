@@ -91,6 +91,18 @@ export function speechLabelFor(container) {
 }
 
 /**
+ * The braille MathJax makes for a rendered equation (Nemeth: it writes the Nemeth
+ * equals sign for `y=x`). MathJax puts it on the container as
+ * `data-semantic-braille`. Empty until MathJax has made it.
+ */
+export function brailleLabelFor(container) {
+  const mj = container.querySelector('mjx-container');
+  const label = mj?.getAttribute('data-semantic-braille')
+    || container.querySelector('mjx-speech')?.getAttribute('aria-braillelabel');
+  return (label ?? '').trim();
+}
+
+/**
  * Speech is generated after the equation is drawn, so it can arrive a moment
  * late. Wait for it, but not forever: the caller falls back to the source text.
  */
