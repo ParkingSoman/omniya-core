@@ -558,6 +558,42 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'letter that abuts another letter was considered and rejected: BANA Example 14-44 (line ' +
       '6507, `,na2,c,o3` = Na2CO3) is exactly that shape and the Code says the subscript ' +
       'indicator is NOT required there.'
+  },
+  // BANA 11.1.1 (Nemeth_2022.txt line 5094): one general omission symbol stands
+  // for a question mark, a blank, or either with hyphens or dashes. The four
+  // cases below are print forms the Code deliberately collapses into that one
+  // cell, so the cells cannot say which print form the corpus started from.
+  'mathcat-rules:omission_57_1': {
+    cause: 'unencoded-attribute',
+    reason:
+      'Cells `⠷⠿⠾⠘⠒⠀⠨⠅⠀⠼⠆⠶` = (?)^3 = 27, BANA Example 11-1. Element for element identical to ' +
+      'the target; MathJax puts stretchy="false" on both parentheses and the stored MathML omits ' +
+      'it. Verified with this gate: our `{(?)}^{3}=27` compares EQUAL to the target with ' +
+      'stretchy="false" added.'
+  },
+  'mathcat-rules:omission_57_5': {
+    cause: 'formatting-only',
+    reason:
+      'Cells `⠼⠶⠤⠿⠀⠨⠅⠀⠼⠢` = 7 - ? = 5, BANA Example 11-5. The print question mark is underlined ' +
+      'and the target wraps it in <menclose notation="bottom">; Rule 11.1.1 writes it as the same ' +
+      'general omission symbol as a plain one. Verified with this gate: our `7-?=5` compares ' +
+      'EQUAL to the target without the menclose.'
+  },
+  'mathcat-rules:omission_57_6': {
+    cause: 'formatting-only',
+    reason:
+      'Cells `⠼⠔⠤⠢⠀⠨⠅⠀⠿` = 9 - 5 = -?-, BANA Example 11-6. The print omission is a question mark ' +
+      'between hyphens, which the target keeps as <mtext>-?-</mtext>; Rule 11.1.1 says a question ' +
+      'mark in combination with hyphens or dashes is one general omission symbol. Verified with ' +
+      'this gate: our `9-5=?` compares EQUAL to the target with a plain <mo>?</mo>.'
+  },
+  'mathcat-rules:omission_57_8': {
+    cause: 'formatting-only',
+    reason:
+      'Cells `⠼⠢⠈⠡⠆⠢⠀⠨⠅⠀⠿` = 5 x 25 = (blank), BANA Example 11-8. The print omission is a ' +
+      'blank space, which the target keeps as <mspace width="1.5em"/>; Rule 11.1.1 writes a ' +
+      'blank space as the same general omission symbol as a question mark. Verified with this ' +
+      'gate: our `5×25=?` compares EQUAL to the target with a plain <mo>?</mo>.'
   }
 };
 
@@ -606,6 +642,7 @@ const PASS_IDS = new Set([
   "mathcat-rules:multipurpose_lesson_5_2_5",
   "mathcat-rules:nested_sub_sup_74_c_5",
   "mathcat-rules:nested_sup_74_b_1",
+  "mathcat-rules:omission_57_4",
   "mathcat-rules:nested_sup_74_b_4",
   "mathcat-rules:nested_super_79_a_2",
   "mathcat-rules:nested_super_79_a_3",
@@ -836,7 +873,7 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (29 equivalent-encoding, 7 formatting-only, 6 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
+test('DISAGREE: the many-to-one sub-causes are represented as expected (29 equivalent-encoding, 10 formatting-only, 6 unencoded-boundary, 4 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
   const byCause = {
     'equivalent-encoding': 0,
     'formatting-only': 0,
@@ -848,9 +885,9 @@ test('DISAGREE: the many-to-one sub-causes are represented as expected (29 equiv
   };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
   assert.equal(byCause['equivalent-encoding'], 29);
-  assert.equal(byCause['formatting-only'], 7);
+  assert.equal(byCause['formatting-only'], 10);
   assert.equal(byCause['unencoded-boundary'], 6);
-  assert.equal(byCause['unencoded-attribute'], 3);
+  assert.equal(byCause['unencoded-attribute'], 4);
   assert.equal(byCause.homograph, 2);
   assert.equal(byCause['glyph-spelling'], 2);
   assert.equal(byCause['text-vs-math'], 1);
