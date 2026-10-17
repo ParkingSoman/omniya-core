@@ -185,6 +185,34 @@ test('netChange drops hunk headers and sorts the lines', () => {
   assert.equal(sameChange(change, change).same, true);
 });
 
+// A repair merge that regenerates a report a test already checks. `file` is that report's path.
+function scenarioWithReport(file) {
+  const r = repo();
+  r.git('checkout', '-q', '-b', 'fix');
+  const base = r.lines(20).split('\n');
+  base.splice(10, 0, 'FIX ADDED');
+  const A = r.commit('the fix', { 'src/a.js': base.join('\n'), [file]: 'counts 1\n' });
+  r.git('checkout', '-q', 'testing');
+  r.commit('testing moves', { 'src/other.js': 'other changed\n' });
+  r.git('checkout', '-q', 'fix');
+  r.git('merge', '-q', '--no-ff', '--no-commit', 'testing');
+  r.write(file, 'counts 2\n');
+  r.git('add', '-A');
+  r.git('commit', '-q', '-m', 'Merge branch testing into fix, report regenerated');
+  return { ...r, A, M: r.git('rev-parse', 'HEAD') };
+}
+
+test('rule 3: the corpus report a script writes and a test checks may differ, because the repair regenerates it', () => {
+  const s = scenarioWithReport('docs/nemeth-v2/coverage.md');
+  assert.deepEqual(decide(s), { carry: true, reason: 'same-fix' });
+  assert.deepEqual([...netChange(s.run, s.M, 'testing').keys()], ['src/a.js']);
+});
+
+test('rule 3: any other file that differs after the approval still means a different fix', () => {
+  const s = scenarioWithReport('docs/notes.md');
+  assert.deepEqual(decide(s), { carry: false, reason: 'fix-changed: docs/notes.md' });
+});
+
 // findApproval(): the hand-off's record, the person behind it, and whether the conversation moved on.
 const bot = (id, state, at = '2026-10-10T10:00:00Z') => ({ id, created_at: at, body: renderReply(state, { repo: 'o/r', pr: 5, message: 'Some words.' }), user: { login: 'github-actions[bot]' } });
 const person = (id, body, login = 'blind-user', at = id <= 2 ? '2026-10-10T11:00:00Z' : `2026-10-10T12:${String(id).padStart(2, '0')}:00Z`) => ({ id, created_at: at, body, user: { login } });
@@ -246,6 +274,18 @@ test('approval: the wording from before the hidden state line existed is allowed
   assert.ok(findApproval({ issueAuthor: 'blind-user', comments: [...issueThread, legacySent, legacyMaintainer], prComments: [record(10)] }).approval);
   const changed = { ...legacySent, body: legacySent.body.replace('Thank you.', 'Thank you very much.') };
   assert.equal(findApproval({ issueAuthor: 'blind-user', comments: [...issueThread, changed], prComments: [record(10)] }).approval, null);
+});
+
+test('approval: the old hold wording of each waiting state, from before the state line, does not void it', () => {
+  // What the pipeline said on issues 71 and 73 on 2026-10-14: no state line, same words as today.
+  for (const state of ['maintainer', 'sent-automation', 'sent-owner']) {
+    const lines = renderReply(state).trim().split('\n');
+    const old = { id: 3, created_at: 'x', body: [lines[0], ...lines.slice(2)].join('\n') + '\n', user: { login: 'github-actions[bot]' } };
+    assert.equal(replyState(old.body), '', state);
+    assert.ok(findApproval({ issueAuthor: 'blind-user', comments: [...issueThread, old], prComments: [record(10)] }).approval, state);
+    const changed = { ...old, body: old.body.replace('Thank you', 'Thank you very much').replace('The maintainer', 'The maintainers') };
+    assert.equal(findApproval({ issueAuthor: 'blind-user', comments: [...issueThread, changed], prComments: [record(10)] }).approval, null, state);
+  }
 });
 
 test('approval: a person who writes the bot marker is not the bot', () => {
