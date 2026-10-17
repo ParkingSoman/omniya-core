@@ -176,7 +176,9 @@ export const toLatex = defineBackend(
     // lines 808-810) describes. The decimal point needs no such help.
     Number: (node) => withTypeform(node.value.replaceAll(',', '{,}'), node),
     Identifier: (node) => withTypeform(letterGlyph(node), node),
-    Operator: (node) => node.glyph,
+    // `%` starts a comment in LaTeX, so the percent sign has to be escaped to reach
+    // MathJax as a character; `‰` is a plain Unicode character and needs nothing.
+    Operator: (node) => (node.glyph === '%' ? '\\%' : node.glyph),
     Sequence: (node, emit) => concat(node.items.map((item) => emit(item))),
     Fraction: (node, emit) => `\\frac{${emit(node.numerator)}}{${emit(node.denominator)}}`,
     Root: (node, emit) =>

@@ -538,6 +538,15 @@ function parseUnary(state, level, items) {
   }
   // A prefix sign must be followed by an operand; parsePostfix refuses if not.
   items.push(parsePostfix(state, level));
+  // Rule 23.15 (Nemeth_2022.txt lines 11710-11712, page 23-10): percent and per
+  // mille are "unspaced from the material to which they apply", so they can only
+  // be read directly after an operand. Like the signs of operation they are pushed
+  // as plain `Operator` items, asserting no more than `<mo>%</mo>` does; a mark
+  // with no operand before it never gets here and is refused as a leftover token.
+  while (atLevel(state, level) && peek(state).kind === 'postfixMark') {
+    const mark = advance(state);
+    items.push(Operator(mark.value, { src: [mark.offset, mark.offset + mark.len] }));
+  }
 }
 
 function parseTerms(state, level, stop = null) {

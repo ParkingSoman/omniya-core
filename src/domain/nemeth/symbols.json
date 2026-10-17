@@ -713,6 +713,18 @@
     "banaRef": "23.10"
   },
   {
+    "cells": "⠈⠴",
+    "kind": "postfixMark",
+    "value": "%",
+    "banaRef": "23.15"
+  },
+  {
+    "cells": "⠈⠴⠴",
+    "kind": "postfixMark",
+    "value": "‰",
+    "banaRef": "23.15"
+  },
+  {
     "cells": "⠈⠱⠈⠱",
     "kind": "comparison",
     "role": "comparison",

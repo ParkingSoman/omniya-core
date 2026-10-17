@@ -796,6 +796,25 @@ test('a plus straight after a degree sign, with no baseline indicator, is refuse
   assert.throws(() => parseNemeth('⠼⠔⠴⠘⠨⠡⠬⠔⠴⠘⠨⠡'), NemethUnsupportedError);
 });
 
+// Rule 23.15 (Nemeth_2022.txt lines 11710-11726, page 23-10): percent @0 and per
+// mille @00 are unspaced from the material they apply to. Examples 23-31..33.
+test('the percent sign follows a numeral or a letter: 7%, x%', () => {
+  assert.equal(toLatexOf('#7@0'), '7\\%');
+  assert.equal(toLatexOf('x@0'), 'x\\%');
+});
+
+test('the per mille sign is read as one symbol, not as a percent sign and a zero', () => {
+  assert.equal(toLatexOf('#10@00'), '10‰');
+});
+
+test('percent signs sit inside a sum and beside a comparison sign (Example 8-59 shape)', () => {
+  assert.equal(toLatexOf('#2@0+3@0 .k #5@0'), '2\\%+3\\%=5\\%');
+});
+
+test('a percent sign with nothing before it is still refused', () => {
+  assert.throws(() => toLatexOf('@0'), NemethUnsupportedError);
+});
+
 // BANA 23.11 (test/corpus/sources/Nemeth_2022.txt line 11574; symbol table line
 // 11376): infinity is dot 6 then dots 123456, `,=` in Braille ASCII.
 test('infinity (BANA 23.11) reads as ∞, not as a capital sign followed by a stray cell', () => {
