@@ -38,7 +38,7 @@ position, not a category; the offending codepoint is kept since it is).
 |---:|---|---|
 | 60 | an alphabetic or capitalization indicator governs a blank, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a blank either | `mathcat-rules:colon_40_2` |
 | 31 | no Nemeth symbol starts at cell N (U+282B "⠫") | `mathcat-rules:arrow_96_1` |
-| 29 | expected the start of a term at level "" | `mathcat-rules:brace_above_121_1` |
+| 30 | expected the start of a term at level "" | `mathcat-rules:brace_above_121_1` |
 | 20 | no Nemeth symbol starts at cell N (U+2804 "⠄") | `mathcat-rules:ellipsis_43_b_3` |
 | 20 | the cell ":" is a letter only after the Greek-letter indicator (BANA 6.1.4) | `mathcat-rules:bar_97_b_1` |
 | 19 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:above_and_below_88_2` |
@@ -58,12 +58,12 @@ position, not a category; the offending codepoint is kept since it is).
 | 4 | indicator "," cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:cap_roman_numeral_18_a_3` |
 | 3 | a "_" script between two baseline indicators is a left script | `mathcat-rules:left_sub_14_104` |
 | 3 | a numeral at the start of the input or after a space needs the numeric indicator BANA Rule 3.3.1 requires, so these cells are not the number they resemble | `mathcat-rules:test_9_b_1` |
-| 3 | a typeform indicator governs a letter; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:dash_42_6` |
 | 3 | an alphabetic or capitalization indicator governs a radIndex, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a radIndex either | `mathcat-rules:nested_root_105_2` |
 | 3 | an alphabetic or capitalization indicator governs a radOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a radOpen either | `mathcat-rules:nested_sqrt_105_1` |
 | 3 | no Nemeth symbol starts at cell N (U+282E "⠮") | `mathcat-rules:in_scripts_comparison_151_17` |
 | 2 | a "_" script on a base already carrying "_" needs a baseline indicator before it | `mathcat-rules:sub_ind_mmultiscripts_80_b_3` |
 | 2 | a "^" script on a base already carrying "^" needs a baseline indicator before it | `mathcat-rules:nested_sup_sup_space_79_d_9` |
+| 2 | a typeform indicator governs a letter; BANA Rule 7.2.1 requires an alphabetic indicator for a letter and 7.2.2 a numeric indicator for a numeral | `mathcat-rules:ellipsis_43_b_5` |
 | 2 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require | `sre-aata:AataExpression_334` |
 | 2 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:mixed_frac_63_a_1` |
 | 2 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a groupOpen either | `mathcat-rules:identity_matrix_126_linearize` |
