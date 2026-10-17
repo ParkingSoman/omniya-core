@@ -713,6 +713,12 @@
     }
   },
   {
+    "cells": "⠨⠡",
+    "kind": "degree",
+    "value": "°",
+    "banaRef": "23.10"
+  },
+  {
     "cells": "⠈⠴",
     "kind": "postfixMark",
     "value": "%",
