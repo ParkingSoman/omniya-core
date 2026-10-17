@@ -546,6 +546,18 @@ function parseUnary(state, level, items) {
     advance(state);
     items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));
   }
+  // BANA Rule 23.13 (Nemeth_2022.txt lines 11655-11662): a monetary symbol is
+  // "unspaced from the material to which [it] applies", and no numeric
+  // indicator stands between it and the number after it. So it is read as a
+  // sign written before its operand, like the sign above, and it may follow
+  // one (`-$2`). Its cells, `⠈⠎`, are also a script indicator followed by the
+  // letter s, but Rule 7.2.1 never lets a typeform indicator stand before a
+  // letter without an alphabetic one between, so no valid script reading is lost.
+  const currency = peek(state);
+  if (currency && currency.kind === 'currency' && currency.level === level) {
+    advance(state);
+    items.push(Operator(currency.value, { src: [currency.offset, currency.offset + currency.len] }));
+  }
   // A prefix sign must be followed by an operand; parsePostfix refuses if not.
   items.push(parsePostfix(state, level));
   // Rule 23.15 (Nemeth_2022.txt lines 11710-11712, page 23-10): percent and per

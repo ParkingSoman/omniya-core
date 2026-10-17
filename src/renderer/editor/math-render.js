@@ -1,6 +1,8 @@
 // Draw one equation with the local MathJax. Ported from the old `renderEquation`
 // in app.js, without the item-list state. Nothing here knows about the editor.
 
+import { spokenCurrency } from '../../domain/currency-speech.js';
+
 let mathJaxReady;
 
 export async function waitForMathJax() {
@@ -82,12 +84,13 @@ export async function renderMathInto(container, mathml, { isStale = () => false 
  * What a reader should say for a rendered equation, read from MathJax's own speech.
  * MathJax puts the plain text on the container as `data-semantic-speech-none`.
  * (`data-semantic-speech` is the same text with SSML marks, so it is not used.)
+ * A dollar amount is reworded to the way it is said, "2 dollars" (issue #52).
  */
 export function speechLabelFor(container) {
   const mj = container.querySelector('mjx-container');
   const label = mj?.getAttribute('data-semantic-speech-none')
     || container.querySelector('mjx-speech')?.getAttribute('aria-label')?.replace(/,\s*math$/, '');
-  return (label ?? '').trim();
+  return spokenCurrency(label ?? '').trim();
 }
 
 /**
