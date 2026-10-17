@@ -1,0 +1,30 @@
+{
+  "note": "The protected set holds only sensitive code, and sensitive code lives only in the protected set. The lists of what is lock and what is ship-it live in zones.json, the one map. Lock means the files that decide who may merge what: the owner says it in chat AND the strictness check finds the change no looser. Ship-it means the owner says it in chat. Baseline is the number of sensitive lines each file holds today. It may only go down. A new sensitive line in a file that is not listed here is a change to this file, and so a change to the lock.",
+  "maxCodeLinesProtected": 300,
+  "maxCodeLinesProtectedTest": 500,
+  "baseline": {
+    ".github/workflows/pipeline-agent.yml": 14,
+    ".github/workflows/pipeline-carry.yml": 15,
+    ".github/workflows/pipeline-fix.yml": 18,
+    ".github/workflows/pipeline-followup.yml": 41,
+    ".github/workflows/pipeline-keep-current.yml": 13,
+    ".github/workflows/pipeline-ready.yml": 13,
+    ".github/workflows/pipeline-rescued.yml": 8,
+    ".github/workflows/pipeline-ship.yml": 8,
+    ".github/workflows/pipeline-signoff.yml": 2,
+    ".github/workflows/pipeline-verify.yml": 16,
+    ".github/workflows/pr-build.yml": 9,
+    ".github/workflows/testing-app.yml": 7,
+    "scripts/ci/add-contributor.mjs": 2,
+    "scripts/ci/agent-digest.mjs": 1,
+    "scripts/ci/carry-over.mjs": 2,
+    "scripts/ci/hand-off.mjs": 5,
+    "scripts/ci/job-power.mjs": 3,
+    "scripts/ci/keep-current.mjs": 2,
+    "scripts/ci/lock-corpus.mjs": 21,
+    "scripts/ci/ready-status.mjs": 2,
+    "scripts/ci/reply.mjs": 2,
+    "scripts/ci/ship-pipeline-pr.mjs": 10,
+    "scripts/ci/zones.json": 1
+  }
+}

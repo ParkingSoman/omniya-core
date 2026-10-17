@@ -12,17 +12,22 @@ const triggers = workflow.on ?? workflow[true];
 // The commands that must actually decide whether a pull request may merge.
 // Named here rather than inferred, so that deleting a job is a test failure
 // instead of a silently smaller gate.
+// `retried` is a job whose command runs through scripts/ci/retry-once.mjs: it runs the command a
+// second time only when the first fails, and fails with the second try's exit code, so a real failure
+// stays red (test/unit/pipeline/retry-once.test.js runs it for real). The Nemeth gate is not
+// retried: its numbers do not flake.
+const RETRY = 'node scripts/ci/retry-once.mjs ';
 const REQUIRED = [
-  { job: 'unit', run: 'npm test' },
+  { job: 'unit', run: 'npm test', retried: true },
   { job: 'nemeth', run: 'node scripts/ci/nemeth-gate.mjs' },
-  { job: 'e2e', run: 'npm run test:e2e' }
+  { job: 'e2e', run: 'npm run test:e2e', retried: true, limit: '--limit-min 18 ' }
 ];
 
 test('no gate can be skipped', () => {
   // Three separate ways a gate stops being a gate while still showing a green
   // tick. Every one of them has to be closed, because the checks that watch a
   // run's conclusion cannot tell a passing gate from a gate that could not fail.
-  for (const { job, run } of REQUIRED) {
+  for (const { job, run, retried, limit = '' } of REQUIRED) {
     const definition = workflow.jobs?.[job];
     assert.ok(definition, `expected a \`${job}\` job`);
 
@@ -30,7 +35,7 @@ test('no gate can be skipped', () => {
     assert.equal(definition.if, undefined, `the ${job} job must not be behind an \`if\``);
     assert.equal(definition['continue-on-error'], undefined, `the ${job} job must not continue-on-error`);
 
-    const step = (definition.steps ?? []).find((s) => s.run === run);
+    const step = (definition.steps ?? []).find((s) => s.run === (retried ? RETRY + limit + run : run));
     assert.ok(step, `the ${job} job must run \`${run}\` as its own step`);
 
     // 2. The step made advisory.
@@ -71,11 +76,12 @@ test('the gate cannot write to the repository', () => {
 });
 
 test('every gate job runs on macOS', () => {
-  // `scripts/stage-liblouis.mjs` supports darwin and win32 only, and the e2e
+  // `scripts/build/stage-liblouis.mjs` supports darwin and win32 only, and the e2e
   // suite drives a real Electron window. A job quietly moved to ubuntu to save
   // minutes would fail for reasons that look like the change under test.
   for (const { job } of REQUIRED) {
-    assert.match(workflow.jobs[job]['runs-on'], /^macos/, `${job} must run on macOS`);
+    // The label may come from the variable MAC_RUNNER (a mac label), and its default is macos-latest.
+    assert.match(workflow.jobs[job]['runs-on'], /^(macos|\$\{\{ vars\.MAC_RUNNER \|\| 'macos-latest' \}\}$)/, `${job} must run on macOS`);
   }
 });
 
@@ -89,14 +95,19 @@ test('every gate job has a timeout, so a hang fails instead of hanging', () => {
   }
 });
 
-test('a gate started by the pipeline is the same gate', () => {
-  // `workflow_dispatch` lets the pipeline run the checks on a bot-opened pull
-  // request, which GitHub otherwise holds for approval. It must not become a way
-  // to run a smaller set: the jobs are the same ones, with nothing added that
-  // could skip one.
-  assert.ok(triggers?.workflow_dispatch !== undefined, 'expected a workflow_dispatch trigger');
+test('the gate is started by the pull request itself, and by nothing else', () => {
+  // The pipeline opens its pull requests with its App's token, so GitHub starts
+  // this run itself. There is no `workflow_dispatch` any more, and no job may
+  // carry an `if` that could skip one.
+  assert.equal(triggers?.workflow_dispatch, undefined);
   for (const { job } of REQUIRED) {
-    assert.equal(workflow.jobs[job].if, undefined, `${job} must run on a dispatched run too`);
+    assert.equal(workflow.jobs[job].if, undefined, `${job} must always run`);
   }
 });
 
+
+test('two tries of the e2e job fit inside its timeout, so a hang is stopped and the second try still runs', () => {
+  const limit = Number(/--limit-min (\d+)/.exec(source)?.[1]);
+  assert.ok(limit > 0, 'the e2e step has a limit for one try');
+  assert.ok(limit * 2 < workflow.jobs.e2e['timeout-minutes'], 'both tries fit before the job is killed');
+});
