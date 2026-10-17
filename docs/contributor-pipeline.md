@@ -137,6 +137,7 @@ flowchart TD
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, reports on the issue. |
 | `.github/workflows/pipeline-rescued.yml` | `testing` | A person fixed a fix the pipeline gave up on. When the checks and the build go green, the contributor gets the test build on the issue, once. |
 | `.github/workflows/pipeline-keep-current.yml` | `testing` | Every push to `testing`, weekly, and when a hand-off finds a conflict. Updates open fix branches. A conflict goes to the repair agent, in a manual run the push starts: the agent refuses a push, and accepts the Actions bot only for a manual run. |
+| `.github/workflows/pipeline-carry.yml` | `testing` | When a fix branch's checks finish, and every 20 minutes. If `keep-current` moved the head after the contributor said it works, and the fix's own added and removed lines are the same (`scripts/ci/carry-over.mjs`, every rule fails closed), the hand-off runs for the new head and the contributor is told once. Otherwise they get the `revised` notice as before. |
 | `.github/workflows/pipeline-ship.yml` | `testing` | By hand, from a chat session, after the owner says "ship it". Merges a `pipeline/` pull request that changed the automation. It replaces the bypass tick. |
 | `.github/workflows/pipeline-ready.yml` | `testing` | A pull request opens or moves, the owner approves, or the checks finish. Posts the merge-box status: what it waits for, then green once the owner approved this commit and the checks pass. |
 | `.github/workflows/pipeline-review-ping.yml` | `testing` | Runs when a review is approved, holds no secret, and only lets `pipeline-ready.yml` start from `testing`. |
@@ -182,8 +183,7 @@ Every file is on the allow list. Scripts are read by their changed lines, workfl
   pull request that adds the handle to `.github/contributors.yml`, and invites them
   as a collaborator. Merge it, and they accept the invitation. Use `--dry-run`
   first. To remove one, delete their line in a pull request.
-- A report started nothing: open the Actions tab, choose `pipeline-fix`, press
-  "Run workflow", and type the issue number. It is gated by who wrote the issue.
+- A report started nothing: run `pipeline-fix` from the Actions tab with the issue number. It is gated by who wrote the issue.
 - An issue is stuck on `needs-design` or `needs-info`: write `@claude` yourself on
   the issue, or run `pipeline-fix` by hand. Your comment is the decision.
 - A contributor has no write access: `needs-owner` is set and the run is red.
