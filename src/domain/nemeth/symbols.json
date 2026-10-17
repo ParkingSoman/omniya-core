@@ -313,6 +313,12 @@
     "banaRef": "20.6"
   },
   {
+    "cells": "⠈⠎",
+    "kind": "currency",
+    "value": "\\$",
+    "banaRef": "23.13"
+  },
+  {
     "cells": "⠨⠌",
     "kind": "op",
     "value": "÷",
@@ -711,6 +717,18 @@
     "kind": "omission",
     "value": "?",
     "banaRef": "11.1.1"
+  },
+  {
+    "cells": "⠈⠴",
+    "kind": "postfixMark",
+    "value": "%",
+    "banaRef": "23.15"
+  },
+  {
+    "cells": "⠈⠴⠴",
+    "kind": "postfixMark",
+    "value": "‰",
+    "banaRef": "23.15"
   },
   {
     "cells": "⠈⠱⠈⠱",
