@@ -78,3 +78,9 @@ jobs:
           ONLY: ${{ inputs.pr_number }}
           DRY: ${{ inputs.dry }}
         run: node scripts/ci/carry-over.mjs
+      # One reminder, once, for a fix whose build has waited a week for a contributor who has not
+      # written (`scripts/ci/remind.mjs`). It posts as `github-actions`, like every other reply.
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          DRY: ${{ inputs.dry }}
+        run: node scripts/ci/remind.mjs
