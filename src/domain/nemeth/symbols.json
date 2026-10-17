@@ -713,6 +713,12 @@
     }
   },
   {
+    "cells": "⠈⠉",
+    "kind": "unit",
+    "value": "¢",
+    "banaRef": "23.13"
+  },
+  {
     "cells": "⠈⠴",
     "kind": "postfixMark",
     "value": "%",
