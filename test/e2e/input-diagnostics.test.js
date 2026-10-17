@@ -129,3 +129,65 @@ test('the report covers the whole session, across several equations, not the las
   // All three commits are in it, and the verdict is still the last word.
   assert.equal((report.match(/commit .*verdict=accepted/g) ?? []).length, 3);
 });
+
+// The tests above read the report through a test hook. These go the way a
+// person does: the real Help menu item, or the real button, then the real
+// clipboard. A contributor's copy failed while the hook-based tests stayed green.
+const SENTINEL = 'SENTINEL-NOT-A-REPORT';
+const readClipboard = (app) => app.evaluate(({ clipboard }) => clipboard.readText());
+const announced = (page, pattern) => page.waitForFunction(
+  (source) => new RegExp(source).test(document.querySelector('#announcer')?.textContent ?? ''),
+  pattern
+);
+
+async function typeNegativeSuperscript(t, prefix) {
+  const { electronApp, page } = await launch(t, prefix);
+  await electronApp.evaluate(({ clipboard }, text) => clipboard.writeText(text), SENTINEL);
+  await openEquationDock(page, 'nemeth');
+  await page.keyboard.type('x^-2');
+  await readStatus(page, 'read as');
+  return { electronApp, page };
+}
+
+function assertReport(clip) {
+  assert.match(clip, /Omniya Core — braille input diagnostics/);
+  assert.match(clip, /keydown .*key="x"/, 'the typed keystrokes are in the copied report');
+}
+
+test('Help menu item copies the report to the real clipboard', { timeout: 90_000 }, async (t) => {
+  const { electronApp, page } = await typeNegativeSuperscript(t, 'omniya-diag-menu-');
+  await electronApp.evaluate(({ Menu }) => {
+    const find = (items) => {
+      for (const item of items) {
+        if (item.label === 'Copy braille input diagnostics') return item;
+        const hit = item.submenu && find(item.submenu.items);
+        if (hit) return hit;
+      }
+    };
+    find(Menu.getApplicationMenu().items).click();
+  });
+  await announced(page, 'diagnostics copied');
+  assertReport(await readClipboard(electronApp));
+});
+
+test('the button in Keyboard shortcuts copies the report', { timeout: 90_000 }, async (t) => {
+  const { electronApp, page } = await typeNegativeSuperscript(t, 'omniya-diag-button-');
+  await page.click('#keyboard-help-button');
+  await page.focus('#copy-diagnostics');
+  await page.keyboard.press('Enter');
+  await announced(page, 'diagnostics copied');
+  assertReport(await readClipboard(electronApp));
+});
+
+test('a failed copy is announced, never silent', { timeout: 90_000 }, async (t) => {
+  const { electronApp, page } = await typeNegativeSuperscript(t, 'omniya-diag-fail-');
+  // The bridge object in the page is frozen, so break the copy where it happens.
+  await electronApp.evaluate(({ ipcMain }) => {
+    ipcMain.removeHandler('clipboard:writeText');
+    ipcMain.handle('clipboard:writeText', () => { throw new Error('no clipboard'); });
+  });
+  await page.click('#keyboard-help-button');
+  await page.click('#copy-diagnostics');
+  await announced(page, 'Could not copy');
+  assert.equal(await readClipboard(electronApp), SENTINEL, 'the clipboard is untouched');
+});

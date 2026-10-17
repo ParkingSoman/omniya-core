@@ -313,6 +313,12 @@
     "banaRef": "20.6"
   },
   {
+    "cells": "⠈⠎",
+    "kind": "currency",
+    "value": "\\$",
+    "banaRef": "23.13"
+  },
+  {
     "cells": "⠨⠌",
     "kind": "op",
     "value": "÷",
@@ -561,6 +567,16 @@
     }
   },
   {
+    "cells": "⠌⠨⠅",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≠",
+    "banaRef": "21.1",
+    "unlessUnspaced": {
+      "maxLen": 1
+    }
+  },
+  {
     "cells": "⠸⠇",
     "kind": "comparison",
     "role": "comparison",
@@ -711,6 +727,28 @@
       "role": "binary",
       "value": "〜",
       "banaRef": "20"
+    }
+  },
+  {
+    "cells": "⠈⠴",
+    "kind": "postfixMark",
+    "value": "%",
+    "banaRef": "23.15"
+  },
+  {
+    "cells": "⠈⠴⠴",
+    "kind": "postfixMark",
+    "value": "‰",
+    "banaRef": "23.15"
+  },
+  {
+    "cells": "⠈⠱⠈⠱",
+    "kind": "comparison",
+    "role": "comparison",
+    "value": "≈",
+    "banaRef": "21",
+    "unlessUnspaced": {
+      "maxLen": 1
     }
   }
 ]

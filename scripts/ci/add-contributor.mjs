@@ -6,9 +6,11 @@
  * It needs the GitHub CLI logged in as the maintainer (`gh auth status`). It
  * does two things, and each one is useless without the other:
  *
- *   1. Adds the handle to `.github/contributors.yml` ON `main`. The pipeline
- *      reads the list from `main` only, because GitHub starts its workflows from
- *      the default branch. Editing a copy anywhere else changes nothing.
+ *   1. Opens a pull request on `testing` that adds the handle to
+ *      `.github/contributors.yml`. `testing` is the default branch and the
+ *      pipeline reads the list from it. `testing` requires pull requests, so
+ *      this branches (`contributors/add-<handle>`) and opens one; it does not
+ *      push to `testing`. The list changes when you merge that pull request.
  *   2. Invites the handle to the repository as a collaborator with write access,
  *      so they can open the pull request page and close their own issue.
  *
@@ -19,7 +21,7 @@
  * issue and fails a job when a listed person cannot write.
  *
  * `--dry-run` prints what would change and changes nothing. `--no-invite` skips
- * step 2. Removing somebody is deleting their line from the same file on `main`.
+ * step 2. Removing somebody is deleting their line from the same file on `testing`.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -63,6 +65,11 @@ export function addHandle(text, handle) {
   return result;
 }
 
+export const BASE = 'testing';
+
+/** The branch the allowlist change goes on. The handle is already validated. */
+export const branchFor = (handle) => `contributors/add-${handle}`;
+
 const gh = (...args) => execFileSync('gh', args, { encoding: 'utf8' });
 
 const invokedDirectly = process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop());
@@ -82,24 +89,33 @@ if (invokedDirectly) {
   const repo = gh('repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner').trim();
   gh('api', `users/${handle}`); // throws when the account does not exist
 
-  const file = JSON.parse(gh('api', `repos/${repo}/contents/.github/contributors.yml?ref=main`));
+  const file = JSON.parse(gh('api', `repos/${repo}/contents/.github/contributors.yml?ref=${BASE}`));
   const before = Buffer.from(file.content, 'base64').toString('utf8');
   const after = addHandle(before, handle);
+  const branch = branchFor(handle);
 
   if (after === before) {
-    console.log(`${handle} is already on the allowlist on main.`);
+    console.log(`${handle} is already on the allowlist on ${BASE}.`);
   } else if (dryRun) {
-    console.log(`Would add ${handle} to .github/contributors.yml on main:\n`);
+    console.log(`Would open a pull request into ${BASE} (branch ${branch}) that adds ${handle} to .github/contributors.yml:\n`);
     console.log(after.split('\n').filter((l) => /^contributors:|^\s+-\s/.test(l)).join('\n'));
   } else {
+    const base = gh('api', `repos/${repo}/git/ref/heads/${BASE}`, '--jq', '.object.sha').trim();
+    gh('api', '-X', 'POST', `repos/${repo}/git/refs`, '-f', `ref=refs/heads/${branch}`, '-f', `sha=${base}`);
+    // The file's sha on `testing` is the one the branch starts from.
     gh(
       'api', '-X', 'PUT', `repos/${repo}/contents/.github/contributors.yml`,
       '-f', `message=Add ${handle} to the contributor allowlist`,
       '-f', `content=${Buffer.from(after).toString('base64')}`,
       '-f', `sha=${file.sha}`,
-      '-f', 'branch=main'
+      '-f', `branch=${branch}`
     );
-    console.log(`Added ${handle} to the allowlist on main.`);
+    const url = gh(
+      'pr', 'create', '--repo', repo, '--base', BASE, '--head', branch,
+      '--title', `Add ${handle} to the contributor allowlist`,
+      '--body', `Lets ${handle} drive the contributor pipeline. Merge this to add them.`
+    ).trim();
+    console.log(`Opened ${url}. ${handle} is on the allowlist when you merge it.`);
   }
 
   if (invite && !dryRun) {

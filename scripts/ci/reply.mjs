@@ -47,6 +47,15 @@ export const MARKER = `${PIPELINE_PREFIX}reply -->`;
 export const QUESTION_MARKER = `${PIPELINE_PREFIX}question -->`;
 export const AUTHOR = 'github-actions[bot]';
 
+/**
+ * The second line of every reply: which state it is. `confirm.mjs` reads it to
+ * know that the newest thing the pipeline said was a build for the contributor
+ * to try. Only the bot writes it (a person cannot post as `github-actions[bot]`),
+ * and `cleanMessage` drops any line of agent text that carries the prefix.
+ */
+export const STATE_PREFIX = `${PIPELINE_PREFIX}state `;
+export const stateLine = (state) => `${STATE_PREFIX}${state} -->`;
+
 /** The agent's words are cut to this many characters. A reply is read aloud. */
 export const MAX_MESSAGE = 2000;
 
@@ -58,7 +67,7 @@ const STUCK_TAIL = [
 const TRY_IT = [
   'Install it and try the thing that was wrong. Then write a comment here.',
   'If it is still wrong, start your comment with @claude and say what you found.',
-  'If it works, write @claude it works.'
+  'If it works, write: it works'
 ];
 
 /**
@@ -95,17 +104,25 @@ const STATES_DEF = {
     intro: ['A new test build is ready. The links are the same as before, so download again from them.'],
     lines: [
       'Try it, then write here. If it is still wrong, start your comment with @claude and say what you found.',
-      'If it works, write @claude it works.'
+      'If it works, write: it works'
     ]
   },
-  answered: { message: 'required', fallback: 'stuck', lines: [] },
+  // An answer, or a question the agent could not settle on its own (it could not
+  // reproduce the fault and asks what the contributor saw). Either way the
+  // conversation goes on, so the comment says how. With no words there is nothing
+  // to go on from, and that is a failure of the pipeline, not a hand-off.
+  answered: {
+    message: 'required',
+    fallback: 'failed',
+    lines: ['Reply in a comment that starts with @claude.']
+  },
   // The question IS the one comment. The agent writes it to `message.md`, and it
   // goes out under the question marker. With no question there is nothing to ask,
   // so it falls back to `stuck` and a person is told.
   asked: {
     marker: QUESTION_MARKER,
     message: 'required',
-    fallback: 'stuck',
+    fallback: 'failed',
     lines: [
       'Reply in a comment that starts with @claude.',
       'I will start as soon as you answer.'
@@ -126,9 +143,14 @@ const STATES_DEF = {
       'The maintainer will answer here. You do not need to do anything.'
     ]
   },
+  // The agent is blocked: a check will not go green, or a pull request will not
+  // open. Its words say WHICH and why, and they are required. Silence is never
+  // an acceptable reason to hand a thread to a person, so with no words this
+  // becomes `failed`, which says that the pipeline went wrong and not that the
+  // report could not be done.
   stuck: {
-    message: 'optional',
-    defaultMessage: 'I could not finish this one by myself.',
+    message: 'required',
+    fallback: 'failed',
     lines: STUCK_TAIL
   },
   maintainer: {
@@ -147,12 +169,59 @@ const STATES_DEF = {
       'The maintainer has been told and will look. You do not need to do anything.'
     ]
   },
+  // The hand-off. `sent` is the fix that is set to merge by itself. The other two
+  // are a fix a person has to look at first, and they say the truth about why.
   sent: {
     message: 'none',
     lines: [
-      'Thank you. I sent this fix to the maintainer to review and merge.',
+      'Thank you for testing.',
+      'It will merge by itself when the checks finish, and the test build will update.',
+      'This issue closes when it merges.',
+      'You do not need to do anything.'
+    ]
+  },
+  // The fix is the same one the contributor tested. Only the app around it moved on, and the
+  // branch was brought up to date. Their "it works" still holds, so it is sent on. Said once.
+  carried: {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'The app around your fix changed since you tried it, but your fix did not.',
+      'Your answer still holds, so I sent it on. You do not need to test again.',
+      'It will merge by itself when the checks finish, and the test build will update.',
+      'This issue closes when it merges.',
+      'You do not need to do anything.'
+    ]
+  },
+  'sent-automation': {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'It changes the automation itself, so the maintainer has to look at it first.',
       'This issue closes when the maintainer merges the fix.',
       'You do not need to do anything.'
+    ]
+  },
+  'sent-owner': {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'The maintainer has to look at it before it can merge.',
+      'This issue closes when the maintainer merges the fix.',
+      'You do not need to do anything.'
+    ]
+  },
+  // The fix is fine, but newer code changed the same lines, so it cannot merge as it
+  // is. That is not a person's job: the pipeline brings it up to date and sends a new
+  // build. The contributor tested the old one, so they say it works again on the new one.
+  behind: {
+    message: 'none',
+    lines: [
+      'Thank you for testing.',
+      'Newer changes in the app touched the same place, so your fix could not merge as it was.',
+      'I am bringing it up to date now. I will write here when there is a new build.',
+      'You will need to try that one and tell me if it still works.',
+      'You do not need to do anything until then.'
     ]
   }
 };
@@ -164,9 +233,17 @@ export const LABELS = {
   // A person is NOT needed here: the contributor is, and the agent waits for them.
   asked: { name: 'needs-info', description: 'The agent asked the reporter a question and is waiting' },
   design: { name: 'needs-design', description: 'Not a bug: a design decision for the maintainer to answer' },
-  stuck: { name: 'needs-maintainer', description: 'A person has to look at this' },
-  failed: { name: 'needs-maintainer', description: 'A person has to look at this' }
+  stuck: { name: 'needs-owner', description: 'A person has to look at this' },
+  failed: { name: 'needs-owner', description: 'A person has to look at this' }
 };
+
+/**
+ * States that mean the pipeline is working again or the contributor is being
+ * served. A `needs-owner` left by an earlier crash is stale by then, and the
+ * owner's inbox must not list an issue that is moving. The states that still
+ * need a person (stuck, failed, maintainer, the sent-* hand-offs) keep it.
+ */
+export const CLEARS_NEEDS_OWNER = ['started', 'ready', 'revised', 'asked', 'answered', 'sent', 'carried'];
 
 /**
  * One pass of the cleaning rules. `cleanMessage` repeats it until nothing changes,
@@ -230,7 +307,8 @@ export function cleanMessage(text) {
 
 /**
  * The state that is actually posted. A state that needs the agent's words and
- * has none (`asked`, `answered`) is posted as `stuck`, so a person is told. The
+ * has none (`asked`, `answered`, `stuck`) is posted as `failed`, so a person is
+ * told, and told the truth: the pipeline lost the words, the report is fine. The
  * label has to follow the state that was posted and not the one that was asked
  * for, or a forgotten `message.md` would put `needs-info` on an issue that is
  * waiting for nobody to answer.
@@ -251,7 +329,8 @@ export function resolveState(state, message) {
  * @returns {string}
  */
 export function renderReply(state, { repo, pr, message } = {}) {
-  const def = STATES_DEF[resolveState(state, message)];
+  const posted = resolveState(state, message);
+  const def = STATES_DEF[posted];
   const words = cleanMessage(message);
 
   const parts = [];
@@ -270,8 +349,41 @@ export function renderReply(state, { repo, pr, message } = {}) {
     ].join('\n'));
   }
   if (def.lines.length > 0) parts.push(def.lines.join('\n'));
-  return `${def.marker ?? MARKER}\n${parts.join('\n\n')}\n`;
+  return `${def.marker ?? MARKER}\n${stateLine(posted)}\n${parts.join('\n\n')}\n`;
 }
+
+/**
+ * Is this comment body exactly the reply for `state`, in today's wording OR in the wording
+ * from before the hidden state line existed (the same text, with no second line)?
+ *
+ * Comments written on Oct 14 and earlier have no state line, and contributors are still
+ * reading them: "The maintainer needs to look at a technical problem". A check that only knew
+ * today's form read them as "not waiting", and stayed silent when the fix went green. The
+ * old form must match EXACTLY, word for word, so a person's own comment can never pass for it.
+ * Only for states that take no words or links (`maintainer`).
+ *
+ * @param {string|undefined} body
+ * @param {string} state one of STATES
+ * @returns {boolean}
+ */
+export function isReplyOfState(body, state) {
+  const current = renderReply(state).trim();
+  const lines = current.split('\n');
+  const legacy = [lines[0], ...lines.slice(2)].join('\n').trim();
+  const text = String(body ?? '').trim();
+  return text === current || text === legacy;
+}
+
+/**
+ * The replies after which the contributor is waiting on a PERSON: the maintainer was called in
+ * (`maintainer`), or the hand-off sent a fix the pipeline may not merge on its own
+ * (`sent-automation`, `sent-owner`). When that person's part is done and the fix is green,
+ * the contributor must be told, whichever of the three they were last told.
+ */
+export const WAITING_STATES = ['maintainer', 'sent-automation', 'sent-owner'];
+
+/** Is this comment body one of the WAITING_STATES replies, in today's wording or the old one? */
+export const isWaitingOnPerson = (body) => WAITING_STATES.some((state) => isReplyOfState(body, state));
 
 /**
  * Post the reply, and label the issue if the state calls for it. Exactly one
@@ -284,10 +396,18 @@ export function postReply({ issue, state, repo, pr, message }, run = gh) {
   const number = requireNumber(issue, 'issue number');
   const body = renderReply(state, { repo, pr, message });
   run(['api', `repos/${repo}/issues/${number}/comments`, '-f', `body=${body}`]);
-  const label = LABELS[resolveState(state, message)];
+  const posted = resolveState(state, message);
+  const label = LABELS[posted];
   if (label) {
     run(['label', 'create', label.name, '--repo', repo, '--force', '--description', label.description]);
     run(['issue', 'edit', number, '--repo', repo, '--add-label', label.name]);
+  }
+  if (CLEARS_NEEDS_OWNER.includes(posted)) {
+    try {
+      run(['issue', 'edit', number, '--repo', repo, '--remove-label', 'needs-owner']);
+    } catch {
+      // The label was not there. The comment is already posted.
+    }
   }
   return { posted: 1, labelled: label?.name };
 }

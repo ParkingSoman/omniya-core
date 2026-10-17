@@ -1,0 +1,46 @@
+name: diagnostics-windows
+
+# The braille input diagnostics copy, on Windows.
+#
+# A contributor on Windows pasted empty diagnostics into every bug report, and
+# nothing in the suite caught it: the e2e suite only runs on macOS. This job
+# runs the one e2e file that clicks the real Help menu item and the real button,
+# then reads the real clipboard. It runs on pull requests that touch the copy
+# path, and `workflow_dispatch` is for a manual rerun.
+#
+# It runs only that file, on purpose. The full e2e suite is not yet known to
+# pass on Windows, and a red job that says so would hide a real failure here.
+on:
+  pull_request:
+    branches: [testing]
+    paths:
+      - 'src/main.js'
+      - 'src/preload.cjs'
+      - 'src/renderer/app.js'
+      - 'src/renderer/index.html'
+      - 'src/renderer/input-*.js'
+      - 'test/e2e/input-diagnostics.test.js'
+      - 'test/e2e/launch-electron.js'
+      - '.github/workflows/diagnostics-windows.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: diagnostics-windows-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/build/build-editor.mjs
+      - run: node --test --test-concurrency=1 test/e2e/input-diagnostics.test.js
