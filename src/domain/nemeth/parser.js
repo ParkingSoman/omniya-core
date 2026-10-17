@@ -550,6 +550,17 @@ function parseUnary(state, level, items) {
   }
   // A prefix sign must be followed by an operand; parsePostfix refuses if not.
   items.push(parsePostfix(state, level));
+  // BANA 23.13 (Nemeth_2022.txt lines 11655-11670): a monetary symbol is
+  // "unspaced from the material to which [it] applies", and the cent sign
+  // follows its number or letter (`#10@c`, `x@c`). It is kept as a plain
+  // trailing `Operator` in the flat Sequence, like every other sign, for the
+  // reason given above: MathML spells `10¢` as <mn>10</mn><mo>¢</mo> and
+  // asserts no tighter binding. It needs a term before it, so a bare cent
+  // sign still reaches `parse`'s leftover check and is refused.
+  while (peek(state) && peek(state).kind === 'unit' && peek(state).level === level) {
+    const unit = advance(state);
+    items.push(Operator(unit.value, { src: [unit.offset, unit.offset + unit.len] }));
+  }
   // Rule 23.15 (Nemeth_2022.txt lines 11710-11712, page 23-10): percent and per
   // mille are "unspaced from the material to which they apply", so they can only
   // be read directly after an operand. Like the signs of operation they are pushed
