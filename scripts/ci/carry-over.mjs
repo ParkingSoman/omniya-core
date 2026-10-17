@@ -53,7 +53,7 @@ import { BRANCH_PREFIX } from './find-fix-pr.mjs';
 import { gh as realGh, requireNumber } from './gh.mjs';
 import { decide as decideHandOff, handOff, notGreen } from './hand-off.mjs';
 import { issueOf, WAITING_LABELS } from './keep-current.mjs';
-import { AUTHOR, isReplyOfState, MARKER } from './reply.mjs';
+import { AUTHOR, isWaitingOnPerson, isReplyOfState, MARKER } from './reply.mjs';
 import { loadCodeRules } from './standing-note.mjs';
 import { zoneOf } from './zones.mjs';
 
@@ -80,6 +80,13 @@ const succeeds = (git, args) => {
 const literal = (path) => `:(literal)${path}`;
 
 /**
+ * Files a script writes and a test already checks, so a repair that regenerates them is not a different fix.
+ * `coverage.md` is the corpus report: `corpus-gate.test.js` fails when its summary is stale, and its counts
+ * shift every time `testing` moves. Only a file listed here AND checked by a test belongs on this list.
+ */
+export const GENERATED_FILES = ['docs/nemeth-v2/coverage.md'];
+
+/**
  * The fix's change as a comparable value: from the merge base with `testing` to `tip`.
  * @returns {Map<string, {status:string, mode:string, binary:string|null, lines:string[]}>}
  */
@@ -93,6 +100,7 @@ export function netChange(git, tip, testing) {
     if (!header.startsWith(':')) continue;
     const path = raw[i + 1];
     i += 1;
+    if (GENERATED_FILES.includes(path)) continue;
     const [, newMode, , newBlob, status] = header.split(/[ \t]/);
     // A submodule or a symlink is not a thing a text comparison can vouch for.
     if (newMode === '160000' || (newMode === '120000')) throw new Error(`not comparable: ${path}`);
@@ -220,7 +228,9 @@ const mayFollowApproval = (c) => {
   const state = replyState(c.body);
   if (state) return SAYS_AFTER_APPROVAL.includes(state);
   const text = String(c.body ?? '').trim();
-  return text === LEGACY_SENT || isReplyOfState(text, 'maintainer') || isReplyOfState(text, 'failed');
+  // The hold replies from before the state line existed ("it changes the automation itself", "the maintainer
+  // has to look") are waiting-on-a-person words, the same set `reply.mjs` names.
+  return text === LEGACY_SENT || isWaitingOnPerson(text) || isReplyOfState(text, 'failed');
 };
 
 /**
