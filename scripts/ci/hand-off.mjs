@@ -223,7 +223,10 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, ca
     'api', `repos/${repo}/statuses/${sha}`,
     '-f', 'state=success', '-f', 'context=contributor-tested', '-f', 'description=The contributor tested this build'
   ], { token: mergeToken });
-  gh(['pr', 'merge', prNumber, '--repo', repo, '--auto', '--squash', '--match-head-commit', sha], { token: mergeToken });
+  // The squash commit message is what GitHub reads for a closing keyword, not the pull request body.
+  // Left to default it is only the title and co-author lines, so merged fixes left their issues open
+  // (#54, #56, #52). The `Fixes` line is therefore put in the commit message here.
+  gh(['pr', 'merge', prNumber, '--repo', repo, '--auto', '--squash', '--match-head-commit', sha, '--body', `Fixes #${issueNumber}`], { token: mergeToken });
   const green = `${REQUIRED_CHECKS.join(', ')} are green on that commit.`;
   if (carry) {
     gh([
