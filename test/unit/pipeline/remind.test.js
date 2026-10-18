@@ -163,3 +163,61 @@ test('whole path: the second run does not remind again', () => {
   assert.deepEqual(remindAll({ repo: 'o/r', now: NOW }, fake.run).map((r) => r.reason), ['already-reminded']);
   assert.equal(fake.posted.length, 1);
 });
+
+// An approval for an OLDER commit is void: the fix changed after the word, and the carry rules refused it.
+const HEAD = 'b'.repeat(40);
+const oldRecord = { id: 5, body: 'The contributor installed the build and says it works.\n\nCommit tested: ' + 'a'.repeat(40) + '\n\nunit is green.', user: { login: 'github-actions[bot]' } };
+const voided = (over = {}) => ask({ prComments: [oldRecord], headSha: HEAD, headCommittedAt: ago(1), issueComments: [person(1, 'it works', 5), bot(2, 'revised', 3)], ...over });
+
+test('void approval: an old word for an older commit does not hide the fix from the reminder, and the wait is two days', () => {
+  assert.deepEqual(voided(), { remind: true, reason: 'old-approval-is-void', noticeId: 2 });
+  assert.deepEqual(voided({ issueComments: [person(1, 'it works', 5), bot(2, 'revised', 1)] }), { remind: false, reason: 'not-quiet-long-enough' });
+});
+
+test('void approval: the approval that still stands for the head is waiting on the pipeline, not on the contributor', () => {
+  assert.deepEqual(voided({ headSha: 'a'.repeat(40) }), { remind: false, reason: 'already-approved' });
+});
+
+test('void approval: fails closed, so an unknown head counts as approved', () => {
+  assert.equal(voided({ headSha: undefined }).reason, 'already-approved');
+  // A record that names no readable commit is not a record: the record patterns need the 40 characters.
+  const unreadable = { ...oldRecord, body: 'The contributor installed the build and says it works.\n\nCommit tested: not-a-commit' };
+  assert.deepEqual(voided({ prComments: [unreadable] }), voided({ prComments: [] }));
+});
+
+test('void approval: a head that moved a moment ago is left to the carry job, which may still be waiting for its checks', () => {
+  assert.deepEqual(voided({ headCommittedAt: ago(1 / 24) }), { remind: false, reason: 'head-moved-recently' });
+  assert.deepEqual(voided({ headCommittedAt: undefined }), { remind: false, reason: 'head-moved-recently' });
+});
+
+test('void approval: the newest record names the commit, a carried record counts, and the other rules still hold', () => {
+  const carried = { id: 9, body: 'The contributor tested an earlier commit of this fix and said it works. The fix itself has not changed.\n\nApproval carried from: ' + 'a'.repeat(40) + '\n\nCommit tested: ' + HEAD + '\n\nunit is green.', user: { login: 'github-actions[bot]' } };
+  assert.equal(voided({ prComments: [oldRecord, carried] }).reason, 'already-approved');
+  assert.equal(voided({ prLabels: ['needs-owner'] }).reason, 'a-person-or-an-answer-is-awaited');
+  assert.equal(voided({ issueComments: [person(1, 'it works', 5), bot(2, 'revised', 3), bot(3, 'reminded', 2)] }).reason, 'already-reminded');
+  assert.equal(voided({ issueComments: [person(1, 'it works', 5), bot(2, 'revised', 3), person(3, 'trying it', 2)] }).reason, 'newest-comment-is-not-a-build-notice');
+});
+
+test('whole path: a void approval is reminded once, and only that pull request pays for the head commit date', () => {
+  const posted = [];
+  const calls = [];
+  const gh = (args) => {
+    calls.push(args.join(' '));
+    const [cmd, sub] = args;
+    if (cmd === 'pr' && sub === 'list') {
+      return JSON.stringify([
+        { number: 84, body: 'Fixes #73', headRefName: 'claude/fix-73-x', headRefOid: HEAD, isCrossRepository: false, labels: [] },
+        { number: 41, body: 'Fixes #40', headRefName: 'claude/fix-40-x', headRefOid: 'c'.repeat(40), isCrossRepository: false, labels: [] }
+      ]);
+    }
+    if (args[1].includes('/comments') && args.includes('-f')) { posted.push(args[1]); return ''; }
+    if (args[1].endsWith(`/commits/${HEAD}`)) return `${ago(1)}\n`;
+    const m = /issues\/(\d+)(\/comments)?$/.exec(args[1]);
+    const comments = { 73: [person(1, 'it works', 5), bot(2, 'revised', 3)], 40: [bot(1, 'ready', 1)], 84: [oldRecord] }[m[1]] ?? [];
+    return m[2] ? comments.map((c) => JSON.stringify(c)).join('\n') : JSON.stringify({ state: 'open', labels: [] });
+  };
+  const results = remindAll({ repo: 'o/r', now: NOW }, gh);
+  assert.deepEqual(results.map((r) => [r.pr, r.outcome, r.reason]), [[84, 'reminded', 'old-approval-is-void'], [41, 'skip', 'not-quiet-long-enough']]);
+  assert.deepEqual(posted, ['repos/o/r/issues/73/comments']);
+  assert.equal(calls.filter((c) => c.includes('/commits/')).length, 1);
+});
