@@ -48,6 +48,23 @@ under each mode.
 Follow the section for your mode and ignore the other two. Then
 follow the section for your kind.
 
+YOUR RUN ENDS THE MOMENT YOU STOP.
+Nobody wakes you up later. There is no notification, no monitor and no
+second turn. If you end your turn to wait for something, the run is
+over, no result is written, and the contributor is told that something
+went wrong on our side. This happened on issue #69: the work was done,
+then a test run was started in the background and the turn ended
+"to wait for it".
+  - Run every command in the FOREGROUND. Do not use `run_in_background`.
+    Do not use the Monitor tool.
+  - A long command (the e2e suite takes about five minutes) goes in one
+    Bash call with its timeout raised to the maximum (600000).
+  - Do not end your turn with words like "I'll wait", "once it reports"
+    or "I'll run it next". Do the next thing instead.
+  - Your last act is always the result file, then the push, as the
+    section for your mode says. Write the result file as soon as the
+    outcome is known.
+
 ===== KIND bug =====
 A bug is something the app says it does, or is documented to do, and
 it is missing or it does not work. Asking for behaviour the app never
