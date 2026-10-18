@@ -223,7 +223,10 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, ca
     'api', `repos/${repo}/statuses/${sha}`,
     '-f', 'state=success', '-f', 'context=contributor-tested', '-f', 'description=The contributor tested this build'
   ], { token: mergeToken });
-  gh(['pr', 'merge', prNumber, '--repo', repo, '--auto', '--squash', '--match-head-commit', sha], { token: mergeToken });
+  // The squash commit gets its own body. The default is built from the agent's commit messages, which end
+  // in Co-authored-by lines naming Claude (the owner's rule: no Claude attribution), and it has no closing
+  // line, so GitHub never closed the issue (issues 54, 56 and 52 stayed open after their fixes merged).
+  gh(['pr', 'merge', prNumber, '--repo', repo, '--body', `Fixes #${issueNumber}`, '--auto', '--squash', '--match-head-commit', sha], { token: mergeToken });
   const green = `${REQUIRED_CHECKS.join(', ')} are green on that commit.`;
   if (carry) {
     gh([
