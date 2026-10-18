@@ -32,6 +32,15 @@ test('label case does not matter', () => {
   assert.equal(kindFromLabels(['Design']), 'routed');
 });
 
+test('an idea for the automation goes to a person, whatever else is on it, so filing one starts no agent', () => {
+  assert.equal(kindFromLabels(['pipeline-idea']), 'routed');
+  assert.equal(kindFromLabels(['Pipeline-Idea']), 'routed');
+  assert.equal(kindFromLabels(['pipeline-idea', 'bug']), 'routed');
+  assert.equal(kindFromLabels(['pipeline-idea', 'nemeth']), 'routed');
+  // A near miss is still a bug: only the exact label routes.
+  assert.equal(kindFromLabels(['pipeline-ideas']), 'bug');
+});
+
 test('there are exactly three kinds', () => {
   assert.deepEqual(KINDS, ['bug', 'nemeth', 'routed']);
 });
