@@ -122,7 +122,7 @@ flowchart TD
 
 | Label | Meaning | Set by |
 |---|---|---|
-| `bug`, `nemeth`, `design`, `other` | The form chosen. `scripts/ci/issue-kind.mjs` reads it. Both `design` and `nemeth` means a person decides. | The issue form. Create these once by hand |
+| `bug`, `nemeth`, `design`, `other` | The form chosen. `scripts/ci/issue-kind.mjs` reads it. Both `design` and `nemeth` means a person decides. `pipeline-idea` (an idea filed by a session) always goes to a person, so filing one starts no agent, even from a listed account. | The issue form. Create these once by hand |
 | `needs-info` | The agent asked a question and waits | The pipeline |
 | `needs-design` | A person must decide | The agent |
 | `needs-owner` | You must look: blocked, red checks, no access, or a fix that cannot merge by itself | The pipeline |

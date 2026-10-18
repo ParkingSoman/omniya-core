@@ -31,6 +31,10 @@ export const KINDS = ['bug', 'nemeth', 'routed'];
 export function kindFromLabels(labels) {
   const has = (name) => labels.some((l) => l.toLowerCase() === name);
   if (has('design') || has('other')) return 'routed';
+  // An idea for the automation is not a report from a contributor. An issue from a listed account with no
+  // type label used to count as a bug, so filing one started an agent run (issues 122, 123 and 126 did, and
+  // issue 122 produced a duplicate pull request).
+  if (has('pipeline-idea')) return 'routed';
   if (has('nemeth')) return 'nemeth';
   return 'bug';
 }
