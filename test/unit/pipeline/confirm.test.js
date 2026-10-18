@@ -76,7 +76,8 @@ test('everything else is refused, quietly', () => {
   no({ issueComments: [bot(20, reply('ready'), undefined, 'someone')] }, 'no-bot-comment');
   // A person writing the marker is not the bot.
   no({ issueComments: [bot(20, reply('ready'), undefined, 'blind')] }, 'no-bot-comment');
-  for (const state of STATES.filter((s) => s !== 'ready' && s !== 'revised')) {
+  // `reminded` is left out on purpose: it asks nothing, and is skipped when the build notice is looked for.
+  for (const state of STATES.filter((s) => s !== 'ready' && s !== 'revised' && s !== 'reminded')) {
     no({ issueComments: [bot(10, reply('ready')), bot(20, reply(state))] }, 'newest-not-a-build');
   }
   no({ issueComments: [bot(10, reply('ready')), bot(20, QUESTION_MARKER + '\nWhich key?')] }, 'newest-not-a-build');
