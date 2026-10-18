@@ -568,13 +568,15 @@ jobs:
       branch: ${{ needs.resume.outputs.branch }}
       message: ${{ needs.resume.outputs.message }}
 
-  # The agent job crashed (an install that failed, a timeout). Without this the
-  # contributor wrote `@claude` and heard nothing at all. It posts a new comment
-  # and does NOT rewrite the status comment, so the download links stay where the
+  # The agent job crashed (an install that failed, a timeout) or never got a runner and was
+  # cancelled (seen on #69: no macOS runner for 15 minutes, and the comment got no answer at
+  # all). Without this the contributor wrote `@claude` and heard nothing. `!cancelled()` is
+  # the whole RUN being stopped by a person, which stays silent on purpose. It posts a new
+  # comment and does NOT rewrite the status comment, so the download links stay where the
   # contributor already knows to find them.
   failed:
     needs: [allowlist, agent]
-    if: ${{ !cancelled() && needs.agent.result == 'failure' }}
+    if: ${{ !cancelled() && (needs.agent.result == 'failure' || needs.agent.result == 'cancelled') }}
     runs-on: ubuntu-latest
     permissions:
       issues: write
