@@ -354,7 +354,9 @@ test('whole path: the head moved, the fix did not: the lock is set on the new he
   assert.equal(result.outcome, 'carried', JSON.stringify(result));
   const head = s.git('rev-parse', 'HEAD');
   const merge = calls.find((c) => c.args[0] === 'pr' && c.args[1] === 'merge');
-  assert.deepEqual(merge.args.slice(-6), ['--auto', '--squash', '--match-head-commit', head, '--body', 'Fixes #9']);
+  assert.deepEqual(merge.args.slice(-4), ['--auto', '--squash', '--match-head-commit', head]);
+  // The commit body is ours: it closes the issue, and carries no Co-authored-by line from the agent's commits.
+  assert.equal(merge.args[merge.args.indexOf('--body') + 1], 'Fixes #9');
   assert.equal(merge.token, 'app-token');
   const status = calls.find((c) => c.args.includes(`repos/o/r/statuses/${head}`));
   assert.ok(status.args.includes('context=contributor-tested'));

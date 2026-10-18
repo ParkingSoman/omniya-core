@@ -46,3 +46,20 @@ test('scrub cuts out the exact secret values it is given, whatever their shape',
   assert.equal(scrub('the value is hunter2hunter2 ok', ['hunter2hunter2']), 'the value is [secret removed] ok');
   assert.equal(scrub('short abc ok', ['abc']), 'short abc ok');
 });
+
+test('names each denied tool, with the file path for file tools and never a command or any other input', () => {
+  const data = [
+    ...run.slice(0, 1),
+    {
+      type: 'result', subtype: 'success', num_turns: 36,
+      permission_denials: [
+        { tool_name: 'Write', tool_input: { file_path: '/home/runner/work/_temp/result.txt', content: 'ghp_SHOULDNEVERAPPEAR12345' } },
+        { tool_name: 'Bash', tool_input: { command: 'git push --force origin HEAD sk-ant-oat01-SECRETSECRETSECRET' } }
+      ]
+    }
+  ];
+  const out = digest(data, {});
+  assert.match(out, /Denied: Write `\/home\/runner\/work\/_temp\/result\.txt`, Bash\./);
+  for (const bad of ['SHOULDNEVERAPPEAR', 'SECRETSECRET', 'git push', 'sk-ant', 'ghp_']) assert.ok(!out.includes(bad), `leaked ${bad}`);
+  assert.doesNotMatch(digest([{ type: 'result', subtype: 'success', num_turns: 1 }], {}), /Denied/);
+});
