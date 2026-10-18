@@ -42,7 +42,7 @@ position, not a category; the offending codepoint is kept since it is).
 | 21 | no Nemeth symbol starts at cell N (U+2804 "⠄") | `mathcat-rules:ellipsis_43_b_3` |
 | 20 | the cell ":" is a letter only after the Greek-letter indicator (BANA 6.1.4) | `mathcat-rules:bar_97_b_1` |
 | 19 | no Nemeth symbol starts at cell N (U+2829 "⠩") | `mathcat-rules:above_and_below_88_2` |
-| 17 | a blank stands where BANA Rule 21.13 does not put one -- it spaces a comparison symbol and nothing else here, and Rule 20.1.1 spaces an operation symbol only next to a function name, an abbreviation, an ellipsis or a dash, none of which this parser reads | `mathcat-rules:log_77_4_8` |
+| 18 | a blank stands where BANA Rule 21.13 does not put one -- it spaces a comparison symbol and nothing else here, and Rule 20.1.1 spaces an operation symbol only next to a function name, an abbreviation, an ellipsis or a dash, none of which this parser reads | `mathcat-rules:log_77_4_8` |
 | 16 | BANA 7.1 and Appendix C read the script-type indicator on a letter as script type, but every corpus case written that way targets double-struck, which the Code writes with a different indicator; neither reading is established, so this refuses rather than picking one | `sre-aata:AataExpression_13` |
 | 13 | an alphabetic or capitalization indicator governs a op, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the decimal of BANA 3.2.3, for which this pipeline has no grammar beside a op either | `mathcat-rules:degrees_165_1` |
 | 12 | the grouping symbol "(" has no right grouping symbol at level ""; BANA 19.1.2 preserves an unpaired one and this parser has no node for it | `sre-aata:AataExpression_1` |
@@ -65,7 +65,6 @@ position, not a category; the offending codepoint is kept since it is).
 | 2 | a "^" script on a base already carrying "^" needs a baseline indicator before it | `mathcat-rules:nested_sup_sup_space_79_d_9` |
 | 2 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require | `sre-aata:AataExpression_334` |
 | 2 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:mixed_frac_63_a_1` |
-| 2 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a groupOpen either | `mathcat-rules:identity_matrix_126_linearize` |
 | 2 | the cell "&" is a letter only after the Greek-letter indicator (BANA 6.1.4) | `sre-aata:AataExpression_198` |
 | 1 | a "^" script between two baseline indicators is a left script | `mathcat-rules:left_sup_75_12` |
 | 1 | a subscript indicator stands before a first-order numeric subscript that BANA Rule 14.6 writes without one, so this base is not the single letter it looks like | `mathcat-rules:word_77_4_12` |
@@ -79,6 +78,7 @@ position, not a category; the offending codepoint is kept since it is).
 | 1 | indicator "@" cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:russian_24_a_10` |
 | 1 | latex has no rendering for bold german (BANA Rule 7.2.1) | `mathcat-rules:boldface_32_a_7` |
 | 1 | radical has no termination indicator | `mathcat-rules:sqrt_103_b_2` |
+| 1 | the grouping symbol "\bigl(" has no right grouping symbol at level ""; BANA 19.1.2 preserves an unpaired one and this parser has no node for it | `mathcat-rules:identity_matrix_126_linearize` |
 | 1 | unparsed comma token at level "" | `mathcat-rules:comma_number_77_4_20` |
 | 1 | unparsed decimal token at level "" | `mathcat-rules:multipurpose_177_2_2` |
 

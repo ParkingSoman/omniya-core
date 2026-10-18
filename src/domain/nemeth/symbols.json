@@ -540,6 +540,18 @@
     "banaRef": "19"
   },
   {
+    "cells": "⠠⠷",
+    "kind": "groupOpen",
+    "value": "\\bigl(",
+    "banaRef": "19.6"
+  },
+  {
+    "cells": "⠠⠾",
+    "kind": "groupClose",
+    "value": "\\bigr)",
+    "banaRef": "19.6"
+  },
+  {
     "cells": "⠨⠅",
     "kind": "comparison",
     "role": "comparison",
