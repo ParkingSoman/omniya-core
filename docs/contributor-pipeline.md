@@ -91,7 +91,7 @@ flowchart TD
      contributor cannot write the heading.
    - Lock 3, the merge. The ruleset `testing-tested` needs the commit status
      `contributor-tested`. Only the hand-off job (`scripts/ci/hand-off.mjs`) sets it,
-     with the App's token, and only after the contributor says it works. A fix that touches `.github/**`,
+     with the App's token, and only after the contributor says it works. The hand-off also writes the squash commit's body itself, `Fixes #N`, so the merge closes the issue and the agent's `Co-authored-by` lines never reach `testing`. A fix that touches `.github/**`,
      `scripts/ci/**`, `CODEOWNERS` or `.github/contributors.yml`, that has a
      or that says "Reverses a standing note" gets `needs-owner` and no
      status. Only you merge those. A fix that conflicts is not one of them: it is
