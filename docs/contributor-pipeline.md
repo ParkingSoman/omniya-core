@@ -91,7 +91,7 @@ flowchart TD
      contributor cannot write the heading.
    - Lock 3, the merge. The ruleset `testing-tested` needs the commit status
      `contributor-tested`. Only the hand-off job (`scripts/ci/hand-off.mjs`) sets it,
-     with the App's token, and only after the contributor says it works. A fix that touches `.github/**`,
+     with the App's token, and only after the contributor says it works. The hand-off also writes the squash commit's body itself, `Fixes #N`, so the merge closes the issue and the agent's `Co-authored-by` lines never reach `testing`. A fix that touches `.github/**`,
      `scripts/ci/**`, `CODEOWNERS` or `.github/contributors.yml`, that has a
      or that says "Reverses a standing note" gets `needs-owner` and no
      status. Only you merge those. A fix that conflicts is not one of them: it is
@@ -133,7 +133,7 @@ flowchart TD
 |---|---|---|
 | `.github/workflows/pipeline-fix.yml` | `testing` | An opened issue, or by hand with an issue number. Issue to draft pull request. |
 | `.github/workflows/pipeline-followup.yml` | `testing` | An `@claude` comment on an issue. A revision, an answer or a hand-off. By hand with an issue number and a comment, for a rehearsal. If the agent job crashes, or is cancelled because no runner ever picked it up, the contributor gets the `failed` reply. Only a person stopping the whole run stays silent. |
-| `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs. Modes `fix`, `comment`, `checks-failed`. |
+| `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs. Modes `fix`, `comment`, `checks-failed`. A scrubbed digest of what it did goes to the job summary AND the job log (so `gh run view --log` shows it), with the names of any tools it was denied. |
 | `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, reports on the issue. |
 | `.github/workflows/pipeline-rescued.yml` | `testing` | A person fixed a fix the pipeline gave up on. When the checks and the build go green, the contributor gets the test build on the issue, once. |
 | `.github/workflows/pipeline-keep-current.yml` | `testing` | Every push to `testing`, weekly, and when a hand-off finds a conflict. Updates open fix branches. A conflict goes to the repair agent, in a manual run the push starts: the agent refuses a push, and accepts the Actions bot only for a manual run. |
