@@ -98,8 +98,10 @@ export function replyState(body) {
 export function decide({ commenter, issueAuthor, association, prCount, commentId, issueComments, headBuiltAt }) {
   if (!commenter || (commenter !== issueAuthor && association !== 'OWNER')) return { confirm: false, reason: 'not-author' };
   if (Number(prCount) !== 1) return { confirm: false, reason: 'no-single-fix' };
+  // The one reminder points back to the build notice and asks nothing, so it is not "the pipeline spoke
+  // after the build": a plain "it works" written after it answers the notice, as it would have before.
   const bot = (issueComments ?? [])
-    .filter((c) => c.user?.login === AUTHOR)
+    .filter((c) => c.user?.login === AUTHOR && replyState(c.body) !== 'reminded')
     .sort((a, b) => a.id - b.id)
     .at(-1);
   if (!bot) return { confirm: false, reason: 'no-bot-comment' };

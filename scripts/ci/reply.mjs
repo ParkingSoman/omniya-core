@@ -107,6 +107,22 @@ const STATES_DEF = {
       'If it works, write: it works'
     ]
   },
+  // The one reminder (`scripts/ci/remind.mjs`): a build has waited a week for a contributor who has
+  // not written. It has NO links of its own: a link is offered only with a build that was checked, and
+  // this comment does not check anything. It points back to the notice that did. `confirm.mjs` skips it
+  // when it looks for the build notice, so a plain "it works" after it is judged as it was before.
+  reminded: {
+    message: 'none',
+    notice: true,
+    intro: [
+      'A test build of this fix has been waiting for you for a while.',
+      'This is the only reminder I will send.'
+    ],
+    lines: [
+      ...TRY_IT,
+      'If you would rather not test it, you do not need to do anything.'
+    ]
+  },
   // An answer, or a question the agent could not settle on its own (it could not
   // reproduce the fault and asks what the contributor saw). Either way the
   // conversation goes on, so the comment says how. With no words there is nothing
@@ -325,10 +341,11 @@ export function resolveState(state, message) {
 
 /**
  * @param {string} state one of STATES
- * @param {{repo?: string, pr?: string|number, message?: string}} [where] `repo` and `pr` are needed for the states with links
+ * @param {{repo?: string, pr?: string|number, message?: string, notice?: string}} [where] `repo` and `pr` are needed for the
+ *   states with links. `notice` is the address of the earlier build notice, for the states that point back to it.
  * @returns {string}
  */
-export function renderReply(state, { repo, pr, message } = {}) {
+export function renderReply(state, { repo, pr, message, notice } = {}) {
   const posted = resolveState(state, message);
   const def = STATES_DEF[posted];
   const words = cleanMessage(message);
@@ -347,6 +364,11 @@ export function renderReply(state, { repo, pr, message } = {}) {
       `- [Download for Mac, Apple Silicon](${base}/Omniya-Core-mac-arm64.zip)`,
       `- [Download for Windows](${base}/Omniya-Core-Setup-x64.exe)`
     ].join('\n'));
+  }
+  if (def.notice) {
+    // Only an address of one comment of an issue on GitHub. Anything else is left out, not repaired.
+    const ok = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/issues\/\d+#issuecomment-\d+$/.test(String(notice ?? ''));
+    parts.push(ok ? `Your download links are in this earlier comment: ${notice}` : 'Your download links are in my earlier comment, the one that says a test build is ready.');
   }
   if (def.lines.length > 0) parts.push(def.lines.join('\n'));
   return `${def.marker ?? MARKER}\n${stateLine(posted)}\n${parts.join('\n\n')}\n`;
@@ -392,9 +414,9 @@ export const isWaitingOnPerson = (body) => WAITING_STATES.some((state) => isRepl
  * @param {{issue: string|number, state: string, repo: string, pr?: string|number, message?: string}} args
  * @param {(args: string[]) => string} [run]
  */
-export function postReply({ issue, state, repo, pr, message }, run = gh) {
+export function postReply({ issue, state, repo, pr, message, notice }, run = gh) {
   const number = requireNumber(issue, 'issue number');
-  const body = renderReply(state, { repo, pr, message });
+  const body = renderReply(state, { repo, pr, message, notice });
   run(['api', `repos/${repo}/issues/${number}/comments`, '-f', `body=${body}`]);
   const posted = resolveState(state, message);
   const label = LABELS[posted];
