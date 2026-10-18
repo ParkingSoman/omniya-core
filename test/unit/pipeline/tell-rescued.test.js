@@ -205,3 +205,109 @@ test('stays silent when a file is still outside the automatic places, or the lis
   assert.equal(tellRescued({ branch: 'claude/fix-73-enth-speech', repo: 'a/b' }, workflow.run).said, null);
   assert.equal(still.calls.filter((c) => c.includes('-f')).length, 0, 'nothing is posted');
 });
+
+// A person's OWN fix branch: opened by the owner or the owner's session account, for an issue whose
+// contributor has no build yet. Nothing else ever posts the build there, because the fixer never ran.
+const routed = { user: bot, body: renderReply('routed') };
+const mine = { labels: [], body: 'x\n\nFixes #77\n' };
+const own = (over = {}) => decide({ pr: mine, comments: [], runs: green, byPerson: true, issueOpen: true, ...over });
+
+test('own branch: says "ready" once the checks and the build pass, when the pipeline never gave a build', () => {
+  assert.equal(own().say, 'ready');
+  assert.equal(own({ comments: [routed] }).say, 'ready', 'the "a person answers" reply does not count as a build or a hold');
+});
+
+test('own branch: says nothing unless a person opened it, the issue is open, and both checks passed', () => {
+  assert.equal(own({ byPerson: false }).say, null, 'the fixer\'s own pull request is never announced here');
+  assert.equal(own({ issueOpen: false }).say, null);
+  assert.match(own({ runs: { ...green, 'pr-build': '' } }).why, /not green yet: pr-build/);
+  assert.equal(own({ runs: { ...green, 'pr-checks': 'failure' } }).say, null);
+});
+
+test('own branch: says nothing when the pipeline already spoke about a build, a question, a hold or a failure', () => {
+  for (const state of ['ready', 'revised', 'asked', 'answered', 'maintainer', 'failed', 'stuck', 'sent', 'started']) {
+    const comment = { user: bot, body: renderReply(state, { repo: 'a/b', pr: 7, message: 'Some words.' }) };
+    assert.equal(own({ comments: [routed, comment] }).say, null, state);
+  }
+  assert.equal(own({ comments: [{ user: bot, body: '<!-- omniya-pipeline-reply -->\nThank you. I sent this fix to the maintainer.' }] }).say, null, 'old wording with no state line is not "routed"');
+});
+
+test('own branch: a comment from a person does not count as a pipeline reply, and cannot block or start a post', () => {
+  const person = { user: { login: 'someone' }, body: renderReply('ready', { repo: 'a/b', pr: 7 }) };
+  assert.equal(own({ comments: [person] }).say, 'ready');
+});
+
+function fakePerson({ author = 'ParkingSoman', comments = [routed], issueState = 'open', runs = ['success', 'success'] } = {}) {
+  const calls = [];
+  const run = (args) => {
+    calls.push(args);
+    const [a, b] = args;
+    if (a === 'pr' && b === 'list') {
+      return JSON.stringify([{ number: 131, body: 'Text\n\nFixes #77\n', headRefName: 'claude/fix-77-equation', headRefOid: 'abc', isCrossRepository: false, labels: [], author: { login: author } }]);
+    }
+    if (a === 'api' && args.includes('--jq') && args[1].endsWith('/issues/77')) return `${issueState}\n`;
+    if (a === 'api' && args[1].endsWith('/comments') && !args.includes('-f')) return JSON.stringify([comments]);
+    if (a === 'run') {
+      const workflow = args[args.indexOf('--workflow') + 1];
+      const conclusion = runs[workflow === 'pr-checks' ? 0 : 1];
+      return JSON.stringify([{ headSha: 'abc', status: conclusion ? 'completed' : 'in_progress', conclusion }]);
+    }
+    return '';
+  };
+  return { run, calls };
+}
+
+function withOwner(owner, fn) {
+  const before = process.env.GITHUB_REPOSITORY_OWNER;
+  if (owner === undefined) delete process.env.GITHUB_REPOSITORY_OWNER;
+  else process.env.GITHUB_REPOSITORY_OWNER = owner;
+  try {
+    return fn();
+  } finally {
+    if (before === undefined) delete process.env.GITHUB_REPOSITORY_OWNER;
+    else process.env.GITHUB_REPOSITORY_OWNER = before;
+  }
+}
+
+test('own branch, whole path: the owner\'s pull request gets one "ready" reply with the links, and its labels are untouched', () => {
+  withOwner('ParkingSoman', () => {
+    const { run, calls } = fakePerson();
+    const out = tellRescued({ branch: 'claude/fix-77-equation', repo: 'a/b' }, run);
+    assert.equal(out.said, 'ready');
+    const posts = calls.filter((c) => c[0] === 'api' && c.includes('-f'));
+    assert.equal(posts.length, 1);
+    assert.match(posts[0][1], /issues\/77\/comments/);
+    assert.match(posts[0].join(' '), /releases\/download\/pr-131\/Omniya-Core-Setup-x64\.exe/);
+    // The ordinary reply may clear a stale needs-owner from the ISSUE. Nothing is added, and the pull request is untouched.
+    const edits = calls.filter((c) => c[0] === 'issue' && c[1] === 'edit');
+    assert.ok(edits.every((c) => c.includes('77') && c.includes('--remove-label') && !c.includes('--add-label')));
+    assert.equal(edits.filter((c) => c.includes('131')).length, 0);
+  });
+});
+
+test('own branch, whole path: the session account counts, a stranger and the fixer\'s App do not', () => {
+  withOwner('ParkingSoman', () => {
+    assert.equal(tellRescued({ branch: 'claude/fix-77-equation', repo: 'a/b' }, fakePerson({ author: 'omniya-bot' }).run).said, 'ready');
+    for (const author of ['someone-else', 'app/omniya-pipeline', 'app/github-actions', 'avery8ingram-oss']) {
+      const { run, calls } = fakePerson({ author });
+      assert.equal(tellRescued({ branch: 'claude/fix-77-equation', repo: 'a/b' }, run).said, null, author);
+      assert.equal(calls.filter((c) => c.includes('-f')).length, 0, author);
+    }
+  });
+});
+
+test('own branch, whole path: it says nothing on a closed issue, a running build, or a second run', () => {
+  withOwner('ParkingSoman', () => {
+    assert.equal(tellRescued({ branch: 'claude/fix-77-equation', repo: 'a/b' }, fakePerson({ issueState: 'closed' }).run).said, null);
+    assert.equal(tellRescued({ branch: 'claude/fix-77-equation', repo: 'a/b' }, fakePerson({ runs: ['success', ''] }).run).said, null);
+    const told = { user: bot, body: renderReply('ready', { repo: 'a/b', pr: 131 }) };
+    assert.equal(tellRescued({ branch: 'claude/fix-77-equation', repo: 'a/b' }, fakePerson({ comments: [routed, told] }).run).said, null, 'each thing once');
+  });
+});
+
+test('own branch, whole path: with no owner known, only the session account counts', () => {
+  withOwner(undefined, () => {
+    assert.equal(tellRescued({ branch: 'claude/fix-77-equation', repo: 'a/b' }, fakePerson({ author: 'ParkingSoman' }).run).said, null);
+    assert.equal(tellRescued({ branch: 'claude/fix-77-equation', repo: 'a/b' }, fakePerson({ author: 'omniya-bot' }).run).said, 'ready');
+  });
+});
