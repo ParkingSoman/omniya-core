@@ -24,6 +24,17 @@
  * that sentence. It counts as a wait only when the hand-off's own rules (`hand-off.mjs`, run on the
  * pull request as it is now) no longer protect it. A fix that is still protected stays silent.
  *
+ * A third case, a person's OWN fix branch. A session or the owner writes a fix for an issue, pushes it as
+ * `claude/fix-N-…` with `Fixes #N` and opens the pull request. The fixer never ran, so nothing ever posted the
+ * build, and the contributor had nowhere to try it. It speaks, once, when ALL of these hold:
+ *   - the pull request was opened by the repository owner or the owner's session account (`omniya-bot`).
+ *     The fixer's own pull requests are opened by the pipeline App, so this can never race the fixer's reply.
+ *   - the issue is open, and the pipeline has said nothing on it but "a person answers" (`routed`). A build
+ *     notice, a question or a hold means the ordinary paths already speak for it.
+ *   - the checks AND the build of the current commit passed.
+ * The reply is the ordinary `ready` one, so "it works" afterwards goes through the ordinary hand-off, with
+ * all of its checks on the files, the tests and the standing notes.
+ *
  * Then it posts one comment, `ready` if the contributor never saw a build and
  * `revised` if they did, and takes the label off. Both writers go through
  * `reply.mjs`, so the text and the marker are the ones every other reply has.
@@ -42,6 +53,7 @@ import { pathToFileURL } from 'node:url';
 
 import { BRANCH_PREFIX, matchFixPrs } from './find-fix-pr.mjs';
 import { gh, requireNumber } from './gh.mjs';
+import { replyState } from './confirm.mjs';
 import { decide as handOffDecide } from './hand-off.mjs';
 import { AUTHOR, PIPELINE_PREFIX, isReplyOfState, isWaitingOnPerson, postReply } from './reply.mjs';
 import { loadCodeRules } from './standing-note.mjs';
@@ -55,6 +67,9 @@ export const WORKFLOWS = ['pr-checks', 'pr-build'];
 /** The hand-off replies that say a person must look first. They stop being true when the rules stop protecting the fix. */
 export const HAND_OFF_WAITS = ['sent-automation', 'sent-owner'];
 
+/** Session accounts of the owner, besides the owner. Their pull requests count as a person's own. */
+export const SESSION_ACCOUNTS = ['omniya-bot'];
+
 /** The first words of a comment that gave the contributor a build. */
 const GAVE_A_BUILD = ['A test build is ready.', 'A new test build is ready.'];
 
@@ -62,6 +77,19 @@ const GAVE_A_BUILD = ['A test build is ready.', 'A new test build is ready.'];
 function issueOf(body) {
   const match = /(?:^|\n)[Ff]ixes #([0-9]+)[ \t\r\n]*$/.exec(body ?? '');
   return match ? match[1] : '';
+}
+
+/**
+ * A person's own fix branch whose contributor has no build yet (see the header). Null when it does not apply.
+ * @returns {{say: 'ready'|null, why: string}|null}
+ */
+function firstBuild({ ours, runs, byPerson, issueOpen }) {
+  if (!byPerson || !issueOpen) return null;
+  // Nothing from the pipeline on the issue except "a person answers": it never gave a build and never asked for one.
+  if (!ours.every((comment) => replyState(comment.body) === 'routed')) return null;
+  const notGreen = WORKFLOWS.filter((workflow) => runs[workflow] !== 'success');
+  if (notGreen.length > 0) return { say: null, why: `not green yet: ${notGreen.join(', ')}` };
+  return { say: 'ready', why: "a person's own fix branch is green and the contributor has no build yet" };
 }
 
 /**
@@ -73,17 +101,19 @@ function issueOf(body) {
  * @param {Record<string, string>} input.runs conclusion of the newest run of each workflow, on the branch's current commit
  * @param {boolean} [input.stillProtected] whether the hand-off would still protect the pull request. Only a
  *   hand-off wait (`sent-automation`, `sent-owner`) is lifted by `false`; anything else, or nothing, keeps it.
+ * @param {boolean} [input.byPerson] the pull request was opened by the owner or the owner's session account
+ * @param {boolean} [input.issueOpen] the issue is still open
  * @returns {{say: 'ready'|'revised'|null, why: string}}
  */
-export function decide({ pr, comments, runs, stillProtected = true }) {
-  if (!pr.labels.some((label) => LOOK_LABELS.includes(label))) {
-    return { say: null, why: 'the pull request is not waiting on a person' };
-  }
+export function decide({ pr, comments, runs, stillProtected = true, byPerson = false, issueOpen = true }) {
   // Anyone can comment on a public issue and start the text with the marker. Only
   // the Actions bot is the pipeline, so only its comments count.
   const ours = comments.filter(
     (comment) => comment.user?.login === AUTHOR && (comment.body ?? '').startsWith(PIPELINE_PREFIX)
   );
+  if (!pr.labels.some((label) => LOOK_LABELS.includes(label))) {
+    return firstBuild({ ours, runs, byPerson, issueOpen }) ?? { say: null, why: 'the pull request is not waiting on a person' };
+  }
   const newest = ours.at(-1);
   // GitHub trims the trailing newline off a stored comment. Comments from before the state line
   // existed are the same words without it, and the contributor is still waiting on them.
@@ -128,7 +158,7 @@ export function tellRescued({ branch, repo }, run = gh) {
   const listed = JSON.parse(
     run([
       'pr', 'list', '--repo', repo, '--base', 'testing', '--state', 'open', '--head', branch, '--limit', '5',
-      '--json', 'number,body,headRefName,headRefOid,isCrossRepository,labels'
+      '--json', 'number,body,headRefName,headRefOid,isCrossRepository,labels,author'
     ])
   );
   const candidates = listed.filter((pr) => issueOf(pr.body));
@@ -153,11 +183,18 @@ export function tellRescued({ branch, repo }, run = gh) {
   }
 
   const labels = pr.labels.map((label) => label.name);
+  const owner = String(process.env.GITHUB_REPOSITORY_OWNER ?? '').toLowerCase();
+  const author = String(pr.author?.login ?? '').toLowerCase();
+  const byPerson = author !== '' && [owner, ...SESSION_ACCOUNTS].filter(Boolean).includes(author);
+  // One more call, and only for a person's own pull request that no one is waiting on: is the issue still open?
+  const issueOpen = byPerson && !labels.some((label) => LOOK_LABELS.includes(label))
+    ? run(['api', `repos/${repo}/issues/${issue}`, '--jq', '.state']).trim() === 'open'
+    : true;
   // The files are read only when the contributor's last word is a hand-off wait and the checks are green.
   const lastOurs = comments.filter((c) => c.user?.login === AUTHOR && (c.body ?? '').startsWith(PIPELINE_PREFIX)).at(-1);
   const mayLift = labels.some((label) => LOOK_LABELS.includes(label)) && lastOurs && HAND_OFF_WAITS.some((state) => isReplyOfState(lastOurs.body, state)) && WORKFLOWS.every((workflow) => runs[workflow] === 'success');
   const stillProtected = mayLift ? stillProtectedNow({ pr: pr.number, repo }, run) : true;
-  const decision = decide({ pr: { labels, body: pr.body }, comments, runs, stillProtected });
+  const decision = decide({ pr: { labels, body: pr.body }, comments, runs, stillProtected, byPerson, issueOpen });
   if (!decision.say) return { said: null, why: decision.why };
 
   postReply({ issue, state: decision.say, repo, pr: pr.number }, run);
