@@ -7,7 +7,6 @@ import { build } from 'esbuild';
 
 import {
   goToDocStart,
-  enterExplorer,
   explorerSpeech,
   getDoc,
   insertEquation,
@@ -21,6 +20,13 @@ import {
 // "Solve [x squared] for x." is typed once, then each test walks it.
 // Positions: 1 is before "S". "Solve " is 6 characters, so 7 is just before the
 // equation and 8 is just after it.
+
+async function start(t) {
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-e2e-'));
+  const session = await launchApp({ dataDirectory });
+  t.after(() => session.electronApp.close().catch(() => {}));
+  return session;
+}
 
 async function startWithSentence(t) {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'omniya-e2e-'));
@@ -41,17 +47,18 @@ const selection = (page) => page.evaluate(() => {
   return { from, to, node: node?.type.name ?? null };
 });
 
-test('arrow keys select an equation first, then step past it', { timeout: 90_000 }, async (t) => {
+test('one arrow press steps past an equation, and Shift+arrow selects it', { timeout: 90_000 }, async (t) => {
   const { page } = await startWithSentence(t);
   await goToDocStart(page);
   await press(page, 'ArrowRight', 6);
   assert.deepEqual(await selection(page), { from: 9, to: 9, node: null }, 'caret before the equation');
   await press(page, 'ArrowRight');
-  assert.deepEqual(await selection(page), { from: 9, to: 10, node: 'math' }, 'the first press selects it');
-  await press(page, 'ArrowRight');
-  assert.deepEqual(await selection(page), { from: 10, to: 10, node: null }, 'the second press passes it');
+  assert.deepEqual(await selection(page), { from: 10, to: 10, node: null }, 'one press passes it');
   await press(page, 'ArrowLeft');
-  assert.deepEqual(await selection(page), { from: 9, to: 10, node: 'math' }, 'going back selects it again');
+  assert.deepEqual(await selection(page), { from: 9, to: 9, node: null }, 'one press back passes it again');
+  await press(page, 'Shift+ArrowRight');
+  const selected = await selection(page);
+  assert.deepEqual([selected.from, selected.to], [9, 10], 'Shift+arrow selects it');
 });
 
 test('the equation is one named image, so a reader says it once', { timeout: 90_000 }, async (t) => {
@@ -59,6 +66,11 @@ test('the equation is one named image, so a reader says it once', { timeout: 90_
   const math = page.locator('#editor-host .math-node');
   assert.equal(await math.getAttribute('role'), 'img');
   assert.equal(await math.getAttribute('aria-label'), 'x squared');
+  assert.equal(await math.getAttribute('aria-roledescription'), 'equation', 'a reader says "equation", not "graphic"');
+  // The braille display shows the equation in Nemeth, with no role word before it.
+  await page.waitForFunction(() => document.querySelector('.math-node')?.hasAttribute('aria-braillelabel'));
+  assert.match(await math.getAttribute('aria-braillelabel'), /^[\u2800-\u28FF]+$/);
+  assert.equal(await math.getAttribute('aria-brailleroledescription'), '\u2800');
 
   // A virtual screen reader walks the accessibility tree. It is not a real
   // reader: it shows that the tree has a role and a name, not what NVDA,
@@ -87,18 +99,20 @@ test('the equation is one named image, so a reader says it once', { timeout: 90_
     return log;
   });
   assert.ok(spoken.some((phrase) => /Solve/.test(phrase)), 'the paragraph text is spoken');
-  assert.ok(spoken.some((phrase) => /image, x squared/.test(phrase)), 'the equation is spoken by its name');
+  assert.ok(spoken.some((phrase) => /equation/.test(phrase) && /x squared/.test(phrase)), 'the equation is spoken as an equation, by its name');
   assert.equal(spoken.filter((phrase) => phrase === 'x' || phrase === '2').length, 0, 'the parts are not read a second time');
 });
 
 test('the explorer inside an equation keeps focus and its keys', { timeout: 90_000 }, async (t) => {
   const { page } = await startWithSentence(t);
   await goToDocStart(page);
-  await press(page, 'ArrowRight', 7);
-  assert.deepEqual(await selection(page), { from: 9, to: 10, node: 'math' });
+  await press(page, 'ArrowRight', 6);
+  assert.deepEqual(await selection(page), { from: 9, to: 9, node: null });
   const docBefore = await getDoc(page);
 
-  await enterExplorer(page, 0);
+  // Enter on the caret just before the equation reads it by parts.
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.activeElement?.closest('.math-node'));
   const start = await explorerSpeech(page);
   // Down enters the structure, Right moves along it. These belong to MathJax.
   await press(page, 'ArrowDown');
@@ -119,4 +133,20 @@ test('the explorer inside an equation keeps focus and its keys', { timeout: 90_0
     && !document.activeElement.closest('.math-node'));
   assert.deepEqual(await selection(page), { from: 9, to: 10, node: 'math' });
   assert.equal(await page.locator('#editor-host .math-node').getAttribute('role'), 'img', 'the name returns');
+});
+
+test('a Nemeth equation shows the cells that were typed on a braille display', { timeout: 90_000 }, async (t) => {
+  const { page } = await start(t);
+  await insertEquation(page, { method: 'nemeth', source: '⠽⠀⠨⠅⠀⠭' });
+  const math = page.locator('#editor-host .math-node');
+  await page.waitForFunction(() => document.querySelector('.math-node')?.hasAttribute('aria-braillelabel'));
+  assert.equal(await math.getAttribute('aria-braillelabel'), '⠽⠀⠨⠅⠀⠭');
+});
+
+test('a LaTeX equation shows the Nemeth that MathJax writes for it', { timeout: 90_000 }, async (t) => {
+  const { page } = await start(t);
+  await insertEquation(page, { method: 'latex', source: 'y=x' });
+  const math = page.locator('#editor-host .math-node');
+  await page.waitForFunction(() => document.querySelector('.math-node')?.hasAttribute('aria-braillelabel'));
+  assert.equal(await math.getAttribute('aria-braillelabel'), '⠽⠀⠨⠅⠀⠭');
 });
