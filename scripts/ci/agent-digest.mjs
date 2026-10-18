@@ -75,6 +75,16 @@ export function digest(data, { word, hadMessage } = {}) {
   if (final) {
     lines.push('', `Turns: ${Number(final.num_turns) || 0}. Ended: ${scrub(String(final.subtype ?? 'unknown'))}.`);
     if (typeof final.result === 'string') lines.push('', `Final words: ${scrub(cleanMessage(final.result)).replace(/\n+/g, ' ')}`);
+    // A silent stop with no result file came twice from a tool the run was not allowed to use (issue 69), and the
+    // count alone said nothing. The NAME of each denied tool, and the file path for the file tools, never the rest.
+    const denied = (Array.isArray(final.permission_denials) ? final.permission_denials : [])
+      .map((d) => {
+        const name = safePath(d?.tool_name);
+        const path = PATH_TOOLS.has(d?.tool_name) ? safePath(d?.tool_input?.file_path ?? d?.tool_input?.path ?? d?.tool_input?.notebook_path) : '';
+        return name ? `${name}${path ? ` \`${path}\`` : ''}` : '';
+      })
+      .filter(Boolean);
+    if (denied.length > 0) lines.push('', `Denied: ${denied.join(', ')}.`);
   }
   const out = lines.join('\n');
   return out.length <= MAX_DIGEST ? out : `${out.slice(0, MAX_DIGEST)}\n...cut`;
@@ -90,6 +100,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   } catch {
     text = '### What the agent did\n\nThe execution file could not be read.';
   }
+  // Both places. The summary page is only in a browser. The log is what `gh run view --log` reads, and this text
+  // is already scrubbed for a public page, so it is no more open there.
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${text}\n`);
-  else process.stdout.write(`${text}\n`);
+  process.stdout.write(`${text}\n`);
 }
