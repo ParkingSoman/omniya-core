@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { checkForNewerMacBuild, RELEASE_PAGE_URL } from './main/mac-update-check.js';
+import { describeBuild } from './main/build-info.js';
 import { buildExport } from './main/export-service.js';
 import { convertLatexToMathML } from './main/mathml.js';
 import { rendererSandboxEnabled } from './main/renderer-sandbox.js';
@@ -282,6 +283,25 @@ function buildApplicationMenu() {
           // page's own clipboard call failed on a contributor's Windows machine.
           label: 'Copy braille input diagnostics',
           click: () => sendMenuCommand({ action: 'copy-input-diagnostics' })
+        },
+        {
+          // A native message box: a screen reader reads it the moment it opens,
+          // and Enter or Escape closes it. It tells a tester which build runs.
+          label: 'About Omniya Core',
+          click: () => {
+            const { title, message } = describeBuild({
+              version: app.isPackaged ? app.getVersion() : '',
+              platform: process.platform,
+              arch: process.arch
+            });
+            dialog.showMessageBox(BrowserWindow.getFocusedWindow() ?? undefined, {
+              type: 'info',
+              title,
+              message: title,
+              detail: message,
+              buttons: ['OK']
+            });
+          }
         }
       ]
     }
