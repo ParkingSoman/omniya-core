@@ -40,11 +40,19 @@ export function newestReply(comments) {
 const TRY_ALPHA = ['in-alpha', 'reminded'];
 const TRY_BUILD = ['ready', 'revised'];
 const SESSION_BRANCH = /^(pipeline|product|deps)\//;
+/** Who opens a session's pull request: the owner, passed in, or the session account. */
+const SESSION_AUTHORS = ['omniya-bot'];
+
+/**
+ * A title is written by whoever opened the issue, and anyone can open one. It is shown to the owner
+ * only, in one line: no control characters, no line breaks, cut to length. It never reaches the model.
+ */
+export const cleanTitle = (title) => String(title ?? '').replace(/[\u0000-\u001f\u007f\u2028\u2029]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100);
 const days = (now, at) => Math.max(0, Math.floor((now - Date.parse(at)) / 86_400_000));
 
 /**
  * Pure: the inbox from the open issues and pull requests.
- * @returns {{mine: string[], counts: string[]}} `mine` needs the owner; `counts` does not
+ * @returns {{mine: Array<{ref: string, what: string, title: string}>, counts: string[]}} `mine` needs the owner; `counts` does not
  */
 export function inbox({ issues, prs, owner, now = Date.now() }) {
   const mine = [];
@@ -58,11 +66,11 @@ export function inbox({ issues, prs, owner, now = Date.now() }) {
     const own = issue.author?.login === owner;
     if (labels.includes('pipeline-idea')) { ideas.push(issue.number); continue; }
     if (labels.includes('rehearsal')) continue;
-    if (labels.includes('needs-design')) { mine.push(`Issue #${issue.number} needs your design decision: ${issue.title}`); continue; }
-    if (labels.includes('needs-owner')) { mine.push(`Issue #${issue.number} needs you to look: ${issue.title}`); continue; }
-    if (['routed', 'design'].includes(reply.state) && lastWord !== owner) { mine.push(`Issue #${issue.number} asks for a person's answer: ${issue.title}`); continue; }
+    if (labels.includes('needs-design')) { mine.push({ ref: `issue #${issue.number}`, what: 'needs your design decision', title: issue.title }); continue; }
+    if (labels.includes('needs-owner')) { mine.push({ ref: `issue #${issue.number}`, what: 'needs you to look', title: issue.title }); continue; }
+    if (['routed', 'design'].includes(reply.state) && lastWord !== owner) { mine.push({ ref: `issue #${issue.number}`, what: "asks for a person's answer", title: issue.title }); continue; }
     if ([...TRY_ALPHA, ...TRY_BUILD].includes(reply.state)) {
-      if (own) mine.push(`Your issue #${issue.number}: try the ${TRY_ALPHA.includes(reply.state) ? 'alpha' : 'test build'}, then write "it works" or what is wrong: ${issue.title}`);
+      if (own) mine.push({ ref: `your issue #${issue.number}`, what: `waits for you: try the ${TRY_ALPHA.includes(reply.state) ? 'alpha' : 'test build'}, then write "it works" or what is wrong`, title: issue.title });
       else waiting.push(days(now, reply.at));
       continue;
     }
@@ -70,8 +78,9 @@ export function inbox({ issues, prs, owner, now = Date.now() }) {
   }
   for (const pr of prs ?? []) {
     const labels = (pr.labels ?? []).map((l) => l.name);
-    if (SESSION_BRANCH.test(pr.headRefName ?? '')) mine.push(`PR #${pr.number} waits for your "ship it": ${pr.title}`);
-    else if (labels.includes('needs-owner')) mine.push(`PR #${pr.number} is held for you to read before it merges: ${pr.title}`);
+    const session = pr.isCrossRepository === false && [owner, ...SESSION_AUTHORS].includes(pr.author?.login) && SESSION_BRANCH.test(pr.headRefName ?? '');
+    if (session) mine.push({ ref: `PR #${pr.number}`, what: 'waits for your "ship it"', title: pr.title });
+    else if (labels.includes('needs-owner')) mine.push({ ref: `PR #${pr.number}`, what: 'is held for you to read before it merges', title: pr.title });
   }
   const counts = [];
   if (making > 0) counts.push(`${making} fix${making === 1 ? ' is' : 'es are'} being made.`);
@@ -83,10 +92,16 @@ export function inbox({ issues, prs, owner, now = Date.now() }) {
   return { mine, counts };
 }
 
-/** Pure: the text the owner reads. */
-export function render({ mine, counts }) {
+const upper = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/**
+ * Pure: the text. `titles: true` is for the owner's eyes. `titles: false` is what the model reads:
+ * numbers, kinds and counts only, because a title is text anyone can write.
+ */
+export function render({ mine, counts }, { titles = true } = {}) {
   const head = mine.length === 0 ? 'Your inbox: nothing needs you.' : `Your inbox: ${mine.length} thing${mine.length === 1 ? '' : 's'} need${mine.length === 1 ? 's' : ''} you.`;
-  return [head, ...mine.map((line) => `- ${line}`), ...(counts.length ? ['', ...counts] : [])].join('\n');
+  const line = (m) => `- ${upper(m.ref)} ${m.what}${titles ? `: ${cleanTitle(m.title)}` : '.'}`;
+  return [head, ...mine.map(line), ...(counts.length ? ['', ...counts] : [])].join('\n');
 }
 
 function ghJson(args) {
@@ -95,7 +110,7 @@ function ghJson(args) {
 
 export function read(repo) {
   const issues = ghJson(['issue', 'list', '--repo', repo, '--state', 'open', '--limit', '100', '--json', 'number,title,labels,author,comments']);
-  const prs = ghJson(['pr', 'list', '--repo', repo, '--state', 'open', '--limit', '100', '--json', 'number,title,headRefName,labels']);
+  const prs = ghJson(['pr', 'list', '--repo', repo, '--state', 'open', '--limit', '100', '--json', 'number,title,headRefName,labels,author,isCrossRepository']);
   return { issues, prs, owner: repo.split('/')[0] };
 }
 
@@ -103,18 +118,23 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const hook = process.argv.includes('--hook');
   const repo = process.argv.slice(2).find((a) => a.includes('/')) ?? process.env.GITHUB_REPOSITORY ?? DEFAULT_REPO;
   let text;
+  let forModel;
   try {
-    text = render(inbox(read(repo)));
-  } catch (error) {
-    // The session starts anyway. The owner is told the inbox could not be read, and why, in one line.
-    text = `Your inbox could not be read from GitHub: ${String(error.message ?? error).split('\n')[0].slice(0, 160)}`;
+    const box = inbox(read(repo));
+    text = render(box);
+    forModel = render(box, { titles: false });
+  } catch {
+    // The session starts anyway. The owner is told, in one line. No error text: it could quote anything.
+    text = 'Your inbox could not be read from GitHub. Run: node scripts/ci/inbox.mjs';
+    forModel = text;
   }
   if (hook) {
     console.log(JSON.stringify({
       systemMessage: text,
       hookSpecificOutput: {
         hookEventName: 'SessionStart',
-        additionalContext: `The owner's inbox, shown to them at session start (scripts/ci/inbox.mjs). If they ask what needs them, start from this:\n${text}`
+        // Numbers and kinds only: no title, which anyone who opens an issue can write.
+        additionalContext: `The owner's inbox, shown to them at session start (scripts/ci/inbox.mjs). If they ask what needs them, start from this:\n${forModel}`
       }
     }));
   } else {

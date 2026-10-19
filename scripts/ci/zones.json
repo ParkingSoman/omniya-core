@@ -1,5 +1,5 @@
 {
-  "note": "THE ONE MAP from a path to what it takes to change it. Read by the contributor hand-off, by the shipper (both lanes) and by the tests. Classified by PATH only, never by what a line says. A path in no zone is OWNER: the default is deny. Where two patterns match, the more specific one wins (more folders, and a file beats a folder); two zones holding the very same pattern is an error the tests catch. Compared in lower case, composed Unicode, so a path that a Mac treats as the same file is the same here. AUTOMATIC: reversible, and never run by a job that holds power. SHIP-IT: runs with power or decides what is trusted, so it needs the owner's 'ship it'. GOALPOSTS: defines what counts as correct, so it is never shipped by a word. LOCK: decides who may merge what, so it needs 'ship it' and the strictness check. The structural test (test/unit/pipeline/zones.test.js) holds the rules that make AUTOMATIC safe.",
+  "note": "THE ONE MAP from a path to what it takes to change it. Read by the contributor hand-off, by the shipper (both lanes) and by the tests. Classified by PATH only, never by what a line says. A path in no zone is OWNER: the default is deny. Where two patterns match, the more specific one wins (more folders, and a file beats a folder); two zones holding the very same pattern is an error the tests catch. Compared in lower case, composed Unicode, so a path that a Mac treats as the same file is the same here. AUTOMATIC: reversible, and never run by a job that holds power. SHIP-IT: runs with power or decides what is trusted (who may start the agent, the design locks, what green means, who may merge), so it needs the owner's 'ship it'. GOALPOSTS: defines what counts as correct, so it is never shipped by a word. PIPELINE: the automation. A contributor's fix may not touch it. The shipper ships it with no word unless a changed line adds power (a secret, a token, a permission, an environment, a trigger, a merge, a release); then it needs 'ship it' (the owner's decision of 2026-10-19). LOCK: decides who may merge what, so it needs 'ship it' and the strictness check. The structural test (test/unit/pipeline/zones.test.js) holds the rules that make AUTOMATIC safe.",
   "automatic": [
     "src/**",
     "test/**",
@@ -16,15 +16,17 @@
     "scripts/nemeth-coverage.mjs",
     "scripts/nemeth-utility.mjs"
   ],
-  "shipIt": [
+  "pipeline": [
     ".github/workflows/**",
-    ".github/prompts/**",
     "scripts/ci/**",
+    "test/unit/pipeline/**"
+  ],
+  "shipIt": [
+    ".github/prompts/**",
     ".claude/**",
     "package.json",
     "package-lock.json",
     "electron-builder.yml",
-    "test/unit/pipeline/**",
     ".github/workflows/pr-checks.yml",
     ".github/workflows/pr-build.yml",
     ".github/workflows/testing-app.yml",
@@ -36,7 +38,12 @@
     ".github/workflows/pipeline-ready.yml",
     "scripts/ci/ready-status.mjs",
     "scripts/ci/green.mjs",
-    "test/unit/pipeline/ready-status.test.js"
+    "test/unit/pipeline/ready-status.test.js",
+    ".github/contributors.yml",
+    "scripts/ci/can-run-agent.mjs",
+    "scripts/ci/confirm.mjs",
+    "scripts/ci/issue-kind.mjs",
+    "scripts/ci/listed-thread.mjs"
   ],
   "lock": [
     ".github/workflows/pipeline-ship.yml",

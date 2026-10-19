@@ -157,8 +157,8 @@ How much it needs from you depends on what the change touches.
 
 | Tier | The change touches | What it needs |
 |---|---|---|
-| Automatic | Docs only. Everything else of the automation is in the ship-it zone of `scripts/ci/zones.json` | Nothing. It merges when green. |
-| Ship it | The ship-it zone: `.github/workflows/**`, `.github/prompts/**`, `scripts/ci/**`, `.claude/**`, `package.json`, the lockfile, `electron-builder.yml`, `test/unit/pipeline/**`. Judged by path, never by a line |  Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
+| Automatic | Docs, and the pipeline zone of `scripts/ci/zones.json` (workflows, `scripts/ci/**`, the pipeline's tests) when no changed line adds power. Your decision of 2026-10-19 | Nothing. It merges when green. |
+| Ship it | A changed line that adds power (a secret, a token, a permission, an environment, a trigger, a merge, a release, a delete), or the ship-it zone: what green means, who may merge, who may start the agent, the agent's prompt, `.claude/**`, `.github/contributors.yml`, the package files |  Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
 | Lock | The files that decide who may merge what: the shipper, its tests, the manifest, the strictness check | Your words AND a strictness check: the new rules must be at least as strict as the old ones on thousands of made-up cases, run with no secrets. A change that loosens the lock on purpose fails, and needs you in the merge box (Approve, then Merge). |
 | Your approval | `package.json`, CODEOWNERS, anything else. (App code on a `product/<slug>` branch is not here: your words ship it, see `docs/shipping-app-changes.md`.) | Click **Approve**, then **Merge**. The box turns green only after your approval of this commit and green checks. Never tick "bypass rules". |
 
