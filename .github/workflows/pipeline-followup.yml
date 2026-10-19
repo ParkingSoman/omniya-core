@@ -292,7 +292,8 @@ jobs:
         run: |
           set -euo pipefail
           labels="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq '[.labels[].name] | join(",")')"
-          state="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq .state)"
+          # A closed issue counts as closed by the pipeline only if the pipeline closed it LAST.
+          state="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq 'if .state == "closed" and (.closed_by.login // "") != "github-actions[bot]" then "closed-by-a-person" else .state end')"
           asked="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- omniya-pipeline-question -->")))] | length' \
             | awk '{ n += $1 } END { print n + 0 }')"
@@ -327,7 +328,7 @@ jobs:
               *)
                 if [ "$COMMENTER" = "$ISSUE_AUTHOR" ]; then
                   case "$state:$last_state" in
-                    'open:<!-- omniya-pipeline-state in-alpha -->'|'open:<!-- omniya-pipeline-state reminded -->'|*':<!-- omniya-pipeline-state closed -->') resume=true ;;
+                    'open:<!-- omniya-pipeline-state in-alpha -->'|'open:<!-- omniya-pipeline-state reminded -->'|'open:<!-- omniya-pipeline-state closed -->'|'closed:<!-- omniya-pipeline-state closed -->') resume=true ;;
                   esac
                 fi
                 ;;

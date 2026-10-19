@@ -383,7 +383,9 @@ test('merge first: @claude after the alpha notice starts a NEW fix, never past a
   assert.match(resume.run, /\*,needs-design,\*\) ;;/);
   // Only the issue's author (the owner restarts anything, above), and a closed issue only if the pipeline closed it.
   assert.match(resume.run, /if \[ "\$COMMENTER" = "\$ISSUE_AUTHOR" \]; then/);
-  assert.match(resume.run, /'open:<!-- omniya-pipeline-state in-alpha -->'\|'open:<!-- omniya-pipeline-state reminded -->'\|\*':<!-- omniya-pipeline-state closed -->'\) resume=true/);
+  assert.match(resume.run, /'open:<!-- omniya-pipeline-state in-alpha -->'\|'open:<!-- omniya-pipeline-state reminded -->'\|'open:<!-- omniya-pipeline-state closed -->'\|'closed:<!-- omniya-pipeline-state closed -->'\) resume=true/);
+  // Closed by a person last (even after the pipeline closed it once): it stays closed.
+  assert.match(resume.run, /\.closed_by\.login \/\/ ""\) != "github-actions\[bot\]" then "closed-by-a-person"/);
   assert.equal(resume.env.COMMENTER, '${{ steps.issue.outputs.author }}');
   // Only the bot's own comments are read for the state, and only the newest counts.
   assert.match(resume.run, /select\(\.user\.login == "github-actions\[bot\]"\)/);
