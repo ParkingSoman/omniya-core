@@ -1,34 +1,34 @@
 name: pipeline-carry
 
-# Carry a contributor's "it works" over a branch update.
+# Carry green fixes into `testing`, and tell each contributor when the test alpha holds theirs.
 #
-# The hand-off accepts an approval for the exact commit the contributor tested. Then
-# `keep-current` merges `testing` into the fix branch, the head moves, and the approval is for a
-# commit that is no longer the head: the fix never merges and nobody says why.
+# Merge first (the owner's decision of 2026-10-19). A contributor used to try each fix's own build
+# and say "it works" before it could merge, and that word belonged to one exact commit. Every
+# update of the branch voided it, and most of the pipeline existed to carry, re-ask and remind about
+# void approvals. Now a fix whose checks are green merges at once (`scripts/ci/hand-off.mjs --green`,
+# the hand-off's rules). The issue stays open. When an alpha that holds the merge is published,
+# the contributor gets ONE comment with the alpha's links (`scripts/ci/in-alpha.mjs`). Their "it
+# works" closes the issue, and `@claude` with a problem starts a new fix (`pipeline-followup.yml`).
+# A week of silence after that comment gets ONE reminder (`scripts/ci/remind.mjs`).
 #
-# `scripts/ci/carry-over.mjs` decides, with rules that fail closed (see the header of that file),
-# whether the fix is the SAME fix. Only if it is does the hand-off run again for the new head,
-# pinned to that commit, and the contributor is told once. Everything else is unchanged: a fix
-# whose lines changed gets the `revised` notice and a fresh "it works", as before.
-#
-# It runs when the checks of a fix branch finish (the new head is green by then), and every 20
-# minutes as a safety net. It looks at every open fix pull request, so nothing from the event is
-# used except to wake it.
+# Everything is worked out from the state of GitHub, never from the event that woke it, so a
+# missed or repeated run changes nothing. It runs when the checks of a fix branch finish, when an
+# alpha is published, every 20 minutes as a safety net, and by hand.
 on:
   workflow_run:
-    workflows: [pr-checks]
+    workflows: [pr-checks, testing-app]
     types: [completed]
   schedule:
     - cron: '*/20 * * * *'
   workflow_dispatch:
     inputs:
       pr_number:
-        description: Only this pull request. Leave empty for all of them.
+        description: Merge only this pull request. Leave empty for all of them.
         required: false
         default: ''
         type: string
       dry:
-        description: Say what would happen and change nothing.
+        description: Merge nothing and post nothing. Say what would be told.
         required: false
         default: false
         type: boolean
@@ -42,12 +42,10 @@ permissions:
   contents: read
 
 jobs:
-  carry:
-    # A check run on a fix branch that passed, or a timer, or a person.
-    if: >-
-      ${{ github.event_name != 'workflow_run' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       startsWith(github.event.workflow_run.head_branch, 'claude/fix-')) }}
+  merge:
+    # Checks on a fix branch that passed, or a timer, or a person. Never on a dry run.
+    # (Each condition is one line: every line that names a trigger counts toward the sensitive-line baseline.)
+    if: ${{ inputs.dry != true && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'pr-checks' && github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'claude/fix-'))) }}
     runs-on: ubuntu-latest
     environment: pipeline
     timeout-minutes: 15
@@ -66,20 +64,34 @@ jobs:
           permission-pull-requests: write
           permission-issues: read
           permission-statuses: write
-      # The scripts come from `testing`. The fix branches are fetched as data and only read by git.
+      # The scripts come from `testing`. Nothing from a fix branch is checked out or run.
       - uses: actions/checkout@v4
         with:
           ref: testing
-          fetch-depth: 0
       - env:
           GH_TOKEN: ${{ github.token }}
           MERGE_TOKEN: ${{ steps.app.outputs.token }}
-          PIPELINE_BOT_LOGINS: github-actions[bot],${{ steps.app.outputs.app-slug }}[bot]
           ONLY: ${{ inputs.pr_number }}
+        run: node scripts/ci/hand-off.mjs --green
+
+  # Holds no secret and no environment. It posts as `github-actions`, like every other reply.
+  tell:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.name == 'testing-app' && github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testing
+      - env:
+          GH_TOKEN: ${{ github.token }}
           DRY: ${{ inputs.dry }}
-        run: node scripts/ci/carry-over.mjs
-      # One reminder, once, for a fix whose build has waited a week for a contributor who has not
-      # written (`scripts/ci/remind.mjs`). It posts as `github-actions`, like every other reply.
+        run: node scripts/ci/in-alpha.mjs
       - env:
           GH_TOKEN: ${{ github.token }}
           DRY: ${{ inputs.dry }}

@@ -47,7 +47,7 @@ test('the marker carries the prefix the follow-up gate skips, so no reply can st
   assert.ok(gate.includes(`'${PIPELINE_PREFIX}'`), 'the gate must test for the same prefix');
 });
 
-test('only the ready and revised states have download links, for pull request 7', () => {
+test('only ready and revised link a pull request\'s build, and only in-alpha and reminded link the alpha', () => {
   for (const state of STATES) {
     const text = renderReply(state, where);
     if (state === 'ready' || state === 'revised') {
@@ -55,6 +55,11 @@ test('only the ready and revised states have download links, for pull request 7'
       assert.match(text, /\[Download for Windows\]\(https:\/\/github\.com\/a\/b\/releases\/download\/pr-7\/Omniya-Core-Setup-x64\.exe\)/, state);
       assert.match(text, /write: it works/, state);
       assert.doesNotMatch(text, /@claude it works/, state);
+    } else if (state === 'in-alpha' || state === 'reminded') {
+      assert.match(text, /\[Download the alpha for Mac, Apple Silicon\]\(https:\/\/github\.com\/a\/b\/releases\/download\/testing-app\/Omniya-Core-mac-arm64\.zip\)/, state);
+      assert.match(text, /\[Download the alpha for Windows\]\(https:\/\/github\.com\/a\/b\/releases\/download\/testing-app\/Omniya-Core-Setup-x64\.exe\)/, state);
+      assert.doesNotMatch(text, /pr-7/, state);
+      assert.match(text, /write: it works/, state);
     } else {
       assert.doesNotMatch(text, /releases\/download/, `${state} must not offer a build that is not checked`);
     }
@@ -298,4 +303,18 @@ test('isReplyOfState: the old form must match word for word, so no other comment
   assert.ok(!isReplyOfState(renderReply('started'), 'maintainer'));
   assert.ok(!isReplyOfState(renderReply('ready', { repo: 'a/b', pr: 7 }), 'maintainer'));
   assert.ok(!isReplyOfState('Hi, the maintainer needs to look at a technical problem with this fix.', 'maintainer'));
+});
+
+test('the closed reply closes the issue right after the comment, and no other state does', () => {
+  for (const state of STATES) {
+    const calls = [];
+    postReply({ issue: 5, state, repo: 'a/b', pr: 7, message: 'words' }, (args) => { calls.push(args.join(' ')); return ''; });
+    const close = calls.findIndex((c) => c.startsWith('issue close 5'));
+    if (state === 'closed') {
+      assert.ok(close > calls.findIndex((c) => c.includes('issues/5/comments')), 'the thank-you comes first');
+      assert.match(calls[close], /--reason completed/);
+    } else {
+      assert.equal(close, -1, state);
+    }
+  }
 });

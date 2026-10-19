@@ -1,5 +1,14 @@
 /**
- * The contributor said it works. Decide what happens to the fix, and do it.
+ * Decide what happens to a fix, and do it. Two ways in:
+ *
+ *   - MERGE FIRST (`confirmed: false`, from `--green`, below): the checks are green. Nobody has
+ *     tried the fix yet. It merges into `testing`, the issue stays open, and when the test alpha
+ *     holds it the contributor is told (`in-alpha.mjs`). Their "it works" then closes the issue.
+ *     A fix that is not ready says nothing: the next run looks again.
+ *   - CONFIRMED (`confirmed: true`, from `pipeline-followup.yml`): the contributor tried a pull
+ *     request's own build and said it works. The merge closes the issue.
+ *
+ * Both run the same rules:
  *
  * A fix that touches any file outside `src/`, `test/` and `docs/` (or the Nemeth
  * corpus), deletes a test, conflicts with `testing`, or says it reverses a
@@ -16,22 +25,28 @@
  * post as the App. The same token turns on auto-merge, so the merge push starts
  * `testing-app.yml`; a push made with the built-in token starts no run.
  *
- * If a check is not green, it labels `needs-owner` and tells the contributor.
+ * If a check is not green after a confirmation, it labels `needs-owner` and tells the contributor.
  *
  * Usage (needs GH_TOKEN, MERGE_TOKEN and GITHUB_REPOSITORY):
- *   node scripts/ci/hand-off.mjs <issue-number> <pull-request-number>
+ *   node scripts/ci/hand-off.mjs <issue-number> <pull-request-number>     the contributor confirmed
+ *   node scripts/ci/hand-off.mjs --green [<pull-request-number>]          merge first, every open fix (ONLY= also works)
  *
  * Step outputs: sent (true|false), merge (true|false).
  */
 
 import { pathToFileURL } from 'node:url';
 
+import { BRANCH_PREFIX } from './find-fix-pr.mjs';
 import { gh as realGh, requireNumber, setOutputs } from './gh.mjs';
+import { issueOf } from './keep-current.mjs';
 import { postReply } from './reply.mjs';
 import { justifiedByTheCode, loadCodeRules } from './standing-note.mjs';
 import { zoneOf } from './zones.mjs';
 
 export const REQUIRED_CHECKS = ['unit', 'nemeth', 'e2e'];
+
+/** The closing line of a fix that merged first. It names the issue and does not close it. */
+export const OPEN_LINE = 'Fix for';
 
 /**
  * @param {Array<{name:string, conclusion:string|null, completed_at:string|null}>} checkRuns
@@ -110,16 +125,14 @@ export function ensureLabel(name, repo, description, gh = realGh) {
 }
 
 /**
- * `carry` is set only by `carry-over.mjs`, for an approval that was given for an older commit of the
- * same fix: `{from, stillValid, alreadyTold}`. Then every rule runs as always, but a fix that is not
- * ready to merge changes nothing and says nothing (the contributor was not asking), and a merge says
- * `carried` once instead of `sent`.
+ * `confirmed` is false for merge first: then a fix that cannot merge now changes nothing and says
+ * nothing (nobody asked), except a fix a person must read, which is held and told once.
  */
-export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, carry = null }, gh = realGh) {
+export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, confirmed = true }, gh = realGh) {
   const issueNumber = requireNumber(issue, 'issue number');
   const prNumber = requireNumber(pr, 'pull request number');
 
-  const view = JSON.parse(gh(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid,mergeable,body,changedFiles']));
+  const view = JSON.parse(gh(['pr', 'view', prNumber, '--repo', repo, '--json', 'headRefOid,mergeable,body,changedFiles,labels']));
   const sha = view.headRefOid;
   const checkRuns = gh([
     'api', `repos/${repo}/commits/${sha}/check-runs`, '--paginate',
@@ -152,10 +165,14 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, ca
   const decision = decide({ files, filesComplete, fixBranch, mergeable: last.mergeable, body: last.body, missing: notGreen(checkRuns), codeRules: loadCodeRules() });
   if (moved) decision.reason = 'moved';
 
-  // A carried approval acts only when the fix would merge now. Waiting for the checks, a conflict, a
-  // fix a person must read: nothing is written, and the next run looks again.
-  if (carry && decision.action !== 'merge') {
-    return { sent: false, merge: false, sha, missing: decision.missing ?? [], reason: decision.reason ?? 'pending' };
+  // Merge first: a fix that is not ready is not news. Red checks are the repair's job, a conflict is
+  // `keep-current`'s, and a moved head is looked at again on the next run. A fix a person must read
+  // is held once: the label says it was already told.
+  if (!confirmed && decision.action !== 'merge') {
+    const told = (view.labels ?? []).some((l) => l.name === 'needs-owner');
+    if (decision.action !== 'protected' || ['conflict', 'moved'].includes(decision.reason) || told) {
+      return { sent: false, merge: false, sha, missing: decision.missing ?? [], reason: decision.reason ?? 'pending' };
+    }
   }
 
   if (decision.action === 'not-green') {
@@ -207,34 +224,41 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, ca
       conflict: 'It conflicts with `testing`.',
       'standing-note': 'It says it reverses a standing note.'
     }[decision.reason];
+    const lead = confirmed ? `The contributor installed the build and says it works.\n\nCommit tested: ${sha}` : `The checks are green on ${sha}. Nobody has tried it yet.`;
     gh([
       'pr', 'comment', prNumber, '--repo', repo, '--body',
-      `The contributor installed the build and says it works.\n\nCommit tested: ${sha}\n\n${why} I did not set \`contributor-tested\` and I did not turn on auto-merge. Closing issue #${issueNumber} is left to your merge, which closes it.`
+      `${lead}\n\n${why} I did not set \`contributor-tested\` and I did not turn on auto-merge. When you merge it, the contributor is told it is in the test alpha.`
     ]);
-    postReply({ issue: issueNumber, state: decision.reason === 'automation' ? 'sent-automation' : 'sent-owner', repo }, gh);
+    const state = !confirmed ? 'held' : decision.reason === 'automation' ? 'sent-automation' : 'sent-owner';
+    postReply({ issue: issueNumber, state, repo }, gh);
     return { sent: true, merge: false, sha, missing: [], reason: decision.reason };
   }
 
   if (!mergeToken) throw new Error('MERGE_TOKEN is not set. Refusing to set contributor-tested without a way to merge.');
-  // The last look, just before the lock is set: the contributor must not have written since.
-  if (carry && !carry.stillValid()) return { sent: false, merge: false, sha, missing: [], reason: 'approval-changed' };
   // The lock. Posted with the App token (a branch workflow cannot post as the App), before auto-merge is asked for.
+  const description = confirmed ? 'The contributor tested this build' : 'Checks green; the contributor tries it in the alpha';
   gh([
     'api', `repos/${repo}/statuses/${sha}`,
-    '-f', 'state=success', '-f', 'context=contributor-tested', '-f', 'description=The contributor tested this build'
+    '-f', 'state=success', '-f', 'context=contributor-tested', '-f', `description=${description}`
   ], { token: mergeToken });
   // The squash commit gets its own body. The default is built from the agent's commit messages, which end
-  // in Co-authored-by lines naming Claude (the owner's rule: no Claude attribution), and it has no closing
-  // line, so GitHub never closed the issue (issues 54, 56 and 52 stayed open after their fixes merged).
-  gh(['pr', 'merge', prNumber, '--repo', repo, '--body', `Fixes #${issueNumber}`, '--auto', '--squash', '--match-head-commit', sha], { token: mergeToken });
+  // in Co-authored-by lines naming Claude (the owner's rule: no Claude attribution).
+  // Confirmed, the body closes the issue. Merge first, nothing may close it: the contributor has not
+  // tried the fix. So the merge says `Fix for #N`, and the pull request's own closing line becomes that
+  // too, because GitHub can close an issue from a merged pull request's description as well.
+  const closing = confirmed ? `Fixes #${issueNumber}` : `${OPEN_LINE} #${issueNumber}`;
+  if (!confirmed) {
+    const body = String(last.body ?? '').replace(new RegExp(`(^|\\n)[Ff]ixes #${issueNumber}([ \\t\\r\\n]*)$`), `$1${closing}$2`);
+    gh(['api', '-X', 'PATCH', `repos/${repo}/pulls/${prNumber}`, '-f', `body=${body}`], { token: mergeToken });
+  }
+  gh(['pr', 'merge', prNumber, '--repo', repo, '--body', closing, '--auto', '--squash', '--match-head-commit', sha], { token: mergeToken });
   const green = `${REQUIRED_CHECKS.join(', ')} are green on that commit.`;
-  if (carry) {
+  if (!confirmed) {
     gh([
       'pr', 'comment', prNumber, '--repo', repo, '--body',
-      `The contributor tested an earlier commit of this fix and said it works. The fix itself has not changed, only the branch was brought up to date with testing.\n\nApproval carried from: ${carry.from}\n\nCommit tested: ${sha}\n\n${green} Auto-merge is on for that commit only. Merging closes issue #${issueNumber}.`
+      `Merge first. ${green} Nobody has tried it yet.\n\nCommit: ${sha}\n\nAuto-merge is on for that commit only. Issue #${issueNumber} stays open: when the test alpha holds this fix, the contributor is asked to try it, and their "it works" closes it.`
     ]);
-    if (!carry.alreadyTold) postReply({ issue: issueNumber, state: 'carried', repo }, gh);
-    return { sent: true, merge: true, sha, missing: [], carried: true };
+    return { sent: false, merge: true, sha, missing: [] };
   }
   gh([
     'pr', 'comment', prNumber, '--repo', repo, '--body',
@@ -244,14 +268,66 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, ca
   return { sent: true, merge: true, sha, missing: [] };
 }
 
+/**
+ * MERGE FIRST, for every open fix pull request (`pipeline-carry.yml`). It looks at EVERY open fix each
+ * time, so it does not matter which event woke it or whether one was missed. The owner decided on
+ * 2026-10-19: a fix with green checks merges at once, the issue stays open, and the contributor tries
+ * the newest test alpha (`in-alpha.mjs` tells them when it holds the fix). `main` still needs the owner.
+ * Left alone: an issue that is closed, or that waits on the owner's design decision.
+ */
+
+/** Labels on the ISSUE that stop a merge: the owner has a design question to answer first. */
+export const HOLD_LABELS = ['needs-design'];
+
+/**
+ * Pure: is this pull request one of the pipeline's fixes, and for which issue?
+ * @returns {string} the issue number, or '' when it is not a fix to look at
+ */
+export function fixIssue(pr) {
+  if (pr.isCrossRepository !== false || pr.baseRefName !== 'testing') return '';
+  if (!String(pr.headRefName ?? '').startsWith(BRANCH_PREFIX)) return '';
+  return issueOf(pr.body);
+}
+
+/**
+ * @returns {Array<{pr:number, issue:string, outcome:string}>}
+ */
+export function mergeGreen({ repo, mergeToken, reviewer, only = '' }, gh = realGh) {
+  const prs = JSON.parse(gh([
+    'pr', 'list', '--repo', repo, '--base', 'testing', '--state', 'open', '--limit', '100',
+    '--json', 'number,body,headRefName,isCrossRepository,baseRefName'
+  ]));
+  const results = [];
+  for (const pr of prs) {
+    if (only && String(pr.number) !== String(only)) continue;
+    const issue = fixIssue(pr);
+    const out = (outcome) => results.push({ pr: pr.number, issue, outcome });
+    if (!issue) continue;
+    try {
+      const view = JSON.parse(gh(['api', `repos/${repo}/issues/${requireNumber(issue, 'issue')}`]));
+      if (view.state !== 'open') { out('skip: the issue is closed'); continue; }
+      if ((view.labels ?? []).some((l) => HOLD_LABELS.includes(l.name))) { out('skip: waits on a design decision'); continue; }
+      const r = handOff({ issue, pr: String(pr.number), repo, reviewer, mergeToken, confirmed: false }, gh);
+      out(r.merge ? 'merging' : r.sent ? `held: ${r.reason}` : `not yet: ${r.reason ?? (r.missing.length ? `waiting for ${r.missing.join(', ')}` : 'pending')}`);
+    } catch (error) {
+      // One pull request that fails does not stop the others.
+      out(`error: ${String(error.message ?? error).split('\n')[0].slice(0, 160)}`);
+    }
+  }
+  return results;
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  const [issue, pr] = process.argv.slice(2);
   const repo = process.env.GITHUB_REPOSITORY;
-  const result = handOff({
-    issue, pr, repo,
-    reviewer: process.env.GITHUB_REPOSITORY_OWNER,
-    mergeToken: process.env.MERGE_TOKEN,
-    expectedSha: process.env.EXPECTED_SHA
-  });
-  setOutputs({ sent: result.sent, merge: result.merge, conflict: result.reason === 'conflict' });
+  const reviewer = process.env.GITHUB_REPOSITORY_OWNER;
+  const mergeToken = process.env.MERGE_TOKEN;
+  if (process.argv[2] === '--green') {
+    const only = process.argv[3] ?? process.env.ONLY ?? '';
+    if (only) requireNumber(only, 'pull request number');
+    for (const r of mergeGreen({ repo, mergeToken, reviewer, only })) console.log(`#${r.pr} (issue #${r.issue}): ${r.outcome}`);
+  } else {
+    const [issue, pr] = process.argv.slice(2);
+    const result = handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha: process.env.EXPECTED_SHA });
+    setOutputs({ sent: result.sent, merge: result.merge, conflict: result.reason === 'conflict' });
+  }
 }

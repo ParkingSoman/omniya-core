@@ -224,10 +224,9 @@ test('a revision is checked and rebuilt, and an answer is not', () => {
   assert.equal(verify.uses, VERIFY);
   assert.equal(verify.if, "needs.agent.outputs.result == 'revised'", 'rebuilding on a question spends two packaging jobs on a reply');
   // No "I am changing the fix" comment. The contributor's own comment started the
-  // round, and the one reply they hear is the new build, which says it is the
-  // same links.
-  assert.equal(verify.with.reply_state, 'revised');
-  assert.equal(verify.with.message, '${{ needs.agent.outputs.message }}');
+  // round. Merge first: the next thing they hear is that the alpha holds the fix.
+  assert.equal(verify.with.reply_state, undefined);
+  assert.equal(verify.with.message, undefined);
   assert.equal(verify.with.status_before, undefined);
   assert.equal(verify.with.pr_number, '${{ needs.agent.outputs.pr }}');
   assert.equal(verify.with.branch, '${{ needs.agent.outputs.branch }}');
@@ -362,4 +361,30 @@ test('a session can rehearse a contributor comment by hand, and every check stil
   // The allowlist and the access check are the same steps, now fed the issue author.
   assert.equal(allowlistJob.steps.find((s) => s.id === 'check').env.COMMENT_AUTHOR, '${{ steps.issue.outputs.author }}');
   assert.equal(workflow.concurrency.group, 'contributor-issue-${{ github.event.issue.number || inputs.issue_number }}');
+});
+
+test('merge first: "it works" with no open fix is checked, and the reply job closes the issue through reply.mjs', () => {
+  const steps = workflow.jobs.allowlist.steps;
+  const confirm = steps.find((s) => s.id === 'confirm');
+  assert.match(confirm.if, /steps\.find\.outputs\.count == '0'/);
+  assert.equal(workflow.jobs.allowlist.outputs.close, "${{ steps.confirm.outputs.close == 'true' && 'true' || 'false' }}");
+  // Only the author or the owner, only from a real comment.
+  const reply = workflow.jobs.reply;
+  assert.match(reply.if, /needs\.allowlist\.outputs\.close == 'true' && github\.event_name == 'issue_comment'/);
+  assert.match(reply.if, /github\.event\.comment\.user\.login == github\.event\.issue\.user\.login \|\| github\.event\.comment\.author_association == 'OWNER'/);
+  const run = reply.steps.at(-1).run;
+  assert.match(run, /if \[ "\$CLOSE" = "true" \]; then\n\s+node scripts\/ci\/reply\.mjs "\$ISSUE" closed\n\s+exit 0/);
+  // Closing merges nothing.
+  assert.match(workflow.jobs.handoff.if, /needs\.allowlist\.outputs\.close != 'true'/);
+});
+
+test('merge first: @claude after the alpha notice starts a NEW fix, never past a design question, and reopens a closed issue', () => {
+  const resume = workflow.jobs.allowlist.steps.find((s) => s.id === 'resume');
+  assert.match(resume.run, /\*,needs-design,\*\) ;;/);
+  assert.match(resume.run, /omniya-pipeline-state in-alpha -->'\|'<!-- omniya-pipeline-state reminded -->'\|'<!-- omniya-pipeline-state closed -->'\) resume=true/);
+  // Only the bot's own comments are read for the state, and only the newest counts.
+  assert.match(resume.run, /select\(\.user\.login == "github-actions\[bot\]"\)/);
+  assert.match(resume.run, /tail -n 1/);
+  const start = workflow.jobs['resume-start'].steps.at(-1).run;
+  assert.match(start, /= "closed" \]; then\n\s+gh issue reopen "\$ISSUE"/);
 });
