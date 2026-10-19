@@ -381,7 +381,10 @@ test('merge first: "it works" with no open fix is checked, and the reply job clo
 test('merge first: @claude after the alpha notice starts a NEW fix, never past a design question, and reopens a closed issue', () => {
   const resume = workflow.jobs.allowlist.steps.find((s) => s.id === 'resume');
   assert.match(resume.run, /\*,needs-design,\*\) ;;/);
-  assert.match(resume.run, /omniya-pipeline-state in-alpha -->'\|'<!-- omniya-pipeline-state reminded -->'\|'<!-- omniya-pipeline-state closed -->'\) resume=true/);
+  // Only the issue's author (the owner restarts anything, above), and a closed issue only if the pipeline closed it.
+  assert.match(resume.run, /if \[ "\$COMMENTER" = "\$ISSUE_AUTHOR" \]; then/);
+  assert.match(resume.run, /'open:<!-- omniya-pipeline-state in-alpha -->'\|'open:<!-- omniya-pipeline-state reminded -->'\|\*':<!-- omniya-pipeline-state closed -->'\) resume=true/);
+  assert.equal(resume.env.COMMENTER, '${{ steps.issue.outputs.author }}');
   // Only the bot's own comments are read for the state, and only the newest counts.
   assert.match(resume.run, /select\(\.user\.login == "github-actions\[bot\]"\)/);
   assert.match(resume.run, /tail -n 1/);

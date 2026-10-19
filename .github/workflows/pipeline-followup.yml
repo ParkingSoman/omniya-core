@@ -286,9 +286,13 @@ jobs:
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
           REPO: ${{ github.repository }}
           IS_OWNER: ${{ steps.owner.outputs.owner }}
+          # Who wrote the comment and who wrote the issue. On a rehearsal both are the issue's author.
+          COMMENTER: ${{ steps.issue.outputs.author }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login || steps.issue.outputs.author }}
         run: |
           set -euo pipefail
           labels="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq '[.labels[].name] | join(",")')"
+          state="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq .state)"
           asked="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- omniya-pipeline-question -->")))] | length' \
             | awk '{ n += $1 } END { print n + 0 }')"
@@ -307,9 +311,10 @@ jobs:
           # by hand.
           #
           # Merge first: the fix already merged and the pipeline said it is in the test alpha (or
-          # reminded, or closed the issue on "it works"). A comment with `@claude` now says it is
-          # still wrong, so it starts a NEW fix. The newest bot reply decides, and only the bot can
-          # write it. `needs-design` still stops it.
+          # reminded, or closed the issue on "it works"). A comment with `@claude` from the issue's
+          # author now says it is still wrong, so it starts a NEW fix. The newest bot reply decides,
+          # and only the bot can write it. `needs-design` still stops it. A closed issue restarts only
+          # if the pipeline closed it (`closed`): an issue a person closed stays closed.
           last_state="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
             --jq '.[] | select(.user.login == "github-actions[bot]") | (.body | split("\n")[1] // "")' | tail -n 1)"
           resume=false
@@ -320,9 +325,11 @@ jobs:
               *,needs-design,*) ;;
               *,needs-info,*) [ "${asked:-0}" -ge 1 ] && resume=true ;;
               *)
-                case "$last_state" in
-                  '<!-- omniya-pipeline-state in-alpha -->'|'<!-- omniya-pipeline-state reminded -->'|'<!-- omniya-pipeline-state closed -->') resume=true ;;
-                esac
+                if [ "$COMMENTER" = "$ISSUE_AUTHOR" ]; then
+                  case "$state:$last_state" in
+                    'open:<!-- omniya-pipeline-state in-alpha -->'|'open:<!-- omniya-pipeline-state reminded -->'|*':<!-- omniya-pipeline-state closed -->') resume=true ;;
+                  esac
+                fi
                 ;;
             esac
           fi

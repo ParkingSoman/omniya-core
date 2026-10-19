@@ -42,9 +42,9 @@ import { ensureLabel, FAULT, legacyFault, OWNER, RETRIED } from './heal.mjs';
 /** A person is already needed here, so do not spend a repair on it. */
 export const WAITING_LABELS = ['needs-owner', 'needs-maintainer'];
 
-/** The issue a pull request fixes: the `Fixes #N` line the fix agent writes last. */
+/** The issue a pull request fixes: the `Fixes #N` line the fix agent writes last (`Fix for #N` once merge first handed it off). */
 export function issueOf(body) {
-  const match = /(?:^|\n)[Ff]ixes #([0-9]+)[ \t\r\n]*$/.exec(body ?? '');
+  const match = /(?:^|\n)(?:[Ff]ixes|Fix for) #([0-9]+)[ \t\r\n]*$/.exec(body ?? '');
   return match ? match[1] : '';
 }
 

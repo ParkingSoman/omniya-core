@@ -247,8 +247,8 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, co
   // tried the fix. So the merge says `Fix for #N`, and the pull request's own closing line becomes that
   // too, because GitHub can close an issue from a merged pull request's description as well.
   const closing = confirmed ? `Fixes #${issueNumber}` : `${OPEN_LINE} #${issueNumber}`;
-  if (!confirmed) {
-    const body = String(last.body ?? '').replace(new RegExp(`(^|\\n)[Ff]ixes #${issueNumber}([ \\t\\r\\n]*)$`), `$1${closing}$2`);
+  const body = String(last.body ?? '').replace(new RegExp(`(^|\\n)[Ff]ixes #${issueNumber}([ \\t\\r\\n]*)$`), `$1${closing}$2`);
+  if (!confirmed && body !== String(last.body ?? '')) {
     gh(['api', '-X', 'PATCH', `repos/${repo}/pulls/${prNumber}`, '-f', `body=${body}`], { token: mergeToken });
   }
   gh(['pr', 'merge', prNumber, '--repo', repo, '--body', closing, '--auto', '--squash', '--match-head-commit', sha], { token: mergeToken });
@@ -280,13 +280,30 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, co
 export const HOLD_LABELS = ['needs-design'];
 
 /**
- * Pure: is this pull request one of the pipeline's fixes, and for which issue?
+ * Who may open a pull request that merges first: the pipeline's App, the Actions bot (fixes opened
+ * before the App), the session account. And the owner, passed in. `gh pr list` names an app `app/<slug>`.
+ * Anyone else with write access could name a branch `claude/fix-...`; that one waits for the owner.
+ */
+export const OPENERS = ['app/omniya-pipeline', 'omniya-pipeline[bot]', 'app/github-actions', 'github-actions[bot]', 'omniya-bot'];
+
+/**
+ * Pure: is this pull request one of the pipeline's fixes, and for which issue? The branch must name the
+ * same issue as the closing line: `claude/fix-5-...` with `Fixes #5`.
  * @returns {string} the issue number, or '' when it is not a fix to look at
  */
-export function fixIssue(pr) {
+export function fixIssue(pr, owner = '') {
   if (pr.isCrossRepository !== false || pr.baseRefName !== 'testing') return '';
-  if (!String(pr.headRefName ?? '').startsWith(BRANCH_PREFIX)) return '';
-  return issueOf(pr.body);
+  if (![...OPENERS, owner].filter(Boolean).includes(pr.author?.login)) return '';
+  const issue = issueOf(pr.body);
+  return issue && String(pr.headRefName ?? '').startsWith(`${BRANCH_PREFIX}${issue}-`) ? issue : '';
+}
+
+/**
+ * Pure: has this head commit already been handed off? The status is per commit, so a branch that
+ * moved after the hand-off (`keep-current` merged `testing` in, a repair) is handed off again.
+ */
+export function handedOff(pr) {
+  return (pr.statusCheckRollup ?? []).some((c) => c.context === 'contributor-tested' && c.state === 'SUCCESS');
 }
 
 /**
@@ -295,14 +312,15 @@ export function fixIssue(pr) {
 export function mergeGreen({ repo, mergeToken, reviewer, only = '' }, gh = realGh) {
   const prs = JSON.parse(gh([
     'pr', 'list', '--repo', repo, '--base', 'testing', '--state', 'open', '--limit', '100',
-    '--json', 'number,body,headRefName,isCrossRepository,baseRefName'
+    '--json', 'number,body,headRefName,isCrossRepository,baseRefName,author,statusCheckRollup'
   ]));
   const results = [];
   for (const pr of prs) {
     if (only && String(pr.number) !== String(only)) continue;
-    const issue = fixIssue(pr);
+    const issue = fixIssue(pr, reviewer);
     const out = (outcome) => results.push({ pr: pr.number, issue, outcome });
     if (!issue) continue;
+    if (handedOff(pr)) { out('skip: this commit was handed off'); continue; }
     try {
       const view = JSON.parse(gh(['api', `repos/${repo}/issues/${requireNumber(issue, 'issue')}`]));
       if (view.state !== 'open') { out('skip: the issue is closed'); continue; }
