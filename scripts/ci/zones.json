@@ -43,7 +43,9 @@
     "scripts/ci/can-run-agent.mjs",
     "scripts/ci/confirm.mjs",
     "scripts/ci/issue-kind.mjs",
-    "scripts/ci/listed-thread.mjs"
+    "scripts/ci/listed-thread.mjs",
+    "scripts/ci/inbox.mjs",
+    "scripts/ci/reply.mjs"
   ],
   "lock": [
     ".github/workflows/pipeline-ship.yml",
