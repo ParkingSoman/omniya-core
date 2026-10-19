@@ -276,8 +276,12 @@ export function handOff({ issue, pr, repo, reviewer, mergeToken, expectedSha, co
  * Left alone: an issue that is closed, or that waits on the owner's design decision.
  */
 
-/** Labels on the ISSUE that stop a merge: the owner has a design question to answer first. */
-export const HOLD_LABELS = ['needs-design'];
+/**
+ * Labels on the ISSUE that stop a merge first: the owner has a design question to answer, or the
+ * owner wants a contributor to test the fix's own build before it merges (`test-first`, set by the
+ * owner, first on issue 134). Removing the label lets it merge.
+ */
+export const HOLD_LABELS = ['needs-design', 'test-first'];
 
 /**
  * Who may open a pull request that merges first: the pipeline's App, the Actions bot (fixes opened
@@ -324,7 +328,8 @@ export function mergeGreen({ repo, mergeToken, reviewer, only = '' }, gh = realG
     try {
       const view = JSON.parse(gh(['api', `repos/${repo}/issues/${requireNumber(issue, 'issue')}`]));
       if (view.state !== 'open') { out('skip: the issue is closed'); continue; }
-      if ((view.labels ?? []).some((l) => HOLD_LABELS.includes(l.name))) { out('skip: waits on a design decision'); continue; }
+      const hold = (view.labels ?? []).find((l) => HOLD_LABELS.includes(l.name));
+      if (hold) { out(`skip: held by ${hold.name}`); continue; }
       const r = handOff({ issue, pr: String(pr.number), repo, reviewer, mergeToken, confirmed: false }, gh);
       out(r.merge ? 'merging' : r.sent ? `held: ${r.reason}` : `not yet: ${r.reason ?? (r.missing.length ? `waiting for ${r.missing.join(', ')}` : 'pending')}`);
     } catch (error) {

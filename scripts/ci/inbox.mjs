@@ -66,6 +66,7 @@ export function inbox({ issues, prs, owner, now = Date.now() }) {
     const own = issue.author?.login === owner;
     if (labels.includes('pipeline-idea')) { ideas.push(issue.number); continue; }
     if (labels.includes('rehearsal')) continue;
+    if (labels.includes('test-first')) { mine.push({ ref: `issue #${issue.number}`, what: 'is held until a contributor tests its fix. When they say it works, tell the session to remove test-first', title: issue.title }); continue; }
     if (labels.includes('needs-design')) { mine.push({ ref: `issue #${issue.number}`, what: 'needs your design decision', title: issue.title }); continue; }
     if (labels.includes('needs-owner')) { mine.push({ ref: `issue #${issue.number}`, what: 'needs you to look', title: issue.title }); continue; }
     if (['routed', 'design'].includes(reply.state) && lastWord !== owner) { mine.push({ ref: `issue #${issue.number}`, what: "asks for a person's answer", title: issue.title }); continue; }

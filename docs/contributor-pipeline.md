@@ -39,8 +39,7 @@ The word `@claude` is what starts the work. A comment without it is read by
 people only. Each run costs the maintainer part of a paid quota. A plain "it works" is
 the exception: a script reads it, with no agent, only from you, after a build.
 
-Sometimes the agent asks you up to three short questions first. Answer in a
-comment that starts with `@claude`. "I do not know" is a good answer. A comment
+Sometimes the agent asks you up to three short questions first. Answer in a comment that starts with `@claude`. "I do not know" is a good answer. A comment
 may also say that the maintainer needs to look at a technical problem. Then you
 need to do nothing. The maintainer will write here when there is news.
 
@@ -127,6 +126,7 @@ flowchart TD
 | `needs-info` | The agent asked a question and waits | The pipeline |
 | `needs-design` | A person must decide | The agent |
 | `needs-owner` | You must look: blocked, red checks, no access, or a fix that cannot merge by itself | The pipeline |
+| `test-first` | Merge first is held for this issue: a contributor tests the fix's own build first. Remove it to let the fix merge | You |
 
 ### The workflows
 

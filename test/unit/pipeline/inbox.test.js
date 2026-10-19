@@ -28,7 +28,8 @@ test('only what needs the owner is a line; the rest is counted', () => {
     issue(7, [said('routed'), person('boss')]),
     issue(8, [said('in-alpha')], [], 'boss'),
     issue(9, [], ['pipeline-idea'], 'boss'),
-    issue(10, [], ['rehearsal'], 'boss')
+    issue(10, [], ['rehearsal'], 'boss'),
+    issue(11, [said('ready')], ['test-first', 'other'], 'boss')
   ];
   const prs = [
     { number: 20, title: 'a fix', headRefName: 'claude/fix-1-x', labels: [] },
@@ -44,6 +45,7 @@ test('only what needs the owner is a line; the rest is counted', () => {
     '- Issue #5 needs you to look',
     '- Issue #6 asks for a person\'s answer',
     '- Your issue #8 waits for you',
+    '- Issue #11 is held until a contributor tests its fix. When they say it works, tell the session to remove test-first',
     '- PR #21 is held for you to read before it merges',
     '- PR #22 waits for your "ship it"',
     '- PR #23 waits for your "ship it"'

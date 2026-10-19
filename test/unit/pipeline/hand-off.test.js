@@ -375,11 +375,11 @@ function listGh(prs, issues, failOn = 0) {
 const fixPr = (number, issue, over = {}) => ({ number, body: `x\n\nFixes #${issue}`, headRefName: `claude/fix-${issue}-x`, isCrossRepository: false, baseRefName: 'testing', author: { login: 'app/omniya-pipeline' }, statusCheckRollup: [], ...over });
 
 test('mergeGreen: every open fix is looked at; closed issues, design questions and other branches are left alone', () => {
-  const prs = [fixPr(9, 5), fixPr(10, 6), fixPr(11, 7), fixPr(12, 8, { headRefName: 'product/x' }), fixPr(13, 4)];
-  const issues = { 5: { state: 'open', labels: [] }, 6: { state: 'closed', labels: [] }, 7: { state: 'open', labels: [{ name: 'needs-design' }] }, 4: { state: 'open', labels: [] } };
+  const prs = [fixPr(9, 5), fixPr(10, 6), fixPr(11, 7), fixPr(12, 8, { headRefName: 'product/x' }), fixPr(14, 3), fixPr(13, 4)];
+  const issues = { 5: { state: 'open', labels: [] }, 6: { state: 'closed', labels: [] }, 7: { state: 'open', labels: [{ name: 'needs-design' }] }, 3: { state: 'open', labels: [{ name: 'test-first' }] }, 4: { state: 'open', labels: [] } };
   const g = listGh(prs, issues, 4);
   const results = mergeGreen({ repo: 'a/b', mergeToken: 'APP', reviewer: 'owner' }, g.gh);
-  assert.deepEqual(results.map((r) => [r.pr, r.outcome.split(':')[0]]), [[9, 'merging'], [10, 'skip'], [11, 'skip'], [13, 'error']]);
+  assert.deepEqual(results.map((r) => [r.pr, r.outcome]), [[9, 'merging'], [10, 'skip: the issue is closed'], [11, 'skip: held by needs-design'], [14, 'skip: held by test-first'], [13, 'error: boom']]);
   assert.equal(g.calls.filter((c) => c.line.startsWith('pr merge')).length, 1);
   assert.ok(g.calls.some((c) => c.line.startsWith('pr merge 9')));
 });
