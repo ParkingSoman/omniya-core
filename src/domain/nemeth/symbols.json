@@ -393,6 +393,23 @@
     "banaRef": "13.6"
   },
   {
+    "cells": "⠸⠹",
+    "kind": "fracOpen",
+    "value": "_?",
+    "order": "mixed",
+    "banaRef": "13.4"
+  },
+  {
+    "cells": "⠸⠼",
+    "kind": "fracClose",
+    "value": "_#",
+    "order": "mixed",
+    "banaRef": "13.4",
+    "ifFollowedByNumeral": {
+      "maxLen": 1
+    }
+  },
+  {
     "cells": "⠣",
     "kind": "radIndex",
     "value": "<",

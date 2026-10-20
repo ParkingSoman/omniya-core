@@ -220,6 +220,21 @@ function isSpaced(cells, index, len) {
  * numeric one.
  */
 function withNumeralAlternative(match, cells, index) {
+  if (match && match.ifFollowedByNumeral) {
+    // The mirror image, for `⠸⠼` (BANA 13.4's closing mixed-number indicator).
+    // Its cells are also a typeform indicator `⠸` plus the numeric indicator
+    // `⠼` (Rule 7.2.2, line 3656: "The typeform indicator for a numeral is
+    // always followed by the numeric indicator"), and a numeral after them is
+    // what makes that second reading the one in force. Rule 7.2.2 is the older,
+    // tested reading, so a numeral right after the cells keeps it; the mixed
+    // close is what remains when none follows, which is where a closing
+    // indicator is written (before punctuation, a space, or the end).
+    const following = symbolAt(cells, index + match.len);
+    if (following && NUMERAL_START.has(following.kind)) {
+      return matchAt(cells.slice(0, index + match.ifFollowedByNumeral.maxLen), index);
+    }
+    return match;
+  }
   if (!match || !match.unlessFollowedByNumeral) return match;
   const next = symbolAt(cells, index + match.len);
   if (next && NUMERAL_START.has(next.kind)) return match;
