@@ -12,6 +12,19 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/ci/inbox.mjs\" --hook",
+            "timeout": 15,
+            "statusMessage": "Reading your inbox"
+          }
+        ]
+      }
     ]
   },
   "attribution": {

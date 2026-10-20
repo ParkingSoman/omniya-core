@@ -12,7 +12,7 @@
  *   - on a branch that starts with `claude/fix-`. That prefix is what keeps this
  *     pipeline from ever pushing to or reading from `testing`, `main` or a
  *     person's hand-written branch.
- *   - carrying `Fixes #<n>` as the LAST line, anchored, so `#12` never matches
+ *   - carrying `Fixes #<n>` (or `Fix for #<n>`, once merge first handed it off) as the LAST line, anchored, so `#12` never matches
  *     `#120` and a sentence that merely mentions the number does not count.
  *
  * Usage (needs GH_TOKEN and GITHUB_REPOSITORY):
@@ -34,7 +34,7 @@ export const BRANCH_PREFIX = 'claude/fix-';
  */
 export function matchFixPrs(prs, issueNumber) {
   const n = requireNumber(issueNumber, 'issue number');
-  const claims = new RegExp(`(^|\\n)[Ff]ixes #${n}[ \\t\\r\\n]*$`);
+  const claims = new RegExp(`(^|\\n)(?:[Ff]ixes|Fix for) #${n}[ \\t\\r\\n]*$`);
   return prs.filter(
     (pr) =>
       pr.isCrossRepository === false &&
