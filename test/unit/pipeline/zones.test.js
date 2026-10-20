@@ -74,8 +74,9 @@ test('a path that looks safe but resolves elsewhere is the owner\'s, not automat
   }
   // A Mac treats these as the same file, so the map does too.
   assert.equal(zoneOf('test/Corpus/x.json').zone, 'goalposts');
-  assert.equal(zoneOf('TEST/UNIT/PIPELINE/x.test.js').zone, 'shipIt');
-  assert.equal(zoneOf('Scripts/CI/x.mjs').zone, 'shipIt');
+  assert.equal(zoneOf('TEST/UNIT/PIPELINE/x.test.js').zone, 'pipeline');
+  assert.equal(zoneOf('Scripts/CI/x.mjs').zone, 'pipeline');
+  assert.equal(zoneOf('Scripts/CI/hand-off.mjs').zone, 'shipIt');
   assert.equal(zoneOf('test/unit/pipeline').zone, 'automatic', 'a file called pipeline in test/unit is not the folder');
 });
 
