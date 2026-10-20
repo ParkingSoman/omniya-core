@@ -127,6 +127,8 @@ jobs:
       # confirmation has no `@claude` to need, and when it is one the agent is skipped.
       allowed: ${{ steps.check.outputs.allowed == 'true' && steps.shape.outputs.mention == 'true' && steps.confirm.outputs.confirm != 'true' && 'true' || 'false' }}
       confirm: ${{ steps.confirm.outputs.confirm == 'true' && 'true' || 'false' }}
+      # Merge first: the fix is in the alpha and the author says it works. The issue closes.
+      close: ${{ steps.confirm.outputs.close == 'true' && 'true' || 'false' }}
       confirm_sha: ${{ steps.confirm.outputs.confirm == 'true' && steps.find.outputs.sha || '' }}
       # The author said "it works" for a build older than the branch's newest build. See the `reply` job.
       rebuilt: ${{ steps.confirm.outputs.reason == 'head-rebuilt-after-build-comment' && 'true' || 'false' }}
@@ -284,9 +286,14 @@ jobs:
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
           REPO: ${{ github.repository }}
           IS_OWNER: ${{ steps.owner.outputs.owner }}
+          # Who wrote the comment and who wrote the issue. On a rehearsal both are the issue's author.
+          COMMENTER: ${{ steps.issue.outputs.author }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login || steps.issue.outputs.author }}
         run: |
           set -euo pipefail
           labels="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq '[.labels[].name] | join(",")')"
+          # A closed issue counts as closed by the pipeline only if the pipeline closed it LAST.
+          state="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq 'if .state == "closed" and (.closed_by.login // "") != "github-actions[bot]" then "closed-by-a-person" else .state end')"
           asked="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- omniya-pipeline-question -->")))] | length' \
             | awk '{ n += $1 } END { print n + 0 }')"
@@ -303,6 +310,14 @@ jobs:
           # contributor list can restart it by writing `@claude` or by adding
           # `needs-info`. Only the maintainer can, by starting `pipeline-fix`
           # by hand.
+          #
+          # Merge first: the fix already merged and the pipeline said it is in the test alpha (or
+          # reminded, or closed the issue on "it works"). A comment with `@claude` from the issue's
+          # author now says it is still wrong, so it starts a NEW fix. The newest bot reply decides,
+          # and only the bot can write it. `needs-design` still stops it. A closed issue restarts only
+          # if the pipeline closed it (`closed`): an issue a person closed stays closed.
+          last_state="$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]") | (.body | split("\n")[1] // "")' | tail -n 1)"
           resume=false
           if [ "$IS_OWNER" = "true" ]; then
             resume=true
@@ -310,18 +325,26 @@ jobs:
             case ",$labels," in
               *,needs-design,*) ;;
               *,needs-info,*) [ "${asked:-0}" -ge 1 ] && resume=true ;;
+              *)
+                if [ "$COMMENTER" = "$ISSUE_AUTHOR" ]; then
+                  case "$state:$last_state" in
+                    'open:<!-- omniya-pipeline-state in-alpha -->'|'open:<!-- omniya-pipeline-state reminded -->'|'open:<!-- omniya-pipeline-state closed -->'|'closed:<!-- omniya-pipeline-state closed -->') resume=true ;;
+                  esac
+                fi
+                ;;
             esac
           fi
           echo "resume=$resume" >> "$GITHUB_OUTPUT"
           echo "question_round=${asked:-0}" >> "$GITHUB_OUTPUT"
       # A bare "it works", decided with no agent. All of the allow list in
       # `scripts/ci/confirm.mjs` must hold: the whole comment is a short fixed
-      # phrase, the commenter is the issue's author or the owner, the newest
-      # bot comment is a build to try and older than this comment, and exactly one
-      # open fix exists. Otherwise `confirm=false`, and nothing is posted. The
-      # step only ever READS GitHub. The merge is the `handoff` job below.
+      # phrase, the commenter is the issue's author or the owner, and the newest
+      # bot comment is older than this comment and is either a build to try with
+      # exactly one open fix, or (no open fix) the alpha that holds the merged fix.
+      # Otherwise `confirm=false`, and nothing is posted. The step only ever READS
+      # GitHub. The merge is the `handoff` job below, the closing the `close` job.
       - id: confirm
-        if: github.event_name == 'issue_comment' && steps.shape.outputs.shaped == 'true' && steps.check.outputs.allowed == 'true' && steps.access.outputs.access != 'false' && steps.find.outputs.count == '1'
+        if: github.event_name == 'issue_comment' && steps.shape.outputs.shaped == 'true' && steps.check.outputs.allowed == 'true' && steps.access.outputs.access != 'false' && (steps.find.outputs.count == '1' || steps.find.outputs.count == '0')
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
@@ -427,6 +450,9 @@ jobs:
   # once that the build under the same links is newer. That is a `revised` reply, a build comment
   # written AFTER the build, so their next "it works" is taken. It cannot loop: a bot comment starts
   # no run, and the newest reply is then newer than the build.
+  #
+  # Merge first: the fix is in the test alpha and the issue's author (or the owner) says it works
+  # (`close`). One thank-you, and the issue closes. No agent, no merge: the fix is already in `testing`.
   reply:
     needs: [allowlist, agent]
     if: >-
@@ -434,7 +460,9 @@ jobs:
       (needs.agent.outputs.result == 'answered' ||
       needs.agent.outputs.result == 'needs-design' ||
       needs.agent.outputs.result == 'blocked' ||
-      needs.allowlist.outputs.rebuilt == 'true') }}
+      needs.allowlist.outputs.rebuilt == 'true' ||
+      (needs.allowlist.outputs.close == 'true' && github.event_name == 'issue_comment' &&
+       (github.event.comment.user.login == github.event.issue.user.login || github.event.comment.author_association == 'OWNER'))) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -447,11 +475,16 @@ jobs:
           ISSUE: ${{ needs.allowlist.outputs.number }}
           RESULT: ${{ needs.agent.outputs.result }}
           REBUILT: ${{ needs.allowlist.outputs.rebuilt }}
+          CLOSE: ${{ needs.allowlist.outputs.close }}
           PR: ${{ needs.allowlist.outputs.pr }}
           # Agent text. It reaches the script through `env` only.
           MESSAGE: ${{ needs.agent.outputs.message }}
         run: |
           set -euo pipefail
+          if [ "$CLOSE" = "true" ]; then
+            node scripts/ci/reply.mjs "$ISSUE" closed
+            exit 0
+          fi
           if [ "$REBUILT" = "true" ]; then
             node scripts/ci/reply.mjs "$ISSUE" revised "$PR"
             exit 0
@@ -493,6 +526,10 @@ jobs:
           # the issue must not fail the start, so each is allowed to be missing.
           gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-info || true
           gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --remove-label needs-design || true
+          # A new fix after "it works" closed the issue: the issue is open again while it is worked on.
+          if [ "$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE" --jq .state)" = "closed" ]; then
+            gh issue reopen "$ISSUE" --repo "$GITHUB_REPOSITORY"
+          fi
           node scripts/ci/reply.mjs "$ISSUE" started
 
   resume:
@@ -566,7 +603,6 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.resume.outputs.pr }}
       branch: ${{ needs.resume.outputs.branch }}
-      message: ${{ needs.resume.outputs.message }}
 
   # The agent job crashed (an install that failed, a timeout) or never got a runner and was
   # cancelled (seen on #69: no macOS runner for 15 minutes, and the comment got no answer at
@@ -615,8 +651,6 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.agent.outputs.pr }}
       branch: ${{ needs.agent.outputs.branch }}
-      message: ${{ needs.agent.outputs.message }}
-      reply_state: revised
 
   # The contributor said it works. `scripts/ci/hand-off.mjs` decides: a fix that
   # changes the automation, conflicts, or reverses a standing note goes to the
@@ -639,6 +673,7 @@ jobs:
     if: >-
       ${{ !cancelled() &&
       (needs.agent.outputs.result == 'approved' || needs.allowlist.outputs.confirm == 'true') &&
+      needs.allowlist.outputs.close != 'true' &&
       github.event_name == 'issue_comment' &&
       (github.event.comment.user.login == github.event.issue.user.login ||
        github.event.comment.author_association == 'OWNER') }}
