@@ -7,6 +7,8 @@
  *              merges by itself, and the owner's "ship it" merges a product change.
  *   shipIt     runs with power, or decides what is trusted. Needs the owner's "ship it".
  *   goalposts  defines what counts as correct. Never shipped by a word.
+ *   pipeline   the automation. Never part of a contributor's fix. The shipper reads its changed
+ *              lines: with nothing that adds power it ships with no word, else it needs "ship it".
  *   lock       decides who may merge what. "ship it" plus the strictness check.
  *   owner      every path in no zone. The default is deny.
  *
@@ -17,11 +19,11 @@
 
 import { readFileSync } from 'node:fs';
 
-export const ZONES = ['automatic', 'shipIt', 'goalposts', 'lock'];
+export const ZONES = ['automatic', 'pipeline', 'shipIt', 'goalposts', 'lock'];
 
 /** What a change needs, weakest first. */
-export const NEEDS = ['nothing', 'ship-it', 'owner', 'lock'];
-const NEED_OF = { automatic: 'nothing', shipIt: 'ship-it', goalposts: 'owner', lock: 'lock', owner: 'owner' };
+export const NEEDS = ['nothing', 'lines', 'ship-it', 'owner', 'lock'];
+const NEED_OF = { automatic: 'nothing', pipeline: 'lines', shipIt: 'ship-it', goalposts: 'owner', lock: 'lock', owner: 'owner' };
 
 /** The one plain form a path is compared in: composed Unicode, lower case. */
 export const plain = (file) => String(file).normalize('NFKC').toLowerCase();
@@ -71,7 +73,7 @@ const odd = (p) => !p || p.startsWith('/') || /[\\\u0000-\u001f\u007f]/.test(p) 
 /**
  * @param {string} file a path as GitHub gives it
  * @param {ReturnType<typeof compile>} [rules]
- * @returns {{zone: 'automatic'|'shipIt'|'goalposts'|'lock'|'owner', pattern: string|null}}
+ * @returns {{zone: 'automatic'|'pipeline'|'shipIt'|'goalposts'|'lock'|'owner', pattern: string|null}}
  */
 export function zoneOf(file, rules = RULES) {
   const p = plain(file);
@@ -98,7 +100,7 @@ export function zoneOf(file, rules = RULES) {
 /**
  * What it takes to change all of these. The strongest need wins.
  * @param {string[]} files
- * @returns {{needs: 'nothing'|'ship-it'|'owner'|'lock', by: Array<{file: string, zone: string}>}}
+ * @returns {{needs: 'nothing'|'lines'|'ship-it'|'owner'|'lock', by: Array<{file: string, zone: string}>}}
  */
 export function needsFor(files, rules = RULES) {
   let level = 0;

@@ -19,13 +19,19 @@ test('every phrase on the list is a confirmation, with or without @claude, case,
 
 test('the whole comment must be the phrase: anything more goes to the agent', () => {
   for (const body of [
-    'it works but the button is wrong', 'it works, thanks', 'thank you it works', 'it does not work', 'it works?? no wait',
+    'it works but the button is wrong', 'it works, thanks but', 'thanks', 'it does not work', 'it works?? no wait',
     'yes', 'good', 'ok', 'done', 'not fixed', 'it works\nand another thing', 'it works @claude', 'please @claude it works',
     '', '   ', '👍', 'x'.repeat(500), `it works ${'.'.repeat(300)}`
   ]) {
     assert.equal(isConfirmPhrase(body), false, JSON.stringify(body.slice(0, 40)));
   }
   assert.equal(normalise('@claude  It Works!!'), 'it works');
+});
+
+test('a thank-you around "it works" is still a confirmation, so it does not start a new fix', () => {
+  for (const body of ['it works, thanks', 'It works! Thank you.', 'thanks, it works', 'thank you it works']) {
+    assert.ok(isConfirmPhrase(body), body);
+  }
 });
 
 test('bare yes and good are not on the list: they could answer a question', () => {
@@ -60,7 +66,7 @@ test('agent words cannot forge the state line', () => {
 });
 
 test('a build comment, the author, one fix, a head older than the build: confirmed', () => {
-  assert.deepEqual(decide(base), { confirm: true, reason: 'ok' });
+  assert.deepEqual(decide(base), { confirm: true, close: false, reason: 'ok' });
   assert.equal(decide({ ...base, issueComments: [bot(20, reply('revised'))] }).confirm, true);
   assert.equal(decide({ ...base, commenter: 'boss', association: 'OWNER' }).confirm, true, 'the owner may');
 });
@@ -85,6 +91,26 @@ test('everything else is refused, quietly', () => {
   no({ issueComments: [bot(20, reply('ready')), bot(150, reply('revised'))] }, 'bot-spoke-after');
   no({ headBuiltAt: '2026-10-15T11:00:00Z' }, 'head-rebuilt-after-build-comment');
   no({ headBuiltAt: '' }, 'head-not-built');
+});
+
+test('merge first: no open fix, and the newest reply says the alpha holds it: "it works" closes the issue', () => {
+  const alpha = { ...base, prCount: 0, headBuiltAt: '', issueComments: [bot(10, reply('started')), bot(20, reply('in-alpha'))] };
+  assert.deepEqual(decide(alpha), { confirm: true, close: true, reason: 'ok-alpha' });
+  // The one reminder repeats the alpha notice: "it works" after it still answers that notice.
+  assert.equal(decide({ ...alpha, issueComments: [...alpha.issueComments, bot(30, reply('reminded'))] }).close, true);
+  assert.equal(decide({ ...alpha, commenter: 'boss', association: 'OWNER' }).close, true, 'the owner may');
+  const no = (patch, reason) => assert.deepEqual(decide({ ...alpha, ...patch }), { confirm: false, reason });
+  no({ commenter: 'stranger' }, 'not-author');
+  no({ issueComments: [bot(20, reply('ready'))] }, 'no-single-fix');
+  no({ issueComments: [bot(20, reply('in-alpha')), bot(30, reply('closed'))] }, 'no-single-fix');
+  no({ issueComments: [bot(20, reply('in-alpha')), bot(150, reply('started'))] }, 'bot-spoke-after');
+  no({ issueComments: [bot(20, reply('in-alpha'), undefined, 'blind')] }, 'no-bot-comment');
+});
+
+test('merge first: the alpha path reads no build check, because nothing merges', () => {
+  const g = fakeGh({ comments: [bot(20, reply('in-alpha'))] });
+  assert.deepEqual(confirmFromGitHub({ ...asked, prCount: 0, sha: '' }, g.run), { confirm: true, close: true, reason: 'ok-alpha' });
+  assert.ok(!g.calls.some((c) => c.includes('check-runs')));
 });
 
 const SHA = 'a'.repeat(40);
@@ -122,7 +148,7 @@ const asked = { issue: 5, commentId: 100, commenter: 'blind', issueAuthor: 'blin
 
 test('the head commit is judged by GitHub\'s build record of THAT sha, and by nothing a pusher writes', () => {
   const ok = fakeGh();
-  assert.deepEqual(confirmFromGitHub(asked, ok.run), { confirm: true, reason: 'ok' });
+  assert.deepEqual(confirmFromGitHub(asked, ok.run), { confirm: true, close: false, reason: 'ok' });
   assert.ok(ok.calls.some((c) => c.includes(`commits/${SHA}/check-runs`)), 'the build check of the pinned sha is read');
   // Nothing reads a commit object (its dates are written by whoever pushed) or the pull request again.
   assert.ok(!ok.calls.some((c) => /commits\/[0-9a-f]{40}( |$)/.test(c)), 'no commit object is read');

@@ -126,7 +126,8 @@ export const SENSITIVE_LINES = [
   [/--admin|--force|--no-verify|push\s+(-f|--force)|\bgit\s+reset\s+--hard|\brm\s+-rf?\b/, 'a force or a hard delete'],
   [/\bgh\s+release\b|releases\/|softprops\/action-gh-release|npm\s+publish|--publish\b|electron-builder.*--publish/, 'a release or a publish'],
   [/\bgh\s+pr\s+merge\b|--auto\b.*--squash|\bgh\s+repo\b|\bgh\s+ruleset\b|\bgh\s+secret\b|\bgh\s+variable\b|rulesets|branches\/[^\s]*protection/, 'a merge, a ruleset or a setting'],
-  [/(-X|--method)\s+(DELETE|PUT|PATCH)\b|\bgh\s+api\b.*\b(DELETE|PUT)\b|git\s+push\s+\S+\s+--delete|\bbranch\s+-D\b/, 'a delete or an overwrite through the API'],
+  // `[,\s]+`: a script passes `gh(['api', '-X', 'DELETE', ...])`, which reads `-X, DELETE` once the quotes are gone.
+  [/(-X|--method)[,\s]+(DELETE|PUT|PATCH)\b|\bgh\s+api\b.*\b(DELETE|PUT)\b|git\s+push\s+\S+\s+--delete|\bbranch\s+-D\b/, 'a delete or an overwrite through the API'],
   [/pull_request_target|\bworkflow_run\b|repository_dispatch/, 'a privileged trigger'],
   [/\bcurl\b|\bwget\b|\beval\b|\bbase64\b|\bnc\s+-|bash\s+<\(|\|\s*(ba)?sh\b/, 'downloaded or hidden code'],
   // Who may start the agent, and what it may do once started. The agent holds a token and writes
@@ -146,8 +147,12 @@ export const ALLOWED_PREFIXES = [
   'scripts/ci/',
   '.github/prompts/',
   'test/unit/pipeline/',
-  '.claude/skills/pipeline-change/'
+  // The project's Claude settings, hooks and skills. All of `.claude/` is in the ship-it zone, so it
+  // ships only on the owner's words, never by itself (the owner's issue #130).
+  '.claude/'
 ];
+/** Single files a shipped pull request may touch. Each is in the ship-it zone. */
+export const ALLOWED_FILES = ['.github/contributors.yml'];
 // The pipeline's own workflows and the existing CI ones, by name. A workflow with any
 // other name is not plainly automation, so it needs the owner's bypass tick. The ones
 // that define "green" or publish builds are in the ship-it tier above, and every
@@ -165,7 +170,7 @@ export const isAllowed = (file) =>
   !file.split('/').includes('..') &&
   !/[\\\u0000-\u001f\u007f]/.test(file) &&
   !file.startsWith('/') &&
-  (ALLOWED_PREFIXES.some((prefix) => file.startsWith(prefix)) || ALLOWED_WORKFLOW.test(file));
+  (ALLOWED_PREFIXES.some((prefix) => file.startsWith(prefix)) || ALLOWED_FILES.includes(file) || ALLOWED_WORKFLOW.test(file));
 
 export const isLock = (file) => zoneOf(file).zone === 'lock';
 
@@ -402,6 +407,17 @@ export function decide({ pr, sha, allowedAuthors, missing, pushers = [], pushCou
   return { ship: true, tier: 'ship-it', why: [...new Set(why)] };
 }
 
+/**
+ * The squash commit's own body: only the pull request's closing lines (`Fixes #N`), so a shipped idea
+ * closes its issue. GitHub's default body is built from the branch's commit messages, and one of
+ * those once carried a session link into `testing` (issue #126). Nothing else from them is kept.
+ * @param {string|undefined} prBody
+ */
+export function squashBody(prBody) {
+  const closing = String(prBody ?? '').split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(Fixes|Closes|Resolves) #\d+$/i.test(l));
+  return closing.length > 0 ? [...new Set(closing)].join('\n') : 'Shipped from chat.';
+}
+
 const wait = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 
 /**
@@ -418,7 +434,7 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken, ownerSaid = ''
   const view = JSON.parse(
     gh([
       'pr', 'view', number, '--repo', repo, '--json',
-      'number,state,baseRefName,isCrossRepository,headRefName,headRefOid,author,isDraft,mergeable,changedFiles'
+      'number,state,baseRefName,isCrossRepository,headRefName,headRefOid,author,isDraft,mergeable,changedFiles,body'
     ])
   );
   // Runs are found by commit, and each is tied to the workflow FILE it came from.
@@ -493,7 +509,7 @@ export function ship({ pr, sha, repo, allowedAuthors, mergeToken, ownerSaid = ''
   let last = '';
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     try {
-      gh(['pr', 'merge', number, '--repo', repo, '--squash', '--match-head-commit', sha], { token: mergeToken });
+      gh(['pr', 'merge', number, '--repo', repo, '--squash', '--body', squashBody(view.body), '--match-head-commit', sha], { token: mergeToken });
       return { shipped: true, reason: 'merged', tier: decision.tier, why: decision.why };
     } catch (error) {
       last = String(error.stderr ?? error.message ?? error);
