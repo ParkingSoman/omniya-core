@@ -11,213 +11,102 @@ const ago = (days) => new Date(NOW - days * DAY).toISOString();
 
 const bot = (id, state, days) => ({ id, created_at: ago(days), body: renderReply(state, { repo: 'o/r', pr: 5, message: 'Some words.' }), user: { login: 'github-actions[bot]' } });
 const person = (id, body, days, login = 'blind-user') => ({ id, created_at: ago(days), body, user: { login } });
-const legacyNotice = (id, days) => ({ id, created_at: ago(days), body: '<!-- omniya-pipeline-notice --> A test build is ready. All the automatic checks passed.\n\n[Open the download links](https://example.com)\n\nTry it, then write here.', user: { login: 'github-actions[bot]' } });
-const record = { body: 'The contributor installed the build and says it works.\n\nCommit tested: ' + 'a'.repeat(40) + '\n\nunit is green.', user: { login: 'github-actions[bot]' } };
 
-const ask = (over = {}) => needsReminder({ issueLabels: [], prLabels: [], issueComments: [bot(1, 'started', 9), bot(2, 'ready', 8)], prComments: [], now: NOW, ...over });
+const ask = (over = {}) => needsReminder({ labels: [], comments: [bot(1, 'started', 9), bot(2, 'in-alpha', 8)], now: NOW, ...over });
 
-test('a build notice a week old, with no word from the contributor, gets the reminder', () => {
-  assert.deepEqual(ask(), { remind: true, reason: 'quiet-for-a-week', noticeId: 2 });
+test('a fix a week in the alpha, with no word since, gets the reminder', () => {
+  assert.deepEqual(ask(), { remind: true, reason: 'quiet-for-a-week' });
 });
 
 test('six days is not a week', () => {
   assert.equal(QUIET_DAYS, 7);
-  assert.deepEqual(ask({ issueComments: [bot(2, 'ready', 6)] }), { remind: false, reason: 'not-quiet-long-enough' });
+  assert.deepEqual(ask({ comments: [bot(2, 'in-alpha', 6)] }), { remind: false, reason: 'not-quiet-long-enough' });
 });
 
-test('a later revised notice does not restart the count: the contributor was already asked', () => {
-  assert.equal(ask({ issueComments: [bot(2, 'ready', 9), bot(3, 'revised', 1)] }).remind, true);
-});
-
-test('the notice from before the state line existed counts as a build notice', () => {
-  assert.equal(ask({ issueComments: [legacyNotice(2, 8)] }).remind, true);
-  // Only the exact start, and only from the bot.
-  const forged = { ...legacyNotice(2, 8), user: { login: 'someone' } };
-  assert.equal(ask({ issueComments: [forged] }).reason, 'newest-comment-is-not-a-build-notice');
-});
-
-test('a contributor who wrote since the notice is not quiet: the count starts after their last word', () => {
-  const thread = [bot(1, 'ready', 20), person(2, '@claude it is still wrong', 10), bot(3, 'revised', 9)];
-  assert.equal(ask({ issueComments: thread }).remind, true);
-  assert.equal(ask({ issueComments: [...thread.slice(0, 2), bot(3, 'revised', 3)] }).reason, 'not-quiet-long-enough');
-  // They wrote last: nothing is waiting on them.
-  assert.equal(ask({ issueComments: [bot(1, 'ready', 20), person(2, 'thanks, trying it', 10)] }).reason, 'newest-comment-is-not-a-build-notice');
-});
-
-test('anything but a build notice as the newest comment means the contributor is not the one awaited', () => {
-  for (const state of ['asked', 'maintainer', 'failed', 'design', 'stuck', 'behind', 'sent', 'carried', 'started']) {
-    assert.equal(ask({ issueComments: [bot(2, 'ready', 9), bot(3, state, 8)] }).remind, false, state);
+test('anything newer than the alpha notice means the conversation moved on', () => {
+  const moved = (c) => assert.equal(ask({ comments: [bot(2, 'in-alpha', 9), c] }).reason, 'newest-comment-is-not-in-alpha');
+  moved(person(3, 'I will try it tonight', 8));
+  moved(bot(3, 'reminded', 1));
+  moved(bot(3, 'started', 1));
+  // A person cannot write the alpha notice: only the bot's counts.
+  assert.equal(ask({ comments: [{ ...bot(2, 'in-alpha', 9), user: { login: 'someone' } }] }).reason, 'newest-comment-is-not-in-alpha');
+  // Only the alpha notice asks the contributor to try something now.
+  for (const state of ['ready', 'revised', 'held', 'maintainer', 'closed']) {
+    assert.equal(ask({ comments: [bot(2, state, 9)] }).remind, false, state);
   }
 });
 
-test('one reminder, never a second', () => {
-  const thread = [bot(1, 'ready', 20), bot(2, 'reminded', 12), bot(3, 'revised', 8)];
-  assert.deepEqual(ask({ issueComments: thread }), { remind: false, reason: 'already-reminded' });
-});
-
-test('a fix that waits on a person or on an answer is left alone, on the issue or the pull request', () => {
+test('a person or an answer is awaited: no reminder', () => {
   for (const label of ['needs-owner', 'needs-maintainer', 'needs-info', 'needs-design']) {
-    assert.equal(ask({ issueLabels: [label] }).remind, false, `issue ${label}`);
-    assert.equal(ask({ prLabels: [label] }).remind, false, `pr ${label}`);
+    assert.deepEqual(ask({ labels: [label] }), { remind: false, reason: 'a-person-or-an-answer-is-awaited' }, label);
   }
 });
 
-test('a fix the contributor already approved is waiting on the pipeline, not on them', () => {
-  assert.deepEqual(ask({ prComments: [record] }), { remind: false, reason: 'already-approved' });
-  // A person writing the record words is not the hand-off.
-  assert.equal(ask({ prComments: [{ ...record, user: { login: 'someone' } }] }).remind, true);
+test('the reminder carries the alpha links, and a plain "it works" after it closes the issue', () => {
+  const body = renderReply('reminded', { repo: 'o/r' });
+  assert.equal(replyState(body), 'reminded');
+  assert.match(body, /releases\/download\/testing-app\/Omniya-Core-mac-arm64\.zip/);
+  assert.match(body, /only reminder/);
+  const comments = [bot(2, 'in-alpha', 9), bot(3, 'reminded', 1)];
+  const said = decide({ commenter: 'blind-user', issueAuthor: 'blind-user', association: 'CONTRIBUTOR', prCount: 0, commentId: 100, issueComments: comments, headBuiltAt: '' });
+  assert.deepEqual(said, { confirm: true, close: true, reason: 'ok-alpha' });
 });
 
-test('the reminder has no links of its own, points to the notice, and a plain "it works" after it is judged as before', () => {
-  const notice = 'https://github.com/o/r/issues/40#issuecomment-2';
-  const text = renderReply('reminded', { repo: 'o/r', pr: 5, notice });
-  assert.equal(replyState(text), 'reminded');
-  assert.doesNotMatch(text, /releases\/download/);
-  assert.match(text, /earlier comment: https:\/\/github\.com\/o\/r\/issues\/40#issuecomment-2/);
-  assert.match(text, /only reminder/);
-  assert.match(text, /If it works, write: it works/);
-  // An address that is not one comment of a GitHub issue is left out, not repaired.
-  assert.doesNotMatch(renderReply('reminded', { notice: 'https://evil.example/x' }), /evil/);
-  assert.match(renderReply('reminded', { notice: 'javascript:alert(1)' }), /my earlier comment/);
-
-  const reminder = { id: 9, created_at: ago(0), body: text, user: { login: 'github-actions[bot]' } };
-  const says = { id: 10, created_at: ago(0), body: 'it works', user: { login: 'blind-user' } };
-  const base = { commenter: 'blind-user', issueAuthor: 'blind-user', association: 'CONTRIBUTOR', prCount: 1, commentId: says.id };
-  // The build was made before the notice, as the contributor tried it: accepted.
-  assert.deepEqual(decide({ ...base, issueComments: [bot(1, 'ready', 9), reminder, says], headBuiltAt: ago(10) }), { confirm: true, reason: 'ok' });
-  // The same rule as without the reminder: a build finished after the notice is still refused.
-  assert.equal(decide({ ...base, issueComments: [bot(1, 'ready', 9), reminder, says], headBuiltAt: ago(1) }).reason, 'head-rebuilt-after-build-comment');
-  // A reminder alone is not a build notice.
-  assert.equal(decide({ ...base, issueComments: [reminder, says], headBuiltAt: ago(10) }).reason, 'no-bot-comment');
-  // And a real answer after the notice still counts: a question after the reminder is refused.
-  assert.equal(decide({ ...base, issueComments: [bot(1, 'ready', 9), reminder, bot(9.5, 'asked', 0), says], headBuiltAt: ago(10) }).reason, 'newest-not-a-build');
-});
-
-// The whole path, with GitHub faked: which pull requests are asked, and what is posted.
-function fakeGh({ prs, issues }) {
-  const posted = [];
+// A stand-in for `gh`: open issues with labels and comments, and every post recorded.
+function fakeGh(issues) {
+  const posts = [];
   const run = (args) => {
-    const [cmd, sub] = args;
-    if (cmd === 'pr' && sub === 'list') return JSON.stringify(prs);
-    if (cmd === 'api' && args[1].includes('/comments') && args.includes('-f')) {
-      posted.push({ path: args[1], body: args[args.indexOf('-f') + 1] });
+    if (args[0] === 'issue' && args[1] === 'list') return JSON.stringify(issues.map((i) => ({ number: i.number, labels: (i.labels ?? []).map((name) => ({ name })) })));
+    const path = args.find((a) => a.startsWith('repos/')) ?? '';
+    const m = /issues\/(\d+)\/comments$/.exec(path);
+    if (m && args.includes('-f')) {
+      const issue = issues.find((i) => String(i.number) === m[1]);
+      if (issue.fail) throw new Error('boom');
+      const body = args.find((a) => a.startsWith('body=')).slice(5);
+      posts.push({ issue: issue.number, body });
+      issue.comments.push({ id: 999, created_at: new Date(NOW).toISOString(), body, user: { login: 'github-actions[bot]' } });
       return '';
     }
-    if (cmd === 'api') {
-      const m = /issues\/(\d+)(\/comments)?$/.exec(args[1]);
-      const issue = issues[m[1]];
-      // A pull request's own comments are asked for by its number: none, unless the test says so.
-      if (m[2]) return (issue?.comments ?? []).map((c) => JSON.stringify(c)).join('\n');
-      if (!issue) throw new Error(`no such issue ${m[1]}`);
-      return JSON.stringify({ state: issue.state ?? 'open', labels: (issue.labels ?? []).map((name) => ({ name })) });
+    if (m) {
+      const issue = issues.find((i) => String(i.number) === m[1]);
+      if (issue.failRead) throw new Error('read failed');
+      return issue.comments.map((c) => JSON.stringify(c)).join('\n');
     }
-    throw new Error(`unexpected gh call: ${args.join(' ')}`);
+    if (args[0] === 'label' || args[0] === 'issue') return '';
+    throw new Error('unexpected gh call: ' + args.join(' '));
   };
-  return { run, posted };
+  return { run, posts };
 }
 
-const pr = (number, issue, extra = {}) => ({ number, body: `Fixes #${issue}`, headRefName: `claude/fix-${issue}-x`, isCrossRepository: false, labels: [], ...extra });
+const quiet = () => ({ number: 11, comments: [bot(1, 'in-alpha', 8)] });
+const fresh = () => ({ number: 12, comments: [bot(1, 'in-alpha', 2)] });
+const held = () => ({ number: 13, labels: ['needs-owner'], comments: [bot(1, 'in-alpha', 9)] });
 
-test('whole path: the quiet fix is reminded once, and the others are left alone', () => {
-  const fake = fakeGh({
-    prs: [pr(41, 40), pr(49, 39), pr(70, 69), pr(80, 80, { headRefName: 'feat/something' })],
-    issues: {
-      40: { comments: [bot(1, 'ready', 9)] },
-      39: { comments: [bot(1, 'ready', 2)] },
-      69: { comments: [bot(1, 'ready', 9)], state: 'closed' },
-      5: { comments: [] }
-    }
-  });
-  const results = remindAll({ repo: 'o/r', now: NOW }, fake.run);
-  assert.deepEqual(results.map((r) => [r.pr, r.outcome, r.reason]), [
-    [41, 'reminded', 'quiet-for-a-week'],
-    [49, 'skip', 'not-quiet-long-enough'],
-    [70, 'skip', 'issue-is-closed'],
-    [80, 'skip', 'not-a-fix-pr']
-  ]);
-  assert.equal(fake.posted.length, 1);
-  assert.match(fake.posted[0].path, /issues\/40\/comments$/);
-  assert.equal(replyState(fake.posted[0].body.replace(/^body=/, '')), 'reminded');
-  assert.match(fake.posted[0].body, /earlier comment: https:\/\/github\.com\/o\/r\/issues\/40#issuecomment-1\b/);
-});
-
-test('whole path: a dry run says what it would do and posts nothing', () => {
-  const fake = fakeGh({ prs: [pr(41, 40)], issues: { 40: { comments: [bot(1, 'ready', 9)] } } });
-  const results = remindAll({ repo: 'o/r', now: NOW, dry: true }, fake.run);
-  assert.equal(results[0].outcome, 'would-remind');
-  assert.equal(fake.posted.length, 0);
-});
-
-test('whole path: a failure on one pull request does not stop the next', () => {
-  const fake = fakeGh({ prs: [pr(41, 99), pr(49, 39)], issues: { 39: { comments: [bot(1, 'ready', 9)] } } });
-  const results = remindAll({ repo: 'o/r', now: NOW }, fake.run);
-  assert.match(results[0].reason, /^error: /);
-  assert.equal(results[1].outcome, 'reminded');
+test('whole path: the quiet issue is reminded once, and the others are left alone', () => {
+  const g = fakeGh([quiet(), fresh(), held()]);
+  const results = remindAll({ repo: 'o/r', now: NOW }, g.run);
+  assert.deepEqual(results.map((r) => [r.issue, r.outcome]), [[11, 'reminded'], [12, 'skip'], [13, 'skip']]);
+  assert.equal(g.posts.length, 1);
+  assert.equal(replyState(g.posts[0].body), 'reminded');
 });
 
 test('whole path: the second run does not remind again', () => {
-  const comments = [bot(1, 'ready', 9)];
-  const fake = fakeGh({ prs: [pr(41, 40)], issues: { 40: { comments } } });
-  assert.equal(remindAll({ repo: 'o/r', now: NOW }, fake.run)[0].outcome, 'reminded');
-  comments.push({ id: 2, created_at: ago(0), body: fake.posted[0].body.replace(/^body=/, ''), user: { login: 'github-actions[bot]' } });
-  assert.deepEqual(remindAll({ repo: 'o/r', now: NOW }, fake.run).map((r) => r.reason), ['already-reminded']);
-  assert.equal(fake.posted.length, 1);
+  const issues = [quiet()];
+  const g = fakeGh(issues);
+  remindAll({ repo: 'o/r', now: NOW }, g.run);
+  remindAll({ repo: 'o/r', now: NOW + 30 * DAY }, g.run);
+  assert.equal(g.posts.length, 1);
 });
 
-// An approval for an OLDER commit is void: the fix changed after the word, and the carry rules refused it.
-const HEAD = 'b'.repeat(40);
-const oldRecord = { id: 5, body: 'The contributor installed the build and says it works.\n\nCommit tested: ' + 'a'.repeat(40) + '\n\nunit is green.', user: { login: 'github-actions[bot]' } };
-const voided = (over = {}) => ask({ prComments: [oldRecord], headSha: HEAD, headCommittedAt: ago(1), issueComments: [person(1, 'it works', 5), bot(2, 'revised', 3)], ...over });
-
-test('void approval: an old word for an older commit does not hide the fix from the reminder, and the wait is two days', () => {
-  assert.deepEqual(voided(), { remind: true, reason: 'old-approval-is-void', noticeId: 2 });
-  assert.deepEqual(voided({ issueComments: [person(1, 'it works', 5), bot(2, 'revised', 1)] }), { remind: false, reason: 'not-quiet-long-enough' });
+test('whole path: a dry run says what it would do and posts nothing', () => {
+  const g = fakeGh([quiet()]);
+  assert.deepEqual(remindAll({ repo: 'o/r', now: NOW, dry: true }, g.run).map((r) => r.outcome), ['would-remind']);
+  assert.equal(g.posts.length, 0);
 });
 
-test('void approval: the approval that still stands for the head is waiting on the pipeline, not on the contributor', () => {
-  assert.deepEqual(voided({ headSha: 'a'.repeat(40) }), { remind: false, reason: 'already-approved' });
-});
-
-test('void approval: fails closed, so an unknown head counts as approved', () => {
-  assert.equal(voided({ headSha: undefined }).reason, 'already-approved');
-  // A record that names no readable commit is not a record: the record patterns need the 40 characters.
-  const unreadable = { ...oldRecord, body: 'The contributor installed the build and says it works.\n\nCommit tested: not-a-commit' };
-  assert.deepEqual(voided({ prComments: [unreadable] }), voided({ prComments: [] }));
-});
-
-test('void approval: a head that moved a moment ago is left to the carry job, which may still be waiting for its checks', () => {
-  assert.deepEqual(voided({ headCommittedAt: ago(1 / 24) }), { remind: false, reason: 'head-moved-recently' });
-  assert.deepEqual(voided({ headCommittedAt: undefined }), { remind: false, reason: 'head-moved-recently' });
-});
-
-test('void approval: the newest record names the commit, a carried record counts, and the other rules still hold', () => {
-  const carried = { id: 9, body: 'The contributor tested an earlier commit of this fix and said it works. The fix itself has not changed.\n\nApproval carried from: ' + 'a'.repeat(40) + '\n\nCommit tested: ' + HEAD + '\n\nunit is green.', user: { login: 'github-actions[bot]' } };
-  assert.equal(voided({ prComments: [oldRecord, carried] }).reason, 'already-approved');
-  assert.equal(voided({ prLabels: ['needs-owner'] }).reason, 'a-person-or-an-answer-is-awaited');
-  assert.equal(voided({ issueComments: [person(1, 'it works', 5), bot(2, 'revised', 3), bot(3, 'reminded', 2)] }).reason, 'already-reminded');
-  assert.equal(voided({ issueComments: [person(1, 'it works', 5), bot(2, 'revised', 3), person(3, 'trying it', 2)] }).reason, 'newest-comment-is-not-a-build-notice');
-});
-
-test('whole path: a void approval is reminded once, and only that pull request pays for the head commit date', () => {
-  const posted = [];
-  const calls = [];
-  const gh = (args) => {
-    calls.push(args.join(' '));
-    const [cmd, sub] = args;
-    if (cmd === 'pr' && sub === 'list') {
-      return JSON.stringify([
-        { number: 84, body: 'Fixes #73', headRefName: 'claude/fix-73-x', headRefOid: HEAD, isCrossRepository: false, labels: [] },
-        { number: 41, body: 'Fixes #40', headRefName: 'claude/fix-40-x', headRefOid: 'c'.repeat(40), isCrossRepository: false, labels: [] }
-      ]);
-    }
-    if (args[1].includes('/comments') && args.includes('-f')) { posted.push(args[1]); return ''; }
-    if (args[1].endsWith(`/commits/${HEAD}`)) return `${ago(1)}\n`;
-    const m = /issues\/(\d+)(\/comments)?$/.exec(args[1]);
-    const comments = { 73: [person(1, 'it works', 5), bot(2, 'revised', 3)], 40: [bot(1, 'ready', 1)], 84: [oldRecord] }[m[1]] ?? [];
-    return m[2] ? comments.map((c) => JSON.stringify(c)).join('\n') : JSON.stringify({ state: 'open', labels: [] });
-  };
-  const results = remindAll({ repo: 'o/r', now: NOW }, gh);
-  assert.deepEqual(results.map((r) => [r.pr, r.outcome, r.reason]), [[84, 'reminded', 'old-approval-is-void'], [41, 'skip', 'not-quiet-long-enough']]);
-  assert.deepEqual(posted, ['repos/o/r/issues/73/comments']);
-  assert.equal(calls.filter((c) => c.includes('/commits/')).length, 1);
+test('whole path: a failure on one issue does not stop the next', () => {
+  const g = fakeGh([{ ...quiet(), number: 10, failRead: true }, quiet()]);
+  const results = remindAll({ repo: 'o/r', now: NOW }, g.run);
+  assert.match(results[0].reason, /^error: read failed/);
+  assert.equal(results[1].outcome, 'reminded');
 });

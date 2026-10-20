@@ -24,6 +24,21 @@ build, rehearse for real, then wait for "ship it".
   a repository setting only the owner can. Say exactly what to click. Then wait.
 - Keep long text out of `${{ }}`. GitHub rejects an expression over 21,000 characters.
 
+## Keep it small
+
+The automation grew to 15,000 lines in ten days. Each fix added a new path for
+one more case. On 2026-10-19 the owner asked for the opposite.
+
+- Before you add a mechanism, look for a rule to delete. A new script or
+  workflow needs a reason that names the rule it could not remove.
+- Work out a decision from the state of GitHub, not from the event that woke
+  the job. A missed or repeated run must change nothing.
+- A missing or wrong message is fixed by working it out from the current state.
+  Do not add a new notice path.
+- Report the net line change of every automation pull request in its body.
+- The owner's inbox (`scripts/ci/inbox.mjs`, shown when a session starts) is
+  how this work is measured. Fewer lines there is the goal.
+
 ## The routine
 
 1. **Plan once.** Run `gh issue list --label pipeline-idea`. Read the owner's

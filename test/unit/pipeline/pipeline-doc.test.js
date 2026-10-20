@@ -36,7 +36,7 @@ test('the contributor is told the two phrases that drive the loop, and not to cl
   assert.doesNotMatch(contributorHalf, /[Cc]losing the issue is what merges/, 'closing no longer merges anything');
   // And that the links do not change, because the alternative is her hunting for
   // a new comment that will never be posted.
-  assert.match(contributorHalf, /same links|links already in the/i);
+  assert.match(contributorHalf, /alpha links\s+never change/i);
   // The contributor never needs the pull request, so the half they hear does not send them there.
   assert.doesNotMatch(contributorHalf, /pull request|branch|workflow/i);
 });
@@ -44,7 +44,8 @@ test('the contributor is told the two phrases that drive the loop, and not to cl
 test('the maintainer is told what merges by itself, and that testing is the default branch', () => {
   const maintainerHalf = doc.split('## If you maintain this repository')[1] ?? '';
 
-  assert.match(maintainerHalf, /merges by itself only when the contributor says it works/);
+  assert.match(maintainerHalf, /merges by itself when its required checks are green/);
+  assert.match(maintainerHalf, /merge first/i);
   assert.match(maintainerHalf, /contributor-tested/);
   assert.match(maintainerHalf, /needs-owner/);
   assert.match(maintainerHalf, /testing-tested/);

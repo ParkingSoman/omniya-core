@@ -84,15 +84,14 @@ test('the report decides by the LAST verify that ran, and a missing answer is no
   assert.equal(call.outputs.green.value, '${{ jobs.report.outputs.green }}');
 });
 
-test('green says the build is ready on the issue; red says a technical thing is with the maintainer, and labels it', () => {
+test('green says nothing on the issue (merge first speaks when the alpha holds it); red says a technical thing is with the maintainer, and labels it', () => {
   const final = jobs.report.steps.find((s) => s.id === 'final');
   const run = final.run;
-  // One new comment, `ready` or `revised`, with the agent's words and the links.
-  assert.match(run, /reply\.mjs "\$ISSUE" "\$REPLY_STATE" "\$PR"/);
-  assert.equal(final.env.REPLY_STATE, '${{ inputs.reply_state }}');
-  assert.equal(final.env.MESSAGE, '${{ inputs.message }}', 'agent text goes through env and nowhere else');
-  assert.equal(call.inputs.reply_state.default, 'ready');
-  assert.equal(call.inputs.message.default, '');
+  const green = run.slice(run.indexOf('if [ "$final" = "true" ]'), run.indexOf('exit 0'));
+  assert.doesNotMatch(green, /reply\.mjs/, 'a green fix is merged by pipeline-carry.yml, and the contributor hears when the alpha holds it');
+  assert.equal(final.env.MESSAGE, undefined, 'no agent text reaches this job');
+  assert.equal(call.inputs.reply_state, undefined);
+  assert.equal(call.inputs.message, undefined);
   // Red labels through heal.mjs, which tells a failed job (a fault, retried once) from a person's problem.
   assert.match(run, /reply\.mjs "\$ISSUE" maintainer/);
   assert.match(run, /heal\.mjs stuck "\$PR"/);

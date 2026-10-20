@@ -244,7 +244,8 @@ test('a pull request that was opened is checked and repaired, and nothing else i
   assert.equal(verify.if, "needs.fix.outputs.result == 'opened'");
   assert.equal(verify.with.pr_number, '${{ needs.fix.outputs.pr }}');
   assert.equal(verify.with.branch, '${{ needs.fix.outputs.branch }}');
-  assert.equal(verify.with.message, '${{ needs.fix.outputs.message }}');
+  // Merge first: a green fix says nothing on the issue until the alpha holds it, so no words ride along.
+  assert.equal(verify.with.message, undefined);
   assert.deepEqual(verify.secrets, { CLAUDE_CODE_OAUTH_TOKEN: "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}", PIPELINE_APP_PRIVATE_KEY: "${{ secrets.PIPELINE_APP_PRIVATE_KEY }}" }, "secrets are passed by name");
   // The old design started the checks from this file with a copy of the lookup.
   assert.equal(workflow.jobs['start-checks'], undefined);
