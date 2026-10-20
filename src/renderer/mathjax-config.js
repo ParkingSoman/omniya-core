@@ -24,6 +24,10 @@ globalThis.MathJax = {
     enableBraille: true,
     enableAssistiveMml: true,
     a11y: { inTabOrder: true, roleDescription: 'math' },
-    sre: { locale: 'en', domain: 'clearspeak', style: 'default' }
+    // Caps_SayCaps: ClearSpeak otherwise speaks a capital Greek letter as
+    // "Kappa", which a speech synthesizer pronounces identically to "kappa"
+    // (issue #40). "cap" is the short prefix the contributor asked for. It
+    // also marks capital Latin letters ("cap K"), which were equally silent.
+    sre: { locale: 'en', domain: 'clearspeak', style: 'Caps_SayCaps' }
   }
 };
