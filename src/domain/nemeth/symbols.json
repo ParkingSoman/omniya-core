@@ -540,6 +540,18 @@
     "banaRef": "19"
   },
   {
+    "cells": "⠠⠷",
+    "kind": "groupOpen",
+    "value": "\\bigl(",
+    "banaRef": "19.6"
+  },
+  {
+    "cells": "⠠⠾",
+    "kind": "groupClose",
+    "value": "\\bigr)",
+    "banaRef": "19.6"
+  },
+  {
     "cells": "⠨⠅",
     "kind": "comparison",
     "role": "comparison",
@@ -711,6 +723,12 @@
       "value": "〜",
       "banaRef": "20"
     }
+  },
+  {
+    "cells": "⠨⠡",
+    "kind": "degree",
+    "value": "°",
+    "banaRef": "23.10"
   },
   {
     "cells": "⠈⠉",

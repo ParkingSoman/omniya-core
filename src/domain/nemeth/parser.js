@@ -67,7 +67,7 @@ import {
 } from './ast.js';
 import { NemethUnsupportedError } from './errors.js';
 
-const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'constant', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen']);
+const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'constant', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen', 'degree']);
 
 function peek(state) {
   return state.index < state.tokens.length ? state.tokens[state.index] : null;
@@ -425,6 +425,20 @@ function parsePrimary(state, level) {
     case 'constant':
       advance(state);
       return Operator(token.value, { src: spanFrom(state, start), marks });
+    case 'degree':
+      // BANA 23.10 (Nemeth_2022.txt line 11565): the hollow dot means degrees
+      // only "at the superscript level", where the Code has it written (Examples
+      // 4-9, 14-2, 23-13). On the baseline the same cells are not established
+      // as a degree sign, so this refuses rather than guess.
+      if (!level.endsWith('^')) {
+        throw unsupported(
+          state,
+          'the hollow dot is a degree sign only at the superscript level (BANA 23.10)',
+          'Write the superscript indicator (dot 4-5) before the hollow dot to make it a degree sign.'
+        );
+      }
+      advance(state);
+      return Operator(token.value, { src: spanFrom(state, start), marks });
     default:
       return parseNumber(state, level, marks);
   }
@@ -455,6 +469,33 @@ function attachScript(base, slot, script, src) {
 }
 
 /**
+ * A script is every term written at its level, up to the next baseline
+ * indicator: `2^-n` is `⠼⠆⠘⠤⠝` and `2^{x+n}` is `⠼⠆⠘⠭⠬⠝`, with the signs written
+ * at the script's own level (issue #73, "x+n is within the exponent, unless I
+ * write a baseline indicator after the x").
+ *
+ * The Code keeps a level in force until a baseline indicator ends it, so the
+ * operation sign in `⠭⠘⠆⠬⠼⠂` is part of the superscript: it is `x^{2+1}`, and
+ * `x^2+1` takes `⠭⠘⠆⠐⠬⠼⠂`. This once refused the unindicated form for fear that
+ * an author who forgot the indicator would be read silently; the reading is the
+ * Code's literal one, and the status line still reads the result back.
+ */
+function parseScript(state, level) {
+  const start = state.index;
+  const items = [];
+  parseUnary(state, level, items);
+  // Only an operation sign continues a script. Terms set side by side are NOT
+  // taken here: `parsePostfix` and Rule 14.11.2's digit-run breaks rely on a
+  // second term at this level being left for the caller to refuse.
+  while (isOperatorAt(state, level)) {
+    const token = advance(state);
+    items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));
+    parseUnary(state, level, items);
+  }
+  return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
+}
+
+/**
  * Rule 14.11 decides whether two scripts on one base are simultaneous, and the
  * explicit baseline indicator is its sole carrier -- which is why `levels.js`
  * records `afterBaseline` and why this loop reads it off the script's own first
@@ -475,7 +516,12 @@ function parsePostfix(state, level) {
   let filled = '';
   for (let slot = scriptSlot(state, level); slot; slot = scriptSlot(state, level)) {
     const rebased = peek(state).afterBaseline;
-    const script = parsePostfix(state, level + slot);
+    // A script may carry operation signs: Nemeth keeps a level in force until
+    // a baseline indicator ends it, so `2^-n` is `⠼⠆⠘⠤⠝` and `2^{x+n}` is
+    // `⠼⠆⠘⠭⠬⠝`, with the signs written at the script's own level. Reading one
+    // postfix here left the sign stranded and refused every such power
+    // (#73, "I shouldn't have to write a baseline indicator ... at the end").
+    const script = parseScript(state, level + slot);
     if (rebased && startsBaselineTerm(state, level)) {
       // Rule 14.5.1 (lines 6311-6315): a LEFT script is written exactly like a
       // right one and told apart only by sitting before the sign it applies to,

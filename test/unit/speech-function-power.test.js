@@ -8,10 +8,10 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { convertLatexToMathML } from '../../src/main/mathml.js';
-import { writePatchedMathmaps } from '../../scripts/build/speech-maps.mjs';
+import { buildSreMathmaps, SRE_MATHMAPS_SOURCE } from '../../scripts/build/build-sre-mathmaps.mjs';
 
 const dir = path.join(await mkdtemp(path.join(os.tmpdir(), 'omniya-sre-')), 'mathmaps');
-await writePatchedMathmaps(dir);
+buildSreMathmaps(SRE_MATHMAPS_SOURCE, dir);
 const sre = createRequire(import.meta.url)('speech-rule-engine');
 await sre.setupEngine({ locale: 'en', domain: 'clearspeak', style: 'default', json: dir });
 await sre.engineReady();
@@ -34,5 +34,5 @@ test('the letter n is spoken as "enth"', async () => {
 test('things the request does not cover read as before', async () => {
   assert.equal(await say('\\cos x'), 'cosine x');
   assert.equal(await say('x^{2}'), 'x squared');
-  assert.equal(await say('x^{n}'), 'x to the n-th power');
+  assert.equal(await say('x^{n}'), 'x to the enth power');
 });
