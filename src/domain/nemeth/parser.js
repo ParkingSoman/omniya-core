@@ -67,7 +67,7 @@ import {
 } from './ast.js';
 import { NemethUnsupportedError } from './errors.js';
 
-const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'constant', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen', 'omission']);
+const TERM_STARTS = new Set(['numeric', 'digit', 'letter', 'constant', 'function', 'fracOpen', 'radOpen', 'radIndex', 'groupOpen', 'degree', 'omission']);
 
 function peek(state) {
   return state.index < state.tokens.length ? state.tokens[state.index] : null;
@@ -243,6 +243,7 @@ function expectFractionSign(state, kind, order, what) {
 function parseFraction(state, level, marks) {
   const start = state.index;
   const order = advance(state).order;
+  if (order === 'mixed') return parseMixedFraction(state, level, marks, start);
   const numerator = parseExpression(state, level);
   expectFractionSign(state, 'fracLine', order, 'fraction line');
   const denominator = parseExpression(state, level);
@@ -250,6 +251,49 @@ function parseFraction(state, level, marks) {
   return Fraction(numerator, denominator, {
     src: spanFrom(state, start),
     marks: { ...marks, fractionOrder: order }
+  });
+}
+
+/**
+ * The fractional part of a mixed number, BANA 13.4 (Nemeth_2022.txt lines
+ * 5702-5712): "a mixed number is an expression which begins with a whole number
+ * and is followed ... by a simple fraction whose numerator and denominator are
+ * both whole numbers", and the mixed-number indicators enclose the fractional
+ * part. "An expression is not a mixed number if it contains any letter", so a
+ * letter anywhere in the part, or no whole number before it, is refused rather
+ * than read as a mixed number the Code does not define.
+ *
+ * The fraction line is the ordinary simple one (Rule 13's table lists `/` for
+ * "the fractional part of a mixed number"), so it is matched as a simple line.
+ * The whole number is already parsed by the caller as the term before this one;
+ * the result is the fraction alone, and LaTeX writes it right after the whole
+ * number, as print does.
+ */
+function parseMixedFraction(state, level, marks, start) {
+  const before = start > 0 ? state.tokens[start - 1] : null;
+  if (!before || before.kind !== 'digit' || before.level !== level) {
+    throw unsupported(
+      state,
+      'the mixed-number indicators (BANA 13.4) must follow a whole number',
+      'A mixed number needs its whole number written right before the mixed-number indicator (dots 456, 1456).'
+    );
+  }
+  const numerator = parseExpression(state, level);
+  expectFractionSign(state, 'fracLine', 'simple', 'fraction line');
+  const denominator = parseExpression(state, level);
+  expectFractionSign(state, 'fracClose', 'mixed', 'closing indicator');
+  for (const part of [numerator, denominator]) {
+    if (part.kind !== 'Number') {
+      throw unsupported(
+        state,
+        'BANA 13.4 admits only whole numbers in the fractional part of a mixed number',
+        'The fraction part of a mixed number can only hold whole numbers. With a letter or a sign in it, it is not a mixed number.'
+      );
+    }
+  }
+  return Fraction(numerator, denominator, {
+    src: spanFrom(state, start),
+    marks: { ...marks, fractionOrder: 'mixed' }
   });
 }
 
@@ -359,9 +403,33 @@ function parseFenced(state, level, marks) {
 function parseFunctionCall(state, level, marks) {
   const start = state.index;
   const name = advance(state);
+  // 18.4.1 second sentence: scripts on the name come BEFORE the space, and the
+  // space follows the last of them. The scripts belong to the name alone, so
+  // they are parsed here, ahead of the argument, rather than by `parsePostfix`,
+  // which would hang them on the whole application. `levels.js` has already put
+  // the argument back at the name's own level (14.8.4).
+  let head = Operator(name.value, { src: spanFrom(state, start), marks: {} });
+  let filled = '';
+  for (let slot = scriptSlot(state, level); slot; slot = scriptSlot(state, level)) {
+    const script = parsePostfix(state, level + slot);
+    if (filled === slot || (filled !== '' && !(filled === '_' && slot === '^'))) {
+      throw unsupported(state, `a "${slot}" script on a function name already carrying "${filled}"`);
+    }
+    const src = spanFrom(state, start);
+    head =
+      filled === '_'
+        ? SubSuperscript(head.base, head.index, script, { src })
+        : attachScript(head, slot, script, src);
+    filled += slot;
+  }
   expect(state, 'blank', `BANA 18.4.1 leaves a space after the function name "${name.cells}", and none is here`);
   const argument = parsePostfix(state, level);
-  return FunctionCall(name.value, argument, { src: spanFrom(state, start), marks });
+  const src = spanFrom(state, start);
+  // Unscripted, the application keeps its node. A scripted name has no field in
+  // `FunctionCall` for the script, and `\\cos^{2}x` is exactly the name with its
+  // script followed by the argument, so it is a sequence of the two.
+  if (filled === '') return FunctionCall(name.value, argument, { src, marks });
+  return Sequence([head, argument], { src, marks });
 }
 
 function parsePrimary(state, level) {
@@ -411,6 +479,20 @@ function parsePrimary(state, level) {
     case 'constant':
       advance(state);
       return Operator(token.value, { src: spanFrom(state, start), marks });
+    case 'degree':
+      // BANA 23.10 (Nemeth_2022.txt line 11565): the hollow dot means degrees
+      // only "at the superscript level", where the Code has it written (Examples
+      // 4-9, 14-2, 23-13). On the baseline the same cells are not established
+      // as a degree sign, so this refuses rather than guess.
+      if (!level.endsWith('^')) {
+        throw unsupported(
+          state,
+          'the hollow dot is a degree sign only at the superscript level (BANA 23.10)',
+          'Write the superscript indicator (dot 4-5) before the hollow dot to make it a degree sign.'
+        );
+      }
+      advance(state);
+      return Operator(token.value, { src: spanFrom(state, start), marks });
     default:
       return parseNumber(state, level, marks);
   }
@@ -441,6 +523,33 @@ function attachScript(base, slot, script, src) {
 }
 
 /**
+ * A script is every term written at its level, up to the next baseline
+ * indicator: `2^-n` is `⠼⠆⠘⠤⠝` and `2^{x+n}` is `⠼⠆⠘⠭⠬⠝`, with the signs written
+ * at the script's own level (issue #73, "x+n is within the exponent, unless I
+ * write a baseline indicator after the x").
+ *
+ * The Code keeps a level in force until a baseline indicator ends it, so the
+ * operation sign in `⠭⠘⠆⠬⠼⠂` is part of the superscript: it is `x^{2+1}`, and
+ * `x^2+1` takes `⠭⠘⠆⠐⠬⠼⠂`. This once refused the unindicated form for fear that
+ * an author who forgot the indicator would be read silently; the reading is the
+ * Code's literal one, and the status line still reads the result back.
+ */
+function parseScript(state, level) {
+  const start = state.index;
+  const items = [];
+  parseUnary(state, level, items);
+  // Only an operation sign continues a script. Terms set side by side are NOT
+  // taken here: `parsePostfix` and Rule 14.11.2's digit-run breaks rely on a
+  // second term at this level being left for the caller to refuse.
+  while (isOperatorAt(state, level)) {
+    const token = advance(state);
+    items.push(Operator(token.value, { src: [token.offset, token.offset + token.len] }));
+    parseUnary(state, level, items);
+  }
+  return items.length === 1 ? items[0] : Sequence(items, { src: spanFrom(state, start) });
+}
+
+/**
  * Rule 14.11 decides whether two scripts on one base are simultaneous, and the
  * explicit baseline indicator is its sole carrier -- which is why `levels.js`
  * records `afterBaseline` and why this loop reads it off the script's own first
@@ -461,7 +570,12 @@ function parsePostfix(state, level) {
   let filled = '';
   for (let slot = scriptSlot(state, level); slot; slot = scriptSlot(state, level)) {
     const rebased = peek(state).afterBaseline;
-    const script = parsePostfix(state, level + slot);
+    // A script may carry operation signs: Nemeth keeps a level in force until
+    // a baseline indicator ends it, so `2^-n` is `⠼⠆⠘⠤⠝` and `2^{x+n}` is
+    // `⠼⠆⠘⠭⠬⠝`, with the signs written at the script's own level. Reading one
+    // postfix here left the sign stranded and refused every such power
+    // (#73, "I shouldn't have to write a baseline indicator ... at the end").
+    const script = parseScript(state, level + slot);
     if (rebased && startsBaselineTerm(state, level)) {
       // Rule 14.5.1 (lines 6311-6315): a LEFT script is written exactly like a
       // right one and told apart only by sitting before the sign it applies to,
