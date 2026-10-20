@@ -65,7 +65,6 @@ position, not a category; the offending codepoint is kept since it is).
 | 2 | a "^" script on a base already carrying "^" needs a baseline indicator before it | `mathcat-rules:nested_sup_sup_space_79_d_9` |
 | 2 | an alphabetic or capitalization indicator governs a baseline, not the letter BANA Rules 5.1.1 and 6.2.3 require | `sre-aata:AataExpression_334` |
 | 2 | an alphabetic or capitalization indicator governs a fracOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require | `mathcat-rules:mixed_frac_63_a_1` |
-| 2 | an alphabetic or capitalization indicator governs a groupOpen, not the letter BANA Rules 5.1.1 and 6.2.3 require -- and the table leads with a different reading of these cells, the comma of BANA 3.2.2, for which this pipeline has no grammar beside a groupOpen either | `mathcat-rules:identity_matrix_126_linearize` |
 | 2 | the cell "&" is a letter only after the Greek-letter indicator (BANA 6.1.4) | `sre-aata:AataExpression_198` |
 | 2 | the hollow dot is a degree sign only at the superscript level (BANA 23.10) | `mathcat-rules:ring_dot_100_1` |
 | 1 | a "^" script between two baseline indicators is a left script | `mathcat-rules:left_sup_75_12` |
@@ -80,6 +79,7 @@ position, not a category; the offending codepoint is kept since it is).
 | 1 | indicator "@" cannot follow the indicators before it in Appendix C's order (typeform, alphabet, capitalization) | `mathcat-rules:russian_24_a_10` |
 | 1 | latex has no rendering for bold german (BANA Rule 7.2.1) | `mathcat-rules:boldface_32_a_7` |
 | 1 | radical has no termination indicator | `mathcat-rules:sqrt_103_b_2` |
+| 1 | the grouping symbol "\bigl(" has no right grouping symbol at level ""; BANA 19.1.2 preserves an unpaired one and this parser has no node for it | `mathcat-rules:identity_matrix_126_linearize` |
 | 1 | unparsed comma token at level "" | `mathcat-rules:comma_number_77_4_20` |
 | 1 | unparsed decimal token at level "" | `mathcat-rules:multipurpose_177_2_2` |
 
