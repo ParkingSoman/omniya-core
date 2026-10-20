@@ -62,8 +62,10 @@ export function holds(repo, mergeSha, alphaSha, gh = realGh) {
 export function tellAll({ repo, now = Date.now(), dry = false }, gh = realGh) {
   const alpha = alphaCommit(repo, gh);
   if (!/^[0-9a-f]{40}$/.test(alpha)) return [{ pr: 0, issue: '', outcome: 'skip: no published alpha' }];
+  // Asked by merge date: a list of the newest pull requests misses an old fix that merged today.
+  const since = new Date(now - LOOK_BACK_DAYS * 86_400_000).toISOString().slice(0, 10);
   const merged = JSON.parse(gh([
-    'pr', 'list', '--repo', repo, '--base', 'testing', '--state', 'merged', '--limit', '50',
+    'pr', 'list', '--repo', repo, '--base', 'testing', '--state', 'merged', '--search', `merged:>=${since}`, '--limit', '200',
     '--json', 'number,title,body,headRefName,isCrossRepository,mergedAt,mergeCommit'
   ]));
   const told = new Set();

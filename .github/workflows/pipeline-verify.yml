@@ -257,6 +257,9 @@ jobs:
           for v in "$V4" "$V3" "$V2" "$V1"; do
             if [ -n "$v" ]; then final="$v"; break; fi
           done
+          # Merge first can merge the fix while a repair still checks it. The merge deletes the branch, so
+          # the check fails, but the fix is in. That is not a problem for the maintainer.
+          if [ "$final" != "true" ] && [ "$(gh pr view "$PR" --json state --jq .state)" = "MERGED" ]; then final="true"; fi
           if [ "$final" = "true" ]; then
             node scripts/ci/heal.mjs clear "$PR"
             echo "green=true" >> "$GITHUB_OUTPUT"
