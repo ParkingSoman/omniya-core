@@ -125,6 +125,4 @@ jobs:
       issue_number: ${{ matrix.item.issue }}
       pr_number: ${{ matrix.item.pr }}
       branch: ${{ matrix.item.branch }}
-      message: ''
-      reply_state: revised
       heal: ${{ matrix.item.heal }}

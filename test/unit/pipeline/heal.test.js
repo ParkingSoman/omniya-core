@@ -70,34 +70,3 @@ test('the report passes every job result and the retry flag by env, and a green 
   assert.match(step.run, /heal\.mjs stuck/);
   assert.doesNotMatch(step.run, /\$\{\{/);
 });
-
-test('a retry speaks only while the newest thing the contributor was told is the maintainer reply', async () => {
-  const { newestState, stillWaiting } = await import('../../../scripts/ci/heal.mjs');
-  const reply = (state) => ({ body: `<!-- omniya-pipeline-reply -->\n<!-- omniya-pipeline-state ${state} -->\ntext` });
-  assert.equal(newestState([reply('ready'), { body: 'a person said hi' }, reply('maintainer')]), 'maintainer');
-  assert.equal(newestState([reply('maintainer'), reply('ready')]), 'ready', 'pipeline-rescued already spoke');
-  assert.equal(newestState([{ body: '<!-- omniya-pipeline-state maintainer --> but not from the pipeline' }]), '');
-  const gh = (comments) => () => comments.map((c) => JSON.stringify(c)).join('\n');
-  assert.equal(stillWaiting({ repo: 'o/r', issue: 1 }, gh([reply('maintainer')])), true);
-  assert.equal(stillWaiting({ repo: 'o/r', issue: 1 }, gh([reply('maintainer'), reply('revised')])), false);
-});
-
-test('a retry still speaks when the contributor\'s newest word is the maintainer reply from before the state line existed', async () => {
-  const { newestState } = await import('../../../scripts/ci/heal.mjs');
-  const legacy = {
-    body: '<!-- omniya-pipeline-reply -->\nThe maintainer needs to look at a technical problem with this fix.\nYou do not need to do anything.\nThe maintainer will write here when there is news.\n'
-  };
-  assert.equal(newestState([legacy]), 'maintainer');
-  assert.equal(newestState([legacy, { body: 'a person said hi' }]), 'maintainer');
-  assert.equal(newestState([{ body: legacy.body + 'Also: something else.' }]), '', 'only the exact old words count');
-  assert.equal(newestState([legacy, { body: '<!-- omniya-pipeline-reply -->\n<!-- omniya-pipeline-state ready -->\nA test build is ready.\n' }]), 'ready');
-});
-
-test('a retry also speaks when the newest word to the contributor was a hand-off refusal', async () => {
-  const { newestState } = await import('../../../scripts/ci/heal.mjs');
-  const { renderReply, WAITING_STATES } = await import('../../../scripts/ci/reply.mjs');
-  for (const state of WAITING_STATES) assert.equal(newestState([{ body: renderReply(state) }]), state, state);
-  const legacy = "<!-- omniya-pipeline-reply -->\nThank you for testing.\nIt changes the automation itself, so the maintainer has to look at it first.\nThis issue closes when the maintainer merges the fix.\nYou do not need to do anything.";
-  assert.equal(newestState([{ body: legacy }]), 'sent-automation');
-  assert.equal(newestState([{ body: legacy + '\nExtra.' }]), '');
-});

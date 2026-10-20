@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { decide, notGreen, saysShip, sensitiveIn, ship } from '../../../scripts/ci/ship-pipeline-pr.mjs';
+import { decide, isAllowed, notGreen, saysShip, sensitiveIn, ship, squashBody } from '../../../scripts/ci/ship-pipeline-pr.mjs';
 
 const SHA = 'a'.repeat(40);
 const allowedAuthors = ['ParkingSoman', 'omniya-bot'];
@@ -376,16 +376,23 @@ test('the built-in token and read-only permissions are in nearly every workflow,
     '        run: node scripts/ci/say.mjs'
   ]);
   assert.deepEqual(sensitiveIn(f), []);
-  assert.equal(withFiles([f], { ownerSaid: 'ship it' }).tier, 'ship-it', 'a workflow is in the ship-it zone by its path');
+  assert.equal(withFiles([f]).tier, 'automatic', 'the owner decided on 2026-10-19: only a change that adds power needs the words');
 });
 
-test('an ordinary workflow or script change needs the words, and the words are enough', () => {
+test('an ordinary workflow or script change ships with no words; one that adds power needs them', () => {
   const f = workflow('.github/workflows/pipeline-new.yml', ['name: tidy', 'on:', '  workflow_dispatch:', 'jobs:', '  say:', '    runs-on: ubuntu-latest', '    steps:', '      - run: node scripts/ci/say.mjs']);
   const s = { filename: 'scripts/ci/say.mjs', status: 'added', patch: '+console.log("hello");' };
-  assert.equal(withFiles([f, s]).ship, false);
-  const out = withFiles([f, s], { ownerSaid: 'ship it' });
-  assert.equal(out.ship, true);
-  assert.equal(out.tier, 'ship-it');
+  const t = { filename: 'test/unit/pipeline/say.test.js', status: 'added', patch: '+test("x", () => {});' };
+  assert.equal(withFiles([f, s, t]).tier, 'automatic');
+  const power = { filename: 'scripts/ci/say.mjs', status: 'added', patch: "+gh(['api', '-X', 'DELETE', 'repos/x/y/git/refs/heads/main']);" };
+  assert.equal(withFiles([power]).ship, false);
+  assert.equal(withFiles([power], { ownerSaid: 'ship it' }).tier, 'ship-it');
+  // The files that decide who may start the agent, what green means, who may merge, and the design rules keep needing the words.
+  for (const filename of ['scripts/ci/hand-off.mjs', 'scripts/ci/can-run-agent.mjs', 'scripts/ci/confirm.mjs', 'scripts/ci/allowlist.mjs', '.github/contributors.yml', '.github/prompts/agent.md', '.claude/settings.json', '.github/workflows/pr-checks.yml']) {
+    const changed = { filename, status: 'modified', patch: '+// a comment' };
+    assert.equal(withFiles([changed]).ship, false, filename);
+    assert.equal(withFiles([changed], { ownerSaid: 'ship it' }).tier, 'ship-it', filename);
+  }
 });
 
 test('words about secrets in docs and tests do not count: only code and the prompt are scanned', () => {
@@ -557,4 +564,21 @@ test('the strictness check runs in a job with no secret and no environment, and 
   assert.equal(wf.jobs.ship.needs, 'differential');
   const env = wf.jobs.ship.steps.find((s) => (s.run ?? '').includes('ship-pipeline-pr.mjs')).env;
   assert.equal(env.DIFFERENTIAL, '${{ needs.differential.outputs.result }}');
+});
+
+test('the squash commit keeps only the closing lines, never a commit message (issue 126)', () => {
+  assert.equal(squashBody('Why.\n\nFixes #126\nCloses #123\n'), 'Fixes #126\nCloses #123');
+  assert.equal(squashBody('Why.\nClaude-Session: https://claude.ai/code/session_x\nCo-authored-by: Claude <x>'), 'Shipped from chat.');
+  assert.equal(squashBody('See Fixes #1 in the text'), 'Shipped from chat.', 'only a line that is the closing line by itself');
+  assert.equal(squashBody(undefined), 'Shipped from chat.');
+});
+
+test('.claude and the contributor list ship on the owner\'s words, and only on them (issue 130)', () => {
+  for (const file of ['.claude/settings.json', '.claude/hooks/x.sh', '.claude/skills/other/SKILL.md', '.github/contributors.yml']) {
+    assert.ok(isAllowed(file), file);
+    const changed = { filename: file, status: 'modified', patch: '+x' };
+    assert.equal(withFiles([changed]).ship, false, `${file}: never by itself`);
+    assert.equal(withFiles([changed], { ownerSaid: 'ship it' }).tier, 'ship-it', file);
+  }
+  for (const file of ['.github/contributors.yml.bak', '.github/CODEOWNERS', '.claudex/x', 'package.json']) assert.equal(isAllowed(file), false, file);
 });
