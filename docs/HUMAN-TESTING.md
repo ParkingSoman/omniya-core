@@ -42,10 +42,11 @@ equations, offline autosave.
   the field is empty. Enter inserts the equation and returns to the document,
   caret after it. Escape cancels. The field no longer stays open for the next
   equation.
-- **An equation is one unit.** An arrow key selects it, the next moves past it.
-  Backspace next to it selects it, a second Backspace deletes it. Undo brings it
-  back.
-- **MathJax explorer:** with an equation selected, Enter reads it by parts. Arrows
+- **An equation is one unit.** Left and Right pass the whole equation in one
+  press. Shift+arrow selects it. Backspace next to it selects it, a second
+  Backspace deletes it. Undo brings it back.
+- **MathJax explorer:** with the caret just before an equation, or with the
+  equation selected, Enter reads it by parts. Arrows
   go through the hierarchy. **r** replaces the focused part, **a** inserts after
   it, **o** inserts before it. Escape returns to the document.
 - Old napkins open as documents: each text item becomes paragraphs, each
@@ -109,14 +110,19 @@ npm start
    `?a/b#` (a fraction). The line under the field names the reading it used.
    Enter inserts it. An empty field refuses with a message. Escape cancels and
    leaves the note unchanged.
-5. Arrow onto an equation: the first press selects it as one unit, the next
-   moves past it. With a screen reader, the equation is spoken once, by name,
-   as the caret arrives. The status bar tells a sighted person what Enter and
-   Backspace will do.
+5. Arrow onto an equation: the caret stops just before it, and one more press
+   passes the whole equation. With a screen reader, the equation is named
+   "equation" once, as the caret arrives, and the reader says "out of equation"
+   as the caret leaves. Two equations in a row are each named once. Up and Down
+   onto a line that holds only one equation put the caret before it. Pressing
+   Enter there opens the equation. Enter anywhere else makes a new paragraph. The
+   status bar tells a sighted person what Enter and Backspace will do.
 6. Backspace right after an equation selects it. A second Backspace deletes it.
    Undo brings it back as one step, separate from typing.
-7. Select an equation and press Enter, or double-click it: the explorer takes
-   focus. Arrow to a term and press **r**. The panel opens, and its heading
+7. Put the caret just before an equation, or select it, and press Enter. Or
+   double-click it. The explorer takes focus. With NVDA, say in the report
+   whether the arrow keys then move through the equation. If they do nothing,
+   say which mode NVDA was in. Arrow to a term and press **r**. The panel opens, and its heading
    names the part being replaced. Escape cancels and leaves the equation
    unchanged. **a** and **o** insert after and before the focused part. After
    Enter, the explorer is back on the part you edited. Arrow keys never stop on
