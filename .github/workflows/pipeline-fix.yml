@@ -346,4 +346,3 @@ jobs:
       issue_number: ${{ needs.allowlist.outputs.number }}
       pr_number: ${{ needs.fix.outputs.pr }}
       branch: ${{ needs.fix.outputs.branch }}
-      message: ${{ needs.fix.outputs.message }}
