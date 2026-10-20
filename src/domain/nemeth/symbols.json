@@ -393,6 +393,23 @@
     "banaRef": "13.6"
   },
   {
+    "cells": "⠸⠹",
+    "kind": "fracOpen",
+    "value": "_?",
+    "order": "mixed",
+    "banaRef": "13.4"
+  },
+  {
+    "cells": "⠸⠼",
+    "kind": "fracClose",
+    "value": "_#",
+    "order": "mixed",
+    "banaRef": "13.4",
+    "ifFollowedByNumeral": {
+      "maxLen": 1
+    }
+  },
+  {
     "cells": "⠣",
     "kind": "radIndex",
     "value": "<",
@@ -538,6 +555,18 @@
     "kind": "groupClose",
     "value": "\\}",
     "banaRef": "19"
+  },
+  {
+    "cells": "⠠⠷",
+    "kind": "groupOpen",
+    "value": "\\bigl(",
+    "banaRef": "19.6"
+  },
+  {
+    "cells": "⠠⠾",
+    "kind": "groupClose",
+    "value": "\\bigr)",
+    "banaRef": "19.6"
   },
   {
     "cells": "⠨⠅",
@@ -711,6 +740,12 @@
       "value": "〜",
       "banaRef": "20"
     }
+  },
+  {
+    "cells": "⠿",
+    "kind": "omission",
+    "value": "?",
+    "banaRef": "11.1.1"
   },
   {
     "cells": "⠨⠡",

@@ -293,6 +293,22 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'the same construct. This is the one case the braces cost, and they are kept because the ' +
       'two typeset identically while only one says what the parser recovered.'
   },
+  'sre-aata:AataExpression_102': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠈⠷⠷⠂⠆⠒⠢⠾⠷⠲⠖⠶⠾⠈⠾⠘⠤⠂` = a bracketed product of two parenthesised bit strings to the power -1. The same Example 19-4 grouping as AataExpression_68: ' +
+      'the target spells the superscript on the closing grouping sign where we brace the group. ' +
+      'The negative exponent itself reads the same on both sides; it parsed only after a script ' +
+      'could open with a sign (issue #73), which is how these two left REFUSE.'
+  },
+  'sre-aata:AataExpression_106': {
+    cause: 'equivalent-encoding',
+    reason:
+      'Cells `⠷⠂⠆⠢⠒⠶⠾⠘⠤⠂` = a parenthesised bit string to the power -1. The same Example 19-4 grouping as AataExpression_68: ' +
+      'the target spells the superscript on the closing grouping sign where we brace the group. ' +
+      'The negative exponent itself reads the same on both sides; it parsed only after a script ' +
+      'could open with a sign (issue #73), which is how these two left REFUSE.'
+  },
   'sre-aata:AataExpression_50': {
     cause: 'equivalent-encoding',
     reason:
@@ -606,6 +622,42 @@ const MANY_TO_ONE_FORWARD_MAP = {
       'letter that abuts another letter was considered and rejected: BANA Example 14-44 (line ' +
       '6507, `,na2,c,o3` = Na2CO3) is exactly that shape and the Code says the subscript ' +
       'indicator is NOT required there.'
+  },
+  // BANA 11.1.1 (Nemeth_2022.txt line 5094): one general omission symbol stands
+  // for a question mark, a blank, or either with hyphens or dashes. The four
+  // cases below are print forms the Code deliberately collapses into that one
+  // cell, so the cells cannot say which print form the corpus started from.
+  'mathcat-rules:omission_57_1': {
+    cause: 'unencoded-attribute',
+    reason:
+      'Cells `⠷⠿⠾⠘⠒⠀⠨⠅⠀⠼⠆⠶` = (?)^3 = 27, BANA Example 11-1. Element for element identical to ' +
+      'the target; MathJax puts stretchy="false" on both parentheses and the stored MathML omits ' +
+      'it. Verified with this gate: our `{(?)}^{3}=27` compares EQUAL to the target with ' +
+      'stretchy="false" added.'
+  },
+  'mathcat-rules:omission_57_5': {
+    cause: 'formatting-only',
+    reason:
+      'Cells `⠼⠶⠤⠿⠀⠨⠅⠀⠼⠢` = 7 - ? = 5, BANA Example 11-5. The print question mark is underlined ' +
+      'and the target wraps it in <menclose notation="bottom">; Rule 11.1.1 writes it as the same ' +
+      'general omission symbol as a plain one. Verified with this gate: our `7-?=5` compares ' +
+      'EQUAL to the target without the menclose.'
+  },
+  'mathcat-rules:omission_57_6': {
+    cause: 'formatting-only',
+    reason:
+      'Cells `⠼⠔⠤⠢⠀⠨⠅⠀⠿` = 9 - 5 = -?-, BANA Example 11-6. The print omission is a question mark ' +
+      'between hyphens, which the target keeps as <mtext>-?-</mtext>; Rule 11.1.1 says a question ' +
+      'mark in combination with hyphens or dashes is one general omission symbol. Verified with ' +
+      'this gate: our `9-5=?` compares EQUAL to the target with a plain <mo>?</mo>.'
+  },
+  'mathcat-rules:omission_57_8': {
+    cause: 'formatting-only',
+    reason:
+      'Cells `⠼⠢⠈⠡⠆⠢⠀⠨⠅⠀⠿` = 5 x 25 = (blank), BANA Example 11-8. The print omission is a ' +
+      'blank space, which the target keeps as <mspace width="1.5em"/>; Rule 11.1.1 writes a ' +
+      'blank space as the same general omission symbol as a question mark. Verified with this ' +
+      'gate: our `5×25=?` compares EQUAL to the target with a plain <mo>?</mo>.'
   }
 };
 
@@ -627,13 +679,13 @@ const ERROR_ALLOWLIST = {};
 // Sourced from the coverage run at the time this gate was written -- see
 // docs/nemeth-v2/coverage.md. This is a floor, not a target: later tasks
 // raise it as the parser's scope grows. It must never silently drop.
-const PASS_BASELINE = 215;
+const PASS_BASELINE = 224;
 
 // The id SET this gate was written against, not just its size. PASS_BASELINE
 // alone is an aggregate floor: N cases regressing to REFUSE while N different
 // cases start passing in the same commit leaves PASS_BASELINE, DISAGREE and
 // ERROR all unchanged, so that swap is fully green under the count alone. This
-// pins which 215 cases pass, so a swap is caught even though the total is not.
+// pins which 224 cases pass, so a swap is caught even though the total is not.
 // Sourced from the same coverage run as PASS_BASELINE -- see docs/nemeth-v2/coverage.md.
 const PASS_IDS = new Set([
   "mathcat-rules:baseline_80_a_1",
@@ -645,6 +697,7 @@ const PASS_IDS = new Set([
   "mathcat-rules:greek_24_b_1",
   "mathcat-rules:list_num_ind_11_d_1",
   "mathcat-rules:list_num_ind_11_d_2",
+  "mathcat-rules:mixed_frac_63_a_1",
   "mathcat-rules:msubsup_82_a_1",
   "mathcat-rules:msubsup_82_a_3",
   "mathcat-rules:multipurpose_134_1",
@@ -654,9 +707,13 @@ const PASS_IDS = new Set([
   "mathcat-rules:multipurpose_lesson_5_2_5",
   "mathcat-rules:nested_sub_sup_74_c_5",
   "mathcat-rules:nested_sup_74_b_1",
+  "mathcat-rules:omission_57_4",
   "mathcat-rules:nested_sup_74_b_4",
+  "mathcat-rules:nested_sup_sup_space_79_d_9",
   "mathcat-rules:nested_super_79_a_2",
   "mathcat-rules:nested_super_79_a_3",
+  "mathcat-rules:nested_super_space_79_d_3",
+  "mathcat-rules:nested_super_space_79_d_7",
   "mathcat-rules:no_multipurpose_lesson_5_2_6",
   "mathcat-rules:no_num_ind_11_e_3",
   "mathcat-rules:non_hyper_complex_frac_67_1",
@@ -779,11 +836,14 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_25",
   "sre-aata:AataExpression_251",
   "sre-aata:AataExpression_253",
+  "sre-aata:AataExpression_254",
+  "sre-aata:AataExpression_256",
   "sre-aata:AataExpression_26",
   "sre-aata:AataExpression_262",
   "sre-aata:AataExpression_263",
   "sre-aata:AataExpression_267",
   "sre-aata:AataExpression_27",
+  "sre-aata:AataExpression_275",
   "sre-aata:AataExpression_276",
   "sre-aata:AataExpression_277",
   "sre-aata:AataExpression_28",
@@ -840,6 +900,7 @@ const PASS_IDS = new Set([
   "sre-aata:AataExpression_75",
   "sre-aata:AataExpression_76",
   "sre-aata:AataExpression_77",
+  "sre-aata:AataExpression_8",
   "sre-aata:AataExpression_80",
   "sre-aata:AataExpression_81",
   "sre-aata:AataExpression_82",
@@ -884,7 +945,7 @@ test('DISAGREE: every case is in MANY_TO_ONE_FORWARD_MAP with a categorized reas
   }
 });
 
-test('DISAGREE: the many-to-one sub-causes are represented as expected (34 equivalent-encoding, 7 formatting-only, 6 unencoded-boundary, 3 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
+test('DISAGREE: the many-to-one sub-causes are represented as expected (36 equivalent-encoding, 10 formatting-only, 6 unencoded-boundary, 4 unencoded-attribute, 2 homograph, 2 glyph-spelling, 1 text-vs-math)', () => {
   const byCause = {
     'equivalent-encoding': 0,
     'formatting-only': 0,
@@ -895,10 +956,10 @@ test('DISAGREE: the many-to-one sub-causes are represented as expected (34 equiv
     'text-vs-math': 0
   };
   for (const entry of Object.values(MANY_TO_ONE_FORWARD_MAP)) byCause[entry.cause] += 1;
-  assert.equal(byCause['equivalent-encoding'], 34);
-  assert.equal(byCause['formatting-only'], 7);
+  assert.equal(byCause['equivalent-encoding'], 36);
+  assert.equal(byCause['formatting-only'], 10);
   assert.equal(byCause['unencoded-boundary'], 6);
-  assert.equal(byCause['unencoded-attribute'], 3);
+  assert.equal(byCause['unencoded-attribute'], 4);
   assert.equal(byCause.homograph, 2);
   assert.equal(byCause['glyph-spelling'], 2);
   assert.equal(byCause['text-vs-math'], 1);
