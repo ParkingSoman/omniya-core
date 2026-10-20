@@ -44,18 +44,6 @@ on:
       branch:
         required: true
         type: string
-      # What the agent wanted the contributor to hear. It rides in the one comment
-      # that announces the build. Agent text, so it is only ever passed through
-      # `env`, never written into a `run:` line.
-      message:
-        required: false
-        type: string
-        default: ''
-      # `ready` for a first build, `revised` for a replacement behind the same links.
-      reply_state:
-        required: false
-        type: string
-        default: ready
       # `true` when this is the one automatic retry of a pipeline fault (`heal.mjs`).
       heal:
         required: false
@@ -232,10 +220,11 @@ jobs:
           name: failed-checks-4
           path: ${{ runner.temp }}/verify/failed.log
 
-  # Says the result on the issue, in plain words, in ONE new comment. The last
-  # verify that ran decides: green means a test build is ready, anything else
-  # means a person has to look. A verify that could not find its run at all
-  # leaves no answer, and no answer is not green.
+  # The last verify that ran decides. Green says nothing on the issue: merge first
+  # (`pipeline-carry.yml`, `scripts/ci/hand-off.mjs --green`) merges the fix, and the
+  # contributor hears once, when the test alpha holds it. Anything else means a
+  # person has to look, in ONE new comment. A verify that could not find its run
+  # at all leaves no answer, and no answer is not green.
   report:
     needs: [verify-1, repair-1, verify-2, repair-2, verify-3, repair-3, verify-4]
     if: ${{ !cancelled() }}
@@ -259,8 +248,6 @@ jobs:
           V3: ${{ needs.verify-3.outputs.green }}
           V4: ${{ needs.verify-4.outputs.green }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          REPLY_STATE: ${{ inputs.reply_state }}
-          MESSAGE: ${{ inputs.message }}
           # Every job result, so a job that FAILED can be told from one that asked for a person.
           RESULTS: ${{ join(needs.*.result, ' ') }}
           HEAL: ${{ inputs.heal }}
@@ -272,10 +259,6 @@ jobs:
           done
           if [ "$final" = "true" ]; then
             node scripts/ci/heal.mjs clear "$PR"
-            # A retried fault may already have been announced by pipeline-rescued.yml. Say it once.
-            tell=yes
-            if [ "$HEAL" = "true" ]; then tell="$(node scripts/ci/heal.mjs waiting "$ISSUE" | sed -n 's/^tell=//p')"; fi
-            if [ "$tell" = "yes" ]; then node scripts/ci/reply.mjs "$ISSUE" "$REPLY_STATE" "$PR"; fi
             echo "green=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi

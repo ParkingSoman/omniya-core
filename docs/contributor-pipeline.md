@@ -22,27 +22,24 @@ An agent works on the first two. A person answers the last two, on your issue.
 Each event on your issue gets one comment. No comment repeats another. Every
 comment has something new in it.
 
-Within a minute you get a short comment that says work has started. You do not
-need to do anything. About an hour later you get a second comment. It says what
-changed. It has two download links, one for Mac and one for Windows. Install the
-build and try the thing that was broken. You are the only person who can say
-whether the bug is gone.
+Within a minute you get a short comment that says work has started. You do not need to do anything.
+When the fix passes every automatic check, it goes into the test alpha by itself. Then you get a second comment.
+It says what changed. It has two download links for the alpha, one for Mac and one for Windows. The alpha links
+never change. On Windows, an alpha you already installed updates itself. Install it and try the thing that was
+broken. You are the only person who can say whether the bug is gone.
 
-- If it is still wrong, write a comment that starts with `@claude` and say what
-  you found. You get one new comment, and the same links already in the first
-  one now hold the new build.
 - If it works, write: it works (only that; with more words, start with `@claude`).
-- Do not close the issue. Closing sends nothing. You will get a comment that
-  tells you what to write instead.
-- If you have a question, start it with `@claude` too. You get one answer, and
-  nothing changes.
+  The issue closes.
+- If it is still wrong, write a comment that starts with `@claude` and say what you found. A new fix
+  starts. You get one new comment when the alpha has it, and the same links hold the newer alpha.
+- Do not close the issue. Closing sends nothing. You will get a comment that tells you what to write instead.
+- If you have a question, start it with `@claude` too. You get one answer, and nothing changes.
 
 The word `@claude` is what starts the work. A comment without it is read by
 people only. Each run costs the maintainer part of a paid quota. A plain "it works" is
 the exception: a script reads it, with no agent, only from you, after a build.
 
-Sometimes the agent asks you up to three short questions first. Answer in a
-comment that starts with `@claude`. "I do not know" is a good answer. A comment
+Sometimes the agent asks you up to three short questions first. Answer in a comment that starts with `@claude`. "I do not know" is a good answer. A comment
 may also say that the maintainer needs to look at a technical problem. Then you
 need to do nothing. The maintainer will write here when there is news.
 
@@ -50,8 +47,9 @@ need to do nothing. The maintainer will write here when there is news.
 
 `testing` is the default branch. The prompts, tools, gates, allowlist and forms
 all live on it. Changing the pipeline is an ordinary change into `testing`.
-A fix merges by itself only when the contributor says it works, every required
-check is green, and the fix touches no pipeline file. Any other fix waits for you.
+A fix merges by itself when its required checks are green and it touches only the automatic zone.
+This is merge first, your decision of 2026-10-19: nobody has tried it yet, the issue stays open, and the
+contributor tries the next alpha. Their "it works" closes the issue. Any other fix waits for you.
 The pipeline uses no `--admin` flag anywhere.
 
 ### The flow
@@ -64,14 +62,15 @@ flowchart TD
   D -- no --> E[One comment, label needs-owner, red run]
   D -- yes --> F[Agent: reproduce, fix, draft PR into testing]
   F --> G[Checks and build, up to three repairs]
-  G -- green --> H[One comment with links]
   G -- still red --> I[Label needs-owner, you look]
-  H --> J{Contributor comments @claude}
-  J -- problem --> F
-  J -- "it works", no agent --> K{Touches pipeline files or reverses a note?}
-  K -- no --> L[Status contributor-tested, auto-merge into testing]
-  K -- yes --> N[Label needs-owner, you review and merge]
-  L --> M[Issue closes from the Fixes line]
+  G -- green --> K{Only the automatic zone, no note reversed?}
+  K -- yes --> L[Status contributor-tested, merge into testing. Issue stays open]
+  K -- no --> N[Label needs-owner, one held comment, you review and merge]
+  L --> H[Alpha built: one comment with the alpha links]
+  N --> H
+  H --> J{Contributor comments}
+  J -- "it works", no agent --> M[Issue closes]
+  J -- @claude with a problem --> F
 ```
 
 ### Rules
@@ -90,12 +89,13 @@ flowchart TD
      it cannot be faked. That one comment is headed with a random token, so a
      contributor cannot write the heading.
    - Lock 3, the merge. The ruleset `testing-tested` needs the commit status
-     `contributor-tested`. Only the hand-off job (`scripts/ci/hand-off.mjs`) sets it,
-     with the App's token, and only after the contributor says it works. The hand-off also writes the squash commit's body itself, `Fixes #N`, so the merge closes the issue and the agent's `Co-authored-by` lines never reach `testing`. A fix that touches `.github/**`,
+     `contributor-tested`. Only the hand-off (`scripts/ci/hand-off.mjs`) sets it, with the App's token: when the
+     required checks are green (merge first, run by `pipeline-carry.yml`), or after the contributor says a fix's own build works.
+     The hand-off writes the squash commit's body itself, so the agent's `Co-authored-by` lines never reach `testing`. Merge first writes `Fix for #N`, which keeps the issue open. A confirmed fix writes `Fixes #N`, which closes it. A fix that touches `.github/**`,
      `scripts/ci/**`, `CODEOWNERS` or `.github/contributors.yml`, that has a
      or that says "Reverses a standing note" gets `needs-owner` and no
-     status. Only you merge those. A fix that conflicts is not one of them: it is
-     brought up to date, and the contributor tries the new build. The agent's token has no Commit statuses permission.
+     status. Only you merge those. A fix that conflicts is not one of them:
+     `keep-current` brings it up to date, and then it merges. The agent's token has no Commit statuses permission.
 3. Only people on `.github/contributors.yml` can start a run. The check is
    `scripts/ci/allowlist.mjs`. It fails closed. It runs before anything is installed.
    The person must also have write access (`scripts/ci/can-run-agent.mjs`).
@@ -126,6 +126,7 @@ flowchart TD
 | `needs-info` | The agent asked a question and waits | The pipeline |
 | `needs-design` | A person must decide | The agent |
 | `needs-owner` | You must look: blocked, red checks, no access, or a fix that cannot merge by itself | The pipeline |
+| `test-first` | Merge first is held for this issue: a contributor tests the fix's own build first. Remove it to let the fix merge | You |
 
 ### The workflows
 
@@ -134,10 +135,9 @@ flowchart TD
 | `.github/workflows/pipeline-fix.yml` | `testing` | An opened issue, or by hand with an issue number. Issue to draft pull request. |
 | `.github/workflows/pipeline-followup.yml` | `testing` | An `@claude` comment on an issue. A revision, an answer or a hand-off. By hand with an issue number and a comment, for a rehearsal. If the agent job crashes, or is cancelled because no runner ever picked it up, the contributor gets the `failed` reply. Only a person stopping the whole run stays silent. |
 | `.github/workflows/pipeline-agent.yml` | `testing` | The one place an agent runs. Modes `fix`, `comment`, `checks-failed`. A scrubbed digest of what it did goes to the job summary AND the job log (so `gh run view --log` shows it), with the names of any tools it was denied. |
-| `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times, reports on the issue. |
-| `.github/workflows/pipeline-rescued.yml` | `testing` | A person fixed a fix the pipeline gave up on. When the checks and the build go green, the contributor gets the test build on the issue, once. It also covers a person's own `claude/fix-N-…` branch with `Fixes #N`, opened by the owner or `omniya-bot`, on an issue the pipeline gave no build: the standard "test build ready" reply, once, then "it works" goes through the ordinary hand-off. |
+| `.github/workflows/pipeline-verify.yml` | `testing` | Checks and builds the branch, repairs it up to three times. Says something on the issue only when it stays red. |
 | `.github/workflows/pipeline-keep-current.yml` | `testing` | Every push to `testing`, weekly, and when a hand-off finds a conflict. Updates open fix branches. A conflict goes to the repair agent, in a manual run the push starts: the agent refuses a push, and accepts the Actions bot only for a manual run. |
-| `.github/workflows/pipeline-carry.yml` | `testing` | When a fix branch's checks finish, and every 20 minutes. If `keep-current` moved the head after the contributor said it works, and the fix's own added and removed lines are the same (`scripts/ci/carry-over.mjs`, every rule fails closed), the hand-off runs for the new head and the contributor is told once. Otherwise they get the `revised` notice as before. The comparison leaves out `docs/nemeth-v2/coverage.md`, a report a script writes and a unit test checks, because a repair regenerates it. A hold reply written before the state line existed does not void an approval. A person's edit to the fix, such as moving a file, always does. The same run then sends ONE reminder (`scripts/ci/remind.mjs`, state `reminded`) on a fix whose build notice is a week old with no word from the contributor. It never sends a second. It skips a fix that waits on a person or an answer, or that the contributor already approved for the commit that would merge. An old approval for an older commit is void, so that fix is reminded after two quiet days, once its head is six hours old. It has no links of its own, because a link goes only with a checked build. It points back to the notice instead. A plain "it works" after it is judged against that notice, as before. |
+| `.github/workflows/pipeline-carry.yml` | `testing` | Merge first. When a fix branch's checks finish, when an alpha is published, every 20 minutes, and by hand. Merges every open fix whose checks are green (`scripts/ci/hand-off.mjs --green`). A fix a person must read is held, and the contributor is told once. When a published alpha holds a merged fix, the contributor gets ONE comment with the alpha links (`scripts/ci/in-alpha.mjs`). A week of silence after it gets ONE reminder (`scripts/ci/remind.mjs`). Everything is worked out from the state of GitHub, so a missed run changes nothing. |
 | `.github/workflows/pipeline-ship.yml` | `testing` | By hand, from a chat session, after the owner says "ship it". Merges a `pipeline/` pull request that changed the automation. It replaces the bypass tick. |
 | `.github/workflows/pipeline-ready.yml` | `testing` | A pull request opens or moves, the owner approves, or the checks finish. Posts the merge-box status: what it waits for, then green once the owner approved this commit and the checks pass. |
 | `.github/workflows/pipeline-review-ping.yml` | `testing` | Runs when a review is approved, holds no secret, and only lets `pipeline-ready.yml` start from `testing`. |
@@ -157,8 +157,8 @@ How much it needs from you depends on what the change touches.
 
 | Tier | The change touches | What it needs |
 |---|---|---|
-| Automatic | Docs only. Everything else of the automation is in the ship-it zone of `scripts/ci/zones.json` | Nothing. It merges when green. |
-| Ship it | The ship-it zone: `.github/workflows/**`, `.github/prompts/**`, `scripts/ci/**`, `.claude/**`, `package.json`, the lockfile, `electron-builder.yml`, `test/unit/pipeline/**`. Judged by path, never by a line |  Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
+| Automatic | Docs, and the pipeline zone of `scripts/ci/zones.json` (workflows, `scripts/ci/**`, the pipeline's tests) when no changed line adds power. Your decision of 2026-10-19 | Nothing. It merges when green. |
+| Ship it | A changed line that adds power (a secret, a token, a permission, an environment, a trigger, a merge, a release, a delete), or the ship-it zone: what green means, who may merge, who may start the agent, the agent's prompt, `.claude/**`, `.github/contributors.yml`, the package files |  Your words, passed as `owner_said` and written to the run summary. The workflow cannot prove you typed them. |
 | Lock | The files that decide who may merge what: the shipper, its tests, the manifest, the strictness check | Your words AND a strictness check: the new rules must be at least as strict as the old ones on thousands of made-up cases, run with no secrets. A change that loosens the lock on purpose fails, and needs you in the merge box (Approve, then Merge). |
 | Your approval | `package.json`, CODEOWNERS, anything else. (App code on a `product/<slug>` branch is not here: your words ship it, see `docs/shipping-app-changes.md`.) | Click **Approve**, then **Merge**. The box turns green only after your approval of this commit and green checks. Never tick "bypass rules". |
 
