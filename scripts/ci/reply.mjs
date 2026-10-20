@@ -53,6 +53,9 @@ export const AUTHOR = 'github-actions[bot]';
  * to try. Only the bot writes it (a person cannot post as `github-actions[bot]`),
  * and `cleanMessage` drops any line of agent text that carries the prefix.
  */
+/** The prerelease `testing-app.yml` publishes every push of `testing` to. Its file names never change. */
+export const ALPHA_TAG = 'testing-app';
+
 export const STATE_PREFIX = `${PIPELINE_PREFIX}state `;
 export const stateLine = (state) => `${STATE_PREFIX}${state} -->`;
 
@@ -107,19 +110,30 @@ const STATES_DEF = {
       'If it works, write: it works'
     ]
   },
-  // The one reminder (`scripts/ci/remind.mjs`): a build has waited a week for a contributor who has
-  // not written. It has NO links of its own: a link is offered only with a build that was checked, and
-  // this comment does not check anything. It points back to the notice that did. `confirm.mjs` skips it
-  // when it looks for the build notice, so a plain "it works" after it is judged as it was before.
+  // The fix merged and the test alpha that holds it is published (`scripts/ci/in-alpha.mjs`). The links
+  // are the alpha's own, which never change. The contributor tries it and says whether the bug is gone.
+  'in-alpha': {
+    message: 'optional',
+    alpha: true,
+    intro: ['Your fix is now in the test alpha. All the automatic checks passed.'],
+    lines: [
+      'Install the newest alpha and try the thing that was wrong. On Windows, an alpha you already installed updates itself.',
+      'If it works, write: it works',
+      'If it is still wrong, start your comment with @claude and say what you found. I will make a new fix.'
+    ]
+  },
+  // The one reminder (`scripts/ci/remind.mjs`): the fix has been in the alpha for a week and the
+  // contributor has not written. Said once, never a second time.
   reminded: {
     message: 'none',
-    notice: true,
+    alpha: true,
     intro: [
-      'A test build of this fix has been waiting for you for a while.',
+      'Your fix has been in the test alpha for a week.',
       'This is the only reminder I will send.'
     ],
     lines: [
-      ...TRY_IT,
+      'If it works, write: it works',
+      'If it is still wrong, start your comment with @claude and say what you found.',
       'If you would rather not test it, you do not need to do anything.'
     ]
   },
@@ -196,17 +210,22 @@ const STATES_DEF = {
       'You do not need to do anything.'
     ]
   },
-  // The fix is the same one the contributor tested. Only the app around it moved on, and the
-  // branch was brought up to date. Their "it works" still holds, so it is sent on. Said once.
-  carried: {
+  // The checks passed, but the fix changes something a person reads before it merges. Said once.
+  held: {
     message: 'none',
     lines: [
-      'Thank you for testing.',
-      'The app around your fix changed since you tried it, but your fix did not.',
-      'Your answer still holds, so I sent it on. You do not need to test again.',
-      'It will merge by itself when the checks finish, and the test build will update.',
-      'This issue closes when it merges.',
-      'You do not need to do anything.'
+      'The fix is ready, and all the automatic checks passed.',
+      'It changes a part of the project that the maintainer reads before it goes into the test alpha.',
+      'I will write here when it is in the alpha. You do not need to do anything.'
+    ]
+  },
+  // The contributor said it works on the alpha. The issue closes, here, right after the comment.
+  closed: {
+    message: 'none',
+    close: true,
+    lines: [
+      'Thank you for testing. I closed this issue.',
+      'If the problem comes back, write a comment that starts with @claude.'
     ]
   },
   'sent-automation': {
@@ -259,7 +278,7 @@ export const LABELS = {
  * owner's inbox must not list an issue that is moving. The states that still
  * need a person (stuck, failed, maintainer, the sent-* hand-offs) keep it.
  */
-export const CLEARS_NEEDS_OWNER = ['started', 'ready', 'revised', 'asked', 'answered', 'sent', 'carried'];
+export const CLEARS_NEEDS_OWNER = ['started', 'ready', 'revised', 'asked', 'answered', 'sent', 'in-alpha', 'closed'];
 
 /**
  * One pass of the cleaning rules. `cleanMessage` repeats it until nothing changes,
@@ -341,11 +360,11 @@ export function resolveState(state, message) {
 
 /**
  * @param {string} state one of STATES
- * @param {{repo?: string, pr?: string|number, message?: string, notice?: string}} [where] `repo` and `pr` are needed for the
- *   states with links. `notice` is the address of the earlier build notice, for the states that point back to it.
+ * @param {{repo?: string, pr?: string|number, message?: string}} [where] `repo` is needed for the states with links,
+ *   and `pr` for a pull request's own build.
  * @returns {string}
  */
-export function renderReply(state, { repo, pr, message, notice } = {}) {
+export function renderReply(state, { repo, pr, message } = {}) {
   const posted = resolveState(state, message);
   const def = STATES_DEF[posted];
   const words = cleanMessage(message);
@@ -356,19 +375,16 @@ export function renderReply(state, { repo, pr, message, notice } = {}) {
     if (lead) parts.push(lead);
   }
   if (def.intro) parts.push(def.intro.join('\n'));
-  if (def.links) {
-    const n = requireNumber(pr, 'pull request number');
+  if (def.links || def.alpha) {
+    // A pull request's own build, or the alpha (`testing-app.yml`). The file names are the same.
+    const tag = def.alpha ? ALPHA_TAG : `pr-${requireNumber(pr, 'pull request number')}`;
+    const what = def.alpha ? 'the alpha ' : '';
     if (!repo) throw new Error(`repo is required for the ${state} state`);
-    const base = `https://github.com/${repo}/releases/download/pr-${n}`;
+    const base = `https://github.com/${repo}/releases/download/${tag}`;
     parts.push([
-      `- [Download for Mac, Apple Silicon](${base}/Omniya-Core-mac-arm64.zip)`,
-      `- [Download for Windows](${base}/Omniya-Core-Setup-x64.exe)`
+      `- [Download ${what}for Mac, Apple Silicon](${base}/Omniya-Core-mac-arm64.zip)`,
+      `- [Download ${what}for Windows](${base}/Omniya-Core-Setup-x64.exe)`
     ].join('\n'));
-  }
-  if (def.notice) {
-    // Only an address of one comment of an issue on GitHub. Anything else is left out, not repaired.
-    const ok = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/issues\/\d+#issuecomment-\d+$/.test(String(notice ?? ''));
-    parts.push(ok ? `Your download links are in this earlier comment: ${notice}` : 'Your download links are in my earlier comment, the one that says a test build is ready.');
   }
   if (def.lines.length > 0) parts.push(def.lines.join('\n'));
   return `${def.marker ?? MARKER}\n${stateLine(posted)}\n${parts.join('\n\n')}\n`;
@@ -402,7 +418,7 @@ export function isReplyOfState(body, state) {
  * (`sent-automation`, `sent-owner`). When that person's part is done and the fix is green,
  * the contributor must be told, whichever of the three they were last told.
  */
-export const WAITING_STATES = ['maintainer', 'sent-automation', 'sent-owner'];
+export const WAITING_STATES = ['maintainer', 'sent-automation', 'sent-owner', 'held'];
 
 /** Is this comment body one of the WAITING_STATES replies, in today's wording or the old one? */
 export const isWaitingOnPerson = (body) => WAITING_STATES.some((state) => isReplyOfState(body, state));
@@ -414,9 +430,9 @@ export const isWaitingOnPerson = (body) => WAITING_STATES.some((state) => isRepl
  * @param {{issue: string|number, state: string, repo: string, pr?: string|number, message?: string}} args
  * @param {(args: string[]) => string} [run]
  */
-export function postReply({ issue, state, repo, pr, message, notice }, run = gh) {
+export function postReply({ issue, state, repo, pr, message }, run = gh) {
   const number = requireNumber(issue, 'issue number');
-  const body = renderReply(state, { repo, pr, message, notice });
+  const body = renderReply(state, { repo, pr, message });
   run(['api', `repos/${repo}/issues/${number}/comments`, '-f', `body=${body}`]);
   const posted = resolveState(state, message);
   const label = LABELS[posted];
@@ -424,6 +440,7 @@ export function postReply({ issue, state, repo, pr, message, notice }, run = gh)
     run(['label', 'create', label.name, '--repo', repo, '--force', '--description', label.description]);
     run(['issue', 'edit', number, '--repo', repo, '--add-label', label.name]);
   }
+  if (STATES_DEF[posted].close) run(['issue', 'close', number, '--repo', repo, '--reason', 'completed']);
   if (CLEARS_NEEDS_OWNER.includes(posted)) {
     try {
       run(['issue', 'edit', number, '--repo', repo, '--remove-label', 'needs-owner']);

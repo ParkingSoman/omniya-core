@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { REQUIRED_CHECKS, decide, handOff, notGreen, protectedPath } from '../../../scripts/ci/hand-off.mjs';
+import { OPEN_LINE, REQUIRED_CHECKS, decide, fixIssue, handedOff, handOff, mergeGreen, notGreen, protectedPath } from '../../../scripts/ci/hand-off.mjs';
 
 const green = (name, at = '2026-10-10T10:00:00Z') => ({ name, conclusion: 'success', completed_at: at });
 
@@ -276,4 +276,132 @@ test('a confirmation no agent read is pinned: any head commit but the one the ga
   assert.equal(result.merge, false);
   assert.equal(result.reason, 'moved');
   assert.ok(!other.calls.some((c) => c.line.includes('statuses/') || c.line.startsWith('pr merge')));
+});
+
+// Merge first (`confirmed: false`): the checks are green and nobody has tried the fix yet.
+const first = (f, extra = {}) => handOff({ issue: 5, pr: 9, repo: 'a/b', reviewer: 'owner', mergeToken: 'APP', confirmed: false, ...extra }, f.gh);
+
+test('merge first: a clean green fix merges without closing the issue, and the issue hears nothing yet', () => {
+  const f = fakeGh({ files: [{ filename: 'src/a.js' }], body: 'What changed.\n\nFixes #5\n' });
+  const result = first(f);
+  assert.equal(result.merge, true);
+  assert.equal(OPEN_LINE, 'Fix for');
+  const lines = f.calls.map((c) => c.line);
+  const status = lines.findIndex((l) => l.startsWith('api repos/a/b/statuses/abc123') && l.includes('context=contributor-tested') && l.includes('alpha'));
+  const body = lines.findIndex((l) => l.startsWith('api -X PATCH repos/a/b/pulls/9') && l.includes('body=What changed.\n\nFix for #5\n'));
+  const merge = lines.findIndex((l) => l.startsWith('pr merge 9') && l.includes('--body Fix for #5') && l.includes('--match-head-commit abc123'));
+  assert.ok(status >= 0 && body > status && merge > body, 'status, then the closing line is taken out, then the merge');
+  assert.equal(f.calls[body].token, 'APP');
+  assert.ok(!lines.some((l) => /Fixes #5/.test(l) && l.startsWith('pr merge')), 'the merge must not close the issue');
+  assert.ok(!lines.some((l) => l.includes('issues/5/comments')), 'the contributor hears when the alpha holds it, not now');
+  assert.ok(lines.some((l) => l.startsWith('pr comment 9') && l.includes('Merge first')));
+});
+
+test('merge first: a fix that is not ready says nothing and changes nothing', () => {
+  for (const f of [
+    fakeGh({ files: [{ filename: 'src/a.js' }], conclusion: 'failure' }),
+    fakeGh({ files: [{ filename: 'src/a.js' }], mergeable: 'CONFLICTING' })
+  ]) {
+    const result = first(f);
+    assert.equal(result.merge, false);
+    const writes = f.calls.map((c) => c.line).filter((l) => !l.startsWith('pr view') && !l.startsWith('api repos/a/b/commits/') && !l.startsWith('api repos/a/b/pulls/9/files'));
+    assert.deepEqual(writes, [], 'no label, no comment, no status, no draft change');
+  }
+});
+
+test('merge first: a fix a person must read is held, and the contributor is told once', () => {
+  const f = fakeGh({ files: [{ filename: '.github/workflows/x.yml' }] });
+  const result = first(f);
+  assert.equal(result.merge, false);
+  assert.equal(result.sent, true);
+  const lines = f.calls.map((c) => c.line);
+  assert.ok(!lines.some((l) => l.includes('statuses/') || l.startsWith('pr merge')));
+  assert.ok(lines.some((l) => l.includes('--add-label needs-owner')));
+  assert.ok(lines.some((l) => l.includes('issues/5/comments') && l.includes('state held')));
+  // The label says it was told. The next run says nothing.
+  const again = fakeGh({ files: [{ filename: '.github/workflows/x.yml' }], viewOverride: { labels: [{ name: 'needs-owner' }] } });
+  first(again);
+  assert.deepEqual(again.calls.map((c) => c.line).filter((l) => !l.startsWith('pr view') && (l.includes('comment') || l.includes('label') || l.startsWith('pr ready'))), []);
+});
+
+test('merge first: a stale needs-owner does not stop a fix that is now clean and green', () => {
+  const f = fakeGh({ files: [{ filename: 'src/a.js' }], viewOverride: { labels: [{ name: 'needs-owner' }] } });
+  assert.equal(first(f).merge, true);
+});
+
+test('fixIssue: only the pipeline\'s own fix branches into testing, opened by the pipeline, naming one issue', () => {
+  const pr = { isCrossRepository: false, baseRefName: 'testing', headRefName: 'claude/fix-5-x', body: 'x\n\nFixes #5', author: { login: 'app/omniya-pipeline' } };
+  assert.equal(fixIssue(pr), '5');
+  assert.equal(fixIssue({ ...pr, body: 'x\n\nFix for #5' }), '5', 'a fix handed off before is still a fix');
+  for (const login of ['app/github-actions', 'omniya-bot', 'omniya-pipeline[bot]']) assert.equal(fixIssue({ ...pr, author: { login } }), '5', login);
+  assert.equal(fixIssue({ ...pr, author: { login: 'boss' } }, 'boss'), '5', 'the owner');
+  assert.equal(fixIssue({ ...pr, author: { login: 'listed-contributor' } }, 'boss'), '', 'anyone else with write access waits for the owner');
+  assert.equal(fixIssue({ ...pr, author: undefined }), '');
+  assert.equal(fixIssue({ ...pr, isCrossRepository: true }), '');
+  assert.equal(fixIssue({ ...pr, baseRefName: 'main' }), '');
+  assert.equal(fixIssue({ ...pr, headRefName: 'pipeline/x' }), '');
+  assert.equal(fixIssue({ ...pr, headRefName: 'claude/fix-6-x' }), '', 'the branch names another issue');
+  assert.equal(fixIssue({ ...pr, headRefName: 'claude/fix-55-x' }), '', '#5 is not #55');
+});
+
+test('handedOff: the merge status on the CURRENT head, nothing else', () => {
+  assert.equal(handedOff({ statusCheckRollup: [{ context: 'contributor-tested', state: 'SUCCESS' }] }), true);
+  assert.equal(handedOff({ statusCheckRollup: [{ context: 'contributor-tested', state: 'PENDING' }] }), false);
+  assert.equal(handedOff({ statusCheckRollup: [{ name: 'unit', conclusion: 'SUCCESS' }] }), false);
+  assert.equal(handedOff({}), false);
+});
+
+// mergeGreen() over a list of pull requests, each with its own issue.
+function listGh(prs, issues, failOn = 0) {
+  const calls = [];
+  const gh = (args, options = {}) => {
+    calls.push({ line: args.join(' '), token: options.token });
+    if (args[0] === 'pr' && args[1] === 'list') return JSON.stringify(prs);
+    const issue = /^repos\/a\/b\/issues\/(\d+)$/.exec(args[1] ?? '');
+    if (args[0] === 'api' && issue) {
+      if (Number(issue[1]) === failOn) throw new Error('boom');
+      return JSON.stringify(issues[issue[1]]);
+    }
+    if (args[0] === 'pr' && args[1] === 'view') {
+      const pr = prs.find((p) => String(p.number) === args[2]);
+      return JSON.stringify({ headRefOid: 'abc123', mergeable: 'MERGEABLE', body: pr.body, changedFiles: 1, isCrossRepository: false, baseRefName: 'testing', headRefName: pr.headRefName, state: 'OPEN', labels: [] });
+    }
+    if (args[1]?.includes('/check-runs')) return ['unit', 'nemeth', 'e2e'].map((name) => JSON.stringify({ name, conclusion: 'success', completed_at: 'x' })).join('\n');
+    if (args[1]?.includes('/files')) return JSON.stringify({ filename: 'src/a.js' });
+    return '';
+  };
+  return { gh, calls };
+}
+const fixPr = (number, issue, over = {}) => ({ number, body: `x\n\nFixes #${issue}`, headRefName: `claude/fix-${issue}-x`, isCrossRepository: false, baseRefName: 'testing', author: { login: 'app/omniya-pipeline' }, statusCheckRollup: [], ...over });
+
+test('mergeGreen: every open fix is looked at; closed issues, design questions and other branches are left alone', () => {
+  const prs = [fixPr(9, 5), fixPr(10, 6), fixPr(11, 7), fixPr(12, 8, { headRefName: 'product/x' }), fixPr(14, 3), fixPr(13, 4)];
+  const issues = { 5: { state: 'open', labels: [] }, 6: { state: 'closed', labels: [] }, 7: { state: 'open', labels: [{ name: 'needs-design' }] }, 3: { state: 'open', labels: [{ name: 'test-first' }] }, 4: { state: 'open', labels: [] } };
+  const g = listGh(prs, issues, 4);
+  const results = mergeGreen({ repo: 'a/b', mergeToken: 'APP', reviewer: 'owner' }, g.gh);
+  assert.deepEqual(results.map((r) => [r.pr, r.outcome]), [[9, 'merging'], [10, 'skip: the issue is closed'], [11, 'skip: held by needs-design'], [14, 'skip: held by test-first'], [13, 'error: boom']]);
+  assert.equal(g.calls.filter((c) => c.line.startsWith('pr merge')).length, 1);
+  assert.ok(g.calls.some((c) => c.line.startsWith('pr merge 9')));
+});
+
+test('mergeGreen: one pull request only, when asked', () => {
+  const g = listGh([fixPr(9, 5), fixPr(10, 6)], { 5: { state: 'open', labels: [] }, 6: { state: 'open', labels: [] } });
+  assert.deepEqual(mergeGreen({ repo: 'a/b', mergeToken: 'APP', reviewer: 'owner', only: '10' }, g.gh).map((r) => r.pr), [10]);
+});
+
+test('mergeGreen: a head that moved after its hand-off is handed off again; the same head is left alone', () => {
+  const issues = { 5: { state: 'open', labels: [] }, 6: { state: 'open', labels: [] } };
+  const done = [{ context: 'contributor-tested', state: 'SUCCESS' }];
+  const g = listGh([fixPr(9, 5, { body: 'x\n\nFix for #5' }), fixPr(10, 6, { body: 'x\n\nFix for #6', statusCheckRollup: done })], issues);
+  const results = mergeGreen({ repo: 'a/b', mergeToken: 'APP', reviewer: 'owner' }, g.gh);
+  assert.deepEqual(results.map((r) => [r.pr, r.outcome]), [[9, 'merging'], [10, 'skip: this commit was handed off']]);
+  const lines = g.calls.map((c) => c.line);
+  assert.ok(lines.some((l) => l.startsWith('pr merge 9') && l.includes('--body Fix for #5')));
+  assert.ok(!lines.some((l) => l.startsWith('api -X PATCH')), 'the closing line was already changed: no second edit');
+});
+
+test('mergeGreen: a fix branch someone else opened is not merged first', () => {
+  const g = listGh([fixPr(9, 5, { author: { login: 'listed-contributor' } })], { 5: { state: 'open', labels: [] } });
+  assert.deepEqual(mergeGreen({ repo: 'a/b', mergeToken: 'APP', reviewer: 'owner' }, g.gh), []);
+  assert.ok(!g.calls.some((c) => c.line.startsWith('pr merge')));
 });

@@ -16,8 +16,10 @@
  *      A question, a design refusal, a stuck message or an unmarked notice
  *      is not, so a bare phrase that answers one does nothing.
  *   4. Exactly one open fix pull request is awaiting confirmation (the caller
- *      passes the count from `find-fix-pr.mjs`).
- *   5. The pull request's head commit has a successful `pack-mac` build that
+ *      passes the count from `find-fix-pr.mjs`). OR no fix is open, and the newest
+ *      bot reply says the fix is in the test alpha (`in-alpha`, merge first). Then
+ *      the answer is `close`: the issue closes, and nothing else is checked.
+ *   5. With an open fix: the pull request's head commit has a successful `pack-mac` build that
  *      FINISHED before that build comment, by GitHub's own clock, so the build
  *      the contributor tried is the commit that would merge. A git commit date
  *      is written by whoever pushed, so it is never used. The commit comes from
@@ -30,7 +32,7 @@
  *   COMMENT_ID=... node scripts/ci/confirm.mjs <issue> <comment-id> <commenter> <issue-author> <association> <pr-count> <pr> <head-sha>
  *   node scripts/ci/confirm.mjs --shape   (reads COMMENT_ID, or INPUT_BODY; prints shaped, mention)
  *
- * Step outputs: confirm (true|false), reason, and with `--shape` shaped and mention.
+ * Step outputs: confirm (true|false), close (true|false), reason, and with `--shape` shaped and mention.
  */
 
 import { pathToFileURL } from 'node:url';
@@ -46,11 +48,18 @@ export const PHRASES = [
   'its fixed',
   'fixed',
   'it works great',
+  'it works thanks',
+  'it works thank you',
+  'thanks it works',
+  'thank you it works',
   'looks good'
 ];
 
 /** The reply states that hand the contributor a build to try. */
 export const READY_STATES = ['ready', 'revised'];
+
+/** The reply state that hands the contributor the alpha with their merged fix in it. */
+export const ALPHA_STATE = 'in-alpha';
 
 const MAX_LENGTH = 200;
 
@@ -97,21 +106,25 @@ export function replyState(body) {
  */
 export function decide({ commenter, issueAuthor, association, prCount, commentId, issueComments, headBuiltAt }) {
   if (!commenter || (commenter !== issueAuthor && association !== 'OWNER')) return { confirm: false, reason: 'not-author' };
-  if (Number(prCount) !== 1) return { confirm: false, reason: 'no-single-fix' };
-  // The one reminder points back to the build notice and asks nothing, so it is not "the pipeline spoke
-  // after the build": a plain "it works" written after it answers the notice, as it would have before.
+  if (![0, 1].includes(Number(prCount))) return { confirm: false, reason: 'no-single-fix' };
+  // The one reminder repeats the newest notice and asks nothing new, so a plain "it works" written
+  // after it answers that notice.
   const bot = (issueComments ?? [])
     .filter((c) => c.user?.login === AUTHOR && replyState(c.body) !== 'reminded')
     .sort((a, b) => a.id - b.id)
     .at(-1);
   if (!bot) return { confirm: false, reason: 'no-bot-comment' };
   if (bot.id > Number(commentId)) return { confirm: false, reason: 'bot-spoke-after' };
+  // Merge first: the fix is already in `testing`. "It works" on the alpha closes the issue.
+  if (Number(prCount) === 0) {
+    return replyState(bot.body) === ALPHA_STATE ? { confirm: true, close: true, reason: 'ok-alpha' } : { confirm: false, reason: 'no-single-fix' };
+  }
   if (!READY_STATES.includes(replyState(bot.body))) return { confirm: false, reason: 'newest-not-a-build' };
   if (!headBuiltAt) return { confirm: false, reason: 'head-not-built' };
   // The branch was brought up to date (or repaired) after the contributor was given a build, and its
   // build finished after that comment. `rebuilt` lets the caller say so once. Nothing merges on this.
   if (!(Date.parse(headBuiltAt) <= Date.parse(bot.created_at))) return { confirm: false, reason: REBUILT };
-  return { confirm: true, reason: 'ok' };
+  return { confirm: true, close: false, reason: 'ok' };
 }
 
 /** The reason a confirmation is not taken because the head was built AFTER the build comment. */
@@ -171,6 +184,6 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     const result = isConfirmPhrase(body)
       ? confirmFromGitHub({ issue, commentId, commenter, issueAuthor, association, prCount, sha, repo: process.env.GITHUB_REPOSITORY })
       : { confirm: false, reason: 'not-a-phrase' };
-    setOutputs(result);
+    setOutputs({ close: false, ...result });
   }
 }
