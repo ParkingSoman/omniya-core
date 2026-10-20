@@ -84,6 +84,12 @@ test('the report decides by the LAST verify that ran, and a missing answer is no
   assert.equal(call.outputs.green.value, '${{ jobs.report.outputs.green }}');
 });
 
+test('a fix that merged while a repair still checked it counts as green: the maintainer is not told', () => {
+  const run = jobs.report.steps.find((s) => s.id === 'final').run;
+  const merged = run.indexOf('= "MERGED" ]; then final="true"; fi');
+  assert.ok(merged > run.indexOf('for v in') && merged < run.indexOf('if [ "$final" = "true" ]'), 'decided after the last verify, before green or red');
+});
+
 test('green says nothing on the issue (merge first speaks when the alpha holds it); red says a technical thing is with the maintainer, and labels it', () => {
   const final = jobs.report.steps.find((s) => s.id === 'final');
   const run = final.run;

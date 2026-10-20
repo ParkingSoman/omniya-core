@@ -100,3 +100,12 @@ test('with no published alpha nothing is told, and a dry run posts nothing', () 
   assert.equal(tellAll({ repo: 'o/r', now: NOW, dry: true }, dry.run)[0].outcome, 'would tell');
   assert.equal(none.posts.length + dry.posts.length, 0);
 });
+
+test('merged fixes are asked for by merge date, so an old fix merged today is not missed', () => {
+  const issues = { 5: { state: 'open', comments: [] } };
+  const g = fakeGh({ prs: [merged(9, 5, 1)], issues });
+  let listed;
+  const run = (args) => { if (args[0] === 'pr' && args[1] === 'list') listed = args; return g.run(args); };
+  tellAll({ repo: 'o/r', now: NOW, dry: true }, run);
+  assert.equal(listed[listed.indexOf('--search') + 1], `merged:>=${new Date(NOW - LOOK_BACK_DAYS * DAY).toISOString().slice(0, 10)}`);
+});
