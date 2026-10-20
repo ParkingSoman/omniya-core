@@ -7,6 +7,7 @@ import { NemethUnsupportedError } from '../../../src/domain/nemeth/errors.js';
 import { lex } from '../../../src/domain/nemeth/lexer.js';
 import { resolveLevels } from '../../../src/domain/nemeth/levels.js';
 import { toLatex } from '../../../src/domain/nemeth/latex.js';
+import { parseNemeth } from '../../../src/domain/nemeth/index.js';
 import { parse } from '../../../src/domain/nemeth/parser.js';
 
 const treeOf = (ascii) => parse(resolveLevels(lex(asciiToCells(ascii))));
@@ -743,6 +744,56 @@ test('the combination "-+" is the single sign ∓', () => {
 
 test('a multipurpose indicator divides a sign of operation from a following sign of a term', () => {
   assert.equal(toLatexOf('x+"-y'), 'x+-y');
+});
+
+// BANA Rule 23.10 (Nemeth_2022.txt line 11565): the hollow dot means degrees at
+// the superscript level, so the cells are the superscript indicator `⠘` and the
+// hollow dot `⠨⠡` (Examples 4-9, 14-2 and 23-13).
+test('a degree sign is the hollow dot at the superscript level (Rule 23.10)', () => {
+  assert.equal(parseNemeth('⠼⠔⠴⠘⠨⠡').latex, '{90°}');
+});
+
+test('degrees survive a baseline indicator and a comparison (Example 23-13)', () => {
+  assert.equal(
+    parseNemeth('⠼⠔⠴⠘⠨⠡⠐⠬⠔⠴⠘⠨⠡⠀⠨⠅⠀⠼⠂⠦⠴⠘⠨⠡').latex,
+    '{90°}+{90°}={180°}'
+  );
+});
+
+test('a hollow dot on the baseline is not a degree sign and is still refused', () => {
+  assert.throws(() => parseNemeth('⠨⠡'), NemethUnsupportedError);
+});
+
+// The reader said "2 raised to the composed with power" for a superscript U+2218.
+// The sign has to reach the screen reader as the flat degree sign, which it speaks
+// as "degrees" (issue #58, contributor test of the first build).
+test('a degree sign is a flat degree sign in the LaTeX, not a raised ring', () => {
+  assert.equal(parseNemeth('⠼⠆⠘⠨⠡').latex, '{2°}');
+  assert.ok(!parseNemeth('⠼⠆⠘⠨⠡').latex.includes('^'));
+});
+
+// Issue #58, second and fourth contributor tests: `90°` then `+` was spoken "90
+// degrees positive 90 degrees", and `-` and the division sign "negative" and
+// "division". Wrapping only the degree sign did not help: the reader still saw
+// operator, operator. The number and its degree sign are grouped in one mrow, so
+// the operator that follows is a binary one. The test reads the spoken words, as
+// the app's speech settings (clearspeak) do.
+test('a degree sign does not turn the operator after it into a sign', async () => {
+  const { convertLatexToMathML } = await import('../../../src/main/mathml.js');
+  const { default: SRE } = await import('speech-rule-engine');
+  await SRE.setupEngine({ locale: 'en', domain: 'clearspeak', style: 'default' });
+  await SRE.engineReady();
+  const speak = async (cells) => SRE.toSpeech(await convertLatexToMathML(parseNemeth(cells).latex));
+  assert.equal(await speak('⠼⠆⠘⠨⠡⠐⠬⠆⠘⠨⠡'), '2 degrees plus 2 degrees');
+  assert.equal(await speak('⠼⠆⠘⠨⠡⠐⠤⠆⠘⠨⠡'), '2 degrees minus 2 degrees');
+  assert.equal(await speak('⠼⠆⠘⠨⠡⠐⠨⠌⠆⠘⠨⠡'), '2 degrees divided by 2 degrees');
+});
+
+// The Code (Example 23-13) writes the baseline indicator after a degree sign that
+// something follows, and the contributor confirmed it; without it the plus would
+// be read at the superscript level, which is refused rather than guessed.
+test('a plus straight after a degree sign, with no baseline indicator, is refused', () => {
+  assert.throws(() => parseNemeth('⠼⠔⠴⠘⠨⠡⠬⠔⠴⠘⠨⠡'), NemethUnsupportedError);
 });
 
 // Rule 23.15 (Nemeth_2022.txt lines 11710-11726, page 23-10): percent @0 and per
