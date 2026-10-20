@@ -1,6 +1,7 @@
 import { cpSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { patchEnglishMathmap } from '../../src/renderer/speech-rules.js';
 
 // Speech Rule Engine says the exponent in 2^n as "n-th", which JAWS reads as the
 // letters n, t, h (issue #73). The contributor asked for "enth": "2 to the enth
@@ -58,6 +59,9 @@ export function buildSreMathmaps(src, dest) {
     d.rules.push(...ACTIONS);
     return true;
   });
+  // How a function with a power is spoken (issue #71): see src/renderer/speech-rules.js.
+  const enFile = path.join(dest, 'en.json');
+  writeFileSync(enFile, JSON.stringify(patchEnglishMathmap(JSON.parse(readFileSync(enFile, 'utf8')))));
   patchFile(path.join(dest, 'base.json'), (d) => {
     if (!d.rules?.some((r) => r[0] === 'Precondition' && r[1] === 'exponent' && r[3] === 'self::identifier')) return false;
     d.rules.push(...PRECONDITIONS);
