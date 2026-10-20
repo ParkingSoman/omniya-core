@@ -185,7 +185,18 @@ export const toLatex = defineBackend(
       node.index === null
         ? `\\sqrt{${emit(node.radicand)}}`
         : `\\sqrt[${emit(node.index)}]{${emit(node.radicand)}}`,
-    Superscript: (node, emit) => `${scriptBase(node.base, emit)}^{${emit(node.exponent)}}`,
+    // The degree sign (BANA 23.10) is WRITTEN at the superscript level, but it is
+    // not a power. A real superscript of U+2218 was spoken as "2 raised to the
+    // composed with power" by a blind contributor's screen reader (issue #58), so
+    // it is emitted flat: `90°` is <mn>90</mn> and the degree sign, which reads "90 degrees".
+    // The number and its sign are grouped in braces (an <mrow>). Two bare operators in a
+    // row make the reader take the next + - or division sign as a sign: "90 degrees
+    // positive 90 degrees". Wrapping only the degree sign was not enough (the reader
+    // still saw operator, operator); grouping the whole "90°" makes it one operand.
+    Superscript: (node, emit) =>
+      node.exponent.kind === 'Operator' && node.exponent.glyph === '°'
+        ? `{${scriptBase(node.base, emit)}°}`
+        : `${scriptBase(node.base, emit)}^{${emit(node.exponent)}}`,
     Subscript: (node, emit) => `${scriptBase(node.base, emit)}_{${emit(node.index)}}`,
     SubSuperscript: (node, emit) =>
       `${scriptBase(node.base, emit)}_{${emit(node.index)}}^{${emit(node.exponent)}}`,
